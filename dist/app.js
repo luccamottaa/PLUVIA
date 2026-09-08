@@ -6,6 +6,9 @@ const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const $ = (id) => document.getElementById(id);
 let lastRefreshAt = 0;
 let refreshInFlight = null;
+let displayedWeather = null;
+let errorTimer;
+const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 
 async function fetchJson(url, timeoutMs = 12000) {
   const controller = new AbortController();
@@ -21,10 +24,14 @@ async function fetchJson(url, timeoutMs = 12000) {
 
 async function fetchForecast() {
   try {
-    return await fetchJson(API);
+    const data = await fetchJson(API);
+    if (!validForecast(data)) throw new Error("Previsão incompleta");
+    return data;
   } catch {
     await new Promise(resolve => setTimeout(resolve, 800));
-    return fetchJson(API, 16000);
+    const data = await fetchJson(API, 12000);
+    if (!validForecast(data)) throw new Error("Previsão incompleta");
+    return data;
   }
 }
 
@@ -143,7 +150,7 @@ function escapeHtml(value = "") {
 }
 
 function safeManausUrl(value = "") {
-  try { const url = new URL(value); return url.protocol === "https:" && url.hostname.endsWith("manaus.am.gov.br") ? url.href : "https://www.manaus.am.gov.br/?s=defesa+civil"; }
+  try { const url = new URL(value); return url.protocol === "https:" && (url.hostname === "manaus.am.gov.br" || url.hostname.endsWith(".manaus.am.gov.br")) ? url.href : "https://www.manaus.am.gov.br/?s=defesa+civil"; }
   catch { return "https://www.manaus.am.gov.br/?s=defesa+civil"; }
 }
 
@@ -162,7 +169,7 @@ function severityClass(alert) {
   const text = JSON.stringify(alert).toLowerCase();
   if (text.includes("grande perigo") || text.includes("vermelh")) return "danger";
   if ((text.includes("perigo") && !text.includes("potencial")) || text.includes("laranja")) return "warning";
-  return "ok";
+  return "warning";
 }
 
 function alertCoversManaus(alert) {
@@ -173,16 +180,17 @@ function alertCoversManaus(alert) {
 async function loadInmetAlerts() {
   const state = $("inmetState"); const content = $("inmetContent");
   try {
-    const response = await fetch(INMET_API); if (!response.ok) throw new Error("INMET indisponível");
-    const alerts = normalizeAlerts(await response.json()).filter(alertCoversManaus);
+    const raw = await fetchJson(INMET_API);
+    if (!Array.isArray(raw) && !["avisos", "alerts", "data", "features", "result"].some(key => Array.isArray(raw?.[key]))) throw new Error("Resposta INMET desconhecida");
+    const alerts = normalizeAlerts(raw).filter(alertCoversManaus);
     if (!alerts.length) {
       state.className = "source-state ok"; state.innerHTML = "<i></i>Sem aviso ativo";
-      content.innerHTML = "<h3>Nenhum aviso para Manaus</h3><p>O INMET não lista aviso meteorológico ativo abrangendo Manaus ou o Amazonas neste momento.</p>";
+      content.innerHTML = "<h3>Nenhum aviso encontrado</h3><p>A consulta não retornou avisos para Manaus ou o Amazonas. Confira a abrangência dos avisos no mapa oficial.</p>";
       return;
     }
     const alert = alerts.sort((a,b) => severityClass(a) === "danger" ? -1 : severityClass(b) === "danger" ? 1 : 0)[0];
     const klass = severityClass(alert); const title = firstValue(alert, ["evento", "tipo", "titulo", "aviso", "descricao"], "Aviso meteorológico");
-    const severity = firstValue(alert, ["severidade", "nivel", "severity", "aviso_cor"], klass === "danger" ? "Grande perigo" : klass === "warning" ? "Perigo" : "Perigo potencial");
+    const severity = firstValue(alert, ["severidade", "nivel", "severity", "aviso_cor"], "Consulte a severidade no mapa");
     const end = firstValue(alert, ["data_fim", "fim", "expires", "termino"], ""); const risks = firstValue(alert, ["riscos", "instrucao", "descricao"], "Consulte os detalhes e as orientações no mapa oficial do INMET.");
     state.className = `source-state ${klass}`; state.innerHTML = `<i></i>${alerts.length} aviso${alerts.length > 1 ? "s" : ""} ativo${alerts.length > 1 ? "s" : ""}`;
     content.innerHTML = `<h3>${escapeHtml(decodeHtml(String(title)))}</h3><p>${escapeHtml(decodeHtml(String(risks)).slice(0, 220))}</p><div class="source-meta"><span>${escapeHtml(decodeHtml(String(severity)))}</span>${end ? `<span>Até ${escapeHtml(String(end).slice(0,16).replace("T", " "))}</span>` : ""}</div>`;
@@ -195,19 +203,19 @@ async function loadInmetAlerts() {
 async function loadDefesaAlerts() {
   const state = $("defesaState"); const content = $("defesaContent");
   try {
-    const response = await fetch(DEFESA_API); if (!response.ok) throw new Error("Defesa Civil indisponível");
-    const posts = await response.json();
+    const posts = await fetchJson(DEFESA_API);
+    if (!Array.isArray(posts)) throw new Error("Resposta municipal desconhecida");
     const relevant = posts.filter(p => /alerta|chuva|alagamento|deslizamento|temporal|vendaval/i.test(decodeHtml(p.title?.rendered || "")));
-    const latest = relevant[0]; const ageHours = latest ? (Date.now() - new Date(latest.date).getTime()) / 3600000 : Infinity;
+    const latest = relevant[0]; const ageHours = latest ? (Date.now() - manausDate(latest.date).getTime()) / 3600000 : Infinity;
     if (!latest || ageHours > 48) {
-      state.className = "source-state ok"; state.innerHTML = "<i></i>Sem alerta recente";
+      state.className = "source-state"; state.innerHTML = "<i></i>Sem comunicado recente";
       const lastLink = latest ? `<a href="${safeManausUrl(latest.link)}" target="_blank" rel="noreferrer">Ver último comunicado oficial ↗</a>` : "";
-      content.innerHTML = `<h3>Nenhum comunicado ativo</h3><p>Não há publicação de alerta da Defesa Civil de Manaus nas últimas 48 horas. ${lastLink}</p>`;
+      content.innerHTML = `<h3>Consulte os canais oficiais</h3><p>A busca não encontrou comunicados nas últimas 48 horas. Isso não confirma ausência de alertas. ${lastLink}</p>`;
       return;
     }
     const title = decodeHtml(latest.title?.rendered || "Comunicado da Defesa Civil"); const summary = decodeHtml(latest.excerpt?.rendered || "Consulte as orientações oficiais da Prefeitura de Manaus.");
-    state.className = "source-state danger"; state.innerHTML = "<i></i>Comunicado recente";
-    content.innerHTML = `<h3>${escapeHtml(title)}</h3><p>${escapeHtml(summary.slice(0, 210))}</p><div class="source-meta"><span>${new Intl.DateTimeFormat("pt-BR", {dateStyle:"short", timeStyle:"short", timeZone:"America/Manaus"}).format(new Date(latest.date))}</span><span><a href="${safeManausUrl(latest.link)}" target="_blank" rel="noreferrer">Ler publicação ↗</a></span></div>`;
+    state.className = "source-state warning"; state.innerHTML = "<i></i>Comunicado recente";
+    content.innerHTML = `<h3>${escapeHtml(title)}</h3><p>${escapeHtml(summary.slice(0, 210))}</p><div class="source-meta"><span>${new Intl.DateTimeFormat("pt-BR", {dateStyle:"short", timeStyle:"short", timeZone:"America/Manaus"}).format(manausDate(latest.date))}</span><span><a href="${safeManausUrl(latest.link)}" target="_blank" rel="noreferrer">Ler publicação ↗</a></span></div>`;
   } catch {
     state.className = "source-state warning"; state.innerHTML = "<i></i>Canal direto";
     content.innerHTML = "<h3>Alertas direto no celular</h3><p>O portal municipal não respondeu. Envie seu CEP por SMS para 40199; alertas extremos também chegam automaticamente em celulares compatíveis.</p>";
@@ -220,11 +228,14 @@ function updateClock() {
   $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Manaus", weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
 }
 
+function manausDate(value) {
+  return new Date(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value : `${value}-04:00`);
+}
+
 function selectCurrentHour(times) {
-  const local = new Intl.DateTimeFormat("sv-SE", { timeZone: "America/Manaus", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit" }).format(new Date()).replace(" ", "T");
-  let index = times.findIndex(t => t.startsWith(local));
-  if (index < 0) index = times.findIndex(t => new Date(t) >= new Date());
-  return Math.max(0, index);
+  const now = Date.now();
+  const next = times.findIndex(t => manausDate(t).getTime() > now);
+  return next < 0 ? times.length - 1 : Math.max(0, next - 1);
 }
 
 function attentionIconSvg(type) {
@@ -239,14 +250,14 @@ function attentionIconSvg(type) {
 }
 
 function renderAttention(data, start) {
-  const next3Prob = Math.max(...data.hourly.precipitation_probability.slice(start, start + 4));
-  const next3Rain = data.hourly.precipitation.slice(start, start + 4).reduce((a, b) => a + b, 0);
-  const next3Codes = data.hourly.weather_code.slice(start, start + 4);
+  const next3Prob = Math.max(...data.hourly.precipitation_probability.slice(start, start + 3));
+  const next3Rain = data.hourly.precipitation.slice(start, start + 3).reduce((a, b) => a + b, 0);
+  const next3Codes = data.hourly.weather_code.slice(start, start + 3);
   const stormExpected = next3Codes.some(code => [95, 96, 99].includes(code));
   const feels = data.current.apparent_temperature;
   const humidity = data.current.relative_humidity_2m;
   const card = $("attentionCard");
-  card.classList.remove("ok", "warning", "danger");
+  card.classList.remove("ok", "warning", "danger", "unavailable");
   let state = "ok", signal = "NORMAL", title = "Condições dentro do normal", text = "Nenhum sinal crítico para Manaus nas próximas horas.", icon = "normal", level = 28;
   if (stormExpected && next3Prob >= 60) {
     state = "danger"; signal = "ALERTA SEVERO"; title = "Alerta de tempestade"; text = `Há indicação de trovoadas e ${Math.round(next3Prob)}% de chance de chuva nas próximas horas.`; icon = "severe"; level = 96;
@@ -271,7 +282,7 @@ function renderAttention(data, start) {
 function findDryWindow(hourly, start) {
   for (let i = start; i < Math.min(hourly.time.length - 2, start + 36); i++) {
     if (hourly.precipitation_probability[i] < 30 && hourly.precipitation_probability[i + 1] < 30) {
-      const day = i < start + 24 ? (i === start ? "Agora" : (i < start + 12 ? "Hoje" : "Mais tarde")) : "Amanhã";
+      const day = i === start ? "Agora" : hourly.time[i].slice(0, 10) === hourly.time[start].slice(0, 10) ? "Hoje" : "Amanhã";
       return `${day}, ${shortTime(hourly.time[i])}–${shortTime(hourly.time[i + 2])}`;
     }
   }
@@ -279,6 +290,7 @@ function findDryWindow(hourly, start) {
 }
 
 function renderRain(hourly, start) {
+  const scrollLeft = $("rainChart").scrollLeft;
   const indices = Array.from({length: 14}, (_, i) => start + i).filter(i => i < hourly.time.length);
   $("rainChart").innerHTML = indices.map((i, p) => {
     const prob = Math.round(hourly.precipitation_probability[i] || 0);
@@ -289,6 +301,7 @@ function renderRain(hourly, start) {
       <span class="rain-mm">${fmt(mm, 1)} mm</span><span class="hour-icon">${weather(hourly.weather_code[i])[1]}</span>
     </div>`;
   }).join("");
+  $("rainChart").scrollLeft = scrollLeft;
   $("dryWindow").textContent = findDryWindow(hourly, start);
 }
 
@@ -303,8 +316,8 @@ function renderForecast(daily) {
     const width = Math.max(25, ((max - min) / spread) * 100);
     return `<div class="forecast-row">
       <div class="forecast-day"><strong>${day}</strong><span>${label}</span></div>
-      <div class="forecast-condition"><i>${icon}</i><span>${cond}</span></div>
-      <div class="temp-range"><strong>${Math.round(min)}°</strong><div class="temp-track"><span style="width:${width}%"></span></div><strong>${Math.round(max)}°</strong></div>
+      <div class="forecast-condition"><i aria-hidden="true">${icon}</i><span>${cond}</span></div>
+      <div class="temp-range" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus"><strong>${fmt(min)}°</strong><div class="temp-track"><span style="width:${width}%"></span></div><strong>${fmt(max)}°</strong></div>
       <div class="forecast-rain"><span>☂</span><span>${Math.round(daily.precipitation_probability_max[i] || 0)}% · ${fmt(daily.precipitation_sum[i] || 0, 1)} mm</span></div>
       <div class="forecast-uv">UV máx. ${fmt(daily.uv_index_max[i], 0)}</div>
     </div>`;
@@ -312,7 +325,7 @@ function renderForecast(daily) {
 }
 
 function renderSun(daily) {
-  const rise = new Date(daily.sunrise[0]); const set = new Date(daily.sunset[0]); const minutes = Math.round((set - rise) / 60000);
+  const rise = manausDate(daily.sunrise[0]); const set = manausDate(daily.sunset[0]); const minutes = Math.round((set - rise) / 60000);
   $("sunrise").textContent = shortTime(daily.sunrise[0]); $("sunset").textContent = shortTime(daily.sunset[0]);
   $("daylight").textContent = `${Math.floor(minutes / 60)}h ${minutes % 60}min de luz`;
   const now = new Date(); const progress = Math.min(1, Math.max(0, (now - rise) / (set - rise)));
@@ -321,12 +334,42 @@ function renderSun(daily) {
 }
 
 function cache(data) { try { localStorage.setItem("manaus-clima-cache", JSON.stringify({at: Date.now(), data})); } catch {} }
-function cached() { try { return JSON.parse(localStorage.getItem("manaus-clima-cache") || "null"); } catch { return null; } }
+function validForecast(data) {
+  const hourlyFields = ["time", "precipitation_probability", "precipitation", "weather_code", "uv_index"];
+  const dailyFields = ["time", "temperature_2m_min", "temperature_2m_max", "weather_code", "precipitation_probability_max", "precipitation_sum", "uv_index_max", "sunrise", "sunset"];
+  return Number.isFinite(data?.current?.temperature_2m) && Number.isFinite(manausDate(data.current.time).getTime()) &&
+    hourlyFields.every(key => Array.isArray(data?.hourly?.[key]) && data.hourly[key].length >= 3) &&
+    dailyFields.every(key => Array.isArray(data?.daily?.[key]) && data.daily[key].length >= 1);
+}
+function cached() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("manaus-clima-cache") || "null");
+    const age = Date.now() - saved?.at;
+    return age >= 0 && age <= CACHE_MAX_AGE_MS && validForecast(saved?.data?.forecast) ? saved : null;
+  } catch { return null; }
+}
+
+function setDataStatus(text, stale = false) {
+  $("statusText").textContent = text;
+  $("dataStatus").classList.toggle("stale", stale);
+}
+
+function markWeatherUnavailable(hasSavedData) {
+  setDataStatus(hasSavedData ? "Dados salvos · conexão indisponível" : "Conexão indisponível", true);
+  $("attentionCard").classList.remove("ok", "warning", "danger");
+  $("attentionCard").classList.add("unavailable");
+  $("attentionSignal").textContent = "SEM LEITURA";
+  $("attentionTitle").textContent = "Aguardando conexão";
+  $("attentionText").textContent = "A leitura local volta automaticamente quando a consulta estiver disponível.";
+  $("attentionIcon").innerHTML = attentionIconSvg("severe");
+  $("attentionIcon").setAttribute("aria-label", "Sem leitura");
+  $("attentionLevel").style.width = "0%";
+}
 
 function render(data, air, fromCache = false) {
   const current = data.current; const day = data.daily; const start = selectCurrentHour(data.hourly.time); const [condition] = weather(current.weather_code);
   $("temperature").textContent = fmt(current.temperature_2m); $("feelsLike").textContent = `${fmt(current.apparent_temperature)}°`;
-  $("condition").textContent = condition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, current.is_day !== 0); $("highLow").textContent = `${fmt(day.temperature_2m_max[0])}° / ${fmt(day.temperature_2m_min[0])}°`;
+  $("condition").textContent = current.is_day === 0 && current.weather_code === 1 ? "Céu quase limpo" : condition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, current.is_day !== 0); $("highLow").textContent = `${fmt(day.temperature_2m_max[0])}° / ${fmt(day.temperature_2m_min[0])}°`;
   $("rainNow").textContent = `${fmt(current.precipitation, 1)} mm`; $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
   $("pressure").innerHTML = `${fmt(current.surface_pressure)}<sup> hPa</sup>`; $("pressureNote").textContent = pressureLabel(current.surface_pressure);
@@ -334,48 +377,127 @@ function render(data, air, fromCache = false) {
   const [airName, airText] = aqiLabel(air?.current?.us_aqi); $("airQuality").textContent = airName; $("airNote").textContent = airText;
   const airIndex = air?.current?.us_aqi; $("airScore").textContent = Number.isFinite(airIndex) ? Math.round(airIndex) : "--"; $("airCardQuality").textContent = airName;
   $("pm25").textContent = fmt(air?.current?.pm2_5, 1); $("pm10").textContent = fmt(air?.current?.pm10, 1); $("airGuidance").textContent = airGuidance(airIndex);
-  $("updatedAt").textContent = fromCache ? "ÚLTIMO REGISTRO" : `ATUALIZADO ${shortTime(current.time)}`; $("statusText").textContent = fromCache ? "Dados salvos neste aparelho" : "Dados meteorológicos ao vivo";
-  $("footerUpdate").textContent = `Última atualização: ${shortTime(current.time)} AMT`;
+  setDataStatus(fromCache ? "Dados salvos · consultando o tempo" : "Tempo em Manaus", fromCache);
   renderAttention(data, start); renderRain(data.hourly, start); renderForecast(day); renderSun(day);
 }
 
-async function loadWeather(showSpinner = true) {
-  if (showSpinner) $("refreshBtn").classList.add("loading");
+async function loadWeather() {
   try {
     const [forecastResult, airResult] = await Promise.allSettled([fetchForecast(), fetchJson(AIR_API)]);
     if (forecastResult.status !== "fulfilled") throw forecastResult.reason;
     const data = forecastResult.value;
     const air = airResult.status === "fulfilled" ? airResult.value : null;
-    render(data, air); cache({forecast: data, air});
+    render(data, air); displayedWeather = {forecast: data, air}; cache(displayedWeather);
+    clearTimeout(errorTimer); $("errorToast").classList.remove("show"); $("errorToast").setAttribute("aria-hidden", "true");
+    return true;
   } catch (error) {
-    const saved = cached(); if (saved?.data?.forecast) render(saved.data.forecast, saved.data.air, true);
-    $("statusText").textContent = saved ? "Usando a última atualização salva" : "Conexão indisponível";
-    $("errorToast").classList.add("show"); setTimeout(() => $("errorToast").classList.remove("show"), 5000);
-  } finally { $("refreshBtn").classList.remove("loading"); }
-}
-
-async function refreshAll(showSpinner = false) {
-  if (refreshInFlight) return refreshInFlight;
-
-  refreshInFlight = Promise.allSettled([
-    loadWeather(showSpinner),
-    loadInmetAlerts(),
-    loadDefesaAlerts()
-  ]);
-
-  try {
-    await refreshInFlight;
-    lastRefreshAt = Date.now();
-  } finally {
-    refreshInFlight = null;
+    const saved = cached();
+    if (!displayedWeather && saved) { render(saved.data.forecast, saved.data.air, true); displayedWeather = saved.data; }
+    markWeatherUnavailable(Boolean(displayedWeather));
+    if (!displayedWeather) {
+      $("condition").textContent = "Tempo indisponível";
+      $("rainChart").innerHTML = '<p class="chart-loading">Previsão indisponível. Tentaremos novamente.</p>';
+      $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
+      $("dryWindow").textContent = "Sem dados";
+      $("sunPhrase").textContent = "Ciclo solar indisponível.";
+      $("airCardQuality").textContent = "Indisponível";
+      $("airGuidance").textContent = "Dados de partículas indisponíveis no momento.";
+    }
+    return false;
   }
 }
 
-function refreshIfStale() {
-  if (!document.hidden && Date.now() - lastRefreshAt >= 60 * 1000) refreshAll(false);
+async function refreshAll() {
+  if (refreshInFlight) return refreshInFlight;
+  refreshInFlight = Promise.allSettled([loadWeather(), loadInmetAlerts(), loadDefesaAlerts()]).then(results => {
+    const success = results[0].status === "fulfilled" && results[0].value === true;
+    if (success) lastRefreshAt = Date.now();
+    return success;
+  }).finally(() => {
+    refreshInFlight = null;
+  });
+  return refreshInFlight;
 }
 
-$("refreshBtn").addEventListener("click", () => refreshAll(true));
+function refreshIfStale() {
+  if (!document.hidden && Date.now() - lastRefreshAt >= AUTO_REFRESH_MS) refreshAll();
+}
+
+function setupPullToRefresh() {
+  // Unsupported browsers retain their native pull-to-refresh. Only a downward,
+  // single-finger gesture starting at the top is handled by this page.
+  if (!("ontouchstart" in window || navigator.maxTouchPoints > 0) || !window.CSS?.supports("overscroll-behavior-y", "contain")) return;
+  const indicator = $("pullRefresh");
+  const label = $("pullRefreshText");
+  const threshold = 88;
+  let gesture = null;
+  let loading = false;
+  let hideTimer;
+
+  function reset() {
+    gesture = null;
+    if (!loading) { indicator.hidden = true; label.textContent = ""; }
+  }
+
+  document.addEventListener("touchstart", event => {
+    if (loading) return;
+    clearTimeout(hideTimer);
+    reset();
+    if (event.touches.length !== 1 || window.scrollY > 0 || (window.visualViewport?.scale || 1) > 1 ||
+      event.target.closest?.("a, button, input, select, textarea, [contenteditable], .rain-chart")) return;
+    const touch = event.touches[0];
+    gesture = {id: touch.identifier, x: touch.clientX, y: touch.clientY, distance: 0};
+  }, {passive: true});
+
+  document.addEventListener("touchmove", event => {
+    if (!gesture || loading) return;
+    const touch = event.touches[0];
+    if (event.touches.length !== 1 || touch.identifier !== gesture.id || window.scrollY > 0 ||
+      (window.visualViewport?.scale || 1) > 1) { reset(); return; }
+    const dx = touch.clientX - gesture.x;
+    const dy = touch.clientY - gesture.y;
+    if (dy < 0 || Math.abs(dx) > Math.max(10, dy)) { reset(); return; }
+    gesture.distance = dy;
+    if (dy < 4) { indicator.hidden = true; return; }
+    if (!event.cancelable) { reset(); return; }
+    event.preventDefault();
+    indicator.hidden = false;
+    indicator.style.setProperty("--pull-offset", `${Math.min(64, dy * .4)}px`);
+    const message = dy >= threshold ? "Solte para atualizar" : "Puxe para atualizar";
+    if (label.textContent !== message) label.textContent = message;
+  }, {passive: false});
+
+  document.addEventListener("touchend", async event => {
+    if (!gesture || loading) return;
+    const ready = gesture.distance >= threshold && event.touches.length === 0;
+    gesture = null;
+    if (!ready) { reset(); return; }
+    loading = true;
+    indicator.classList.add("loading");
+    label.textContent = "Consultando o tempo…";
+    try {
+      const success = await refreshAll();
+      label.textContent = success ? "Pronto" : "Sem conexão no momento";
+      if (!success) {
+        $("errorMessage").textContent = displayedWeather ? "Dados anteriores mantidos. Tentaremos novamente." : "Confira a conexão e tente novamente.";
+        $("errorToast").setAttribute("aria-hidden", "false");
+        $("errorToast").classList.add("show");
+        clearTimeout(errorTimer);
+        errorTimer = setTimeout(() => {
+          $("errorToast").classList.remove("show");
+          $("errorToast").setAttribute("aria-hidden", "true");
+        }, 4500);
+      }
+    } finally {
+      loading = false;
+      indicator.classList.remove("loading");
+      hideTimer = setTimeout(reset, 1200);
+    }
+  }, {passive: true});
+  document.addEventListener("touchcancel", reset, {passive: true});
+  document.documentElement.classList.add("has-pull-refresh");
+}
+
 document.querySelectorAll("nav a").forEach(link => link.addEventListener("click", () => { document.querySelectorAll("nav a").forEach(a => a.classList.remove("active")); link.classList.add("active"); }));
 
 function setupScrollAnimations() {
@@ -396,9 +518,14 @@ function setupScrollAnimations() {
 }
 
 setupScrollAnimations();
+setupPullToRefresh();
 updateClock();
 setInterval(updateClock, 30000);
-refreshAll(true);
-setInterval(() => { if (!document.hidden) refreshAll(false); }, AUTO_REFRESH_MS);
+const savedWeather = cached();
+if (savedWeather) { render(savedWeather.data.forecast, savedWeather.data.air, true); displayedWeather = savedWeather.data; }
+refreshAll();
+setInterval(() => { if (!document.hidden) refreshAll(); }, AUTO_REFRESH_MS);
 document.addEventListener("visibilitychange", refreshIfStale);
-window.addEventListener("online", () => refreshAll(false));
+window.addEventListener("pageshow", refreshIfStale);
+window.addEventListener("online", () => refreshAll());
+document.addEventListener("visibilitychange", () => document.body.classList.toggle("page-hidden", document.hidden));
