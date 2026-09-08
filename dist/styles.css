@@ -9,6 +9,7 @@
   --lime: var(--brand-blue);
   --aqua: var(--brand-blue);
   --blue: var(--brand-blue);
+  --ok: #20a66a;
   --orange: #ffad66;
   --danger: #ff776d;
   --radius: 22px;
@@ -105,16 +106,22 @@ h1 em { color: var(--brand-blue); font-style: normal; }
 .current-bottom strong { font-family: "DM Mono", monospace; font-size: .93rem; font-weight: 500; }
 
 .attention-card { min-height: 370px; padding: 28px; display: flex; flex-direction: column; background: linear-gradient(150deg, rgba(209,236,255,.66), rgba(255,255,255,.48)); }
-.signal { color: var(--lime); }
+.signal { color: var(--brand-blue); font-weight: 600; }
 .attention-icon { margin-top: 48px; width: 52px; height: 52px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.72); border-radius: 18px; color: #ffffff; background: var(--brand-blue); font-size: 1.55rem; box-shadow: inset 0 1px 0 rgba(255,255,255,.38), 0 12px 28px rgba(51,61,244,.22); }
+.attention-icon svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .attention-card h2 { margin: 22px 0 8px; max-width: 300px; font-size: 1.75rem; line-height: 1.1; letter-spacing: -.045em; }
 .attention-card p { color: var(--muted); margin: 0; max-width: 320px; font-size: .87rem; }
 .attention-rule { height: 5px; margin-top: auto; margin-bottom: 13px; border: 1px solid rgba(255,255,255,.64); border-radius: 999px; background: rgba(255,255,255,.36); overflow: hidden; box-shadow: inset 0 1px 3px rgba(29,83,149,.08); }
 .attention-rule span { display: block; height: 100%; width: 34%; background: var(--lime); transition: width .5s ease; }
 .attention-card small { color: #7b8ca3; font-size: .75rem; }
+.attention-card.ok { background: linear-gradient(150deg, rgba(224,249,237,.94), rgba(255,255,255,.76)); }
+.attention-card.ok .signal { color: #168557; }
+.attention-card.ok .attention-icon, .attention-card.ok .attention-rule span { background: var(--ok); }
 .attention-card.warning { background: linear-gradient(150deg, rgba(255,240,220,.96), rgba(255,255,255,.94)); }
+.attention-card.warning .signal { color: #b8661f; }
 .attention-card.warning .attention-icon, .attention-card.warning .attention-rule span { background: var(--orange); }
 .attention-card.danger { background: linear-gradient(150deg, rgba(255,230,228,.96), rgba(255,255,255,.94)); }
+.attention-card.danger .signal { color: #d4473d; }
 .attention-card.danger .attention-icon, .attention-card.danger .attention-rule span { background: var(--danger); }
 
 .metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px; }
