@@ -2,7 +2,10 @@ const API = "https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-6
 const AIR_API = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-3.119&longitude=-60.022&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi&timezone=America%2FManaus&forecast_days=3";
 const INMET_API = "https://apiprevmet3.inmet.gov.br/avisos/ativos";
 const DEFESA_API = "https://www.manaus.am.gov.br/wp-json/wp/v2/posts?search=Defesa%20Civil%20alerta&per_page=8&_fields=date,link,title,excerpt";
+const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const $ = (id) => document.getElementById(id);
+let lastRefreshAt = 0;
+let refreshInFlight = null;
 
 const weatherMap = {
   0: ["Céu limpo", "☀"], 1: ["Predomínio de sol", "◒"], 2: ["Parcialmente nublado", "◑"], 3: ["Céu encoberto", "☁"],
@@ -295,7 +298,28 @@ async function loadWeather(showSpinner = true) {
   } finally { $("refreshBtn").classList.remove("loading"); }
 }
 
-$("refreshBtn").addEventListener("click", () => loadWeather());
+async function refreshAll(showSpinner = false) {
+  if (refreshInFlight) return refreshInFlight;
+
+  refreshInFlight = Promise.allSettled([
+    loadWeather(showSpinner),
+    loadInmetAlerts(),
+    loadDefesaAlerts()
+  ]);
+
+  try {
+    await refreshInFlight;
+    lastRefreshAt = Date.now();
+  } finally {
+    refreshInFlight = null;
+  }
+}
+
+function refreshIfStale() {
+  if (!document.hidden && Date.now() - lastRefreshAt >= 60 * 1000) refreshAll(false);
+}
+
+$("refreshBtn").addEventListener("click", () => refreshAll(true));
 document.querySelectorAll("nav a").forEach(link => link.addEventListener("click", () => { document.querySelectorAll("nav a").forEach(a => a.classList.remove("active")); link.classList.add("active"); }));
 
 function setupScrollAnimations() {
@@ -315,5 +339,10 @@ function setupScrollAnimations() {
   });
 }
 
-setupScrollAnimations(); updateClock(); setInterval(updateClock, 30000); loadWeather(); loadInmetAlerts(); loadDefesaAlerts();
-setInterval(() => { loadWeather(false); loadInmetAlerts(); loadDefesaAlerts(); }, 10 * 60 * 1000);
+setupScrollAnimations();
+updateClock();
+setInterval(updateClock, 30000);
+refreshAll(true);
+setInterval(() => { if (!document.hidden) refreshAll(false); }, AUTO_REFRESH_MS);
+document.addEventListener("visibilitychange", refreshIfStale);
+window.addEventListener("online", () => refreshAll(false));
