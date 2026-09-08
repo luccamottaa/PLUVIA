@@ -299,7 +299,8 @@ $("refreshBtn").addEventListener("click", () => loadWeather());
 document.querySelectorAll("nav a").forEach(link => link.addEventListener("click", () => { document.querySelectorAll("nav a").forEach(a => a.classList.remove("active")); link.classList.add("active"); }));
 
 function setupScrollAnimations() {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+  const skipLargeAnimations = window.matchMedia("(max-width: 720px), (prefers-reduced-motion: reduce)").matches;
+  if (skipLargeAnimations || !("IntersectionObserver" in window)) return;
   const targets = document.querySelectorAll(".section-block, .sun-section, footer");
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
