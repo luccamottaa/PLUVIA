@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light dark;
   --brand-blue: #075dff;
   --bg: #f6f9ff;
   --panel: rgba(255, 255, 255, .84);
@@ -16,7 +17,7 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; background: var(--bg); }
 body {
   margin: 0;
   min-width: 320px;
@@ -296,5 +297,84 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { po
     contain-intrinsic-size: auto 520px;
   }
 }
+
+/* Follow the device preference directly, including changes while the page is
+   open. Keep this after the phone styles so mobile surfaces also turn dark.
+   The interface theme is independent of the weather API's day/night icons. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a111f;
+    --panel: #121e30;
+    --panel-strong: #18283e;
+    --line: #30445e;
+    --text: #f1f6ff;
+    --muted: #afc0d8;
+    --blue: #6aa7ff;
+    --aqua: var(--blue);
+    --lime: var(--blue);
+    --ok: #4cdb9c;
+    --orange: #ffba75;
+    --danger: #ff9189;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at 86% 4%, rgba(7,93,255,.12), transparent 30rem),
+      linear-gradient(155deg, var(--bg), #0d1829 48%, var(--bg));
+  }
+  .noise, .orb { display: none; }
+  .topbar, .panel {
+    background: var(--panel);
+    border-color: var(--line);
+    box-shadow: 0 12px 30px rgba(0,0,0,.18);
+  }
+  .topbar { background: #101c2e; }
+  .panel::before { background: none; animation: none; }
+  .current-card::after {
+    border-color: var(--line);
+    box-shadow: 0 0 0 45px rgba(106,167,255,.025);
+  }
+  .metric:hover, .source-card:hover, .air-card:hover {
+    box-shadow: 0 16px 36px rgba(0,0,0,.25);
+  }
+  nav, .refresh, .air-score > strong, .air-particles > div,
+  .hour-column.now, .footer-mark, .temp-track, .attention-rule {
+    background: var(--panel-strong);
+    border-color: var(--line);
+    box-shadow: none;
+  }
+  .refresh { color: var(--text); }
+  nav a:hover, nav a.active { background: var(--brand-blue); }
+  .source-badge {
+    border-color: var(--line);
+    box-shadow: none;
+  }
+  .source-badge.inmet, .source-badge.defesa { background: var(--brand-blue); }
+  .source-badge.air { background: var(--panel-strong); }
+  .source-meta span, .attention-card small, .rain-bar::after { color: var(--muted); }
+  .forecast-condition { color: var(--text); }
+  .forecast-row:hover { background: var(--panel-strong); }
+  .source-content a { color: var(--blue); }
+  .source-content a:visited { color: var(--blue); }
+  .signal { color: var(--blue); }
+  .attention-card.ok { background: #102c26; border-color: #265748; }
+  .attention-card.warning { background: #30271c; border-color: #645034; }
+  .attention-card.danger { background: #321e26; border-color: #6b3941; }
+  .attention-card.ok .signal { color: var(--ok); }
+  .attention-card.warning .signal { color: var(--orange); }
+  .attention-card.danger .signal { color: var(--danger); }
+  .attention-icon { border-color: var(--line); box-shadow: none; }
+  .attention-card.ok .attention-icon,
+  .attention-card.warning .attention-icon,
+  .attention-card.danger .attention-icon { color: var(--bg); }
+  .wx-drop { stroke: var(--blue); }
+  .wx-moon-core { stroke: var(--blue); }
+  .rain-chart { scrollbar-color: #526b8b var(--panel); }
+  .arc-line { border-color: #526b8b; }
+  .error-toast { background: #321e26; color: #ffe7e4; border-color: #6b3941; }
+  .error-toast span { color: #f5b9b1; }
+}
+
+a:focus-visible, button:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
 
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }.reveal-on-scroll { opacity: 1; transform: none; } }
