@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=auto-brand-1" />
+    <link rel="stylesheet" href="./styles.css?v=signal-state-1" />
   </head>
   <body>
     <div class="noise" aria-hidden="true"></div>
@@ -68,7 +68,7 @@
         </article>
 
         <aside class="attention-card panel" id="attentionCard">
-          <div class="card-topline"><span>LEITURA RÁPIDA</span><span class="signal">SINAL LOCAL</span></div>
+          <div class="card-topline"><span>LEITURA RÁPIDA</span><span class="signal" id="attentionSignal">SINAL LOCAL</span></div>
           <div class="attention-icon" id="attentionIcon">↯</div>
           <h2 id="attentionTitle">Analisando o tempo</h2>
           <p id="attentionText">Cruzando chuva, umidade e sensação térmica das próximas horas.</p>
@@ -148,6 +148,6 @@
     <div class="error-toast" id="errorToast" role="status" aria-live="polite">
       <strong>Não deu pra atualizar agora.</strong><span>Mostrando os últimos dados disponíveis.</span>
     </div>
-    <script src="./app.js?v=auto-brand-1"></script>
+    <script src="./app.js?v=signal-state-1"></script>
   </body>
 </html>
