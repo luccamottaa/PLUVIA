@@ -193,24 +193,45 @@ function selectCurrentHour(times) {
   return Math.max(0, index);
 }
 
+function attentionIconSvg(type) {
+  const icons = {
+    normal: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m8 12.3 2.5 2.5L16.4 9"/></svg>',
+    rain: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 15.5h9.5a3.5 3.5 0 0 0 .4-7A5 5 0 0 0 7.4 10 2.8 2.8 0 0 0 7 15.5Z"/><path d="m8 18-1 2m5-2-1 2m5-2-1 2"/></svg>',
+    severe: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.8 20h18.4L12 3Z"/><path d="M12 8.5v5.2M12 17h.01"/></svg>',
+    heat: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.8"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4m10.6 10.6 1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"/></svg>',
+    humidity: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2S6.5 9.5 6.5 14a5.5 5.5 0 0 0 11 0C17.5 9.5 12 3.2 12 3.2Z"/><path d="M9.5 15.2c.4 1.1 1.3 1.7 2.5 1.7"/></svg>'
+  };
+  return icons[type] || icons.normal;
+}
+
 function renderAttention(data, start) {
   const next3Prob = Math.max(...data.hourly.precipitation_probability.slice(start, start + 4));
   const next3Rain = data.hourly.precipitation.slice(start, start + 4).reduce((a, b) => a + b, 0);
+  const next3Codes = data.hourly.weather_code.slice(start, start + 4);
+  const stormExpected = next3Codes.some(code => [95, 96, 99].includes(code));
   const feels = data.current.apparent_temperature;
   const humidity = data.current.relative_humidity_2m;
   const card = $("attentionCard");
-  card.classList.remove("warning", "danger");
-  let title = "Tempo sem sinal crítico", text = "Nada muito fora do padrão manauara nas próximas horas.", icon = "✓", level = 28;
-  if (next3Prob >= 80 && next3Rain >= 8) {
-    card.classList.add("danger"); title = "Pancada forte no radar"; text = `${Math.round(next3Prob)}% de chance e cerca de ${fmt(next3Rain, 1)} mm previstos nas próximas 3 horas.`; icon = "☂"; level = 92;
+  card.classList.remove("ok", "warning", "danger");
+  let state = "ok", signal = "NORMAL", title = "Condições dentro do normal", text = "Nenhum sinal crítico para Manaus nas próximas horas.", icon = "normal", level = 28;
+  if (stormExpected && next3Prob >= 60) {
+    state = "danger"; signal = "ALERTA SEVERO"; title = "Alerta de tempestade"; text = `Há indicação de trovoadas e ${Math.round(next3Prob)}% de chance de chuva nas próximas horas.`; icon = "severe"; level = 96;
+  } else if (next3Prob >= 80 && next3Rain >= 8) {
+    state = "danger"; signal = "ALERTA SEVERO"; title = "Alerta de chuva severa"; text = `${Math.round(next3Prob)}% de chance e cerca de ${fmt(next3Rain, 1)} mm previstos nas próximas 3 horas.`; icon = "severe"; level = 92;
   } else if (next3Prob >= 65) {
-    card.classList.add("warning"); title = "Chuva pode apertar"; text = `A chance chega a ${Math.round(next3Prob)}% nas próximas horas. Melhor não confiar naquele céu quietinho.`; icon = "⌁"; level = 70;
+    state = "warning"; signal = "ATENÇÃO"; title = "Chuva pode apertar"; text = `A chance chega a ${Math.round(next3Prob)}% nas próximas horas. Melhor não confiar naquele céu quietinho.`; icon = "rain"; level = 70;
   } else if (feels >= 40) {
-    card.classList.add("warning"); title = "Sensação de calor pesada"; text = `O corpo sente cerca de ${fmt(feels)} °C agora. Água e sombra não são frescura.`; icon = "↑"; level = 78;
+    state = "warning"; signal = "ATENÇÃO"; title = "Sensação de calor pesada"; text = `O corpo sente cerca de ${fmt(feels)} °C agora. Água e sombra não são frescura.`; icon = "heat"; level = 78;
   } else if (humidity >= 88) {
-    title = "Umidade lá em cima"; text = `O ar está com ${Math.round(humidity)}% de umidade — abafamento e suor evaporando devagar.`; icon = "≈"; level = 58;
+    state = "warning"; signal = "ATENÇÃO"; title = "Umidade lá em cima"; text = `O ar está com ${Math.round(humidity)}% de umidade — abafamento e suor evaporando devagar.`; icon = "humidity"; level = 58;
   }
-  $("attentionTitle").textContent = title; $("attentionText").textContent = text; $("attentionIcon").textContent = icon; $("attentionLevel").style.width = `${level}%`;
+  card.classList.add(state);
+  $("attentionSignal").textContent = signal;
+  $("attentionTitle").textContent = title;
+  $("attentionText").textContent = text;
+  $("attentionIcon").innerHTML = attentionIconSvg(icon);
+  $("attentionIcon").setAttribute("aria-label", signal);
+  $("attentionLevel").style.width = `${level}%`;
 }
 
 function findDryWindow(hourly, start) {
