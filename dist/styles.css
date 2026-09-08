@@ -26,7 +26,7 @@ body {
     radial-gradient(circle at 10% 34%, rgba(115, 202, 255, .30), transparent 32rem),
     radial-gradient(circle at 80% 77%, rgba(120, 132, 255, .20), transparent 34rem),
     linear-gradient(155deg, #fbfdff 0%, var(--bg) 48%, #e8f1ff 100%);
-  background-attachment: fixed;
+  background-attachment: scroll;
   font-family: "Manrope", system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.5;
@@ -241,6 +241,40 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { wi
   .forecast-list { margin-inline: -14px; border-radius: 0; }.forecast-row { grid-template-columns: .85fr .55fr 1.15fr .6fr; gap: 8px; padding: 13px 14px; }.forecast-condition span { display: none; }.forecast-condition i { font-size: 1.2rem; }.temp-range { gap: 5px; }.temp-track { display: none; }.forecast-rain { font-size: .75rem; }
   .sun-section { margin-top: 70px; grid-template-columns: 1fr; gap: 30px; }.sun-times { justify-content: start; gap: 65px; }
   footer { min-height: 160px; margin-top: 70px; align-items: start; padding-top: 38px; gap: 30px; } footer > p { text-align: right; }
+
+  /* On phones, translucent gradients keep the visual identity while avoiding
+     continuous GPU-heavy blur recomposition during scroll. */
+  .noise, .orb { display: none; }
+  .topbar {
+    background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(235,246,255,.90));
+    box-shadow: inset 0 1px 0 #fff, 0 10px 28px rgba(32,92,164,.10);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .panel {
+    background: linear-gradient(145deg, rgba(255,255,255,.93), rgba(229,243,255,.84));
+    box-shadow: inset 0 1px 0 #fff, 0 12px 30px rgba(33,86,153,.09);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .panel::before { animation: none; background-size: 100% 100%; opacity: .55; }
+  .current-card::after { display: none; }
+  .footer-mark { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .weather-visual { filter: drop-shadow(0 8px 10px rgba(34,102,184,.10)); }
+  .weather-glyph { text-shadow: none; }
+
+  .intro > div:first-child,
+  .clock-wrap,
+  .dashboard-grid > .panel,
+  .metrics > .metric,
+  .hour-column,
+  .rain-bar,
+  .forecast-row { animation: none; }
+
+  .section-block, .sun-section, footer {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 520px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }.reveal-on-scroll { opacity: 1; transform: none; } }
