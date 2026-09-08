@@ -44,7 +44,7 @@ function weatherIconType(code) {
   return "sun";
 }
 
-function weatherIconSvg(code) {
+function weatherIconSvg(code, isDay = true) {
   const type = weatherIconType(code);
   const sun = `<g class="wx-sun">
     <g class="wx-sun-rays">
@@ -52,6 +52,11 @@ function weatherIconSvg(code) {
     </g>
     <circle class="wx-sun-core" cx="52" cy="42" r="20" />
     <circle class="wx-sun-glass" cx="46" cy="36" r="7" />
+  </g>`;
+  const moon = `<g class="wx-moon">
+    <path class="wx-moon-core" d="M67 8c-4 5-6 12-6 19 0 15 12 27 27 27 4 0 8-1 12-3-4 15-17 26-33 26-19 0-34-15-34-34C33 25 48 10 67 8Z" />
+    <circle class="wx-moon-crater wx-moon-crater-a" cx="53" cy="29" r="4" />
+    <circle class="wx-moon-crater wx-moon-crater-b" cx="47" cy="46" r="2.8" />
   </g>`;
   const cloudBack = `<g class="wx-cloud-back"><path d="M28 62c-9 0-15-6-15-14 0-7 5-13 12-14 3-10 12-16 23-16 13 0 23 9 24 22 9 1 15 7 15 15 0 9-7 16-17 16H28z" /></g>`;
   const cloud = `<g class="wx-cloud-main">
@@ -65,6 +70,14 @@ function weatherIconSvg(code) {
     <path class="wx-drop wx-drop-3" d="M82 82l-5 10" />
   </g>`;
   const lightning = `<path class="wx-lightning" d="M59 75H47l-5 14h10l-4 18 20-25H57z" />`;
+
+  if (!isDay) {
+    if (type === "sun") return `<svg class="weather-visual weather-night weather-moon" viewBox="0 0 112 108" aria-hidden="true">${moon}</svg>`;
+    if (type === "partly") return `<svg class="weather-visual weather-night weather-night-partly" viewBox="0 0 112 108" aria-hidden="true">${moon}${cloud}</svg>`;
+    if (type === "cloud") return `<svg class="weather-visual weather-night weather-cloud weather-night-cloud" viewBox="0 0 112 108" aria-hidden="true">${moon}${cloudBack}${cloud}</svg>`;
+    if (type === "storm") return `<svg class="weather-visual weather-night weather-storm weather-night-storm" viewBox="0 0 112 108" aria-hidden="true">${moon}${cloud}${rain}${lightning}</svg>`;
+    return `<svg class="weather-visual weather-night weather-rain weather-night-rain" viewBox="0 0 112 108" aria-hidden="true">${moon}${cloud}${rain}</svg>`;
+  }
 
   if (type === "sun") return `<svg class="weather-visual weather-sun" viewBox="0 0 112 108" aria-hidden="true">${sun}</svg>`;
   if (type === "partly") return `<svg class="weather-visual weather-partly" viewBox="0 0 112 108" aria-hidden="true">${sun}${cloud}</svg>`;
@@ -313,7 +326,7 @@ function cached() { try { return JSON.parse(localStorage.getItem("manaus-clima-c
 function render(data, air, fromCache = false) {
   const current = data.current; const day = data.daily; const start = selectCurrentHour(data.hourly.time); const [condition] = weather(current.weather_code);
   $("temperature").textContent = fmt(current.temperature_2m); $("feelsLike").textContent = `${fmt(current.apparent_temperature)}°`;
-  $("condition").textContent = condition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code); $("highLow").textContent = `${fmt(day.temperature_2m_max[0])}° / ${fmt(day.temperature_2m_min[0])}°`;
+  $("condition").textContent = condition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, current.is_day !== 0); $("highLow").textContent = `${fmt(day.temperature_2m_max[0])}° / ${fmt(day.temperature_2m_min[0])}°`;
   $("rainNow").textContent = `${fmt(current.precipitation, 1)} mm`; $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
   $("pressure").innerHTML = `${fmt(current.surface_pressure)}<sup> hPa</sup>`; $("pressureNote").textContent = pressureLabel(current.surface_pressure);
