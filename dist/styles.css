@@ -84,6 +84,10 @@ h1 em { color: var(--brand-blue); font-style: normal; }
 .wx-sun-rays { fill: none; stroke: #ffb82e; stroke-width: 5; stroke-linecap: round; transform-origin: 52px 42px; animation: sun-rays-spin 13s linear infinite; }
 .wx-sun-core { fill: #ffc941; transform-origin: center; transform-box: fill-box; animation: sun-core-pulse 3s ease-in-out infinite; }
 .wx-sun-glass { fill: rgba(255,255,255,.58); }
+.wx-moon { transform-origin: 60px 42px; animation: moon-drift 5.2s ease-in-out infinite; }
+.wx-moon-core { fill: #eef3ff; stroke: var(--brand-blue); stroke-width: 2; filter: drop-shadow(0 0 12px rgba(51,61,243,.32)); }
+.wx-moon-crater { fill: rgba(51,61,243,.15); }
+.weather-night-partly .wx-moon, .weather-night-cloud .wx-moon, .weather-night-rain .wx-moon, .weather-night-storm .wx-moon { transform: translate(-9px, -8px) scale(.80); }
 .wx-cloud-back { fill: rgba(194,226,255,.75); animation: cloud-back-drift 5.8s ease-in-out infinite alternate; }
 .wx-cloud-main { transform-origin: center; transform-box: fill-box; animation: cloud-sway 4.2s ease-in-out infinite; }
 .wx-cloud-shadow { fill: rgba(68,145,224,.24); transform: translateY(4px); }
@@ -93,6 +97,9 @@ h1 em { color: var(--brand-blue); font-style: normal; }
 .weather-cloud .wx-cloud-shadow { fill: rgba(72,88,108,.30); }
 .weather-cloud .wx-cloud-body { fill: rgba(174,184,197,.97); stroke: rgba(88,104,124,.48); }
 .weather-cloud .wx-cloud-shine { fill: rgba(226,232,239,.70); }
+.weather-night .wx-cloud-shadow { fill: rgba(30,48,78,.34); }
+.weather-night .wx-cloud-body { fill: rgba(190,201,218,.98); stroke: rgba(77,96,127,.50); }
+.weather-night .wx-cloud-shine { fill: rgba(239,244,251,.68); }
 .wx-drop { fill: none; stroke: var(--brand-blue); stroke-width: 5; stroke-linecap: round; animation: rain-fall 1.15s ease-in infinite; }
 .wx-drop-2 { animation-delay: .22s; }.wx-drop-3 { animation-delay: .44s; }
 .weather-storm .wx-drop-2 { display: none; }
@@ -222,6 +229,7 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { wi
 @keyframes glyph-float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-7px) rotate(2deg); } }
 @keyframes sun-rays-spin { to { transform: rotate(360deg); } }
 @keyframes sun-core-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.09); } }
+@keyframes moon-drift { 0%, 100% { opacity: .92; } 50% { opacity: 1; } }
 @keyframes cloud-sway { 0%, 100% { transform: translateX(-2px) translateY(1px); } 50% { transform: translateX(3px) translateY(-2px); } }
 @keyframes cloud-back-drift { from { transform: translateX(-5px) translateY(1px); opacity: .66; } to { transform: translateX(5px) translateY(-2px); opacity: .94; } }
 @keyframes rain-fall { 0% { opacity: 0; transform: translateY(-5px); } 28% { opacity: 1; } 100% { opacity: 0; transform: translateY(9px); } }
