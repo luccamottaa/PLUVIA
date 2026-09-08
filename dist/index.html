@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="PLUVIA: clima, qualidade do ar e alertas oficiais para Manaus." />
+    <title>PLUVIA — Manaus agora</title>
+    <link rel="icon" type="image/png" href="./logo-mark.png" />
+    <link rel="apple-touch-icon" href="./logo-mark.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+    <div class="orb orb-a" aria-hidden="true"></div>
+    <div class="orb orb-b" aria-hidden="true"></div>
+
+    <header class="topbar shell">
+      <a class="brand" href="#agora" aria-label="PLUVIA, início">
+        <img src="./logo-pluvia.png" alt="PLUVIA" width="801" height="320" />
+      </a>
+      <nav aria-label="Seções">
+        <a class="active" href="#agora">Agora</a>
+        <a href="#alertas">Alertas</a>
+        <a href="#chuva">Chuva</a>
+        <a href="#previsao">Previsão</a>
+      </nav>
+      <button class="refresh" id="refreshBtn" type="button" aria-label="Atualizar dados">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.1 8A7 7 0 0 1 18 6l2 2M17.9 16A7 7 0 0 1 6 18l-2-2"/></svg>
+        <span>Atualizar</span>
+      </button>
+    </header>
+
+    <main class="shell">
+      <section class="intro" id="agora">
+        <div>
+          <div class="eyebrow"><span class="live-dot"></span><span id="statusText">Carregando dados ao vivo</span></div>
+          <h1>Manaus<br><em>agora.</em></h1>
+        </div>
+        <div class="clock-wrap">
+          <span>AMT · UTC−4</span>
+          <strong id="localClock">--:--</strong>
+          <small id="localDate">Manaus, Amazonas</small>
+        </div>
+      </section>
+
+      <section class="dashboard-grid" aria-label="Condições atuais">
+        <article class="current-card panel">
+          <div class="card-topline">
+            <span>CONDIÇÃO ATUAL</span>
+            <span id="updatedAt">AGORA</span>
+          </div>
+          <div class="weather-main">
+            <div>
+              <div class="weather-glyph" id="weatherGlyph" aria-hidden="true">◒</div>
+              <p class="condition" id="condition">Buscando o céu de Manaus…</p>
+            </div>
+            <div class="temperature"><span id="temperature">--</span><sup>°</sup></div>
+          </div>
+          <div class="current-bottom">
+            <div><span>Sensação</span><strong id="feelsLike">--°</strong></div>
+            <div><span>Máx. / mín.</span><strong id="highLow">--° / --°</strong></div>
+            <div><span>Chuva agora</span><strong id="rainNow">-- mm</strong></div>
+          </div>
+        </article>
+
+        <aside class="attention-card panel" id="attentionCard">
+          <div class="card-topline"><span>LEITURA RÁPIDA</span><span class="signal">SINAL LOCAL</span></div>
+          <div class="attention-icon" id="attentionIcon">↯</div>
+          <h2 id="attentionTitle">Analisando o tempo</h2>
+          <p id="attentionText">Cruzando chuva, umidade e sensação térmica das próximas horas.</p>
+          <div class="attention-rule"><span id="attentionLevel"></span></div>
+          <small>Leitura automática. Não substitui alerta oficial.</small>
+        </aside>
+      </section>
+
+      <section class="metrics" aria-label="Detalhes meteorológicos">
+        <article class="metric panel"><span>UMIDADE</span><strong id="humidity">--<sup>%</sup></strong><small id="humidityNote">—</small></article>
+        <article class="metric panel"><span>VENTO</span><strong id="wind">--<sup> km/h</sup></strong><small id="windNote">—</small></article>
+        <article class="metric panel"><span>PRESSÃO</span><strong id="pressure">----<sup> hPa</sup></strong><small id="pressureNote">—</small></article>
+        <article class="metric panel"><span>ÍNDICE UV</span><strong id="uv">--</strong><small id="uvNote">—</small></article>
+        <article class="metric panel air-metric"><span>QUALIDADE DO AR</span><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small></article>
+      </section>
+
+      <section class="alerts-section section-block" id="alertas">
+        <div class="section-heading">
+          <div><span class="section-index">01</span><h2>Alertas e saúde</h2></div>
+          <p>Fontes oficiais e leitura ambiental para Manaus</p>
+        </div>
+        <div class="safety-grid">
+          <article class="source-card panel" id="inmetCard">
+            <div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div>
+            <div id="inmetContent" class="source-content"><h3>Buscando avisos meteorológicos</h3><p>Verificando alertas ativos que abrangem o Amazonas.</p></div>
+            <a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial <span>↗</span></a>
+          </article>
+
+          <article class="source-card panel" id="defesaCard">
+            <div class="source-head"><span class="source-badge defesa">DEFESA CIVIL</span><span class="source-state" id="defesaState"><i></i>Consultando</span></div>
+            <div id="defesaContent" class="source-content"><h3>Buscando comunicados de Manaus</h3><p>Consultando as publicações oficiais da Defesa Civil Municipal.</p></div>
+            <div class="source-actions"><a class="source-link" href="sms:40199">Cadastrar CEP no 40199 <span>↗</span></a><a class="emergency-link" href="tel:199">Emergência: 199</a></div>
+          </article>
+
+          <article class="air-card panel">
+            <div class="source-head"><span class="source-badge air">AR</span><span class="source-state"><i></i>Open-Meteo</span></div>
+            <div class="air-score"><strong id="airScore">--</strong><div><span id="airCardQuality">Calculando</span><small>Índice de qualidade do ar</small></div></div>
+            <div class="air-particles"><div><span>PM2.5</span><strong id="pm25">--</strong><small>µg/m³</small></div><div><span>PM10</span><strong id="pm10">--</strong><small>µg/m³</small></div></div>
+            <p id="airGuidance">Aguardando dados para mostrar a orientação de saúde.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="rain-section section-block" id="chuva">
+        <div class="section-heading">
+          <div><span class="section-index">02</span><h2>Chuva nas próximas horas</h2></div>
+          <div class="dry-window"><span>PRÓXIMA JANELA SECA</span><strong id="dryWindow">Calculando…</strong></div>
+        </div>
+        <div class="rain-chart panel" id="rainChart" aria-label="Probabilidade de chuva por hora">
+          <div class="chart-loading">Montando a previsão horária…</div>
+        </div>
+        <div class="chart-legend"><span><i class="legend-prob"></i>Probabilidade</span><span><i class="legend-mm"></i>Volume previsto</span><small>Deslize para ver mais →</small></div>
+      </section>
+
+      <section class="forecast-section section-block" id="previsao">
+        <div class="section-heading">
+          <div><span class="section-index">03</span><h2>Próximos 7 dias</h2></div>
+          <p>Previsão diária para a área urbana de Manaus</p>
+        </div>
+        <div class="forecast-list panel" id="forecastList">
+          <div class="forecast-loading">Carregando a semana…</div>
+        </div>
+      </section>
+
+      <section class="sun-section panel" aria-label="Ciclo solar">
+        <div class="sun-copy"><span>CICLO DO DIA</span><strong id="daylight">--h --min de luz</strong><p id="sunPhrase">Calculando nascer e pôr do sol.</p></div>
+        <div class="sun-arc" aria-hidden="true"><div class="arc-line"></div><div class="sun-dot" id="sunDot"></div></div>
+        <div class="sun-times"><div><span>Nascer</span><strong id="sunrise">--:--</strong></div><div><span>Pôr do sol</span><strong id="sunset">--:--</strong></div></div>
+      </section>
+    </main>
+
+    <footer class="shell">
+      <div><span class="footer-mark"><img src="./logo-mark.png" alt="" /></span><p>PLUVIA · Manaus, sem tempo ruim.</p></div>
+      <p>Clima e ar: Open-Meteo · Alertas: INMET e Defesa Civil<br><span id="footerUpdate">Aguardando atualização</span></p>
+    </footer>
+
+    <div class="error-toast" id="errorToast" role="status" aria-live="polite">
+      <strong>Não deu pra atualizar agora.</strong><span>Mostrando os últimos dados disponíveis.</span>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>
