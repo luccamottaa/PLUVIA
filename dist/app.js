@@ -7,6 +7,27 @@ const $ = (id) => document.getElementById(id);
 let lastRefreshAt = 0;
 let refreshInFlight = null;
 
+async function fetchJson(url, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+    if (!response.ok) throw new Error(`request failed: ${response.status}`);
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchForecast() {
+  try {
+    return await fetchJson(API);
+  } catch {
+    await new Promise(resolve => setTimeout(resolve, 800));
+    return fetchJson(API, 16000);
+  }
+}
+
 const weatherMap = {
   0: ["Céu limpo", "☀"], 1: ["Predomínio de sol", "◒"], 2: ["Parcialmente nublado", "◑"], 3: ["Céu encoberto", "☁"],
   45: ["Neblina", "≋"], 48: ["Neblina com depósito", "≋"], 51: ["Garoa fraca", "⌇"], 53: ["Garoa", "⌇"], 55: ["Garoa intensa", "⌇"],
@@ -308,9 +329,10 @@ function render(data, air, fromCache = false) {
 async function loadWeather(showSpinner = true) {
   if (showSpinner) $("refreshBtn").classList.add("loading");
   try {
-    const [forecastResponse, airResponse] = await Promise.all([fetch(API), fetch(AIR_API)]);
-    if (!forecastResponse.ok) throw new Error("forecast unavailable");
-    const data = await forecastResponse.json(); const air = airResponse.ok ? await airResponse.json() : null;
+    const [forecastResult, airResult] = await Promise.allSettled([fetchForecast(), fetchJson(AIR_API)]);
+    if (forecastResult.status !== "fulfilled") throw forecastResult.reason;
+    const data = forecastResult.value;
+    const air = airResult.status === "fulfilled" ? airResult.value : null;
     render(data, air); cache({forecast: data, air});
   } catch (error) {
     const saved = cached(); if (saved?.data?.forecast) render(saved.data.forecast, saved.data.air, true);
