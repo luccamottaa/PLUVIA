@@ -87,6 +87,10 @@ h1 em { color: var(--lime); font-style: normal; background: linear-gradient(110d
 .wx-cloud-shadow { fill: rgba(68,145,224,.24); transform: translateY(4px); }
 .wx-cloud-body { fill: rgba(248,252,255,.96); stroke: rgba(77,148,223,.42); stroke-width: 1.5; }
 .wx-cloud-shine { fill: rgba(255,255,255,.72); }
+.weather-cloud .wx-cloud-back { fill: rgba(156,169,184,.72); }
+.weather-cloud .wx-cloud-shadow { fill: rgba(72,88,108,.30); }
+.weather-cloud .wx-cloud-body { fill: rgba(174,184,197,.97); stroke: rgba(88,104,124,.48); }
+.weather-cloud .wx-cloud-shine { fill: rgba(226,232,239,.70); }
 .wx-drop { fill: none; stroke: #168cff; stroke-width: 5; stroke-linecap: round; animation: rain-fall 1.15s ease-in infinite; }
 .wx-drop-2 { animation-delay: .22s; }.wx-drop-3 { animation-delay: .44s; }
 .weather-storm .wx-drop-2 { display: none; }
