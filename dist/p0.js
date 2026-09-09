@@ -33,17 +33,13 @@ function revealWeather() {
   requestAnimationFrame(pinTop);
   setTimeout(pinTop, 50);
 }
-function dismissIntro(locate) {
+function dismissIntro() {
   const intro = document.getElementById("pluviaIntro");
-  if (intro && !intro.hidden) {
-    intro.classList.add("is-leaving");
-    setTimeout(() => { intro.hidden = true; pinTop(); }, 420);
-  }
+  if (!intro || intro.hidden || intro.dataset.done) return;
+  intro.dataset.done = "1";
+  intro.classList.add("is-leaving");
   revealWeather();
-  if (locate) {
-    unlockLocation();
-    _requestLocation();
-  }
+  setTimeout(() => { intro.hidden = true; pinTop(); }, 480);
 }
 function buildRainPhrase(hourly) {
   const times = hourly?.time || [];
@@ -171,7 +167,7 @@ requestLocation = function () {
 };
 
 document.addEventListener("click", event => {
-  if (event.target.closest("#welcomeLocate, #locateCity, #introLocate")) unlockLocation();
+  if (event.target.closest("#welcomeLocate, #locateCity")) unlockLocation();
 }, true);
 
 ["welcomeLocate", "locateCity"].forEach(id => {
@@ -181,9 +177,6 @@ document.addEventListener("click", event => {
     _requestLocation();
   });
 });
-
-document.getElementById("introEnter")?.addEventListener("click", () => dismissIntro(false));
-document.getElementById("introLocate")?.addEventListener("click", () => dismissIntro(true));
 
 document.getElementById("cityResults")?.addEventListener("click", event => {
   const btn = event.target.closest("[data-id]");
@@ -198,8 +191,8 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   else if (city) updateCityLabels();
   const welcome = document.getElementById("locationWelcome");
   if (welcome) welcome.hidden = true;
-  if (location.hash === "#sobre") return;
   pinTop();
+  setTimeout(dismissIntro, 1600);
 })();
 
 if ("serviceWorker" in navigator && window.isSecureContext) {
