@@ -23,30 +23,22 @@
   width: min(240px, 72vw);
   height: 96px;
   margin-bottom: 18px;
-  animation: pluvia-intro-mark 1.4s cubic-bezier(.2,.8,.2,1) both;
 }
 .pluvia-intro .intro-logo img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  opacity: 0;
+  display: block; width: 100%; height: 100%; object-fit: contain; opacity: 0;
 }
 .pluvia-intro .intro-logo::after {
   content: "";
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   background: #075dff;
   -webkit-mask: url("./logo-pluvia.png") center / contain no-repeat;
   mask: url("./logo-pluvia.png") center / contain no-repeat;
   filter: drop-shadow(0 10px 22px rgba(7,93,255,.22));
-  animation: pluvia-intro-glow 1.6s ease-in-out infinite alternate;
 }
 .pluvia-intro .intro-kicker {
   margin: 0 0 12px; color: #60738f; font-family: "DM Mono", monospace; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
-  animation: pluvia-intro-fade .7s ease both;
 }
-.pluvia-intro .intro-copy { margin: 0; max-width: 22ch; color: #4d6280; font-size: 1.05rem; animation: pluvia-intro-fade .8s .15s ease both; }
+.pluvia-intro .intro-copy { margin: 0; max-width: 22ch; color: #4d6280; font-size: 1.05rem; }
 @media (max-width: 720px) {
   .search-trigger-label { display:inline !important; max-width:11ch; font-size:13px; font-weight:700; }
   .clock-wrap { display:block !important; text-align:left; padding:0; }
@@ -64,146 +56,78 @@
   .pluvia-intro .intro-kicker, .pluvia-intro .intro-copy { color: #8aa0c2; }
 }
 
-.weather-glyph {
-  overflow: visible !important;
-  animation: pluvia-glyph-float 4.8s ease-in-out infinite;
-}
+.weather-glyph { animation: none !important; overflow: visible !important; }
 .weather-visual { overflow: visible !important; }
-.wx-glow {
-  transform-origin: 52px 42px;
-  animation: pluvia-corona 3s ease-in-out infinite !important;
-}
-.wx-sun { transform-origin: 52px 42px; animation: pluvia-sun-bob 3.6s ease-in-out infinite !important; }
-.wx-sun-rays {
-  transform-origin: 52px 42px;
-  animation: pluvia-rays 8s linear infinite !important;
-  filter: drop-shadow(0 0 3px rgba(255,184,46,.55));
-}
-.wx-sun-core {
-  transform-origin: 52px 42px;
-  animation: pluvia-core 2.2s ease-in-out infinite !important;
-  filter: drop-shadow(0 0 10px rgba(255,201,65,.55));
-}
-.weather-partly .wx-sun { animation: pluvia-sun-peek 4.2s ease-in-out infinite !important; }
-.wx-moon {
-  transform-origin: 60px 42px;
-  animation: pluvia-moon 4.4s ease-in-out infinite !important;
-  filter: drop-shadow(0 0 8px rgba(7,93,255,.28));
-}
-.wx-cloud-back { animation: pluvia-cloud-back 5s ease-in-out infinite alternate !important; }
-.wx-cloud-main { animation: pluvia-cloud 3.4s ease-in-out infinite !important; }
-.weather-storm .wx-cloud-main { animation: pluvia-shake 1.6s ease-in-out infinite !important; }
-.wx-drop { animation: pluvia-rain .85s ease-in infinite !important; }
+.current-card { animation: none !important; }
+.current-card::after { animation: none !important; }
+.wx-glow { animation: none !important; }
+
+.wx-sun { transform-origin: 52px 42px; animation: pluvia-sun-bob 4s ease-in-out infinite !important; }
+.wx-sun-rays { transform-origin: 52px 42px; animation: pluvia-rays 12s linear infinite !important; }
+.wx-sun-core { transform-origin: 52px 42px; animation: pluvia-core 2.6s ease-in-out infinite !important; }
+.weather-partly .wx-sun { animation: none !important; transform: translate(-7px, -7px) scale(.78); }
+.weather-partly .wx-sun-rays { animation: pluvia-rays 14s linear infinite !important; }
+.wx-moon { transform-origin: 60px 42px; animation: pluvia-moon 5s ease-in-out infinite !important; }
+.wx-cloud-back { animation: pluvia-cloud-back 6s ease-in-out infinite alternate !important; }
+.wx-cloud-main { animation: pluvia-cloud 4.5s ease-in-out infinite !important; }
+.weather-storm .wx-cloud-main { animation: pluvia-shake 2.2s ease-in-out infinite !important; }
+.wx-drop { animation: pluvia-rain 1s ease-in infinite !important; }
 .wx-drop-1 { animation-delay: 0s !important; }
-.wx-drop-2 { animation-delay: .16s !important; }
-.wx-drop-3 { animation-delay: .32s !important; }
-.wx-drop-4 { animation-delay: .48s !important; }
-.wx-drop-5 { animation-delay: .64s !important; }
-.wx-lightning {
-  animation: pluvia-bolt 1.8s ease-in-out infinite !important;
-  filter: drop-shadow(0 0 8px rgba(255,197,47,.8));
-}
-.wx-lightning-b { animation: pluvia-bolt-b 1.8s ease-in-out infinite !important; }
-.wx-flake { animation: pluvia-snow 2.2s linear infinite !important; }
+.wx-drop-2 { animation-delay: .22s !important; }
+.wx-drop-3 { animation-delay: .44s !important; }
+.wx-drop-4 { animation-delay: .28s !important; }
+.wx-drop-5 { animation-delay: .6s !important; }
+.wx-lightning { animation: pluvia-bolt 2.4s ease-in-out infinite !important; }
+.wx-lightning-b { animation: pluvia-bolt-b 2.4s ease-in-out infinite !important; }
+.wx-flake { animation: pluvia-snow 2.4s linear infinite !important; }
 
-.current-card[data-wx="sun"] {
-  animation: pluvia-card-sun 6s ease-in-out infinite;
-}
-.current-card[data-wx="rain"], .current-card[data-wx="storm"] {
-  animation: pluvia-card-rain 5s ease-in-out infinite;
-}
-.current-card[data-wx="storm"]::after {
-  animation: pluvia-flash 2.4s ease-in-out infinite;
-}
-
-@keyframes pluvia-intro-mark {
-  from { opacity: 0; transform: translateY(10px) scale(.96); }
-  to { opacity: 1; transform: none; }
-}
-@keyframes pluvia-intro-fade {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
-}
-@keyframes pluvia-intro-glow {
-  from { filter: drop-shadow(0 8px 16px rgba(7,93,255,.16)); }
-  to { filter: drop-shadow(0 14px 28px rgba(7,93,255,.38)); }
-}
-@keyframes pluvia-glyph-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-@keyframes pluvia-corona {
-  0%, 100% { opacity: .28; transform: scale(.9); }
-  50% { opacity: .6; transform: scale(1.18); }
-}
 @keyframes pluvia-sun-bob {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-7px) scale(1.04); }
-}
-@keyframes pluvia-sun-peek {
-  0%, 100% { transform: translate(-8px,-6px) scale(.78); }
-  50% { transform: translate(-4px,-14px) scale(.86); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
 @keyframes pluvia-rays { to { transform: rotate(360deg); } }
 @keyframes pluvia-core {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.14); }
+  50% { transform: scale(1.08); }
 }
 @keyframes pluvia-moon {
-  0%, 100% { transform: translate(0,0) rotate(-4deg); }
-  50% { transform: translate(3px,-6px) rotate(4deg); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 @keyframes pluvia-cloud {
-  0%, 100% { transform: translateX(-8px) translateY(2px); }
-  50% { transform: translateX(8px) translateY(-5px); }
+  0%, 100% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
 }
 @keyframes pluvia-cloud-back {
-  from { transform: translateX(-10px); opacity: .65; }
-  to { transform: translateX(10px); opacity: 1; }
+  from { transform: translateX(-5px); }
+  to { transform: translateX(5px); }
 }
 @keyframes pluvia-shake {
-  0%, 100% { transform: translate(0,0); }
-  25% { transform: translate(-4px,2px); }
-  50% { transform: translate(4px,-2px); }
-  75% { transform: translate(-3px,1px); }
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-2px); }
+  60% { transform: translateX(2px); }
 }
 @keyframes pluvia-rain {
-  0% { opacity: 0; transform: translateY(-12px); }
-  20% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(18px); }
+  0% { opacity: 0; transform: translateY(-8px); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(12px); }
 }
 @keyframes pluvia-bolt {
-  0%, 55%, 70%, 100% { opacity: .12; transform: scale(.9); }
-  60%, 66% { opacity: 1; transform: scale(1.18); }
+  0%, 62%, 78%, 100% { opacity: .2; }
+  66%, 72% { opacity: 1; }
 }
 @keyframes pluvia-bolt-b {
-  0%, 62%, 100% { opacity: 0; }
-  64%, 68% { opacity: .85; }
+  0%, 70%, 100% { opacity: 0; }
+  73%, 76% { opacity: .8; }
 }
 @keyframes pluvia-snow {
-  0% { opacity: 0; transform: translateY(-8px) rotate(0); }
+  0% { opacity: 0; transform: translateY(-6px); }
   20% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(18px) rotate(90deg); }
+  100% { opacity: 0; transform: translateY(14px); }
 }
-@keyframes pluvia-card-sun {
-  0%, 100% { box-shadow: inset 0 1px 0 #fff, 0 22px 55px rgba(33,86,153,.09); }
-  50% { box-shadow: inset 0 1px 0 #fff, 0 22px 55px rgba(255,184,46,.18); }
-}
-@keyframes pluvia-card-rain {
-  0%, 100% { box-shadow: inset 0 1px 0 #fff, 0 22px 55px rgba(33,86,153,.09); }
-  50% { box-shadow: inset 0 1px 0 #fff, 0 22px 55px rgba(7,93,255,.16); }
-}
-@keyframes pluvia-flash {
-  0%, 58%, 72%, 100% { opacity: 1; }
-  62%, 66% { opacity: .55; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .orb, .noise { animation: none !important; }
-  .pluvia-intro.is-leaving { transition: none; }
-  .wx-sun, .wx-sun-rays, .wx-sun-core, .wx-glow, .wx-moon, .wx-cloud-main, .wx-cloud-back,
-  .wx-drop, .wx-lightning, .wx-lightning-b, .wx-flake, .weather-glyph, .current-card, .current-card::after {
-    animation-duration: 2.2s !important;
-    animation-delay: 0s !important;
+  .orb, .noise, .wx-sun, .wx-sun-rays, .wx-sun-core, .wx-moon, .wx-cloud-main,
+  .wx-cloud-back, .wx-drop, .wx-lightning, .wx-lightning-b, .wx-flake {
+    animation: none !important;
   }
 }

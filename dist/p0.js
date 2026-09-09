@@ -101,37 +101,6 @@ function aqiLabel(value) {
   if (value <= 300) return ["Muito ruim", `US AQI ${Math.round(value)} · traduzido`];
   return ["Péssima", `US AQI ${Math.round(value)} · traduzido`];
 }
-weatherIconSvg = function (code, isDay = true) {
-  const type = weatherIconType(code);
-  const glow = '<circle class="wx-glow" cx="52" cy="42" r="28" fill="#ffc941" opacity=".35"/>';
-  const sun = `<g class="wx-sun">${glow}<g class="wx-sun-rays"><path d="M52 6v9M52 69v9M16 42H7M97 42h-9M27 17l6 6M77 61l6 6M27 67l6-6M77 23l6-6"/></g><circle class="wx-sun-core" cx="52" cy="42" r="19"/><circle class="wx-sun-glass" cx="46" cy="36" r="6"/></g>`;
-  const moon = `<g class="wx-moon"><path class="wx-moon-core" d="M67 8c-4 5-6 12-6 19 0 15 12 27 27 27 4 0 8-1 12-3-4 15-17 26-33 26-19 0-34-15-34-34C33 25 48 10 67 8Z"/><circle class="wx-moon-crater" cx="53" cy="29" r="4"/><circle class="wx-moon-crater" cx="47" cy="46" r="2.8"/></g>`;
-  const cloudBack = `<g class="wx-cloud-back"><path fill="rgba(194,226,255,.75)" d="M28 62c-9 0-15-6-15-14 0-7 5-13 12-14 3-10 12-16 23-16 13 0 23 9 24 22 9 1 15 7 15 15 0 9-7 16-17 16H28z"/></g>`;
-  const cloud = `<g class="wx-cloud-main"><path class="wx-cloud-shadow" fill="rgba(68,145,224,.24)" d="M27 74C15 74 7 66 7 56c0-10 8-18 18-19 4-14 16-23 31-23 17 0 30 12 31 29 12 1 21 10 21 22 0 13-10 23-24 23H27z"/><path class="wx-cloud-body" fill="rgba(248,252,255,.96)" stroke="rgba(77,148,223,.42)" stroke-width="1.5" d="M25 69C14 69 8 62 8 54c0-9 7-16 17-17 4-13 15-21 29-21 16 0 28 11 29 27 11 1 19 9 19 19 0 12-9 21-22 21H25z"/><path class="wx-cloud-shine" fill="rgba(255,255,255,.72)" d="M24 44c4-1 8 0 11 2 4-13 14-20 27-20 7 0 13 2 18 7-5-9-14-15-26-15-14 0-25 8-29 21-8 1-14 5-17 11 4-3 9-5 16-6z"/></g>`;
-  const rain = `<g class="wx-rain"><path class="wx-drop wx-drop-1" d="M30 80l-5 12"/><path class="wx-drop wx-drop-2" d="M46 82l-5 12"/><path class="wx-drop wx-drop-3" d="M62 80l-5 12"/><path class="wx-drop wx-drop-4" d="M78 83l-5 12"/><path class="wx-drop wx-drop-5" d="M38 86l-4 10"/></g>`;
-  const lightning = `<path class="wx-lightning" d="M59 73H46l-5 14h11l-5 18 22-24H58z"/><path class="wx-lightning-b" d="M72 78h-8l-3 9h7l-3 12 14-16h-8z"/>`;
-  const snow = `<g class="wx-snow"><path class="wx-flake wx-flake-1" d="M34 78v12M28 84h12M30 80l8 8M38 80l-8 8"/><path class="wx-flake wx-flake-2" d="M56 80v12M50 86h12M52 82l8 8M60 82l-8 8"/><path class="wx-flake wx-flake-3" d="M78 76v12M72 82h12M74 78l8 8M82 78l-8 8"/></g>`;
-  const wrap = (cls, inner) => `<svg class="weather-visual ${cls}" viewBox="0 0 112 108" aria-hidden="true">${inner}</svg>`;
-  if (type === "snow") return wrap("weather-snow", snow);
-  if (!isDay) {
-    if (type === "sun") return wrap("weather-night weather-moon", moon);
-    if (type === "partly") return wrap("weather-night weather-night-partly", moon + cloud);
-    if (type === "cloud") return wrap("weather-night weather-cloud weather-night-cloud", moon + cloudBack + cloud);
-    if (type === "storm") return wrap("weather-night weather-storm weather-night-storm", moon + cloud + rain + lightning);
-    return wrap("weather-night weather-rain weather-night-rain", moon + cloud + rain);
-  }
-  if (type === "sun") return wrap("weather-sun", sun);
-  if (type === "partly") return wrap("weather-partly", sun + cloud);
-  if (type === "cloud") return wrap("weather-cloud", cloudBack + cloud);
-  if (type === "storm") return wrap("weather-storm", cloud + rain + lightning);
-  return wrap("weather-rain", cloud + rain);
-};
-if (!document.querySelector('link[href*="p0-wx.css"]')) {
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = "./p0-wx.css?v=wx-1";
-  document.head.appendChild(link);
-}
 const _inmetArea = inmetArea;
 inmetArea = function (alert) {
   const codes = JSON.stringify(alert.geocodes || alert.geocode || "").match(/\b\d{7}\b/g) || [];
