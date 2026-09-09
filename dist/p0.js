@@ -12,13 +12,10 @@ function cityNameUnique(name) {
   }
   return count === 1;
 }
-function haversineKm(lat1, lon1, lat2, lon2) {
-  const r = Math.PI / 180;
-  const a = Math.sin((lat2 - lat1) * r / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin((lon2 - lon1) * r / 2) ** 2;
-  return 6371 * 2 * Math.asin(Math.sqrt(Math.min(1, a)));
-}
 function hourLabel(iso) {
-  return (iso || "").slice(11, 16).replace(/^0/, "") || "--";
+  const raw = (iso || "").slice(11, 16);
+  if (!raw) return "--";
+  return raw.replace(/^0/, "");
 }
 function buildRainPhrase(hourly) {
   const times = hourly?.time || [];
@@ -54,17 +51,19 @@ function buildRainPhrase(hourly) {
   }
   if (sum3 >= 15) {
     severity = "heavy";
-    phrase = `Pode alagar via · ${hourLabel(times[start])}–${hourLabel(times[Math.min(start + 2, times.length - 1)])}.`;
+    phrase = `Volume alto das ${hourLabel(times[start])} às ${hourLabel(times[Math.min(start + 2, times.length - 1)])}. Pode alagar via.`;
   } else if (firstWet >= 0) {
     severity = "wet";
     const from = hourLabel(times[firstWet]);
     const to = hourLabel(times[Math.max(firstWet, lastWet)]);
-    phrase = firstWet === start ? `Chuva agora até ${to}. Sai depois.` : `Pau d'água das ${from} às ${to}. Sai agora ou espera.`;
+    phrase = firstWet === start
+      ? `Chuva agora até ${to}.`
+      : `Chuva das ${from} às ${to}.`;
   } else if (peakProb >= 55 && peakMm < 0.4) {
     severity = "threat";
-    phrase = "Ameaça mais do que molha.";
+    phrase = "Nuvem ameaça, mas o volume previsto é baixo.";
   } else if (bestDry >= 3 && bestDryAt === start) {
-    phrase = `Próximas ${bestDry}h secas. Aproveita.`;
+    phrase = `Próximas ${bestDry}h secas.`;
   } else if (bestDry >= 3) {
     phrase = `Janela seca às ${hourLabel(times[bestDryAt])} · ${bestDry}h.`;
   }
@@ -117,6 +116,8 @@ const _updateCityLabels = updateCityLabels;
 updateCityLabels = function () {
   _updateCityLabels();
   if (!activeCity) return;
+  const label = document.getElementById("selectedCityLabel");
+  if (label) label.textContent = activeCity.name;
   const dist = document.getElementById("cityDistance");
   if (dist) {
     dist.hidden = !(activeCity.distanceKm >= 2);
