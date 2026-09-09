@@ -82,9 +82,10 @@
   display: flex !important;
   align-items: center;
   justify-content: center;
-  width: clamp(84px, 24vw, 108px) !important;
-  height: clamp(78px, 22vw, 100px) !important;
-  margin: 0;
+  width: clamp(96px, 26vw, 120px) !important;
+  height: clamp(90px, 24vw, 112px) !important;
+  margin: 4px 0 0;
+  overflow: visible !important;
 }
 .weather-visual {
   width: 100% !important;
@@ -123,18 +124,16 @@
   justify-content: space-between;
   gap: 12px;
 }
-.current-bottom strong {
-  font-size: clamp(1rem, 3.2vw, 1.2rem);
-}
+.current-bottom strong { font-size: clamp(1rem, 3.2vw, 1.2rem); }
 .wx-sun, .wx-moon, .wx-cloud-back, .wx-cloud-main, .wx-glow { animation: none !important; }
 .weather-night-partly .wx-moon,
 .weather-night-cloud .wx-moon,
 .weather-night-rain .wx-moon,
 .weather-night-storm .wx-moon {
-  transform: translate(-10px, -8px) scale(.84) !important;
+  transform: translate(-28px, -24px) scale(1) !important;
   transform-origin: 60px 42px;
 }
-.weather-partly .wx-sun { transform: translate(-7px, -7px) scale(.78) !important; }
+.weather-partly .wx-sun { transform: translate(-10px, -12px) scale(.82) !important; }
 .wx-sun-rays { transform-origin: 52px 42px; animation: sun-rays-spin 13s linear infinite !important; }
 .wx-sun-core { transform-origin: 52px 42px; animation: sun-core-pulse 3s ease-in-out infinite !important; }
 .wx-drop { animation: rain-fall 1.15s ease-in infinite !important; }
