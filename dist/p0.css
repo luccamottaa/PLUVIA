@@ -42,8 +42,9 @@
 @media (max-width: 720px) {
   .search-trigger-label { display:inline !important; max-width:11ch; font-size:13px; font-weight:700; }
   .clock-wrap { display:block !important; text-align:left; padding:0; }
-  .clock-wrap strong { font-size:1.35rem; }
+  .clock-wrap strong { font-size: clamp(1.2rem, 6vw, 1.45rem); }
   .intro { flex-wrap:wrap; align-items:flex-end; gap:12px; }
+  .intro h1 { font-size: clamp(2.1rem, 11vw, 3.4rem); }
 }
 @media (prefers-color-scheme: dark) {
   .city-result { background:#101d32; border-color:#568eff44; }
@@ -63,8 +64,8 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  min-height: 148px !important;
+  gap: clamp(6px, 2vw, 16px);
+  min-height: clamp(128px, 28vw, 168px) !important;
   flex: 1 1 auto;
 }
 .weather-main > div:first-child {
@@ -81,45 +82,49 @@
   display: flex !important;
   align-items: center;
   justify-content: center;
-  width: 100px !important;
-  height: 92px !important;
+  width: clamp(84px, 24vw, 108px) !important;
+  height: clamp(78px, 22vw, 100px) !important;
   margin: 0;
 }
 .weather-visual {
-  width: 100px !important;
-  height: 92px !important;
+  width: 100% !important;
+  height: 100% !important;
   overflow: visible !important;
 }
-.condition { margin: 0 !important; max-width: 16ch; }
+.condition {
+  margin: 0 !important;
+  max-width: 16ch;
+  font-size: clamp(.95rem, 3.4vw, 1.12rem) !important;
+}
 .temperature {
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
   flex: 1 1 auto;
-  margin: 0 8px 0 0;
-  padding: 0 4px 0 0;
+  margin: 0 6px 0 0;
+  padding: 0;
   font-family: "Nunito", Manrope, sans-serif !important;
   font-weight: 800 !important;
-  font-size: clamp(5.8rem, 24vw, 8.6rem) !important;
+  font-size: clamp(4.6rem, 18vw + 1rem, 8.4rem) !important;
   letter-spacing: -.07em;
   line-height: .76 !important;
 }
-.temperature span {
-  font-family: inherit;
-  font-weight: inherit;
-}
+.temperature span { font-family: inherit; font-weight: inherit; }
 .temperature sup {
   font-family: "Nunito", Manrope, sans-serif !important;
   font-weight: 700;
-  font-size: .28em;
-  margin-left: .04em;
-  top: 0.18em;
+  font-size: .26em;
+  margin-left: .02em;
+  top: 0.16em;
 }
 .current-bottom {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+}
+.current-bottom strong {
+  font-size: clamp(1rem, 3.2vw, 1.2rem);
 }
 .wx-sun, .wx-moon, .wx-cloud-back, .wx-cloud-main, .wx-glow { animation: none !important; }
 .weather-night-partly .wx-moon,
