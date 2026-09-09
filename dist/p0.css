@@ -52,20 +52,20 @@
 
 .weather-main {
   display: grid !important;
-  grid-template-columns: minmax(120px, max-content) 1fr;
+  grid-template-columns: minmax(112px, max-content) 1fr;
   align-items: center;
   min-height: 0 !important;
   column-gap: 8px;
 }
-.wx-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.wx-left { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 .weather-glyph {
   animation: none !important;
   width: 112px !important;
-  height: 96px !important;
+  height: 100px !important;
   margin: 0 !important;
   overflow: visible !important;
 }
-.weather-visual { width: 112px !important; height: 96px !important; overflow: visible !important; }
+.weather-visual { width: 112px !important; height: 100px !important; overflow: visible !important; }
 .condition { margin: 0 !important; max-width: 16ch; font-size: 1.05rem !important; }
 .temperature {
   display: flex !important;
@@ -90,29 +90,28 @@
 }
 
 .weather-glyph,
-.wx-sun,
-.wx-moon,
 .wx-cloud-back,
 .wx-cloud-main,
 .wx-glow {
   animation: none !important;
-  transform: none !important;
+}
+.wx-sun, .wx-moon {
+  animation: none !important;
 }
 .weather-night-partly .wx-moon,
 .weather-night-cloud .wx-moon,
 .weather-night-rain .wx-moon,
-.weather-night-storm .wx-moon,
-.weather-partly .wx-sun {
-  transform: none !important;
+.weather-night-storm .wx-moon {
+  transform: translate(-12px, -6px) scale(.72) !important;
+  transform-origin: 60px 42px;
 }
-
+.weather-partly .wx-sun {
+  transform: translate(-7px, -7px) scale(.78) !important;
+}
 .wx-moon-core { animation: moon-glow 3.8s ease-in-out infinite !important; }
-.wx-moon-crater { animation: crater-breathe 4.6s ease-in-out infinite !important; }
 .wx-cloud-shine { animation: cloud-sheen 4.8s ease-in-out infinite !important; }
-.wx-cloud-body { animation: cloud-breathe 6s ease-in-out infinite !important; }
 .wx-sun-rays { transform-origin: 52px 42px; animation: sun-rays-spin 12s linear infinite !important; }
 .wx-sun-core { transform-origin: 52px 42px; animation: sun-core-pulse 2.8s ease-in-out infinite !important; }
-.wx-sun-glass { animation: glass-twinkle 3.2s ease-in-out infinite !important; }
 .wx-drop { animation: wx-rain-fall 1.05s cubic-bezier(.2,.7,.3,1) infinite !important; }
 .wx-drop-2 { animation-delay: .22s !important; }
 .wx-drop-3 { animation-delay: .44s !important; }
@@ -120,23 +119,11 @@
 
 @keyframes moon-glow {
   0%, 100% { filter: drop-shadow(0 0 5px rgba(7,93,255,.18)); }
-  50% { filter: drop-shadow(0 0 14px rgba(186,206,255,.62)); }
-}
-@keyframes crater-breathe {
-  0%, 100% { opacity: .45; }
-  50% { opacity: .95; }
+  50% { filter: drop-shadow(0 0 12px rgba(186,206,255,.5)); }
 }
 @keyframes cloud-sheen {
-  0%, 100% { opacity: .42; }
-  50% { opacity: .92; }
-}
-@keyframes cloud-breathe {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.06); }
-}
-@keyframes glass-twinkle {
-  0%, 100% { opacity: .45; }
-  50% { opacity: .85; }
+  0%, 100% { opacity: .5; }
+  50% { opacity: .9; }
 }
 @keyframes wx-rain-fall {
   0% { opacity: 0; transform: translateY(-6px); }
@@ -144,14 +131,11 @@
   100% { opacity: 0; transform: translateY(10px); }
 }
 @keyframes bolt-flash {
-  0%, 58%, 64%, 70%, 100% { opacity: .15; filter: brightness(1); }
-  60%, 67% { opacity: 1; filter: brightness(1.45); }
+  0%, 58%, 64%, 70%, 100% { opacity: .15; }
+  60%, 67% { opacity: 1; }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .orb, .noise,
-  .wx-moon-core, .wx-moon-crater, .wx-cloud-shine, .wx-cloud-body,
-  .wx-sun-rays, .wx-sun-core, .wx-sun-glass, .wx-drop, .wx-lightning {
+  .orb, .noise, .wx-moon-core, .wx-cloud-shine, .wx-sun-rays, .wx-sun-core, .wx-drop, .wx-lightning {
     animation: none !important;
   }
 }
