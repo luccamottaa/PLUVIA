@@ -51,34 +51,37 @@
 }
 
 .weather-main {
-  display: grid !important;
-  grid-template-columns: minmax(112px, max-content) 1fr;
+  display: flex !important;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   min-height: 0 !important;
-  column-gap: 8px;
 }
+.wx-copy { min-width: 0; flex: 1; }
 .wx-left { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 .weather-glyph {
   animation: none !important;
-  width: 112px !important;
-  height: 100px !important;
+  width: 96px !important;
+  height: 88px !important;
   margin: 0 !important;
   overflow: visible !important;
+  flex-shrink: 0;
 }
-.weather-visual { width: 112px !important; height: 100px !important; overflow: visible !important; }
-.condition { margin: 0 !important; max-width: 16ch; font-size: 1.05rem !important; }
+.weather-visual { width: 96px !important; height: 88px !important; overflow: visible !important; }
+.condition { margin: 10px 0 0 !important; max-width: 18ch; font-size: 1.12rem !important; }
 .temperature {
   display: flex !important;
   flex-direction: row;
   align-items: flex-start;
-  justify-content: flex-end;
+  justify-content: flex-start;
   margin: 0 !important;
   font-family: "Nunito", Manrope, sans-serif !important;
   font-weight: 800 !important;
-  font-size: clamp(4.4rem, 16vw, 7rem) !important;
+  font-size: clamp(4.2rem, 14vw, 6.4rem) !important;
   letter-spacing: -.06em;
   line-height: .85 !important;
 }
+.current-card { min-height: 0 !important; }
 .temperature .deg {
   display: block;
   color: var(--lime, #7dff9a);

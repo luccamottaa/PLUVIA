@@ -78,10 +78,11 @@ h1 em { color: var(--brand-blue); font-style: normal; }
 .dashboard-grid > .panel:first-child { animation-delay: .20s; }
 .dashboard-grid > .panel:last-child { animation-delay: .30s; }
 .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, .85fr); gap: 14px; }
-.current-card { position: relative; overflow: hidden; min-height: 370px; padding: 28px 32px; background: linear-gradient(145deg, rgba(255,255,255,.78), rgba(225,242,255,.42)); }
+.current-card { position: relative; overflow: hidden; min-height: 0; padding: 28px 32px; background: linear-gradient(145deg, rgba(255,255,255,.78), rgba(225,242,255,.42)); }
 .current-card::after { content: ""; position: absolute; z-index: 0; width: 420px; height: 420px; top: -190px; right: -150px; border: 1px solid rgba(255,255,255,.72); border-radius: 48% 52% 62% 38%; box-shadow: inset 0 0 70px rgba(55,161,255,.10), 0 0 0 45px rgba(255,255,255,.13), 0 0 0 90px rgba(56,155,255,.04); transform: rotate(24deg); }
 .card-topline { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1; }
-.weather-main { display: flex; align-items: center; justify-content: space-between; min-height: 225px; position: relative; z-index: 1; }
+.weather-main { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 0; position: relative; z-index: 1; }
+.wx-copy { min-width: 0; flex: 1; }
 .weather-glyph { width: 112px; height: 108px; display: grid; place-items: center; color: var(--blue); font-size: 4.8rem; line-height: 1; text-shadow: 0 0 55px rgba(7,88,211,.18); animation: glyph-float 4.8s ease-in-out infinite; }
 .weather-visual { width: 112px; height: 108px; overflow: visible; filter: drop-shadow(0 14px 18px rgba(34,102,184,.14)); }
 .wx-sun { transform-origin: 52px 42px; }
@@ -109,8 +110,8 @@ h1 em { color: var(--brand-blue); font-style: normal; }
 .wx-drop-2 { animation-delay: .22s; }.wx-drop-3 { animation-delay: .44s; }
 .weather-storm .wx-drop-2 { display: none; }
 .wx-lightning { fill: #ffc52f; filter: drop-shadow(0 4px 7px rgba(255,176,0,.38)); transform-origin: center; transform-box: fill-box; animation: lightning-flash 2.8s ease-in-out infinite; }
-.condition { margin: 14px 0 0; font-size: 1.2rem; letter-spacing: -.03em; }
-.temperature { font-size: clamp(6.5rem, 14vw, 10.6rem); line-height: .75; font-weight: 500; letter-spacing: -.1em; }
+.condition { margin: 12px 0 0; font-size: 1.2rem; letter-spacing: -.03em; max-width: 18ch; }
+.temperature { font-size: clamp(4.4rem, 12vw, 7.2rem); line-height: .85; font-weight: 500; letter-spacing: -.1em; }
 .temperature sup { color: var(--lime); font-size: .28em; vertical-align: top; margin-left: .06em; }
 .current-bottom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-top: 24px; border-top: 1px solid var(--line); position: relative; z-index: 1; }
 .current-bottom div { display: grid; gap: 3px; }
@@ -269,8 +270,8 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { po
   .topbar { top: 10px; height: 64px; margin-top: 10px; padding: 0 13px; border-radius: 20px; grid-template-columns: 1fr; justify-items: center; }.topbar nav { display: none; }
   .intro { padding: 28px 4px 24px; }.clock-wrap { display: none; }
   h1 { font-size: clamp(2.25rem, 8.5vw, 3.5rem); }
-  .dashboard-grid { grid-template-columns: 1fr; }.current-card, .attention-card { min-height: 330px; }
-  .current-card { padding: 20px; min-height: 290px; }.weather-main { min-height: 180px; gap: 8px; }.weather-glyph { font-size: 3.4rem; }.condition { font-size: 1rem; max-width: 130px; }.temperature { font-size: clamp(5rem, 22vw, 7.5rem); flex-shrink: 0; }
+  .dashboard-grid { grid-template-columns: 1fr; }.current-card, .attention-card { min-height: 0; }
+  .current-card { padding: 20px; min-height: 0; }.weather-main { min-height: 0; gap: 12px; }.weather-glyph { font-size: 3.4rem; }.condition { font-size: 1.05rem; max-width: none; }.temperature { font-size: clamp(4.1rem, 18vw, 5.6rem); flex-shrink: 0; }
   .current-bottom { gap: 8px; padding-top: 18px; }.current-bottom span { font-size: .8125rem; }.current-bottom strong { font-size: .875rem; }
   .attention-card { min-height: 305px; }.attention-icon { margin-top: 32px; }
   .metrics { grid-template-columns: repeat(2, 1fr); }.air-metric { grid-column: auto; }.metric { min-height: 132px; padding: 18px; }.metric strong { font-size: 1.7rem; }
