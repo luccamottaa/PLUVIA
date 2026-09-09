@@ -64,6 +64,13 @@
 .wx-glow {
   animation: none !important;
 }
+.weather-night-partly .wx-moon,
+.weather-night-cloud .wx-moon,
+.weather-night-rain .wx-moon,
+.weather-night-storm .wx-moon {
+  transform: translate(-26px, -22px) scale(.96) !important;
+  transform-origin: 60px 42px;
+}
 .wx-sun-rays { transform-origin: 52px 42px; animation: sun-rays-spin 13s linear infinite !important; }
 .wx-sun-core { transform-origin: 52px 42px; animation: sun-core-pulse 3s ease-in-out infinite !important; }
 .wx-drop { animation: rain-fall 1.15s ease-in infinite !important; }
