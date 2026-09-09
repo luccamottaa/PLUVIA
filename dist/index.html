@@ -21,13 +21,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=p0-p1-4" />
-    <link rel="stylesheet" href="./p0.css?v=p0-p1-4" />
+    <link rel="stylesheet" href="./styles.css?v=p0-p1-5" />
+    <link rel="stylesheet" href="./p0.css?v=p0-p1-5" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
-    <header class="topbar shell">
-      <a class="brand" href="#agora" aria-label="PLUVIA, início"><img src="./logo-pluvia.png" alt="PLUVIA" width="801" height="320" /></a>
+    <div id="pluviaIntro" class="pluvia-intro" role="dialog" aria-labelledby="introTitle">
+      <p class="intro-kicker">Feito no Norte</p>
+      <img src="./logo-pluvia.png" alt="PLUVIA" width="801" height="320" />
+      <h1 id="introTitle">O céu de cada <em>cidade</em>.</h1>
+      <p class="intro-copy">Olha o céu antes de sair. Chuva, alerta e ar no município.</p>
+      <div class="intro-actions">
+        <button id="introEnter" type="button">Ver o tempo</button>
+        <button id="introLocate" type="button">Usar minha localização</button>
+      </div>
+    </div>
+    <header class="topbar shell" id="top">
+      <a class="brand" href="#top" aria-label="PLUVIA, início"><img src="./logo-pluvia.png" alt="PLUVIA" width="801" height="320" /></a>
       <nav id="siteNav" aria-label="Seções" hidden>
         <a class="active" href="#agora">Agora</a><a href="#alertas">Alertas</a><a href="#chuva">Chuva</a><a href="#previsao">Previsão</a>
       </nav>
@@ -37,7 +47,7 @@
       </button>
     </header>
     <main class="shell">
-      <section class="location-welcome panel" id="locationWelcome" aria-labelledby="locationTitle">
+      <section class="location-welcome panel" id="locationWelcome" hidden aria-labelledby="locationTitle">
         <span class="eyebrow">SEU CLIMA, AQUI</span>
         <h1 id="locationTitle">Onde você está?</h1>
         <p>Autorize a localização ou escolha uma cidade pelo nome.</p>
@@ -56,7 +66,7 @@
         <p id="cityPickerStatus" role="status" aria-live="polite"></p>
       </section>
       </dialog>
-      <div id="weatherView" hidden>
+      <div id="weatherView">
       <section class="intro" id="agora">
         <div>
           <div class="eyebrow" id="dataStatus"><span class="live-dot" aria-hidden="true"></span><span id="statusText" role="status">Consultando o tempo</span></div>
@@ -116,10 +126,10 @@
     <section class="sobre shell" id="sobre"><h2>Sobre</h2><p>PLUVIA — olha o céu antes de sair. Feito no Norte.</p><p>Números do Open-Meteo (ponto do município), avisos do INMET e, em Manaus, Defesa Civil. Não substitui alerta oficial.</p></section>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
-    <script src="./p0-pre.js?v=p0-p1-4"></script>
+    <script src="./p0-pre.js?v=p0-p1-5"></script>
     <script src="./municipalities.js?v=cities-1"></script>
     <script src="./capitals.js?v=location-first-1"></script>
-    <script src="./app.js?v=p0-p1-4"></script>
-    <script src="./p0.js?v=p0-p1-4"></script>
+    <script src="./app.js?v=p0-p1-5"></script>
+    <script src="./p0.js?v=p0-p1-5"></script>
   </body>
 </html>

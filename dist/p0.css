@@ -7,11 +7,47 @@
 .sobre { padding:24px 0 64px; color:var(--muted); max-width:640px; }
 .search-trigger { min-width:44px; padding:8px 12px; }
 .search-trigger svg { width:18px; height:18px; }
+.pluvia-intro {
+  position: fixed; inset: 0; z-index: 80;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 32px 24px calc(32px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 80% 12%, rgba(7,93,255,.22), transparent 28rem),
+    radial-gradient(circle at 16% 78%, rgba(7,93,255,.10), transparent 24rem),
+    linear-gradient(165deg, #ffffff 0%, #f4f8ff 55%, #ffffff 100%);
+  text-align: center;
+}
+.pluvia-intro[hidden] { display: none !important; }
+.pluvia-intro.is-leaving { opacity: 0; pointer-events: none; transition: opacity .45s ease; }
+.pluvia-intro img { width: min(220px, 68vw); height: auto; margin-bottom: 10px; filter: drop-shadow(0 10px 24px rgba(7,93,255,.18)); }
+.pluvia-intro .intro-kicker {
+  margin: 0; color: #60738f; font-family: "DM Mono", monospace; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+}
+.pluvia-intro h1 { margin: 14px 0 8px; font-size: clamp(2rem, 8vw, 3.2rem); letter-spacing: -.05em; line-height: 1.05; }
+.pluvia-intro h1 em { color: #075dff; font-style: normal; }
+.pluvia-intro .intro-copy { margin: 0 0 28px; max-width: 26ch; color: #60738f; font-size: 1.02rem; }
+.pluvia-intro .intro-actions { display: flex; flex-direction: column; gap: 10px; width: min(320px, 100%); }
+.pluvia-intro .intro-actions button { min-height: 48px; border-radius: 14px; font: inherit; font-weight: 700; cursor: pointer; }
+#introEnter { border: 0; background: #075dff; color: #fff; }
+#introLocate { border: 1px solid #075dff40; background: #fff; color: #075dff; }
 @media (max-width: 720px) {
   .search-trigger-label { display:inline !important; max-width:11ch; font-size:13px; font-weight:700; }
   .clock-wrap { display:block !important; text-align:left; padding:0; }
   .clock-wrap strong { font-size:1.35rem; }
   .intro { flex-wrap:wrap; align-items:flex-end; gap:12px; }
 }
-@media (prefers-color-scheme: dark) { .city-result { background:#101d32; border-color:#568eff44; } }
-@media (prefers-reduced-motion: reduce) { .orb, .noise { animation: none !important; } }
+@media (prefers-color-scheme: dark) {
+  .city-result { background:#101d32; border-color:#568eff44; }
+  .pluvia-intro {
+    background:
+      radial-gradient(circle at 80% 12%, rgba(7,93,255,.28), transparent 28rem),
+      linear-gradient(165deg, #07111f 0%, #0a1628 100%);
+    color: #e7f0ff;
+  }
+  .pluvia-intro .intro-kicker, .pluvia-intro .intro-copy { color: #8aa0c2; }
+  #introLocate { background: #101d32; color: #8db5ff; border-color: #568eff44; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb, .noise { animation: none !important; }
+  .pluvia-intro.is-leaving { transition: none; }
+}

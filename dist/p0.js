@@ -17,6 +17,34 @@ function hourLabel(iso) {
   if (!raw) return "--";
   return raw.replace(/^0/, "");
 }
+function pinTop() {
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
+function revealWeather() {
+  const welcome = document.getElementById("locationWelcome");
+  const view = document.getElementById("weatherView");
+  const nav = document.getElementById("siteNav");
+  if (welcome) welcome.hidden = true;
+  if (view) view.hidden = false;
+  if (nav) nav.hidden = false;
+  pinTop();
+  requestAnimationFrame(pinTop);
+  setTimeout(pinTop, 50);
+}
+function dismissIntro(locate) {
+  const intro = document.getElementById("pluviaIntro");
+  if (intro && !intro.hidden) {
+    intro.classList.add("is-leaving");
+    setTimeout(() => { intro.hidden = true; pinTop(); }, 420);
+  }
+  revealWeather();
+  if (locate) {
+    unlockLocation();
+    _requestLocation();
+  }
+}
 function buildRainPhrase(hourly) {
   const times = hourly?.time || [];
   const probs = hourly?.precipitation_probability || [];
@@ -56,9 +84,7 @@ function buildRainPhrase(hourly) {
     severity = "wet";
     const from = hourLabel(times[firstWet]);
     const to = hourLabel(times[Math.max(firstWet, lastWet)]);
-    phrase = firstWet === start
-      ? `Chuva agora até ${to}.`
-      : `Chuva das ${from} às ${to}.`;
+    phrase = firstWet === start ? `Chuva agora até ${to}.` : `Chuva das ${from} às ${to}.`;
   } else if (peakProb >= 55 && peakMm < 0.4) {
     severity = "threat";
     phrase = "Nuvem ameaça, mas o volume previsto é baixo.";
@@ -145,7 +171,7 @@ requestLocation = function () {
 };
 
 document.addEventListener("click", event => {
-  if (event.target.closest("#welcomeLocate, #locateCity")) unlockLocation();
+  if (event.target.closest("#welcomeLocate, #locateCity, #introLocate")) unlockLocation();
 }, true);
 
 ["welcomeLocate", "locateCity"].forEach(id => {
@@ -156,25 +182,24 @@ document.addEventListener("click", event => {
   });
 });
 
+document.getElementById("introEnter")?.addEventListener("click", () => dismissIntro(false));
+document.getElementById("introLocate")?.addEventListener("click", () => dismissIntro(true));
+
 document.getElementById("cityResults")?.addEventListener("click", event => {
   const btn = event.target.closest("[data-id]");
   if (btn) chooseCity(btn.dataset.id);
 });
 
 (function bootCity() {
-  unlockLocation();
   const savedId = typeof readPreference === "function" ? readPreference("pluvia-city", null) : null;
   const fallback = cityById.get("1302603") || CITIES.find(city => city.uf === "AM");
   const city = cityById.get(savedId) || fallback;
-  if (!city) return;
+  if (city && (!activeCity || activeCity.id !== city.id)) chooseCity(city.id);
+  else if (city) updateCityLabels();
   const welcome = document.getElementById("locationWelcome");
-  const view = document.getElementById("weatherView");
-  const nav = document.getElementById("siteNav");
   if (welcome) welcome.hidden = true;
-  if (view) view.hidden = false;
-  if (nav) nav.hidden = false;
-  if (!activeCity || activeCity.id !== city.id) chooseCity(city.id);
-  else updateCityLabels();
+  if (location.hash === "#sobre") return;
+  pinTop();
 })();
 
 if ("serviceWorker" in navigator && window.isSecureContext) {
