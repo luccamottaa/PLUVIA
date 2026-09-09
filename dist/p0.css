@@ -7,23 +7,38 @@
 .sobre { padding:24px 0 64px; color:var(--muted); max-width:640px; }
 .search-trigger { min-width:44px; padding:8px 12px; }
 .search-trigger svg { width:18px; height:18px; }
-.brand img { opacity: 1 !important; filter: none; }
-.brand::after { display: none !important; }
 .pluvia-intro {
   position: fixed; inset: 0; z-index: 80;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 32px 24px;
   background:
-    radial-gradient(circle at 80% 12%, rgba(86,184,255,.18), transparent 28rem),
-    radial-gradient(circle at 16% 78%, rgba(196,232,92,.14), transparent 24rem),
+    radial-gradient(circle at 80% 12%, rgba(7,93,255,.16), transparent 28rem),
     linear-gradient(165deg, #ffffff 0%, #f4f8ff 55%, #ffffff 100%);
   text-align: center;
 }
 .pluvia-intro[hidden] { display: none !important; }
 .pluvia-intro.is-leaving { opacity: 0; pointer-events: none; transition: opacity .5s ease; }
-.pluvia-intro img {
-  width: min(280px, 78vw); height: auto; margin-bottom: 18px;
-  filter: drop-shadow(0 12px 28px rgba(32,92,164,.16));
+.pluvia-intro .intro-logo {
+  position: relative;
+  width: min(240px, 72vw);
+  height: 96px;
+  margin-bottom: 18px;
+}
+.pluvia-intro .intro-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+}
+.pluvia-intro .intro-logo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #075dff;
+  -webkit-mask: url("./logo-pluvia.png") center / contain no-repeat;
+  mask: url("./logo-pluvia.png") center / contain no-repeat;
+  filter: drop-shadow(0 10px 22px rgba(7,93,255,.22));
 }
 .pluvia-intro .intro-kicker {
   margin: 0 0 12px; color: #60738f; font-family: "DM Mono", monospace; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
