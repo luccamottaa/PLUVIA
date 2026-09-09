@@ -57,12 +57,7 @@
   min-height: 0 !important;
   column-gap: 8px;
 }
-.wx-left {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-}
+.wx-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
 .weather-glyph {
   animation: none !important;
   width: 112px !important;
@@ -93,7 +88,13 @@
   margin-top: .42em;
   margin-left: .04em;
 }
-.wx-sun, .wx-moon, .wx-cloud-back, .wx-cloud-main, .wx-glow {
+
+.weather-glyph,
+.wx-sun,
+.wx-moon,
+.wx-cloud-back,
+.wx-cloud-main,
+.wx-glow {
   animation: none !important;
   transform: none !important;
 }
@@ -104,10 +105,54 @@
 .weather-partly .wx-sun {
   transform: none !important;
 }
-.wx-sun-rays { transform-origin: 52px 42px; animation: sun-rays-spin 13s linear infinite !important; }
-.wx-sun-core { transform-origin: 52px 42px; animation: sun-core-pulse 3s ease-in-out infinite !important; }
-.wx-drop { animation: rain-fall 1.15s ease-in infinite !important; }
-.wx-lightning { animation: lightning-flash 2.8s ease-in-out infinite !important; }
+
+.wx-moon-core {
+  animation: moon-glow 3.6s ease-in-out infinite !important;
+}
+.wx-moon-crater {
+  animation: crater-breathe 4.4s ease-in-out infinite !important;
+}
+.wx-cloud-shine {
+  animation: cloud-sheen 5s ease-in-out infinite !important;
+}
+.wx-sun-rays {
+  transform-origin: 52px 42px;
+  animation: sun-rays-spin 13s linear infinite !important;
+}
+.wx-sun-core {
+  transform-origin: 52px 42px;
+  animation: sun-core-pulse 3s ease-in-out infinite !important;
+}
+.wx-drop {
+  animation: rain-fall 1.05s ease-in infinite !important;
+}
+.wx-drop-2 { animation-delay: .2s !important; }
+.wx-drop-3 { animation-delay: .4s !important; }
+.wx-lightning {
+  animation: bolt-flash 2.4s ease-in-out infinite !important;
+}
+
+@keyframes moon-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(7,93,255,.22)); }
+  50% { filter: drop-shadow(0 0 16px rgba(174,198,255,.55)); }
+}
+@keyframes crater-breathe {
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
+}
+@keyframes cloud-sheen {
+  0%, 100% { opacity: .55; }
+  50% { opacity: .95; }
+}
+@keyframes bolt-flash {
+  0%, 62%, 72%, 100% { opacity: .2; }
+  64%, 68% { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .orb, .noise { animation: none !important; }
+  .orb, .noise,
+  .wx-moon-core, .wx-moon-crater, .wx-cloud-shine,
+  .wx-sun-rays, .wx-sun-core, .wx-drop, .wx-lightning {
+    animation: none !important;
+  }
 }
