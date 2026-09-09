@@ -56,21 +56,34 @@
   .pluvia-intro .intro-kicker, .pluvia-intro .intro-copy { color: #8aa0c2; }
 }
 
-.weather-glyph,
-.wx-sun,
-.wx-moon,
-.wx-cloud-back,
-.wx-cloud-main,
-.wx-glow {
+.weather-glyph {
   animation: none !important;
+  width: 120px;
+  height: 116px;
+  display: grid;
+  place-items: center;
 }
+.weather-visual { overflow: visible !important; }
+.wx-sun, .wx-moon, .wx-cloud-back, .wx-cloud-main, .wx-glow { animation: none !important; }
+
 .weather-night-partly .wx-moon,
 .weather-night-cloud .wx-moon,
 .weather-night-rain .wx-moon,
 .weather-night-storm .wx-moon {
-  transform: translate(-26px, -22px) scale(.96) !important;
+  transform: translate(-18px, -16px) scale(.94) !important;
   transform-origin: 60px 42px;
 }
+.weather-night-partly .wx-cloud-main,
+.weather-night-cloud .wx-cloud-main,
+.weather-night-rain .wx-cloud-main,
+.weather-night-storm .wx-cloud-main,
+.weather-night-partly .wx-cloud-back,
+.weather-night-cloud .wx-cloud-back,
+.weather-night-rain .wx-cloud-back,
+.weather-night-storm .wx-cloud-back {
+  transform: translate(4px, 8px) !important;
+}
+
 .wx-sun-rays { transform-origin: 52px 42px; animation: sun-rays-spin 13s linear infinite !important; }
 .wx-sun-core { transform-origin: 52px 42px; animation: sun-core-pulse 3s ease-in-out infinite !important; }
 .wx-drop { animation: rain-fall 1.15s ease-in infinite !important; }
