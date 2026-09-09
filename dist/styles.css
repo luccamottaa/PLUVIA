@@ -419,6 +419,28 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px s
 .city-search-field, .city-select-field { flex:1 1 200px; min-width:0; }
 .city-state-field { flex:1 1 180px; min-width:0; }
 .model-note { font-size:14px; line-height:1.5; color:var(--muted); margin:18px 0 0; }
+[hidden] { display:none !important; }
+.topbar { grid-template-columns:minmax(0,1fr) auto auto; gap:12px; }
+.search-trigger { display:flex; align-items:center; gap:8px; min-width:44px; min-height:44px; padding:10px; border:1px solid #075dff30; border-radius:999px; background:transparent; color:var(--blue); cursor:pointer; font:inherit; font-size:14px; }
+.search-trigger svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; flex-shrink:0; }
+.search-trigger-label { max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.search-trigger:focus-visible,.dialog-close:focus-visible { outline:3px solid var(--blue); outline-offset:3px; }
+.city-dialog { width:min(560px,calc(100% - 28px)); max-height:calc(100dvh - 32px); padding:22px; margin:auto; border:1px solid #075dff30; border-radius:24px; background:#fff; color:#14223d; box-shadow:0 24px 80px #071b3d33; }
+.city-dialog::backdrop { background:rgba(5,15,35,.55); }
+.dialog-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.dialog-heading h2 { font-size:1.35rem; margin:0; }
+.dialog-close { min-width:44px; min-height:44px; border:0; background:transparent; color:inherit; font-size:30px; cursor:pointer; }
+.city-dialog .city-picker { padding:18px 0 0; margin:0; }
+.city-dialog .city-search-field,.city-dialog .city-state-field,.city-dialog .city-select-field { flex-basis:100%; }
+body:has(.city-dialog[open]) { overflow:hidden; }
+.location-welcome { max-width:680px; margin:40px auto 60px; padding:clamp(24px,5vw,48px); }
+.location-welcome h1 { font-size:clamp(2rem,6vw,3.2rem); margin:12px 0 16px; }
+.location-welcome p { color:var(--muted); font-size:16px; line-height:1.6; }
+.welcome-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:24px; }
+#welcomeLocate { background:var(--brand-blue); color:#fff; }
+#locationStatus { font-size:14px; margin-bottom:0; }
+@media(max-width:720px) { .topbar { grid-template-columns:minmax(0,1fr) auto; justify-items:stretch; } .topbar .brand { justify-self:start; } .search-trigger { justify-self:end; } .search-trigger-label { display:none; } .location-welcome { margin-top:24px; } }
+@media(prefers-color-scheme:dark) { .city-dialog { background:#101d32; color:#dce9ff; border-color:#568eff66; } .search-trigger { color:#8db5ff; border-color:#568eff44; } }
 .city-picker input, .city-picker select, .city-button { width:100%; min-height:48px; border:1px solid #075dff40; border-radius:14px; padding:10px 14px; font:inherit; font-size:16px; background:#fff; color:#14223d; }
 .city-button { width:auto; cursor:pointer; color:#075dff; font-weight:700; }
 .city-button[aria-pressed="true"] { background:#075dff; color:white; }

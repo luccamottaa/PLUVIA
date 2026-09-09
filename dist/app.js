@@ -320,6 +320,7 @@ async function loadDefesaAlerts(revision = cityRevision) {
 }
 
 function updateClock() {
+  if (!activeCity) return;
   const now = new Date();
   $("localClock").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
   $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
@@ -446,6 +447,7 @@ function validForecast(data) {
     dailyFields.every(key => Array.isArray(data?.daily?.[key]) && data.daily[key].length >= 1);
 }
 function cached() {
+  if (!activeCity) return null;
   try {
     const saved = JSON.parse(localStorage.getItem(`pluvia-weather-${activeCity.id}`) || "null");
     const age = Date.now() - saved?.at;
@@ -515,6 +517,7 @@ async function loadWeather(revision = cityRevision) {
 }
 
 async function refreshAll() {
+  if (!activeCity) return false;
   if (refreshInFlight) return refreshInFlight;
   const revision = cityRevision;
   refreshInFlight = Promise.allSettled([loadWeather(revision), loadInmetAlerts(revision), loadDefesaAlerts(revision)]).then(results => {
@@ -548,7 +551,7 @@ function setupPullToRefresh() {
   }
 
   document.addEventListener("touchstart", event => {
-    if (loading) return;
+    if (loading || !activeCity) return;
     clearTimeout(hideTimer);
     reset();
     if (event.touches.length !== 1 || window.scrollY > 0 || (window.visualViewport?.scale || 1) > 1 ||
@@ -629,6 +632,9 @@ function setupScrollAnimations() {
 const cityResetIds = ["temperature","feelsLike","condition","weatherGlyph","highLow","rainNow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","airScore","airCardQuality","pm25","pm10","airGuidance","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset"];
 let emptyCityContent;
 function updateCityLabels() {
+  $("favoriteCity").disabled = !activeCity;
+  if (!activeCity) return;
+  $("selectedCityLabel").textContent = activeCity.name + " · " + activeCity.uf;
   $("cityName").textContent = activeCity.name;
   document.title = "PLUVIA — " + activeCity.name + " agora";
   $("alertsCityLabel").textContent = "Fontes oficiais e leitura ambiental para " + activeCity.name;
@@ -647,12 +653,20 @@ function renderCityOptions() {
   const matches = browsing ? [...new Map([activeCity,...[...favorites].map(id=>cityById.get(id)),...CAPITALS].filter(Boolean).map(city=>[city.id,city])).values()] : searchCities(query,uf);
   const shown = matches.slice(0,60);
   $("citySelect").innerHTML = '<option value="">Selecione uma cidade</option>' + shown.map(city => '<option value="' + city.id + '">' + (favorites.has(city.id) ? "★ " : "") + escapeHtml(city.name) + " · " + city.uf + "</option>").join("");
-  $("citySelect").value = shown.some(city => city.id === activeCity.id) ? activeCity.id : "";
+  $("citySelect").value = shown.some(city => city.id === activeCity?.id) ? activeCity.id : "";
   $("cityPickerStatus").textContent = browsing ? "Busque pelo nome para encontrar cidades do interior. Favoritas e capitais aparecem na lista inicial." : !matches.length ? "Nenhuma cidade encontrada. Confira o nome ou o estado." : matches.length > 60 ? "Mostrando 60 de " + matches.length + " cidades. Digite mais do nome para refinar." : matches.length + " cidades encontradas. Escolha na lista.";
 }
 function chooseCity(id) {
   const city = cityById.get(id);
-  if (!city || city.id === activeCity.id) return;
+  if (!city) return;
+  if (city.id === activeCity?.id) { closeCitySearch(); return; }
+  locationAttempt++;
+  locationPending = false;
+  locationButtons(false);
+  $("locationWelcome").hidden = true;
+  $("weatherView").hidden = false;
+  $("siteNav").hidden = false;
+  closeCitySearch();
   cityRevision++;
   pendingRequests.forEach(controller => controller.abort());
   pendingRequests.clear();
@@ -686,36 +700,80 @@ function setupCityPicker() {
   emptyCityContent = new Map(cityResetIds.map(id => [id,$(id).innerHTML]));
   $("stateSelect").innerHTML = '<option value="">Todos os estados</option>' + [...stateNames].sort((a,b)=>a[1].localeCompare(b[1],'pt-BR')).map(([uf,name])=>'<option value="'+uf+'">'+escapeHtml(name)+' · '+uf+'</option>').join('');
   renderCityOptions(); updateCityLabels();
-  $("condition").textContent = "Buscando o céu de " + activeCity.name + "…";
-  $("inmetContent").innerHTML = "<h3>Buscando avisos meteorológicos</h3><p>Consultando avisos para " + activeCity.name + ".</p>";
-  $("defesaContent").innerHTML = "<h3>Defesa Civil em " + activeCity.name + "</h3><p>Consultando os canais disponíveis.</p>";
+
   let searchTimer;
   $("citySearch").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(renderCityOptions,120); });
   $("stateSelect").addEventListener("change", renderCityOptions);
   $("citySelect").addEventListener("change", event => chooseCity(event.target.value));
   $("favoriteCity").addEventListener("click", () => {
+    if (!activeCity) return;
     if (favorites.has(activeCity.id)) favorites.delete(activeCity.id); else favorites.add(activeCity.id);
     writePreference("pluvia-favorites", [...favorites]);
     renderCityOptions(); updateCityLabels();
   });
-  $("locateCity").addEventListener("click", () => {
-    const status = $("cityPickerStatus"), button = $("locateCity");
-    if (!navigator.geolocation) { status.textContent = "Localização indisponível. Escolha a cidade na lista."; return; }
-    const revision = cityRevision;
-    button.disabled = true; status.textContent = "Procurando a cidade de referência mais próxima…";
-    navigator.geolocation.getCurrentPosition(position => {
-      button.disabled = false;
-      if (revision !== cityRevision) return;
-      try {
-        const city = nearestCity(position.coords.latitude, position.coords.longitude);
-        chooseCity(city.id);
-        status.textContent = "Cidade de referência mais próxima: " + city.name + " · " + city.uf + ". A previsão usa a referência urbana, não sua posição exata.";
-      } catch { status.textContent = "Não foi possível identificar a localização. Escolha na lista."; }
-    }, () => {
-      button.disabled = false;
-      if (revision === cityRevision) status.textContent = "Localização não disponível ou não autorizada. Escolha sua cidade na lista.";
-    }, {enableHighAccuracy:false,timeout:10000,maximumAge:300000});
+  $("locateCity").addEventListener("click", requestLocation);
+  $("welcomeLocate").addEventListener("click", requestLocation);
+  $("openCitySearch").addEventListener("click", openCitySearch);
+  $("welcomeSearch").addEventListener("click", openCitySearch);
+  $("closeCitySearch").addEventListener("click", closeCitySearch);
+  $("cityDialog").addEventListener("close", () => $("openCitySearch").focus());
+  $("cityDialog").addEventListener("click", event => {
+    if (event.target !== $("cityDialog")) return;
+    const box = $("cityDialog").getBoundingClientRect();
+    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) closeCitySearch();
   });
+}
+
+
+let locationAttempt = 0;
+let locationPending = false;
+function locationMessage(text) {
+  $("locationStatus").textContent = text;
+  $("cityPickerStatus").textContent = text;
+}
+function locationButtons(disabled) {
+  $("welcomeLocate").disabled = disabled;
+  $("locateCity").disabled = disabled;
+}
+function openCitySearch() {
+  // Choosing manually takes precedence over a late location callback.
+  locationAttempt++;
+  locationPending = false;
+  locationButtons(false);
+  renderCityOptions();
+  const dialog = $("cityDialog");
+  if (!dialog.open) dialog.showModal();
+  $("citySearch").focus();
+}
+function closeCitySearch() {
+  const dialog = $("cityDialog");
+  if (dialog.open) dialog.close();
+}
+function requestLocation() {
+  if (locationPending) return;
+  if (!navigator.geolocation) {
+    locationMessage("Seu navegador não disponibilizou a localização. Escolha uma cidade pelo nome.");
+    return;
+  }
+  const attempt = ++locationAttempt;
+  locationPending = true;
+  locationButtons(true);
+  locationMessage("Autorize a localização no navegador para encontrar o clima perto de você.");
+  navigator.geolocation.getCurrentPosition(position => {
+    if (attempt !== locationAttempt) return;
+    locationPending = false; locationButtons(false);
+    try {
+      const city = nearestCity(position.coords.latitude, position.coords.longitude);
+      chooseCity(city.id);
+      locationMessage("Referência mais próxima: " + city.name + " · " + city.uf + ". Você pode trocar pela lupa.");
+    } catch {
+      locationMessage("Não foi possível identificar a cidade. Escolha pelo nome.");
+    }
+  }, error => {
+    if (attempt !== locationAttempt) return;
+    locationPending = false; locationButtons(false);
+    locationMessage(error.code === 1 ? "Localização não autorizada. Você pode escolher a cidade sem compartilhar sua posição." : "Não conseguimos obter sua localização agora. Tente novamente ou escolha uma cidade.");
+  }, {enableHighAccuracy:false,timeout:12000,maximumAge:60000});
 }
 
 setupCityPicker();
@@ -723,9 +781,7 @@ setupScrollAnimations();
 setupPullToRefresh();
 updateClock();
 setInterval(updateClock, 30000);
-const savedWeather = cached();
-if (savedWeather) { render(savedWeather.data.forecast, savedWeather.data.air, true); displayedWeather = savedWeather.data; }
-refreshAll();
+requestLocation();
 setInterval(() => { if (!document.hidden) refreshAll(); }, AUTO_REFRESH_MS);
 document.addEventListener("visibilitychange", refreshIfStale);
 window.addEventListener("pageshow", refreshIfStale);

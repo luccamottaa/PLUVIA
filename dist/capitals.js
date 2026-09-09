@@ -41,7 +41,8 @@ const CITIES = MUNICIPALITIES.rows.map(([id,name,uf,lat,lon,zone]) => {
   return capital || Object.freeze({id,name,uf,state:stateNames.get(uf),lat,lon,timezone:MUNICIPALITIES.timezones[zone]});
 });
 const cityById = new Map(CITIES.map(city => [city.id,city]));
-let activeCity = cityById.get(readPreference('pluvia-city', '1302603')) || cityById.get('1302603');
+// No city is selected until location permission succeeds or the visitor chooses.
+let activeCity = null;
 const savedFavorites = readPreference('pluvia-favorites', []);
 let favorites = new Set(Array.isArray(savedFavorites) ? savedFavorites.filter(id => cityById.has(id)) : []);
 const normalizeName = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();

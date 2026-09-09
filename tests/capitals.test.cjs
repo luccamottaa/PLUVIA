@@ -11,6 +11,7 @@ const nodes = new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id]) => [id, {
   innerHTML:'',textContent:'',value:'',className:'',dataset:{},style:{},events:{},attrs:{},
   classList:{add(){},remove(){},toggle(){}},
   setAttribute(key,value){this.attrs[key]=value;},
+  focus(){}, showModal(){this.open=true;},close(){this.open=false;},
   addEventListener(key,fn){this.events[key]=fn;}
 }]));
 const context = vm.createContext({document:{getElementById:id=>nodes.get(id),querySelectorAll:()=>[]},
@@ -21,6 +22,8 @@ const context = vm.createContext({document:{getElementById:id=>nodes.get(id),que
 vm.runInContext(catalog,context);
 vm.runInContext(source.slice(0,source.lastIndexOf('\nsetupCityPicker();')),context);
 const run = code => vm.runInContext(code,context);
+assert.equal(run('activeCity'),null);
+run('activeCity = cityById.get("1302603")');
 const cities = run('CAPITALS');
 const municipalities = run('CITIES');
 assert.equal(municipalities.length,5571);
@@ -114,7 +117,7 @@ run('activeCity = CAPITALS.find(c=>c.uf==="AM")');
   nodes.get('favoriteCity').events.click();
   const reloaded=vm.createContext({localStorage:{getItem:key=>storage.get(key)},Set});
   vm.runInContext(catalog,reloaded);
-  assert.equal(vm.runInContext('activeCity.name',reloaded),'Parintins');
+  assert.equal(vm.runInContext('activeCity',reloaded),null);
   assert.equal(vm.runInContext('favorites.has("1302603")',reloaded),true);
   assert.equal(vm.runInContext('favorites.has("1303403")',reloaded),true);
   console.log('PASS 5,571 cities and 27 capitals: geographic IDs, homonyms, bounded search, four UTC offsets, nearest city, INMET isolation, Manaus-only municipal feed, saved favorites and stale-request isolation.');

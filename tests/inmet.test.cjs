@@ -18,6 +18,7 @@ const context = vm.createContext({
 vm.runInContext(fs.readFileSync(path.join(root, "dist/municipalities.js"), "utf8"), context);
 vm.runInContext(fs.readFileSync(path.join(root, "dist/capitals.js"), "utf8"), context);
 vm.runInContext(source.slice(0, source.lastIndexOf("\nsetupCityPicker();")), context);
+vm.runInContext('activeCity = cityById.get("1302603")', context);
 
 // Synthetic data in the Alert-AS hoje/futuro envelope. IDs are test values;
 // this fixture is not a live alert, never shipped as weather data.
