@@ -1,9 +1,18 @@
-const API = "https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,cloud_cover,visibility,wind_speed_10m,relative_humidity_2m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&timezone=America%2FManaus&forecast_days=8";
-const AIR_API = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-3.119&longitude=-60.022&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi&timezone=America%2FManaus&forecast_days=3";
+const FORECAST_TEMPLATE = "https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,cloud_cover,visibility,wind_speed_10m,relative_humidity_2m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&timezone=America%2FManaus&forecast_days=8";
+const AIR_TEMPLATE = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-3.119&longitude=-60.022&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi&timezone=America%2FManaus&forecast_days=3";
 const INMET_API = "https://apiprevmet3.inmet.gov.br/avisos/ativos";
 const DEFESA_API = "https://www.manaus.am.gov.br/wp-json/wp/v2/posts?search=Defesa%20Civil%20alerta&per_page=8&_fields=date,link,title,excerpt";
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const $ = (id) => document.getElementById(id);
+let cityRevision = 0;
+const pendingRequests = new Set();
+function cityApi(template, city = activeCity) {
+  const url = new URL(template);
+  url.searchParams.set("latitude", city.lat);
+  url.searchParams.set("longitude", city.lon);
+  url.searchParams.set("timezone", city.timezone);
+  return url.href;
+}
 let lastRefreshAt = 0;
 let refreshInFlight = null;
 let displayedWeather = null;
@@ -13,6 +22,7 @@ const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 
 async function fetchJson(url, timeoutMs = 12000) {
   const controller = new AbortController();
+  pendingRequests.add(controller);
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, { cache: "no-store", signal: controller.signal });
@@ -20,17 +30,20 @@ async function fetchJson(url, timeoutMs = 12000) {
     return await response.json();
   } finally {
     clearTimeout(timeout);
+    pendingRequests.delete(controller);
   }
 }
 
-async function fetchForecast() {
+async function fetchForecast(city = activeCity, revision = cityRevision) {
   try {
-    const data = await fetchJson(API);
+    const data = await fetchJson(cityApi(FORECAST_TEMPLATE, city));
     if (!validForecast(data)) throw new Error("Previsão incompleta");
     return data;
   } catch {
+    if (revision !== cityRevision) throw new Error('Cidade alterada');
     await new Promise(resolve => setTimeout(resolve, 800));
-    const data = await fetchJson(API, 12000);
+    if (revision !== cityRevision) throw new Error('Cidade alterada');
+    const data = await fetchJson(cityApi(FORECAST_TEMPLATE, city), 12000);
     if (!validForecast(data)) throw new Error("Previsão incompleta");
     return data;
   }
@@ -42,11 +55,18 @@ const weatherMap = {
   61: ["Chuva fraca", "☂"], 63: ["Chuva moderada", "☂"], 65: ["Chuva forte", "☂"], 80: ["Pancadas fracas", "☔"], 81: ["Pancadas de chuva", "☔"], 82: ["Pancadas fortes", "☔"],
   95: ["Trovoadas", "ϟ"], 96: ["Trovoadas com granizo", "ϟ"], 99: ["Trovoadas fortes", "ϟ"]
 };
+Object.assign(weatherMap, {
+  56:["Garoa congelante fraca","☂"],57:["Garoa congelante intensa","☂"],
+  66:["Chuva congelante fraca","☂"],67:["Chuva congelante forte","☂"],
+  71:["Neve fraca","❄"],73:["Neve moderada","❄"],75:["Neve forte","❄"],
+  77:["Grãos de neve","❄"],85:["Pancadas de neve","❄"],86:["Pancadas fortes de neve","❄"]
+});
 const weather = (code) => weatherMap[code] || ["Tempo variável", "◒"];
 
 function weatherIconType(code) {
+  if ([71,73,75,77,85,86].includes(code)) return "snow";
   if ([95, 96, 99].includes(code)) return "storm";
-  if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return "rain";
+  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "rain";
   if ([3, 45, 48].includes(code)) return "cloud";
   if ([1, 2].includes(code)) return "partly";
   return "sun";
@@ -54,6 +74,7 @@ function weatherIconType(code) {
 
 function weatherIconSvg(code, isDay = true) {
   const type = weatherIconType(code);
+  if (type === "snow") return '<svg class="weather-visual" viewBox="0 0 112 108" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><path d="M56 14v80M21 34l70 40M21 74l70-40M44 22l12 12 12-12M44 86l12-12 12 12M22 48l16-4-4-16M78 80l-4-16 16-4M34 80l4-16-16-4M90 48l-16-4 4-16"/></g></svg>';
   const sun = `<g class="wx-sun">
     <g class="wx-sun-rays">
       <path d="M52 5v10M52 69v10M15 42H5M99 42H89M26 16l7 7M78 61l7 7M26 68l7-7M78 23l7-7" />
@@ -112,7 +133,7 @@ function uvLabel(value) {
 
 function humidityLabel(value) {
   if (value >= 85) return "Ar bem carregado";
-  if (value >= 70) return "Alta, padrão Manaus";
+  if (value >= 70) return "Umidade alta";
   if (value >= 50) return "Faixa confortável";
   return "Ar mais seco";
 }
@@ -195,12 +216,15 @@ function inmetSeverity(alert) {
 
 function inmetArea(alert) {
   const codes = JSON.stringify(alert.geocodes || alert.geocode || "").match(/\b\d{7}\b/g) || [];
-  if (codes.length) return codes.includes("1302603") ? "Manaus" : null;
-  const towns = JSON.stringify(alert.municipios || alert.municipio || "").toLowerCase();
-  if (/\bmanaus\b/.test(towns)) return "Manaus";
-  const region = JSON.stringify([alert.estados, alert.uf, alert.sigla, alert.area, alert.areaDesc]).toLowerCase();
-  if (/\bmanaus\b/.test(region)) return "Manaus";
-  if (/\bamazonas\b|\bam\b/.test(region)) return "Amazonas · confirme a área no mapa";
+  if (codes.length) return codes.includes(activeCity.id) ? activeCity.name : null;
+  const contains = (value, name) => new RegExp('(^|[^a-z])' + normalizeName(name) + '([^a-z]|$)').test(normalizeName(JSON.stringify(value || "")));
+  const towns = alert.municipios || alert.municipio;
+  if (towns) return contains(towns, activeCity.name) ? activeCity.name : null;
+  // State names can equal a capital name (São Paulo/Rio de Janeiro).
+  // Only a municipality field or IBGE code confirms a city-level match.
+  const region = [alert.estados, alert.uf, alert.sigla, alert.area, alert.areaDesc];
+  const stateNames = normalizeName(JSON.stringify(region)).split(/[,;|/"\[\]{}:]/).map(value => value.trim());
+  if (stateNames.includes(normalizeName(activeCity.state)) || stateNames.includes(normalizeName(activeCity.uf))) return activeCity.state + " · confirme a área no mapa";
   return null;
 }
 
@@ -233,29 +257,31 @@ function renderInmetAlerts(raw, stale = false) {
   $("inmetCard").dataset.severity = stale ? "unknown" : alerts[0]?.severity.className || "none";
   if (!alerts.length) {
     state.className = "source-state"; state.innerHTML = `<i></i>${stale ? "Consulta indisponível" : "Nenhum aviso identificado"}`;
-    content.innerHTML = stale ? "<h3>Confira o mapa do INMET</h3><p>Não foi possível confirmar os avisos atuais. A leitura anterior não confirma a situação de agora.</p>" : "<h3>Nenhum aviso identificado para Manaus</h3><p>A consulta não retornou avisos vigentes ou previstos para a região. Confira também o mapa oficial.</p>";
+    content.innerHTML = stale ? "<h3>Confira o mapa do INMET</h3><p>Não foi possível confirmar os avisos atuais. A leitura anterior não confirma a situação de agora.</p>" : `<h3>Nenhum aviso identificado para ${activeCity.name}</h3><p>A consulta não retornou avisos vigentes ou previstos para a região. Confira também o mapa oficial.</p>`;
     return;
   }
   state.className = `source-state inmet-${stale ? "unknown" : alerts[0].severity.className}`;
   state.innerHTML = `<i></i>${stale ? "Sem confirmação recente" : alerts.length === 1 ? alerts[0].severity.label : `${alerts.length} avisos na região`}`;
-  const format = value => new Intl.DateTimeFormat("pt-BR", {timeZone:"America/Manaus", day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(value));
+  const format = value => new Intl.DateTimeFormat("pt-BR", {timeZone:activeCity.timezone, day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(value));
   content.innerHTML = (stale ? '<p class="inmet-notice">Consulta indisponível. Os avisos abaixo vêm da leitura anterior; confirme a situação no INMET.</p>' : "") + alerts.map(({alert, area, start, end, stage, severity}) => {
     const id = String(firstValue(alert, ["id_aviso", "id"]));
     const url = /^\d+$/.test(id) ? `https://avisos.inmet.gov.br/${id}` : "https://alertas2.inmet.gov.br/";
     const title = firstValue(alert, ["descricao", "evento", "titulo", "tipo"], "Aviso meteorológico");
     const risks = firstValue(alert, ["riscos", "description"], "Consulte os riscos e as orientações no aviso oficial.");
     const riskText = Array.isArray(risks) ? risks.join(" ") : String(risks);
-    const timing = stage === "future" ? `Previsto a partir de ${format(start)} (Manaus)` : stage === "active" ? `Vigente até ${format(end)} (Manaus)` : "Vigência a confirmar no aviso oficial";
+    const timing = stage === "future" ? `Previsto a partir de ${format(start)} (${activeCity.name})` : stage === "active" ? `Vigente até ${format(end)} (${activeCity.name})` : "Vigência a confirmar no aviso oficial";
     return `<article class="inmet-alert inmet-${severity.className}"><span class="inmet-level">${severity.label} · ${severity.description}</span><h3>${escapeHtml(decodeHtml(String(title)))}</h3><p>${escapeHtml(decodeHtml(riskText).slice(0,360))}</p><div class="source-meta"><span>${escapeHtml(area)}</span><span>${escapeHtml(timing)}</span></div><a class="inmet-detail" href="${url}" target="_blank" rel="noreferrer">Ver aviso ${/^\d+$/.test(id) ? id : "oficial"} no INMET ↗</a></article>`;
   }).join("");
 }
 
-async function loadInmetAlerts() {
+async function loadInmetAlerts(revision = cityRevision) {
   try {
     const raw = await fetchJson(INMET_API);
+    if (revision !== cityRevision) return;
     renderInmetAlerts(raw);
     lastInmetResponse = raw;
   } catch {
+    if (revision !== cityRevision) return;
     if (lastInmetResponse) { renderInmetAlerts(lastInmetResponse, true); return; }
     const state = $("inmetState"); const content = $("inmetContent");
     $("inmetCard").dataset.severity = "unknown";
@@ -264,13 +290,19 @@ async function loadInmetAlerts() {
   }
 }
 
-async function loadDefesaAlerts() {
+async function loadDefesaAlerts(revision = cityRevision) {
   const state = $("defesaState"); const content = $("defesaContent");
   try {
+    if (activeCity.uf !== "AM") {
+      state.className = "source-state"; state.innerHTML = "<i></i>Canal direto";
+      content.innerHTML = '<h3>Defesa Civil em ' + activeCity.name + '</h3><p>A consulta automática de comunicados locais ainda não está integrada para esta capital. Cadastre seu CEP pelo atalho abaixo para receber avisos por SMS.</p>';
+      return;
+    }
     const posts = await fetchJson(DEFESA_API);
+    if (revision !== cityRevision) return;
     if (!Array.isArray(posts)) throw new Error("Resposta municipal desconhecida");
     const relevant = posts.filter(p => /alerta|chuva|alagamento|deslizamento|temporal|vendaval/i.test(decodeHtml(p.title?.rendered || "")));
-    const latest = relevant[0]; const ageHours = latest ? (Date.now() - manausDate(latest.date).getTime()) / 3600000 : Infinity;
+    const latest = relevant[0]; const ageHours = latest ? (Date.now() - cityDate(latest.date).getTime()) / 3600000 : Infinity;
     if (!latest || ageHours > 48) {
       state.className = "source-state"; state.innerHTML = "<i></i>Sem comunicado recente";
       const lastLink = latest ? `<a href="${safeManausUrl(latest.link)}" target="_blank" rel="noreferrer">Ver último comunicado oficial ↗</a>` : "";
@@ -279,8 +311,9 @@ async function loadDefesaAlerts() {
     }
     const title = decodeHtml(latest.title?.rendered || "Comunicado da Defesa Civil"); const summary = decodeHtml(latest.excerpt?.rendered || "Consulte as orientações oficiais da Prefeitura de Manaus.");
     state.className = "source-state warning"; state.innerHTML = "<i></i>Comunicado recente";
-    content.innerHTML = `<h3>${escapeHtml(title)}</h3><p>${escapeHtml(summary.slice(0, 210))}</p><div class="source-meta"><span>${new Intl.DateTimeFormat("pt-BR", {dateStyle:"short", timeStyle:"short", timeZone:"America/Manaus"}).format(manausDate(latest.date))}</span><span><a href="${safeManausUrl(latest.link)}" target="_blank" rel="noreferrer">Ler publicação ↗</a></span></div>`;
+    content.innerHTML = `<h3>${escapeHtml(title)}</h3><p>${escapeHtml(summary.slice(0, 210))}</p><div class="source-meta"><span>${new Intl.DateTimeFormat("pt-BR", {dateStyle:"short", timeStyle:"short", timeZone:activeCity.timezone}).format(cityDate(latest.date))}</span><span><a href="${safeManausUrl(latest.link)}" target="_blank" rel="noreferrer">Ler publicação ↗</a></span></div>`;
   } catch {
+    if (revision !== cityRevision) return;
     state.className = "source-state warning"; state.innerHTML = "<i></i>Canal direto";
     content.innerHTML = "<h3>Alertas direto no celular</h3><p>O portal municipal não respondeu. Envie seu CEP por SMS para 40199; alertas extremos também chegam automaticamente em celulares compatíveis.</p>";
   }
@@ -288,17 +321,24 @@ async function loadDefesaAlerts() {
 
 function updateClock() {
   const now = new Date();
-  $("localClock").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Manaus", hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
-  $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Manaus", weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
+  $("localClock").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
+  $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
 }
 
-function manausDate(value) {
-  return new Date(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value : `${value}-04:00`);
+const dateOffsets = new Map();
+function cityDate(value, city = activeCity) {
+  if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)) return new Date(value);
+  const base = Date.parse(value + "Z");
+  if (!Number.isFinite(base)) return new Date(NaN);
+  const key = city.id + ":" + value.slice(0,10);
+  if (!dateOffsets.has(key)) dateOffsets.set(key, new Intl.DateTimeFormat("en", {timeZone:city.timezone, timeZoneName:"longOffset"}).formatToParts(new Date(base)).find(part => part.type === "timeZoneName").value);
+  const offset = dateOffsets.get(key);
+  return new Date(value + (offset === "GMT" ? "Z" : offset.replace("GMT", "")));
 }
 
 function selectCurrentHour(times) {
   const now = Date.now();
-  const next = times.findIndex(t => manausDate(t).getTime() > now);
+  const next = times.findIndex(t => cityDate(t).getTime() > now);
   return next < 0 ? times.length - 1 : Math.max(0, next - 1);
 }
 
@@ -322,7 +362,7 @@ function renderAttention(data, start) {
   const humidity = data.current.relative_humidity_2m;
   const card = $("attentionCard");
   card.classList.remove("ok", "warning", "danger", "unavailable");
-  let state = "ok", signal = "NORMAL", title = "Condições dentro do normal", text = "Nenhum sinal crítico para Manaus nas próximas horas.", icon = "normal", level = 28;
+  let state = "ok", signal = "NORMAL", title = "Condições dentro do normal", text = `Nenhum sinal crítico para ${activeCity.name} nas próximas horas.`, icon = "normal", level = 28;
   if (stormExpected && next3Prob >= 60) {
     state = "danger"; signal = "ALERTA SEVERO"; title = "Alerta de tempestade"; text = `Há indicação de trovoadas e ${Math.round(next3Prob)}% de chance de chuva nas próximas horas.`; icon = "severe"; level = 96;
   } else if (next3Prob >= 80 && next3Rain >= 8) {
@@ -389,25 +429,25 @@ function renderForecast(daily) {
 }
 
 function renderSun(daily) {
-  const rise = manausDate(daily.sunrise[0]); const set = manausDate(daily.sunset[0]); const minutes = Math.round((set - rise) / 60000);
+  const rise = cityDate(daily.sunrise[0]); const set = cityDate(daily.sunset[0]); const minutes = Math.round((set - rise) / 60000);
   $("sunrise").textContent = shortTime(daily.sunrise[0]); $("sunset").textContent = shortTime(daily.sunset[0]);
   $("daylight").textContent = `${Math.floor(minutes / 60)}h ${minutes % 60}min de luz`;
   const now = new Date(); const progress = Math.min(1, Math.max(0, (now - rise) / (set - rise)));
   $("sunDot").style.left = `${3 + progress * 91}%`; $("sunDot").style.top = `${74 - Math.sin(progress * Math.PI) * 58}px`;
-  $("sunPhrase").textContent = now < rise ? "O sol ainda não nasceu." : now > set ? "O sol já se pôs em Manaus." : `Restam cerca de ${Math.max(0, Math.round((set - now) / 3600000))}h de claridade.`;
+  $("sunPhrase").textContent = now < rise ? "O sol ainda não nasceu." : now > set ? `O sol já se pôs em ${activeCity.name}.` : `Restam cerca de ${Math.max(0, Math.round((set - now) / 3600000))}h de claridade.`;
 }
 
-function cache(data) { try { localStorage.setItem("manaus-clima-cache", JSON.stringify({at: Date.now(), data})); } catch {} }
+function cache(data) { try { localStorage.setItem(`pluvia-weather-${activeCity.id}`, JSON.stringify({at: Date.now(), data})); } catch {} }
 function validForecast(data) {
   const hourlyFields = ["time", "precipitation_probability", "precipitation", "weather_code", "uv_index"];
   const dailyFields = ["time", "temperature_2m_min", "temperature_2m_max", "weather_code", "precipitation_probability_max", "precipitation_sum", "uv_index_max", "sunrise", "sunset"];
-  return Number.isFinite(data?.current?.temperature_2m) && Number.isFinite(manausDate(data.current.time).getTime()) &&
+  return Number.isFinite(data?.current?.temperature_2m) && Number.isFinite(cityDate(data.current.time).getTime()) &&
     hourlyFields.every(key => Array.isArray(data?.hourly?.[key]) && data.hourly[key].length >= 3) &&
     dailyFields.every(key => Array.isArray(data?.daily?.[key]) && data.daily[key].length >= 1);
 }
 function cached() {
   try {
-    const saved = JSON.parse(localStorage.getItem("manaus-clima-cache") || "null");
+    const saved = JSON.parse(localStorage.getItem(`pluvia-weather-${activeCity.id}`) || "null");
     const age = Date.now() - saved?.at;
     return age >= 0 && age <= CACHE_MAX_AGE_MS && validForecast(saved?.data?.forecast) ? saved : null;
   } catch { return null; }
@@ -436,18 +476,20 @@ function render(data, air, fromCache = false) {
   $("condition").textContent = current.is_day === 0 && current.weather_code === 1 ? "Céu quase limpo" : condition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, current.is_day !== 0); $("highLow").textContent = `${fmt(day.temperature_2m_max[0])}° / ${fmt(day.temperature_2m_min[0])}°`;
   $("rainNow").textContent = `${fmt(current.precipitation, 1)} mm`; $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
-  $("pressure").innerHTML = `${fmt(current.surface_pressure)}<sup> hPa</sup>`; $("pressureNote").textContent = pressureLabel(current.surface_pressure);
+  $("pressure").innerHTML = `${fmt(current.pressure_msl ?? current.surface_pressure)}<sup> hPa</sup>`; $("pressureNote").textContent = Number.isFinite(current.pressure_msl) ? "Ao nível do mar" : "Pressão local";
   const uvNow = data.hourly.uv_index[start]; $("uv").textContent = fmt(uvNow, 1); $("uvNote").textContent = uvLabel(uvNow);
   const [airName, airText] = aqiLabel(air?.current?.us_aqi); $("airQuality").textContent = airName; $("airNote").textContent = airText;
   const airIndex = air?.current?.us_aqi; $("airScore").textContent = Number.isFinite(airIndex) ? Math.round(airIndex) : "--"; $("airCardQuality").textContent = airName;
   $("pm25").textContent = fmt(air?.current?.pm2_5, 1); $("pm10").textContent = fmt(air?.current?.pm10, 1); $("airGuidance").textContent = airGuidance(airIndex);
-  setDataStatus(fromCache ? "Dados salvos · consultando o tempo" : "Tempo em Manaus", fromCache);
+  setDataStatus(fromCache ? "Dados salvos · consultando o tempo" : `Tempo em ${activeCity.name}`, fromCache);
   renderAttention(data, start); renderRain(data.hourly, start); renderForecast(day); renderSun(day);
 }
 
-async function loadWeather() {
+async function loadWeather(revision = cityRevision) {
+  const city = activeCity;
   try {
-    const [forecastResult, airResult] = await Promise.allSettled([fetchForecast(), fetchJson(AIR_API)]);
+    const [forecastResult, airResult] = await Promise.allSettled([fetchForecast(city, revision), fetchJson(cityApi(AIR_TEMPLATE, city))]);
+    if (revision !== cityRevision) return false;
     if (forecastResult.status !== "fulfilled") throw forecastResult.reason;
     const data = forecastResult.value;
     const air = airResult.status === "fulfilled" ? airResult.value : null;
@@ -455,6 +497,7 @@ async function loadWeather() {
     clearTimeout(errorTimer); $("errorToast").classList.remove("show"); $("errorToast").setAttribute("aria-hidden", "true");
     return true;
   } catch (error) {
+    if (revision !== cityRevision) return false;
     const saved = cached();
     if (!displayedWeather && saved) { render(saved.data.forecast, saved.data.air, true); displayedWeather = saved.data; }
     markWeatherUnavailable(Boolean(displayedWeather));
@@ -473,12 +516,13 @@ async function loadWeather() {
 
 async function refreshAll() {
   if (refreshInFlight) return refreshInFlight;
-  refreshInFlight = Promise.allSettled([loadWeather(), loadInmetAlerts(), loadDefesaAlerts()]).then(results => {
+  const revision = cityRevision;
+  refreshInFlight = Promise.allSettled([loadWeather(revision), loadInmetAlerts(revision), loadDefesaAlerts(revision)]).then(results => {
     const success = results[0].status === "fulfilled" && results[0].value === true;
-    if (success) lastRefreshAt = Date.now();
+    if (success && revision === cityRevision) lastRefreshAt = Date.now();
     return success;
   }).finally(() => {
-    refreshInFlight = null;
+    if (revision === cityRevision) refreshInFlight = null;
   });
   return refreshInFlight;
 }
@@ -581,6 +625,94 @@ function setupScrollAnimations() {
   });
 }
 
+
+const cityResetIds = ["temperature","feelsLike","condition","weatherGlyph","highLow","rainNow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","airScore","airCardQuality","pm25","pm10","airGuidance","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset"];
+let emptyCityContent;
+function updateCityLabels() {
+  $("cityName").textContent = activeCity.name;
+  document.title = "PLUVIA — " + activeCity.name + " agora";
+  $("alertsCityLabel").textContent = "Fontes oficiais e leitura ambiental para " + activeCity.name;
+  $("forecastCityLabel").textContent = "Previsão diária para a área urbana de " + activeCity.name;
+  $("cityTimezone").textContent = activeCity.uf + " · " + new Intl.DateTimeFormat("pt-BR", {timeZone:activeCity.timezone,timeZoneName:"longOffset"}).formatToParts(new Date()).find(part => part.type === "timeZoneName").value.replace("GMT","UTC");
+  const starred = favorites.has(activeCity.id);
+  $("favoriteCity").textContent = starred ? "★ Favorita" : "☆ Favoritar";
+  $("favoriteCity").setAttribute("aria-pressed", String(starred));
+  $("favoriteCity").setAttribute("aria-label", (starred ? "Remover dos favoritos: " : "Favoritar: ") + activeCity.name);
+  updateClock();
+}
+function renderCityOptions() {
+  const query = normalizeName($("citySearch").value || "").trim();
+  const matches = CAPITALS.filter(city => normalizeName(city.name + " " + city.uf + " " + city.state).includes(query));
+  matches.sort((a,b) => Number(favorites.has(b.id)) - Number(favorites.has(a.id)) || a.name.localeCompare(b.name,"pt-BR"));
+  $("citySelect").innerHTML = '<option value="">Selecione uma capital</option>' + matches.map(city => '<option value="' + city.id + '">' + (favorites.has(city.id) ? "★ " : "") + city.name + " · " + city.uf + "</option>").join("");
+  $("citySelect").value = matches.some(city => city.id === activeCity.id) ? activeCity.id : "";
+  $("cityPickerStatus").textContent = query ? (matches.length ? matches.length + " capitais encontradas. Escolha na lista." : "Nenhuma capital encontrada. Tente outro nome ou UF.") : "";
+}
+function chooseCity(id) {
+  const city = CAPITALS.find(item => item.id === id);
+  if (!city || city.id === activeCity.id) return;
+  cityRevision++;
+  pendingRequests.forEach(controller => controller.abort());
+  pendingRequests.clear();
+  refreshInFlight = null;
+  activeCity = city; displayedWeather = null; lastRefreshAt = 0;
+  writePreference("pluvia-city", city.id);
+  clearTimeout(errorTimer);
+  $("errorToast").classList.remove("show");
+  $("errorToast").setAttribute("aria-hidden","true");
+  cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
+  $("attentionCard").classList.remove("ok","warning","danger","unavailable");
+  $("attentionLevel").style.width = "0%";
+  $("sunDot").style.left = "3%";
+  $("sunDot").style.top = "74px";
+  $("condition").textContent = "Buscando o céu de " + city.name + "…";
+  ["inmet","defesa"].forEach(source => {
+    $(source + "State").className = "source-state";
+    $(source + "State").innerHTML = "<i></i>Consultando";
+    $(source + "Content").innerHTML = "<h3>Consultando " + city.name + "</h3><p>Buscando informações para a capital selecionada.</p>";
+  });
+  $("inmetCard").dataset.severity = "unknown";
+  $("citySearch").value = "";
+  renderCityOptions(); updateCityLabels();
+  setDataStatus("Consultando o tempo em " + city.name);
+  const saved = cached();
+  if (saved) { render(saved.data.forecast,saved.data.air,true); displayedWeather = saved.data; }
+  refreshAll();
+}
+function setupCityPicker() {
+  emptyCityContent = new Map(cityResetIds.map(id => [id,$(id).innerHTML]));
+  renderCityOptions(); updateCityLabels();
+  $("condition").textContent = "Buscando o céu de " + activeCity.name + "…";
+  $("inmetContent").innerHTML = "<h3>Buscando avisos meteorológicos</h3><p>Consultando avisos para " + activeCity.name + ".</p>";
+  $("defesaContent").innerHTML = "<h3>Defesa Civil em " + activeCity.name + "</h3><p>Consultando os canais disponíveis.</p>";
+  $("citySearch").addEventListener("input", renderCityOptions);
+  $("citySelect").addEventListener("change", event => chooseCity(event.target.value));
+  $("favoriteCity").addEventListener("click", () => {
+    if (favorites.has(activeCity.id)) favorites.delete(activeCity.id); else favorites.add(activeCity.id);
+    writePreference("pluvia-favorites", [...favorites]);
+    renderCityOptions(); updateCityLabels();
+  });
+  $("locateCity").addEventListener("click", () => {
+    const status = $("cityPickerStatus"), button = $("locateCity");
+    if (!navigator.geolocation) { status.textContent = "Localização indisponível. Escolha a capital na lista."; return; }
+    const revision = cityRevision;
+    button.disabled = true; status.textContent = "Procurando a capital mais próxima…";
+    navigator.geolocation.getCurrentPosition(position => {
+      button.disabled = false;
+      if (revision !== cityRevision) return;
+      try {
+        const city = nearestCapital(position.coords.latitude, position.coords.longitude);
+        chooseCity(city.id);
+        status.textContent = "Capital mais próxima: " + city.name + ". A previsão é da capital, não da sua posição exata.";
+      } catch { status.textContent = "Não foi possível identificar a localização. Escolha na lista."; }
+    }, () => {
+      button.disabled = false;
+      if (revision === cityRevision) status.textContent = "Localização não disponível ou não autorizada. Escolha sua capital na lista.";
+    }, {enableHighAccuracy:false,timeout:10000,maximumAge:300000});
+  });
+}
+
+setupCityPicker();
 setupScrollAnimations();
 setupPullToRefresh();
 updateClock();

@@ -6,14 +6,14 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0a111f" media="(prefers-color-scheme: dark)" />
-    <meta name="description" content="PLUVIA: clima, qualidade do ar e alertas oficiais para Manaus." />
-    <title>PLUVIA — Manaus agora</title>
+    <meta name="description" content="PLUVIA: previsão do tempo, qualidade do ar e alertas do INMET nas 27 capitais do Brasil." />
+    <title>PLUVIA — Clima nas capitais do Brasil</title>
     <link rel="icon" type="image/png" href="./logo-mark.png" />
     <link rel="apple-touch-icon" href="./logo-mark.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=inmet-alerts-8" />
+    <link rel="stylesheet" href="./styles.css?v=capitals-1" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -41,13 +41,21 @@
       <section class="intro" id="agora">
         <div>
           <div class="eyebrow" id="dataStatus"><span class="live-dot" aria-hidden="true"></span><span id="statusText" role="status">Consultando o tempo</span></div>
-          <h1>Manaus <em>agora.</em></h1>
+          <h1><span id="cityName">Manaus</span> <em>agora.</em></h1>
         </div>
         <div class="clock-wrap">
-          <span>AMT · UTC−4</span>
+          <span id="cityTimezone">Horário local</span>
           <strong id="localClock">--:--</strong>
           <small id="localDate">Manaus, Amazonas</small>
         </div>
+      </section>
+
+      <section class="city-picker panel" aria-label="Escolher capital">
+        <div class="city-search-field"><label for="citySearch">Buscar capital</label><input id="citySearch" type="search" placeholder="Cidade, estado ou UF" autocomplete="off" /></div>
+        <div class="city-select-field"><label for="citySelect">Capital selecionada</label><select id="citySelect"></select></div>
+        <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
+        <button id="locateCity" class="city-button" type="button">Usar localização</button>
+        <p id="cityPickerStatus" role="status" aria-live="polite"></p>
       </section>
 
       <section class="dashboard-grid" aria-label="Condições atuais">
@@ -90,7 +98,7 @@
       <section class="alerts-section section-block" id="alertas">
         <div class="section-heading">
           <div><span class="section-index">01</span><h2>Alertas e saúde</h2></div>
-          <p>Fontes oficiais e leitura ambiental para Manaus</p>
+          <p id="alertsCityLabel">Fontes oficiais e leitura ambiental para Manaus</p>
         </div>
         <div class="safety-grid">
           <article class="source-card panel" id="inmetCard">
@@ -128,7 +136,7 @@
       <section class="forecast-section section-block" id="previsao">
         <div class="section-heading">
           <div><span class="section-index">03</span><h2>Próximos 7 dias</h2></div>
-          <p>Previsão diária para a área urbana de Manaus</p>
+          <p id="forecastCityLabel">Previsão diária para a área urbana de Manaus</p>
         </div>
         <div class="forecast-list panel" id="forecastList">
           <div class="forecast-loading">Carregando a semana…</div>
@@ -143,13 +151,14 @@
     </main>
 
     <footer class="shell">
-      <div><span class="footer-mark"><img src="./logo-mark.png" alt="" /></span><p>PLUVIA · Manaus, sem tempo ruim.</p></div>
+      <div><span class="footer-mark"><img src="./logo-mark.png" alt="" /></span><p>PLUVIA · O céu de cada capital.</p></div>
       <p>Clima e ar: Open-Meteo<br>Alertas: INMET e Defesa Civil</p>
     </footer>
 
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true">
       <strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span>
     </div>
-    <script src="./app.js?v=inmet-alerts-8"></script>
+    <script src="./capitals.js?v=capitals-1"></script>
+    <script src="./app.js?v=capitals-1"></script>
   </body>
 </html>
