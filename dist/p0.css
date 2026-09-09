@@ -1,0 +1,9 @@
+.city-results { list-style:none; margin:8px 0 0; padding:0; max-height:240px; overflow:auto; display:grid; gap:6px; flex-basis:100%; }
+.city-result { width:100%; min-height:44px; text-align:left; border:1px solid #075dff28; border-radius:12px; background:#fff; color:inherit; font:inherit; padding:10px 12px; cursor:pointer; }
+.rain-phrase { margin:0 0 14px; padding:16px 18px; display:flex; flex-direction:column; gap:4px; }
+.rain-phrase strong { font-size:1.15rem; }
+.rain-phrase small { color:var(--muted); }
+#cityDistance { color:var(--muted); margin:6px 0 0; font-size:14px; }
+.sobre { padding:24px 0 64px; color:var(--muted); max-width:640px; }
+@media (prefers-color-scheme: dark) { .city-result { background:#101d32; border-color:#568eff44; } }
+@media (prefers-reduced-motion: reduce) { .orb, .noise { animation: none !important; } }
