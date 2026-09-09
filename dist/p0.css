@@ -142,3 +142,7 @@
     animation: none !important;
   }
 }
+
+@media (max-width: 720px) {
+  .top-actions .search-trigger-label { display: none !important; }
+}
