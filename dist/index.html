@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-32" />
+    <link rel="stylesheet" href="./styles.css?v=core-33" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -40,6 +40,7 @@
     </div>
     <header class="topbar shell" id="top">
       <a class="brand" href="#top" aria-label="PLUVIA, início"><img src="./logo-mark.png" alt="" width="44" height="44" /><span>PLUVIA</span></a>
+      <button id="accountButton" class="account-trigger" type="button" aria-haspopup="dialog" aria-controls="accountDialog">Entrar / cadastrar</button>
       <nav id="siteNav" aria-label="Seções" hidden>
         <a class="active" href="#agora">Agora</a><a href="#alertas">Alertas</a><a href="#chuva">Chuva</a><a href="#previsao">Previsão</a>
       </nav>
@@ -66,6 +67,20 @@
         <button id="locateCity" class="city-button" type="button">Usar localização</button>
         <p id="cityPickerStatus" role="status" aria-live="polite"></p>
       </section>
+      </dialog>
+      <dialog id="accountDialog" class="city-dialog account-dialog" aria-labelledby="accountTitle">
+        <div class="dialog-heading"><h2 id="accountTitle">Sua conta PLUVIA</h2><button id="accountClose" class="dialog-close" type="button" autofocus aria-label="Fechar conta">×</button></div>
+        <p id="accountIntro">O céu continua aberto. Sua conta é opcional.</p>
+        <div id="accountTabs" class="account-tabs"><button type="button" id="accountLogin" aria-pressed="true">Entrar</button><button type="button" id="accountSignup" aria-pressed="false">Criar conta</button></div>
+        <form id="accountForm">
+          <label id="accountNameField" hidden>Como podemos te chamar?<input id="accountName" autocomplete="given-name" maxlength="60" /></label>
+          <label>E-mail<input id="accountEmail" type="email" autocomplete="email" required maxlength="254" /></label>
+          <label>Senha<input id="accountPassword" type="password" autocomplete="current-password" required maxlength="128" /></label>
+          <small id="accountPasswordHint" hidden>Use pelo menos 8 caracteres.</small>
+          <button id="accountSubmit" type="submit">Entrar</button>
+        </form>
+        <div id="accountProfile" hidden><p id="accountIdentity"></p><button id="accountLogout" type="button">Sair da conta</button></div>
+        <p id="accountStatus" role="status" aria-live="polite"></p>
       </dialog>
       <div id="weatherView" hidden>
       <p id="locationNotice" class="location-notice" hidden role="status"></p>
@@ -141,8 +156,9 @@
     <section class="sobre shell" id="sobre"><h2>Sobre</h2><p>PLUVIA — olha o céu antes de sair. Feito no Norte.</p><p>Números do Open-Meteo (ponto do município), avisos do INMET, Defesa Civil de Manaus e orientação da Defesa Civil Nacional. Municípios: IBGE, com coordenadas sob licença MIT.</p></section>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
-    <script src="./capitals.js?v=core-32"></script>
-    <script src="./app.js?v=core-32"></script>
-    <script src="./p0.js?v=core-32"></script>
+    <script src="./capitals.js?v=core-33"></script>
+    <script src="./app.js?v=core-33"></script>
+    <script src="./p0.js?v=core-33"></script>
+    <script src="./account.js?v=core-33" defer></script>
   </body>
 </html>
