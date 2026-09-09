@@ -646,3 +646,26 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 @media(prefers-reduced-motion:reduce) { .rain-pulse-sky::before { animation:none; } }
 @media(prefers-color-scheme:dark) { .rain-pulse-head button { color:#a9c5ff; border-color:#8db5ff66; } .rain-pulse-sky { background:linear-gradient(160deg,#315377,#173d91 68%,#0a1e52); } .rain-map-grid { background:#0c1d38; } .rain-season-context { color:#e7efff; } }
 @media(max-width:720px) { .rain-pulse-head { align-items:flex-start; flex-direction:column; } .rain-pulse-actions { width:100%; justify-content:flex-start; } .rain-pulse-layout { grid-template-columns:1fr; } }
+
+/* Busca compacta e marca legível também no celular. */
+.topbar .brand { width:auto; height:44px; gap:8px; filter:none; }
+.topbar .brand img { width:38px; height:38px; opacity:1; }
+.topbar .brand::after { content:none; }
+.topbar .brand span { color:var(--blue); font:900 1.35rem/1 Nunito,sans-serif; letter-spacing:.06em; }
+.city-dialog { padding:20px; max-height:calc(100dvh - 32px); overflow:auto; }
+.city-dialog .city-picker { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.city-dialog .city-search-field,.city-dialog .city-results,.city-dialog #cityPickerStatus { grid-column:1/-1; }
+.city-dialog .city-search-field input { width:100%; box-sizing:border-box; min-height:48px; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--panel); color:inherit; font:400 16px/1.4 Manrope,sans-serif; }
+.city-dialog .city-search-field input:focus { outline:2px solid var(--blue); outline-offset:1px; }
+.city-dialog .city-results { display:block; max-height: min(36dvh,320px); margin:4px 0; overscroll-behavior:contain; }
+.city-dialog .city-result { display:flex; flex-direction:column; align-items:flex-start; gap:3px; min-height:64px; padding:10px 4px; border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; font-size:16px; }
+.city-dialog .city-result small { text-align:left; font-size:12px; }
+.city-dialog .city-button { min-width:0; min-height:44px; padding:10px 8px; border-radius:12px; font-size:13px; line-height:1.3; }
+.city-dialog #cityPickerStatus { margin:4px 0 0; font-size:12px; line-height:1.5; }
+.rain-pulse-layout:has(.rain-map-grid[hidden]) { grid-template-columns:1fr; }
+.rain-pulse-sky:not(.is-wet)::before { opacity:0; animation:none; }
+.rain-map-grid span { white-space:pre-line; display:grid; place-content:center; text-align:center; padding:9px 2px; color:#102340; font:600 12px/1.6 'DM Mono',monospace; background:#e5efff; }
+.rain-map-grid span:nth-child(5) { outline:2px solid var(--blue); outline-offset:-2px; }
+.rain-map-grid span:nth-child(5)::after { content:none; }
+@media(prefers-color-scheme:dark) { .rain-map-grid span { color:#e7efff; background:#183252; } }
+@media(max-width:600px) { .city-dialog { width:calc(100% - 24px); padding:16px; border-radius:22px; } .dialog-heading h2 { font-size:1.1rem; } }

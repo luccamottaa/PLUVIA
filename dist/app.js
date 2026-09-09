@@ -535,10 +535,12 @@ function paintRainMap() {
     const intensity = Math.min(1, value.mm / 8 + value.prob / 180);
     cell.style.setProperty("--rain", intensity.toFixed(2));
     cell.title = `${fmt(value.mm,1)} mm · ${Math.round(value.prob)}%`;
+    const direction = ["Noroeste", "Norte", "Nordeste", "Oeste", "Município", "Leste", "Sudoeste", "Sul", "Sudeste"][index];
+    cell.textContent = `${direction}\n${fmt(value.mm,1)} mm\n${Math.round(value.prob)}%`;
   });
   const time = rainMapLocations[0].hourly?.time?.[rainPulseIndex] || rainPulseFrames[rainPulseIndex]?.time;
   grid.setAttribute("aria-label", `Mapa do modelo às ${shortTime(time)}. Maior ponto: ${fmt(maxMm,1)} milímetro e ${Math.round(maxProb)} por cento.`);
-  $("rainMapStatus").textContent = `${shortTime(time)} · maior ponto ao redor: ${fmt(maxMm,1)} mm · ${Math.round(maxProb)}%`;
+  $("rainMapStatus").textContent = maxMm === 0 ? `${shortTime(time)} · sem volume de chuva previsto nos nove pontos. Maior chance: ${Math.round(maxProb)}%.` : `${shortTime(time)} · maior volume ao redor: ${fmt(maxMm,1)} mm · maior chance: ${Math.round(maxProb)}%`;
 }
 
 async function loadRainMap() {
@@ -970,7 +972,7 @@ function openCitySearch() {
   renderCityOptions();
   const dialog = $("cityDialog");
   if (!dialog.open) dialog.showModal();
-  $("citySearch").focus();
+  $("closeCitySearch").focus();
   if (!cityIndexReady) {
     $("cityPickerStatus").textContent = "Carregando cidades do Brasil…";
     ensureCityIndex().then(() => renderCityOptions()).catch(() => { $("cityPickerStatus").textContent = "O índice não carregou. Capitais continuam disponíveis."; });
