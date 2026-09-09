@@ -11,7 +11,14 @@
     <meta property="og:title" content="PLUVIA — O céu de cada cidade" />
     <meta property="og:description" content="Olha o céu antes de sair." />
     <meta property="og:url" content="https://pluviaweather.com.br/" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="https://pluviaweather.com.br/og-pluvia.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="PLUVIA sobre um céu de chuva amazônico. Olha o céu antes de sair." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PLUVIA — O céu de cada cidade" />
+    <meta name="twitter:description" content="Olha o céu antes de sair." />
+    <meta name="twitter:image" content="https://pluviaweather.com.br/og-pluvia.png" />
     <title>PLUVIA — Clima nas cidades do Brasil</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/png" href="./logo-mark.png" />
@@ -21,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-30" />
+    <link rel="stylesheet" href="./styles.css?v=core-31" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -103,7 +110,7 @@
         <div class="section-heading"><div><span class="section-index">01</span><h2>Alertas e saúde</h2></div><p id="alertsCityLabel">Fontes oficiais</p></div>
         <div class="safety-grid">
           <article class="source-card panel" id="inmetCard"><div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div><small id="inmetUpdated" class="source-updated">Buscando leitura oficial…</small><div id="inmetContent" class="source-content"></div><a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial</a></article>
-          <article class="source-card panel" id="defesaCard"><div class="source-head"><span class="source-badge defesa">DEFESA CIVIL</span><span class="source-state" id="defesaState"><i></i>Consultando</span></div><div id="defesaContent" class="source-content"></div><div class="source-actions"><a class="source-link" href="sms:40199">Cadastrar CEP no 40199</a><a class="emergency-link" href="tel:199">Emergência: 199</a></div></article>
+          <article class="source-card panel" id="defesaCard"><div class="source-head"><span class="source-badge defesa">DEFESA CIVIL</span><span class="source-state" id="defesaState"><i></i>Consultando</span></div><div id="defesaContent" class="source-content"></div><div class="source-actions" id="defesaActions"><a class="source-link" href="sms:40199">Cadastrar CEP no 40199</a><a class="emergency-link" href="tel:199">Emergência: 199</a></div></article>
           <article class="air-card panel"><div class="source-head"><span class="source-badge air">AR</span><span class="source-state"><i></i>Open-Meteo</span></div><div class="air-score"><strong id="airScore">--</strong><div><span id="airCardQuality">Calculando</span></div></div><div class="air-particles"><div><span>PM2.5</span><strong id="pm25">--</strong></div><div><span>PM10</span><strong id="pm10">--</strong></div></div><p id="airGuidance"></p></article>
         </div>
       </section>
@@ -112,9 +119,11 @@
         <p class="rain-phrase panel" id="rainPhraseWrap"><strong id="rainPhrase">Lendo as próximas horas…</strong><small id="rainPhraseMeta">Open-Meteo</small></p>
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region"><div class="chart-loading">Montando a previsão horária…</div></div>
         <article class="rain-pulse panel" aria-labelledby="rainPulseTitle">
-          <div class="rain-pulse-head"><div><span>PREVISÃO ANIMADA</span><h3 id="rainPulseTitle">Pulso de chuva no município</h3></div><button id="rainPulseToggle" type="button" aria-pressed="false">Reproduzir</button></div>
-          <div id="rainPulseSky" class="rain-pulse-sky"><i aria-hidden="true"></i><strong id="rainPulseTime">--:--</strong><span id="rainPulseValue">Carregando…</span></div>
-          <small>Open-Meteo no ponto do município. Não é radar e não mostra chuva na sua rua.</small>
+          <div class="rain-pulse-head"><div><span>PREVISÃO ANIMADA</span><h3 id="rainPulseTitle">Pulso de chuva no município</h3></div><div class="rain-pulse-actions"><button id="rainMapLoad" type="button">Mapa ao redor</button><button id="rainPulseToggle" type="button" aria-pressed="false">Reproduzir</button></div></div>
+          <div class="rain-pulse-layout"><div id="rainPulseSky" class="rain-pulse-sky"><i aria-hidden="true"></i><strong id="rainPulseTime">--:--</strong><span id="rainPulseValue">Carregando…</span></div><div id="rainMapGrid" class="rain-map-grid" hidden role="img" aria-label="Mapa do modelo ainda não carregado"></div></div>
+          <p id="rainMapStatus" class="rain-map-status">Toque em “Mapa ao redor” para comparar nove pontos próximos sem pesar a abertura.</p>
+          <p id="rainSeasonContext" class="rain-season-context">Calculando o contexto da chuva de hoje…</p>
+          <small>Open-Meteo no ponto do município e, quando aberto, em cerca de 15 km ao redor. É mapa de modelo, não radar nem chuva na sua rua.</small>
         </article>
       </section>
       <section class="forecast-section section-block" id="previsao">
@@ -128,12 +137,12 @@
       </section>
       </div>
     </main>
-    <footer class="shell"><div><p>PLUVIA · O céu de cada cidade.</p></div><p>Clima: Open-Meteo<br>Alertas: INMET · Defesa Civil só em Manaus<br><a href="#sobre">Sobre e fontes</a></p></footer>
-    <section class="sobre shell" id="sobre"><h2>Sobre</h2><p>PLUVIA — olha o céu antes de sair. Feito no Norte.</p><p>Números do Open-Meteo (ponto do município), avisos do INMET e, em Manaus, Defesa Civil. Não substitui alerta oficial.</p></section>
+    <footer class="shell"><div><p>PLUVIA · O céu de cada cidade.</p></div><p>Clima: Open-Meteo<br>Alertas: INMET · Defesa Civil Manaus e canal nacional<br><a href="#sobre">Sobre e fontes</a></p></footer>
+    <section class="sobre shell" id="sobre"><h2>Sobre</h2><p>PLUVIA — olha o céu antes de sair. Feito no Norte.</p><p>Números do Open-Meteo (ponto do município), avisos do INMET, Defesa Civil de Manaus e orientação da Defesa Civil Nacional. Municípios: IBGE, com coordenadas sob licença MIT.</p></section>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
-    <script src="./capitals.js?v=core-30"></script>
-    <script src="./app.js?v=core-30"></script>
-    <script src="./p0.js?v=core-30"></script>
+    <script src="./capitals.js?v=core-31"></script>
+    <script src="./app.js?v=core-31"></script>
+    <script src="./p0.js?v=core-31"></script>
   </body>
 </html>

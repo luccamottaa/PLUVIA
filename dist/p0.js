@@ -1,6 +1,3 @@
-function isManaus(city = activeCity) {
-  return Boolean(city && (city.id === "1302603" || (city.uf === "AM" && normalizeName(city.name) === "manaus")));
-}
 function hourLabel(iso) {
   const raw = (iso || "").slice(11, 16);
   if (!raw) return "--";
@@ -40,13 +37,14 @@ function buildRainPhrase(hourly) {
   let phrase = "Próximas horas sem chuva clara.";
   let severity = "dry";
   let peakMm = 0;
+  let peakAt = -1;
   let peakProb = 0;
   let firstWet = -1;
   let lastWet = -1;
   for (let i = start; i < end; i++) {
     const mm = Number(mms[i]) || 0;
     const prob = Number(probs[i]) || 0;
-    if (mm > peakMm) peakMm = mm;
+    if (mm > peakMm) { peakMm = mm; peakAt = i; }
     if (prob > peakProb) peakProb = prob;
     if (prob >= 40 && mm >= 0.4) {
       if (firstWet < 0) firstWet = i;
@@ -69,9 +67,10 @@ function buildRainPhrase(hourly) {
   } else if (firstWet >= 0) {
     severity = "wet";
     const from = hourLabel(times[firstWet]);
-    const to = hourLabel(times[Math.max(firstWet, lastWet)]);
+    const to = hourLabel(times[Math.min(lastWet + 1, times.length - 1)]);
     const wetHours = Math.max(1, lastWet - firstWet + 1);
-    phrase = firstWet === start ? `Chuva agora, com trégua perto das ${to}.` : wetHours <= 2 ? `Pancada curta perto das ${from}.` : `Chuva prevista entre ${from} e ${to}.`;
+    const startsLightAndGetsHeavy = firstWet === start && (Number(mms[start]) || 0) < 1 && peakMm >= 3 && peakAt > start;
+    phrase = startsLightAndGetsHeavy ? `Chuvisco agora, mais pesado depois das ${hourLabel(times[peakAt])}.` : firstWet === start ? `Chuva agora, com trégua perto das ${to}.` : wetHours <= 2 ? `Pancada curta perto das ${from}.` : `Chuva prevista entre ${from} e ${to}.`;
   } else if (peakProb >= 55 && peakMm < 0.4) {
     severity = "threat";
     phrase = "Nuvem ameaça, mas o volume previsto é baixo.";
@@ -92,16 +91,6 @@ function aqiLabel(value) {
   if (value <= 300) return ["Muito ruim", `Índice ${Math.round(value)} · partículas altas`];
   return ["Péssima", `Índice ${Math.round(value)} · exposição perigosa`];
 }
-const _loadDefesa = loadDefesaAlerts;
-loadDefesaAlerts = async function (revision = cityRevision) {
-  const card = document.getElementById("defesaCard");
-  if (!isManaus()) {
-    if (card) card.hidden = true;
-    return;
-  }
-  if (card) card.hidden = false;
-  return _loadDefesa(revision);
-};
 const _renderRain = renderRain;
 renderRain = function (hourly, start) {
   _renderRain(hourly, start);
@@ -123,7 +112,9 @@ updateCityLabels = function () {
     if (activeCity.distanceKm >= 2) dist.textContent = "a " + Math.round(activeCity.distanceKm) + " km de " + activeCity.name + " · " + activeCity.uf;
   }
   const card = document.getElementById("defesaCard");
-  if (card) card.hidden = !isManaus();
+  if (card) card.hidden = false;
+  const actions = document.getElementById("defesaActions");
+  if (actions) actions.hidden = activeCity.uf !== "AM";
   const forecast = document.getElementById("forecastCityLabel");
   if (forecast) forecast.textContent = "Referência do município de " + activeCity.name + " — não da sua rua.";
 };
@@ -143,7 +134,7 @@ renderCityOptions = function () {
     const capital = CAPITALS.some(item => item.id === city.id);
     return `<li><button class="city-result" type="button" role="option" aria-selected="false" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
   }).join("");
-  document.getElementById("cityPickerStatus").textContent = !municipalitiesReady ? "Capitais disponíveis. Digite para carregar todos os municípios." : !shown.length ? "Não achei essa cidade. Tenta sem acento ou confira o nome." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Favoritas primeiro, depois capitais.";
+  document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Não achei essa cidade. Tenta sem acento ou confira o nome." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Favoritas primeiro, depois capitais.";
 };
 
 function moveCityResult(direction) {

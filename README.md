@@ -1,6 +1,6 @@
 # PLUVIA
 
-Painel climático ao vivo de Manaus com previsão, chuva, umidade, vento, sensação térmica, qualidade do ar e atalhos para alertas oficiais.
+Painel climático brasileiro feito em Manaus, com chuva, previsão, qualidade do ar e alertas oficiais. “Olha o céu antes de sair.”
 
 ## Acessar
 
@@ -14,12 +14,18 @@ dist/
 ├── index.html       # estrutura e conteúdo do painel
 ├── styles.css       # identidade visual, liquid glass e animações
 ├── app.js           # dados climáticos e comportamento da interface
+├── capitals.js      # capitais e carregadores lazy de municípios
+├── municipality-index.js # índice leve usado pela busca
+├── cities/          # coordenadas e fuso carregados por UF
+├── municipalities.js # catálogo completo, carregado somente para GPS
 ├── logo-pluvia.png  # assinatura completa
 ├── logo-mark.png    # ícone e favicon
+├── og-pluvia.png    # compartilhamento social 1200×630
 └── .nojekyll        # publicação estática sem processamento do Jekyll
 
 .github/workflows/pages.yml  # publicação automática no GitHub Pages
 .openai/hosting.json         # vínculo com o projeto PLUVIA no ChatGPT Sites
+scripts/chunk-municipalities.cjs # regenera índice e arquivos por UF
 ```
 
 ## Desenvolvimento local
@@ -37,11 +43,17 @@ Depois, abra `http://localhost:8080`.
 - Clima e previsão: Open-Meteo
 - Qualidade do ar: Open-Meteo Air Quality
 - Alertas meteorológicos: INMET
-- Comunicados locais: Defesa Civil de Manaus
+- Comunicados locais: Defesa Civil de Manaus; fora de Manaus, orientação da Defesa Civil Nacional
+- Municípios: IBGE; coordenadas de Kelvin S. do Prado, sob licença MIT
 
-Os horários exibidos usam `America/Manaus` (AMT, UTC−4).
+Cada cidade usa seu próprio fuso. Os dados são referência do ponto municipal, não da rua do visitante.
+
+Ao atualizar `dist/municipalities.js`, regenere os arquivos menores com:
+
+```bash
+node scripts/chunk-municipalities.cjs
+```
 
 ## Publicação
 
 O workflow em `.github/workflows/pages.yml` envia o conteúdo de `dist` para o GitHub Pages sempre que a branch `main` recebe alterações.
-

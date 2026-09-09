@@ -18,10 +18,15 @@ assert.match(p0, /sessionStorage/, 'a introdução deve aparecer uma vez por ses
 assert.match(app, /O clima é do ponto do município|Não é a sua rua/);
 assert.match(app, /Ainda seco, mas pode vir/);
 assert.match(app, /Prioridade definida pelo aviso oficial do INMET/);
-assert.match(html, /Não é radar e não mostra chuva na sua rua/);
+assert.match(html, /não radar nem chuva na sua rua/i);
 assert.match(app, /prefers-reduced-motion: reduce/);
+assert.match(html, /summary_large_image/);
+assert.match(html, /og-pluvia\.png/);
+assert.match(app, /Comparando nove pontos ao redor/);
+assert.match(app, /Volume previsto sozinho não vira alerta/);
+assert.match(app, /Defesa Civil Nacional/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-core-30/);
+assert.match(sw, /pluvia-core-31/);
 
 console.log('PASS product shell: public first paint, 1.5 s fallback, lazy municipalities, honest point data and versioned offline shell.');

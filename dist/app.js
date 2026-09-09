@@ -2,6 +2,7 @@ const FORECAST_TEMPLATE = "https://api.open-meteo.com/v1/forecast?latitude=-3.11
 const AIR_TEMPLATE = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-3.119&longitude=-60.022&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi&timezone=America%2FManaus&forecast_days=3";
 const INMET_API = "https://apiprevmet3.inmet.gov.br/avisos/ativos";
 const DEFESA_API = "https://www.manaus.am.gov.br/wp-json/wp/v2/posts?search=Defesa%20Civil%20alerta&per_page=8&_fields=date,link,title,excerpt";
+const DEFESA_NACIONAL = "https://www.gov.br/mdr/pt-br/assuntos/protecao-e-defesa-civil";
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const $ = (id) => document.getElementById(id);
 let cityRevision = 0;
@@ -23,6 +24,8 @@ let rainPulseTimer = null;
 let rainPulseFrames = [];
 let rainPulseIndex = 0;
 let rainPulsePlaying = false;
+let rainMapLocations = null;
+let rainMapCityId = null;
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 async function fetchJson(url, timeoutMs = 12000) {
@@ -339,8 +342,8 @@ async function loadDefesaAlerts(revision = cityRevision) {
   const state = $("defesaState"); const content = $("defesaContent");
   try {
     if (activeCity.id !== "1302603") {
-      state.className = "source-state"; state.innerHTML = "<i></i>Canal direto";
-      content.innerHTML = '<h3>Defesa Civil em ' + escapeHtml(activeCity.name) + '</h3><p>A consulta automática de comunicados locais ainda não está integrada para esta cidade. Cadastre seu CEP pelo atalho abaixo para receber avisos por SMS.</p>';
+      state.className = "source-state"; state.innerHTML = "<i></i>Orientação nacional";
+      content.innerHTML = '<h3>Defesa Civil em ' + escapeHtml(activeCity.state || activeCity.uf) + '</h3><p>O PLUVIA ainda não lê o feed estadual desta região. Consulte a <a href="' + DEFESA_NACIONAL + '" target="_blank" rel="noreferrer">Defesa Civil Nacional ↗</a> para chegar aos canais locais.</p>';
       return;
     }
     const posts = await fetchJson(DEFESA_API);
@@ -451,15 +454,37 @@ function renderRain(hourly, start) {
   $("rainChart").innerHTML = indices.map((i, p) => {
     const prob = Math.round(hourly.precipitation_probability[i] || 0);
     const mm = hourly.precipitation[i] || 0;
+    const barHeight = mm > 0 ? Math.min(150, 8 + Math.sqrt(mm) * 42) : Math.max(3, prob * .2);
     return `<div class="hour-column ${p === 0 ? "now" : ""}">
       <span class="hour-time">${p === 0 ? "AGORA" : shortTime(hourly.time[i])}</span>
-      <div class="bar-area"><div class="rain-bar" data-prob="${prob}" style="height:${Math.max(3, prob * 1.28)}px"></div></div>
+      <div class="bar-area"><div class="rain-bar" data-prob="${prob}" style="height:${barHeight}px"></div></div>
       <span class="rain-mm">${fmt(mm, 1)} mm</span><span class="hour-icon">${weather(hourly.weather_code[i])[1]}</span>
     </div>`;
   }).join("");
+  $("rainChart").setAttribute("aria-label", `Chuva prevista por hora em ${activeCity.name}: barras mostram milímetros e os números mostram probabilidade.`);
   $("rainChart").scrollLeft = scrollLeft;
   $("dryWindow").textContent = findDryWindow(hourly, start);
+  renderRainSeasonContext(hourly, start);
   renderRainPulse(hourly, start);
+}
+
+function rainSeasonPhase(city, month) {
+  const wetter = {
+    AM:[12,1,2,3,4,5], PA:[12,1,2,3,4,5], AP:[12,1,2,3,4,5],
+    RR:[5,6,7,8], AC:[10,11,12,1,2,3,4], RO:[10,11,12,1,2,3,4], TO:[10,11,12,1,2,3,4]
+  };
+  if (!wetter[city.uf]) return "";
+  return wetter[city.uf].includes(month) ? "fase geralmente mais chuvosa" : "fase geralmente menos chuvosa";
+}
+
+function renderRainSeasonContext(hourly, start) {
+  const date = hourly.time[start]?.slice(0, 10);
+  const indices = hourly.time.map((time, index) => time.startsWith(date) ? index : -1).filter(index => index >= 0);
+  const untilNow = indices.filter(index => index <= start).reduce((sum, index) => sum + (Number(hourly.precipitation[index]) || 0), 0);
+  const wholeDay = indices.reduce((sum, index) => sum + (Number(hourly.precipitation[index]) || 0), 0);
+  const month = Number(date?.slice(5, 7));
+  const phase = rainSeasonPhase(activeCity, month);
+  $("rainSeasonContext").textContent = `O modelo indica ${fmt(untilNow,1)} mm desde 0h e ${fmt(wholeDay,1)} mm no dia.${phase ? ` ${phase.replace(/^./, letter => letter.toUpperCase())} em ${activeCity.state}.` : ""} Volume previsto sozinho não vira alerta.`;
 }
 
 function paintRainPulse() {
@@ -470,6 +495,77 @@ function paintRainPulse() {
   $("rainPulseSky").classList.toggle("is-wet", frame.mm >= .3 || frame.prob >= 50);
   $("rainPulseTime").textContent = shortTime(frame.time);
   $("rainPulseValue").textContent = `${Math.round(frame.prob)}% · ${fmt(frame.mm, 1)} mm`;
+  paintRainMap();
+}
+
+function rainMapUrl(city) {
+  const latStep = .12;
+  const lonStep = .12 / Math.max(.4, Math.cos(city.lat * Math.PI / 180));
+  const points = [];
+  for (const y of [1,0,-1]) for (const x of [-1,0,1]) points.push([city.lat + y * latStep, city.lon + x * lonStep]);
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.searchParams.set("latitude", points.map(point => point[0].toFixed(4)).join(","));
+  url.searchParams.set("longitude", points.map(point => point[1].toFixed(4)).join(","));
+  url.searchParams.set("hourly", "precipitation,precipitation_probability");
+  url.searchParams.set("forecast_hours", "8");
+  url.searchParams.set("precipitation_unit", "mm");
+  url.searchParams.set("timezone", city.timezone);
+  return url.href;
+}
+
+function paintRainMap() {
+  if (!rainMapLocations?.length || rainMapCityId !== activeCity?.id) return;
+  const grid = $("rainMapGrid");
+  if (!grid.children.length) {
+    const cells = Array.from({length:9}, () => {
+      const cell = document.createElement("span");
+      cell.setAttribute("aria-hidden", "true");
+      return cell;
+    });
+    grid.replaceChildren(...cells);
+  }
+  const values = rainMapLocations.map(location => ({
+    mm:Number(location.hourly?.precipitation?.[rainPulseIndex]) || 0,
+    prob:Number(location.hourly?.precipitation_probability?.[rainPulseIndex]) || 0
+  }));
+  const maxMm = Math.max(...values.map(value => value.mm));
+  const maxProb = Math.max(...values.map(value => value.prob));
+  [...grid.children].forEach((cell, index) => {
+    const value = values[index] || {mm:0,prob:0};
+    const intensity = Math.min(1, value.mm / 8 + value.prob / 180);
+    cell.style.setProperty("--rain", intensity.toFixed(2));
+    cell.title = `${fmt(value.mm,1)} mm · ${Math.round(value.prob)}%`;
+  });
+  const time = rainMapLocations[0].hourly?.time?.[rainPulseIndex] || rainPulseFrames[rainPulseIndex]?.time;
+  grid.setAttribute("aria-label", `Mapa do modelo às ${shortTime(time)}. Maior ponto: ${fmt(maxMm,1)} milímetro e ${Math.round(maxProb)} por cento.`);
+  $("rainMapStatus").textContent = `${shortTime(time)} · maior ponto ao redor: ${fmt(maxMm,1)} mm · ${Math.round(maxProb)}%`;
+}
+
+async function loadRainMap() {
+  if (!activeCity) return;
+  const revision = cityRevision;
+  const cityId = activeCity.id;
+  const button = $("rainMapLoad");
+  button.disabled = true;
+  button.textContent = "Carregando…";
+  $("rainMapStatus").textContent = "Comparando nove pontos ao redor do centro municipal…";
+  try {
+    const raw = await fetchJson(rainMapUrl(activeCity), 10000);
+    if (revision !== cityRevision || cityId !== activeCity.id) return;
+    const locations = Array.isArray(raw) ? raw : raw?.locations;
+    if (!Array.isArray(locations) || locations.length !== 9) throw new Error("grade incompleta");
+    rainMapLocations = locations;
+    rainMapCityId = cityId;
+    $("rainMapGrid").hidden = false;
+    button.textContent = "Atualizar mapa";
+    paintRainMap();
+  } catch {
+    if (revision !== cityRevision) return;
+    $("rainMapStatus").textContent = "O mapa do modelo falhou agora. A previsão do ponto municipal continua valendo.";
+    button.textContent = "Tentar mapa de novo";
+  } finally {
+    if (revision === cityRevision) button.disabled = false;
+  }
 }
 
 function setRainPulsePlaying(playing) {
@@ -485,6 +581,14 @@ function setRainPulsePlaying(playing) {
 }
 
 function renderRainPulse(hourly, start) {
+  if (rainMapCityId !== activeCity?.id) {
+    rainMapLocations = null;
+    rainMapCityId = null;
+    $("rainMapGrid").hidden = true;
+    $("rainMapGrid").replaceChildren();
+    $("rainMapStatus").textContent = "Toque em “Mapa ao redor” para comparar nove pontos próximos sem pesar a abertura.";
+    $("rainMapLoad").textContent = "Mapa ao redor";
+  }
   rainPulseFrames = Array.from({length: 8}, (_, offset) => start + offset)
     .filter(index => index < hourly.time.length)
     .map(index => ({time:hourly.time[index], prob:Number(hourly.precipitation_probability[index]) || 0, mm:Number(hourly.precipitation[index]) || 0}));
@@ -764,6 +868,15 @@ function renderCityOptions() {
 function chooseCity(id, locatedCity = null) {
   const city = locatedCity || cityById.get(id);
   if (!city) return;
+  if (city.needsDetails) {
+    const choice = ++cityChoiceAttempt;
+    $("cityPickerStatus").textContent = `Abrindo ${city.name}/${city.uf}…`;
+    ensureCityDetails(city.id).then(fullCity => {
+      if (choice === cityChoiceAttempt && fullCity) chooseCity(fullCity.id, fullCity);
+    }).catch(() => { $("cityPickerStatus").textContent = "Não consegui abrir essa cidade agora. Tenta de novo."; });
+    return;
+  }
+  cityChoiceAttempt++;
   if (city.id === activeCity?.id && !Number.isFinite(locatedCity?.distanceKm)) { closeCitySearch(); return; }
   locationAttempt++;
   locationPending = false;
@@ -777,6 +890,13 @@ function chooseCity(id, locatedCity = null) {
   pendingRequests.clear();
   refreshInFlight = null;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
+  rainMapLocations = null; rainMapCityId = null;
+  $("rainMapGrid").hidden = true;
+  $("rainMapGrid").textContent = "";
+  $("rainMapStatus").textContent = "Toque em “Mapa ao redor” para comparar nove pontos próximos sem pesar a abertura.";
+  $("rainSeasonContext").textContent = "Calculando o contexto da chuva de hoje…";
+  $("rainMapLoad").textContent = "Mapa ao redor";
+  $("rainMapLoad").disabled = false;
   writePreference("pluvia-city", city.id);
   writePreference("pluvia-city-record", {id:city.id,name:city.name,uf:city.uf,state:city.state,lat:city.lat,lon:city.lon,timezone:city.timezone});
   clearTimeout(errorTimer);
@@ -833,6 +953,7 @@ function setupCityPicker() {
 
 let locationAttempt = 0;
 let locationPending = false;
+let cityChoiceAttempt = 0;
 function locationMessage(text) {
   $("locationStatus").textContent = text;
   $("cityPickerStatus").textContent = text;
@@ -850,9 +971,9 @@ function openCitySearch() {
   const dialog = $("cityDialog");
   if (!dialog.open) dialog.showModal();
   $("citySearch").focus();
-  if (!municipalitiesReady) {
+  if (!cityIndexReady) {
     $("cityPickerStatus").textContent = "Carregando cidades do Brasil…";
-    ensureMunicipalities().then(() => renderCityOptions()).catch(() => { $("cityPickerStatus").textContent = "A base completa não carregou. Capitais continuam disponíveis."; });
+    ensureCityIndex().then(() => renderCityOptions()).catch(() => { $("cityPickerStatus").textContent = "O índice não carregou. Capitais continuam disponíveis."; });
   }
 }
 function closeCitySearch() {
@@ -896,6 +1017,7 @@ setupCityPicker();
 setupScrollAnimations();
 setupPullToRefresh();
 $("rainPulseToggle").addEventListener("click", () => setRainPulsePlaying(!rainPulsePlaying));
+$("rainMapLoad").addEventListener("click", loadRainMap);
 updateClock();
 setInterval(updateClock, 30000);
 requestLocation();

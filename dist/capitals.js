@@ -51,6 +51,16 @@ let cityNameIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name)
 const cityCollator = new Intl.Collator('pt-BR');
 let municipalitiesReady = typeof MUNICIPALITIES !== 'undefined';
 let municipalitiesPromise = null;
+let cityIndexReady = municipalitiesReady || Array.isArray(globalThis.PLUVIA_MUNICIPALITY_INDEX);
+let cityIndexPromise = null;
+const cityStatePromises = new Map();
+const loadedCityStates = new Set();
+
+function rebuildCityIndexes() {
+  cityById = new Map(CITIES.map(city => [city.id,city]));
+  citySearchIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name + ' ' + city.uf + ' ' + city.state)]));
+  cityNameIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name)]));
+}
 
 function hydrateMunicipalities() {
   if (typeof MUNICIPALITIES === 'undefined') return false;
@@ -58,11 +68,68 @@ function hydrateMunicipalities() {
     const capital = CAPITALS.find(city => city.id === id);
     return capital || Object.freeze({id,name,uf,state:stateNames.get(uf),lat,lon,timezone:MUNICIPALITIES.timezones[zone]});
   });
-  cityById = new Map(CITIES.map(city => [city.id,city]));
-  citySearchIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name + ' ' + city.uf + ' ' + city.state)]));
-  cityNameIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name)]));
+  rebuildCityIndexes();
   municipalitiesReady = true;
+  cityIndexReady = true;
   return true;
+}
+
+function hydrateCityIndex() {
+  const rows = globalThis.PLUVIA_MUNICIPALITY_INDEX;
+  if (!Array.isArray(rows)) return false;
+  const known = new Map(CITIES.map(city => [city.id,city]));
+  CITIES = rows.map(([id,name,uf]) => known.get(id) || Object.freeze({id,name,uf,state:stateNames.get(uf),needsDetails:true}));
+  rebuildCityIndexes();
+  cityIndexReady = true;
+  return true;
+}
+
+function ensureCityIndex() {
+  if (cityIndexReady || hydrateCityIndex()) return Promise.resolve(CITIES);
+  if (cityIndexPromise) return cityIndexPromise;
+  cityIndexPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = './municipality-index.js?v=cities-3';
+    script.onload = () => hydrateCityIndex() ? resolve(CITIES) : reject(new Error('Índice de cidades inválido'));
+    script.onerror = () => reject(new Error('Índice de cidades indisponível'));
+    document.head.appendChild(script);
+  }).finally(() => { cityIndexPromise = null; });
+  return cityIndexPromise;
+}
+
+function hydrateCityState(uf) {
+  const chunk = globalThis.PLUVIA_CITY_CHUNKS?.[uf];
+  if (!chunk?.rows) return false;
+  const replacements = new Map(chunk.rows.map(([id,name,rowUf,lat,lon,zone]) => {
+    const capital = CAPITALS.find(city => city.id === id);
+    return [id, capital || Object.freeze({id,name,uf:rowUf,state:stateNames.get(rowUf),lat,lon,timezone:chunk.timezones[zone]})];
+  }));
+  CITIES = CITIES.map(city => replacements.get(city.id) || city);
+  rebuildCityIndexes();
+  loadedCityStates.add(uf);
+  return true;
+}
+
+function ensureCityState(uf) {
+  if (municipalitiesReady || loadedCityStates.has(uf) || hydrateCityState(uf)) return Promise.resolve(CITIES);
+  if (cityStatePromises.has(uf)) return cityStatePromises.get(uf);
+  const promise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `./cities/${uf.toLowerCase()}.js?v=cities-3`;
+    script.onload = () => hydrateCityState(uf) ? resolve(CITIES) : reject(new Error('Base estadual inválida'));
+    script.onerror = () => reject(new Error('Base estadual indisponível'));
+    document.head.appendChild(script);
+  }).finally(() => cityStatePromises.delete(uf));
+  cityStatePromises.set(uf, promise);
+  return promise;
+}
+
+async function ensureCityDetails(id) {
+  await ensureCityIndex();
+  const city = cityById.get(id);
+  if (!city?.needsDetails) return city;
+  await ensureCityState(city.uf);
+  return cityById.get(id);
 }
 
 function ensureMunicipalities() {
@@ -115,3 +182,4 @@ function nearestCity(latitude, longitude, candidates = CITIES) {
 function nearestCapital(latitude, longitude) { return nearestCity(latitude, longitude, CAPITALS); }
 
 if (municipalitiesReady) hydrateMunicipalities();
+else if (cityIndexReady) hydrateCityIndex();

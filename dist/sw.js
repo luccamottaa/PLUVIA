@@ -1,7 +1,7 @@
-const CACHE = "pluvia-core-30";
+const CACHE = "pluvia-core-31";
 const SHELL = "./index.html";
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(["./", SHELL, "./styles.css?v=core-30", "./capitals.js?v=core-30", "./app.js?v=core-30", "./p0.js?v=core-30", "./manifest.webmanifest", "./logo-mark.png", "./logo-pluvia.png"])));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(["./", SHELL, "./styles.css?v=core-31", "./capitals.js?v=core-31", "./app.js?v=core-31", "./p0.js?v=core-31", "./manifest.webmanifest", "./logo-mark.png", "./logo-pluvia.png"])));
   self.skipWaiting();
 });
 self.addEventListener("activate", event => {
@@ -25,7 +25,7 @@ self.addEventListener("fetch", event => {
     }).catch(() => caches.match(SHELL)));
     return;
   }
-  if (url.pathname.endsWith("/municipalities.js")) {
+  if (url.pathname.endsWith("/municipalities.js") || url.pathname.endsWith("/municipality-index.js") || /\/cities\/[a-z]{2}\.js$/.test(url.pathname)) {
     event.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
       const copy = res.clone();
       caches.open(CACHE).then(cache => cache.put(req, copy)).catch(() => {});
