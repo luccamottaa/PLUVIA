@@ -60,7 +60,69 @@
   }
   .pluvia-intro .intro-kicker, .pluvia-intro .intro-copy { color: #8aa0c2; }
 }
+
+.weather-glyph { overflow: visible !important; }
+.weather-visual { overflow: visible !important; }
+.wx-sun { transform-origin: 52px 42px; animation: pluvia-sun-bob 3.6s ease-in-out infinite !important; }
+.wx-sun-rays { transform-origin: 52px 42px; animation: pluvia-rays 8s linear infinite !important; }
+.wx-sun-core { transform-origin: 52px 42px; animation: pluvia-core 2.2s ease-in-out infinite !important; }
+.weather-partly .wx-sun { animation: pluvia-sun-peek 4.2s ease-in-out infinite !important; }
+.wx-moon { transform-origin: 60px 42px; animation: pluvia-moon 4.4s ease-in-out infinite !important; }
+.wx-cloud-back { animation: pluvia-cloud-back 5s ease-in-out infinite alternate !important; }
+.wx-cloud-main { animation: pluvia-cloud 3.4s ease-in-out infinite !important; }
+.weather-storm .wx-cloud-main { animation: pluvia-shake 1.6s ease-in-out infinite !important; }
+.wx-drop { animation: pluvia-rain .85s ease-in infinite !important; }
+.wx-drop-1 { animation-delay: 0s !important; }
+.wx-drop-2 { animation-delay: .2s !important; }
+.wx-drop-3 { animation-delay: .4s !important; }
+.wx-lightning { animation: pluvia-bolt 1.8s ease-in-out infinite !important; }
+
+@keyframes pluvia-sun-bob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-7px) scale(1.04); }
+}
+@keyframes pluvia-sun-peek {
+  0%, 100% { transform: translate(-8px,-6px) scale(.78); }
+  50% { transform: translate(-4px,-14px) scale(.86); }
+}
+@keyframes pluvia-rays { to { transform: rotate(360deg); } }
+@keyframes pluvia-core {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.14); }
+}
+@keyframes pluvia-moon {
+  0%, 100% { transform: translate(0,0) rotate(-4deg); }
+  50% { transform: translate(3px,-6px) rotate(4deg); }
+}
+@keyframes pluvia-cloud {
+  0%, 100% { transform: translateX(-8px) translateY(2px); }
+  50% { transform: translateX(8px) translateY(-5px); }
+}
+@keyframes pluvia-cloud-back {
+  from { transform: translateX(-10px); opacity: .65; }
+  to { transform: translateX(10px); opacity: 1; }
+}
+@keyframes pluvia-shake {
+  0%, 100% { transform: translate(0,0); }
+  25% { transform: translate(-4px,2px); }
+  50% { transform: translate(4px,-2px); }
+  75% { transform: translate(-3px,1px); }
+}
+@keyframes pluvia-rain {
+  0% { opacity: 0; transform: translateY(-12px); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(18px); }
+}
+@keyframes pluvia-bolt {
+  0%, 55%, 70%, 100% { opacity: .12; transform: scale(.9); }
+  60%, 66% { opacity: 1; transform: scale(1.18); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .orb, .noise { animation: none !important; }
   .pluvia-intro.is-leaving { transition: none; }
+  .wx-sun, .wx-sun-rays, .wx-sun-core, .wx-moon, .wx-cloud-main, .wx-cloud-back, .wx-drop, .wx-lightning {
+    animation-duration: 2.4s !important;
+    animation-delay: 0s !important;
+  }
 }
