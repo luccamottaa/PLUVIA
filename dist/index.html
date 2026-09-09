@@ -6,52 +6,47 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0a111f" media="(prefers-color-scheme: dark)" />
-    <meta name="description" content="PLUVIA: previsão do tempo, qualidade do ar e alertas do INMET nas cidades do Brasil." />
+    <meta name="description" content="PLUVIA — olha o céu antes de sair. Chuva, INMET e qualidade do ar nas cidades do Brasil." />
+    <link rel="canonical" href="https://pluviaweather.com.br/" />
+    <meta property="og:title" content="PLUVIA — O céu de cada cidade" />
+    <meta property="og:description" content="Olha o céu antes de sair." />
+    <meta property="og:url" content="https://pluviaweather.com.br/" />
+    <meta name="twitter:card" content="summary" />
     <title>PLUVIA — Clima nas cidades do Brasil</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/png" href="./logo-mark.png" />
     <link rel="apple-touch-icon" href="./logo-mark.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="PLUVIA" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=location-first-1" />
+    <link rel="stylesheet" href="./styles.css?v=p0-p1-1" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
-    <div class="pull-refresh" id="pullRefresh" hidden role="status" aria-live="polite" aria-atomic="true">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.1 8A7 7 0 0 1 18 6l2 2M17.9 16A7 7 0 0 1 6 18l-2-2"/></svg>
-      <span id="pullRefreshText"></span>
-    </div>
-    <div class="noise" aria-hidden="true"></div>
-    <div class="orb orb-a" aria-hidden="true"></div>
-    <div class="orb orb-b" aria-hidden="true"></div>
-
     <header class="topbar shell">
-      <a class="brand" href="#agora" aria-label="PLUVIA, início">
-        <img src="./logo-pluvia.png" alt="PLUVIA" width="801" height="320" />
-      </a>
+      <a class="brand" href="#agora" aria-label="PLUVIA, início"><img src="./logo-pluvia.png" alt="PLUVIA" width="801" height="320" /></a>
       <nav id="siteNav" aria-label="Seções" hidden>
-        <a class="active" href="#agora">Agora</a>
-        <a href="#alertas">Alertas</a>
-        <a href="#chuva">Chuva</a>
-        <a href="#previsao">Previsão</a>
+        <a class="active" href="#agora">Agora</a><a href="#alertas">Alertas</a><a href="#chuva">Chuva</a><a href="#previsao">Previsão</a>
       </nav>
-      <button id="openCitySearch" class="search-trigger" type="button" aria-label="Buscar ou trocar cidade" aria-haspopup="dialog" aria-controls="cityDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><span class="search-trigger-label" id="selectedCityLabel">Buscar cidade</span></button>
+      <button id="openCitySearch" class="search-trigger" type="button" aria-label="Buscar ou trocar cidade" aria-haspopup="dialog" aria-controls="cityDialog"><span class="search-trigger-label" id="selectedCityLabel">Buscar cidade</span></button>
     </header>
-
     <main class="shell">
       <section class="location-welcome panel" id="locationWelcome" aria-labelledby="locationTitle">
         <span class="eyebrow">SEU CLIMA, AQUI</span>
         <h1 id="locationTitle">Onde você está?</h1>
-        <p>Autorize a localização para ver o clima da cidade de referência mais próxima. Ou escolha uma cidade pelo nome.</p>
+        <p>Autorize a localização ou escolha uma cidade pelo nome.</p>
         <div class="welcome-actions"><button class="city-button" id="welcomeLocate" type="button">Usar minha localização</button><button class="city-button" id="welcomeSearch" type="button">Escolher cidade</button></div>
         <p id="locationStatus" role="status" aria-live="polite"></p>
       </section>
       <dialog id="cityDialog" class="city-dialog" aria-labelledby="cityDialogTitle">
         <div class="dialog-heading"><h2 id="cityDialogTitle">Escolher cidade</h2><button id="closeCitySearch" class="dialog-close" type="button" aria-label="Fechar busca">×</button></div>
         <section class="city-picker" aria-label="Buscar cidade">
-        <div class="city-search-field"><label for="citySearch">Buscar cidade</label><input id="citySearch" type="search" placeholder="Ex.: Parintins, Campinas, Gramado" autocomplete="off" aria-controls="citySelect" /></div>
+        <div class="city-search-field"><label for="citySearch">Buscar cidade</label><input id="citySearch" type="search" placeholder="Ex.: Parintins, Campinas, Gramado" autocomplete="off" /></div>
         <div class="city-state-field"><label for="stateSelect">Estado</label><select id="stateSelect"></select></div>
-        <div class="city-select-field"><label for="citySelect">Escolha nos resultados</label><select id="citySelect" aria-describedby="cityPickerStatus"></select></div>
+        <div class="city-select-field"><label for="citySelect">Escolha nos resultados</label><select id="citySelect"></select></div>
+        <ul id="cityResults" class="city-results" role="listbox" aria-label="Cidades encontradas"></ul>
         <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
         <button id="locateCity" class="city-button" type="button">Usar localização</button>
         <p id="cityPickerStatus" role="status" aria-live="polite"></p>
@@ -62,46 +57,26 @@
         <div>
           <div class="eyebrow" id="dataStatus"><span class="live-dot" aria-hidden="true"></span><span id="statusText" role="status">Consultando o tempo</span></div>
           <h1><span id="cityName"></span> <em>agora.</em></h1>
+          <p id="cityDistance" hidden></p>
         </div>
-        <div class="clock-wrap">
-          <span id="cityTimezone">Horário local</span>
-          <strong id="localClock">--:--</strong>
-          <small id="localDate"></small>
-        </div>
+        <div class="clock-wrap"><span id="cityTimezone">Horário local</span><strong id="localClock">--:--</strong><small id="localDate"></small></div>
       </section>
-
-
-
       <section class="dashboard-grid" aria-label="Condições atuais">
         <article class="current-card panel">
-          <div class="card-topline">
-            <span>CONDIÇÃO ATUAL</span>
-          </div>
-          <div class="weather-main">
-            <div>
-              <div class="weather-glyph" id="weatherGlyph" aria-hidden="true">◒</div>
-              <p class="condition" id="condition">Consultando o tempo…</p>
-            </div>
-            <div class="temperature"><span id="temperature">--</span><sup>°</sup></div>
-          </div>
-          <div class="current-bottom">
-            <div><span>Sensação</span><strong id="feelsLike">--°</strong></div>
-            <div><span>Máx. / mín.</span><strong id="highLow">--° / --°</strong></div>
-            <div><span>Chuva agora</span><strong id="rainNow">-- mm</strong></div>
-          </div>
-          <p class="model-note">Estimativas por modelos meteorológicos; não indicam uma estação de medição na cidade.</p>
+          <div class="card-topline"><span>CONDIÇÃO ATUAL</span></div>
+          <div class="weather-main"><div><div class="weather-glyph" id="weatherGlyph" aria-hidden="true"></div><p class="condition" id="condition">Consultando o tempo…</p></div><div class="temperature"><span id="temperature">--</span><sup>°</sup></div></div>
+          <div class="current-bottom"><div><span>Sensação</span><strong id="feelsLike">--°</strong></div><div><span>Máx. / mín.</span><strong id="highLow">--° / --°</strong></div><div><span>Chuva agora</span><strong id="rainNow">-- mm</strong></div></div>
+          <p class="model-note">Referência do município, não da sua rua. Modelo Open-Meteo.</p>
         </article>
-
         <aside class="attention-card panel" id="attentionCard">
           <div class="card-topline"><span>LEITURA RÁPIDA</span><span class="signal" id="attentionSignal">SINAL LOCAL</span></div>
-          <div class="attention-icon" id="attentionIcon">↯</div>
+          <div class="attention-icon" id="attentionIcon"></div>
           <h2 id="attentionTitle">Analisando o tempo</h2>
-          <p id="attentionText">Cruzando chuva, umidade e sensação térmica das próximas horas.</p>
+          <p id="attentionText">Cruzando chuva das próximas horas.</p>
           <div class="attention-rule"><span id="attentionLevel"></span></div>
-          <small>Leitura automática. Não substitui alerta oficial.</small>
+          <small>Não substitui alerta oficial.</small>
         </aside>
       </section>
-
       <section class="metrics" aria-label="Detalhes meteorológicos">
         <article class="metric panel"><span>UMIDADE</span><strong id="humidity">--<sup>%</sup></strong><small id="humidityNote">—</small></article>
         <article class="metric panel"><span>VENTO</span><strong id="wind">--<sup> km/h</sup></strong><small id="windNote">—</small></article>
@@ -109,73 +84,36 @@
         <article class="metric panel"><span>ÍNDICE UV</span><strong id="uv">--</strong><small id="uvNote">—</small></article>
         <article class="metric panel air-metric"><span>QUALIDADE DO AR</span><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small></article>
       </section>
-
       <section class="alerts-section section-block" id="alertas">
-        <div class="section-heading">
-          <div><span class="section-index">01</span><h2>Alertas e saúde</h2></div>
-          <p id="alertsCityLabel">Fontes oficiais e leitura ambiental para Manaus</p>
-        </div>
+        <div class="section-heading"><div><span class="section-index">01</span><h2>Alertas e saúde</h2></div><p id="alertsCityLabel">Fontes oficiais</p></div>
         <div class="safety-grid">
-          <article class="source-card panel" id="inmetCard">
-            <div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div>
-            <div id="inmetContent" class="source-content"><h3>Buscando avisos meteorológicos</h3><p>Consultando avisos vigentes e previstos para Manaus.</p></div>
-            <a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial <span>↗</span></a>
-          </article>
-
-          <article class="source-card panel" id="defesaCard">
-            <div class="source-head"><span class="source-badge defesa">DEFESA CIVIL</span><span class="source-state" id="defesaState"><i></i>Consultando</span></div>
-            <div id="defesaContent" class="source-content"><h3>Buscando comunicados de Manaus</h3><p>Consultando as publicações oficiais da Defesa Civil Municipal.</p></div>
-            <div class="source-actions"><a class="source-link" href="sms:40199">Cadastrar CEP no 40199 <span>↗</span></a><a class="emergency-link" href="tel:199">Emergência: 199</a></div>
-          </article>
-
-          <article class="air-card panel">
-            <div class="source-head"><span class="source-badge air">AR</span><span class="source-state"><i></i>Open-Meteo</span></div>
-            <div class="air-score"><strong id="airScore">--</strong><div><span id="airCardQuality">Calculando</span><small>Índice de qualidade do ar</small></div></div>
-            <div class="air-particles"><div><span>PM2.5</span><strong id="pm25">--</strong><small>µg/m³</small></div><div><span>PM10</span><strong id="pm10">--</strong><small>µg/m³</small></div></div>
-            <p id="airGuidance">Aguardando dados para mostrar a orientação de saúde.</p>
-          </article>
+          <article class="source-card panel" id="inmetCard"><div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div><div id="inmetContent" class="source-content"></div><a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial</a></article>
+          <article class="source-card panel" id="defesaCard"><div class="source-head"><span class="source-badge defesa">DEFESA CIVIL</span><span class="source-state" id="defesaState"><i></i>Consultando</span></div><div id="defesaContent" class="source-content"></div><div class="source-actions"><a class="source-link" href="sms:40199">Cadastrar CEP no 40199</a><a class="emergency-link" href="tel:199">Emergência: 199</a></div></article>
+          <article class="air-card panel"><div class="source-head"><span class="source-badge air">AR</span><span class="source-state"><i></i>Open-Meteo</span></div><div class="air-score"><strong id="airScore">--</strong><div><span id="airCardQuality">Calculando</span></div></div><div class="air-particles"><div><span>PM2.5</span><strong id="pm25">--</strong></div><div><span>PM10</span><strong id="pm10">--</strong></div></div><p id="airGuidance"></p></article>
         </div>
       </section>
-
       <section class="rain-section section-block" id="chuva">
-        <div class="section-heading">
-          <div><span class="section-index">02</span><h2>Chuva nas próximas horas</h2></div>
-          <div class="dry-window"><span>PRÓXIMA JANELA SECA</span><strong id="dryWindow">Calculando…</strong></div>
-        </div>
-        <div class="rain-chart panel" id="rainChart" tabindex="0" role="region" aria-label="Probabilidade de chuva por hora. Deslize ou use as setas para ver mais.">
-          <div class="chart-loading">Montando a previsão horária…</div>
-        </div>
-        <div class="chart-legend"><span><i class="legend-prob"></i>Probabilidade</span><span><i class="legend-mm"></i>Volume previsto</span><small>Deslize para ver mais →</small></div>
+        <div class="section-heading"><div><span class="section-index">02</span><h2>Chuva nas próximas horas</h2></div><div class="dry-window"><span>PRÓXIMA JANELA SECA</span><strong id="dryWindow">Calculando…</strong></div></div>
+        <p class="rain-phrase panel" id="rainPhraseWrap"><strong id="rainPhrase">Lendo as próximas horas…</strong><small id="rainPhraseMeta">Open-Meteo</small></p>
+        <div class="rain-chart panel" id="rainChart" tabindex="0" role="region"><div class="chart-loading">Montando a previsão horária…</div></div>
       </section>
-
       <section class="forecast-section section-block" id="previsao">
-        <div class="section-heading">
-          <div><span class="section-index">03</span><h2>Próximos 7 dias</h2></div>
-          <p id="forecastCityLabel">Previsão diária para a área urbana de Manaus</p>
-        </div>
-        <div class="forecast-list panel" id="forecastList">
-          <div class="forecast-loading">Carregando a semana…</div>
-        </div>
+        <div class="section-heading"><div><span class="section-index">03</span><h2>Próximos 7 dias</h2></div><p id="forecastCityLabel">Referência do município</p></div>
+        <div class="forecast-list panel" id="forecastList"></div>
       </section>
-
       <section class="sun-section panel" aria-label="Ciclo solar">
-        <div class="sun-copy"><span>CICLO DO DIA</span><strong id="daylight">--h --min de luz</strong><p id="sunPhrase">Calculando nascer e pôr do sol.</p></div>
+        <div class="sun-copy"><span>CICLO DO DIA</span><strong id="daylight">--h --min de luz</strong><p id="sunPhrase"></p></div>
         <div class="sun-arc" aria-hidden="true"><div class="arc-line"></div><div class="sun-dot" id="sunDot"></div></div>
         <div class="sun-times"><div><span>Nascer</span><strong id="sunrise">--:--</strong></div><div><span>Pôr do sol</span><strong id="sunset">--:--</strong></div></div>
       </section>
       </div>
     </main>
-
-    <footer class="shell">
-      <div><span class="footer-mark"><img src="./logo-mark.png" alt="" /></span><p>PLUVIA · O céu de cada cidade.</p></div>
-      <p>Clima e ar: Open-Meteo<br>Alertas: INMET e Defesa Civil</p>
-    </footer>
-
-    <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true">
-      <strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span>
-    </div>
+    <footer class="shell"><div><p>PLUVIA · O céu de cada cidade.</p></div><p>Clima: Open-Meteo<br>Alertas: INMET · Defesa Civil só em Manaus<br><a href="#sobre">Sobre e fontes</a></p></footer>
+    <section class="sobre shell" id="sobre"><h2>Sobre</h2><p>PLUVIA — olha o céu antes de sair. Feito no Norte.</p><p>Números do Open-Meteo (ponto do município), avisos do INMET e, em Manaus, Defesa Civil. Não substitui alerta oficial.</p></section>
+    <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span></div>
+    <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
     <script src="./municipalities.js?v=cities-1"></script>
     <script src="./capitals.js?v=location-first-1"></script>
-    <script src="./app.js?v=location-first-1"></script>
+    <script src="./app.js?v=p0-p1-1"></script>
   </body>
 </html>
