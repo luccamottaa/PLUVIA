@@ -36,10 +36,10 @@
       <nav id="siteNav" aria-label="Seções" hidden>
         <a class="active" href="#agora">Agora</a><a href="#alertas">Alertas</a><a href="#chuva">Chuva</a><a href="#previsao">Previsão</a>
       </nav>
-      <button id="openCitySearch" class="search-trigger" type="button" aria-label="Buscar ou trocar cidade" aria-haspopup="dialog" aria-controls="cityDialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.4-3.4" /></svg>
-        <span class="search-trigger-label" id="selectedCityLabel">Cidade</span>
-      </button>
+      <div class="top-actions">
+        <button id="openCitySearch" class="search-trigger" type="button" aria-label="Buscar ou trocar cidade" aria-haspopup="dialog" aria-controls="cityDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.4-3.4" /></svg><span class="search-trigger-label" id="selectedCityLabel">Cidade</span></button>
+        <button id="openAuth" class="account-trigger" type="button" aria-label="Entrar ou criar conta" aria-haspopup="dialog" aria-controls="authDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg><span id="accountLabel">Entrar</span></button>
+      </div>
     </header>
     <main class="shell">
       <section class="location-welcome panel" id="locationWelcome" hidden aria-labelledby="locationTitle">
@@ -61,7 +61,22 @@
         <p id="cityPickerStatus" role="status" aria-live="polite"></p>
       </section>
       </dialog>
-      <div id="weatherView">
+      <dialog id="authDialog" class="auth-dialog" aria-labelledby="authTitle">
+        <div class="dialog-heading"><div><span class="eyebrow">SUA CONTA PLUVIA</span><h2 id="authTitle">Entrar</h2></div><button id="closeAuth" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
+        <div id="authGuest">
+          <div class="auth-tabs" role="tablist" aria-label="Acesso à conta"><button id="loginTab" class="active" type="button" role="tab" aria-selected="true">Entrar</button><button id="signupTab" type="button" role="tab" aria-selected="false">Criar conta</button></div>
+          <form id="authForm">
+            <label for="authEmail">E-mail</label><input id="authEmail" name="email" type="email" autocomplete="email" required placeholder="voce@exemplo.com" />
+            <label for="authPassword">Senha</label><input id="authPassword" name="password" type="password" autocomplete="current-password" minlength="6" required placeholder="Mínimo de 6 caracteres" />
+            <button id="authSubmit" class="auth-primary" type="submit">Entrar</button>
+          </form>
+          <button id="forgotPassword" class="auth-link" type="button">Esqueci minha senha</button>
+        </div>
+        <div id="authAccount" hidden><p class="auth-account-copy">Você está conectado como</p><strong id="accountEmail"></strong><button id="signOut" class="auth-primary" type="button">Sair da conta</button></div>
+        <form id="newPasswordForm" hidden><p>Digite uma nova senha para recuperar sua conta.</p><label for="newPassword">Nova senha</label><input id="newPassword" type="password" autocomplete="new-password" minlength="6" required /><button class="auth-primary" type="submit">Salvar nova senha</button></form>
+        <p id="authStatus" class="auth-status" role="status" aria-live="polite"></p>
+      </dialog>
+      <div id="weatherView" hidden>
       <section class="intro" id="agora">
         <div>
           <div class="eyebrow" id="dataStatus"><span class="live-dot" aria-hidden="true"></span><span id="statusText" role="status">Consultando o tempo</span></div>
@@ -128,6 +143,8 @@
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
     <script src="./p0-pre.js?v=wx-22"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+    <script src="./auth.js?v=email-auth-1"></script>
     <script src="./municipalities.js?v=cities-1"></script>
     <script src="./capitals.js?v=location-first-1"></script>
     <script src="./app.js?v=wx-22"></script>
