@@ -128,19 +128,41 @@ updateCityLabels = function () {
   const forecast = document.getElementById("forecastCityLabel");
   if (forecast) forecast.textContent = "Referência do município de " + activeCity.name + " — não da sua rua.";
 };
-const _requestLocation = requestLocation;
-requestLocation = function () {
+
+function unlockLocation() {
   window.__pluviaAllowGeo = true;
+  if (typeof locationPending !== "undefined") locationPending = false;
+  if (typeof locationButtons === "function") locationButtons(false);
   if (window.__pluviaGeo && navigator.geolocation) {
     navigator.geolocation.getCurrentPosition = window.__pluviaGeo;
   }
+}
+
+const _requestLocation = requestLocation;
+requestLocation = function () {
+  unlockLocation();
   return _requestLocation();
 };
+
+document.addEventListener("click", event => {
+  if (event.target.closest("#welcomeLocate, #locateCity")) unlockLocation();
+}, true);
+
+["welcomeLocate", "locateCity"].forEach(id => {
+  document.getElementById(id)?.addEventListener("click", event => {
+    event.preventDefault();
+    unlockLocation();
+    _requestLocation();
+  });
+});
+
 document.getElementById("cityResults")?.addEventListener("click", event => {
   const btn = event.target.closest("[data-id]");
   if (btn) chooseCity(btn.dataset.id);
 });
+
 (function bootCity() {
+  unlockLocation();
   const savedId = typeof readPreference === "function" ? readPreference("pluvia-city", null) : null;
   const fallback = cityById.get("1302603") || CITIES.find(city => city.uf === "AM");
   const city = cityById.get(savedId) || fallback;
@@ -154,6 +176,7 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   if (!activeCity || activeCity.id !== city.id) chooseCity(city.id);
   else updateCityLabels();
 })();
+
 if ("serviceWorker" in navigator && window.isSecureContext) {
   window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
 }
