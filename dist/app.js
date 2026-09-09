@@ -293,9 +293,9 @@ async function loadInmetAlerts(revision = cityRevision) {
 async function loadDefesaAlerts(revision = cityRevision) {
   const state = $("defesaState"); const content = $("defesaContent");
   try {
-    if (activeCity.uf !== "AM") {
+    if (activeCity.id !== "1302603") {
       state.className = "source-state"; state.innerHTML = "<i></i>Canal direto";
-      content.innerHTML = '<h3>Defesa Civil em ' + activeCity.name + '</h3><p>A consulta automática de comunicados locais ainda não está integrada para esta capital. Cadastre seu CEP pelo atalho abaixo para receber avisos por SMS.</p>';
+      content.innerHTML = '<h3>Defesa Civil em ' + escapeHtml(activeCity.name) + '</h3><p>A consulta automática de comunicados locais ainda não está integrada para esta cidade. Cadastre seu CEP pelo atalho abaixo para receber avisos por SMS.</p>';
       return;
     }
     const posts = await fetchJson(DEFESA_API);
@@ -642,14 +642,16 @@ function updateCityLabels() {
 }
 function renderCityOptions() {
   const query = normalizeName($("citySearch").value || "").trim();
-  const matches = CAPITALS.filter(city => normalizeName(city.name + " " + city.uf + " " + city.state).includes(query));
-  matches.sort((a,b) => Number(favorites.has(b.id)) - Number(favorites.has(a.id)) || a.name.localeCompare(b.name,"pt-BR"));
-  $("citySelect").innerHTML = '<option value="">Selecione uma capital</option>' + matches.map(city => '<option value="' + city.id + '">' + (favorites.has(city.id) ? "★ " : "") + city.name + " · " + city.uf + "</option>").join("");
-  $("citySelect").value = matches.some(city => city.id === activeCity.id) ? activeCity.id : "";
-  $("cityPickerStatus").textContent = query ? (matches.length ? matches.length + " capitais encontradas. Escolha na lista." : "Nenhuma capital encontrada. Tente outro nome ou UF.") : "";
+  const uf = $("stateSelect").value || "";
+  const browsing = !query && !uf;
+  const matches = browsing ? [...new Map([activeCity,...[...favorites].map(id=>cityById.get(id)),...CAPITALS].filter(Boolean).map(city=>[city.id,city])).values()] : searchCities(query,uf);
+  const shown = matches.slice(0,60);
+  $("citySelect").innerHTML = '<option value="">Selecione uma cidade</option>' + shown.map(city => '<option value="' + city.id + '">' + (favorites.has(city.id) ? "★ " : "") + escapeHtml(city.name) + " · " + city.uf + "</option>").join("");
+  $("citySelect").value = shown.some(city => city.id === activeCity.id) ? activeCity.id : "";
+  $("cityPickerStatus").textContent = browsing ? "Busque pelo nome para encontrar cidades do interior. Favoritas e capitais aparecem na lista inicial." : !matches.length ? "Nenhuma cidade encontrada. Confira o nome ou o estado." : matches.length > 60 ? "Mostrando 60 de " + matches.length + " cidades. Digite mais do nome para refinar." : matches.length + " cidades encontradas. Escolha na lista.";
 }
 function chooseCity(id) {
-  const city = CAPITALS.find(item => item.id === id);
+  const city = cityById.get(id);
   if (!city || city.id === activeCity.id) return;
   cityRevision++;
   pendingRequests.forEach(controller => controller.abort());
@@ -669,10 +671,11 @@ function chooseCity(id) {
   ["inmet","defesa"].forEach(source => {
     $(source + "State").className = "source-state";
     $(source + "State").innerHTML = "<i></i>Consultando";
-    $(source + "Content").innerHTML = "<h3>Consultando " + city.name + "</h3><p>Buscando informações para a capital selecionada.</p>";
+    $(source + "Content").innerHTML = "<h3>Consultando " + escapeHtml(city.name) + "</h3><p>Buscando informações para a cidade selecionada.</p>";
   });
   $("inmetCard").dataset.severity = "unknown";
   $("citySearch").value = "";
+  $("stateSelect").value = "";
   renderCityOptions(); updateCityLabels();
   setDataStatus("Consultando o tempo em " + city.name);
   const saved = cached();
@@ -681,11 +684,14 @@ function chooseCity(id) {
 }
 function setupCityPicker() {
   emptyCityContent = new Map(cityResetIds.map(id => [id,$(id).innerHTML]));
+  $("stateSelect").innerHTML = '<option value="">Todos os estados</option>' + [...stateNames].sort((a,b)=>a[1].localeCompare(b[1],'pt-BR')).map(([uf,name])=>'<option value="'+uf+'">'+escapeHtml(name)+' · '+uf+'</option>').join('');
   renderCityOptions(); updateCityLabels();
   $("condition").textContent = "Buscando o céu de " + activeCity.name + "…";
   $("inmetContent").innerHTML = "<h3>Buscando avisos meteorológicos</h3><p>Consultando avisos para " + activeCity.name + ".</p>";
   $("defesaContent").innerHTML = "<h3>Defesa Civil em " + activeCity.name + "</h3><p>Consultando os canais disponíveis.</p>";
-  $("citySearch").addEventListener("input", renderCityOptions);
+  let searchTimer;
+  $("citySearch").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(renderCityOptions,120); });
+  $("stateSelect").addEventListener("change", renderCityOptions);
   $("citySelect").addEventListener("change", event => chooseCity(event.target.value));
   $("favoriteCity").addEventListener("click", () => {
     if (favorites.has(activeCity.id)) favorites.delete(activeCity.id); else favorites.add(activeCity.id);
@@ -694,20 +700,20 @@ function setupCityPicker() {
   });
   $("locateCity").addEventListener("click", () => {
     const status = $("cityPickerStatus"), button = $("locateCity");
-    if (!navigator.geolocation) { status.textContent = "Localização indisponível. Escolha a capital na lista."; return; }
+    if (!navigator.geolocation) { status.textContent = "Localização indisponível. Escolha a cidade na lista."; return; }
     const revision = cityRevision;
-    button.disabled = true; status.textContent = "Procurando a capital mais próxima…";
+    button.disabled = true; status.textContent = "Procurando a cidade de referência mais próxima…";
     navigator.geolocation.getCurrentPosition(position => {
       button.disabled = false;
       if (revision !== cityRevision) return;
       try {
-        const city = nearestCapital(position.coords.latitude, position.coords.longitude);
+        const city = nearestCity(position.coords.latitude, position.coords.longitude);
         chooseCity(city.id);
-        status.textContent = "Capital mais próxima: " + city.name + ". A previsão é da capital, não da sua posição exata.";
+        status.textContent = "Cidade de referência mais próxima: " + city.name + " · " + city.uf + ". A previsão usa a referência urbana, não sua posição exata.";
       } catch { status.textContent = "Não foi possível identificar a localização. Escolha na lista."; }
     }, () => {
       button.disabled = false;
-      if (revision === cityRevision) status.textContent = "Localização não disponível ou não autorizada. Escolha sua capital na lista.";
+      if (revision === cityRevision) status.textContent = "Localização não disponível ou não autorizada. Escolha sua cidade na lista.";
     }, {enableHighAccuracy:false,timeout:10000,maximumAge:300000});
   });
 }

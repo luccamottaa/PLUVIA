@@ -15,6 +15,7 @@ const context = vm.createContext({
   Date:FixedDate, Intl, URL, AbortController, setTimeout, clearTimeout,
   DOMParser: class {parseFromString(text) {return {documentElement:{textContent:text}};}},
 });
+vm.runInContext(fs.readFileSync(path.join(root, "dist/municipalities.js"), "utf8"), context);
 vm.runInContext(fs.readFileSync(path.join(root, "dist/capitals.js"), "utf8"), context);
 vm.runInContext(source.slice(0, source.lastIndexOf("\nsetupCityPicker();")), context);
 

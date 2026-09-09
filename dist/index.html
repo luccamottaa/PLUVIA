@@ -6,14 +6,14 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0a111f" media="(prefers-color-scheme: dark)" />
-    <meta name="description" content="PLUVIA: previsão do tempo, qualidade do ar e alertas do INMET nas 27 capitais do Brasil." />
-    <title>PLUVIA — Clima nas capitais do Brasil</title>
+    <meta name="description" content="PLUVIA: previsão do tempo, qualidade do ar e alertas do INMET nas cidades do Brasil." />
+    <title>PLUVIA — Clima nas cidades do Brasil</title>
     <link rel="icon" type="image/png" href="./logo-mark.png" />
     <link rel="apple-touch-icon" href="./logo-mark.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=capitals-1" />
+    <link rel="stylesheet" href="./styles.css?v=cities-1" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -50,9 +50,10 @@
         </div>
       </section>
 
-      <section class="city-picker panel" aria-label="Escolher capital">
-        <div class="city-search-field"><label for="citySearch">Buscar capital</label><input id="citySearch" type="search" placeholder="Cidade, estado ou UF" autocomplete="off" /></div>
-        <div class="city-select-field"><label for="citySelect">Capital selecionada</label><select id="citySelect"></select></div>
+      <section class="city-picker panel" aria-label="Escolher cidade">
+        <div class="city-search-field"><label for="citySearch">Buscar cidade</label><input id="citySearch" type="search" placeholder="Ex.: Parintins, Campinas, Gramado" autocomplete="off" aria-controls="citySelect" /></div>
+        <div class="city-state-field"><label for="stateSelect">Estado</label><select id="stateSelect"></select></div>
+        <div class="city-select-field"><label for="citySelect">Escolha nos resultados</label><select id="citySelect" aria-describedby="cityPickerStatus"></select></div>
         <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
         <button id="locateCity" class="city-button" type="button">Usar localização</button>
         <p id="cityPickerStatus" role="status" aria-live="polite"></p>
@@ -75,6 +76,7 @@
             <div><span>Máx. / mín.</span><strong id="highLow">--° / --°</strong></div>
             <div><span>Chuva agora</span><strong id="rainNow">-- mm</strong></div>
           </div>
+          <p class="model-note">Estimativas por modelos meteorológicos; não indicam uma estação de medição na cidade.</p>
         </article>
 
         <aside class="attention-card panel" id="attentionCard">
@@ -151,14 +153,15 @@
     </main>
 
     <footer class="shell">
-      <div><span class="footer-mark"><img src="./logo-mark.png" alt="" /></span><p>PLUVIA · O céu de cada capital.</p></div>
+      <div><span class="footer-mark"><img src="./logo-mark.png" alt="" /></span><p>PLUVIA · O céu de cada cidade.</p></div>
       <p>Clima e ar: Open-Meteo<br>Alertas: INMET e Defesa Civil</p>
     </footer>
 
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true">
       <strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span>
     </div>
-    <script src="./capitals.js?v=capitals-1"></script>
-    <script src="./app.js?v=capitals-1"></script>
+    <script src="./municipalities.js?v=cities-1"></script>
+    <script src="./capitals.js?v=cities-1"></script>
+    <script src="./app.js?v=cities-1"></script>
   </body>
 </html>

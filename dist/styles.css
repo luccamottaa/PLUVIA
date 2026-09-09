@@ -417,6 +417,8 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px s
 .city-picker { display:flex; align-items:end; gap:14px; flex-wrap:wrap; padding:20px; margin:0 0 24px; }
 .city-picker label { display:block; font-size:14px; margin-bottom:7px; color:var(--muted); }
 .city-search-field, .city-select-field { flex:1 1 200px; min-width:0; }
+.city-state-field { flex:1 1 180px; min-width:0; }
+.model-note { font-size:14px; line-height:1.5; color:var(--muted); margin:18px 0 0; }
 .city-picker input, .city-picker select, .city-button { width:100%; min-height:48px; border:1px solid #075dff40; border-radius:14px; padding:10px 14px; font:inherit; font-size:16px; background:#fff; color:#14223d; }
 .city-button { width:auto; cursor:pointer; color:#075dff; font-weight:700; }
 .city-button[aria-pressed="true"] { background:#075dff; color:white; }

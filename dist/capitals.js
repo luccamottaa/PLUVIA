@@ -35,17 +35,37 @@ function readPreference(key, fallback) {
 function writePreference(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
-let activeCity = CAPITALS.find(city => city.id === readPreference('pluvia-city', '1302603')) || CAPITALS.find(city => city.uf === 'AM');
+const stateNames = new Map(CAPITALS.map(city => [city.uf,city.state]));
+const CITIES = MUNICIPALITIES.rows.map(([id,name,uf,lat,lon,zone]) => {
+  const capital = CAPITALS.find(city => city.id === id);
+  return capital || Object.freeze({id,name,uf,state:stateNames.get(uf),lat,lon,timezone:MUNICIPALITIES.timezones[zone]});
+});
+const cityById = new Map(CITIES.map(city => [city.id,city]));
+let activeCity = cityById.get(readPreference('pluvia-city', '1302603')) || cityById.get('1302603');
 const savedFavorites = readPreference('pluvia-favorites', []);
-let favorites = new Set(Array.isArray(savedFavorites) ? savedFavorites.filter(id => CAPITALS.some(city => city.id === id)) : []);
+let favorites = new Set(Array.isArray(savedFavorites) ? savedFavorites.filter(id => cityById.has(id)) : []);
 const normalizeName = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-function nearestCapital(latitude, longitude) {
+const citySearchIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name + ' ' + city.uf + ' ' + city.state)]));
+const cityNameIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name)]));
+const cityCollator = new Intl.Collator('pt-BR');
+function searchCities(query, uf = '') {
+  const terms = normalizeName(query).trim().split(/\s+/).filter(Boolean);
+  const matches = CITIES.filter(city => (!uf || city.uf === uf) && terms.every(term => stateNames.has(term.toUpperCase()) ? city.uf === term.toUpperCase() : citySearchIndex.get(city.id).includes(term)));
+  const exact = normalizeName(query).trim();
+  const priority = city => cityNameIndex.get(city.id) === exact ? 0 : favorites.has(city.id) ? 1 : 2;
+  matches.sort((a,b) => priority(a)-priority(b) || cityCollator.compare(a.name,b.name) || a.uf.localeCompare(b.uf));
+  return matches;
+}
+function nearestCity(latitude, longitude, candidates = CITIES) {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) throw new Error('Localização inválida');
   const radians = degrees => degrees * Math.PI / 180;
   const distance = city => {
     const a = Math.sin(radians(city.lat-latitude)/2)**2 + Math.cos(radians(latitude))*Math.cos(radians(city.lat))*Math.sin(radians(city.lon-longitude)/2)**2;
     return 6371 * 2 * Math.asin(Math.sqrt(Math.min(1,a)));
   };
-  return CAPITALS.reduce((best, city) => distance(city) < distance(best) ? city : best);
+  return candidates.reduce((best, city) => distance(city) < distance(best) ? city : best);
 }
+
+// Retained for the capital regression tests and the capital-only subset.
+function nearestCapital(latitude, longitude) { return nearestCity(latitude, longitude, CAPITALS); }
