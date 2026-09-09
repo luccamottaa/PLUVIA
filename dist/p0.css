@@ -63,7 +63,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   min-height: 148px !important;
   flex: 1 1 auto;
 }
@@ -96,13 +96,24 @@
   align-items: flex-start;
   justify-content: flex-end;
   flex: 1 1 auto;
-  margin: 0 18px 0 0;
-  padding-right: 0;
+  margin: 0 8px 0 0;
+  padding: 0 4px 0 0;
   font-family: "Nunito", Manrope, sans-serif !important;
   font-weight: 800 !important;
-  font-size: clamp(5.6rem, 22vw, 8.4rem) !important;
-  letter-spacing: -.06em;
-  line-height: .78 !important;
+  font-size: clamp(5.8rem, 24vw, 8.6rem) !important;
+  letter-spacing: -.07em;
+  line-height: .76 !important;
+}
+.temperature span {
+  font-family: inherit;
+  font-weight: inherit;
+}
+.temperature sup {
+  font-family: "Nunito", Manrope, sans-serif !important;
+  font-weight: 700;
+  font-size: .28em;
+  margin-left: .04em;
+  top: 0.18em;
 }
 .current-bottom {
   display: flex;
