@@ -23,6 +23,7 @@
   width: min(240px, 72vw);
   height: 96px;
   margin-bottom: 18px;
+  animation: pluvia-intro-mark 1.4s cubic-bezier(.2,.8,.2,1) both;
 }
 .pluvia-intro .intro-logo img {
   display: block;
@@ -39,11 +40,13 @@
   -webkit-mask: url("./logo-pluvia.png") center / contain no-repeat;
   mask: url("./logo-pluvia.png") center / contain no-repeat;
   filter: drop-shadow(0 10px 22px rgba(7,93,255,.22));
+  animation: pluvia-intro-glow 1.6s ease-in-out infinite alternate;
 }
 .pluvia-intro .intro-kicker {
   margin: 0 0 12px; color: #60738f; font-family: "DM Mono", monospace; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+  animation: pluvia-intro-fade .7s ease both;
 }
-.pluvia-intro .intro-copy { margin: 0; max-width: 22ch; color: #4d6280; font-size: 1.05rem; }
+.pluvia-intro .intro-copy { margin: 0; max-width: 22ch; color: #4d6280; font-size: 1.05rem; animation: pluvia-intro-fade .8s .15s ease both; }
 @media (max-width: 720px) {
   .search-trigger-label { display:inline !important; max-width:11ch; font-size:13px; font-weight:700; }
   .clock-wrap { display:block !important; text-align:left; padding:0; }
@@ -61,22 +64,78 @@
   .pluvia-intro .intro-kicker, .pluvia-intro .intro-copy { color: #8aa0c2; }
 }
 
-.weather-glyph { overflow: visible !important; }
+.weather-glyph {
+  overflow: visible !important;
+  animation: pluvia-glyph-float 4.8s ease-in-out infinite;
+}
 .weather-visual { overflow: visible !important; }
+.wx-glow {
+  transform-origin: 52px 42px;
+  animation: pluvia-corona 3s ease-in-out infinite !important;
+}
 .wx-sun { transform-origin: 52px 42px; animation: pluvia-sun-bob 3.6s ease-in-out infinite !important; }
-.wx-sun-rays { transform-origin: 52px 42px; animation: pluvia-rays 8s linear infinite !important; }
-.wx-sun-core { transform-origin: 52px 42px; animation: pluvia-core 2.2s ease-in-out infinite !important; }
+.wx-sun-rays {
+  transform-origin: 52px 42px;
+  animation: pluvia-rays 8s linear infinite !important;
+  filter: drop-shadow(0 0 3px rgba(255,184,46,.55));
+}
+.wx-sun-core {
+  transform-origin: 52px 42px;
+  animation: pluvia-core 2.2s ease-in-out infinite !important;
+  filter: drop-shadow(0 0 10px rgba(255,201,65,.55));
+}
 .weather-partly .wx-sun { animation: pluvia-sun-peek 4.2s ease-in-out infinite !important; }
-.wx-moon { transform-origin: 60px 42px; animation: pluvia-moon 4.4s ease-in-out infinite !important; }
+.wx-moon {
+  transform-origin: 60px 42px;
+  animation: pluvia-moon 4.4s ease-in-out infinite !important;
+  filter: drop-shadow(0 0 8px rgba(7,93,255,.28));
+}
 .wx-cloud-back { animation: pluvia-cloud-back 5s ease-in-out infinite alternate !important; }
 .wx-cloud-main { animation: pluvia-cloud 3.4s ease-in-out infinite !important; }
 .weather-storm .wx-cloud-main { animation: pluvia-shake 1.6s ease-in-out infinite !important; }
 .wx-drop { animation: pluvia-rain .85s ease-in infinite !important; }
 .wx-drop-1 { animation-delay: 0s !important; }
-.wx-drop-2 { animation-delay: .2s !important; }
-.wx-drop-3 { animation-delay: .4s !important; }
-.wx-lightning { animation: pluvia-bolt 1.8s ease-in-out infinite !important; }
+.wx-drop-2 { animation-delay: .16s !important; }
+.wx-drop-3 { animation-delay: .32s !important; }
+.wx-drop-4 { animation-delay: .48s !important; }
+.wx-drop-5 { animation-delay: .64s !important; }
+.wx-lightning {
+  animation: pluvia-bolt 1.8s ease-in-out infinite !important;
+  filter: drop-shadow(0 0 8px rgba(255,197,47,.8));
+}
+.wx-lightning-b { animation: pluvia-bolt-b 1.8s ease-in-out infinite !important; }
+.wx-flake { animation: pluvia-snow 2.2s linear infinite !important; }
 
+.current-card[data-wx="sun"] {
+  animation: pluvia-card-sun 6s ease-in-out infinite;
+}
+.current-card[data-wx="rain"], .current-card[data-wx="storm"] {
+  animation: pluvia-card-rain 5s ease-in-out infinite;
+}
+.current-card[data-wx="storm"]::after {
+  animation: pluvia-flash 2.4s ease-in-out infinite;
+}
+
+@keyframes pluvia-intro-mark {
+  from { opacity: 0; transform: translateY(10px) scale(.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pluvia-intro-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pluvia-intro-glow {
+  from { filter: drop-shadow(0 8px 16px rgba(7,93,255,.16)); }
+  to { filter: drop-shadow(0 14px 28px rgba(7,93,255,.38)); }
+}
+@keyframes pluvia-glyph-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes pluvia-corona {
+  0%, 100% { opacity: .28; transform: scale(.9); }
+  50% { opacity: .6; transform: scale(1.18); }
+}
 @keyframes pluvia-sun-bob {
   0%, 100% { transform: translateY(0) scale(1); }
   50% { transform: translateY(-7px) scale(1.04); }
@@ -117,12 +176,34 @@
   0%, 55%, 70%, 100% { opacity: .12; transform: scale(.9); }
   60%, 66% { opacity: 1; transform: scale(1.18); }
 }
+@keyframes pluvia-bolt-b {
+  0%, 62%, 100% { opacity: 0; }
+  64%, 68% { opacity: .85; }
+}
+@keyframes pluvia-snow {
+  0% { opacity: 0; transform: translateY(-8px) rotate(0); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(18px) rotate(90deg); }
+}
+@keyframes pluvia-card-sun {
+  0%, 100% { box-shadow: inset 0 1px 0 #fff, 0 22px 55px rgba(33,86,153,.09); }
+  50% { box-shadow: inset 0 1px 0 #fff, 0 22px 55px rgba(255,184,46,.18); }
+}
+@keyframes pluvia-card-rain {
+  0%, 100% { box-shadow: inset 0 1px 0 #fff, 0 22px 55px rgba(33,86,153,.09); }
+  50% { box-shadow: inset 0 1px 0 #fff, 0 22px 55px rgba(7,93,255,.16); }
+}
+@keyframes pluvia-flash {
+  0%, 58%, 72%, 100% { opacity: 1; }
+  62%, 66% { opacity: .55; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .orb, .noise { animation: none !important; }
   .pluvia-intro.is-leaving { transition: none; }
-  .wx-sun, .wx-sun-rays, .wx-sun-core, .wx-moon, .wx-cloud-main, .wx-cloud-back, .wx-drop, .wx-lightning {
-    animation-duration: 2.4s !important;
+  .wx-sun, .wx-sun-rays, .wx-sun-core, .wx-glow, .wx-moon, .wx-cloud-main, .wx-cloud-back,
+  .wx-drop, .wx-lightning, .wx-lightning-b, .wx-flake, .weather-glyph, .current-card, .current-card::after {
+    animation-duration: 2.2s !important;
     animation-delay: 0s !important;
   }
 }
