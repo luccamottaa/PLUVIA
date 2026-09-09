@@ -8,6 +8,7 @@ let lastRefreshAt = 0;
 let refreshInFlight = null;
 let displayedWeather = null;
 let errorTimer;
+let lastInmetResponse = null;
 const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 
 async function fetchJson(url, timeoutMs = 12000) {
@@ -160,41 +161,104 @@ function firstValue(obj, keys, fallback = "") {
 }
 
 function normalizeAlerts(raw) {
-  if (Array.isArray(raw)) return raw;
-  for (const key of ["avisos", "alerts", "data", "features", "result"]) if (Array.isArray(raw?.[key])) return raw[key].map(v => v?.properties || v);
-  return [];
+  let rows;
+  if (Array.isArray(raw)) rows = raw;
+  else if (raw && (Object.hasOwn(raw, "hoje") || Object.hasOwn(raw, "futuro"))) {
+    // Alert-AS groups current and upcoming notices; neither is an error envelope.
+    if (![raw.hoje, raw.futuro].some(Array.isArray) || [raw.hoje, raw.futuro].some(value => value != null && !Array.isArray(value))) throw new Error("Lista INMET inválida");
+    rows = [...(raw.hoje || []), ...(raw.futuro || [])];
+  } else {
+    const key = ["avisos", "alerts", "data", "features", "result"].find(key => Array.isArray(raw?.[key]));
+    if (!key) throw new Error("Formato INMET desconhecido");
+    rows = raw[key];
+  }
+  const seen = new Set();
+  return rows.map(row => row?.properties || row).filter(alert => {
+    if (!alert || typeof alert !== "object" || !firstValue(alert, ["descricao", "evento", "titulo", "tipo"])) throw new Error("Aviso INMET incompleto");
+    const id = String(firstValue(alert, ["id_aviso", "id", "identifier"], JSON.stringify(alert)));
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
 }
 
-function severityClass(alert) {
-  const text = JSON.stringify(alert).toLowerCase();
-  if (text.includes("grande perigo") || text.includes("vermelh")) return "danger";
-  if ((text.includes("perigo") && !text.includes("potencial")) || text.includes("laranja")) return "warning";
-  return "warning";
+function inmetSeverity(alert) {
+  // Do not infer severity from the risk description or undocumented numeric IDs.
+  const text = String(firstValue(alert, ["severidade", "severity", "nivel"])).trim().toLowerCase();
+  const color = String(firstValue(alert, ["aviso_cor", "cor"])).trim().toLowerCase();
+  if (text.includes("grande perigo") || /vermelh|#ff0000|#f00\b/.test(color)) return {className:"red", rank:3, label:"Alerta vermelho", description:"Grande perigo"};
+  if (text.includes("potencial")) return {className:"yellow", rank:1, label:"Alerta amarelo", description:"Perigo potencial"};
+  if (text === "perigo" || /laranja|#f96602|#ff9900|#ffa500/.test(color)) return {className:"orange", rank:2, label:"Alerta laranja", description:"Perigo"};
+  if (/amarel|#ffff00|#ffcc00|#ff0\b/.test(color)) return {className:"yellow", rank:1, label:"Alerta amarelo", description:"Perigo potencial"};
+  return {className:"unknown", rank:0, label:"Aviso meteorológico", description:"Severidade a confirmar no INMET"};
 }
 
-function alertCoversManaus(alert) {
-  const text = JSON.stringify(alert).toLowerCase();
-  return text.includes("manaus") || text.includes("amazonas") || /\"uf\"\s*:\s*\"am\"/.test(text) || /\"sigla\"\s*:\s*\"am\"/.test(text);
+function inmetArea(alert) {
+  const codes = JSON.stringify(alert.geocodes || alert.geocode || "").match(/\b\d{7}\b/g) || [];
+  if (codes.length) return codes.includes("1302603") ? "Manaus" : null;
+  const towns = JSON.stringify(alert.municipios || alert.municipio || "").toLowerCase();
+  if (/\bmanaus\b/.test(towns)) return "Manaus";
+  const region = JSON.stringify([alert.estados, alert.uf, alert.sigla, alert.area, alert.areaDesc]).toLowerCase();
+  if (/\bmanaus\b/.test(region)) return "Manaus";
+  if (/\bamazonas\b|\bam\b/.test(region)) return "Amazonas · confirme a área no mapa";
+  return null;
+}
+
+function inmetTime(alert, type) {
+  const date = alert[`data_${type}`]; const time = alert[`hora_${type}`];
+  // Separate INMET date/hour fields and timezone-less strings use Brasília.
+  if (date && /^\d{2}:\d{2}(?::\d{2})?$/.test(time || "")) return Date.parse(`${String(date).slice(0,10)}T${time}-03:00`);
+  const raw = firstValue(alert, type === "inicio" ? ["inicio", "onset", "effective"] : ["fim", "expires", "termino"]);
+  if (!raw) return NaN;
+  let value = String(raw).trim().replace(" ", "T");
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return NaN;
+  if (!/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)) value += "-03:00";
+  return Date.parse(value);
+}
+
+function selectInmetAlerts(raw, now = Date.now()) {
+  return normalizeAlerts(raw).flatMap(alert => {
+    if ([true, 1, "1", "true"].includes(alert.encerrado) || /cancel/i.test(alert.msgType || "")) return [];
+    const area = inmetArea(alert);
+    const start = inmetTime(alert, "inicio"); const end = inmetTime(alert, "fim");
+    if (!area || (Number.isFinite(end) && end <= now)) return [];
+    const stage = start > now ? "future" : Number.isFinite(start) && Number.isFinite(end) ? "active" : "unconfirmed";
+    return [{alert, area, start, end, stage, severity:inmetSeverity(alert)}];
+  }).sort((a,b) => (a.stage === "active" ? 0 : 1) - (b.stage === "active" ? 0 : 1) || b.severity.rank - a.severity.rank);
+}
+
+function renderInmetAlerts(raw, stale = false) {
+  const state = $("inmetState"); const content = $("inmetContent");
+  const alerts = selectInmetAlerts(raw);
+  $("inmetCard").dataset.severity = stale ? "unknown" : alerts[0]?.severity.className || "none";
+  if (!alerts.length) {
+    state.className = "source-state"; state.innerHTML = `<i></i>${stale ? "Consulta indisponível" : "Nenhum aviso identificado"}`;
+    content.innerHTML = stale ? "<h3>Confira o mapa do INMET</h3><p>Não foi possível confirmar os avisos atuais. A leitura anterior não confirma a situação de agora.</p>" : "<h3>Nenhum aviso identificado para Manaus</h3><p>A consulta não retornou avisos vigentes ou previstos para a região. Confira também o mapa oficial.</p>";
+    return;
+  }
+  state.className = `source-state inmet-${stale ? "unknown" : alerts[0].severity.className}`;
+  state.innerHTML = `<i></i>${stale ? "Sem confirmação recente" : alerts.length === 1 ? alerts[0].severity.label : `${alerts.length} avisos na região`}`;
+  const format = value => new Intl.DateTimeFormat("pt-BR", {timeZone:"America/Manaus", day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(value));
+  content.innerHTML = (stale ? '<p class="inmet-notice">Consulta indisponível. Os avisos abaixo vêm da leitura anterior; confirme a situação no INMET.</p>' : "") + alerts.map(({alert, area, start, end, stage, severity}) => {
+    const id = String(firstValue(alert, ["id_aviso", "id"]));
+    const url = /^\d+$/.test(id) ? `https://avisos.inmet.gov.br/${id}` : "https://alertas2.inmet.gov.br/";
+    const title = firstValue(alert, ["descricao", "evento", "titulo", "tipo"], "Aviso meteorológico");
+    const risks = firstValue(alert, ["riscos", "description"], "Consulte os riscos e as orientações no aviso oficial.");
+    const riskText = Array.isArray(risks) ? risks.join(" ") : String(risks);
+    const timing = stage === "future" ? `Previsto a partir de ${format(start)} (Manaus)` : stage === "active" ? `Vigente até ${format(end)} (Manaus)` : "Vigência a confirmar no aviso oficial";
+    return `<article class="inmet-alert inmet-${severity.className}"><span class="inmet-level">${severity.label} · ${severity.description}</span><h3>${escapeHtml(decodeHtml(String(title)))}</h3><p>${escapeHtml(decodeHtml(riskText).slice(0,360))}</p><div class="source-meta"><span>${escapeHtml(area)}</span><span>${escapeHtml(timing)}</span></div><a class="inmet-detail" href="${url}" target="_blank" rel="noreferrer">Ver aviso ${/^\d+$/.test(id) ? id : "oficial"} no INMET ↗</a></article>`;
+  }).join("");
 }
 
 async function loadInmetAlerts() {
-  const state = $("inmetState"); const content = $("inmetContent");
   try {
     const raw = await fetchJson(INMET_API);
-    if (!Array.isArray(raw) && !["avisos", "alerts", "data", "features", "result"].some(key => Array.isArray(raw?.[key]))) throw new Error("Resposta INMET desconhecida");
-    const alerts = normalizeAlerts(raw).filter(alertCoversManaus);
-    if (!alerts.length) {
-      state.className = "source-state ok"; state.innerHTML = "<i></i>Sem aviso ativo";
-      content.innerHTML = "<h3>Nenhum aviso encontrado</h3><p>A consulta não retornou avisos para Manaus ou o Amazonas. Confira a abrangência dos avisos no mapa oficial.</p>";
-      return;
-    }
-    const alert = alerts.sort((a,b) => severityClass(a) === "danger" ? -1 : severityClass(b) === "danger" ? 1 : 0)[0];
-    const klass = severityClass(alert); const title = firstValue(alert, ["evento", "tipo", "titulo", "aviso", "descricao"], "Aviso meteorológico");
-    const severity = firstValue(alert, ["severidade", "nivel", "severity", "aviso_cor"], "Consulte a severidade no mapa");
-    const end = firstValue(alert, ["data_fim", "fim", "expires", "termino"], ""); const risks = firstValue(alert, ["riscos", "instrucao", "descricao"], "Consulte os detalhes e as orientações no mapa oficial do INMET.");
-    state.className = `source-state ${klass}`; state.innerHTML = `<i></i>${alerts.length} aviso${alerts.length > 1 ? "s" : ""} ativo${alerts.length > 1 ? "s" : ""}`;
-    content.innerHTML = `<h3>${escapeHtml(decodeHtml(String(title)))}</h3><p>${escapeHtml(decodeHtml(String(risks)).slice(0, 220))}</p><div class="source-meta"><span>${escapeHtml(decodeHtml(String(severity)))}</span>${end ? `<span>Até ${escapeHtml(String(end).slice(0,16).replace("T", " "))}</span>` : ""}</div>`;
+    renderInmetAlerts(raw);
+    lastInmetResponse = raw;
   } catch {
+    if (lastInmetResponse) { renderInmetAlerts(lastInmetResponse, true); return; }
+    const state = $("inmetState"); const content = $("inmetContent");
+    $("inmetCard").dataset.severity = "unknown";
     state.className = "source-state warning"; state.innerHTML = "<i></i>Consulta indisponível";
     content.innerHTML = "<h3>Abra o mapa do INMET</h3><p>A fonte automática não respondeu agora. Use o atalho abaixo para conferir os avisos oficiais diretamente no INMET.</p>";
   }
