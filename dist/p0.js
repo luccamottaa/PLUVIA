@@ -1,17 +1,6 @@
 function isManaus(city = activeCity) {
   return Boolean(city && (city.id === "1302603" || (city.uf === "AM" && normalizeName(city.name) === "manaus")));
 }
-function cityNameUnique(name) {
-  const n = normalizeName(name);
-  let count = 0;
-  for (const city of CITIES) {
-    if (normalizeName(city.name) === n) {
-      count++;
-      if (count > 1) return false;
-    }
-  }
-  return count === 1;
-}
 function hourLabel(iso) {
   const raw = (iso || "").slice(11, 16);
   if (!raw) return "--";
@@ -41,6 +30,7 @@ function dismissIntro() {
   revealWeather();
   setTimeout(() => { intro.hidden = true; pinTop(); }, 480);
 }
+document.getElementById("skipIntro")?.addEventListener("click", dismissIntro);
 function buildRainPhrase(hourly) {
   const times = hourly?.time || [];
   const probs = hourly?.precipitation_probability || [];
@@ -75,12 +65,13 @@ function buildRainPhrase(hourly) {
   }
   if (sum3 >= 15) {
     severity = "heavy";
-    phrase = `Volume alto das ${hourLabel(times[start])} às ${hourLabel(times[Math.min(start + 2, times.length - 1)])}. Pode alagar via.`;
+    phrase = `Chuva pesada entre ${hourLabel(times[start])} e ${hourLabel(times[Math.min(start + 2, times.length - 1)])}. Em área que alaga, muda a rota.`;
   } else if (firstWet >= 0) {
     severity = "wet";
     const from = hourLabel(times[firstWet]);
     const to = hourLabel(times[Math.max(firstWet, lastWet)]);
-    phrase = firstWet === start ? `Chuva agora até ${to}.` : `Chuva das ${from} às ${to}.`;
+    const wetHours = Math.max(1, lastWet - firstWet + 1);
+    phrase = firstWet === start ? `Chuva agora, com trégua perto das ${to}.` : wetHours <= 2 ? `Pancada curta perto das ${from}.` : `Chuva prevista entre ${from} e ${to}.`;
   } else if (peakProb >= 55 && peakMm < 0.4) {
     severity = "threat";
     phrase = "Nuvem ameaça, mas o volume previsto é baixo.";
@@ -93,28 +84,14 @@ function buildRainPhrase(hourly) {
   return { phrase, severity };
 }
 function aqiLabel(value) {
-  if (!Number.isFinite(value)) return ["--", "índice internacional indisponível"];
-  if (value <= 50) return ["Boa", `US AQI ${Math.round(value)} · traduzido`];
-  if (value <= 100) return ["Moderada", `US AQI ${Math.round(value)} · traduzido`];
-  if (value <= 150) return ["Ruim p/ sensíveis", `US AQI ${Math.round(value)} · traduzido`];
-  if (value <= 200) return ["Ruim", `US AQI ${Math.round(value)} · traduzido`];
-  if (value <= 300) return ["Muito ruim", `US AQI ${Math.round(value)} · traduzido`];
-  return ["Péssima", `US AQI ${Math.round(value)} · traduzido`];
+  if (!Number.isFinite(value)) return ["--", "qualidade do ar indisponível"];
+  if (value <= 50) return ["Boa", `Índice ${Math.round(value)} · ar limpo`];
+  if (value <= 100) return ["Moderada", `Índice ${Math.round(value)} · atenção se você é sensível`];
+  if (value <= 150) return ["Ruim p/ sensíveis", `Índice ${Math.round(value)} · asma, criança e idoso sentem mais`];
+  if (value <= 200) return ["Ruim", `Índice ${Math.round(value)} · evite esforço ao ar livre`];
+  if (value <= 300) return ["Muito ruim", `Índice ${Math.round(value)} · partículas altas`];
+  return ["Péssima", `Índice ${Math.round(value)} · exposição perigosa`];
 }
-const _inmetArea = inmetArea;
-inmetArea = function (alert) {
-  const codes = JSON.stringify(alert.geocodes || alert.geocode || "").match(/\b\d{7}\b/g) || [];
-  if (codes.length) return codes.includes(String(activeCity.id)) ? activeCity.name : null;
-  const contains = (value, name) => new RegExp("(^|[^a-z])" + normalizeName(name) + "([^a-z]|$)").test(normalizeName(JSON.stringify(value || "")));
-  const towns = alert.municipios || alert.municipio;
-  if (towns && contains(towns, activeCity.name)) {
-    const blob = normalizeName(JSON.stringify([alert.estados, alert.uf, alert.sigla, alert.area, alert.areaDesc]));
-    const ufOk = blob.includes(normalizeName(activeCity.uf)) || blob.includes(normalizeName(activeCity.state || ""));
-    if (cityNameUnique(activeCity.name) || ufOk) return activeCity.name;
-    return null;
-  }
-  return _inmetArea(alert);
-};
 const _loadDefesa = loadDefesaAlerts;
 loadDefesaAlerts = async function (revision = cityRevision) {
   const card = document.getElementById("defesaCard");
@@ -150,28 +127,44 @@ updateCityLabels = function () {
   const forecast = document.getElementById("forecastCityLabel");
   if (forecast) forecast.textContent = "Referência do município de " + activeCity.name + " — não da sua rua.";
 };
-function unlockLocation() {
-  window.__pluviaAllowGeo = true;
-  if (typeof locationPending !== "undefined") locationPending = false;
-  if (typeof locationButtons === "function") locationButtons(false);
-  if (window.__pluviaGeo && navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition = window.__pluviaGeo;
-  }
-}
-const _requestLocation = requestLocation;
-requestLocation = function () {
-  unlockLocation();
-  return _requestLocation();
+let activeResultIndex = -1;
+renderCityOptions = function () {
+  const query = normalizeName(document.getElementById("citySearch").value || "").trim();
+  const initial = [...new Map([
+    ...[...favorites].map(id => cityById.get(id)),
+    activeCity,
+    ...CAPITALS
+  ].filter(Boolean).map(city => [city.id, city])).values()];
+  const matches = query ? searchCities(query) : initial;
+  const shown = matches.slice(0, 12);
+  const list = document.getElementById("cityResults");
+  activeResultIndex = -1;
+  list.innerHTML = shown.map(city => {
+    const capital = CAPITALS.some(item => item.id === city.id);
+    return `<li><button class="city-result" type="button" role="option" aria-selected="false" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
+  }).join("");
+  document.getElementById("cityPickerStatus").textContent = !municipalitiesReady ? "Capitais disponíveis. Digite para carregar todos os municípios." : !shown.length ? "Não achei essa cidade. Tenta sem acento ou confira o nome." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Favoritas primeiro, depois capitais.";
 };
-document.addEventListener("click", event => {
-  if (event.target.closest("#welcomeLocate, #locateCity")) unlockLocation();
-}, true);
-["welcomeLocate", "locateCity"].forEach(id => {
-  document.getElementById(id)?.addEventListener("click", event => {
-    event.preventDefault();
-    unlockLocation();
-    _requestLocation();
-  });
+
+function moveCityResult(direction) {
+  const items = [...document.querySelectorAll(".city-result")];
+  if (!items.length) return;
+  activeResultIndex = (activeResultIndex + direction + items.length) % items.length;
+  items.forEach((item, index) => item.setAttribute("aria-selected", String(index === activeResultIndex)));
+  items[activeResultIndex].focus();
+}
+
+document.getElementById("citySearch")?.addEventListener("keydown", event => {
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); moveCityResult(event.key === "ArrowDown" ? 1 : -1); }
+  else if (event.key === "Enter") {
+    const first = document.querySelector(".city-result");
+    if (first) { event.preventDefault(); chooseCity(first.dataset.id); }
+  } else if (event.key === "Escape") closeCitySearch();
+});
+document.getElementById("cityResults")?.addEventListener("keydown", event => {
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); moveCityResult(event.key === "ArrowDown" ? 1 : -1); }
+  else if (event.key === "Enter") { event.preventDefault(); chooseCity(event.target.closest("[data-id]")?.dataset.id); }
+  else if (event.key === "Escape") closeCitySearch();
 });
 document.getElementById("cityResults")?.addEventListener("click", event => {
   const btn = event.target.closest("[data-id]");
@@ -180,13 +173,31 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
 (function bootCity() {
   const savedId = typeof readPreference === "function" ? readPreference("pluvia-city", null) : null;
   const fallback = cityById.get("1302603") || CITIES.find(city => city.uf === "AM");
-  const city = cityById.get(savedId) || fallback;
-  if (city && (!activeCity || activeCity.id !== city.id)) chooseCity(city.id);
-  else if (city) updateCityLabels();
+  const saved = cityById.get(savedId);
+  let fallbackTimer;
+  if (saved) chooseCity(saved.id);
+  else if (savedId) ensureMunicipalities().then(() => {
+    if (!activeCity && cityById.has(savedId)) chooseCity(savedId);
+  }).catch(() => {});
+  else fallbackTimer = setTimeout(() => {
+    if (activeCity || !fallback) return;
+    chooseCity(fallback.id);
+    const notice = document.getElementById("locationNotice");
+    if (notice) {
+      notice.hidden = false;
+      notice.innerHTML = 'Sem localização — mostrando Manaus, cidade-mãe do PLUVIA. <button type="button" id="noticeChangeCity">Trocar cidade</button>';
+      document.getElementById("noticeChangeCity")?.addEventListener("click", openCitySearch);
+    }
+    locationMessage("Localização indisponível. Manaus entrou como referência; você pode trocar quando quiser.");
+  }, 1500);
+  const intro = document.getElementById("pluviaIntro");
+  const seen = sessionStorage.getItem("pluvia-intro-seen");
+  if (seen && intro) intro.hidden = true;
+  else sessionStorage.setItem("pluvia-intro-seen", "1");
   const welcome = document.getElementById("locationWelcome");
   if (welcome) welcome.hidden = true;
   pinTop();
-  setTimeout(dismissIntro, 1600);
+  setTimeout(() => { clearTimeout(fallbackTimer); if (!activeCity && fallback) chooseCity(fallback.id); dismissIntro(); }, 1650);
 })();
 if ("serviceWorker" in navigator && window.isSecureContext) {
   window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));

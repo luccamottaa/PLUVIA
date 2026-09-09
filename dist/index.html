@@ -21,12 +21,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=wx-22" />
-    <link rel="stylesheet" href="./p0.css?v=wx-22" />
+    <link rel="stylesheet" href="./styles.css?v=core-30" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
     <div id="pluviaIntro" class="pluvia-intro">
+      <button id="skipIntro" class="skip-intro" type="button">Pular</button>
       <p class="intro-kicker">Feito no Norte</p>
       <div class="intro-logo"><img src="./logo-pluvia.png" alt="PLUVIA" width="801" height="320" /></div>
       <p class="intro-copy">Olha o céu antes de sair.</p>
@@ -38,7 +38,6 @@
       </nav>
       <div class="top-actions">
         <button id="openCitySearch" class="search-trigger" type="button" aria-label="Buscar ou trocar cidade" aria-haspopup="dialog" aria-controls="cityDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.4-3.4" /></svg><span class="search-trigger-label" id="selectedCityLabel">Cidade</span></button>
-        <button id="openAuth" class="account-trigger" type="button" aria-label="Entrar ou criar conta" aria-haspopup="dialog" aria-controls="authDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg><span id="accountLabel">Entrar</span></button>
       </div>
     </header>
     <main class="shell">
@@ -52,31 +51,17 @@
       <dialog id="cityDialog" class="city-dialog" aria-labelledby="cityDialogTitle">
         <div class="dialog-heading"><h2 id="cityDialogTitle">Escolher cidade</h2><button id="closeCitySearch" class="dialog-close" type="button" aria-label="Fechar busca">×</button></div>
         <section class="city-picker" aria-label="Buscar cidade">
-        <div class="city-search-field"><label for="citySearch">Buscar cidade</label><input id="citySearch" type="search" placeholder="Ex.: Parintins, Campinas, Gramado" autocomplete="off" /></div>
-        <div class="city-state-field"><label for="stateSelect">Estado</label><select id="stateSelect"></select></div>
-        <div class="city-select-field"><label for="citySelect">Escolha nos resultados</label><select id="citySelect"></select></div>
+        <div class="city-search-field"><label for="citySearch">Cidade</label><input id="citySearch" type="search" placeholder="Ex.: Parintins, Iranduba, Tefé" autocomplete="off" aria-controls="cityResults" aria-autocomplete="list" /></div>
+        <select id="stateSelect" hidden aria-hidden="true"><option value="">Todos os estados</option></select>
+        <select id="citySelect" hidden aria-hidden="true"><option value="">Selecione uma cidade</option></select>
         <ul id="cityResults" class="city-results" role="listbox" aria-label="Cidades encontradas"></ul>
         <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
         <button id="locateCity" class="city-button" type="button">Usar localização</button>
         <p id="cityPickerStatus" role="status" aria-live="polite"></p>
       </section>
       </dialog>
-      <dialog id="authDialog" class="auth-dialog" aria-labelledby="authTitle">
-        <div class="dialog-heading"><div><span class="eyebrow">SUA CONTA PLUVIA</span><h2 id="authTitle">Entrar</h2></div><button id="closeAuth" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
-        <div id="authGuest">
-          <div class="auth-tabs" role="tablist" aria-label="Acesso à conta"><button id="loginTab" class="active" type="button" role="tab" aria-selected="true">Entrar</button><button id="signupTab" type="button" role="tab" aria-selected="false">Criar conta</button></div>
-          <form id="authForm">
-            <label for="authEmail">E-mail</label><input id="authEmail" name="email" type="email" autocomplete="email" required placeholder="voce@exemplo.com" />
-            <label for="authPassword">Senha</label><input id="authPassword" name="password" type="password" autocomplete="current-password" minlength="6" required placeholder="Mínimo de 6 caracteres" />
-            <button id="authSubmit" class="auth-primary" type="submit">Entrar</button>
-          </form>
-          <button id="forgotPassword" class="auth-link" type="button">Esqueci minha senha</button>
-        </div>
-        <div id="authAccount" hidden><p class="auth-account-copy">Você está conectado como</p><strong id="accountEmail"></strong><button id="signOut" class="auth-primary" type="button">Sair da conta</button></div>
-        <form id="newPasswordForm" hidden><p>Digite uma nova senha para recuperar sua conta.</p><label for="newPassword">Nova senha</label><input id="newPassword" type="password" autocomplete="new-password" minlength="6" required /><button class="auth-primary" type="submit">Salvar nova senha</button></form>
-        <p id="authStatus" class="auth-status" role="status" aria-live="polite"></p>
-      </dialog>
       <div id="weatherView" hidden>
+      <p id="locationNotice" class="location-notice" hidden role="status"></p>
       <section class="intro" id="agora">
         <div>
           <div class="eyebrow" id="dataStatus"><span class="live-dot" aria-hidden="true"></span><span id="statusText" role="status">Consultando o tempo</span></div>
@@ -95,7 +80,7 @@
             </div>
             <div class="weather-glyph" id="weatherGlyph" aria-hidden="true"></div>
           </div>
-          <div class="current-bottom"><div><span>Sensação</span><strong id="feelsLike">--°</strong></div><div><span>Máx. / mín.</span><strong id="highLow">--° / --°</strong></div><div><span>Chuva agora</span><strong id="rainNow">-- mm</strong></div></div>
+          <div class="current-bottom"><div><span>Sensação</span><strong id="feelsLike">--°</strong></div><div><span>Máx. / mín.</span><strong id="highLow">--° / --°</strong></div><div><span id="rainNowLabel">Chuva agora</span><strong id="rainNow">-- mm</strong></div></div>
           <p class="model-note">Referência do município, não da sua rua. Modelo Open-Meteo.</p>
         </article>
         <aside class="attention-card panel" id="attentionCard">
@@ -104,7 +89,7 @@
           <h2 id="attentionTitle">Analisando o tempo</h2>
           <p id="attentionText">Cruzando chuva das próximas horas.</p>
           <div class="attention-rule"><span id="attentionLevel"></span></div>
-          <small>Não substitui alerta oficial.</small>
+          <small id="attentionBasis">Leitura baseada nas próximas horas e nos avisos oficiais.</small>
         </aside>
       </section>
       <section class="metrics" aria-label="Detalhes meteorológicos">
@@ -117,7 +102,7 @@
       <section class="alerts-section section-block" id="alertas">
         <div class="section-heading"><div><span class="section-index">01</span><h2>Alertas e saúde</h2></div><p id="alertsCityLabel">Fontes oficiais</p></div>
         <div class="safety-grid">
-          <article class="source-card panel" id="inmetCard"><div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div><div id="inmetContent" class="source-content"></div><a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial</a></article>
+          <article class="source-card panel" id="inmetCard"><div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div><small id="inmetUpdated" class="source-updated">Buscando leitura oficial…</small><div id="inmetContent" class="source-content"></div><a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial</a></article>
           <article class="source-card panel" id="defesaCard"><div class="source-head"><span class="source-badge defesa">DEFESA CIVIL</span><span class="source-state" id="defesaState"><i></i>Consultando</span></div><div id="defesaContent" class="source-content"></div><div class="source-actions"><a class="source-link" href="sms:40199">Cadastrar CEP no 40199</a><a class="emergency-link" href="tel:199">Emergência: 199</a></div></article>
           <article class="air-card panel"><div class="source-head"><span class="source-badge air">AR</span><span class="source-state"><i></i>Open-Meteo</span></div><div class="air-score"><strong id="airScore">--</strong><div><span id="airCardQuality">Calculando</span></div></div><div class="air-particles"><div><span>PM2.5</span><strong id="pm25">--</strong></div><div><span>PM10</span><strong id="pm10">--</strong></div></div><p id="airGuidance"></p></article>
         </div>
@@ -126,6 +111,11 @@
         <div class="section-heading"><div><span class="section-index">02</span><h2>Chuva nas próximas horas</h2></div><div class="dry-window"><span>PRÓXIMA JANELA SECA</span><strong id="dryWindow">Calculando…</strong></div></div>
         <p class="rain-phrase panel" id="rainPhraseWrap"><strong id="rainPhrase">Lendo as próximas horas…</strong><small id="rainPhraseMeta">Open-Meteo</small></p>
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region"><div class="chart-loading">Montando a previsão horária…</div></div>
+        <article class="rain-pulse panel" aria-labelledby="rainPulseTitle">
+          <div class="rain-pulse-head"><div><span>PREVISÃO ANIMADA</span><h3 id="rainPulseTitle">Pulso de chuva no município</h3></div><button id="rainPulseToggle" type="button" aria-pressed="false">Reproduzir</button></div>
+          <div id="rainPulseSky" class="rain-pulse-sky"><i aria-hidden="true"></i><strong id="rainPulseTime">--:--</strong><span id="rainPulseValue">Carregando…</span></div>
+          <small>Open-Meteo no ponto do município. Não é radar e não mostra chuva na sua rua.</small>
+        </article>
       </section>
       <section class="forecast-section section-block" id="previsao">
         <div class="section-heading"><div><span class="section-index">03</span><h2>Próximos 7 dias</h2></div><p id="forecastCityLabel">Referência do município</p></div>
@@ -142,12 +132,8 @@
     <section class="sobre shell" id="sobre"><h2>Sobre</h2><p>PLUVIA — olha o céu antes de sair. Feito no Norte.</p><p>Números do Open-Meteo (ponto do município), avisos do INMET e, em Manaus, Defesa Civil. Não substitui alerta oficial.</p></section>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
-    <script src="./p0-pre.js?v=wx-22"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
-    <script src="./auth.js?v=email-auth-2"></script>
-    <script src="./municipalities.js?v=cities-1"></script>
-    <script src="./capitals.js?v=location-first-1"></script>
-    <script src="./app.js?v=wx-22"></script>
-    <script src="./p0.js?v=wx-22"></script>
+    <script src="./capitals.js?v=core-30"></script>
+    <script src="./app.js?v=core-30"></script>
+    <script src="./p0.js?v=core-30"></script>
   </body>
 </html>

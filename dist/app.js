@@ -1,4 +1,4 @@
-const FORECAST_TEMPLATE = "https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,cloud_cover,visibility,wind_speed_10m,relative_humidity_2m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&timezone=America%2FManaus&forecast_days=8";
+const FORECAST_TEMPLATE = "https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,cloud_cover,visibility,wind_speed_10m,wind_gusts_10m,relative_humidity_2m,pressure_msl,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&timezone=America%2FManaus&forecast_days=8";
 const AIR_TEMPLATE = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-3.119&longitude=-60.022&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi&timezone=America%2FManaus&forecast_days=3";
 const INMET_API = "https://apiprevmet3.inmet.gov.br/avisos/ativos";
 const DEFESA_API = "https://www.manaus.am.gov.br/wp-json/wp/v2/posts?search=Defesa%20Civil%20alerta&per_page=8&_fields=date,link,title,excerpt";
@@ -18,14 +18,19 @@ let refreshInFlight = null;
 let displayedWeather = null;
 let errorTimer;
 let lastInmetResponse = null;
-const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
+let lastInmetReadAt = 0;
+let rainPulseTimer = null;
+let rainPulseFrames = [];
+let rainPulseIndex = 0;
+let rainPulsePlaying = false;
+const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 async function fetchJson(url, timeoutMs = 12000) {
   const controller = new AbortController();
   pendingRequests.add(controller);
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+    const response = await fetch(url, { cache: "default", signal: controller.signal });
     if (!response.ok) throw new Error(`request failed: ${response.status}`);
     return await response.json();
   } finally {
@@ -124,11 +129,11 @@ function windDirection(deg) {
 }
 
 function uvLabel(value) {
-  if (value < 3) return "Baixo";
-  if (value < 6) return "Moderado";
-  if (value < 8) return "Alto — proteção";
-  if (value < 11) return "Muito alto";
-  return "Extremo";
+  if (value < 3) return "Baixo — dá pra sair de boa";
+  if (value < 6) return "Moderado — protetor ajuda";
+  if (value < 8) return "Alto — boné e protetor agora";
+  if (value < 11) return "Muito alto — 10h–15h é fogo";
+  return "Extremo — procure sombra";
 }
 
 function humidityLabel(value) {
@@ -157,9 +162,9 @@ function airGuidance(value) {
   if (!Number.isFinite(value)) return "Dados de partículas indisponíveis no momento.";
   if (value <= 50) return "Pode respirar de boa: não há restrição indicada para atividades ao ar livre.";
   if (value <= 100) return "Qualidade aceitável; pessoas muito sensíveis podem notar algum incômodo.";
-  if (value <= 150) return "Grupos sensíveis devem reduzir esforço prolongado ao ar livre.";
-  if (value <= 200) return "Evite exercício intenso ao ar livre e mantenha atenção a sintomas respiratórios.";
-  return "Reduza a exposição externa e siga orientações das autoridades de saúde.";
+  if (value <= 150) return "O PM2.5 entra fundo no pulmão. Crianças, idosos e quem tem asma devem reduzir esforço ao ar livre.";
+  if (value <= 200) return "Ar ruim: evite exercício intenso fora. Crianças, idosos e pessoas com asma precisam de atenção extra.";
+  return "Partículas muito altas. Reduza a exposição fora de casa e siga as orientações de saúde e de queimadas da sua região.";
 }
 
 function decodeHtml(value = "") {
@@ -219,7 +224,13 @@ function inmetArea(alert) {
   if (codes.length) return codes.includes(activeCity.id) ? activeCity.name : null;
   const contains = (value, name) => new RegExp('(^|[^a-z])' + normalizeName(name) + '([^a-z]|$)').test(normalizeName(JSON.stringify(value || "")));
   const towns = alert.municipios || alert.municipio;
-  if (towns) return contains(towns, activeCity.name) ? activeCity.name : null;
+  if (towns && contains(towns, activeCity.name)) {
+    const region = normalizeName(JSON.stringify([alert.estados, alert.uf, alert.sigla, alert.area, alert.areaDesc]));
+    const ufConfirmed = region.includes(normalizeName(activeCity.uf)) || region.includes(normalizeName(activeCity.state || ""));
+    const uniqueConfirmed = municipalitiesReady && CITIES.filter(city => normalizeName(city.name) === normalizeName(activeCity.name)).length === 1;
+    return ufConfirmed || uniqueConfirmed ? activeCity.name : null;
+  }
+  if (towns) return null;
   // State names can equal a capital name (São Paulo/Rio de Janeiro).
   // Only a municipality field or IBGE code confirms a city-level match.
   const region = [alert.estados, alert.uf, alert.sigla, alert.area, alert.areaDesc];
@@ -254,10 +265,12 @@ function selectInmetAlerts(raw, now = Date.now()) {
 function renderInmetAlerts(raw, stale = false) {
   const state = $("inmetState"); const content = $("inmetContent");
   const alerts = selectInmetAlerts(raw);
-  $("inmetCard").dataset.severity = stale ? "unknown" : alerts[0]?.severity.className || "none";
+  const activeOfficial = alerts.find(item => item.stage === "active");
+  $("inmetCard").dataset.severity = stale ? "unknown" : activeOfficial?.severity.className || "none";
   if (!alerts.length) {
     state.className = "source-state"; state.innerHTML = `<i></i>${stale ? "Consulta indisponível" : "Nenhum aviso identificado"}`;
     content.innerHTML = stale ? "<h3>Confira o mapa do INMET</h3><p>Não foi possível confirmar os avisos atuais. A leitura anterior não confirma a situação de agora.</p>" : `<h3>Nenhum aviso identificado para ${activeCity.name}</h3><p>A consulta não retornou avisos vigentes ou previstos para a região. Confira também o mapa oficial.</p>`;
+    applyOfficialAlertPriority();
     return;
   }
   state.className = `source-state inmet-${stale ? "unknown" : alerts[0].severity.className}`;
@@ -272,6 +285,35 @@ function renderInmetAlerts(raw, stale = false) {
     const timing = stage === "future" ? `Previsto a partir de ${format(start)} (${activeCity.name})` : stage === "active" ? `Vigente até ${format(end)} (${activeCity.name})` : "Vigência a confirmar no aviso oficial";
     return `<article class="inmet-alert inmet-${severity.className}"><span class="inmet-level">${severity.label} · ${severity.description}</span><h3>${escapeHtml(decodeHtml(String(title)))}</h3><p>${escapeHtml(decodeHtml(riskText).slice(0,360))}</p><div class="source-meta"><span>${escapeHtml(area)}</span><span>${escapeHtml(timing)}</span></div><a class="inmet-detail" href="${url}" target="_blank" rel="noreferrer">Ver aviso ${/^\d+$/.test(id) ? id : "oficial"} no INMET ↗</a></article>`;
   }).join("");
+  applyOfficialAlertPriority();
+}
+
+function updateInmetTimestamp(stale = false) {
+  const node = $("inmetUpdated");
+  if (!node) return;
+  if (!lastInmetReadAt) { node.textContent = "Leitura oficial ainda não concluída"; return; }
+  const minutes = Math.max(0, Math.round((Date.now() - lastInmetReadAt) / 60000));
+  node.textContent = `${stale ? "Última leitura válida" : "Leitura oficial"}: ${minutes < 1 ? "agora" : minutes === 1 ? "há 1 min" : `há ${minutes} min`}`;
+}
+
+function applyOfficialAlertPriority() {
+  const severity = $("inmetCard")?.dataset.severity;
+  const card = $("attentionCard");
+  if (!card?.classList) return;
+  if (!['orange','red'].includes(severity)) {
+    const wasOfficial = card.classList.contains?.("official-orange") || card.classList.contains?.("official-red");
+    card.classList.remove("official-orange", "official-red");
+    if (wasOfficial && displayedWeather?.forecast) renderAttention(displayedWeather.forecast, selectCurrentHour(displayedWeather.forecast.hourly.time));
+    return;
+  }
+  card.classList.remove("ok", "warning", "danger", "unavailable");
+  card.classList.add("danger", `official-${severity}`);
+  $("attentionSignal").textContent = severity === "red" ? "INMET · GRANDE PERIGO" : "INMET · PERIGO";
+  $("attentionTitle").textContent = severity === "red" ? "Fica em casa se puder" : "Sai de casa preparado";
+  $("attentionText").textContent = `Há aviso ${severity === "red" ? "vermelho" : "laranja"} vigente para a região. Abra o aviso e confira área, horário e orientações antes de sair.`;
+  $("attentionIcon").innerHTML = attentionIconSvg("severe");
+  $("attentionLevel").style.width = severity === "red" ? "100%" : "90%";
+  $("attentionBasis").textContent = "Prioridade definida pelo aviso oficial do INMET.";
 }
 
 async function loadInmetAlerts(revision = cityRevision) {
@@ -280,13 +322,16 @@ async function loadInmetAlerts(revision = cityRevision) {
     if (revision !== cityRevision) return;
     renderInmetAlerts(raw);
     lastInmetResponse = raw;
+    lastInmetReadAt = Date.now();
+    updateInmetTimestamp();
   } catch {
     if (revision !== cityRevision) return;
-    if (lastInmetResponse) { renderInmetAlerts(lastInmetResponse, true); return; }
+    if (lastInmetResponse) { renderInmetAlerts(lastInmetResponse, true); updateInmetTimestamp(true); return; }
     const state = $("inmetState"); const content = $("inmetContent");
     $("inmetCard").dataset.severity = "unknown";
     state.className = "source-state warning"; state.innerHTML = "<i></i>Consulta indisponível";
     content.innerHTML = "<h3>Abra o mapa do INMET</h3><p>A fonte automática não respondeu agora. Use o atalho abaixo para conferir os avisos oficiais diretamente no INMET.</p>";
+    updateInmetTimestamp(true);
   }
 }
 
@@ -357,19 +402,23 @@ function attentionIconSvg(type) {
 function renderAttention(data, start) {
   const next3Prob = Math.max(...data.hourly.precipitation_probability.slice(start, start + 3));
   const next3Rain = data.hourly.precipitation.slice(start, start + 3).reduce((a, b) => a + b, 0);
+  const next6Rain = data.hourly.precipitation.slice(start, start + 6).reduce((a, b) => a + b, 0);
+  const next3Gust = Math.max(data.current.wind_gusts_10m || 0, ...(data.hourly.wind_gusts_10m || []).slice(start, start + 3));
   const next3Codes = data.hourly.weather_code.slice(start, start + 3);
   const stormExpected = next3Codes.some(code => [95, 96, 99].includes(code));
   const feels = data.current.apparent_temperature;
   const humidity = data.current.relative_humidity_2m;
   const card = $("attentionCard");
-  card.classList.remove("ok", "warning", "danger", "unavailable");
-  let state = "ok", signal = "NORMAL", title = "Condições dentro do normal", text = `Nenhum sinal crítico para ${activeCity.name} nas próximas horas.`, icon = "normal", level = 28;
+  card.classList.remove("ok", "warning", "danger", "unavailable", "official-orange", "official-red");
+  let state = "ok", signal = "SOSSEGO", title = "Dá pra sair de boa", text = `Sem sinal forte de chuva ou vento para ${activeCity.name} nas próximas 3 horas.`, icon = "normal", level = 28;
   if (stormExpected && next3Prob >= 60) {
-    state = "danger"; signal = "ALERTA SEVERO"; title = "Alerta de tempestade"; text = `Há indicação de trovoadas e ${Math.round(next3Prob)}% de chance de chuva nas próximas horas.`; icon = "severe"; level = 96;
-  } else if (next3Prob >= 80 && next3Rain >= 8) {
-    state = "danger"; signal = "ALERTA SEVERO"; title = "Alerta de chuva severa"; text = `${Math.round(next3Prob)}% de chance e cerca de ${fmt(next3Rain, 1)} mm previstos nas próximas 3 horas.`; icon = "severe"; level = 92;
-  } else if (next3Prob >= 65) {
-    state = "warning"; signal = "ATENÇÃO"; title = "Chuva pode apertar"; text = `A chance chega a ${Math.round(next3Prob)}% nas próximas horas. Melhor não confiar naquele céu quietinho.`; icon = "rain"; level = 70;
+    state = "danger"; signal = "SAI PREPARADO"; title = "Trovoada no caminho"; text = `${Math.round(next3Prob)}% de chance nas próximas 3h, com sinal de raios. Evite área aberta e não conte só com guarda-chuva.`; icon = "severe"; level = 96;
+  } else if ((next3Prob >= 80 && next3Rain >= 8) || next6Rain >= 20) {
+    state = "danger"; signal = "SAI PREPARADO"; title = "Pode cair muita água"; text = `Previsão de ${fmt(next6Rain, 1)} mm em 6h e pico de ${Math.round(next3Prob)}%. Em área que alaga, muda a rota antes de sair.`; icon = "severe"; level = 92;
+  } else if (next3Gust >= 55) {
+    state = "warning"; signal = "ATENÇÃO"; title = "Rajada forte por perto"; text = `O vento pode chegar a ${fmt(next3Gust)} km/h nas próximas 3h. Cuidado com galhos, placas e cobertura solta.`; icon = "severe"; level = 78;
+  } else if (next3Prob >= 60 && next3Rain >= .5) {
+    state = "warning"; signal = "ATENÇÃO"; title = "Leva o guarda-chuva"; text = `A chance chega a ${Math.round(next3Prob)}% e o modelo indica ${fmt(next3Rain, 1)} mm nas próximas 3h.`; icon = "rain"; level = 70;
   } else if (feels >= 40) {
     state = "warning"; signal = "ATENÇÃO"; title = "Sensação de calor pesada"; text = `O corpo sente cerca de ${fmt(feels)} °C agora. Água e sombra não são frescura.`; icon = "heat"; level = 78;
   } else if (humidity >= 88) {
@@ -382,13 +431,15 @@ function renderAttention(data, start) {
   $("attentionIcon").innerHTML = attentionIconSvg(icon);
   $("attentionIcon").setAttribute("aria-label", signal);
   $("attentionLevel").style.width = `${level}%`;
+  $("attentionBasis").textContent = `Próximas 3h: ${Math.round(next3Prob)}% · ${fmt(next3Rain,1)} mm. Em 6h: ${fmt(next6Rain,1)} mm.`;
+  applyOfficialAlertPriority();
 }
 
 function findDryWindow(hourly, start) {
   for (let i = start; i < Math.min(hourly.time.length - 2, start + 36); i++) {
     if (hourly.precipitation_probability[i] < 30 && hourly.precipitation_probability[i + 1] < 30) {
       const day = i === start ? "Agora" : hourly.time[i].slice(0, 10) === hourly.time[start].slice(0, 10) ? "Hoje" : "Amanhã";
-      return `${day}, ${shortTime(hourly.time[i])}–${shortTime(hourly.time[i + 2])}`;
+      return `${day === "Agora" ? "Agora" : day}, das ${shortTime(hourly.time[i])} às ${shortTime(hourly.time[i + 2])} deve dar uma trégua`;
     }
   }
   return "Sem janela clara em 36h";
@@ -396,7 +447,7 @@ function findDryWindow(hourly, start) {
 
 function renderRain(hourly, start) {
   const scrollLeft = $("rainChart").scrollLeft;
-  const indices = Array.from({length: 14}, (_, i) => start + i).filter(i => i < hourly.time.length);
+  const indices = Array.from({length: 24}, (_, i) => start + i).filter(i => i < hourly.time.length);
   $("rainChart").innerHTML = indices.map((i, p) => {
     const prob = Math.round(hourly.precipitation_probability[i] || 0);
     const mm = hourly.precipitation[i] || 0;
@@ -408,10 +459,47 @@ function renderRain(hourly, start) {
   }).join("");
   $("rainChart").scrollLeft = scrollLeft;
   $("dryWindow").textContent = findDryWindow(hourly, start);
+  renderRainPulse(hourly, start);
+}
+
+function paintRainPulse() {
+  const frame = rainPulseFrames[rainPulseIndex];
+  if (!frame) return;
+  const density = Math.min(1, (frame.mm || 0) / 8 + (frame.prob || 0) / 180);
+  $("rainPulseSky").style.setProperty("--rain-density", density.toFixed(2));
+  $("rainPulseSky").classList.toggle("is-wet", frame.mm >= .3 || frame.prob >= 50);
+  $("rainPulseTime").textContent = shortTime(frame.time);
+  $("rainPulseValue").textContent = `${Math.round(frame.prob)}% · ${fmt(frame.mm, 1)} mm`;
+}
+
+function setRainPulsePlaying(playing) {
+  rainPulsePlaying = Boolean(playing && rainPulseFrames.length > 1);
+  clearInterval(rainPulseTimer);
+  const button = $("rainPulseToggle");
+  button.setAttribute("aria-pressed", String(rainPulsePlaying));
+  button.textContent = rainPulsePlaying ? "Pausar" : "Reproduzir";
+  if (rainPulsePlaying) rainPulseTimer = setInterval(() => {
+    rainPulseIndex = (rainPulseIndex + 1) % rainPulseFrames.length;
+    paintRainPulse();
+  }, 1400);
+}
+
+function renderRainPulse(hourly, start) {
+  rainPulseFrames = Array.from({length: 8}, (_, offset) => start + offset)
+    .filter(index => index < hourly.time.length)
+    .map(index => ({time:hourly.time[index], prob:Number(hourly.precipitation_probability[index]) || 0, mm:Number(hourly.precipitation[index]) || 0}));
+  rainPulseIndex = 0;
+  paintRainPulse();
+  setRainPulsePlaying(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 }
 
 function renderForecast(daily) {
   const days = daily.time.slice(0, 7);
+  const bestIndex = days.reduce((best, _, i) => {
+    const score = (daily.precipitation_probability_max[i] || 0) + (daily.precipitation_sum[i] || 0) * 4;
+    const bestScore = (daily.precipitation_probability_max[best] || 0) + (daily.precipitation_sum[best] || 0) * 4;
+    return score < bestScore ? i : best;
+  }, 0);
   const minAll = Math.min(...daily.temperature_2m_min); const maxAll = Math.max(...daily.temperature_2m_max); const spread = Math.max(1, maxAll - minAll);
   $("forecastList").innerHTML = days.map((date, i) => {
     const d = new Date(`${date}T12:00:00`);
@@ -419,12 +507,15 @@ function renderForecast(daily) {
     const label = new Intl.DateTimeFormat("pt-BR", {day: "2-digit", month: "short"}).format(d).replace(".", "");
     const [cond, icon] = weather(daily.weather_code[i]); const min = daily.temperature_2m_min[i]; const max = daily.temperature_2m_max[i];
     const width = Math.max(25, ((max - min) / spread) * 100);
-    return `<div class="forecast-row">
-      <div class="forecast-day"><strong>${day}</strong><span>${label}</span></div>
+    const rainProb = Math.round(daily.precipitation_probability_max[i] || 0); const rainMm = daily.precipitation_sum[i] || 0;
+    const weekend = [0,6].includes(d.getDay());
+    const reading = rainMm >= 20 ? "Dia bem molhado" : rainMm >= 8 ? "Pancadas fortes ao longo do dia" : rainProb >= 55 ? "Pode chover, mas sem volume grande" : rainProb >= 30 ? "Chuva isolada" : "Boa janela pra sair";
+    return `<div class="forecast-row ${i === bestIndex ? "best-day" : ""}">
+      <div class="forecast-day"><strong>${day}${weekend ? " · fim de semana" : ""}</strong><span>${label}${i === bestIndex ? " · melhor dia pra rolê" : ""}</span></div>
       <div class="forecast-condition"><i aria-hidden="true">${icon}</i><span>${cond}</span></div>
       <div class="temp-range" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus"><strong>${fmt(min)}°</strong><div class="temp-track"><span style="width:${width}%"></span></div><strong>${fmt(max)}°</strong></div>
-      <div class="forecast-rain"><span>☂</span><span>${Math.round(daily.precipitation_probability_max[i] || 0)}% · ${fmt(daily.precipitation_sum[i] || 0, 1)} mm</span></div>
-      <div class="forecast-uv">UV máx. ${fmt(daily.uv_index_max[i], 0)}</div>
+      <div class="forecast-rain"><span>☂</span><span>${rainProb}% · ${fmt(rainMm, 1)} mm</span></div>
+      <div class="forecast-uv">${reading} · UV ${fmt(daily.uv_index_max[i], 0)}</div>
     </div>`;
   }).join("");
 }
@@ -472,18 +563,32 @@ function markWeatherUnavailable(hasSavedData) {
   $("attentionLevel").style.width = "0%";
 }
 
-function render(data, air, fromCache = false) {
+function dataAge(at) {
+  const minutes = Math.max(0, Math.round((Date.now() - at) / 60000));
+  if (minutes < 1) return "agora";
+  if (minutes < 60) return `há ${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  return `há ${hours}h`;
+}
+
+function render(data, air, fromCache = false, cacheAt = 0) {
   const current = data.current; const day = data.daily; const start = selectCurrentHour(data.hourly.time); const [condition] = weather(current.weather_code);
   $("temperature").textContent = fmt(current.temperature_2m); $("feelsLike").textContent = `${fmt(current.apparent_temperature)}°`;
-  $("condition").textContent = current.is_day === 0 && current.weather_code === 1 ? "Céu quase limpo" : condition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, current.is_day !== 0); $("highLow").textContent = `${fmt(day.temperature_2m_max[0])}° / ${fmt(day.temperature_2m_min[0])}°`;
+  const heatGap = current.apparent_temperature - current.temperature_2m;
+  const localCondition = current.is_day === 0 && current.weather_code === 1 ? "Céu quase limpo" : condition;
+  $("condition").textContent = heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, current.is_day !== 0); $("highLow").textContent = `${fmt(day.temperature_2m_max[0])}° / ${fmt(day.temperature_2m_min[0])}°`;
+  const next2Prob = Math.max(...data.hourly.precipitation_probability.slice(start, start + 2));
+  $("rainNowLabel").textContent = current.precipitation <= .05 && next2Prob >= 55 ? "Ainda seco, mas pode vir" : "Chuva agora";
   $("rainNow").textContent = `${fmt(current.precipitation, 1)} mm`; $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
-  $("pressure").innerHTML = `${fmt(current.pressure_msl ?? current.surface_pressure)}<sup> hPa</sup>`; $("pressureNote").textContent = Number.isFinite(current.pressure_msl) ? "Ao nível do mar" : "Pressão local";
+  $("pressure").innerHTML = `${fmt(current.pressure_msl ?? current.surface_pressure)}<sup> hPa</sup>`;
+  const pressureNow = data.hourly.pressure_msl?.[start]; const pressurePast = data.hourly.pressure_msl?.[Math.max(0,start - 3)]; const pressureDelta = pressureNow - pressurePast;
+  $("pressureNote").textContent = Number.isFinite(pressureDelta) ? Math.abs(pressureDelta) < .8 ? "Estável nas últimas 3h" : pressureDelta > 0 ? `Subindo ${fmt(pressureDelta,1)} hPa em 3h` : `Caindo ${fmt(Math.abs(pressureDelta),1)} hPa em 3h` : "Tendência indisponível";
   const uvNow = data.hourly.uv_index[start]; $("uv").textContent = fmt(uvNow, 1); $("uvNote").textContent = uvLabel(uvNow);
   const [airName, airText] = aqiLabel(air?.current?.us_aqi); $("airQuality").textContent = airName; $("airNote").textContent = airText;
   const airIndex = air?.current?.us_aqi; $("airScore").textContent = Number.isFinite(airIndex) ? Math.round(airIndex) : "--"; $("airCardQuality").textContent = airName;
   $("pm25").textContent = fmt(air?.current?.pm2_5, 1); $("pm10").textContent = fmt(air?.current?.pm10, 1); $("airGuidance").textContent = airGuidance(airIndex);
-  setDataStatus(fromCache ? "Dados salvos · consultando o tempo" : `Tempo em ${activeCity.name}`, fromCache);
+  setDataStatus(fromCache ? `Dados salvos de ${dataAge(cacheAt || Date.now())} · tentando atualizar` : `Tempo em ${activeCity.name}`, fromCache);
   renderAttention(data, start); renderRain(data.hourly, start); renderForecast(day); renderSun(day);
 }
 
@@ -501,7 +606,7 @@ async function loadWeather(revision = cityRevision) {
   } catch (error) {
     if (revision !== cityRevision) return false;
     const saved = cached();
-    if (!displayedWeather && saved) { render(saved.data.forecast, saved.data.air, true); displayedWeather = saved.data; }
+    if (!displayedWeather && saved) { render(saved.data.forecast, saved.data.air, true, saved.at); displayedWeather = saved.data; }
     markWeatherUnavailable(Boolean(displayedWeather));
     if (!displayedWeather) {
       $("condition").textContent = "Tempo indisponível";
@@ -656,10 +761,10 @@ function renderCityOptions() {
   $("citySelect").value = shown.some(city => city.id === activeCity?.id) ? activeCity.id : "";
   $("cityPickerStatus").textContent = browsing ? "Busque pelo nome para encontrar cidades do interior. Favoritas e capitais aparecem na lista inicial." : !matches.length ? "Nenhuma cidade encontrada. Confira o nome ou o estado." : matches.length > 60 ? "Mostrando 60 de " + matches.length + " cidades. Digite mais do nome para refinar." : matches.length + " cidades encontradas. Escolha na lista.";
 }
-function chooseCity(id) {
-  const city = cityById.get(id);
+function chooseCity(id, locatedCity = null) {
+  const city = locatedCity || cityById.get(id);
   if (!city) return;
-  if (city.id === activeCity?.id) { closeCitySearch(); return; }
+  if (city.id === activeCity?.id && !Number.isFinite(locatedCity?.distanceKm)) { closeCitySearch(); return; }
   locationAttempt++;
   locationPending = false;
   locationButtons(false);
@@ -673,6 +778,7 @@ function chooseCity(id) {
   refreshInFlight = null;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
   writePreference("pluvia-city", city.id);
+  writePreference("pluvia-city-record", {id:city.id,name:city.name,uf:city.uf,state:city.state,lat:city.lat,lon:city.lon,timezone:city.timezone});
   clearTimeout(errorTimer);
   $("errorToast").classList.remove("show");
   $("errorToast").setAttribute("aria-hidden","true");
@@ -693,7 +799,7 @@ function chooseCity(id) {
   renderCityOptions(); updateCityLabels();
   setDataStatus("Consultando o tempo em " + city.name);
   const saved = cached();
-  if (saved) { render(saved.data.forecast,saved.data.air,true); displayedWeather = saved.data; }
+  if (saved) { render(saved.data.forecast,saved.data.air,true,saved.at); displayedWeather = saved.data; }
   refreshAll();
 }
 function setupCityPicker() {
@@ -744,6 +850,10 @@ function openCitySearch() {
   const dialog = $("cityDialog");
   if (!dialog.open) dialog.showModal();
   $("citySearch").focus();
+  if (!municipalitiesReady) {
+    $("cityPickerStatus").textContent = "Carregando cidades do Brasil…";
+    ensureMunicipalities().then(() => renderCityOptions()).catch(() => { $("cityPickerStatus").textContent = "A base completa não carregou. Capitais continuam disponíveis."; });
+  }
 }
 function closeCitySearch() {
   const dialog = $("cityDialog");
@@ -761,24 +871,31 @@ function requestLocation() {
   locationMessage("Autorize a localização no navegador para encontrar o clima perto de você.");
   navigator.geolocation.getCurrentPosition(position => {
     if (attempt !== locationAttempt) return;
-    locationPending = false; locationButtons(false);
-    try {
+    const applyLocation = () => {
+      if (attempt !== locationAttempt) return;
       const city = nearestCity(position.coords.latitude, position.coords.longitude);
-      chooseCity(city.id);
-      locationMessage("Referência mais próxima: " + city.name + " · " + city.uf + ". Você pode trocar pela lupa.");
-    } catch {
+      locationPending = false; locationButtons(false);
+      chooseCity(city.id, city);
+      locationMessage("Referência do município: cerca de " + Math.round(city.distanceKm) + " km do centro de " + city.name + ". Não é a sua rua.");
+    };
+    const failLocation = () => {
+      if (attempt !== locationAttempt) return;
+      locationPending = false; locationButtons(false);
       locationMessage("Não foi possível identificar a cidade. Escolha pelo nome.");
-    }
+    };
+    if (municipalitiesReady) applyLocation();
+    else ensureMunicipalities().then(applyLocation).catch(failLocation);
   }, error => {
     if (attempt !== locationAttempt) return;
     locationPending = false; locationButtons(false);
     locationMessage(error.code === 1 ? "Localização não autorizada. Você pode escolher a cidade sem compartilhar sua posição." : "Não conseguimos obter sua localização agora. Tente novamente ou escolha uma cidade.");
-  }, {enableHighAccuracy:false,timeout:12000,maximumAge:60000});
+  }, {enableHighAccuracy:false,timeout:4000,maximumAge:60000});
 }
 
 setupCityPicker();
 setupScrollAnimations();
 setupPullToRefresh();
+$("rainPulseToggle").addEventListener("click", () => setRainPulsePlaying(!rainPulsePlaying));
 updateClock();
 setInterval(updateClock, 30000);
 requestLocation();

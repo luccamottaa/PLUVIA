@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Baixar o projeto
         uses: actions/checkout@v4
+      - name: Validar regras críticas do PLUVIA
+        run: node --test tests/*.test.cjs
       - name: Configurar o GitHub Pages
         uses: actions/configure-pages@v5
         with:
