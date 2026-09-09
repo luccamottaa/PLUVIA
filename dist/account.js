@@ -6,13 +6,17 @@
   const message = text => { el('accountStatus').textContent = text; };
   function paint(user) {
     currentUser = user;
-    const name = typeof user?.user_metadata?.name === 'string' ? user.user_metadata.name.trim().split(/\s+/)[0].slice(0,40) : '';
+    const metadata = user?.user_metadata || {};
+    const fullName = [metadata.name,metadata.full_name,metadata.display_name].find(value => typeof value === 'string' && value.trim()) || '';
+    const name = fullName.trim().split(/\s+/)[0].slice(0,40);
     el('accountButton').textContent = user ? (name ? `Olá, ${name}` : 'Minha conta') : 'Entrar / cadastrar';
     el('accountButton').title = el('accountButton').textContent;
     el('accountProfile').hidden = !user;
     el('accountForm').hidden = !!user;
     el('accountTabs').hidden = !!user;
     el('accountIdentity').textContent = user?.email || '';
+    el('profileName').value = fullName;
+    el('profileNameHint').textContent = name ? 'Esse nome aparece na saudação do topo.' : 'Falta seu nome. Salve abaixo para aparecer “Olá, seu nome” no topo.';
   }
   function setMode(next) {
     if (busy) return;
@@ -80,10 +84,23 @@
         : await client.auth.signInWithPassword({email,password});
       if(result.error) throw result.error;
       el('accountPassword').value = '';
-      if(result.data.session) { paint(result.data.session.user); message(''); dialog.close(); }
+      if(result.data.session) { paint(result.data.session.user); message(''); if(el('profileName').value.trim()) dialog.close(); }
       else message('Confira sua caixa de entrada e o spam. Se o cadastro estiver disponível, você receberá um link para confirmar o e-mail. Depois, volte aqui e toque em Entrar.');
     } catch(error) { message(authError(error)); }
     finally { busy = false; el('accountSubmit').disabled = false; }
+  });
+  el('profileForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const name = el('profileName').value.trim();
+    if (!name || !currentUser) { message('Preencha seu nome para continuar.'); return; }
+    el('profileSave').disabled = true;
+    try {
+      const client = await getClient();
+      const {data,error} = await client.auth.updateUser({data:{name}});
+      if(error) throw error;
+      paint(data.user); message('Nome salvo!'); dialog.close();
+    } catch(error) { message(authError(error)); }
+    finally { el('profileSave').disabled = false; }
   });
   el('accountLogout').addEventListener('click', async () => {
     el('accountLogout').disabled = true;
