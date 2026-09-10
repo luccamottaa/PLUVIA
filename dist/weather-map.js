@@ -10,6 +10,7 @@
   const GIBS_ROOT = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best';
   const state = { map:null, base:null, overlay:null, marker:null, layer:'rain', frames:[], index:0, timer:null, controller:null, cityId:null };
   let leafletPromise;
+  let layerRevision = 0;
 
   function source(id, patch) { globalThis.PLUVIA?.sources?.set(id, {...patch, checkedAt:Date.now()}); }
   function setError(message) { $('weatherMapError').hidden = !message; $('weatherMapError').textContent = message || ''; }
@@ -42,10 +43,11 @@
     return leafletPromise;
   }
   async function fetchJson(url) {
-    state.controller?.abort(); state.controller = new AbortController();
-    const timeout = setTimeout(() => state.controller.abort(),10000);
+    state.controller?.abort();
+    const controller = new AbortController(); state.controller = controller;
+    const timeout = setTimeout(() => controller.abort(),10000);
     try {
-      const response = await fetch(url,{signal:state.controller.signal,cache:'no-store'});
+      const response = await fetch(url,{signal:controller.signal,cache:'no-store'});
       if (!response.ok) throw new Error(`Fonte respondeu ${response.status}`);
       return await response.json();
     } finally { clearTimeout(timeout); }
@@ -104,7 +106,7 @@
       return L.rectangle([[point.lat-delta/2,point.lon-delta/2],[point.lat+delta/2,point.lon+delta/2]],{stroke:false,fillColor:'#e8f3ff',fillOpacity:opacity,interactive:false});
     });
     state.overlay = L.layerGroup(layers).addTo(state.map);
-    $('weatherFrameTime').textContent = frame.time.slice(11,16);
+    $('weatherFrameTime').textContent = zoneTime(frame.time);
     $('weatherSourceNote').textContent = 'Cobertura de nuvens estimada · Open-Meteo · modelo no município e arredores, não imagem de satélite.';
     $('weatherMapLegend').innerHTML = '<span>Menos nuvens</span><i class="legend-clouds"></i><span>Mais nuvens</span>';
   }
@@ -112,9 +114,10 @@
     $('weatherTimeline').value = String(state.index);
     if (state.layer === 'rain') renderRainFrame(); else if (state.layer === 'satellite') renderSatelliteFrame(); else renderCloudFrame();
   }
-  async function loadRain() {
+  async function loadRain(revision) {
     source('radar',{status:'loading'});
     const data = await fetchJson(RAIN_META);
+    if (revision !== layerRevision) return;
     const frames = (data?.radar?.past || []).slice(-7).map(frame => ({...frame,host:data.host}));
     if (!frames.length) throw new Error('O radar não enviou frames recentes.');
     setFrames(frames,frames.length-1); renderFrame();
@@ -125,28 +128,32 @@
     setFrames(frames,frames.length-1); renderFrame();
     source('satellite',{status:'ready',dataAt:new Date(`${frames.at(-1).date}T12:00:00Z`).getTime()});
   }
-  async function loadClouds() {
+  async function loadClouds(revision) {
     source('clouds',{status:'loading'});
     const selectedCity = city(), points = cloudPoints(selectedCity);
-    const params = new URLSearchParams({latitude:points.map(p=>p.lat).join(','),longitude:points.map(p=>p.lon).join(','),hourly:'cloud_cover',past_hours:'2',forecast_hours:'8',timezone:'auto'});
+    const params = new URLSearchParams({latitude:points.map(p=>p.lat).join(','),longitude:points.map(p=>p.lon).join(','),hourly:'cloud_cover',past_hours:'2',forecast_hours:'8',timeformat:'unixtime',timezone:'auto'});
     const raw = await fetchJson(`https://api.open-meteo.com/v1/forecast?${params}`);
+    if (revision !== layerRevision) return;
     const rows = Array.isArray(raw) ? raw : [raw], times = rows[0]?.hourly?.time || [];
     const frames = times.map((time,i) => ({time,points,values:rows.map(row => row?.hourly?.cloud_cover?.[i])}));
-    if (!frames.length || frames.some(frame => frame.values.length !== points.length)) throw new Error('A estimativa de nuvens veio incompleta.');
+    if (!frames.length || frames.some(frame => !Number.isFinite(frame.time) || frame.values.length !== points.length || frame.values.some(value => !Number.isFinite(value) || value < 0 || value > 100))) throw new Error('A estimativa de nuvens veio incompleta.');
     const now = new Date(); let nearest = 0, distance = Infinity;
-    times.forEach((time,i) => { const d=Math.abs(new Date(time).getTime()-now.getTime()); if(d<distance){distance=d;nearest=i;} });
+    times.forEach((time,i) => { const d=Math.abs(time*1000-now.getTime()); if(d<distance){distance=d;nearest=i;} });
     setFrames(frames,nearest); renderFrame();
     source('clouds',{status:'ready',dataAt:Date.now()});
   }
   async function selectLayer(name) {
+    const revision = ++layerRevision;
     stop(); setError(''); state.controller?.abort(); removeOverlay(); state.layer = name;
+    setFrames([],0);
     document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
     $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : name === 'satellite' ? 'Satélite' : 'Nuvens';
     $('weatherMapTitle').textContent = name === 'rain' ? 'Chuva ao redor' : name === 'satellite' ? 'Satélite sobre a região' : 'Nuvens ao redor';
     $('weatherFrameTime').textContent = 'Carregando…'; $('weatherSourceNote').textContent = 'Consultando a fonte escolhida…';
     try {
-      if (name === 'rain') await loadRain(); else if (name === 'satellite') await loadSatellite(); else await loadClouds();
+      if (name === 'rain') await loadRain(revision); else if (name === 'satellite') await loadSatellite(); else await loadClouds(revision);
     } catch (error) {
+      if (revision !== layerRevision) return;
       const id = name === 'rain' ? 'radar' : name;
       source(id,{status:'error'}); setFrames([],0); setError('Esta camada está temporariamente indisponível. As outras continuam funcionando.');
       $('weatherFrameTime').textContent = 'Indisponível'; $('weatherSourceNote').textContent = error?.message || 'Dados temporariamente indisponíveis.';
@@ -171,8 +178,9 @@
   }
   function step(amount) { if (!state.frames.length) return; state.index = (state.index + amount + state.frames.length) % state.frames.length; renderFrame(); }
   openButton.addEventListener('click',open);
-  $('closeWeatherMap').addEventListener('click',() => { stop(); state.controller?.abort(); dialog.close(); });
-  dialog.addEventListener('cancel',stop);
+  function cancelLayer() { ++layerRevision; stop(); state.controller?.abort(); }
+  $('closeWeatherMap').addEventListener('click',() => { cancelLayer(); dialog.close(); });
+  dialog.addEventListener('cancel',cancelLayer);
   document.querySelectorAll('[data-weather-layer]').forEach(button => button.addEventListener('click',() => selectLayer(button.dataset.weatherLayer)));
   $('weatherFramePrev').addEventListener('click',() => step(-1)); $('weatherFrameNext').addEventListener('click',() => step(1));
   $('weatherTimeline').addEventListener('input',event => { stop(); state.index=Number(event.target.value); renderFrame(); });
