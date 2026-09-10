@@ -60,12 +60,19 @@
     }).catch(error => { clientPromise = null; throw error; });
     return clientPromise;
   }
+  async function restoreAccount() {
+    try {
+      const client = await getClient();
+      const {data,error} = await client.auth.getSession();
+      if (error) throw error;
+      paint(data?.session?.user || null);
+    } catch (_) {
+      paint(null);
+    }
+  }
   el('accountButton').addEventListener('click', () => {
     dialog.showModal(); el('accountClose').focus();
-    getClient().then(client => client.auth.getSession()).then(({data,error}) => {
-      if(error) throw error;
-      paint(data.session?.user || null);
-    }).catch(error => message(authError(error)));
+    restoreAccount().catch(() => {});
   });
   el('accountClose').addEventListener('click', () => dialog.close());
   dialog.addEventListener('close', () => { el('accountPassword').value = ''; el('accountButton').focus(); });
@@ -109,10 +116,7 @@
     finally { el('accountLogout').disabled = false; }
   });
   setMode('login');
-  // Restore only when a session or an email callback exists; keep first weather paint light.
-  let saved = false;
-  try { saved = !!localStorage.getItem('sb-dszyyrcvwrpyiypwyvxe-auth-token'); } catch {}
-  if(saved || /access_token=|error_description=/.test(location.hash)) {
-    getClient().then(client => client.auth.getSession()).then(({data}) => paint(data?.session?.user || null)).catch(() => {});
-  }
+  // Supabase owns session persistence. Restore it on every page load instead of
+  // guessing the SDK's storage key, which may change between client versions.
+  restoreAccount();
 })();
