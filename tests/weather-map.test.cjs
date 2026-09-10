@@ -12,6 +12,7 @@ assert.match(map,/hourly:'cloud_cover'/);
 assert.match(map,/Cobertura de nuvens estimada/);
 assert.match(map,/Radar observado/);
 assert.match(map,/produto diário/);
+assert.match(map,/NASA GIBS \/ MODIS Aqua/);
 assert.match(map,/utcDate\(-3\),utcDate\(-2\),utcDate\(-1\)/);
 assert.match(map,/state\.controller\?\.abort/);
 assert.match(map,/Esta camada está temporariamente indisponível\. As outras continuam funcionando\./);

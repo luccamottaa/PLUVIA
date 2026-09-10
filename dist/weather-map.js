@@ -87,7 +87,7 @@
     });
     state.overlay = fadeTileLayer(layer,.88);
     $('weatherFrameTime').textContent = dateLabel(frame.date);
-    $('weatherSourceNote').textContent = 'Observação orbital em cor natural · NASA GIBS/VIIRS-MODIS · produto diário, identificado pela data.';
+    $('weatherSourceNote').textContent = 'Observação orbital em cor natural · NASA GIBS / MODIS Aqua · produto diário, identificado pela data.';
     $('weatherMapLegend').innerHTML = '<span>Cor natural: nuvens claras, superfície e massas atmosféricas visíveis.</span>';
   }
   function cloudPoints(selectedCity) {
@@ -142,6 +142,7 @@
     stop(); setError(''); state.controller?.abort(); removeOverlay(); state.layer = name;
     document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
     $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : name === 'satellite' ? 'Satélite' : 'Nuvens';
+    $('weatherMapTitle').textContent = name === 'rain' ? 'Chuva ao redor' : name === 'satellite' ? 'Satélite sobre a região' : 'Nuvens ao redor';
     $('weatherFrameTime').textContent = 'Carregando…'; $('weatherSourceNote').textContent = 'Consultando a fonte escolhida…';
     try {
       if (name === 'rain') await loadRain(); else if (name === 'satellite') await loadSatellite(); else await loadClouds();
