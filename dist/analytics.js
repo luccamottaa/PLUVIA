@@ -4,7 +4,14 @@
   const SDK_URL = 'https://cdn.amplitude.com/script/AMPLITUDE_API_KEY.js';
   let readyPromise = null;
   const queue = [];
+  const blockedProperty = /(?:e-?mail|password|senha|token|latitude|longitude|coordinates?|coords?)/i;
   const enabled = () => API_KEY !== 'AMPLITUDE_API_KEY' && API_KEY.length > 10;
+  function sanitize(properties) {
+    return Object.fromEntries(Object.entries(properties || {}).flatMap(([key,value]) => {
+      if (blockedProperty.test(key) || !['string','number','boolean'].includes(typeof value)) return [];
+      return [[key,typeof value === 'string' ? value.slice(0,80) : value]];
+    }));
+  }
   function load() {
     if (!enabled()) return Promise.resolve(false);
     if (readyPromise) return readyPromise;
@@ -22,17 +29,16 @@
   }
   function track(name, properties={}) {
     if (!enabled()) return;
-    const safe={...properties,app:'PLUVIA',path:location.pathname};
-    if(window.amplitude?.track) window.amplitude.track(name,safe); else { queue.push([name,safe]); load(); }
+    const safe={...sanitize(properties),app:'PLUVIA',path:location.pathname};
+    if(window.amplitude?.track) window.amplitude.track(name,safe); else if(queue.length < 50) { queue.push([name,safe]); load(); }
   }
   function identify(userId){ if(enabled()&&userId) load().then(ok=>{if(ok&&window.amplitude?.setUserId)window.amplitude.setUserId(userId);}); }
   function resetUser(){ if(enabled()) load().then(ok=>{if(ok&&window.amplitude?.reset)window.amplitude.reset();}); }
-  window.pluviaAnalytics={track,identify,resetUser,enabled};
+  window.pluviaAnalytics={track,identify,resetUser,enabled,sanitize};
 
   document.addEventListener('DOMContentLoaded',()=>{
     const on=(id,event,fn)=>document.getElementById(id)?.addEventListener(event,fn);
-    on('welcomeLocate','click',()=>track('Location Requested',{source:'welcome'}));
-    on('locateCity','click',()=>track('Location Requested',{source:'city_picker'}));
+    track('PLUVIA Opened');
     on('welcomeSearch','click',()=>track('City Search Opened',{source:'welcome'}));
     on('openCitySearch','click',()=>track('City Search Opened',{source:'topbar'}));
     on('favoriteCity','click',()=>track('Favorite City Toggled',{city:document.getElementById('cityName')?.textContent||null}));
@@ -41,13 +47,17 @@
     on('accountButton','click',()=>track('Account Dialog Opened'));
     on('accountLogin','click',()=>track('Auth Mode Selected',{mode:'login'}));
     on('accountSignup','click',()=>track('Auth Mode Selected',{mode:'signup'}));
-    document.getElementById('accountForm')?.addEventListener('submit',()=>track('Auth Submitted',{mode:document.getElementById('accountNameField')?.hidden?'login':'signup'}),true);
     document.querySelector('#inmetCard .source-link')?.addEventListener('click',()=>track('Official Alert Link Opened',{source:'INMET'}));
     document.querySelector('#defesaCard .source-link')?.addEventListener('click',()=>track('Civil Defense Signup Opened'));
-
-    const cityLabel=document.getElementById('selectedCityLabel');
-    if(cityLabel){ let previous=cityLabel.textContent; new MutationObserver(()=>{const next=cityLabel.textContent;if(next&&next!==previous&&next!=='Cidade'){previous=next;track('City Selected',{city_label:next});}}).observe(cityLabel,{childList:true,subtree:true,characterData:true}); }
+    let searchTimer;
+    on('citySearch','input',event=>{ clearTimeout(searchTimer); searchTimer=setTimeout(()=>{
+      const length=event.target.value.trim().length;
+      if(length >= 2) track('City Searched',{query_length:length});
+    },500); });
+    document.addEventListener('click',event=>{
+      if(event.target.closest?.('[data-notice]')) track('Alert Opened',{source:'INMET'});
+      if(event.target.closest?.('a[href*="avisos.inmet.gov.br"]')) track('Official Alert Link Opened',{source:'INMET'});
+    });
   });
   load();
 })();
-

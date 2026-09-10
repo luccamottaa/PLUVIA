@@ -909,6 +909,7 @@ function chooseCity(id, locatedCity = null) {
   pendingRequests.clear();
   refreshInFlight = null;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
+  globalThis.pluviaAnalytics?.track('City Selected',{city:city.name,uf:city.uf,source:Number.isFinite(locatedCity?.distanceKm) ? 'location' : 'picker_or_saved'});
   globalThis.PLUVIA?.sources.reset(city.id);
   globalThis.PLUVIA?.modules.location.reset?.();
   rainMapLocations = null; rainMapCityId = null;
@@ -958,8 +959,8 @@ function setupCityPicker() {
     writePreference("pluvia-favorites", [...favorites]);
     renderCityOptions(); updateCityLabels();
   });
-  $("locateCity").addEventListener("click", requestLocation);
-  $("welcomeLocate").addEventListener("click", requestLocation);
+  $("locateCity").addEventListener("click", () => requestLocation('city_picker'));
+  $("welcomeLocate").addEventListener("click", () => requestLocation('welcome'));
   $("openCitySearch").addEventListener("click", openCitySearch);
   $("welcomeSearch").addEventListener("click", openCitySearch);
   $("closeCitySearch").addEventListener("click", closeCitySearch);
@@ -1001,9 +1002,11 @@ function closeCitySearch() {
   const dialog = $("cityDialog");
   if (dialog.open) dialog.close();
 }
-function requestLocation() {
+function requestLocation(source = 'automatic') {
   if (locationPending) return;
+  globalThis.pluviaAnalytics?.track('Location Requested',{source});
   if (!navigator.geolocation) {
+    globalThis.pluviaAnalytics?.track('Location Unavailable',{reason:'unsupported'});
     locationMessage("Seu navegador não disponibilizou a localização. Escolha uma cidade pelo nome.");
     return;
   }
@@ -1017,6 +1020,7 @@ function requestLocation() {
       if (attempt !== locationAttempt) return;
       const city = nearestCity(position.coords.latitude, position.coords.longitude);
       locationPending = false; locationButtons(false);
+      globalThis.pluviaAnalytics?.track('Location Authorized',{city:city.name,uf:city.uf});
       chooseCity(city.id, city);
       locationMessage("Referência do município: cerca de " + Math.round(city.distanceKm) + " km do centro de " + city.name + ". Não é a sua rua.");
     };
@@ -1030,6 +1034,7 @@ function requestLocation() {
   }, error => {
     if (attempt !== locationAttempt) return;
     locationPending = false; locationButtons(false);
+    globalThis.pluviaAnalytics?.track(error.code === 1 ? 'Location Denied' : 'Location Unavailable',{reason:error.code === 1 ? 'permission' : error.code === 3 ? 'timeout' : 'position'});
     locationMessage(error.code === 1 ? "Localização não autorizada. Você pode escolher a cidade sem compartilhar sua posição." : "Não conseguimos obter sua localização agora. Tente novamente ou escolha uma cidade.");
   }, {enableHighAccuracy:false,timeout:4000,maximumAge:60000});
 }

@@ -4,6 +4,7 @@
   const dialog = el('accountDialog');
   let clientPromise, mode = 'login', currentUser = null, busy = false;
   const message = text => { el('accountStatus').textContent = text; };
+  const track = (name,properties) => window.pluviaAnalytics?.track(name,properties);
   function paint(user) {
     currentUser = user;
     const metadata = user?.user_metadata || {};
@@ -83,7 +84,7 @@
     const name = el('accountName').value.trim();
     if(mode === 'signup' && !name) { message('Conta pra gente como te chamar.'); return; }
     const email = el('accountEmail').value.trim(), password = el('accountPassword').value;
-    busy = true; el('accountSubmit').disabled = true; message('Só um instante…');
+    busy = true; el('accountSubmit').disabled = true; message('Só um instante…'); track('Auth Started',{mode});
     try {
       const client = await getClient();
       const result = mode === 'signup'
@@ -91,8 +92,13 @@
         : await client.auth.signInWithPassword({email,password});
       if(result.error) throw result.error;
       el('accountPassword').value = '';
-      if(result.data.session) { paint(result.data.session.user); message(''); if(el('profileName').value.trim()) dialog.close(); }
-      else message('Confira sua caixa de entrada e o spam. Se o cadastro estiver disponível, você receberá um link para confirmar o e-mail. Depois, volte aqui e toque em Entrar.');
+      if(result.data.session) {
+        paint(result.data.session.user); track('Auth Completed',{mode}); window.pluviaAnalytics?.identify(result.data.session.user.id);
+        message(''); if(el('profileName').value.trim()) dialog.close();
+      } else {
+        track('Signup Confirmation Requested');
+        message('Confira sua caixa de entrada e o spam. Se o cadastro estiver disponível, você receberá um link para confirmar o e-mail. Depois, volte aqui e toque em Entrar.');
+      }
     } catch(error) { message(authError(error)); }
     finally { busy = false; el('accountSubmit').disabled = false; }
   });
@@ -105,13 +111,13 @@
       const client = await getClient();
       const {data,error} = await client.auth.updateUser({data:{name}});
       if(error) throw error;
-      paint(data.user); message('Nome salvo!'); dialog.close();
+      paint(data.user); track('Profile Name Saved'); message('Nome salvo!'); dialog.close();
     } catch(error) { message(authError(error)); }
     finally { el('profileSave').disabled = false; }
   });
   el('accountLogout').addEventListener('click', async () => {
     el('accountLogout').disabled = true;
-    try { const client = await getClient(); const {error} = await client.auth.signOut({scope:'local'}); if(error) throw error; paint(null); setMode('login'); message('Você saiu da conta.'); }
+    try { const client = await getClient(); const {error} = await client.auth.signOut({scope:'local'}); if(error) throw error; paint(null); window.pluviaAnalytics?.resetUser(); setMode('login'); message('Você saiu da conta.'); }
     catch(error) { message(authError(error)); }
     finally { el('accountLogout').disabled = false; }
   });

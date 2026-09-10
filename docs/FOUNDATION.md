@@ -20,7 +20,7 @@ US AQI modelado >100 gera atenção e >200 risco elevado; não gera risco extrem
 
 Capitais já locais; nomes de municípios e chunks por UF continuam sob demanda. GPS usa catálogo completo apenas quando necessário. Mapa existente continua sob clique; SDK Supabase fixado em 2.116.0 carrega para restaurar a sessão na abertura, preservando a correção recente de conta. Clima mantém snapshot municipal e atualização de 5 minutos; fetch com AbortController e timeout; respostas de HTTP com erro não vão ao cache. Sem cache compartilhado de Auth/APIs externas no SW.
 
-SW core-38 precacheia somente shell local e módulos pequenos; limpeza apenas de caches pluvia-, scripts com prioridade de rede e versão única. Não serve HTML como se fosse imagem/script ausente. Manifest existente tem escopo relativo (funciona no Pages), standalone e PNG real 256×256. Ícone 192/512 dedicado e validação de instalação por navegador continuam pendentes; não declarar instalabilidade universal. iOS: compartilhar → adicionar à tela de início quando suportado.
+SW core-39 precacheia somente shell local e módulos pequenos; limpeza apenas de caches pluvia-, scripts com prioridade de rede e versão única. Não serve HTML como se fosse imagem/script ausente. Manifest existente tem escopo relativo (funciona no Pages), standalone e PNG real 256×256. Ícone 192/512 dedicado e validação de instalação por navegador continuam pendentes; não declarar instalabilidade universal. iOS: compartilhar → adicionar à tela de início quando suportado.
 
 ## Verificação e limites
 
