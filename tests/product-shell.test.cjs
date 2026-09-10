@@ -27,6 +27,6 @@ assert.match(app, /Volume previsto sozinho não vira alerta/);
 assert.match(app, /Defesa Civil Nacional/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-core-34/);
+assert.match(sw, /pluvia-core-36/);
 
 console.log('PASS product shell: public first paint, 1.5 s fallback, lazy municipalities, honest point data and versioned offline shell.');

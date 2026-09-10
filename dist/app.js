@@ -266,9 +266,10 @@ function selectInmetAlerts(raw, now = Date.now()) {
 }
 
 function renderInmetAlerts(raw, stale = false) {
+  globalThis.PLUVIA?.modules.alerts.receive?.(raw, stale);
   const state = $("inmetState"); const content = $("inmetContent");
   const alerts = selectInmetAlerts(raw);
-  const activeOfficial = alerts.find(item => item.stage === "active");
+  const activeOfficial = alerts.find(item => item.stage === "active" && item.area === activeCity.name);
   $("inmetCard").dataset.severity = stale ? "unknown" : activeOfficial?.severity.className || "none";
   if (!alerts.length) {
     state.className = "source-state"; state.innerHTML = `<i></i>${stale ? "Consulta indisponível" : "Nenhum aviso identificado"}`;
@@ -279,14 +280,14 @@ function renderInmetAlerts(raw, stale = false) {
   state.className = `source-state inmet-${stale ? "unknown" : alerts[0].severity.className}`;
   state.innerHTML = `<i></i>${stale ? "Sem confirmação recente" : alerts.length === 1 ? alerts[0].severity.label : `${alerts.length} avisos na região`}`;
   const format = value => new Intl.DateTimeFormat("pt-BR", {timeZone:activeCity.timezone, day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(value));
-  content.innerHTML = (stale ? '<p class="inmet-notice">Consulta indisponível. Os avisos abaixo vêm da leitura anterior; confirme a situação no INMET.</p>' : "") + alerts.map(({alert, area, start, end, stage, severity}) => {
+  content.innerHTML = (stale ? '<p class="inmet-notice">Consulta indisponível. Os avisos abaixo vêm da leitura anterior; confirme a situação no INMET.</p>' : "") + alerts.map(({alert, area, start, end, stage, severity}, index) => {
     const id = String(firstValue(alert, ["id_aviso", "id"]));
     const url = /^\d+$/.test(id) ? `https://avisos.inmet.gov.br/${id}` : "https://alertas2.inmet.gov.br/";
     const title = firstValue(alert, ["descricao", "evento", "titulo", "tipo"], "Aviso meteorológico");
     const risks = firstValue(alert, ["riscos", "description"], "Consulte os riscos e as orientações no aviso oficial.");
     const riskText = Array.isArray(risks) ? risks.join(" ") : String(risks);
     const timing = stage === "future" ? `Previsto a partir de ${format(start)} (${activeCity.name})` : stage === "active" ? `Vigente até ${format(end)} (${activeCity.name})` : "Vigência a confirmar no aviso oficial";
-    return `<article class="inmet-alert inmet-${severity.className}"><span class="inmet-level">${severity.label} · ${severity.description}</span><h3>${escapeHtml(decodeHtml(String(title)))}</h3><p>${escapeHtml(decodeHtml(riskText).slice(0,360))}</p><div class="source-meta"><span>${escapeHtml(area)}</span><span>${escapeHtml(timing)}</span></div><a class="inmet-detail" href="${url}" target="_blank" rel="noreferrer">Ver aviso ${/^\d+$/.test(id) ? id : "oficial"} no INMET ↗</a></article>`;
+    return `<article class="inmet-alert inmet-${severity.className}"><span class="inmet-level">${severity.label} · ${severity.description}</span><h3>${escapeHtml(decodeHtml(String(title)))}</h3><p>${escapeHtml(decodeHtml(riskText).slice(0,360))}</p><div class="source-meta"><span>${escapeHtml(area)}</span><span>${escapeHtml(timing)}</span></div><button class="inmet-detail" type="button" data-notice="${index}">Ver detalhes</button><a class="inmet-detail" href="${url}" target="_blank" rel="noreferrer">Ver aviso ${/^\d+$/.test(id) ? id : "oficial"} no INMET ↗</a></article>`;
   }).join("");
   applyOfficialAlertPriority();
 }
@@ -326,14 +327,17 @@ async function loadInmetAlerts(revision = cityRevision) {
     renderInmetAlerts(raw);
     lastInmetResponse = raw;
     lastInmetReadAt = Date.now();
+    globalThis.PLUVIA?.sources.set("alerts",{status:"ready",checkedAt:lastInmetReadAt,dataAt:null});
     updateInmetTimestamp();
   } catch {
     if (revision !== cityRevision) return;
+    globalThis.PLUVIA?.sources.set("alerts",{status:lastInmetResponse ? "stale" : "error"});
     if (lastInmetResponse) { renderInmetAlerts(lastInmetResponse, true); updateInmetTimestamp(true); return; }
     const state = $("inmetState"); const content = $("inmetContent");
     $("inmetCard").dataset.severity = "unknown";
     state.className = "source-state warning"; state.innerHTML = "<i></i>Consulta indisponível";
     content.innerHTML = "<h3>Abra o mapa do INMET</h3><p>A fonte automática não respondeu agora. Use o atalho abaixo para conferir os avisos oficiais diretamente no INMET.</p>";
+    applyOfficialAlertPriority();
     updateInmetTimestamp(true);
   }
 }
@@ -342,6 +346,7 @@ async function loadDefesaAlerts(revision = cityRevision) {
   const state = $("defesaState"); const content = $("defesaContent");
   try {
     if (activeCity.id !== "1302603") {
+      globalThis.PLUVIA?.sources.set("disasters",{status:"unsupported"});
       state.className = "source-state"; state.innerHTML = "<i></i>Orientação nacional";
       content.innerHTML = '<h3>Defesa Civil em ' + escapeHtml(activeCity.state || activeCity.uf) + '</h3><p>O PLUVIA ainda não lê o feed estadual desta região. Consulte a <a href="' + DEFESA_NACIONAL + '" target="_blank" rel="noreferrer">Defesa Civil Nacional ↗</a> para chegar aos canais locais.</p>';
       return;
@@ -352,16 +357,19 @@ async function loadDefesaAlerts(revision = cityRevision) {
     const relevant = posts.filter(p => /alerta|chuva|alagamento|deslizamento|temporal|vendaval/i.test(decodeHtml(p.title?.rendered || "")));
     const latest = relevant[0]; const ageHours = latest ? (Date.now() - cityDate(latest.date).getTime()) / 3600000 : Infinity;
     if (!latest || ageHours > 48) {
+      globalThis.PLUVIA?.sources.set("disasters",{status:"ready",checkedAt:Date.now(),dataAt:latest ? cityDate(latest.date).getTime() : null});
       state.className = "source-state"; state.innerHTML = "<i></i>Sem comunicado recente";
       const lastLink = latest ? `<a href="${safeManausUrl(latest.link)}" target="_blank" rel="noreferrer">Ver último comunicado oficial ↗</a>` : "";
       content.innerHTML = `<h3>Consulte os canais oficiais</h3><p>A busca não encontrou comunicados nas últimas 48 horas. Isso não confirma ausência de alertas. ${lastLink}</p>`;
       return;
     }
+    globalThis.PLUVIA?.sources.set("disasters",{status:"ready",checkedAt:Date.now(),dataAt:cityDate(latest.date).getTime()});
     const title = decodeHtml(latest.title?.rendered || "Comunicado da Defesa Civil"); const summary = decodeHtml(latest.excerpt?.rendered || "Consulte as orientações oficiais da Prefeitura de Manaus.");
     state.className = "source-state warning"; state.innerHTML = "<i></i>Comunicado recente";
     content.innerHTML = `<h3>${escapeHtml(title)}</h3><p>${escapeHtml(summary.slice(0, 210))}</p><div class="source-meta"><span>${new Intl.DateTimeFormat("pt-BR", {dateStyle:"short", timeStyle:"short", timeZone:activeCity.timezone}).format(cityDate(latest.date))}</span><span><a href="${safeManausUrl(latest.link)}" target="_blank" rel="noreferrer">Ler publicação ↗</a></span></div>`;
   } catch {
     if (revision !== cityRevision) return;
+    globalThis.PLUVIA?.sources.set("disasters",{status:"error"});
     state.className = "source-state warning"; state.innerHTML = "<i></i>Canal direto";
     content.innerHTML = "<h3>Alertas direto no celular</h3><p>O portal municipal não respondeu. Envie seu CEP por SMS para 40199; alertas extremos também chegam automaticamente em celulares compatíveis.</p>";
   }
@@ -556,13 +564,16 @@ async function loadRainMap() {
     if (revision !== cityRevision || cityId !== activeCity.id) return;
     const locations = Array.isArray(raw) ? raw : raw?.locations;
     if (!Array.isArray(locations) || locations.length !== 9) throw new Error("grade incompleta");
+    if (locations.some(point => !point.hourly?.time?.length || !point.hourly.time.every((_,i) => Number.isFinite(point.hourly.precipitation?.[i]) && Number.isFinite(point.hourly.precipitation_probability?.[i])))) throw new Error("Dados de mapa incompletos");
     rainMapLocations = locations;
     rainMapCityId = cityId;
     $("rainMapGrid").hidden = false;
     button.textContent = "Atualizar mapa";
     paintRainMap();
+    globalThis.PLUVIA?.sources.set("map",{status:"ready",checkedAt:Date.now(),dataAt:cityDate(locations[0].hourly.time[0]).getTime()});
   } catch {
     if (revision !== cityRevision) return;
+    globalThis.PLUVIA?.sources.set("map",{status:"error"});
     $("rainMapStatus").textContent = "O mapa do modelo falhou agora. A previsão do ponto municipal continua valendo.";
     button.textContent = "Tentar mapa de novo";
   } finally {
@@ -707,6 +718,8 @@ async function loadWeather(revision = cityRevision) {
     const data = forecastResult.value;
     const air = airResult.status === "fulfilled" ? airResult.value : null;
     render(data, air); displayedWeather = {forecast: data, air}; cache(displayedWeather);
+    globalThis.PLUVIA?.sources.set("weather",{status:"ready",checkedAt:Date.now(),dataAt:cityDate(data.current.time,city).getTime()});
+    globalThis.PLUVIA?.sources.set("air-quality",{status:Number.isFinite(air?.current?.us_aqi) ? "ready" : "error",checkedAt:Date.now(),dataAt:air?.current?.time ? cityDate(air.current.time,city).getTime() : null});
     clearTimeout(errorTimer); $("errorToast").classList.remove("show"); $("errorToast").setAttribute("aria-hidden", "true");
     return true;
   } catch (error) {
@@ -714,10 +727,14 @@ async function loadWeather(revision = cityRevision) {
     const saved = cached();
     if (!displayedWeather && saved) { render(saved.data.forecast, saved.data.air, true, saved.at); displayedWeather = saved.data; }
     markWeatherUnavailable(Boolean(displayedWeather));
+    globalThis.PLUVIA?.sources.set("weather",{status:displayedWeather ? "stale" : "error"});
+    globalThis.PLUVIA?.sources.set("air-quality",{status:"error"});
     if (!displayedWeather) {
       $("condition").textContent = "Tempo indisponível";
       $("rainChart").innerHTML = '<p class="chart-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
+      $("rainPulseValue").textContent = "Dados temporariamente indisponíveis.";
+      $("rainSeasonContext").textContent = "Dados temporariamente indisponíveis.";
       $("dryWindow").textContent = "Sem dados";
       $("sunPhrase").textContent = "Ciclo solar indisponível.";
       $("airCardQuality").textContent = "Indisponível";
@@ -892,6 +909,8 @@ function chooseCity(id, locatedCity = null) {
   pendingRequests.clear();
   refreshInFlight = null;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
+  globalThis.PLUVIA?.sources.reset(city.id);
+  globalThis.PLUVIA?.modules.location.reset?.();
   rainMapLocations = null; rainMapCityId = null;
   $("rainMapGrid").hidden = true;
   $("rainMapGrid").textContent = "";

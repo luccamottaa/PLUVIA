@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const context={globalThis:null,activeCity:null,document:{addEventListener(){}},$:()=>({addEventListener(){}}),setInterval(){}};context.globalThis=context;
+vm.createContext(context);for(const f of ['sources','risks'])vm.runInContext(fs.readFileSync(`dist/modules/${f}.js`,'utf8'),context);
+const assess=context.PLUVIA.modules.alerts.assess;
+const ready={weather:{status:'ready'},alerts:{status:'ready'},'air-quality':{status:'ready'}};
+const item=(rank,rest={})=>({stage:'active',start:0,end:200,confirmed:true,severity:{rank},...rest});
+assert.equal(assess([],ready,20,100).label,'🟢 Risco baixo');
+assert.equal(assess([item(1)],ready,20,100).rank,1);
+assert.equal(assess([item(1),item(3)],ready,20,100).rank,3);
+assert.equal(assess([item(3,{end:99})],ready,20,100).rank,0);
+assert.equal(assess([item(3,{start:150,stage:'future'})],ready,20,100).rank,0);
+assert.equal(assess([item(3,{confirmed:false})],ready,20,100).incomplete,true);
+assert.equal(assess([item(3)],{...ready,alerts:{status:'stale'}},20,100).rank,0);
+assert.equal(assess([],{...ready,alerts:{status:'error'}},20,100).label,'Monitoramento incompleto');
+assert.equal(assess([],ready,113,100).rank,1);
+assert.equal(assess([],{...ready,'air-quality':{status:'error'}},300,100).rank,0);
+context.PLUVIA.sources.reset('1302603');context.PLUVIA.sources.set('weather',{status:'ready',checkedAt:Date.now()-700000});assert.equal(context.PLUVIA.sources.get('weather').status,'stale');
+context.PLUVIA.sources.reset('3550308');assert.equal(context.PLUVIA.sources.get('weather').dataAt,null);
+console.log('PASS risk rules: multiple official alerts, expiry, future, state ambiguity, API failure, stale and AQI; city reset');
+
+assert.equal(assess([item(3,{start:150,stage:'future'})],ready,20,160).rank,3);

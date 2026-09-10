@@ -671,7 +671,7 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 @media(max-width:600px) { .city-dialog { width:calc(100% - 24px); padding:16px; border-radius:22px; } .dialog-heading h2 { font-size:1.1rem; } }
 
 .account-trigger { border:0; background:transparent; color:var(--blue); font:700 13px/1.4 Manrope,sans-serif; cursor:pointer; padding:8px 0; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.topbar .account-trigger { grid-column:1; grid-row:2; justify-self:start; margin-top:-12px; }
+.topbar .account-trigger { grid-column:1; grid-row:2; justify-self:start; margin:0; padding:2px 0; min-height:24px; max-width:100%; }
 .topbar .top-actions { grid-column:3; grid-row:1 / span 2; }
 .account-dialog { width:min(420px,calc(100% - 24px)); }
 .account-dialog p { font-size:14px; line-height:1.5; color:var(--muted); overflow-wrap:anywhere; }
@@ -691,3 +691,25 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 .topbar .brand img,.topbar .brand span { visibility:hidden; }
 .topbar .brand::after { content:""; inset:0; background:#2F6BFF; -webkit-mask:url('./logo-pluvia.png') center / contain no-repeat; mask:url('./logo-pluvia.png') center / contain no-repeat; }
 #accountLogout { margin-top:16px; }
+.topbar { height:auto; min-height:88px; padding:12px 18px; grid-template-columns:minmax(0,1fr) auto auto; grid-template-rows:44px 24px; column-gap:16px; row-gap:2px; align-items:center; }
+.topbar .brand { grid-column:1; grid-row:1; justify-self:start; }
+.topbar nav { grid-column:2; grid-row:1 / span 2; }
+.topbar .top-actions { justify-self:end; align-self:center; }
+@media(max-width:720px) {
+  .topbar { grid-template-columns:minmax(0,1fr) 44px; padding:10px 16px; column-gap:12px; }
+  .topbar nav { display:none; }
+  .topbar .search-trigger { width:44px; height:44px; padding:10px; justify-content:center; }
+}
+
+.risk-summary { padding:20px; margin:20px 0; border-left:4px solid var(--line); }
+.risk-summary h2 { font-size:1.3rem; margin:0 0 10px; }
+.risk-summary p,.risk-summary li { font-size:14px; line-height:1.6; }
+.risk-summary article { padding:12px 0; border-top:1px solid var(--line); }
+.risk-summary button,.inmet-alert button { min-height:44px; border:1px solid var(--line); border-radius:12px; background:transparent; color:var(--blue); font:inherit; padding:8px 12px; cursor:pointer; }
+.risk-summary[data-level="1"] { border-left-color:#d49c00; }
+.risk-summary[data-level="2"] { border-left-color:#e87817; }
+.risk-summary[data-level="3"] { border-left-color:#dc3434; }
+#riskSources { padding-left:18px; } #riskSources li { margin:12px 0; }
+#alertDetailBody { overflow-wrap:anywhere; font-size:16px; line-height:1.6; }
+#alertDetailBody dt { font-weight:800; margin-top:14px; } #alertDetailBody dd { margin:4px 0; }
+#alertDetailBody a { color:var(--blue); }
