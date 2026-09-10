@@ -338,6 +338,8 @@ function renderGoOut(forecast = displayedWeather?.forecast, air = displayedWeath
   const official = $("inmetCard")?.dataset.severity;
   if (official === "red" || official === "orange") {
     card.dataset.level = "danger"; title.textContent = official === "red" ? "🚨 Evita sair se puder" : "⚠️ Sai preparado"; reason.textContent = `Há alerta ${official === "red" ? "vermelho" : "laranja"} do INMET vigente para a região. Abra o aviso oficial e siga as recomendações.`;
+  } else if (official === "yellow") {
+    card.dataset.level = "attention"; title.textContent = "⚠️ Sai com atenção"; reason.textContent = "Há alerta amarelo do INMET vigente para a região: perigo potencial. Confira os riscos, a área e as recomendações no aviso oficial antes de sair.";
   } else if (next3Rain >= 8 || next3Gust >= 60) {
     card.dataset.level = "danger"; title.textContent = "⚠️ Melhor repensar o horário"; reason.textContent = `O modelo indica ${fmt(next3Rain,1)} mm de chuva nas próximas 3h${next3Gust >= 60 ? ` e rajadas perto de ${fmt(next3Gust)} km/h` : ""}.`;
   } else if (next3Prob >= 55 && next3Rain >= .5) {

@@ -33,6 +33,15 @@ let checks = 0;
 async function test(label, fn) {await fn(); checks++; console.log(`PASS ${label}`);}
 
 (async () => {
+  await test("Go-out advice respects every active official severity", () => {
+    const forecast = {hourly:{time:["2026-09-08T20:00"],precipitation:[0],precipitation_probability:[0],wind_gusts_10m:[0],apparent_temperature:[25]},current:{}};
+    for (const [severity,level] of [["yellow","attention"],["orange","danger"],["red","danger"],["unknown","unknown"],["none","ok"]]) {
+      nodes.get("inmetCard").dataset.severity = severity;
+      context.renderGoOut(forecast, {current:{us_aqi:20}});
+      assert.equal(nodes.get("goOutCard").dataset.level, level, severity);
+      if (severity === "yellow") assert.match(nodes.get("goOutReason").textContent, /alerta amarelo do INMET/);
+    }
+  });
   await test("Reads hoje and futuro, deduplicates and preserves all distinct notices", () => {
     const today = aviso();
     const tomorrow = aviso({id_aviso:900002, data_inicio:"2026-09-09", data_fim:"2026-09-10"});
