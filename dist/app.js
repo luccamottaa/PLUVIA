@@ -310,7 +310,7 @@ function applyOfficialAlertPriority() {
     if (wasOfficial && displayedWeather?.forecast) renderAttention(displayedWeather.forecast, selectCurrentHour(displayedWeather.forecast.hourly.time));
     return;
   }
-  card.classList.remove("ok", "warning", "danger", "unavailable");
+  card.classList.remove("ok", "warning", "danger", "unavailable", "official-orange", "official-red");
   card.classList.add("danger", `official-${severity}`);
   $("attentionSignal").textContent = severity === "red" ? "INMET · GRANDE PERIGO" : "INMET · PERIGO";
   $("attentionTitle").textContent = severity === "red" ? "Fica em casa se puder" : "Sai de casa preparado";

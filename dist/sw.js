@@ -1,7 +1,7 @@
-const CACHE = "pluvia-core-36";
+const CACHE = "pluvia-core-37";
 const SHELL = "./index.html";
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(["./", SHELL, "./analytics.js?v=analytics-1", "./styles.css?v=core-36", "./capitals.js?v=core-36", "./app.js?v=core-36", "./p0.js?v=core-36", "./account.js?v=core-36", "./modules/sources.js?v=core-36", "./modules/risks.js?v=core-36", "./modules/adapters.js?v=core-36", "./manifest.webmanifest", "./logo-mark.png", "./logo-pluvia.png"])));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(["./", SHELL, "./analytics.js?v=analytics-1", "./styles.css?v=core-37", "./capitals.js?v=core-37", "./app.js?v=core-37", "./p0.js?v=core-37", "./account.js?v=core-37", "./modules/sources.js?v=core-37", "./modules/risks.js?v=core-37", "./modules/adapters.js?v=core-37", "./manifest.webmanifest", "./logo-mark.png", "./logo-pluvia.png"])));
   self.skipWaiting();
 });
 self.addEventListener("activate", event => {

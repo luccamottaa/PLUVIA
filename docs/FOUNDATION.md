@@ -20,10 +20,12 @@ US AQI modelado >100 gera atenção e >200 risco elevado; não gera risco extrem
 
 Capitais já locais; nomes de municípios e chunks por UF continuam sob demanda. GPS usa catálogo completo apenas quando necessário. Mapa existente continua sob clique; SDK Supabase fixado em 2.116.0 carrega para restaurar a sessão na abertura, preservando a correção recente de conta. Clima mantém snapshot municipal e atualização de 5 minutos; fetch com AbortController e timeout; respostas de HTTP com erro não vão ao cache. Sem cache compartilhado de Auth/APIs externas no SW.
 
-SW core-36 precacheia somente shell local e módulos pequenos; limpeza apenas de caches pluvia-, scripts com prioridade de rede e versão única. Não serve HTML como se fosse imagem/script ausente. Manifest existente tem escopo relativo (funciona no Pages), standalone e PNG real 256×256. Ícone 192/512 dedicado e validação de instalação por navegador continuam pendentes; não declarar instalabilidade universal. iOS: compartilhar → adicionar à tela de início quando suportado.
+SW core-37 precacheia somente shell local e módulos pequenos; limpeza apenas de caches pluvia-, scripts com prioridade de rede e versão única. Não serve HTML como se fosse imagem/script ausente. Manifest existente tem escopo relativo (funciona no Pages), standalone e PNG real 256×256. Ícone 192/512 dedicado e validação de instalação por navegador continuam pendentes; não declarar instalabilidade universal. iOS: compartilhar → adicionar à tela de início quando suportado.
 
 ## Verificação e limites
 
 Suíte Node cobre conta/nome/logout com SDK simulado, geolocalização negada, troca manual, GPS atrasado, homônimos, múltiplos avisos, data expirada/futura, severidade, envelope inválido, falha de rede, stale, isolamento por cidade, AQI e reset de fontes. Fixtures são sintéticas e ficam só em tests/.
 
 O preview supervisionado falhou: projeto estático sem package.json/servidor compatível. Mobile, desktop e login real em navegador NÃO foram executados. Manter QA manual: 393px e desktop; entrar/sair; busca teclado; Manaus/Parintins/São Paulo; negar GPS; desligar API; clicar detalhes e fechar via Escape; atualização SW e offline. Não foi possível validar CORS e resposta ao vivo do INMET/portal Manaus a partir deste ambiente. Não se promete que ausência de avisos equivale a ausência de perigo.
+
+Revisão de vigência: cards e índice reavaliados a cada minuto e ao retornar à aba. Detalhes indicam aviso futuro, encerrado ou leitura sem confirmação atual. AQI ausente/inválido impede declarar risco baixo.
