@@ -121,7 +121,7 @@
     source('radar',{status:'ready',dataAt:frames.at(-1).time*1000});
   }
   async function loadSatellite() {
-    const frames = [utcDate(-2),utcDate(-1),utcDate(0)].map(date => ({date}));
+    const frames = [utcDate(-3),utcDate(-2),utcDate(-1)].map(date => ({date}));
     setFrames(frames,frames.length-1); renderFrame();
     source('satellite',{status:'ready',dataAt:new Date(`${frames.at(-1).date}T12:00:00Z`).getTime()});
   }
@@ -185,7 +185,7 @@
     ['Defesa Civil de Manaus','Dado oficial','Comunicados municipais quando a cidade selecionada é Manaus.'],
     ['Open-Meteo','Estimativa meteorológica','Tempo, chuva, nuvens e qualidade do ar no ponto do município.'],
     ['RainViewer','Observação de radar','Composição de radares; cobertura e disponibilidade variam por região.'],
-    ['NASA GIBS','Observação por satélite','Imagem orbital diária com a data do produto sempre visível.'],
+    ['NASA GIBS','Observação por satélite','Última imagem orbital diária completa, com a data do produto sempre visível.'],
     ['OpenStreetMap','Base cartográfica','Ruas e referências geográficas do mapa.'],
     ['IBGE','Referência territorial','Municípios, códigos e coordenadas centrais usadas na busca.']
   ];
