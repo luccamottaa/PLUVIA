@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-39" />
+    <link rel="stylesheet" href="./styles.css?v=core-40" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -79,7 +79,7 @@
           <small id="accountPasswordHint" hidden>Use pelo menos 8 caracteres.</small>
           <button id="accountSubmit" type="submit">Entrar</button>
         </form>
-        <div id="accountProfile" hidden><p id="accountIdentity"></p><form id="profileForm"><label>Seu nome<input id="profileName" autocomplete="given-name" required maxlength="60" aria-describedby="profileNameHint" /></label><small id="profileNameHint"></small><button id="profileSave" type="submit">Salvar nome</button></form><button id="accountLogout" type="button">Sair da conta</button></div>
+        <div id="accountProfile" hidden><p id="accountIdentity"></p><form id="profileForm"><label>Seu nome<input id="profileName" autocomplete="given-name" required maxlength="60" aria-describedby="profileNameHint" /></label><small id="profileNameHint"></small><button id="profileSave" type="submit">Salvar nome</button></form><form id="alertPreferencesForm" class="alert-preferences"><fieldset><legend>Quero acompanhar</legend><label><input type="checkbox" name="rain"> Chuva forte</label><label><input type="checkbox" name="inmet"> Alertas do INMET</label><label><input type="checkbox" name="storms"> Tempestades</label><label><input type="checkbox" name="civil_defense"> Defesa Civil</label><label><input type="checkbox" name="heat"> Calor extremo</label><label><input type="checkbox" name="air"> Qualidade do ar</label><label><input type="checkbox" name="fires"> Queimadas</label></fieldset><small>Isso salva suas preferências na conta. Notificações push ainda não estão disponíveis.</small><button type="submit">Salvar preferências</button></form><button id="accountLogout" type="button">Sair da conta</button></div>
         <p id="accountStatus" role="status" aria-live="polite"></p>
       </dialog>
       <div id="weatherView" hidden>
@@ -127,7 +127,7 @@
         <div class="safety-grid">
           <article class="source-card panel" id="inmetCard"><div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div><small id="inmetUpdated" class="source-updated">Buscando leitura oficial…</small><div id="inmetContent" class="source-content"></div><a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial</a></article>
           <article class="source-card panel" id="defesaCard"><div class="source-head"><span class="source-badge defesa">DEFESA CIVIL</span><span class="source-state" id="defesaState"><i></i>Consultando</span></div><div id="defesaContent" class="source-content"></div><div class="source-actions" id="defesaActions"><a class="source-link" href="sms:40199">Cadastrar CEP no 40199</a><a class="emergency-link" href="tel:199">Emergência: 199</a></div></article>
-          <article class="air-card panel"><div class="source-head"><span class="source-badge air">AR</span><span class="source-state"><i></i>Open-Meteo</span></div><div class="air-score"><strong id="airScore">--</strong><div><span id="airCardQuality">Calculando</span></div></div><div class="air-particles"><div><span>PM2.5</span><strong id="pm25">--</strong></div><div><span>PM10</span><strong id="pm10">--</strong></div></div><p id="airGuidance"></p></article>
+          <article class="air-card panel"><div class="source-head"><span class="source-badge air">AR</span><span class="source-state"><i></i>Open-Meteo</span></div><div class="air-score"><strong id="airScore">--</strong><div><span id="airCardQuality">Calculando</span></div></div><div class="air-particles"><div><span>PM2.5</span><strong id="pm25">--</strong></div><div><span>PM10</span><strong id="pm10">--</strong></div><div><span>Ozônio</span><strong id="ozone">--</strong></div></div><p id="airGuidance"></p></article>
         </div>
       </section>
       <section class="rain-section section-block" id="chuva">
@@ -141,8 +141,18 @@
           <p id="rainSeasonContext" class="rain-season-context">Calculando o contexto da chuva de hoje…</p>
           <small>Open-Meteo no ponto do município e, quando aberto, em cerca de 15 km ao redor. É mapa de modelo, não radar nem chuva na sua rua.</small>
         </article>
+        <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
+          <div><span class="eyebrow">OBSERVAÇÃO NO MAPA</span><h3 id="weatherMapCardTitle">Onde está a chuva?</h3><p>Radar quando houver cobertura, satélite com data visível e nuvens estimadas pelo modelo.</p></div>
+          <button id="openWeatherMap" type="button">Abrir mapa do tempo</button>
+        </article>
       </section>
       <div id="riskAnchor"></div>
+      <section id="goOutCard" class="go-out-card panel" aria-labelledby="goOutTitle">
+        <span class="eyebrow">DÁ PRA SAIR?</span>
+        <strong id="goOutTitle">Analisando as próximas horas…</strong>
+        <p id="goOutReason">Cruzando chuva, vento, calor, ar e avisos oficiais disponíveis.</p>
+        <small>É uma leitura orientativa do município, não uma garantia de segurança na sua rua.</small>
+      </section>
       <section class="forecast-section section-block" id="previsao">
         <div class="section-heading"><div><span class="section-index">03</span><h2>Próximos 7 dias</h2></div><p id="forecastCityLabel">Referência do município</p></div>
         <div class="forecast-list panel" id="forecastList"></div>
@@ -154,18 +164,30 @@
       </section>
       </div>
     </main>
-    <footer class="shell"><div><p>PLUVIA · O céu de cada cidade.</p></div><p>Clima: Open-Meteo<br>Alertas: INMET · Defesa Civil Manaus e canal nacional<br><a href="#sobre">Sobre e fontes</a></p></footer>
+    <footer class="shell"><div><p>PLUVIA · O céu de cada cidade.</p></div><p>Clima: Open-Meteo<br>Alertas: INMET · Defesa Civil Manaus e canal nacional<br><button id="openSources" class="footer-link" type="button">Fontes de dados</button></p></footer>
     <section class="sobre shell" id="sobre"><h2>Sobre</h2><p>PLUVIA — olha o céu antes de sair. Feito no Norte.</p><p>Números do Open-Meteo (ponto do município), avisos do INMET, Defesa Civil de Manaus e orientação da Defesa Civil Nacional. Municípios: IBGE, com coordenadas sob licença MIT.</p></section>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
     <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody"></div></dialog>
+    <dialog id="weatherMapDialog" class="weather-map-dialog" aria-labelledby="weatherMapTitle">
+      <div class="weather-map-head"><div><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapTitle">Chuva ao redor</h2><p id="weatherMapCity">Referência do município</p></div><button id="closeWeatherMap" class="dialog-close" type="button" aria-label="Fechar mapa">×</button></div>
+      <div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button type="button" data-weather-layer="satellite" aria-pressed="false">Satélite</button><button type="button" data-weather-layer="clouds" aria-pressed="false">Nuvens</button></div>
+      <div class="weather-map-stage"><div id="weatherMap" aria-label="Mapa meteorológico interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
+      <div class="weather-timebar">
+        <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
+        <div class="weather-player"><button id="weatherFramePrev" type="button" aria-label="Frame anterior">‹</button><button id="weatherPlay" type="button" aria-label="Reproduzir animação" aria-pressed="false">▶</button><button id="weatherFrameNext" type="button" aria-label="Próximo frame">›</button><input id="weatherTimeline" type="range" min="0" max="0" value="0" aria-label="Linha do tempo meteorológica" /></div>
+        <small id="weatherSourceNote">A fonte e o horário aparecerão aqui.</small>
+      </div>
+    </dialog>
+    <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div></dialog>
     <script src="./analytics.js?v=analytics-2"></script>
-    <script src="./modules/sources.js?v=core-39"></script>
-    <script src="./capitals.js?v=core-39"></script>
-    <script src="./app.js?v=core-39"></script>
-    <script src="./p0.js?v=core-39"></script>
-    <script src="./modules/risks.js?v=core-39"></script>
-    <script src="./modules/adapters.js?v=core-39"></script>
-    <script src="./account.js?v=core-39" defer></script>
+    <script src="./modules/sources.js?v=core-40"></script>
+    <script src="./capitals.js?v=core-40"></script>
+    <script src="./app.js?v=core-40"></script>
+    <script src="./p0.js?v=core-40"></script>
+    <script src="./modules/risks.js?v=core-40"></script>
+    <script src="./modules/adapters.js?v=core-40"></script>
+    <script src="./weather-map.js?v=core-40"></script>
+    <script src="./account.js?v=core-40" defer></script>
   </body>
 </html>

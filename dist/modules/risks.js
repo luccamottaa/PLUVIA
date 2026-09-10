@@ -33,7 +33,7 @@
     const cards = assessment.active.map(item => `<article><strong>${clean(firstValue(item.alert,['descricao','evento','titulo','tipo']))}</strong><p>INMET · ${clean(item.severity.description)} · município incluído no aviso.</p><button type="button" data-notice="${notices.findIndex(n=>n.alert===item.alert)}">Ver detalhes</button></article>`);
     if(assessment.airRank) cards.push('<article><strong>Qualidade do ar requer atenção</strong><p>Estimativa Open-Meteo / CAMS: US AQI acima de 100. Pessoas com asma, crianças e idosos devem reduzir esforço ao ar livre.</p><a href="#alertas">Ver qualidade do ar</a></article>');
     $('nearbyRisks').innerHTML = cards.join('') || (assessment.incomplete ? '<p>Dados temporariamente indisponíveis ou abrangência a confirmar.</p>' : '<p>Tudo tranquilo por enquanto 💙</p><small>Nenhum risco identificado nas fontes consultadas.</small>');
-    $('riskSources').innerHTML = Object.values(sources).filter(s=>s.id !== 'map' || s.status !== 'idle').map(sourceLine).join('');
+    $('riskSources').innerHTML = Object.values(sources).filter(s=>!['map','radar','satellite','clouds'].includes(s.id) || s.status !== 'idle').map(sourceLine).join('');
     const section = $('riskSummary');
     const parent = $('weatherView');
     if(assessment.rank) parent.insertBefore(section,parent.firstChild);

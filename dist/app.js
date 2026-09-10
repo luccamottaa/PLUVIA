@@ -308,6 +308,7 @@ function applyOfficialAlertPriority() {
     const wasOfficial = card.classList.contains?.("official-orange") || card.classList.contains?.("official-red");
     card.classList.remove("official-orange", "official-red");
     if (wasOfficial && displayedWeather?.forecast) renderAttention(displayedWeather.forecast, selectCurrentHour(displayedWeather.forecast.hourly.time));
+    renderGoOut();
     return;
   }
   card.classList.remove("ok", "warning", "danger", "unavailable", "official-orange", "official-red");
@@ -318,6 +319,38 @@ function applyOfficialAlertPriority() {
   $("attentionIcon").innerHTML = attentionIconSvg("severe");
   $("attentionLevel").style.width = severity === "red" ? "100%" : "90%";
   $("attentionBasis").textContent = "Prioridade definida pelo aviso oficial do INMET.";
+  renderGoOut();
+}
+
+function renderGoOut(forecast = displayedWeather?.forecast, air = displayedWeather?.air) {
+  const card = $("goOutCard");
+  if (!card) return;
+  const title = $("goOutTitle"), reason = $("goOutReason");
+  if (!forecast?.hourly?.time?.length) {
+    card.dataset.level = "unknown"; title.textContent = "Ainda não dá pra responder"; reason.textContent = "A previsão necessária está temporariamente indisponível."; return;
+  }
+  const start = selectCurrentHour(forecast.hourly.time);
+  const next3Rain = (forecast.hourly.precipitation || []).slice(start,start+3).reduce((sum,value)=>sum+(Number(value)||0),0);
+  const next3Prob = Math.max(0,...(forecast.hourly.precipitation_probability || []).slice(start,start+3).map(Number));
+  const next3Gust = Math.max(Number(forecast.current?.wind_gusts_10m)||0,...(forecast.hourly.wind_gusts_10m || []).slice(start,start+3).map(Number));
+  const hotHours = (forecast.hourly.apparent_temperature || []).slice(start,start+4).filter(value => Number(value) >= 40).length;
+  const aqi = Number(air?.current?.us_aqi);
+  const official = $("inmetCard")?.dataset.severity;
+  if (official === "red" || official === "orange") {
+    card.dataset.level = "danger"; title.textContent = official === "red" ? "🚨 Evita sair se puder" : "⚠️ Sai preparado"; reason.textContent = `Há alerta ${official === "red" ? "vermelho" : "laranja"} do INMET vigente para a região. Abra o aviso oficial e siga as recomendações.`;
+  } else if (next3Rain >= 8 || next3Gust >= 60) {
+    card.dataset.level = "danger"; title.textContent = "⚠️ Melhor repensar o horário"; reason.textContent = `O modelo indica ${fmt(next3Rain,1)} mm de chuva nas próximas 3h${next3Gust >= 60 ? ` e rajadas perto de ${fmt(next3Gust)} km/h` : ""}.`;
+  } else if (next3Prob >= 55 && next3Rain >= .5) {
+    card.dataset.level = "attention"; title.textContent = "☂️ Melhor levar guarda-chuva"; reason.textContent = `A chance chega a ${Math.round(next3Prob)}% e o volume previsto soma ${fmt(next3Rain,1)} mm nas próximas 3h.`;
+  } else if (hotHours >= 3) {
+    card.dataset.level = "attention"; title.textContent = "☀️ Dá, mas foge do sol pesado"; reason.textContent = "A sensação pode ficar em 40 °C ou mais por várias horas. Água, sombra e um horário menos quente ajudam.";
+  } else if (Number.isFinite(aqi) && aqi > 100) {
+    card.dataset.level = "attention"; title.textContent = "😷 Dá, com atenção ao ar"; reason.textContent = "A estimativa de qualidade do ar pode incomodar pessoas com asma, crianças e idosos.";
+  } else if (official === "unknown") {
+    card.dataset.level = "unknown"; title.textContent = "Monitoramento incompleto"; reason.textContent = "O clima foi consultado, mas não foi possível confirmar agora os avisos oficiais do INMET.";
+  } else {
+    card.dataset.level = "ok"; title.textContent = "✅ Condições tranquilas por enquanto"; reason.textContent = "Não apareceu chuva relevante, rajada forte ou alerta oficial nas fontes disponíveis para as próximas horas.";
+  }
 }
 
 async function loadInmetAlerts(revision = cityRevision) {
@@ -704,9 +737,9 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   const uvNow = data.hourly.uv_index[start]; $("uv").textContent = fmt(uvNow, 1); $("uvNote").textContent = uvLabel(uvNow);
   const [airName, airText] = aqiLabel(air?.current?.us_aqi); $("airQuality").textContent = airName; $("airNote").textContent = airText;
   const airIndex = air?.current?.us_aqi; $("airScore").textContent = Number.isFinite(airIndex) ? Math.round(airIndex) : "--"; $("airCardQuality").textContent = airName;
-  $("pm25").textContent = fmt(air?.current?.pm2_5, 1); $("pm10").textContent = fmt(air?.current?.pm10, 1); $("airGuidance").textContent = airGuidance(airIndex);
+  $("pm25").textContent = fmt(air?.current?.pm2_5, 1); $("pm10").textContent = fmt(air?.current?.pm10, 1); $("ozone").textContent = fmt(air?.current?.ozone, 1); $("airGuidance").textContent = airGuidance(airIndex);
   setDataStatus(fromCache ? `Dados salvos de ${dataAge(cacheAt || Date.now())} · tentando atualizar` : `Tempo em ${activeCity.name}`, fromCache);
-  renderAttention(data, start); renderRain(data.hourly, start); renderForecast(day); renderSun(day);
+  renderAttention(data, start); renderRain(data.hourly, start); renderForecast(day); renderSun(day); renderGoOut(data,air);
 }
 
 async function loadWeather(revision = cityRevision) {
@@ -857,7 +890,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["temperature","feelsLike","condition","weatherGlyph","highLow","rainNow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","airScore","airCardQuality","pm25","pm10","airGuidance","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset"];
+const cityResetIds = ["temperature","feelsLike","condition","weatherGlyph","highLow","rainNow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","airScore","airCardQuality","pm25","pm10","ozone","airGuidance","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset"];
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;
@@ -921,6 +954,7 @@ function chooseCity(id, locatedCity = null) {
   $("rainMapLoad").disabled = false;
   writePreference("pluvia-city", city.id);
   writePreference("pluvia-city-record", {id:city.id,name:city.name,uf:city.uf,state:city.state,lat:city.lat,lon:city.lon,timezone:city.timezone});
+  globalThis.dispatchEvent?.(new CustomEvent('pluvia:city-changed',{detail:{id:city.id}}));
   clearTimeout(errorTimer);
   $("errorToast").classList.remove("show");
   $("errorToast").setAttribute("aria-hidden","true");
@@ -957,6 +991,7 @@ function setupCityPicker() {
     if (!activeCity) return;
     if (favorites.has(activeCity.id)) favorites.delete(activeCity.id); else favorites.add(activeCity.id);
     writePreference("pluvia-favorites", [...favorites]);
+    globalThis.dispatchEvent?.(new CustomEvent('pluvia:favorites-changed',{detail:{ids:[...favorites]}}));
     renderCityOptions(); updateCityLabels();
   });
   $("locateCity").addEventListener("click", () => requestLocation('city_picker'));

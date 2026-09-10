@@ -1,6 +1,6 @@
 # Fontes: inventário e viabilidade (10/09/2026)
 
-Nenhum provedor novo foi integrado. “Candidato” não significa API pronta. CORS depende de cabeçalhos na origem e deve ser confirmado no navegador do domínio final antes de integrar. Onde a documentação não estabelece quota, licença ou SLA, o valor é desconhecido — não ilimitado.
+“Candidato” não significa API pronta. CORS depende de cabeçalhos na origem e deve ser confirmado no navegador do domínio final antes de integrar. Onde a documentação não estabelece quota, licença ou SLA, o valor é desconhecido — não ilimitado.
 
 | Uso | Fonte/endpoint e documentação | Licença e chave | Quota/atualização | CORS e decisão |
 |---|---|---|---|---|
@@ -17,3 +17,12 @@ Nenhum provedor novo foi integrado. “Candidato” não significa API pronta. C
 | Raios candidato brasileiro | Produtos de descargas elétricas [DISSM/INPE](https://satelite.cptec.inpe.br/) | API, licença e chave não confirmadas | Quotas/cadência não confirmadas | Não usar código de tempo “trovoada” como localização de descarga observada |
 
 Outros componentes existentes: municípios IBGE com coordenadas Kelvin S. do Prado/MIT (catálogo local); Supabase Auth (SDK local fixado, chave publishable; não fonte de riscos). Não se introduziu Neon/Railway ou outro banco: desnecessário para esta etapa.
+
+## Camadas implementadas sob demanda
+
+| Camada | Fonte e endpoint | Natureza | Atualização e limites | Como o PLUVIA apresenta |
+|---|---|---|---|---|
+| Chuva | [RainViewer Weather Maps API](https://www.rainviewer.com/api/weather-maps-api.html), `https://api.rainviewer.com/public/weather-maps.json` | Observação por composição de radares | Até 2h de histórico em passos de 10 min; sem chave e sem SLA; exige atribuição | “Radar observado”; cobertura pode variar e ausência de eco não prova ausência de chuva fora da cobertura |
+| Satélite | [NASA GIBS](https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api), `MODIS_Aqua_CorrectedReflectance_TrueColor` | Observação orbital em cor natural | Produto diário; NRT normalmente disponível em algumas horas; WMTS aberto com atribuição | Data do produto sempre visível; nunca rotulado como imagem ao vivo |
+| Nuvens | [Open-Meteo Forecast API](https://open-meteo.com/en/docs), `hourly=cloud_cover` em nove pontos | Estimativa meteorológica | Passos horários; mesma política da API meteorológica | “Cobertura de nuvens estimada”; nunca rotulada como satélite |
+| Base do mapa | [OpenStreetMap](https://www.openstreetmap.org/copyright) | Cartografia colaborativa | Tiles carregados apenas ao abrir o mapa | Atribuição visível no próprio mapa |

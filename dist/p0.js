@@ -117,6 +117,7 @@ updateCityLabels = function () {
   if (actions) actions.hidden = activeCity.uf !== "AM";
   const forecast = document.getElementById("forecastCityLabel");
   if (forecast) forecast.textContent = "Referência do município de " + activeCity.name + " — não da sua rua.";
+  globalThis.PLUVIA?.modules?.['weather-layers']?.cityChanged?.(activeCity);
 };
 let activeResultIndex = -1;
 renderCityOptions = function () {

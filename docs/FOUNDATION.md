@@ -4,7 +4,7 @@
 
 `dist/modules/sources.js` define PLUVIA.modules e o registro compartilhado. `adapters.js` oferece fachadas weather, alerts, location, air-quality, disasters, auth, map, weather-layers e ui, reaproveitando as funções de app.js/p0.js. O estado continua único; não há segunda instância de autenticação ou clima. `risks.js` contém regras puras, apresentação de riscos e detalhes de avisos. `account.js` mantém Supabase isolado. Não há nova biblioteca nem build obrigatório.
 
-weather-layers é apenas um ponto reservado, sem fetch, UI ou integração futura. Não há radar/satélite/Cemaden/fogo novo.
+weather-layers carrega o mapa somente sob demanda. Chuva usa frames observados do RainViewer; satélite usa NASA GIBS com data explícita; nuvens usa estimativa Open-Meteo em nove pontos. Cemaden, focos de calor e raios permanecem apenas registrados como provedores preparados, sem fetch nem dado exibido, porque nenhum endpoint público estável para o navegador foi validado.
 
 ## Contrato das fontes
 
@@ -20,7 +20,7 @@ US AQI modelado >100 gera atenção e >200 risco elevado; não gera risco extrem
 
 Capitais já locais; nomes de municípios e chunks por UF continuam sob demanda. GPS usa catálogo completo apenas quando necessário. Mapa existente continua sob clique; SDK Supabase fixado em 2.116.0 carrega para restaurar a sessão na abertura, preservando a correção recente de conta. Clima mantém snapshot municipal e atualização de 5 minutos; fetch com AbortController e timeout; respostas de HTTP com erro não vão ao cache. Sem cache compartilhado de Auth/APIs externas no SW.
 
-SW core-39 precacheia somente shell local e módulos pequenos; limpeza apenas de caches pluvia-, scripts com prioridade de rede e versão única. Não serve HTML como se fosse imagem/script ausente. Manifest existente tem escopo relativo (funciona no Pages), standalone e PNG real 256×256. Ícone 192/512 dedicado e validação de instalação por navegador continuam pendentes; não declarar instalabilidade universal. iOS: compartilhar → adicionar à tela de início quando suportado.
+SW core-40 precacheia somente shell local e módulos pequenos; Leaflet, tiles e frames meteorológicos não entram no precache e só são solicitados ao abrir o mapa. Limpeza apenas de caches pluvia-, scripts com prioridade de rede e versão única. Não serve HTML como se fosse imagem/script ausente. Manifest existente tem escopo relativo (funciona no Pages), standalone e PNG real 256×256. Ícone 192/512 dedicado e validação de instalação por navegador continuam pendentes; não declarar instalabilidade universal. iOS: compartilhar → adicionar à tela de início quando suportado.
 
 ## Verificação e limites
 
