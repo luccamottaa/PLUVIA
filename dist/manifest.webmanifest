@@ -1,14 +1,22 @@
 {
-  "name": "PLUVIA",
+  "id": "./",
+  "name": "PLUVIA — Olha o céu antes de sair",
   "short_name": "PLUVIA",
-  "description": "O céu de cada cidade.",
-  "start_url": "./",
+  "description": "Clima, alertas e condições do céu para cidades do Brasil.",
+  "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#f4f7ff",
   "theme_color": "#075dff",
   "lang": "pt-BR",
+  "categories": ["weather", "utilities"],
   "icons": [
-    { "src": "./logo-mark.png", "sizes": "256x256", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "./logo-mark.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
