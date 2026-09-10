@@ -687,9 +687,9 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 @media(max-width:720px) { .topbar .top-actions { grid-column:2; } }
 
 /* Assinatura original inteira em azul, em ambos os temas. */
-.topbar .brand { width:154px; height:44px; }
+.topbar .brand { width:144px; max-width:100%; height:44px; }
 .topbar .brand img,.topbar .brand span { visibility:hidden; }
-.topbar .brand::after { content:""; inset:0; background:#2F6BFF; -webkit-mask:url('./logo-pluvia.png') center / contain no-repeat; mask:url('./logo-pluvia.png') center / contain no-repeat; }
+.topbar .brand::after { content:""; inset:0; background:#2F6BFF; -webkit-mask:url('./logo-pluvia.png') left center / auto 56px no-repeat; mask:url('./logo-pluvia.png') left center / auto 56px no-repeat; }
 #accountLogout { margin-top:16px; }
 .topbar { height:auto; min-height:88px; padding:12px 18px; grid-template-columns:minmax(0,1fr) auto auto; grid-template-rows:44px 24px; column-gap:16px; row-gap:2px; align-items:center; }
 .topbar .brand { grid-column:1; grid-row:1; justify-self:start; }
