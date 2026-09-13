@@ -4,7 +4,7 @@ Painel climático brasileiro feito em Manaus, com chuva, previsão, qualidade do
 
 ## Acessar
 
-- Site atual: [pluvia.luccamotta.chatgpt.site](https://pluvia.luccamotta.chatgpt.site)
+- Site atual: [pluviaweather.com.br](https://pluviaweather.com.br/)
 - GitHub Pages: `https://luccamottaa.github.io/PLUVIA/` (publicado automaticamente após cada envio para `main`)
 
 ## Estrutura
@@ -14,6 +14,7 @@ dist/
 ├── index.html       # estrutura e conteúdo do painel
 ├── styles.css       # identidade visual, liquid glass e animações
 ├── app.js           # dados climáticos e comportamento da interface
+├── notifications.js # opt-in, subscriptions, preferências e dispositivos Web Push
 ├── modules/signal.js # regras puras e transparentes do PLUVIA Sinal
 ├── capitals.js      # capitais e carregadores lazy de municípios
 ├── municipality-index.js # índice leve usado pela busca
@@ -30,6 +31,8 @@ dist/
 .github/workflows/pages.yml  # publicação automática no GitHub Pages
 .openai/hosting.json         # vínculo com o projeto PLUVIA no ChatGPT Sites
 scripts/chunk-municipalities.cjs # regenera índice e arquivos por UF
+supabase/functions/              # registro, envio e processamento meteorológico de push
+supabase/migrations/             # schema versionado, RLS, Vault e cron
 ```
 
 ## Desenvolvimento local
@@ -59,6 +62,7 @@ O PLUVIA Sinal cruza previsão, vento, calor, UV, qualidade do ar e avisos ofici
 - [Fundação técnica](docs/FOUNDATION.md)
 - [Auditoria de produto](docs/PRODUCT-AUDIT.md)
 - [Design System PLUVIA](docs/DESIGN-SYSTEM.md)
+- [Notificações Web Push](docs/PUSH-NOTIFICATIONS.md)
 
 Ao atualizar `dist/municipalities.js`, regenere os arquivos menores com:
 
