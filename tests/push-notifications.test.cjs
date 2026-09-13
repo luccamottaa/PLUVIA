@@ -16,12 +16,15 @@ assert.match(html, /id="notificationPrompt"[\s\S]+id="notificationPromptButton"/
 assert.match(html, /id="notificationPreferencesForm"/);
 assert.match(html, /id="notificationTest"/);
 assert.match(html, /id="notificationLocations"[\s\S]+id="notificationDevices"/);
+assert.match(html, /id="notificationDiagnostics"/);
+assert.match(html, /name="weather_changes"(?! disabled)/);
 assert.match(client, /promptButton\.addEventListener\("click", enable\)/, 'permissão precisa partir de gesto explícito');
 assert.match(client, /Notification\.requestPermission\(\)/);
 assert.doesNotMatch(client, /new Notification\s*\(/, 'teste local não pode substituir Web Push real');
 assert.match(client, /push-send[\s\S]+action: "test"/);
 assert.match(client, /display-mode: standalone/);
 assert.match(client, /adicione o PLUVIA à Tela de Início/i);
+assert.match(client, /Conexão segura[\s\S]+Service Worker[\s\S]+Web Push/);
 
 assert.match(worker, /addEventListener\("push"/);
 assert.match(worker, /showNotification/);
@@ -49,7 +52,9 @@ assert.match(processor, /event\.type !== "daily_summary"/);
 assert.match(processor, /air-quality-api\.open-meteo\.com/);
 assert.match(processor, /INMET · alerta oficial/);
 assert.match(processor, /severityLabel[\s\S]+válido até[\s\S]+Fonte: INMET/);
+assert.match(processor, /type: "weather_change"[\s\S]+temperature_delta_c[\s\S]+rain_transition[\s\S]+wind_transition/);
 assert.match(processor, /inQuietHours/);
 assert.match(processor, /push_subscriptions[\s\S]+enabled: false/);
+assert.match(processor, /diagnostic_code/, 'worker privado precisa expor código seguro ao cron para observabilidade');
 
 console.log('PASS push: opt-in contextual, backend real, RLS, deduplicação, cron, service worker e dispositivos.');
