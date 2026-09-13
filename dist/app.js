@@ -26,6 +26,8 @@ let rainPulseIndex = 0;
 let rainPulsePlaying = false;
 let rainMapLocations = null;
 let rainMapCityId = null;
+let summaryAiInFlight = null;
+let summaryAiUnavailableUntil = 0;
 const CACHE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 
 class RequestError extends Error {
@@ -433,6 +435,34 @@ function paintSummary(summary, data) {
   $("summaryLink").textContent = summary.status === "danger" ? "Ver alertas e detalhes →" : "Ver previsão detalhada →";
 }
 
+async function enhanceSummary(context, data) {
+  if (!smartSummary || Date.now() < summaryAiUnavailableUntil || summaryAiInFlight === context.contextHash) return;
+  const account = globalThis.pluviaAccount;
+  if (!account?.getUser?.()) return;
+  summaryAiInFlight = context.contextHash;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 9000);
+  try {
+    const client = await account.getClient();
+    const {data: response, error} = await client.functions.invoke("smart-summary", {body:{context}, signal:controller.signal});
+    if (error || !response?.available) {
+      summaryAiUnavailableUntil = Date.now() + (response?.reason === "rate_limited" ? 60 : 10) * 60_000;
+      return;
+    }
+    const summary = response.summary;
+    const currentContext = smartSummary.buildContext(data, displayedWeather?.air, selectCurrentHour(data.hourly.time), activeCity);
+    if (context.contextHash !== currentContext.contextHash || !smartSummary.validate(summary, currentContext)) return;
+    saveSummary(summary);
+    paintSummary(summary, data);
+    applyOfficialAlertPriority();
+  } catch {
+    summaryAiUnavailableUntil = Date.now() + 10 * 60_000;
+  } finally {
+    clearTimeout(timeout);
+    if (summaryAiInFlight === context.contextHash) summaryAiInFlight = null;
+  }
+}
+
 function renderAttention(data, start, air = displayedWeather?.air) {
   if (!smartSummary || !weatherIcons) return;
   const context = smartSummary.buildContext(data, air, start, activeCity);
@@ -443,7 +473,15 @@ function renderAttention(data, start, air = displayedWeather?.air) {
   }
   paintSummary(summary, data);
   applyOfficialAlertPriority();
+  if (summary.source !== "ai") setTimeout(() => enhanceSummary(context, data), 0);
 }
+
+globalThis.addEventListener?.("pluvia:auth-changed", event => {
+  if (event.detail?.user && displayedWeather?.forecast) {
+    const data = displayedWeather.forecast;
+    renderAttention(data, selectCurrentHour(data.hourly.time), displayedWeather.air);
+  }
+});
 
 function findDryWindow(hourly, start) {
   for (let i = start; i < Math.min(hourly.time.length - 2, start + 36); i++) {

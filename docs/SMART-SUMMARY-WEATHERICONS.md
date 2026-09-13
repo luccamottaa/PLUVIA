@@ -13,7 +13,11 @@ O card da Home recebe somente o contexto meteorológico já carregado para a cid
 
 O hash inclui cidade, hora meteorológica, condição, sensação, umidade, precipitação, rajadas, UV e AQI. Uma alteração relevante invalida o cache antes do TTL.
 
-Não há provedor generativo ativo. Nenhuma chave de IA está configurada no backend do projeto e a Home pública não expõe um endpoint anônimo pago. O motor determinístico é o comportamento de produção e não bloqueia a interface. Uma etapa generativa futura deve executar somente no backend, devolver JSON estruturado, manter as evidências e passar pela mesma validação antes de substituir o fallback.
+O motor determinístico continua sendo o comportamento imediato e nunca bloqueia a Home. Para usuários autenticados, a Edge Function `smart-summary` pode executar uma segunda interpretação generativa sobre o mesmo contexto. A resposta só substitui o fallback quando passa por validação de schema, evidências, números e hash do contexto atual.
+
+O backend usa cache SHA-256 por contexto durante 20 minutos e cota atômica por usuário. As tabelas `smart_summary_cache` e `smart_summary_quota` têm RLS e não são acessíveis pelo cliente. A chamada ao provedor tem timeout de 8 segundos; qualquer falha preserva silenciosamente o resumo por regras.
+
+Para ativar esse passe, configure `OPENAI_API_KEY` apenas nos secrets das Edge Functions. O padrão é `gpt-4o-mini`, compatível com Structured Outputs; `OPENAI_MODEL` permite substituí-lo sem novo deploy. Sem a chave, a função responde `provider_not_configured`; nenhum segredo ou endpoint do provedor aparece no bundle público.
 
 ## WeatherIcons
 
@@ -24,6 +28,8 @@ Os SVGs em `dist/vendor/weathericons/` vêm do projeto [kickstandapps/WeatherIco
 `código WMO → condição normalizada → dia/noite → SVG local`
 
 Dia/noite na previsão horária usa o nascer e o pôr do sol retornados pela fonte meteorológica para a data da cidade. A condição diária usa a variante diurna. Os SVGs usados pela Home, previsão horária e diária entram no precache do Service Worker.
+
+Os favoritos atuais são identificadores no seletor de cidades, não cards meteorológicos com condição própria. O mapa representa camadas contínuas (modelo de precipitação, satélite e nuvens), portanto não recebe ícones pontuais que poderiam sugerir uma observação inexistente. Se essas superfícies passarem a carregar códigos WMO por cidade ou ponto, devem consumir o mesmo módulo central.
 
 ## Layout da Home
 
