@@ -1,7 +1,7 @@
-const CACHE = "pluvia-core-47";
+const CACHE = "pluvia-core-48";
 const SHELL = "./index.html";
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(["./", SHELL, "./analytics.js?v=analytics-2", "./styles.css?v=core-47", "./capitals.js?v=core-47", "./app.js?v=core-47", "./p0.js?v=core-47", "./account.js?v=core-47", "./notifications.js?v=push-1", "./weather-map.js?v=core-47", "./modules/sources.js?v=core-47", "./modules/signal.js?v=core-47", "./modules/risks.js?v=core-47", "./modules/adapters.js?v=core-47", "./manifest.webmanifest", "./logo-mark.png", "./logo-pluvia.png", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"])));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(["./", SHELL, "./analytics.js?v=analytics-2", "./styles.css?v=core-48", "./capitals.js?v=core-47", "./app.js?v=core-47", "./p0.js?v=core-47", "./account.js?v=core-48", "./notifications.js?v=push-2", "./weather-map.js?v=core-47", "./modules/sources.js?v=core-47", "./modules/signal.js?v=core-47", "./modules/risks.js?v=core-47", "./modules/adapters.js?v=core-47", "./manifest.webmanifest", "./logo-mark.png", "./logo-pluvia.png", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"])));
   self.skipWaiting();
 });
 self.addEventListener("activate", event => {

@@ -57,7 +57,7 @@
     const signup = mode === 'signup';
     el('accountNameField').hidden = !signup;
     el('accountName').required = signup;
-    el('accountPassword').minLength = signup ? 8 : 1;
+    el('accountPassword').minLength = signup ? 12 : 1;
     el('accountPassword').autocomplete = signup ? 'new-password' : 'current-password';
     el('accountPassword').value = '';
     el('accountPasswordHint').hidden = !signup;
@@ -117,6 +117,9 @@
     const name = el('accountName').value.trim();
     if(mode === 'signup' && !name) { message('Conta pra gente como te chamar.'); return; }
     const email = el('accountEmail').value.trim(), password = el('accountPassword').value;
+    if(mode === 'signup' && (password.length < 12 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password))) {
+      message('Crie uma senha com 12 ou mais caracteres, incluindo maiúscula, minúscula, número e símbolo.'); return;
+    }
     busy = true; el('accountSubmit').disabled = true; message('Só um instante…'); track('Auth Started',{mode});
     try {
       const client = await getClient();

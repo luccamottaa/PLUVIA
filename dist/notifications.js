@@ -3,7 +3,7 @@
   const el = id => document.getElementById(id);
   const prompt = el("notificationPrompt"), promptButton = el("notificationPromptButton"), promptText = el("notificationPromptText");
   const toggle = el("notificationToggle"), testButton = el("notificationTest"), statusBadge = el("notificationStatusBadge");
-  const supportNote = el("notificationSupportNote"), form = el("notificationPreferencesForm"), devicesNode = el("notificationDevices"), locationsNode = el("notificationLocations");
+  const supportNote = el("notificationSupportNote"), diagnosticsNode = el("notificationDiagnostics"), form = el("notificationPreferencesForm"), devicesNode = el("notificationDevices"), locationsNode = el("notificationLocations");
   if (!prompt || !toggle || !form) return;
 
   const boolFields = ["official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary"];
@@ -25,6 +25,27 @@
   function status(kind, label) {
     statusBadge.className = `notification-status is-${kind}`;
     statusBadge.textContent = label;
+  }
+
+  async function paintDiagnostics() {
+    if (!diagnosticsNode) return;
+    const checks = [
+      [window.isSecureContext, "Conexão segura"],
+      ["serviceWorker" in navigator, "Service Worker"],
+      ["PushManager" in window && "Notification" in window, "Web Push"],
+      [!isIOS || standalone, isIOS ? "PWA instalada" : "Modo de aplicativo compatível"],
+    ];
+    if (supported) {
+      const subscription = await browserSubscription().catch(() => null);
+      checks.push([Notification.permission === "granted", `Permissão: ${Notification.permission === "granted" ? "concedida" : Notification.permission === "denied" ? "bloqueada" : "ainda não solicitada"}`]);
+      checks.push([Boolean(subscription), "Inscrição neste dispositivo"]);
+    }
+    diagnosticsNode.replaceChildren(...checks.map(([ok, label]) => {
+      const item = document.createElement("li");
+      item.className = ok ? "is-ok" : "is-pending";
+      item.textContent = `${ok ? "✓" : "○"} ${label}`;
+      return item;
+    }));
   }
 
   function currentLocation() {
@@ -102,6 +123,7 @@
 
   async function paintState() {
     prompt.hidden = false;
+    await paintDiagnostics();
     if (!supported) {
       status("blocked", "Navegador incompatível"); toggle.disabled = true; testButton.hidden = true;
       message("Este navegador não oferece Web Push completo. O restante do PLUVIA continua funcionando normalmente.");

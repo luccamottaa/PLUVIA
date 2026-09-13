@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-47" />
+    <link rel="stylesheet" href="./styles.css?v=core-48" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -76,7 +76,7 @@
           <label id="accountNameField" hidden>Como podemos te chamar?<input id="accountName" autocomplete="given-name" maxlength="60" /></label>
           <label>E-mail<input id="accountEmail" type="email" autocomplete="email" required maxlength="254" /></label>
           <label>Senha<input id="accountPassword" type="password" autocomplete="current-password" required maxlength="128" /></label>
-          <small id="accountPasswordHint" hidden>Use pelo menos 8 caracteres.</small>
+          <small id="accountPasswordHint" hidden>Use 12 ou mais caracteres, com maiúscula, minúscula, número e símbolo.</small>
           <button id="accountSubmit" type="submit">Entrar</button>
         </form>
         <div id="accountProfile" hidden>
@@ -85,6 +85,7 @@
           <section id="notificationSettings" class="notification-settings" aria-labelledby="notificationSettingsTitle">
             <div class="notification-settings-head"><div><span class="eyebrow">CONFIGURAÇÕES</span><h3 id="notificationSettingsTitle">Notificações</h3></div><span id="notificationStatusBadge" class="notification-status is-off">Alertas desativados</span></div>
             <p id="notificationSupportNote">Verificando compatibilidade deste dispositivo…</p>
+            <ul id="notificationDiagnostics" class="notification-diagnostics" aria-label="Diagnóstico de notificações"></ul>
             <div class="notification-actions"><button id="notificationToggle" type="button">Ativar alertas</button><button id="notificationTest" type="button" hidden>Enviar notificação de teste</button></div>
             <form id="notificationPreferencesForm" class="alert-preferences">
               <fieldset><legend>Alertas</legend>
@@ -92,11 +93,11 @@
                 <label><input type="checkbox" name="rain_approaching" checked> Chuva se aproximando</label>
                 <label><input type="checkbox" name="heavy_rain" checked> Chuva forte</label>
                 <label><input type="checkbox" name="storms" checked> Tempestades</label>
-                <label><input type="checkbox" name="lightning" disabled> Raios <small>em preparação: exige fonte confiável</small></label>
+                <label><input type="checkbox" name="lightning" disabled> Raios <small>indisponível: falta fonte observacional licenciada</small></label>
                 <label><input type="checkbox" name="strong_wind" checked> Vento forte</label>
                 <label><input type="checkbox" name="extreme_heat" checked> Calor extremo</label>
                 <label><input type="checkbox" name="air_quality"> Qualidade do ar</label>
-                <label><input type="checkbox" name="weather_changes" disabled> Mudanças relevantes <small>em preparação</small></label>
+                <label><input type="checkbox" name="weather_changes"> Mudanças relevantes <small>temperatura, chuva ou vento nas próximas horas</small></label>
                 <label><input type="checkbox" name="daily_summary"> Resumo diário</label>
               </fieldset>
               <label>Severidade mínima<select name="minimum_severity"><option value="1">Informativa</option><option value="2" selected>Atenção</option><option value="3">Perigo</option><option value="4">Crítica</option></select></label>
@@ -224,7 +225,7 @@
     <script src="./modules/risks.js?v=core-47"></script>
     <script src="./modules/adapters.js?v=core-47"></script>
     <script src="./weather-map.js?v=core-47"></script>
-    <script src="./account.js?v=core-47" defer></script>
-    <script src="./notifications.js?v=push-1" defer></script>
+    <script src="./account.js?v=core-48" defer></script>
+    <script src="./notifications.js?v=push-2" defer></script>
   </body>
 </html>

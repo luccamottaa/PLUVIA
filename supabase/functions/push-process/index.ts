@@ -51,7 +51,7 @@ function weatherUrl(location: Location) {
   url.search = new URLSearchParams({
     latitude: String(location.latitude), longitude: String(location.longitude), timezone: "GMT", timeformat: "unixtime", forecast_days: "2",
     current: "temperature_2m,apparent_temperature,precipitation,weather_code,wind_gusts_10m",
-    hourly: "precipitation_probability,precipitation,weather_code,wind_gusts_10m",
+    hourly: "temperature_2m,precipitation_probability,precipitation,weather_code,wind_gusts_10m",
     daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max",
   }).toString();
   return url.toString();
@@ -87,17 +87,20 @@ function detectWeather(data: any, location: Location, now = new Date()) {
   const upcoming = times.map((time: number, index: number) => ({
     time, probability: Number(data.hourly.precipitation_probability?.[index] || 0), precipitation: Number(data.hourly.precipitation?.[index] || 0),
     code: Number(data.hourly.weather_code?.[index] || 0), gust: Number(data.hourly.wind_gusts_10m?.[index] || 0),
-  })).filter((row: any) => row.time >= currentTime - 1800).slice(0, 4);
-  const peakRain = Math.max(0, ...upcoming.map((row: any) => row.precipitation));
-  const peakProbability = Math.max(0, ...upcoming.map((row: any) => row.probability));
-  const peakGust = Math.max(Number(data?.current?.wind_gusts_10m || 0), ...upcoming.map((row: any) => row.gust));
-  const stormCode = Math.max(Number(data?.current?.weather_code || 0), ...upcoming.map((row: any) => row.code));
+    temperature: Number(data.hourly.temperature_2m?.[index]),
+  })).filter((row: any) => row.time >= currentTime - 1800).slice(0, 7);
+  const next3h = upcoming.slice(0, 4);
+  const peakRain = Math.max(0, ...next3h.map((row: any) => row.precipitation));
+  const peakProbability = Math.max(0, ...next3h.map((row: any) => row.probability));
+  const peakGust = Math.max(Number(data?.current?.wind_gusts_10m || 0), ...next3h.map((row: any) => row.gust));
+  const futurePeakGust = Math.max(Number(data?.current?.wind_gusts_10m || 0), ...upcoming.map((row: any) => row.gust));
+  const stormCode = Math.max(Number(data?.current?.weather_code || 0), ...next3h.map((row: any) => row.code));
   const currentRain = Number(data?.current?.precipitation || 0);
   const apparent = Number(data?.current?.apparent_temperature || 0), temperature = Number(data?.current?.temperature_2m || 0);
   const bucket = Math.floor(now.getTime() / 21_600_000);
   const end2h = new Date(now.getTime() + 2 * 3_600_000), end3h = new Date(now.getTime() + 3 * 3_600_000);
 
-  if (currentRain < 0.2 && upcoming.slice(1, 3).some((row: any) => row.precipitation >= 0.5 && row.probability >= 60)) events.push({
+  if (currentRain < 0.2 && next3h.slice(1, 3).some((row: any) => row.precipitation >= 0.5 && row.probability >= 60)) events.push({
     type: "rain_approaching", severity: 2, title: "🌧️ Chuva se aproximando",
     body: `Há indicação de chuva chegando à região de ${location.city_name} nas próximas horas. Vale levar guarda-chuva.`, source: "Open-Meteo · modelo",
     start: now, expires: end2h, url: "./#chuva", fingerprintSeed: `rain_approaching|${location.city_id}|${bucket}|2`, metadata: { peak_probability: peakProbability, peak_mm_h: peakRain, confidence: "moderate" },
@@ -117,6 +120,27 @@ function detectWeather(data: any, location: Location, now = new Date()) {
   if (apparent >= 42 || temperature >= 40) {
     const severity = apparent >= 48 || temperature >= 43 ? 4 : 3;
     events.push({ type: "extreme_heat", severity, title: "🌡️ Calor intenso", body: `A sensação térmica está em torno de ${Math.round(apparent)} °C em ${location.city_name}. Hidrate-se e reduza esforço sob o sol.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#agora", fingerprintSeed: `extreme_heat|${location.city_id}|${bucket}|${severity}`, metadata: { temperature_c: temperature, apparent_c: apparent, confidence: "moderate" } });
+  }
+  const futureTemperatures = upcoming.slice(1).map((row: any) => row.temperature).filter(Number.isFinite);
+  const temperatureDelta = futureTemperatures.length && Number.isFinite(temperature)
+    ? futureTemperatures.reduce((largest: number, value: number) => Math.abs(value - temperature) > Math.abs(largest) ? value - temperature : largest, 0)
+    : 0;
+  const dryNow = currentRain < 0.2 && Number(data?.current?.weather_code || 0) < 51;
+  const rainTransition = dryNow && upcoming.slice(3).some((row: any) => row.precipitation >= 1 && row.probability >= 60);
+  const windTransition = Number(data?.current?.wind_gusts_10m || 0) < 35 && futurePeakGust >= 55;
+  if (Math.abs(temperatureDelta) >= 6 || rainTransition || windTransition) {
+    const reasons = [
+      Math.abs(temperatureDelta) >= 6 ? `a temperatura pode ${temperatureDelta < 0 ? "cair" : "subir"} cerca de ${Math.round(Math.abs(temperatureDelta))} °C` : "",
+      rainTransition ? "a chuva ganha força mais tarde" : "",
+      windTransition ? "as rajadas podem aumentar bastante" : "",
+    ].filter(Boolean);
+    events.push({
+      type: "weather_change", severity: windTransition || Math.abs(temperatureDelta) >= 9 ? 3 : 2, title: "🌦️ Mudança relevante no tempo",
+      body: `O modelo indica mudança nas próximas 6 horas em ${location.city_name}: ${reasons.join(" e ")}. A previsão pode mudar nas próximas atualizações.`,
+      source: "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 6 * 3_600_000), url: "./#previsao",
+      fingerprintSeed: `weather_change|${location.city_id}|${bucket}|${reasons.map(reason => reason.split(" ").slice(0, 3).join("_")).join("|")}`,
+      metadata: { temperature_delta_c: Math.round(temperatureDelta * 10) / 10, rain_transition: rainTransition, wind_transition: windTransition, confidence: "moderate" },
+    });
   }
   return events;
 }
@@ -278,6 +302,6 @@ Deno.serve(async (req) => {
   } catch (error) {
     const code = error instanceof Error ? error.message : "worker_failed";
     console.error("push-process failed", { code });
-    return json(req, { error: "Processamento temporariamente indisponível." }, 503);
+    return json(req, { error: "Processamento temporariamente indisponível.", diagnostic_code: text(code, 80) }, 503);
   }
 });

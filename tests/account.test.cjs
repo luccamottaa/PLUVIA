@@ -8,7 +8,10 @@ const auth={onAuthStateChange(fn){listener=fn},async getSession(){return {data:{
 const context={document:{getElementById:get,createElement(){return {}},head:{appendChild(s){s.onload()}}},window:{supabase:{createClient(){return {auth}}}},location:{origin:'https://pluviaweather.com.br',pathname:'/',hash:''},localStorage:{getItem(){return null}}};
 vm.runInNewContext(fs.readFileSync('dist/account.js','utf8'),context);
 (async()=>{
-get('accountSignup').events.click();get('accountName').value='Lucca Motta';get('accountEmail').value='test@example.com';get('accountPassword').value='example-password';
+get('accountSignup').events.click();get('accountName').value='Lucca Motta';get('accountEmail').value='test@example.com';get('accountPassword').value='fraca';
+await get('accountForm').events.submit({preventDefault(){}});
+assert.equal(signupArgs,undefined);assert.match(get('accountStatus').textContent,/12 ou mais caracteres/);
+get('accountPassword').value='Example-password1!';
 await get('accountForm').events.submit({preventDefault(){}});
 assert.equal(signupArgs.options.data.name,'Lucca Motta');assert.match(get('accountStatus').textContent,/confirmar/);assert.doesNotMatch(get('accountButton').textContent,/Olá/);
 get('accountLogin').events.click();get('accountPassword').value='example-password';await get('accountForm').events.submit({preventDefault(){}});
