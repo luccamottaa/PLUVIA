@@ -63,6 +63,7 @@ O PLUVIA Sinal cruza previsão, vento, calor, UV, qualidade do ar e avisos ofici
 - [Auditoria de produto](docs/PRODUCT-AUDIT.md)
 - [Design System PLUVIA](docs/DESIGN-SYSTEM.md)
 - [Notificações Web Push](docs/PUSH-NOTIFICATIONS.md)
+- [Resumo Inteligente, responsividade e WeatherIcons](docs/SMART-SUMMARY-WEATHERICONS.md)
 
 Ao atualizar `dist/municipalities.js`, regenere os arquivos menores com:
 

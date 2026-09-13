@@ -18,7 +18,7 @@ assert.match(html, /card-primary/);
 assert.match(html, /card-secondary/);
 assert.match(html, /card-detail/);
 assert.match(html, /card-interactive/);
-assert.match(html, /AGORA NO PLUVIA/);
+assert.match(html, /RESUMO INTELIGENTE/);
 assert.match(html, /id="windCompass"[^>]+role="img"[^>]+aria-label=/);
 assert.match(app, /document\.body\.dataset\.weather/);
 assert.match(app, /document\.body\.dataset\.phase/);

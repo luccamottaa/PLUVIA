@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-48" />
+    <link rel="stylesheet" href="./styles.css?v=core-49" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -138,13 +138,14 @@
           <div class="current-bottom"><div><span>Sensação</span><strong id="feelsLike">--°</strong></div><div><span>Máx. / mín.</span><strong id="highLow">--° / --°</strong></div><div><span id="rainNowLabel">Chuva agora</span><strong id="rainNow">-- mm</strong></div></div>
           <p class="model-note">Referência do município, não da sua rua. Modelo Open-Meteo.</p>
         </article>
-        <aside class="attention-card insight-card panel card-secondary" id="attentionCard">
-          <div class="card-topline"><span>AGORA NO PLUVIA</span><span class="signal" id="attentionSignal">LEITURA LOCAL</span></div>
+        <aside class="attention-card insight-card panel card-secondary" id="attentionCard" aria-labelledby="attentionTitle" aria-live="polite">
+          <div class="card-topline"><span>RESUMO INTELIGENTE</span><span class="signal" id="attentionSignal">LEITURA LOCAL</span></div>
           <div class="attention-icon" id="attentionIcon"></div>
           <h2 id="attentionTitle">Analisando o tempo</h2>
           <p id="attentionText">Cruzando chuva das próximas horas.</p>
-          <div class="attention-rule"><span id="attentionLevel"></span></div>
+          <ul id="summaryHighlights" class="summary-highlights" aria-label="Destaques meteorológicos"></ul>
           <small id="attentionBasis">Leitura baseada nas próximas horas e nos avisos oficiais.</small>
+          <a id="summaryLink" class="summary-link" href="#previsao">Ver previsão detalhada →</a>
         </aside>
       </section>
       <section id="goOutCard" class="go-out-card panel card-interactive" aria-labelledby="goOutTitle" aria-live="polite">
@@ -177,7 +178,7 @@
         <p class="rain-phrase panel" id="rainPhraseWrap"><strong id="rainPhrase">Lendo as próximas horas…</strong><small id="rainPhraseMeta">Open-Meteo</small></p>
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region"><div class="chart-loading">Montando a previsão horária…</div></div>
         <article class="rain-pulse panel" aria-labelledby="rainPulseTitle">
-          <div class="rain-pulse-head"><div><span>PREVISÃO ANIMADA</span><h3 id="rainPulseTitle">Pulso de chuva no município</h3></div><div class="rain-pulse-actions"><button id="rainMapLoad" type="button">Mapa ao redor</button><button id="rainPulseToggle" type="button" aria-pressed="false">Reproduzir</button></div></div>
+          <div class="rain-pulse-head"><div><span>MODELO DE PRECIPITAÇÃO · PREVISÃO ANIMADA</span><h3 id="rainPulseTitle">Pulso de chuva no município</h3></div><div class="rain-pulse-actions"><button id="rainMapLoad" type="button">Mapa ao redor</button><button id="rainPulseToggle" type="button" aria-pressed="false">Reproduzir</button></div></div>
           <div class="rain-pulse-layout"><div id="rainPulseSky" class="rain-pulse-sky"><i aria-hidden="true"></i><strong id="rainPulseTime">--:--</strong><span id="rainPulseValue">Carregando…</span></div><div id="rainMapGrid" class="rain-map-grid" hidden role="img" aria-label="Mapa do modelo ainda não carregado"></div></div>
           <p id="rainMapStatus" class="rain-map-status">Toque em “Mapa ao redor” para comparar nove pontos próximos sem pesar a abertura.</p>
           <p id="rainSeasonContext" class="rain-season-context">Calculando o contexto da chuva de hoje…</p>
@@ -200,7 +201,7 @@
       </section>
       </div>
     </main>
-    <footer class="shell"><div><p>PLUVIA · O céu de cada cidade.</p></div><p>Clima: Open-Meteo<br>Alertas: INMET · Defesa Civil Manaus e canal nacional<br><button id="openSources" class="footer-link" type="button">Fontes de dados</button></p></footer>
+    <footer class="shell"><div><p>PLUVIA · O céu de cada cidade.</p></div><p>Clima: Open-Meteo<br>Alertas: INMET · Defesa Civil Manaus e canal nacional<br>Ícones: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> · SIL OFL 1.1<br><button id="openSources" class="footer-link" type="button">Fontes de dados</button></p></footer>
     <section class="sobre shell" id="sobre"><h2>Sobre</h2><p>PLUVIA — olha o céu antes de sair. Feito no Norte.</p><p>Números do Open-Meteo (ponto do município), avisos do INMET, Defesa Civil de Manaus e orientação da Defesa Civil Nacional. Municípios: IBGE, com coordenadas sob licença MIT.</p></section>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
@@ -219,8 +220,10 @@
     <script src="./analytics.js?v=analytics-2"></script>
     <script src="./modules/sources.js?v=core-47"></script>
     <script src="./modules/signal.js?v=core-47"></script>
+    <script src="./modules/weather-icons.js?v=core-49"></script>
+    <script src="./modules/smart-summary.js?v=core-49"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-47"></script>
+    <script src="./app.js?v=core-49"></script>
     <script src="./p0.js?v=core-47"></script>
     <script src="./modules/risks.js?v=core-47"></script>
     <script src="./modules/adapters.js?v=core-47"></script>
