@@ -1,0 +1,17 @@
+{
+  "name": "@pluvia/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Servidor MCP remoto e somente leitura do PLUVIA.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "express": "^5.1.0",
+    "zod": "^3.25.0"
+  }
+}
