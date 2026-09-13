@@ -20,7 +20,20 @@ US AQI modelado >100 gera atenção e >200 risco elevado; não gera risco extrem
 
 Capitais já locais; nomes de municípios e chunks por UF continuam sob demanda. GPS usa catálogo completo apenas quando necessário. Mapa existente continua sob clique; SDK Supabase fixado em 2.116.0 carrega para restaurar a sessão na abertura, preservando a correção recente de conta. Clima mantém snapshot municipal e atualização de 5 minutos; fetch com AbortController e timeout; respostas de HTTP com erro não vão ao cache. Sem cache compartilhado de Auth/APIs externas no SW.
 
-SW core-44 precacheia somente shell local e módulos pequenos; Leaflet, tiles e frames meteorológicos não entram no precache e só são solicitados ao abrir o mapa. Limpeza apenas de caches pluvia-, scripts com prioridade de rede e versão única. Não serve HTML como se fosse imagem/script ausente. Manifest existente tem escopo relativo (funciona no Pages), standalone e PNG real 256×256. Ícone 192/512 dedicado e validação de instalação por navegador continuam pendentes; não declarar instalabilidade universal. iOS: compartilhar → adicionar à tela de início quando suportado.
+SW core-45 precacheia somente shell local e módulos pequenos; Leaflet, tiles e frames meteorológicos não entram no precache e só são solicitados ao abrir o mapa. Limpeza apenas de caches pluvia-, scripts com prioridade de rede e versão única. Não serve HTML como se fosse imagem/script ausente. O manifest usa ícones dedicados 192×192 e 512×512, além de um 512×512 com área segura para recorte maskable. A instalação ainda depende do suporte de cada navegador. iOS: compartilhar → adicionar à tela de início quando suportado.
+
+O snapshot meteorológico por município é exibido imediatamente em visitas seguintes e vale no máximo 36 horas, sempre com o horário do dado e indicação explícita de leitura salva. Previsão e ar degradam separadamente: se o ar falhar, a previsão nova continua sendo exibida e a última leitura de AQI só permanece com aviso de que não houve confirmação atual. Erros HTTP permanentes não geram repetição automática; timeout, falha de rede, 429 e 5xx permitem uma única nova tentativa da previsão.
+
+## PLUVIA Sinal
+
+`dist/modules/signal.js` contém a regra pura do produto. Ela recebe dados já normalizados, estado das fontes e severidade oficial; não acessa DOM nem faz consulta externa. A saída mantém `level`, `label`, `summary`, `factors`, `confidence` e `score`.
+
+- 🟢 Pode sair: sem chuva relevante, rajada forte ou aviso oficial confirmado.
+- 🟡 Fica atento: chuva provável, calor/UV/ar relevantes ou monitoramento oficial incompleto.
+- 🟠 Melhor esperar: alerta laranja, trovoada possível, chuva volumosa ou rajada forte.
+- 🔴 Condição perigosa: alerta vermelho ou combinação modelada de alta severidade.
+
+Aviso oficial confirmado tem prioridade. Ausência de resposta do INMET nunca vira sinal verde. A interface mostra “Por que este sinal?”, fatores, confiança e horário do modelo. O sinal é do município, não da rua.
 
 ## Verificação e limites
 

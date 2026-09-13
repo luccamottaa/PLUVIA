@@ -8,6 +8,7 @@ const html = read('index.html');
 const app = read('app.js');
 const p0 = read('p0.js');
 const sw = read('sw.js');
+const manifest = JSON.parse(read('manifest.webmanifest'));
 
 assert(!html.includes('municipalities.js'), 'municípios não podem bloquear o primeiro paint');
 assert(!html.includes('auth.js') && !html.includes('authDialog'), 'o painel público não deve carregar login');
@@ -27,11 +28,17 @@ assert.match(app, /Volume previsto sozinho não vira alerta/);
 assert.match(app, /Defesa Civil Nacional/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-core-44/);
+assert.match(sw, /pluvia-core-45/);
 assert.match(html, /id="openWeatherMap"/);
 assert.match(html, /data-weather-layer="rain"[\s\S]+data-weather-layer="satellite"[\s\S]+data-weather-layer="clouds"/);
 assert.match(html, /id="goOutCard"/);
 assert.match(app, /renderGoOut/);
-assert.match(sw, /weather-map\.js\?v=core-44/);
+assert.match(sw, /weather-map\.js\?v=core-45/);
+assert.match(html, /PLUVIA SINAL · DÁ PRA SAIR\?/);
+assert.match(html, /Por que este sinal\?/);
+assert.match(html, /modules\/signal\.js\?v=core-45/);
+assert(manifest.icons.some(icon => icon.sizes === '192x192' && icon.purpose === 'any'));
+assert(manifest.icons.some(icon => icon.sizes === '512x512' && icon.purpose === 'any'));
+assert(manifest.icons.some(icon => icon.sizes === '512x512' && icon.purpose === 'maskable'));
 
 console.log('PASS product shell: public first paint, 1.5 s fallback, lazy municipalities, honest point data and versioned offline shell.');
