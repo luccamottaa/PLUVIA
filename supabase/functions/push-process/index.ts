@@ -152,10 +152,12 @@ function inmetForLocation(alerts: any[], location: Location, now = new Date()) {
     const severityText = normalize(first(alert, ["severidade", "severity", "nivel"]));
     const color = normalize(first(alert, ["aviso_cor", "cor"]));
     const severity = severityText.includes("grande perigo") || color.includes("ff0000") ? 4 : severityText === "perigo" || color.includes("f96602") || color.includes("ffa500") ? 3 : 2;
+    const severityLabel = severity === 4 ? "Grande perigo" : severity === 3 ? "Perigo" : "Perigo potencial";
     const id = text(first(alert, ["id_aviso", "id", "identifier"], `${location.city_id}-${start.toISOString()}`), 100);
     const phenomenon = text(first(alert, ["descricao", "evento", "titulo", "tipo"], "Aviso meteorológico"), 100);
     const risk = text(first(alert, ["riscos", "description"], "Consulte os riscos e as orientações no aviso oficial."), 260);
-    return [{ type: "official_alert", severity, title: `⚠️ ${phenomenon}`, body: `${risk} Fonte: INMET.`, source: "INMET · alerta oficial", start, expires: end, url: "./#alertas", fingerprintSeed: `official_alert|${id}|${location.city_id}|${severity}`, metadata: { official_id: id, confidence: "high" } } satisfies EventCandidate];
+    const validUntil = new Intl.DateTimeFormat("pt-BR", { timeZone: location.timezone, hour: "2-digit", minute: "2-digit" }).format(end);
+    return [{ type: "official_alert", severity, title: `⚠️ ${phenomenon}`, body: `${severityLabel} em ${location.city_name}, ${location.uf}, válido até ${validUntil}. ${risk} Fonte: INMET.`, source: "INMET · alerta oficial", start, expires: end, url: "./#alertas", fingerprintSeed: `official_alert|${id}|${location.city_id}|${severity}`, metadata: { official_id: id, area: `${location.city_name}, ${location.uf}`, severity_label: severityLabel, valid_until: end.toISOString(), confidence: "high" } } satisfies EventCandidate];
   });
 }
 
