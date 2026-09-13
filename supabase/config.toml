@@ -1,0 +1,10 @@
+project_id = "dszyyrcvwrpyiypwyvxe"
+
+[functions.push-subscriptions]
+verify_jwt = true
+
+[functions.push-send]
+verify_jwt = true
+
+[functions.push-process]
+verify_jwt = false

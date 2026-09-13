@@ -3,7 +3,6 @@
   const el = id => document.getElementById(id);
   const dialog = el('accountDialog');
   let clientPromise, mode = 'login', currentUser = null, busy = false, preferenceTimer, syncing = false;
-  const preferenceNames = ['rain','inmet','storms','civil_defense','heat','air','fires'];
   const message = text => { el('accountStatus').textContent = text; };
   const track = (name,properties) => window.pluviaAnalytics?.track(name,properties);
   function paint(user) {
@@ -19,8 +18,7 @@
     el('accountIdentity').textContent = user?.email || '';
     el('profileName').value = fullName;
     el('profileNameHint').textContent = name ? 'Esse nome aparece na saudação do topo.' : 'Falta seu nome. Salve abaixo para aparecer “Olá, seu nome” no topo.';
-    const alertPreferences = metadata.alert_preferences || {};
-    preferenceNames.forEach(key => { const input=el('alertPreferencesForm')?.elements?.namedItem(key); if(input) input.checked=Boolean(alertPreferences[key]); });
+    window.dispatchEvent?.(new CustomEvent('pluvia:auth-changed',{detail:{user}}));
   }
   function localFavoriteIds() {
     try { return JSON.parse(localStorage.getItem('pluvia-favorites') || '[]').filter(id=>/^\d{7}$/.test(String(id))); } catch { return []; }
@@ -150,23 +148,16 @@
     } catch(error) { message(authError(error)); }
     finally { el('profileSave').disabled = false; }
   });
-  el('alertPreferencesForm').addEventListener('submit', async event => {
-    event.preventDefault(); if(!currentUser) return;
-    const button=event.submitter, alert_preferences=Object.fromEntries(preferenceNames.map(key=>[key,Boolean(event.currentTarget.elements.namedItem(key)?.checked)]));
-    if(button) button.disabled=true;
-    try { const client=await getClient(); const {data,error}=await client.auth.updateUser({data:{alert_preferences}}); if(error) throw error; paint(data.user); message('Preferências salvas. O push ainda não está ativo.'); }
-    catch(error){ message(authError(error)); }
-    finally { if(button) button.disabled=false; }
-  });
   window.addEventListener?.('pluvia:favorites-changed',event => scheduleMetadata({favorite_city_ids:(event.detail?.ids || []).filter(id=>/^\d{7}$/.test(String(id))).slice(0,30)}));
   window.addEventListener?.('pluvia:city-changed',event => { if(/^\d{7}$/.test(String(event.detail?.id || ''))) scheduleMetadata({primary_city_id:event.detail.id}); });
   el('accountLogout').addEventListener('click', async () => {
     el('accountLogout').disabled = true;
-    try { const client = await getClient(); const {error} = await client.auth.signOut({scope:'local'}); if(error) throw error; paint(null); window.pluviaAnalytics?.resetUser(); setMode('login'); message('Você saiu da conta.'); }
+    try { await window.pluviaPush?.beforeLogout?.(); const client = await getClient(); const {error} = await client.auth.signOut({scope:'local'}); if(error) throw error; paint(null); window.pluviaAnalytics?.resetUser(); setMode('login'); message('Você saiu da conta.'); }
     catch(error) { message(authError(error)); }
     finally { el('accountLogout').disabled = false; }
   });
   setMode('login');
+  window.pluviaAccount = {getClient,getUser:()=>currentUser,open(){ if(!dialog.open) dialog.showModal(); el('accountClose').focus(); restoreAccount().catch(()=>{}); }};
   // Supabase owns session persistence. Restore it on every page load instead of
   // guessing the SDK's storage key, which may change between client versions.
   restoreAccount();
