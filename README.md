@@ -54,6 +54,12 @@ Cada cidade usa seu próprio fuso. Os dados são referência do ponto municipal,
 
 O PLUVIA Sinal cruza previsão, vento, calor, UV, qualidade do ar e avisos oficiais. A regra é determinística, expõe os fatores usados e reduz a confiança quando alguma fonte essencial está indisponível.
 
+## Documentação
+
+- [Fundação técnica](docs/FOUNDATION.md)
+- [Auditoria de produto](docs/PRODUCT-AUDIT.md)
+- [Design System PLUVIA](docs/DESIGN-SYSTEM.md)
+
 Ao atualizar `dist/municipalities.js`, regenere os arquivos menores com:
 
 ```bash

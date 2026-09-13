@@ -59,3 +59,32 @@ Escopo observado no site publicado: abertura, home carregada, conta e busca. A c
 ## Limites da auditoria
 
 Não houve login com credencial real nem aceite de permissão de localização. O Mobbin não retornou referências porque a conexão exige plano pago. Figma não foi usado porque esta rodada não propôs uma mudança grande de interface. A captura visual não comprova conformidade completa de acessibilidade.
+
+## Rodada visual — 13/09/2026
+
+### Diagnóstico classificado
+
+- **P0:** nenhum bloqueio visual crítico confirmado na home pública.
+- **P1:** condição atual, leitura rápida, PLUVIA Sinal e risco disputavam prioridade; cards de leitura tinham profundidade e comportamento de hover semelhantes a componentes interativos; a primeira dobra não estabelecia um único hero meteorológico.
+- **P2:** timeline horária omitia temperatura; vento não tinha direção visual; ausência de alerta parecia um estado neutro em vez de diferenciar “sem fenômeno” de “sem dados”; a atmosfera da página não respondia ao clima; tokens semânticos estavam incompletos.
+- **P3:** fase e horários lunares exigem fonte validada; comparação visual em aparelhos iOS/Android reais e auditoria assistiva completa continuam pendentes.
+
+### Evidências e decisões
+
+1. **Home / decisão imediata — atenção.** A temperatura era legível, mas dividia protagonismo com leituras redundantes. A hierarquia agora é hero meteorológico, “Agora no PLUVIA” e, depois, PLUVIA Sinal explicável.
+2. **Alertas e saúde — saudável com densidade alta.** Fontes estavam bem separadas; o novo estado sem alerta usa confirmação textual positiva e mantém link oficial.
+3. **Chuva e previsão — atenção.** Probabilidade e volume já estavam diferenciados, porém a evolução térmica não aparecia na mesma timeline. Cada hora agora inclui temperatura e descrição textual completa.
+4. **Mobile — saudável no CSS, verificação real pendente.** A base já removia blur contínuo e animações pesadas. O hero, as métricas e a timeline receberam regras específicas para 320–720 px.
+5. **Acessibilidade — saudável com limites.** Foco, texto de severidade, reduced motion e semântica já existiam. A direção do vento passou a ter `aria-label`; contraste e leitores de tela ainda exigem teste instrumental e em dispositivo.
+
+### Alterações desta rodada
+
+- tokens de superfície, conteúdo, meteorologia, espaçamento, raio e sombra;
+- quatro níveis visuais de card sem transformar leitura em falso botão;
+- hero meteorológico mais claro e adaptativo a sol, nuvem, chuva, tempestade e noite;
+- modo noturno azul-escuro preservado, sem preto absoluto;
+- “Leitura rápida” formalizada como “Agora no PLUVIA”;
+- rosa dos ventos compacta e acessível;
+- temperatura adicionada à timeline de chuva;
+- arco solar com estado noturno;
+- documentação do Design System PLUVIA.

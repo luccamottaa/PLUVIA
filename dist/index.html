@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-45" />
+    <link rel="stylesheet" href="./styles.css?v=core-46" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -93,15 +93,8 @@
         </div>
         <div class="clock-wrap"><span id="cityTimezone">Horário local</span><strong id="localClock">--:--</strong><small id="localDate"></small></div>
       </section>
-      <section id="goOutCard" class="go-out-card panel" aria-labelledby="goOutTitle" aria-live="polite">
-        <span class="eyebrow">PLUVIA SINAL · DÁ PRA SAIR?</span>
-        <strong id="goOutTitle">Analisando as próximas horas…</strong>
-        <p id="goOutReason">Cruzando chuva, vento, calor, ar e avisos oficiais disponíveis.</p>
-        <details class="signal-details"><summary>Por que este sinal?</summary><ul id="goOutFactors"><li>Aguardando os dados do município.</li></ul><p id="goOutConfidence">Confiança ainda não calculada.</p></details>
-        <small id="goOutUpdated">É uma leitura orientativa do município, não uma garantia de segurança na sua rua.</small>
-      </section>
       <section class="dashboard-grid" aria-label="Condições atuais">
-        <article class="current-card panel">
+        <article class="current-card weather-hero panel card-primary">
           <div class="card-topline"><span>CONDIÇÃO ATUAL</span></div>
           <div class="weather-main">
             <div class="wx-copy">
@@ -113,8 +106,8 @@
           <div class="current-bottom"><div><span>Sensação</span><strong id="feelsLike">--°</strong></div><div><span>Máx. / mín.</span><strong id="highLow">--° / --°</strong></div><div><span id="rainNowLabel">Chuva agora</span><strong id="rainNow">-- mm</strong></div></div>
           <p class="model-note">Referência do município, não da sua rua. Modelo Open-Meteo.</p>
         </article>
-        <aside class="attention-card panel" id="attentionCard">
-          <div class="card-topline"><span>LEITURA RÁPIDA</span><span class="signal" id="attentionSignal">SINAL LOCAL</span></div>
+        <aside class="attention-card insight-card panel card-secondary" id="attentionCard">
+          <div class="card-topline"><span>AGORA NO PLUVIA</span><span class="signal" id="attentionSignal">LEITURA LOCAL</span></div>
           <div class="attention-icon" id="attentionIcon"></div>
           <h2 id="attentionTitle">Analisando o tempo</h2>
           <p id="attentionText">Cruzando chuva das próximas horas.</p>
@@ -122,12 +115,19 @@
           <small id="attentionBasis">Leitura baseada nas próximas horas e nos avisos oficiais.</small>
         </aside>
       </section>
+      <section id="goOutCard" class="go-out-card panel card-interactive" aria-labelledby="goOutTitle" aria-live="polite">
+        <span class="eyebrow">PLUVIA SINAL · DÁ PRA SAIR?</span>
+        <strong id="goOutTitle">Analisando as próximas horas…</strong>
+        <p id="goOutReason">Cruzando chuva, vento, calor, ar e avisos oficiais disponíveis.</p>
+        <details class="signal-details"><summary>Por que este sinal?</summary><ul id="goOutFactors"><li>Aguardando os dados do município.</li></ul><p id="goOutConfidence">Confiança ainda não calculada.</p></details>
+        <small id="goOutUpdated">É uma leitura orientativa do município, não uma garantia de segurança na sua rua.</small>
+      </section>
       <section class="metrics" aria-label="Detalhes meteorológicos">
-        <article class="metric panel"><span>UMIDADE</span><strong id="humidity">--<sup>%</sup></strong><small id="humidityNote">—</small></article>
-        <article class="metric panel"><span>VENTO</span><strong id="wind">--<sup> km/h</sup></strong><small id="windNote">—</small></article>
-        <article class="metric panel"><span>PRESSÃO</span><strong id="pressure">----<sup> hPa</sup></strong><small id="pressureNote">—</small></article>
-        <article class="metric panel"><span>ÍNDICE UV</span><strong id="uv">--</strong><small id="uvNote">—</small></article>
-        <article class="metric panel air-metric"><span>QUALIDADE DO AR</span><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small></article>
+        <article class="metric panel card-detail"><span>UMIDADE</span><strong id="humidity">--<sup>%</sup></strong><small id="humidityNote">—</small></article>
+        <article class="metric wind-metric panel card-detail"><span>VENTO</span><div class="wind-reading"><strong id="wind">--<sup> km/h</sup></strong><span class="wind-compass" id="windCompass" role="img" aria-label="Direção do vento indisponível"><i aria-hidden="true"></i></span></div><small id="windNote">—</small></article>
+        <article class="metric panel card-detail"><span>PRESSÃO</span><strong id="pressure">----<sup> hPa</sup></strong><small id="pressureNote">—</small></article>
+        <article class="metric uv-metric panel card-detail"><span>ÍNDICE UV</span><strong id="uv">--</strong><small id="uvNote">—</small></article>
+        <article class="metric panel air-metric card-secondary"><span>QUALIDADE DO AR</span><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small></article>
       </section>
       <section class="alerts-section section-block" id="alertas">
         <div class="section-heading"><div><span class="section-index">01</span><h2>Alertas e saúde</h2></div><p id="alertsCityLabel">Fontes oficiais</p></div>
@@ -182,14 +182,14 @@
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div></dialog>
     <script src="./analytics.js?v=analytics-2"></script>
-    <script src="./modules/sources.js?v=core-45"></script>
-    <script src="./modules/signal.js?v=core-45"></script>
-    <script src="./capitals.js?v=core-45"></script>
-    <script src="./app.js?v=core-45"></script>
-    <script src="./p0.js?v=core-45"></script>
-    <script src="./modules/risks.js?v=core-45"></script>
-    <script src="./modules/adapters.js?v=core-45"></script>
-    <script src="./weather-map.js?v=core-45"></script>
-    <script src="./account.js?v=core-45" defer></script>
+    <script src="./modules/sources.js?v=core-46"></script>
+    <script src="./modules/signal.js?v=core-46"></script>
+    <script src="./capitals.js?v=core-46"></script>
+    <script src="./app.js?v=core-46"></script>
+    <script src="./p0.js?v=core-46"></script>
+    <script src="./modules/risks.js?v=core-46"></script>
+    <script src="./modules/adapters.js?v=core-46"></script>
+    <script src="./weather-map.js?v=core-46"></script>
+    <script src="./account.js?v=core-46" defer></script>
   </body>
 </html>
