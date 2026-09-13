@@ -75,19 +75,9 @@ async function fetchForecast(city = activeCity, revision = cityRevision) {
   }
 }
 
-const weatherMap = {
-  0: ["Céu limpo", "☀"], 1: ["Predomínio de sol", "◒"], 2: ["Parcialmente nublado", "◑"], 3: ["Céu encoberto", "☁"],
-  45: ["Neblina", "≋"], 48: ["Neblina com depósito", "≋"], 51: ["Garoa fraca", "⌇"], 53: ["Garoa", "⌇"], 55: ["Garoa intensa", "⌇"],
-  61: ["Chuva fraca", "☂"], 63: ["Chuva moderada", "☂"], 65: ["Chuva forte", "☂"], 80: ["Pancadas fracas", "☔"], 81: ["Pancadas de chuva", "☔"], 82: ["Pancadas fortes", "☔"],
-  95: ["Trovoadas", "ϟ"], 96: ["Trovoadas com granizo", "ϟ"], 99: ["Trovoadas fortes", "ϟ"]
-};
-Object.assign(weatherMap, {
-  56:["Garoa congelante fraca","☂"],57:["Garoa congelante intensa","☂"],
-  66:["Chuva congelante fraca","☂"],67:["Chuva congelante forte","☂"],
-  71:["Neve fraca","❄"],73:["Neve moderada","❄"],75:["Neve forte","❄"],
-  77:["Grãos de neve","❄"],85:["Pancadas de neve","❄"],86:["Pancadas fortes de neve","❄"]
-});
-const weather = (code) => weatherMap[code] || ["Tempo variável", "◒"];
+const weatherIcons = globalThis.PLUVIA?.weatherIcons;
+const smartSummary = globalThis.PLUVIA?.smartSummary;
+const weather = code => [weatherIcons?.condition(code).label || "Tempo variável"];
 
 function weatherIconType(code) {
   if ([71,73,75,77,85,86].includes(code)) return "snow";
@@ -105,46 +95,7 @@ function applyWeatherAtmosphere(code, isDay) {
 }
 
 function weatherIconSvg(code, isDay = true) {
-  const type = weatherIconType(code);
-  if (type === "snow") return '<svg class="weather-visual" viewBox="0 0 112 108" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><path d="M56 14v80M21 34l70 40M21 74l70-40M44 22l12 12 12-12M44 86l12-12 12 12M22 48l16-4-4-16M78 80l-4-16 16-4M34 80l4-16-16-4M90 48l-16-4 4-16"/></g></svg>';
-  const sun = `<g class="wx-sun">
-    <g class="wx-sun-rays">
-      <path d="M52 5v10M52 69v10M15 42H5M99 42H89M26 16l7 7M78 61l7 7M26 68l7-7M78 23l7-7" />
-    </g>
-    <circle class="wx-sun-core" cx="52" cy="42" r="20" />
-    <circle class="wx-sun-glass" cx="46" cy="36" r="7" />
-  </g>`;
-  const moon = `<g class="wx-moon">
-    <path class="wx-moon-core" d="M67 8c-4 5-6 12-6 19 0 15 12 27 27 27 4 0 8-1 12-3-4 15-17 26-33 26-19 0-34-15-34-34C33 25 48 10 67 8Z" />
-    <circle class="wx-moon-crater wx-moon-crater-a" cx="53" cy="29" r="4" />
-    <circle class="wx-moon-crater wx-moon-crater-b" cx="47" cy="46" r="2.8" />
-  </g>`;
-  const cloudBack = `<g class="wx-cloud-back"><path d="M28 62c-9 0-15-6-15-14 0-7 5-13 12-14 3-10 12-16 23-16 13 0 23 9 24 22 9 1 15 7 15 15 0 9-7 16-17 16H28z" /></g>`;
-  const cloud = `<g class="wx-cloud-main">
-    <path class="wx-cloud-shadow" d="M27 74C15 74 7 66 7 56c0-10 8-18 18-19 4-14 16-23 31-23 17 0 30 12 31 29 12 1 21 10 21 22 0 13-10 23-24 23H27z" />
-    <path class="wx-cloud-body" d="M25 69C14 69 8 62 8 54c0-9 7-16 17-17 4-13 15-21 29-21 16 0 28 11 29 27 11 1 19 9 19 19 0 12-9 21-22 21H25z" />
-    <path class="wx-cloud-shine" d="M24 44c4-1 8 0 11 2 4-13 14-20 27-20 7 0 13 2 18 7-5-9-14-15-26-15-14 0-25 8-29 21-8 1-14 5-17 11 4-3 9-5 16-6z" />
-  </g>`;
-  const rain = `<g class="wx-rain">
-    <path class="wx-drop wx-drop-1" d="M34 82l-5 10" />
-    <path class="wx-drop wx-drop-2" d="M58 84l-5 10" />
-    <path class="wx-drop wx-drop-3" d="M82 82l-5 10" />
-  </g>`;
-  const lightning = `<path class="wx-lightning" d="M59 75H47l-5 14h10l-4 18 20-25H57z" />`;
-
-  if (!isDay) {
-    if (type === "sun") return `<svg class="weather-visual weather-night weather-moon" viewBox="0 0 112 108" aria-hidden="true">${moon}</svg>`;
-    if (type === "partly") return `<svg class="weather-visual weather-night weather-night-partly" viewBox="0 0 112 108" aria-hidden="true">${moon}${cloud}</svg>`;
-    if (type === "cloud") return `<svg class="weather-visual weather-night weather-cloud weather-night-cloud" viewBox="0 0 112 108" aria-hidden="true">${moon}${cloudBack}${cloud}</svg>`;
-    if (type === "storm") return `<svg class="weather-visual weather-night weather-storm weather-night-storm" viewBox="0 0 112 108" aria-hidden="true">${moon}${cloud}${rain}${lightning}</svg>`;
-    return `<svg class="weather-visual weather-night weather-rain weather-night-rain" viewBox="0 0 112 108" aria-hidden="true">${moon}${cloud}${rain}</svg>`;
-  }
-
-  if (type === "sun") return `<svg class="weather-visual weather-sun" viewBox="0 0 112 108" aria-hidden="true">${sun}</svg>`;
-  if (type === "partly") return `<svg class="weather-visual weather-partly" viewBox="0 0 112 108" aria-hidden="true">${sun}${cloud}</svg>`;
-  if (type === "cloud") return `<svg class="weather-visual weather-cloud" viewBox="0 0 112 108" aria-hidden="true">${cloudBack}${cloud}</svg>`;
-  if (type === "storm") return `<svg class="weather-visual weather-storm" viewBox="0 0 112 108" aria-hidden="true">${cloud}${rain}${lightning}</svg>`;
-  return `<svg class="weather-visual weather-rain" viewBox="0 0 112 108" aria-hidden="true">${cloud}${rain}</svg>`;
+  return weatherIcons?.markup(code, isDay, {className:"weather-visual", eager:true}) || "";
 }
 
 const fmt = (value, digits = 0) => Number.isFinite(value) ? value.toFixed(digits).replace(".", ",") : "--";
@@ -340,9 +291,12 @@ function applyOfficialAlertPriority() {
   $("attentionSignal").textContent = severity === "red" ? "INMET · GRANDE PERIGO" : "INMET · PERIGO";
   $("attentionTitle").textContent = severity === "red" ? "Fica em casa se puder" : "Sai de casa preparado";
   $("attentionText").textContent = `Há aviso ${severity === "red" ? "vermelho" : "laranja"} vigente para a região. Abra o aviso e confira área, horário e orientações antes de sair.`;
-  $("attentionIcon").innerHTML = attentionIconSvg("severe");
-  $("attentionLevel").style.width = severity === "red" ? "100%" : "90%";
+  $("attentionIcon").innerHTML = weatherIcons?.markup(95, displayedWeather?.forecast?.current?.is_day !== 0, {className:"summary-weather-icon"}) || "";
+  $("attentionIcon").setAttribute("aria-label", "Trovoada e alerta oficial");
+  $("summaryHighlights").innerHTML = `<li class="danger">Aviso ${severity === "red" ? "vermelho" : "laranja"} do INMET</li><li class="warning">Confira área e validade</li>`;
   $("attentionBasis").textContent = "Prioridade definida pelo aviso oficial do INMET.";
+  $("summaryLink").href = "#alertas";
+  $("summaryLink").textContent = "Ver aviso oficial e orientações →";
   renderGoOut();
 }
 
@@ -450,50 +404,44 @@ function selectCurrentHour(times) {
   return next < 0 ? times.length - 1 : Math.max(0, next - 1);
 }
 
-function attentionIconSvg(type) {
-  const icons = {
-    normal: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m8 12.3 2.5 2.5L16.4 9"/></svg>',
-    rain: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 15.5h9.5a3.5 3.5 0 0 0 .4-7A5 5 0 0 0 7.4 10 2.8 2.8 0 0 0 7 15.5Z"/><path d="m8 18-1 2m5-2-1 2m5-2-1 2"/></svg>',
-    severe: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.8 20h18.4L12 3Z"/><path d="M12 8.5v5.2M12 17h.01"/></svg>',
-    heat: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.8"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4m10.6 10.6 1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"/></svg>',
-    humidity: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2S6.5 9.5 6.5 14a5.5 5.5 0 0 0 11 0C17.5 9.5 12 3.2 12 3.2Z"/><path d="M9.5 15.2c.4 1.1 1.3 1.7 2.5 1.7"/></svg>'
-  };
-  return icons[type] || icons.normal;
+const SUMMARY_CACHE_MAX_AGE = 45 * 60 * 1000;
+
+function summaryCache(context) {
+  try {
+    const value = JSON.parse(localStorage.getItem(`pluvia-summary-${activeCity.id}`) || "null");
+    return value?.hash === smartSummary.contextHash(context) && Date.now() - value.savedAt <= SUMMARY_CACHE_MAX_AGE ? value.summary : null;
+  } catch { return null; }
 }
 
-function renderAttention(data, start) {
-  const next3Prob = Math.max(...data.hourly.precipitation_probability.slice(start, start + 3));
-  const next3Rain = data.hourly.precipitation.slice(start, start + 3).reduce((a, b) => a + b, 0);
-  const next6Rain = data.hourly.precipitation.slice(start, start + 6).reduce((a, b) => a + b, 0);
-  const next3Gust = Math.max(data.current.wind_gusts_10m || 0, ...(data.hourly.wind_gusts_10m || []).slice(start, start + 3));
-  const next3Codes = data.hourly.weather_code.slice(start, start + 3);
-  const stormExpected = next3Codes.some(code => [95, 96, 99].includes(code));
-  const feels = data.current.apparent_temperature;
-  const humidity = data.current.relative_humidity_2m;
+function saveSummary(summary) {
+  try { localStorage.setItem(`pluvia-summary-${activeCity.id}`, JSON.stringify({hash:summary.contextHash,savedAt:Date.now(),summary})); } catch {}
+}
+
+function paintSummary(summary, data) {
   const card = $("attentionCard");
-  card.classList.remove("ok", "warning", "danger", "unavailable", "official-orange", "official-red");
-  let state = "ok", signal = "SOSSEGO", title = "Dá pra sair de boa", text = `Sem sinal forte de chuva ou vento para ${activeCity.name} nas próximas 3 horas.`, icon = "normal", level = 28;
-  if (stormExpected && next3Prob >= 60) {
-    state = "danger"; signal = "SAI PREPARADO"; title = "Trovoada no caminho"; text = `${Math.round(next3Prob)}% de chance nas próximas 3h, com sinal de raios. Evite área aberta e não conte só com guarda-chuva.`; icon = "severe"; level = 96;
-  } else if ((next3Prob >= 80 && next3Rain >= 8) || next6Rain >= 20) {
-    state = "danger"; signal = "SAI PREPARADO"; title = "Pode cair muita água"; text = `Previsão de ${fmt(next6Rain, 1)} mm em 6h e pico de ${Math.round(next3Prob)}%. Em área que alaga, muda a rota antes de sair.`; icon = "severe"; level = 92;
-  } else if (next3Gust >= 55) {
-    state = "warning"; signal = "ATENÇÃO"; title = "Rajada forte por perto"; text = `O vento pode chegar a ${fmt(next3Gust)} km/h nas próximas 3h. Cuidado com galhos, placas e cobertura solta.`; icon = "severe"; level = 78;
-  } else if (next3Prob >= 60 && next3Rain >= .5) {
-    state = "warning"; signal = "ATENÇÃO"; title = "Leva o guarda-chuva"; text = `A chance chega a ${Math.round(next3Prob)}% e o modelo indica ${fmt(next3Rain, 1)} mm nas próximas 3h.`; icon = "rain"; level = 70;
-  } else if (feels >= 40) {
-    state = "warning"; signal = "ATENÇÃO"; title = "Sensação de calor pesada"; text = `O corpo sente cerca de ${fmt(feels)} °C agora. Água e sombra não são frescura.`; icon = "heat"; level = 78;
-  } else if (humidity >= 88) {
-    state = "warning"; signal = "ATENÇÃO"; title = "Umidade lá em cima"; text = `O ar está com ${Math.round(humidity)}% de umidade — abafamento e suor evaporando devagar.`; icon = "humidity"; level = 58;
+  const stateClass = summary.status === "calm" ? "ok" : summary.status === "danger" ? "danger" : summary.status === "warning" ? "warning" : "info";
+  card.classList.remove("ok", "info", "warning", "danger", "unavailable", "official-orange", "official-red");
+  card.classList.add(stateClass);
+  $("attentionSignal").textContent = summary.status === "calm" ? "TRANQUILO" : summary.status === "danger" ? "CONDIÇÃO RELEVANTE" : summary.status === "warning" ? "ATENÇÃO" : "INFORMAÇÃO";
+  $("attentionTitle").textContent = summary.title;
+  $("attentionText").textContent = summary.summary;
+  $("attentionIcon").innerHTML = weatherIcons.markup(summary.iconCode, data.current.is_day !== 0, {className:"summary-weather-icon"});
+  $("attentionIcon").setAttribute("aria-label", weatherIcons.condition(summary.iconCode).label);
+  $("summaryHighlights").innerHTML = summary.highlights.map(item => `<li class="${item.tone}">${escapeHtml(item.label)}</li>`).join("");
+  $("attentionBasis").textContent = `${summary.source === "rules" ? "Motor meteorológico verificável" : "Interpretação validada"} · atualizado ${dataAge(Date.parse(summary.generatedAt))}`;
+  $("summaryLink").href = summary.status === "danger" ? "#alertas" : "#previsao";
+  $("summaryLink").textContent = summary.status === "danger" ? "Ver alertas e detalhes →" : "Ver previsão detalhada →";
+}
+
+function renderAttention(data, start, air = displayedWeather?.air) {
+  if (!smartSummary || !weatherIcons) return;
+  const context = smartSummary.buildContext(data, air, start, activeCity);
+  let summary = summaryCache(context);
+  if (!summary || !smartSummary.validate(summary, context)) {
+    summary = smartSummary.deterministic(context);
+    saveSummary(summary);
   }
-  card.classList.add(state);
-  $("attentionSignal").textContent = signal;
-  $("attentionTitle").textContent = title;
-  $("attentionText").textContent = text;
-  $("attentionIcon").innerHTML = attentionIconSvg(icon);
-  $("attentionIcon").setAttribute("aria-label", signal);
-  $("attentionLevel").style.width = `${level}%`;
-  $("attentionBasis").textContent = `Próximas 3h: ${Math.round(next3Prob)}% · ${fmt(next3Rain,1)} mm. Em 6h: ${fmt(next6Rain,1)} mm.`;
+  paintSummary(summary, data);
   applyOfficialAlertPriority();
 }
 
@@ -507,7 +455,14 @@ function findDryWindow(hourly, start) {
   return "Sem janela clara em 36h";
 }
 
-function renderRain(hourly, start) {
+function forecastIsDay(time, daily) {
+  const date = String(time || "").slice(0, 10);
+  const dayIndex = daily?.time?.indexOf(date) ?? -1;
+  if (dayIndex < 0) return true;
+  return weatherIcons.isDayAt(time, daily.sunrise?.[dayIndex], daily.sunset?.[dayIndex]);
+}
+
+function renderRain(hourly, start, daily) {
   const scrollLeft = $("rainChart").scrollLeft;
   const indices = Array.from({length: 24}, (_, i) => start + i).filter(i => i < hourly.time.length);
   $("rainChart").innerHTML = indices.map((i, p) => {
@@ -520,7 +475,7 @@ function renderRain(hourly, start) {
       <span class="hour-time">${p === 0 ? "AGORA" : shortTime(hourly.time[i])}</span>
       <span class="hour-temp">${fmt(temperature)}°</span>
       <div class="bar-area"><div class="rain-bar" data-prob="${prob}" style="height:${barHeight}px"></div></div>
-      <span class="rain-mm">${fmt(mm, 1)} mm</span><span class="hour-icon">${weather(hourly.weather_code[i])[1]}</span>
+      <span class="rain-mm">${fmt(mm, 1)} mm</span><span class="hour-icon">${weatherIcons.markup(hourly.weather_code[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:false})}</span>
     </div>`;
   }).join("");
   $("rainChart").setAttribute("aria-label", `Chuva prevista por hora em ${activeCity.name}: barras mostram milímetros e os números mostram probabilidade.`);
@@ -676,16 +631,16 @@ function renderForecast(daily) {
     const d = new Date(`${date}T12:00:00`);
     const day = i === 0 ? "Hoje" : new Intl.DateTimeFormat("pt-BR", {weekday: "long"}).format(d).replace(/^./, c => c.toUpperCase());
     const label = new Intl.DateTimeFormat("pt-BR", {day: "2-digit", month: "short"}).format(d).replace(".", "");
-    const [cond, icon] = weather(daily.weather_code[i]); const min = daily.temperature_2m_min[i]; const max = daily.temperature_2m_max[i];
+    const [cond] = weather(daily.weather_code[i]); const min = daily.temperature_2m_min[i]; const max = daily.temperature_2m_max[i];
     const width = Math.max(25, ((max - min) / spread) * 100);
     const rainProb = Math.round(daily.precipitation_probability_max[i] || 0); const rainMm = daily.precipitation_sum[i] || 0;
     const weekend = [0,6].includes(d.getDay());
     const reading = rainMm >= 20 ? "Dia bem molhado" : rainMm >= 8 ? "Pancadas fortes ao longo do dia" : rainProb >= 55 ? "Pode chover, mas sem volume grande" : rainProb >= 30 ? "Chuva isolada" : "Boa janela pra sair";
     return `<div class="forecast-row ${i === bestIndex ? "best-day" : ""}">
       <div class="forecast-day"><strong>${day}${weekend ? " · fim de semana" : ""}</strong><span>${label}${i === bestIndex ? " · melhor dia pra rolê" : ""}</span></div>
-      <div class="forecast-condition"><i aria-hidden="true">${icon}</i><span>${cond}</span></div>
+      <div class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></div>
       <div class="temp-range" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus"><strong>${fmt(min)}°</strong><div class="temp-track"><span style="width:${width}%"></span></div><strong>${fmt(max)}°</strong></div>
-      <div class="forecast-rain"><span>☂</span><span>${rainProb}% · ${fmt(rainMm, 1)} mm</span></div>
+      <div class="forecast-rain"><span>${weatherIcons.markup(61, true, {className:"rain-metric-icon"})}</span><span>${rainProb}% · ${fmt(rainMm, 1)} mm</span></div>
       <div class="forecast-uv">${reading} · UV ${fmt(daily.uv_index_max[i], 0)}</div>
     </div>`;
   }).join("");
@@ -736,9 +691,11 @@ function markWeatherUnavailable(hasSavedData) {
   $("attentionSignal").textContent = "SEM LEITURA";
   $("attentionTitle").textContent = "Aguardando conexão";
   $("attentionText").textContent = "A leitura local volta automaticamente quando a consulta estiver disponível.";
-  $("attentionIcon").innerHTML = attentionIconSvg("severe");
+  $("attentionIcon").innerHTML = weatherIcons?.markup(3, true, {className:"summary-weather-icon"}) || "";
   $("attentionIcon").setAttribute("aria-label", "Sem leitura");
-  $("attentionLevel").style.width = "0%";
+  $("summaryHighlights").innerHTML = '<li class="info">Dados temporariamente indisponíveis</li>';
+  $("summaryLink").href = "#previsao";
+  $("summaryLink").textContent = "Tentar novamente na previsão →";
   $("windCompass").style.setProperty("--wind-deg", "0deg");
   $("windCompass").setAttribute("aria-label", "Direção do vento indisponível");
 }
@@ -774,7 +731,7 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   $("pm25").textContent = fmt(air?.current?.pm2_5, 1); $("pm10").textContent = fmt(air?.current?.pm10, 1); $("ozone").textContent = fmt(air?.current?.ozone, 1); $("airGuidance").textContent = airGuidance(airIndex);
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
   setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)} · ${activeCity.name}`, fromCache);
-  renderAttention(data, start); renderRain(data.hourly, start); renderForecast(day); renderSun(day); renderGoOut(data,air);
+  renderAttention(data, start, air); renderRain(data.hourly, start, day); renderForecast(day); renderSun(day); renderGoOut(data,air);
 }
 
 async function loadWeather(revision = cityRevision) {
@@ -1009,7 +966,7 @@ function chooseCity(id, locatedCity = null) {
   $("errorToast").setAttribute("aria-hidden","true");
   cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
   $("attentionCard").classList.remove("ok","warning","danger","unavailable");
-  $("attentionLevel").style.width = "0%";
+  $("summaryHighlights").innerHTML = "";
   $("sunDot").style.left = "3%";
   $("sunDot").style.top = "74px";
   $("condition").textContent = "Buscando o céu de " + city.name + "…";
