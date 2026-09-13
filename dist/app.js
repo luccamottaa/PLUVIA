@@ -436,9 +436,13 @@ function paintSummary(summary, data) {
 }
 
 async function enhanceSummary(context, data) {
-  if (!smartSummary || Date.now() < summaryAiUnavailableUntil || summaryAiInFlight === context.contextHash) return;
+  const setStatus = status => $("attentionCard")?.setAttribute("data-ai-status", status);
+  if (!smartSummary) { setStatus("engine_unavailable"); return; }
+  if (Date.now() < summaryAiUnavailableUntil) { setStatus("cooldown"); return; }
+  if (summaryAiInFlight === context.contextHash) return;
   const account = globalThis.pluviaAccount;
-  if (!account?.getUser?.()) return;
+  if (!account?.getUser?.()) { setStatus("authentication_required"); return; }
+  setStatus("loading");
   summaryAiInFlight = context.contextHash;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 9000);
@@ -446,16 +450,20 @@ async function enhanceSummary(context, data) {
     const client = await account.getClient();
     const {data: response, error} = await client.functions.invoke("smart-summary", {body:{context}, signal:controller.signal});
     if (error || !response?.available) {
+      setStatus(response?.reason || "request_failed");
       summaryAiUnavailableUntil = Date.now() + (response?.reason === "rate_limited" ? 60 : 10) * 60_000;
       return;
     }
     const summary = response.summary;
     const currentContext = smartSummary.buildContext(data, displayedWeather?.air, selectCurrentHour(data.hourly.time), activeCity);
-    if (context.contextHash !== currentContext.contextHash || !smartSummary.validate(summary, currentContext)) return;
+    if (context.contextHash !== currentContext.contextHash) { setStatus("stale_context"); return; }
+    if (!smartSummary.validate(summary, currentContext)) { setStatus("validation_failed"); return; }
     saveSummary(summary);
     paintSummary(summary, data);
     applyOfficialAlertPriority();
+    setStatus("ready");
   } catch {
+    setStatus("request_failed");
     summaryAiUnavailableUntil = Date.now() + 10 * 60_000;
   } finally {
     clearTimeout(timeout);

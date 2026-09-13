@@ -27,6 +27,7 @@ test('usa cache SHA-256, cota atômica e RLS sem acesso do cliente', () => {
 test('mantém fallback imediato e só aplica IA validada ao contexto atual', () => {
   assert.match(app, /summary = smartSummary\.deterministic\(context\)/);
   assert.match(app, /smartSummary\.validate\(summary, currentContext\)/);
+  assert.match(app, /data-ai-status/);
   assert.match(edge, /validSummary\(generated, context\)/);
   assert.match(edge, /provider_not_configured/);
   assert.match(edge, /store: false/);
