@@ -14,12 +14,16 @@ dist/
 ├── index.html       # estrutura e conteúdo do painel
 ├── styles.css       # identidade visual, liquid glass e animações
 ├── app.js           # dados climáticos e comportamento da interface
+├── modules/signal.js # regras puras e transparentes do PLUVIA Sinal
 ├── capitals.js      # capitais e carregadores lazy de municípios
 ├── municipality-index.js # índice leve usado pela busca
 ├── cities/          # coordenadas e fuso carregados por UF
 ├── municipalities.js # catálogo completo, carregado somente para GPS
 ├── logo-pluvia.png  # assinatura completa
 ├── logo-mark.png    # ícone e favicon
+├── icon-192.png     # ícone PWA
+├── icon-512.png     # ícone PWA
+├── icon-maskable-512.png # ícone seguro para recorte adaptativo
 ├── og-pluvia.png    # compartilhamento social 1200×630
 └── .nojekyll        # publicação estática sem processamento do Jekyll
 
@@ -47,6 +51,14 @@ Depois, abra `http://localhost:8080`.
 - Municípios: IBGE; coordenadas de Kelvin S. do Prado, sob licença MIT
 
 Cada cidade usa seu próprio fuso. Os dados são referência do ponto municipal, não da rua do visitante.
+
+O PLUVIA Sinal cruza previsão, vento, calor, UV, qualidade do ar e avisos oficiais. A regra é determinística, expõe os fatores usados e reduz a confiança quando alguma fonte essencial está indisponível.
+
+## Documentação
+
+- [Fundação técnica](docs/FOUNDATION.md)
+- [Auditoria de produto](docs/PRODUCT-AUDIT.md)
+- [Design System PLUVIA](docs/DESIGN-SYSTEM.md)
 
 Ao atualizar `dist/municipalities.js`, regenere os arquivos menores com:
 

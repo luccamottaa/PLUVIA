@@ -6,17 +6,20 @@ const root = path.join(__dirname, "..");
 const source = fs.readFileSync(path.join(root, "dist/app.js"), "utf8");
 const html = fs.readFileSync(path.join(root, "dist/index.html"), "utf8");
 const nodes = new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id]) => [id, {
-  innerHTML:"", textContent:"", className:"", dataset:{},
+  innerHTML:"", textContent:"", className:"", dataset:{}, children:[], appendChild(node){this.children.push(node)},
 }]));
 const now = Date.parse("2026-09-09T00:10:00Z");
 class FixedDate extends Date { constructor(...args) { super(...(args.length ? args : [now])); } static now() { return now; } }
 const context = vm.createContext({
-  document:{getElementById:id => nodes.get(id), querySelectorAll:() => []},
+  document:{getElementById:id => nodes.get(id), querySelectorAll:() => [], createElement:() => ({textContent:''})},
   Date:FixedDate, Intl, URL, AbortController, setTimeout, clearTimeout,
   DOMParser: class {parseFromString(text) {return {documentElement:{textContent:text}};}},
 });
 vm.runInContext(fs.readFileSync(path.join(root, "dist/municipalities.js"), "utf8"), context);
 vm.runInContext(fs.readFileSync(path.join(root, "dist/capitals.js"), "utf8"), context);
+vm.runInContext(fs.readFileSync(path.join(root, "dist/modules/sources.js"), "utf8"), context);
+vm.runInContext(fs.readFileSync(path.join(root, "dist/modules/signal.js"), "utf8"), context);
+context.PLUVIA.sources.get = () => ({status:'ready'});
 vm.runInContext(source.slice(0, source.lastIndexOf("\nsetupCityPicker();")), context);
 vm.runInContext('activeCity = cityById.get("1302603")', context);
 
@@ -35,7 +38,7 @@ async function test(label, fn) {await fn(); checks++; console.log(`PASS ${label}
 (async () => {
   await test("Go-out advice respects every active official severity", () => {
     const forecast = {hourly:{time:["2026-09-08T20:00"],precipitation:[0],precipitation_probability:[0],wind_gusts_10m:[0],apparent_temperature:[25]},current:{}};
-    for (const [severity,level] of [["yellow","attention"],["orange","danger"],["red","danger"],["unknown","unknown"],["none","ok"]]) {
+    for (const [severity,level] of [["yellow","attention"],["orange","wait"],["red","danger"],["unknown","attention"],["none","good"]]) {
       nodes.get("inmetCard").dataset.severity = severity;
       context.renderGoOut(forecast, {current:{us_aqi:20}});
       assert.equal(nodes.get("goOutCard").dataset.level, level, severity);
