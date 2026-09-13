@@ -48,6 +48,7 @@ assert.match(processor, /error\?\.code === "23505"[\s\S]+notification_events/,
 assert.match(processor, /event\.type !== "daily_summary"/);
 assert.match(processor, /air-quality-api\.open-meteo\.com/);
 assert.match(processor, /INMET · alerta oficial/);
+assert.match(processor, /severityLabel[\s\S]+válido até[\s\S]+Fonte: INMET/);
 assert.match(processor, /inQuietHours/);
 assert.match(processor, /push_subscriptions[\s\S]+enabled: false/);
 
