@@ -1,0 +1,16 @@
+name: Validar PLUVIA antes do merge
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar sintaxe
+        run: |
+          for file in dist/*.js dist/modules/*.js; do node --check "$file"; done
+      - name: Testar regras e regressões
+        run: node --test tests/*.test.cjs
