@@ -107,3 +107,28 @@ Não houve login com credencial real nem aceite de permissão de localização. 
 - temperatura adicionada à timeline de chuva;
 - arco solar com estado noturno;
 - documentação do Design System PLUVIA.
+
+
+## Expansão inteligente — Fase 2 — 14/09/2026
+
+### Achados
+
+- **P0:** nenhum problema crítico novo identificado.
+- **P1:** a Home mostrava valores atuais, mas faltava contexto comparativo, explicação térmica e leitura conjunta de chance/volume de chuva.
+- **P2:** comparação com ontem precisava usar o mesmo horário e omitir o texto quando não houvesse histórico equivalente.
+- **P3:** o histórico retornado pelo Open-Meteo continua sendo referência do modelo, não observação de estação.
+
+### Alterações
+
+- adicionadas 24 horas passadas à mesma consulta meteorológica, sem request adicional;
+- criado motor determinístico isolado para comparação com ontem, sensação, UV e precipitação;
+- adicionados contexto progressivo e “Por que está assim?” ao Resumo Inteligente;
+- falhas do motor não bloqueiam condição atual, previsão, alertas ou qualidade do ar;
+- cache/offline atualizado para o release `core-56`.
+
+### Validação
+
+- 39 testes aprovados;
+- sintaxe JavaScript verificada;
+- referências do precache verificadas;
+- nenhuma migration ou alteração de autenticação/Supabase nesta fase.

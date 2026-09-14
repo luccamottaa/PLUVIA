@@ -996,6 +996,67 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
   .weather-visual,.hourly-weather-icon,.forecast-weather-icon,.rain-metric-icon { filter:invert(65%) sepia(60%) saturate(1759%) hue-rotate(189deg) brightness(105%) contrast(101%); }
 }
 
+
+.current-bottom small {
+  display:block;
+  max-width:22ch;
+  margin-top:.28rem;
+  color:var(--muted);
+  font-size:.72rem;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+.yesterday-comparison {
+  margin:.75rem 0 0;
+  color:var(--muted);
+  font-size:.78rem;
+  line-height:1.45;
+}
+.context-highlights {
+  display:flex;
+  flex-wrap:wrap;
+  gap:.45rem;
+  max-width:100%;
+  min-width:0;
+  margin:.8rem 0 0;
+  padding:0;
+  list-style:none;
+}
+.context-highlights li {
+  max-width:100%;
+  padding:.38rem .62rem;
+  border:1px solid color-mix(in srgb,var(--blue) 28%,transparent);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--blue) 9%,transparent);
+  color:var(--text);
+  font-size:.72rem;
+  line-height:1.25;
+  overflow-wrap:anywhere;
+}
+.weather-explanation {
+  max-width:100%;
+  min-width:0;
+  margin-top:.8rem;
+  color:var(--muted);
+  font-size:.78rem;
+}
+.weather-explanation summary {
+  width:fit-content;
+  max-width:100%;
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  cursor:pointer;
+  color:var(--text);
+  font-weight:700;
+}
+.weather-explanation ul { margin:.35rem 0 .2rem; padding-left:1.15rem; }
+.weather-explanation li + li { margin-top:.35rem; }
+@media (max-width:380px) {
+  .context-highlights { display:grid; grid-template-columns:minmax(0,1fr); }
+  .context-highlights li { width:100%; border-radius:.8rem; }
+}
+
 /* PLUVIA glossy icons + mobile integrity contract. */
 .dashboard-grid > *,
 .weather-main > *,
