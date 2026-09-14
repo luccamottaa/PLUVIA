@@ -436,7 +436,12 @@ function paintSummary(summary, data) {
 }
 
 async function enhanceSummary(context, data) {
-  const setStatus = status => $("attentionCard")?.setAttribute("data-ai-status", status);
+  const setStatus = status => {
+    const card = $("attentionCard");
+    const current = card?.getAttribute("data-ai-status");
+    if (status === "cooldown" && current && !["loading", "cooldown"].includes(current)) return;
+    card?.setAttribute("data-ai-status", status);
+  };
   if (!smartSummary) { setStatus("engine_unavailable"); return; }
   if (Date.now() < summaryAiUnavailableUntil) { setStatus("cooldown"); return; }
   if (summaryAiInFlight === context.contextHash) return;
