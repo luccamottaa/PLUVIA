@@ -156,7 +156,15 @@ Deno.serve(async (req) => {
     });
     return json(req, { available: true, cached: false, summary });
   } catch (error) {
-    console.error("smart-summary failed", { code: error instanceof Error ? error.message : "unknown" });
-    return json(req, { available: false, reason: "generation_failed" });
+    const code = error instanceof Error ? error.message : "unknown";
+    console.error("smart-summary failed", { code });
+    const reason = code === "provider_401" ? "provider_auth_failed"
+      : code === "provider_429" ? "provider_rate_limited"
+      : code === "provider_400" ? "provider_request_invalid"
+      : code === "provider_404" ? "provider_model_unavailable"
+      : code === "provider_empty" || code === "invalid_generated_summary" ? "provider_invalid_output"
+      : code.startsWith("provider_5") || code === "TimeoutError" ? "provider_unavailable"
+      : "generation_failed";
+    return json(req, { available: false, reason });
   }
 });

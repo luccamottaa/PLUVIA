@@ -20,6 +20,10 @@ test('a cascata final força uma coluna e corrige a margem do gráfico', () => {
   assert.match(finalContract, /@media \(max-width:820px\)[\s\S]*?\.dashboard-grid\s*\{\s*grid-template-columns:minmax\(0,1fr\)/);
   assert.match(finalContract, /@media \(max-width:720px\)[\s\S]*?\.rain-chart\s*\{\s*margin-inline:0/);
   assert.doesNotMatch(css, /overflow-x\s*:\s*hidden/);
+  assert.match(css, /\.card-topline > \*[^}]*min-width:0/);
+  assert.match(css, /\.insight-card \.signal\s*\{[^}]*white-space:normal/);
+  assert.match(css, /margin-left:max\(14px,env\(safe-area-inset-left\)\)/);
+  assert.match(css, /margin-right:max\(14px,env\(safe-area-inset-right\)\)/);
 });
 
 test('todos os breakpoints de aceitação preservam largura positiva e contida', () => {
@@ -37,4 +41,12 @@ test('Resumo Inteligente tem altura por conteúdo e timeline tem scroll interno'
   assert.match(finalContract, /\.insight-card\s*\{[^}]*min-height:0\s*!important;[^}]*height:auto/);
   assert.match(finalContract, /\.rain-chart\s*\{[^}]*overflow-x:auto/);
   assert.match(html, /MODELO DE PRECIPITAÇÃO · PREVISÃO ANIMADA/);
+  assert.match(finalContract, /\.summary-highlights li[^}]*white-space:normal/);
+  assert.match(finalContract, /\.summary-link\s*\{\s*white-space:normal/);
+});
+
+test('não usa 100vw nos cards da Home nem mascara overflow global', () => {
+  const homeRules = css.replace(/\.weather-map-dialog\{[^}]*\}/g, '');
+  assert.doesNotMatch(homeRules, /(?:current-card|insight-card|go-out-card|dashboard-grid)[^{]*\{[^}]*100vw/i);
+  assert.doesNotMatch(css, /(?:html|body)[^{]*\{[^}]*overflow-x\s*:\s*hidden/i);
 });

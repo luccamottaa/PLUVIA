@@ -30,5 +30,8 @@ test('mantém fallback imediato e só aplica IA validada ao contexto atual', () 
   assert.match(app, /data-ai-status/);
   assert.match(edge, /validSummary\(generated, context\)/);
   assert.match(edge, /provider_not_configured/);
+  assert.match(edge, /provider_auth_failed/);
+  assert.match(edge, /provider_rate_limited/);
+  assert.match(edge, /provider_request_invalid/);
   assert.match(edge, /store: false/);
 });

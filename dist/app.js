@@ -78,6 +78,7 @@ async function fetchForecast(city = activeCity, revision = cityRevision) {
 }
 
 const weatherIcons = globalThis.PLUVIA?.weatherIcons;
+weatherIcons?.hydrate?.(document);
 const smartSummary = globalThis.PLUVIA?.smartSummary;
 const weather = code => [weatherIcons?.condition(code).label || "Tempo variável"];
 
@@ -312,9 +313,18 @@ function renderGoOut(forecast = displayedWeather?.forecast, air = displayedWeath
     weather: globalThis.PLUVIA?.sources?.get('weather')?.status
   };
   const result = globalThis.PLUVIA?.signal?.evaluate({forecast,air,aqi:air?.current?.us_aqi,start:forecast?.hourly?.time?.length ? selectCurrentHour(forecast.hourly.time) : 0,officialSeverity:official,sourceStatus}) || {level:'unknown',label:'Sem leitura',summary:'Os dados necessários estão temporariamente indisponíveis.',confidence:'low',factors:[]};
-  const emoji = {good:'🟢',attention:'🟡',wait:'🟠',danger:'🔴',unknown:'⚪'}[result.level] || '⚪';
   card.dataset.level = result.level;
-  $("goOutTitle").textContent = `${emoji} ${result.label}`;
+  const title = $("goOutTitle");
+  title.textContent = "";
+  const code = forecast?.current?.weather_code;
+  const isDay = forecast?.current?.is_day !== 0;
+  const signalIcon = Number.isFinite(Number(code))
+    ? weatherIcons?.markup?.(code, isDay, {className:"signal-weather-icon", size:32})
+    : weatherIcons?.markupName?.("weather-unknown", {className:"signal-weather-icon", size:32});
+  if (signalIcon) title.insertAdjacentHTML("afterbegin", signalIcon);
+  const label = document.createElement("span");
+  label.textContent = result.label;
+  title.appendChild(label);
   $("goOutReason").textContent = result.summary;
   const list = $("goOutFactors");
   if (list) {
@@ -691,7 +701,7 @@ function renderForecast(daily) {
       <div class="forecast-day"><strong>${day}${weekend ? " · fim de semana" : ""}</strong><span>${label}${i === bestIndex ? " · melhor dia pra rolê" : ""}</span></div>
       <div class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></div>
       <div class="temp-range" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus"><strong>${fmt(min)}°</strong><div class="temp-track"><span style="width:${width}%"></span></div><strong>${fmt(max)}°</strong></div>
-      <div class="forecast-rain"><span>${weatherIcons.markup(61, true, {className:"rain-metric-icon"})}</span><span>${rainProb}% · ${fmt(rainMm, 1)} mm</span></div>
+      <div class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span>${rainProb}% · ${fmt(rainMm, 1)} mm</span></div>
       <div class="forecast-uv">${reading} · UV ${fmt(daily.uv_index_max[i], 0)}</div>
     </div>`;
   }).join("");

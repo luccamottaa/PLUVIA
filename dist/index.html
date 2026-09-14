@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-49" />
+    <link rel="stylesheet" href="./styles.css?v=core-53" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -159,11 +159,11 @@
         <div class="notification-prompt-icon" aria-hidden="true">🔔</div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Receba avisos que realmente importam</h2><p id="notificationPromptText">O PLUVIA pode avisar sobre chuva forte, tempestades e alertas oficiais mesmo quando estiver fechado.</p></div><button id="notificationPromptButton" type="button">Ativar alertas</button>
       </section>
       <section class="metrics" aria-label="Detalhes meteorológicos">
-        <article class="metric panel card-detail"><span>UMIDADE</span><strong id="humidity">--<sup>%</sup></strong><small id="humidityNote">—</small></article>
-        <article class="metric wind-metric panel card-detail"><span>VENTO</span><div class="wind-reading"><strong id="wind">--<sup> km/h</sup></strong><span class="wind-compass" id="windCompass" role="img" aria-label="Direção do vento indisponível"><i aria-hidden="true"></i></span></div><small id="windNote">—</small></article>
-        <article class="metric panel card-detail"><span>PRESSÃO</span><strong id="pressure">----<sup> hPa</sup></strong><small id="pressureNote">—</small></article>
-        <article class="metric uv-metric panel card-detail"><span>ÍNDICE UV</span><strong id="uv">--</strong><small id="uvNote">—</small></article>
-        <article class="metric panel air-metric card-secondary"><span>QUALIDADE DO AR</span><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small></article>
+        <article class="metric panel card-detail"><div class="metric-head"><span>UMIDADE</span><span data-weather-icon-name="humidity"></span></div><strong id="humidity">--<sup>%</sup></strong><small id="humidityNote">—</small></article>
+        <article class="metric wind-metric panel card-detail"><div class="metric-head"><span>VENTO</span><span data-weather-icon-name="wind-speed"></span></div><div class="wind-reading"><strong id="wind">--<sup> km/h</sup></strong><span class="wind-compass" id="windCompass" role="img" aria-label="Direção do vento indisponível"><i aria-hidden="true"></i></span></div><small id="windNote">—</small></article>
+        <article class="metric panel card-detail"><div class="metric-head"><span>PRESSÃO</span><span data-weather-icon-name="pressure"></span></div><strong id="pressure">----<sup> hPa</sup></strong><small id="pressureNote">—</small></article>
+        <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>ÍNDICE UV</span><span data-weather-icon-name="uv-index"></span></div><strong id="uv">--</strong><small id="uvNote">—</small></article>
+        <article class="metric panel air-metric card-secondary"><div class="metric-head"><span>QUALIDADE DO AR</span><span data-weather-icon-name="air-quality"></span></div><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small></article>
       </section>
       <section class="alerts-section section-block" id="alertas">
         <div class="section-heading"><div><span class="section-index">01</span><h2>Alertas e saúde</h2></div><p id="alertsCityLabel">Fontes oficiais</p></div>
@@ -201,7 +201,7 @@
       </section>
       </div>
     </main>
-    <footer class="shell"><div><p>PLUVIA · O céu de cada cidade.</p></div><p>Clima: Open-Meteo<br>Alertas: INMET · Defesa Civil Manaus e canal nacional<br>Ícones: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> · SIL OFL 1.1<br><button id="openSources" class="footer-link" type="button">Fontes de dados</button></p></footer>
+    <footer class="shell"><div><p>PLUVIA · O céu de cada cidade.</p></div><p>Clima: Open-Meteo<br>Alertas: INMET · Defesa Civil Manaus e canal nacional<br>Ícones: PLUVIA Glossy · <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> como fallback · SIL OFL 1.1<br><button id="openSources" class="footer-link" type="button">Fontes de dados</button></p></footer>
     <section class="sobre shell" id="sobre"><h2>Sobre</h2><p>PLUVIA — olha o céu antes de sair. Feito no Norte.</p><p>Números do Open-Meteo (ponto do município), avisos do INMET, Defesa Civil de Manaus e orientação da Defesa Civil Nacional. Municípios: IBGE, com coordenadas sob licença MIT.</p></section>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Não deu pra consultar agora.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
@@ -221,9 +221,10 @@
     <script src="./modules/sources.js?v=core-47"></script>
     <script src="./modules/signal.js?v=core-47"></script>
     <script src="./modules/weather-icons.js?v=core-49"></script>
+    <script src="./modules/weather-icon-system.js?v=glossy-1"></script>
     <script src="./modules/smart-summary.js?v=core-49"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-52"></script>
+    <script src="./app.js?v=core-53"></script>
     <script src="./p0.js?v=core-47"></script>
     <script src="./modules/risks.js?v=core-47"></script>
     <script src="./modules/adapters.js?v=core-47"></script>
