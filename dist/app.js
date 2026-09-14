@@ -1,4 +1,4 @@
-const FORECAST_TEMPLATE = "https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,cloud_cover,visibility,wind_speed_10m,wind_gusts_10m,relative_humidity_2m,pressure_msl,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&timezone=America%2FManaus&forecast_days=8";
+const FORECAST_TEMPLATE = "https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,cloud_cover,visibility,wind_speed_10m,wind_gusts_10m,relative_humidity_2m,pressure_msl,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&timezone=America%2FManaus&past_hours=24&forecast_days=8";
 const AIR_TEMPLATE = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-3.119&longitude=-60.022&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi&timezone=America%2FManaus&forecast_days=3";
 const INMET_API = "https://apiprevmet3.inmet.gov.br/avisos/ativos";
 const DEFESA_API = "https://www.manaus.am.gov.br/wp-json/wp/v2/posts?search=Defesa%20Civil%20alerta&per_page=8&_fields=date,link,title,excerpt";
@@ -81,6 +81,7 @@ const weatherIcons = globalThis.PLUVIA?.weatherIcons;
 weatherIcons?.hydrate?.(document);
 const smartSummary = globalThis.PLUVIA?.smartSummary;
 const weatherData = globalThis.PLUVIA?.weatherData;
+const weatherInsights = globalThis.PLUVIA?.weatherInsights;
 const weather = code => [weatherIcons?.condition(code).label || "Tempo variável"];
 
 function weatherIconType(code) {
@@ -746,6 +747,53 @@ function formatUpdateTime(at) {
   return new Intl.DateTimeFormat('pt-BR',{timeZone:activeCity?.timezone || 'UTC',hour:'2-digit',minute:'2-digit'}).format(at);
 }
 
+
+function clearWeatherInsights() {
+  ["yesterdayComparison","feelsLikeNote","uvNote","rainPhraseMeta"].forEach(id => {
+    const node = $(id);
+    if (node) node.textContent = "";
+  });
+  const highlights = $("contextHighlights");
+  if (highlights) highlights.textContent = "";
+  const explanation = $("weatherExplanation");
+  if (explanation) explanation.hidden = true;
+  const reasons = $("weatherExplanationList");
+  if (reasons) reasons.textContent = "";
+}
+
+function renderWeatherInsights(data, air, start) {
+  if (!weatherInsights?.build) return;
+  const insight = weatherInsights.build({forecast:data, air, start, timezone:activeCity?.timezone});
+  const comparison = $("yesterdayComparison");
+  if (comparison) {
+    comparison.textContent = insight.comparison || "";
+    comparison.hidden = !insight.comparison;
+  }
+  if ($("feelsLikeNote") && insight.feelsLike) $("feelsLikeNote").textContent = insight.feelsLike;
+  if ($("uvNote") && insight.uv?.label) $("uvNote").textContent = insight.uv.label;
+  const highlights = $("contextHighlights");
+  if (highlights) {
+    highlights.textContent = "";
+    (insight.highlights || []).slice(0, 3).forEach(label => {
+      const item = document.createElement("li");
+      item.textContent = label;
+      highlights.appendChild(item);
+    });
+  }
+  const explanation = $("weatherExplanation");
+  const reasons = $("weatherExplanationList");
+  if (explanation && reasons) {
+    reasons.textContent = "";
+    (insight.reasons || []).forEach(reason => {
+      const item = document.createElement("li");
+      item.textContent = reason;
+      reasons.appendChild(item);
+    });
+    explanation.hidden = !reasons.childElementCount;
+  }
+  if ($("rainPhraseMeta") && insight.rain?.meta) $("rainPhraseMeta").textContent = insight.rain.meta;
+}
+
 function markWeatherUnavailable(hasSavedData) {
   setDataStatus(hasSavedData ? "Dados salvos · conexão indisponível" : "Conexão indisponível", true);
   $("attentionCard").classList.remove("ok", "warning", "danger");
@@ -760,6 +808,7 @@ function markWeatherUnavailable(hasSavedData) {
   $("summaryLink").textContent = "Tentar novamente na previsão →";
   $("windCompass").style.setProperty("--wind-deg", "0deg");
   $("windCompass").setAttribute("aria-label", "Direção do vento indisponível");
+  if (!hasSavedData) clearWeatherInsights();
 }
 
 function dataAge(at) {
@@ -771,9 +820,13 @@ function dataAge(at) {
 }
 
 function render(data, air, fromCache = false, cacheAt = 0) {
-  weatherData?.ingestOpenMeteo(data, air, activeCity, {
-    checkedAt: cacheAt || Date.now(), freshness: fromCache ? "stale" : "current"
-  });
+  try {
+    weatherData?.ingestOpenMeteo(data, air, activeCity, {
+      checkedAt: cacheAt || Date.now(), freshness: fromCache ? "stale" : "current"
+    });
+  } catch {
+    // A camada de interpretação nunca pode impedir a previsão principal.
+  }
   const current = data.current; const day = data.daily; const start = selectCurrentHour(data.hourly.time); const [condition] = weather(current.weather_code);
   $("temperature").textContent = fmt(current.temperature_2m); $("feelsLike").textContent = `${fmt(current.apparent_temperature)}°`;
   const heatGap = current.apparent_temperature - current.temperature_2m;
@@ -796,7 +849,9 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   $("pm25").textContent = fmt(air?.current?.pm2_5, 1); $("pm10").textContent = fmt(air?.current?.pm10, 1); $("ozone").textContent = fmt(air?.current?.ozone, 1); $("airGuidance").textContent = airGuidance(airIndex);
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
   setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)} · ${activeCity.name}`, fromCache);
-  renderAttention(data, start, air); renderRain(data.hourly, start, day); renderForecast(day); renderSun(day); renderGoOut(data,air);
+  renderAttention(data, start, air); renderRain(data.hourly, start, day);
+  try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
+  renderForecast(day); renderSun(day); renderGoOut(data,air);
 }
 
 async function loadWeather(revision = cityRevision) {
@@ -961,7 +1016,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["temperature","feelsLike","condition","weatherGlyph","highLow","rainNow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","airScore","airCardQuality","pm25","pm10","ozone","airGuidance","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset"];
+const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","highLow","rainNow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","airScore","airCardQuality","pm25","pm10","ozone","airGuidance","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset"];
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;
@@ -1032,6 +1087,7 @@ function chooseCity(id, locatedCity = null) {
   cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
   $("attentionCard").classList.remove("ok","warning","danger","unavailable");
   $("summaryHighlights").innerHTML = "";
+  clearWeatherInsights();
   $("sunDot").style.left = "3%";
   $("sunDot").style.top = "74px";
   $("condition").textContent = "Buscando o céu de " + city.name + "…";

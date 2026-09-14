@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-53" />
+    <link rel="stylesheet" href="./styles.css?v=core-56" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -135,7 +135,8 @@
             </div>
             <div class="weather-glyph" id="weatherGlyph" aria-hidden="true"></div>
           </div>
-          <div class="current-bottom"><div><span>Sensação</span><strong id="feelsLike">--°</strong></div><div><span>Máx. / mín.</span><strong id="highLow">--° / --°</strong></div><div><span id="rainNowLabel">Chuva agora</span><strong id="rainNow">-- mm</strong></div></div>
+          <div class="current-bottom"><div><span>Sensação</span><strong id="feelsLike">--°</strong><small id="feelsLikeNote"></small></div><div><span>Máx. / mín.</span><strong id="highLow">--° / --°</strong></div><div><span id="rainNowLabel">Chuva agora</span><strong id="rainNow">-- mm</strong></div></div>
+          <p id="yesterdayComparison" class="yesterday-comparison" hidden></p>
           <p class="model-note">Referência do município, não da sua rua. Modelo Open-Meteo.</p>
         </article>
         <aside class="attention-card insight-card panel card-secondary" id="attentionCard" aria-labelledby="attentionTitle" aria-live="polite">
@@ -144,6 +145,8 @@
           <h2 id="attentionTitle">Analisando o tempo</h2>
           <p id="attentionText">Cruzando chuva das próximas horas.</p>
           <ul id="summaryHighlights" class="summary-highlights" aria-label="Destaques meteorológicos"></ul>
+          <ul id="contextHighlights" class="context-highlights" aria-label="Contexto das próximas horas"></ul>
+          <details id="weatherExplanation" class="weather-explanation" hidden><summary>Por que está assim?</summary><ul id="weatherExplanationList"></ul></details>
           <small id="attentionBasis">Leitura baseada nas próximas horas e nos avisos oficiais.</small>
           <a id="summaryLink" class="summary-link" href="#previsao">Ver previsão detalhada →</a>
         </aside>
@@ -220,12 +223,13 @@
     <script src="./analytics.js?v=analytics-2"></script>
     <script src="./modules/sources.js?v=core-47"></script>
     <script src="./modules/weather-data-layer.js?v=core-55"></script>
+    <script src="./modules/weather-insights.js?v=core-56"></script>
     <script src="./modules/signal.js?v=core-47"></script>
     <script src="./modules/weather-icons.js?v=core-49"></script>
     <script src="./modules/weather-icon-system.js?v=glossy-1"></script>
     <script src="./modules/smart-summary.js?v=core-49"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-53"></script>
+    <script src="./app.js?v=core-56"></script>
     <script src="./p0.js?v=core-47"></script>
     <script src="./modules/risks.js?v=core-47"></script>
     <script src="./modules/adapters.js?v=core-47"></script>
