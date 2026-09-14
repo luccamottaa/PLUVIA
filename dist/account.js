@@ -3,9 +3,14 @@
   const el = id => document.getElementById(id);
   const dialog = el('accountDialog');
   let clientPromise, mode = 'login', currentUser = null, busy = false, preferenceTimer, syncing = false;
+  let pendingPreferences = {};
   const message = text => { el('accountStatus').textContent = text; };
   const track = (name,properties) => window.pluviaAnalytics?.track(name,properties);
   function paint(user) {
+    if (currentUser?.id !== user?.id || !user) {
+      clearTimeout(preferenceTimer);
+      pendingPreferences = {};
+    }
     currentUser = user;
     const metadata = user?.user_metadata || {};
     const fullName = [metadata.name,metadata.full_name,metadata.display_name].find(value => typeof value === 'string' && value.trim()) || '';
@@ -45,9 +50,18 @@
   }
   function scheduleMetadata(patch) {
     if (!currentUser || syncing) return;
+    pendingPreferences = {...pendingPreferences, ...patch};
+    const ownerId = currentUser.id;
     clearTimeout(preferenceTimer);
     preferenceTimer=setTimeout(async()=>{
-      try { const client=await getClient(); const {error}=await client.auth.updateUser({data:patch}); if(error) throw error; }
+      const data = pendingPreferences;
+      pendingPreferences = {};
+      try {
+        const client=await getClient();
+        if (!currentUser || currentUser.id !== ownerId) return;
+        const {error}=await client.auth.updateUser({data});
+        if(error) throw error;
+      }
       catch { message('Preferência salva neste aparelho, mas a sincronização da conta falhou agora.'); }
     },450);
   }
