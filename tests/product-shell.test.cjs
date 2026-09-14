@@ -28,7 +28,7 @@ assert.match(app, /Volume previsto sozinho não vira alerta/);
 assert.match(app, /Defesa Civil Nacional/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-core-54/);
+assert.match(sw, /pluvia-core-55/);
 assert.match(html, /viewport-fit=cover/);
 assert.match(html, /styles\.css\?v=core-53/);
 assert.match(html, /modules\/weather-icon-system\.js\?v=glossy-1/);
@@ -48,5 +48,9 @@ assert.match(app, /hour-temp/);
 assert(manifest.icons.some(icon => icon.sizes === '192x192' && icon.purpose === 'any'));
 assert(manifest.icons.some(icon => icon.sizes === '512x512' && icon.purpose === 'any'));
 assert(manifest.icons.some(icon => icon.sizes === '512x512' && icon.purpose === 'maskable'));
+assert(manifest.icons.some(icon => icon.sizes === '192x192' && icon.purpose === 'maskable'));
+assert.equal(manifest.background_color, '#ffffff');
+assert.match(html, /apple-touch-icon-180\.png/);
+assert.match(html, /modules\/weather-data-layer\.js\?v=core-55/);
 
 console.log('PASS product shell: public first paint, 1.5 s fallback, lazy municipalities, honest point data and versioned offline shell.');

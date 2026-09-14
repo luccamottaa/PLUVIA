@@ -80,6 +80,7 @@ async function fetchForecast(city = activeCity, revision = cityRevision) {
 const weatherIcons = globalThis.PLUVIA?.weatherIcons;
 weatherIcons?.hydrate?.(document);
 const smartSummary = globalThis.PLUVIA?.smartSummary;
+const weatherData = globalThis.PLUVIA?.weatherData;
 const weather = code => [weatherIcons?.condition(code).label || "Tempo variável"];
 
 function weatherIconType(code) {
@@ -770,6 +771,9 @@ function dataAge(at) {
 }
 
 function render(data, air, fromCache = false, cacheAt = 0) {
+  weatherData?.ingestOpenMeteo(data, air, activeCity, {
+    checkedAt: cacheAt || Date.now(), freshness: fromCache ? "stale" : "current"
+  });
   const current = data.current; const day = data.daily; const start = selectCurrentHour(data.hourly.time); const [condition] = weather(current.weather_code);
   $("temperature").textContent = fmt(current.temperature_2m); $("feelsLike").textContent = `${fmt(current.apparent_temperature)}°`;
   const heatGap = current.apparent_temperature - current.temperature_2m;

@@ -1,5 +1,24 @@
 # Auditoria de produto — 10/09/2026
 
+## Expansão inteligente — Fundação — 14/09/2026
+
+### Diagnóstico classificado
+
+- **P0:** nenhum bloqueio crítico confirmado. A Home pública abriu sem sobreposição no desktop auditado e apresentou `scrollWidth` igual a `clientWidth` (1348 px). A suíte completa permaneceu verde.
+- **P1:** os componentes ainda consumiam diretamente nomes de campos do Open-Meteo; isso acoplava Resumo, histórico, alertas e futuros provedores ao contrato externo. Foi criada uma camada normalizada incremental, mantendo compatibilidade com a UI atual.
+- **P2:** o ícone instalável contradizia a nova especificação: símbolo multicolorido, versão maskable com fundo azul-claro e Apple Touch apontando para o logo transparente. Todos foram substituídos por fundo branco puro e símbolo no azul oficial, com área segura e master versionado.
+- **P3:** histórico, comparação com ontem, Meu Dia, favoritos sincronizados e PLUVIA AI dependem de migrations, retenção e UX próprias; não entram na Fundação para evitar componentes incompletos.
+
+### Saúde dos fluxos auditados
+
+1. **Home pública — saudável.** Condição atual, Resumo Inteligente e PLUVIA Sinal carregaram no fluxo normal; não houve overflow horizontal no viewport desktop disponível.
+2. **Dados meteorológicos — saudável com migração incremental.** Open-Meteo e CAMS continuam sendo consultados com timeout, retry limitado e cache local explícito. `PLUVIA.weatherData` agora normaliza fonte, localização, fuso, unidades, atual, horário, diário e ar.
+3. **Supabase — saudável.** Projeto ativo; sete tabelas públicas com RLS habilitado; quatro Edge Functions ativas. Os índices recém-criados aparecem como não usados, aviso informativo esperado com baixo volume inicial.
+4. **PWA — saudável no contrato estático.** Manifest standalone válido, fundo branco, ícones any/maskable 192 e 512, Apple Touch 180 e favicon 32. O SW core-55 referencia 68 arquivos locais existentes e mantém APIs/Auth fora do cache.
+5. **Limites — validação física pendente.** O navegador remoto não expôs Service Worker nem redimensionamento de viewport. Instalação real, máscaras do launcher, splash gerada pelo sistema e safe areas continuam exigindo conferência em iPhone e Android físicos após a publicação da fase.
+
+Captura da auditoria: `pluvia-audit-01-home-current.jpg` (Home publicada antes das alterações da Fundação).
+
 ## Rodada pós-produção — 13/09/2026
 
 ### Diagnóstico classificado
