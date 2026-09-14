@@ -6,7 +6,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const finite = value => Number.isFinite(Number(value));
+  const finite = value => value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
   const number = value => finite(value) ? Number(value) : null;
   const round = (value, digits = 0) => {
     const factor = 10 ** digits;

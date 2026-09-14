@@ -49,6 +49,7 @@ function fixture() {
   assert.equal(result.comparison, '');
   assert.equal(result.rain, null);
   assert.deepEqual(result.highlights, []);
+  assert.equal(insights.feelsLike({temperature_2m:null,apparent_temperature:null}), null);
 }
 
 console.log('PASS weather insights: ontem, sensação, UV, chuva e ausência de dados.');
