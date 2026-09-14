@@ -19,9 +19,15 @@ test('limita a 20 locais e rejeita entradas inválidas',()=>{
  assert.throws(()=>places.upsert([],{}),/invalid/);
  assert.equal(places.upsert(all,{...entry,name:'Novo'}).length,20);
 });
+test('gera identificador compatível mesmo sem randomUUID',()=>{
+ const id=places.makeId({crypto:{getRandomValues(array){array.fill(7);return array;}}});
+ assert.match(id,/^local-[a-f0-9]{32}$/);
+ assert.match(places.makeId({}),/^local-[a-z0-9]+-[a-z0-9]+$/);
+});
 test('integra formulário acessível, cache e escrita segura',()=>{
  const html=fs.readFileSync('dist/index.html','utf8'),sw=fs.readFileSync('dist/sw.js','utf8'),source=fs.readFileSync('dist/saved-places.js','utf8');
  assert.match(html,/id="savedPlacesForm"/);assert.match(html,/for="savedPlaceName"/);
  assert.ok(html.includes('saved-places.js?v=core-59'));assert.ok(sw.includes('saved-places.js?v=core-59'));
  assert.doesNotMatch(source,/innerHTML/);assert.match(source,/owner !== requestedOwner/);
+ assert.match(source,/await ensureCityDetails\(item\.cityId\)/);
 });
