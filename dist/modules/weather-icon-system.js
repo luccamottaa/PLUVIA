@@ -38,6 +38,10 @@
     }),
     astronomy: Object.freeze({}), maps: Object.freeze({}), alerts: Object.freeze({}), status: Object.freeze({}), fallback: Object.freeze({})
   });
+  const ASSET_ALIASES = Object.freeze({
+    "few-clouds-day":"partly-cloudy-day",
+    "few-clouds-night":"partly-cloudy-night"
+  });
   const LABELS = Object.freeze({
     temperature:"Temperatura", "feels-like":"Sensação térmica", "temperature-high":"Temperatura máxima", "temperature-low":"Temperatura mínima", humidity:"Umidade",
     "dew-point":"Ponto de orvalho", pressure:"Pressão atmosférica", visibility:"Visibilidade", "wind-speed":"Velocidade do vento", "wind-gust":"Rajadas de vento",
@@ -71,7 +75,8 @@
     return "weather-unknown";
   }
   function findAsset(name) {
-    for (const [category, entries] of Object.entries(ASSETS)) if (entries[name]) return { name, category, file:entries[name], src:`${BASE}${category}/${entries[name]}`, source:"pluvia-glossy" };
+    const resolvedName = ASSET_ALIASES[name] || name;
+    for (const [category, entries] of Object.entries(ASSETS)) if (entries[resolvedName]) return { name, resolvedName, category, file:entries[resolvedName], src:`${BASE}${category}/${entries[resolvedName]}`, source:"pluvia-glossy" };
     const legacy = LEGACY_FALLBACKS[name] || LEGACY_FALLBACKS["weather-unknown"];
     return { name, category:"fallback", file:legacy, src:`${LEGACY_BASE}${legacy}`, source:"weathericons-fallback" };
   }
@@ -96,5 +101,5 @@
     });
   }
   function isDayAt(iso,sunrise,sunset) { const value=Date.parse(iso), rise=Date.parse(sunrise), set=Date.parse(sunset); return Number.isFinite(value)&&Number.isFinite(rise)&&Number.isFinite(set) ? value>=rise&&value<set : true; }
-  return { ASSETS, CONDITIONS, LABELS, condition, conditionIconName, assetFor, findAsset, icon, namedIcon, markup, markupName, hydrate, isDayAt };
+  return { ASSETS, ASSET_ALIASES, CONDITIONS, LABELS, condition, conditionIconName, assetFor, findAsset, icon, namedIcon, markup, markupName, hydrate, isDayAt };
 });

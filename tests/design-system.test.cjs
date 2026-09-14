@@ -36,5 +36,7 @@ assert.match(css, /@media \(max-width:720px\)/);
 assert.match(css, /@media \(prefers-color-scheme: dark\)/);
 assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 assert.match(css, /\.metric:hover \{ transform:none; box-shadow:none; \}/);
+assert.match(css, /\.rain-chart \.hour-column \{[\s\S]*grid-template-rows:26px 28px 155px 30px 46px/);
+assert.match(css, /\.error-toast \{[\s\S]*visibility:hidden;[\s\S]*translateY\(calc\(100% \+ 80px\)\)/);
 
 console.log('PASS Design System: tokens, hierarchy, atmosphere, wind, hourly temperature, dark mode, mobile and reduced motion.');

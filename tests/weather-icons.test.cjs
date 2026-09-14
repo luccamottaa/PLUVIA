@@ -7,6 +7,9 @@ const icons = require('../dist/modules/weather-icon-system.js');
 test('mapeia códigos WMO e respeita variantes de dia e noite', () => {
   assert.equal(icons.assetFor(0, true), 'clear-day.png');
   assert.equal(icons.assetFor(0, false), 'clear-night.png');
+  assert.equal(icons.assetFor(1, true), 'partly-cloudy-day.png');
+  assert.equal(icons.assetFor(1, false), 'partly-cloudy-night.png');
+  assert.equal(icons.icon(1, true).source, 'pluvia-glossy');
   assert.equal(icons.assetFor(2, true), 'partly-cloudy-day.png');
   assert.equal(icons.assetFor(2, false), 'partly-cloudy-night.png');
   assert.equal(icons.assetFor(45, true), 'fog.png');

@@ -1187,3 +1187,46 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
   .weather-visual { width:76px !important; height:74px !important; }
   .summary-highlights li { width:100%; border-radius:14px; }
 }
+
+
+/* Mobile rain timeline: reserve the real glossy icon height and keep rows isolated. */
+.rain-chart .hour-column {
+  grid-template-rows:26px 28px 155px 30px 46px;
+  row-gap:4px;
+  align-items:center;
+}
+.rain-chart .bar-area { align-self:end; }
+.rain-chart .rain-mm {
+  align-self:center;
+  padding-top:0;
+  white-space:nowrap;
+  line-height:1.2;
+}
+.rain-chart .hour-icon {
+  display:grid;
+  place-items:center;
+  min-width:0;
+  min-height:44px;
+  align-self:start;
+}
+.rain-chart .hourly-weather-icon {
+  width:34px;
+  height:34px;
+  margin:auto;
+}
+
+/* A translated fixed toast could leave a red strip above the iOS safe area. */
+.error-toast {
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translateY(calc(100% + 80px));
+  transition:transform .3s,opacity .2s,visibility 0s linear .3s;
+}
+.error-toast.show {
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  transform:translateY(0);
+  transition-delay:0s;
+}

@@ -132,3 +132,19 @@ Não houve login com credencial real nem aceite de permissão de localização. 
 - sintaxe JavaScript verificada;
 - referências do precache verificadas;
 - nenhuma migration ou alteração de autenticação/Supabase nesta fase.
+
+
+## Correção visual mobile — 14/09/2026 — core-57
+
+### Achados
+
+- **P1:** a timeline reservava 22 px para ícones horários glossy de 38 px; o ícone invadia a linha de volume.
+- **P1:** o toast fixo era ocultado apenas com `translateY(130%)`; no iPhone, o `safe-area-inset-bottom` podia manter uma faixa vermelha visível.
+- **P2:** o código WMO 1 buscava assets `few-clouds-*` ainda pendentes e caía no WeatherIcons azul, quebrando a consistência glossy.
+
+### Correções
+
+- linhas da timeline agora reservam 46 px para o ícone, com separação explícita entre temperatura, gráfico, volume e condição;
+- toast oculto passa a usar visibilidade, opacidade e deslocamento que inclui folga para a safe area;
+- WMO 1 usa semanticamente o asset glossy de parcialmente nublado já existente, sem duplicar arquivo;
+- release do shell atualizado para `core-57` e iconografia para `glossy-2`.
