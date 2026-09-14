@@ -1230,3 +1230,18 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
   transform:translateY(0);
   transition-delay:0s;
 }
+
+/* Named places: scoped to the city dialog, no extra Home cards. */
+.saved-places { border-top:1px solid var(--line); margin-top:16px; padding-top:16px; min-width:0; }
+.saved-places p { color:var(--muted); font-size:.8rem; overflow-wrap:anywhere; }
+.saved-places form { display:grid; gap:8px; min-width:0; }
+.saved-places input { width:100%; min-width:0; box-sizing:border-box; min-height:44px; font-size:16px; padding:10px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:12px; }
+.saved-places button { min-height:44px; padding:8px 10px; border:1px solid var(--line); border-radius:12px; background:var(--panel); color:var(--text); cursor:pointer; white-space:normal; overflow-wrap:anywhere; }
+.saved-places form > div { display:flex; flex-wrap:wrap; gap:8px; }
+#savedPlacesList { list-style:none; padding:0; margin:12px 0 0; }
+.saved-place-row { display:flex; flex-wrap:wrap; gap:8px; padding:10px 0; border-top:1px solid var(--line); min-width:0; }
+.saved-place-row > button:first-child { flex:1 1 100%; text-align:left; min-width:0; }
+.saved-place-row strong,.saved-place-row span { display:block; overflow-wrap:anywhere; }
+.saved-place-row span { color:var(--muted); font-size:.8rem; }
+.saved-places [hidden] { display:none; }
+.saved-places button:disabled { opacity:.6; cursor:wait; }

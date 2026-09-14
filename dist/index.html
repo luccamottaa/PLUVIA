@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-57" />
+    <link rel="stylesheet" href="./styles.css?v=core-59" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -66,6 +66,18 @@
         <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
         <button id="locateCity" class="city-button" type="button">Usar localização</button>
         <p id="cityPickerStatus" role="status" aria-live="polite"></p>
+      </section>
+      <section class="saved-places" aria-labelledby="savedPlacesTitle">
+        <h3 id="savedPlacesTitle">Meus locais</h3>
+        <p id="savedPlacesMode"></p>
+        <p>Os apelidos usam a previsão da cidade, não do endereço. Locais na mesma cidade compartilham os mesmos dados.</p>
+        <form id="savedPlacesForm">
+          <label for="savedPlaceName">Nome do local</label>
+          <input id="savedPlaceName" maxlength="40" required placeholder="Casa, Faculdade, Trabalho…" autocomplete="off">
+          <div><button id="savedPlaceSave" type="submit">Salvar cidade atual</button><button id="savedPlaceCancel" type="button" hidden>Cancelar</button></div>
+        </form>
+        <p id="savedPlacesStatus" role="status" aria-live="polite"></p>
+        <ul id="savedPlacesList" aria-label="Locais salvos"></ul>
       </section>
       </dialog>
       <dialog id="accountDialog" class="city-dialog account-dialog" aria-labelledby="accountTitle">
@@ -235,6 +247,7 @@
     <script src="./modules/adapters.js?v=core-47"></script>
     <script src="./weather-map.js?v=core-47"></script>
     <script src="./account.js?v=core-58" defer></script>
+    <script src="./saved-places.js?v=core-59" defer></script>
     <script src="./notifications.js?v=push-2" defer></script>
     <!-- release core-54: safe-area + glossy icons -->\n    <!-- pages release core-54 -->\n  </body>
 </html>
