@@ -6,6 +6,14 @@
   "use strict";
   const MAX = 20;
   const clean = (value, max) => typeof value === "string" ? value.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0,max) : "";
+  function makeId(runtime) {
+    if (typeof runtime?.crypto?.randomUUID === "function") return runtime.crypto.randomUUID();
+    if (typeof runtime?.crypto?.getRandomValues === "function") {
+      const bytes = runtime.crypto.getRandomValues(new Uint8Array(16));
+      return "local-" + Array.from(bytes, value => value.toString(16).padStart(2,"0")).join("");
+    }
+    return "local-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,12);
+  }
   function normalize(value) {
     if (!Array.isArray(value)) return [];
     const seen = new Set(), result = [];
@@ -77,6 +85,19 @@
         if (owner===requestedOwner) status("Não foi possível salvar. Seus locais anteriores foram mantidos; tente novamente.");
       } finally {busy=false;paint();}
     }
+    async function openPlace(item) {
+      if (busy || typeof chooseCity !== "function") return;
+      busy=true;status("Abrindo "+item.cityName+"…");paint();
+      try {
+        const city = typeof ensureCityDetails === "function" ? await ensureCityDetails(item.cityId) : null;
+        if (city) chooseCity(city.id,city);
+        else chooseCity(item.cityId);
+        if (typeof activeCity === "undefined" || activeCity?.id !== item.cityId) throw new Error("city");
+        status("");
+      } catch {
+        status("Não foi possível abrir esta cidade agora. Confira a conexão e tente novamente.");
+      } finally {busy=false;paint();}
+    }
     el("savedPlacesForm").addEventListener("submit",event=>{
       event.preventDefault();if(busy)return;
       const name=clean(el("savedPlaceName").value,40);
@@ -85,7 +106,7 @@
       if (!name) {status("Digite um nome para o local.");return;}
       if (!previous && !city) {status("Escolha uma cidade antes de salvar o local.");return;}
       const entry=previous ? {...previous,name} : {
-        id:root.crypto.randomUUID(),name,cityId:String(city.id),cityName:city.name,uf:city.uf
+        id:makeId(root),name,cityId:String(city.id),cityName:city.name,uf:city.uf
       };
       try {save(upsert(records,entry));} catch {status("Você pode salvar até 20 locais. Remova um para continuar.");}
     });
@@ -95,7 +116,7 @@
       const button=event.target.closest("button");if(!button)return;
       const id=button.dataset.placeOpen || button.dataset.placeEdit || button.dataset.placeRemove;
       const item=records.find(place=>place.id===id);if(!item)return;
-      if(button.dataset.placeOpen) {if(typeof chooseCity==="function")chooseCity(item.cityId);}
+      if(button.dataset.placeOpen) openPlace(item);
       else if(button.dataset.placeEdit) {
         editing=id;el("savedPlaceName").value=item.name;el("savedPlaceSave").textContent="Salvar nome";
         el("savedPlaceCancel").hidden=false;el("savedPlaceName").focus();
@@ -111,5 +132,5 @@
     });
     paint();
   }
-  return {MAX,normalize,upsert,mount};
+  return {MAX,normalize,upsert,makeId,mount};
 });
