@@ -128,7 +128,7 @@ Não houve login com credencial real nem aceite de permissão de localização. 
 
 ### Validação
 
-- 39 testes aprovados;
+- 36 testes aprovados;
 - sintaxe JavaScript verificada;
 - referências do precache verificadas;
 - nenhuma migration ou alteração de autenticação/Supabase nesta fase.
