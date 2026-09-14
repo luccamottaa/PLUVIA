@@ -28,7 +28,7 @@ assert.match(app, /Volume previsto sozinho não vira alerta/);
 assert.match(app, /Defesa Civil Nacional/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-core-53/);
+assert.match(sw, /pluvia-core-54/);\nassert.match(html, /viewport-fit=cover/);
 assert.match(html, /styles\.css\?v=core-53/);
 assert.match(html, /modules\/weather-icon-system\.js\?v=glossy-1/);
 assert.match(sw, /assets\/weather-icons\/conditions\/clear-day\.png/);
