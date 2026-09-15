@@ -171,7 +171,9 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   else if (savedId) ensureMunicipalities().then(() => {
     if (!activeCity && cityById.has(savedId)) chooseCity(savedId);
   }).catch(() => {});
-  else fallbackTimer = setTimeout(() => {
+  else {
+    if (typeof prefetchForecast === "function" && fallback) prefetchForecast(fallback);
+    fallbackTimer = setTimeout(() => {
     if (activeCity || !fallback) return;
     chooseCity(fallback.id);
     const notice = document.getElementById("locationNotice");
@@ -182,6 +184,7 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
     }
     locationMessage("Localização indisponível. Manaus entrou como referência; você pode trocar quando quiser.");
   }, 1500);
+  }
   const intro = document.getElementById("pluviaIntro");
   const seen = sessionStorage.getItem("pluvia-intro-seen");
   if (seen && intro) intro.hidden = true;

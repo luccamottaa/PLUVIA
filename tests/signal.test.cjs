@@ -20,6 +20,10 @@ assert.equal(evaluate({forecast:forecast(),start:0,officialSeverity:'red',source
 assert.equal(evaluate({forecast:forecast({rain:3,prob:80}),start:0,officialSeverity:'none',sourceStatus:ready,aqi:30}).level,'wait');
 assert.equal(evaluate({forecast:forecast({rain:6,prob:90}),start:0,officialSeverity:'none',sourceStatus:ready,aqi:30}).level,'danger');
 assert.equal(evaluate({forecast:forecast({prob:65,rain:.3}),start:0,officialSeverity:'none',sourceStatus:ready,aqi:30}).level,'attention');
+assert.equal(evaluate({forecast:forecast(),start:0,officialSeverity:'unknown',sourceStatus:{...ready,alerts:'error'},aqi:30}).level,'degraded');
 assert.equal(evaluate({forecast:forecast(),start:0,officialSeverity:'unknown',sourceStatus:{...ready,alerts:'error'},aqi:30}).confidence,'low');
+assert.equal(evaluate({forecast:forecast(),start:0,officialSeverity:'none',sourceStatus:{...ready,alerts:'error'},aqi:30}).level,'degraded');
+assert.equal(evaluate({forecast:forecast(),start:0,officialSeverity:'none',sourceStatus:ready,aqi:30,radar:{status:'ready',precipitating:true}}).level,'attention');
+assert.equal(evaluate({forecast:forecast({rain:6,prob:90}),start:0,officialSeverity:'none',sourceStatus:ready,aqi:30,radar:{status:'ready',precipitating:false}}).level,'danger');
 assert.equal(evaluate({}).level,'unknown');
-console.log('PASS PLUVIA Sinal: quatro estados, alertas oficiais, chuva, confiança e ausência de dados.');
+console.log('PASS PLUVIA Sinal: quatro estados, monitoramento incompleto, radar só eleva, confiança e ausência de dados.');

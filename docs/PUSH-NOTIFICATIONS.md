@@ -57,7 +57,7 @@ Para verificar o job, consultar `cron.job_run_details`, os logs de `push-process
 ## Limites meteorológicos
 
 - **Mudanças relevantes** está ativo e compara as próximas seis horas com a condição atual. Só cria evento para variação térmica relevante, transição para chuva ou aumento forte de rajadas; a mensagem identifica a origem como modelo e informa a incerteza.
-- **Chuva se aproximando** usa previsão horária do modelo. Não é radar nem nowcasting hiperlocal e, por isso, não promete minuto exato.
+- **Chuva nas próximas horas** usa previsão horária do modelo. Não é radar nem nowcasting hiperlocal e, por isso, não promete minuto exato.
 - **Raios** permanece indisponível até existir fonte observacional com API, cobertura, estabilidade e licença adequadas ao uso do PLUVIA. Código meteorológico de tempestade do modelo não é tratado como raio observado.
 
 ## Senhas

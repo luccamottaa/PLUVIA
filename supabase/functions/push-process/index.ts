@@ -101,8 +101,8 @@ function detectWeather(data: any, location: Location, now = new Date()) {
   const end2h = new Date(now.getTime() + 2 * 3_600_000), end3h = new Date(now.getTime() + 3 * 3_600_000);
 
   if (currentRain < 0.2 && next3h.slice(1, 3).some((row: any) => row.precipitation >= 0.5 && row.probability >= 60)) events.push({
-    type: "rain_approaching", severity: 2, title: "🌧️ Chuva se aproximando",
-    body: `Há indicação de chuva chegando à região de ${location.city_name} nas próximas horas. Vale levar guarda-chuva.`, source: "Open-Meteo · modelo",
+    type: "rain_approaching", severity: 2, title: "🌧️ Chuva nas próximas horas",
+    body: `O modelo indica chuva na região de ${location.city_name} nas próximas horas — não é radar nem minuto exato. Vale levar guarda-chuva.`, source: "Open-Meteo · modelo",
     start: now, expires: end2h, url: "./#chuva", fingerprintSeed: `rain_approaching|${location.city_id}|${bucket}|2`, metadata: { peak_probability: peakProbability, peak_mm_h: peakRain, confidence: "moderate" },
   });
   if (peakRain >= 5 && peakProbability >= 70) {

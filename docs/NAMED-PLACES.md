@@ -13,10 +13,13 @@ sob demanda antes da troca de previsão.
 Visitantes não são importados automaticamente e dados de conta não são copiados
 para o armazenamento de visitante. Nomes usam textContent.
 
+Cada registro leva `updatedAt`. Ao salvar numa conta, o PLUVIA lê a lista remota,
+une por id (o apelido mais recente prevalece) e só então grava. Remoções viram
+túmulos por 30 dias para não ressuscitar num segundo aparelho. Não há sync ao vivo.
+
 ## Limitações
-A última lista salva prevalece: edições simultâneas entre dispositivos podem
-sobrescrever alterações. Sem sincronização em tempo real e sem alertas por apelido.
-Nenhuma migration e nenhuma consulta meteorológica adicional.
-Teste visual em iPhone e autenticação real em dois dispositivos pendentes.
-Os testes automatizados verificam normalização, limite, renomeação e contratos,
+Sem alertas por apelido e sem resolução de conflito campo a campo além de
+`updatedAt`. Nenhuma migration e nenhuma consulta meteorológica adicional.
+Teste visual em iPhone e autenticação real em dois dispositivos ainda recomendados.
+Os testes automatizados verificam normalização, limite, merge e contratos,
 não substituem validação end-to-end ou visual.
