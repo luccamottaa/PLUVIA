@@ -22,7 +22,7 @@ test('exporta todos os ícones instaláveis nas dimensões declaradas', () => {
 });
 
 test('mantém fundo branco no padrão visual instalável', () => {
-  assert.equal(manifest.background_color, '#ffffff');
+  assert.equal(manifest.background_color, '#075dff');
   assert.ok(manifest.icons.some(icon => icon.purpose === 'any'));
   assert.ok(manifest.icons.some(icon => icon.purpose === 'maskable'));
 });
