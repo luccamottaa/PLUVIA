@@ -13,6 +13,8 @@ const sender = read('supabase/functions/push-send/index.ts');
 const processor = read('supabase/functions/push-process/index.ts');
 
 assert.match(html, /id="notificationPrompt"[\s\S]+id="notificationPromptButton"/);
+assert.match(html, /id="installPushDialog"/);
+assert.match(html, /id="notificationContinueNote"/);
 assert.match(html, /id="notificationPreferencesForm"/);
 assert.match(html, /id="notificationTest"/);
 assert.match(html, /id="notificationLocations"[\s\S]+id="notificationDevices"/);
@@ -24,6 +26,8 @@ assert.doesNotMatch(client, /new Notification\s*\(/, 'teste local não pode subs
 assert.match(client, /push-send[\s\S]+action: "test"/);
 assert.match(client, /display-mode: standalone/);
 assert.match(client, /adicione o PLUVIA à Tela de Início/i);
+assert.match(client, /setPendingEnable\(true\)/);
+assert.match(client, /saveAlertSetup/);
 assert.match(client, /Conexão segura[\s\S]+Service Worker[\s\S]+Web Push/);
 
 assert.match(worker, /addEventListener\("push"/);

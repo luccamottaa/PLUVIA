@@ -108,6 +108,7 @@
             <div class="notification-settings-head"><div><span class="eyebrow">CONFIGURAÇÕES</span><h3 id="notificationSettingsTitle">Notificações</h3></div><span id="notificationStatusBadge" class="notification-status is-off">Alertas desativados</span></div>
             <p id="notificationSupportNote">Verificando compatibilidade deste dispositivo…</p>
             <ul id="notificationDiagnostics" class="notification-diagnostics" aria-label="Diagnóstico de notificações"></ul>
+            <p id="notificationContinueNote" class="notification-continue" hidden>Conta conectada. Toque em <strong>Ativar alertas</strong> para o iPhone pedir permissão — precisa ser o seu toque.</p>
             <div class="notification-actions"><button id="notificationToggle" type="button">Ativar alertas</button><button id="notificationTest" type="button" hidden>Enviar notificação de teste</button></div>
             <form id="notificationPreferencesForm" class="alert-preferences">
               <fieldset><legend>Alertas</legend>
@@ -182,7 +183,7 @@
         <small id="goOutUpdated">É uma leitura orientativa do município, não uma garantia de segurança na sua rua.</small>
       </section>
       <section id="notificationPrompt" class="notification-prompt panel" aria-labelledby="notificationPromptTitle" hidden>
-        <div class="notification-prompt-icon" aria-hidden="true">🔔</div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Receba avisos que realmente importam</h2><p id="notificationPromptText">O PLUVIA pode avisar sobre chuva forte, tempestades e alertas oficiais mesmo quando estiver fechado.</p></div><button id="notificationPromptButton" type="button">Ativar alertas</button>
+        <div class="notification-prompt-icon" aria-hidden="true">🔔</div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Avisos de chuva e INMET no celular</h2><p id="notificationPromptText">O PLUVIA avisa alerta oficial e chuva nas próximas horas da cidade aberta — modelo, sem minuto na sua rua.</p></div><button id="notificationPromptButton" type="button">Ativar alertas</button>
       </section>
       <section class="metrics" aria-label="Detalhes meteorológicos">
         <article class="metric panel card-detail"><div class="metric-head"><span>UMIDADE</span><span data-weather-icon-name="humidity"></span></div><strong id="humidity">--<sup>%</sup></strong><small id="humidityNote">—</small></article>
@@ -242,6 +243,17 @@
         <small id="weatherSourceNote">A fonte e o horário aparecerão aqui.</small>
       </div>
     </dialog>
+    <dialog id="installPushDialog" class="city-dialog" aria-labelledby="installPushTitle">
+      <div class="dialog-heading"><h2 id="installPushTitle">Alertas no iPhone</h2><button id="installPushClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
+      <p>Safari no iPhone só entrega Web Push se o PLUVIA estiver na Tela de Início e aberto pelo ícone.</p>
+      <ol class="install-steps">
+        <li>Toque em <strong>Compartilhar</strong> — o quadrado com a seta para cima.</li>
+        <li>Role e toque em <strong>Adicionar à Tela de Início</strong>.</li>
+        <li>Abra o PLUVIA pelo ícone novo, entre na conta e toque em <strong>Ativar alertas</strong>.</li>
+      </ol>
+      <p>O sistema avisa alerta oficial do INMET e chuva nas próximas horas do município aberto. Não é radar da sua rua.</p>
+      <button id="installPushReload" type="button">Já instalei — recarregar</button>
+    </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div></dialog>
     <script src="./analytics.js?v=analytics-2"></script>
     <script src="./modules/sources.js?v=core-47"></script>
@@ -260,7 +272,7 @@
     <script src="./weather-map.js?v=core-47"></script>
     <script src="./account.js?v=core-58" defer></script>
     <script src="./saved-places.js?v=core-60" defer></script>
-    <script src="./notifications.js?v=push-3" defer></script>
+    <script src="./notifications.js?v=push-4" defer></script>
     <!-- release core-60: home stale, sinal degradado, cache único, iOS, domínio canônico, meus locais -->
   </body>
 </html>

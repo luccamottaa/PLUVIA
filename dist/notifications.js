@@ -4,10 +4,12 @@
   const prompt = el("notificationPrompt"), promptButton = el("notificationPromptButton"), promptText = el("notificationPromptText");
   const toggle = el("notificationToggle"), testButton = el("notificationTest"), statusBadge = el("notificationStatusBadge");
   const supportNote = el("notificationSupportNote"), diagnosticsNode = el("notificationDiagnostics"), form = el("notificationPreferencesForm"), devicesNode = el("notificationDevices"), locationsNode = el("notificationLocations");
+  const installDialog = el("installPushDialog"), continueNote = el("notificationContinueNote");
   if (!prompt || !toggle || !form) return;
 
   const boolFields = ["official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary"];
-  let config = null, busy = false;
+  let config = null, busy = false, pendingEnable = false;
+  try { pendingEnable = sessionStorage.getItem("pluvia-push-pending-enable") === "1"; } catch {}
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   const supported = window.isSecureContext && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
@@ -46,6 +48,23 @@
       item.textContent = `${ok ? "✓" : "○"} ${label}`;
       return item;
     }));
+  }
+
+  function setPendingEnable(value) {
+    pendingEnable = value;
+    try { value ? sessionStorage.setItem("pluvia-push-pending-enable", "1") : sessionStorage.removeItem("pluvia-push-pending-enable"); } catch {}
+  }
+
+  function cityLabel() {
+    return typeof activeCity !== "undefined" && activeCity ? `${activeCity.name}/${activeCity.uf}` : "a cidade aberta";
+  }
+
+  function showInstall() {
+    if (!installDialog) {
+      message("Para receber notificações no iPhone ou iPad, adicione o PLUVIA à Tela de Início e abra pelo ícone.");
+      return;
+    }
+    if (!installDialog.open) installDialog.showModal();
   }
 
   function currentLocation() {
@@ -124,6 +143,8 @@
   async function paintState() {
     prompt.hidden = false;
     await paintDiagnostics();
+    if (continueNote) continueNote.hidden = !(currentUser() && pendingEnable && Notification.permission !== "granted");
+    const city = cityLabel();
     if (!supported) {
       status("blocked", "Navegador incompatível"); toggle.disabled = true; testButton.hidden = true;
       message("Este navegador não oferece Web Push completo. O restante do PLUVIA continua funcionando normalmente.");
@@ -131,9 +152,10 @@
       return;
     }
     if (isIOS && !standalone) {
-      status("off", "Instalação necessária"); toggle.disabled = true; testButton.hidden = true;
+      status("off", "Instalação necessária"); toggle.disabled = false; toggle.textContent = "Como instalar no iPhone"; testButton.hidden = true;
       message("Para receber notificações no iPhone ou iPad, adicione o PLUVIA à Tela de Início e abra pelo ícone.");
-      promptText.textContent = "No iPhone, adicione o PLUVIA à Tela de Início para ativar alertas.";
+      promptText.textContent = `No iPhone, adicione o PLUVIA à Tela de Início para avisar chuva e INMET em ${city}.`;
+      promptButton.textContent = "Como instalar";
       return;
     }
     if (Notification.permission === "denied") {
@@ -146,7 +168,11 @@
     status(active ? "on" : "off", active ? "Alertas ativos" : "Alertas desativados");
     toggle.disabled = false; toggle.textContent = active ? "Desativar neste dispositivo" : "Ativar alertas";
     testButton.hidden = !active;
-    message(active ? "Este dispositivo pode receber Web Push mesmo com o PLUVIA fechado." : "A permissão só será solicitada depois que você tocar em “Ativar alertas”.");
+    promptButton.textContent = "Ativar alertas";
+    promptText.textContent = active
+      ? `Alertas ligados para ${city}. O PLUVIA avisa mesmo fechado.`
+      : `Avisa alerta oficial e chuva nas próximas horas em ${city}. A permissão só aparece depois do seu toque.`;
+    message(active ? "Este dispositivo pode receber Web Push mesmo com o PLUVIA fechado." : pendingEnable && currentUser() ? "Conta conectada. Toque em “Ativar alertas” para o sistema pedir permissão." : "A permissão só será solicitada depois que você tocar em “Ativar alertas”.");
     prompt.hidden = active;
   }
 
@@ -163,13 +189,45 @@
     config ||= await loadConfig();
     const result = await invoke("push-subscriptions", { action: "register", subscription: subscription.toJSON(), device: deviceInfo(), location: currentLocation() });
     saveSubscriptionId(result.subscriptionId);
+    await saveAlertSetup();
     await loadConfig();
+  }
+
+  async function saveAlertSetup() {
+    const location = currentLocation();
+    const existing = config?.preferences;
+    const preferences = {
+      notifications_enabled: true,
+      official_alerts: existing ? Boolean(existing.official_alerts) : true,
+      rain_approaching: existing ? Boolean(existing.rain_approaching) : true,
+      heavy_rain: existing ? Boolean(existing.heavy_rain) : true,
+      storms: existing ? Boolean(existing.storms) : true,
+      lightning: false,
+      strong_wind: existing ? Boolean(existing.strong_wind) : true,
+      extreme_heat: existing ? Boolean(existing.extreme_heat) : true,
+      air_quality: Boolean(existing?.air_quality),
+      weather_changes: Boolean(existing?.weather_changes),
+      daily_summary: Boolean(existing?.daily_summary),
+      minimum_severity: Number(existing?.minimum_severity) || 2,
+      quiet_start: existing?.quiet_start || form.elements.namedItem("quiet_start")?.value || "22:00",
+      quiet_end: existing?.quiet_end || form.elements.namedItem("quiet_end")?.value || "07:00",
+      daily_summary_time: existing?.daily_summary_time || "07:00",
+      timezone: location?.timezone || existing?.timezone || "America/Manaus"
+    };
+    await invoke("push-subscriptions", { action: "preferences", preferences, location });
   }
 
   async function enable() {
     if (busy) return;
-    if (!currentUser()) { window.pluviaAccount?.open?.(); message("Entre na sua conta para sincronizar alertas entre seus dispositivos."); return; }
-    if (!supported || (isIOS && !standalone)) { await paintState(); return; }
+    if (isIOS && !standalone) { showInstall(); await paintState(); return; }
+    if (!currentUser()) {
+      setPendingEnable(true);
+      window.pluviaAccount?.open?.();
+      message("Entre na sua conta e toque de novo em “Ativar alertas” — o iPhone só pede permissão no seu toque.");
+      await paintState();
+      return;
+    }
+    if (!supported) { await paintState(); return; }
     busy = true; toggle.disabled = true; promptButton.disabled = true;
     try {
       const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
@@ -180,8 +238,9 @@
       let subscription = await registration.pushManager.getSubscription();
       if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: publicKeyBytes(config.publicKey) });
       await register(subscription);
-      track("Push Enabled", { platform: deviceInfo().platform });
-      message("Alertas ativados neste dispositivo.");
+      setPendingEnable(false);
+      track("Push Enabled", { platform: deviceInfo().platform, city: currentLocation()?.cityId || "" });
+      message(`Alertas ligados para ${cityLabel()}. INMET e chuva nas próximas horas. Envie um teste se quiser conferir.`);
     } catch (error) { message(error.message || "Não foi possível ativar os alertas."); }
     finally { busy = false; promptButton.disabled = false; await paintState(); }
   }
@@ -213,6 +272,9 @@
 
   promptButton.addEventListener("click", enable);
   toggle.addEventListener("click", toggleNotifications);
+  el("installPushClose")?.addEventListener("click", () => installDialog?.close());
+  el("installPushReload")?.addEventListener("click", () => location.reload());
+  installDialog?.addEventListener("click", event => { if (event.target === installDialog) installDialog.close(); });
   testButton.addEventListener("click", async () => {
     if (busy || !localSubscriptionId()) return;
     busy = true; testButton.disabled = true; message("Enviando um Web Push real…");
@@ -248,18 +310,23 @@
   });
 
   window.addEventListener("pluvia:auth-changed", async event => {
-    if (!event.detail?.user) { config = null; paintDevices([]); paintLocations([]); await paintState(); return; }
+    if (!event.detail?.user) { config = null; setPendingEnable(false); paintDevices([]); paintLocations([]); await paintState(); return; }
     try {
       await loadConfig();
       const subscription = Notification.permission === "granted" ? await browserSubscription() : null;
       if (subscription) await register(subscription);
+      if (pendingEnable) {
+        message("Conta conectada. Toque em “Ativar alertas” para o sistema pedir permissão.");
+        el("notificationToggle")?.focus?.();
+        el("notificationSettings")?.scrollIntoView?.({ block: "nearest" });
+      }
       const deliveryId = new URL(location.href).searchParams.get("push_delivery");
       if (deliveryId) { await invoke("push-subscriptions", { action: "opened", deliveryId }).catch(() => {}); const url = new URL(location.href); url.searchParams.delete("push_delivery"); history.replaceState({}, "", url.pathname + url.search + url.hash); }
     } catch (error) { message(error.message || "As notificações estão temporariamente indisponíveis."); }
     await paintState();
   });
   navigator.serviceWorker?.addEventListener("message", event => { if (event.data?.type === "push-subscription-changed" && currentUser()) loadConfig().then(async () => { const subscription = await browserSubscription(); if (subscription) await register(subscription); }).catch(() => {}); });
-  window.addEventListener("pluvia:city-changed", () => { const checkbox = form.elements.namedItem("monitor_current_city"); if (checkbox) checkbox.checked = true; });
+  window.addEventListener("pluvia:city-changed", () => { const checkbox = form.elements.namedItem("monitor_current_city"); if (checkbox) checkbox.checked = true; paintState().catch(() => {}); });
   window.pluviaPush = { beforeLogout, enable, disable };
   paintState().catch(() => {});
 })();

@@ -891,7 +891,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 .notification-prompt button,.notification-actions button { min-height:44px; padding:10px 16px; border:1px solid var(--blue); border-radius:12px; background:var(--blue); color:#fff; font:750 .88rem/1.4 Manrope,sans-serif; cursor:pointer; }
 
 .account-dialog { width:min(620px,calc(100% - 24px)); }
-.notification-settings { margin-top:22px; padding-top:20px; border-top:1px solid var(--line); }
+.notification-continue { margin:0 0 12px; padding:10px 12px; border-radius:12px; background:rgba(47,107,255,.12); color:var(--text); font-size:.9rem; line-height:1.45; }
+.install-steps { margin:12px 0 16px; padding-left:22px; line-height:1.55; }
+.install-steps li { margin:8px 0; }
+#installPushReload { width:100%; min-height:44px; margin-top:8px; border:1px solid var(--blue); border-radius:12px; background:var(--blue); color:#fff; font:750 .9rem/1.4 Manrope,sans-serif; cursor:pointer; }
 .notification-settings-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .notification-settings h3 { margin:4px 0 0; font-size:1.25rem; }
 .notification-status { display:inline-flex; align-items:center; gap:7px; min-height:30px; padding:5px 10px; border:1px solid var(--line); border-radius:999px; color:var(--muted); font-size:.76rem; font-weight:800; white-space:nowrap; }
