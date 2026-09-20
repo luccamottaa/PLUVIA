@@ -1,4 +1,4 @@
-const CACHE = "pluvia-core-60";
+const CACHE = "pluvia-core-61";
 const SHELL = "./index.html";
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll([

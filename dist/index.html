@@ -137,13 +137,13 @@
         </div>
         <p id="accountStatus" role="status" aria-live="polite"></p>
       </dialog>
-      <div id="weatherView" hidden>
+      <div id="weatherView" class="initial-loading" aria-busy="true">
       <section id="riskSummary" class="panel risk-summary" aria-labelledby="riskTitle"><h2 id="riskTitle">Riscos próximos</h2><strong id="riskLevel">Monitoramento incompleto</strong><p id="riskScope">Consultando as fontes para esta cidade.</p><div id="nearbyRisks"><p>Dados temporariamente indisponíveis.</p></div><details><summary>Fontes e horários</summary><ul id="riskSources"></ul></details></section>
       <p id="locationNotice" class="location-notice" hidden role="status"></p>
       <section class="intro" id="agora">
         <div>
           <div class="eyebrow" id="dataStatus"><span class="live-dot" aria-hidden="true"></span><span id="statusText" role="status">Consultando o tempo</span></div>
-          <h1><span id="cityName"></span> <em>agora.</em></h1>
+          <h1><span id="cityName">Seu céu</span> <em>agora.</em></h1>
           <p id="cityDistance" hidden></p>
         </div>
         <div class="clock-wrap"><span id="cityTimezone">Horário local</span><strong id="localClock">--:--</strong><small id="localDate"></small></div>
@@ -273,6 +273,6 @@
     <script src="./account.js?v=core-58" defer></script>
     <script src="./saved-places.js?v=core-60" defer></script>
     <script src="./notifications.js?v=push-4" defer></script>
-    <!-- release core-60: home stale, sinal degradado, cache único, iOS, domínio canônico, meus locais -->
+    <!-- release core-61: estabilidade visual da Home durante o bootstrap -->
   </body>
 </html>

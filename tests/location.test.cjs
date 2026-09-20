@@ -45,5 +45,6 @@ assert.equal(run('activeCity.name'),'Manaus');assert.equal(nodes.get('weatherVie
 assert.equal(nodes.get('locationWelcome').hidden,true);assert.equal(nodes.get('siteNav').hidden,false);
 assert.equal(nodes.get('welcomeLocate').disabled,false);
 assert.equal(refreshes,2);
-assert(html.indexOf('<dialog') < html.indexOf('<div id="weatherView" hidden>'));
+assert(html.indexOf('<dialog') < html.indexOf('<div id="weatherView" class="initial-loading" aria-busy="true">'));
+assert.match(html, /<span id="cityName">Seu céu<\/span>/);
 console.log('PASS location-first: no saved/default city, denied and timed-out location, manual search dialog, GPS success, and late GPS isolation.');
