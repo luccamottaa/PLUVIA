@@ -1092,6 +1092,9 @@ function chooseCity(id, locatedCity = null) {
     return;
   }
   cityChoiceAttempt++;
+  // A successful explicit selection supersedes the bootstrap fallback notice.
+  const notice = $("locationNotice");
+  if (notice) { notice.hidden = true; notice.textContent = ""; }
   if (city.id === activeCity?.id && !Number.isFinite(locatedCity?.distanceKm)) { closeCitySearch(); return; }
   locationAttempt++;
   locationPending = false;

@@ -5,8 +5,8 @@ const vm = require('node:vm');
 const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'dist/index.html'),'utf8');
 const source=fs.readFileSync(path.join(root,'dist/app.js'),'utf8');
-const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,{
-  innerHTML:'',textContent:'',value:'',style:{},dataset:{},hidden:id==='weatherView',attrs:{},events:{},
+const nodes=new Map([...html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g)].map(([tag,id])=>[id,{
+  innerHTML:'',textContent:'',value:'',style:{},dataset:{},hidden:/\shidden(?:\s|>)/.test(tag),attrs:{},events:{},
   classList:{add(){},remove(){},toggle(){}},setAttribute(k,v){this.attrs[k]=v;},
   addEventListener(k,fn){this.events[k]=fn;},focus(){},showModal(){this.open=true;},close(){this.open=false;}
 }]));
@@ -26,9 +26,9 @@ context.setupCityPicker();
 let refreshes=0;
 context.refreshAll=async()=>{refreshes++;return true;};
 context.requestLocation();
-assert.equal(requests.length,1);assert.equal(refreshes,0);assert.equal(nodes.get('weatherView').hidden,true);
+assert.equal(requests.length,1);assert.equal(refreshes,0);assert.equal(nodes.get('weatherView').hidden,false);
 requests[0].error({code:1});
-assert.equal(run('activeCity'),null);assert.equal(nodes.get('weatherView').hidden,true);
+assert.equal(run('activeCity'),null);assert.equal(nodes.get('weatherView').hidden,false);
 assert(nodes.get('locationStatus').textContent.includes('não autorizada'));
 context.requestLocation();requests[1].error({code:3});
 assert.equal(run('activeCity'),null);assert.equal(refreshes,0);
@@ -45,6 +45,20 @@ assert.equal(run('activeCity.name'),'Manaus');assert.equal(nodes.get('weatherVie
 assert.equal(nodes.get('locationWelcome').hidden,true);assert.equal(nodes.get('siteNav').hidden,false);
 assert.equal(nodes.get('welcomeLocate').disabled,false);
 assert.equal(refreshes,2);
+const fallbackNotice=nodes.get('locationNotice');
+fallbackNotice.hidden=false;fallbackNotice.textContent='Sem localização — mostrando Manaus';
+context.chooseCity('1303403');
+assert.equal(run('activeCity.name'),'Parintins');
+assert.equal(fallbackNotice.hidden,true,'a different city must clear the Manaus fallback notice');
+assert.equal(fallbackNotice.textContent,'');
+fallbackNotice.hidden=false;fallbackNotice.textContent='Aviso antigo';
+const refreshesBeforeReselect=refreshes;
+context.chooseCity('1303403');
+assert.equal(fallbackNotice.hidden,true,'explicitly reselecting the city also acknowledges the fallback');
+assert.equal(refreshes,refreshesBeforeReselect,'reselection must not trigger duplicate weather requests');
+fallbackNotice.hidden=false;fallbackNotice.textContent='Aviso válido';
+context.chooseCity('invalid-city');
+assert.equal(fallbackNotice.hidden,false,'an invalid selection must leave the current notice intact');
 assert(html.indexOf('<dialog') < html.indexOf('<div id="weatherView" class="initial-loading" aria-busy="true">'));
 assert.match(html, /<span id="cityName">Seu céu<\/span>/);
-console.log('PASS location-first: no saved/default city, denied and timed-out location, manual search dialog, GPS success, and late GPS isolation.');
+console.log('PASS location: honest loading shell, permission failures, manual search, GPS, late-request isolation and fallback notice reset.');
