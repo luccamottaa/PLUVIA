@@ -35,3 +35,35 @@ test('mantém snapshots isolados por localização', () => {
 test('rejeita payload incompleto em vez de inventar dados', () => {
   assert.throws(() => layer.normalizeOpenMeteo({current:{}}, null, city), /incompleta/);
 });
+
+test('ausência e tipos inválidos não viram zero ou condição de céu limpo', () => {
+  for (const value of [null, undefined, '', ' ', '0', false, true, [], {}, NaN, Infinity]) {
+    const input = structuredClone(forecast);
+    input.current.temperature_2m = value;
+    input.current.weather_code = value;
+    input.current.is_day = value;
+    input.hourly.precipitation[0] = value;
+    input.daily.precipitation_sum[0] = value;
+    const snapshot = layer.normalizeOpenMeteo(input, {current:{us_aqi:value, pm2_5:value}}, city);
+    assert.equal(snapshot.current.temperature, null);
+    assert.equal(snapshot.current.weatherCode, null);
+    assert.equal(snapshot.current.isDay, null);
+    assert.equal(snapshot.hourly[0].precipitation, null);
+    assert.equal(snapshot.daily[0].precipitationSum, null);
+    assert.equal(snapshot.airQuality.aqiUs, null);
+    assert.equal(snapshot.airQuality.pm25, null);
+  }
+});
+
+test('zero medido e noite são preservados', () => {
+  const input = structuredClone(forecast);
+  input.current.temperature_2m = 0;
+  input.current.weather_code = 0;
+  input.current.is_day = 0;
+  const snapshot = layer.normalizeOpenMeteo(input, {current:{us_aqi:0, pm2_5:0}}, city);
+  assert.equal(snapshot.current.temperature, 0);
+  assert.equal(snapshot.current.weatherCode, 0);
+  assert.equal(snapshot.current.isDay, false);
+  assert.equal(snapshot.airQuality.aqiUs, 0);
+  assert.equal(snapshot.airQuality.pm25, 0);
+});

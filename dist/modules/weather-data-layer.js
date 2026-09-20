@@ -7,7 +7,7 @@
   "use strict";
 
   const snapshots = new Map();
-  const number = value => Number.isFinite(Number(value)) ? Number(value) : null;
+  const number = value => typeof value === "number" && Number.isFinite(value) ? value : null;
   const at = (list, index) => Array.isArray(list) ? list[index] : undefined;
   const freeze = value => Object.freeze(value);
 
@@ -39,7 +39,7 @@
       windSpeed: number(current.wind_speed_10m),
       windDirection: number(current.wind_direction_10m),
       windGust: number(current.wind_gusts_10m),
-      isDay: current.is_day == null ? null : Number(current.is_day) !== 0
+      isDay: current.is_day === 1 ? true : current.is_day === 0 ? false : null
     });
   }
 
