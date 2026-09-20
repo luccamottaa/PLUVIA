@@ -4,8 +4,8 @@ Painel climático brasileiro feito em Manaus, com chuva, previsão, qualidade do
 
 ## Acessar
 
-- Site atual: [pluviaweather.com.br](https://pluviaweather.com.br/)
-- GitHub Pages: `https://luccamottaa.github.io/PLUVIA/` (publicado automaticamente após cada envio para `main`)
+- Site: [pluviaweather.com.br](https://pluviaweather.com.br/)
+- O GitHub Pages publica `dist/` automaticamente após cada envio para `main`. O endereço `luccamottaa.github.io/PLUVIA` redireciona para o domínio canônico — é o mesmo app, não um segundo PWA.
 
 ## Estrutura
 

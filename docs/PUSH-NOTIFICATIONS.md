@@ -5,7 +5,9 @@ O PLUVIA usa Web Push real: o navegador cria uma `PushSubscription`, o backend e
 ## Fluxo
 
 1. A pessoa toca em **Ativar alertas**. A permissão nunca é solicitada na abertura da página.
-2. `notifications.js` verifica suporte, iOS instalado e permissão; depois registra a subscription em `push-subscriptions`.
+2. Sem conta, o PLUVIA abre o login e pede um segundo toque — o iPhone só libera a permissão no gesto.
+3. No iPhone/iPad, um passo a passo explica adicionar à Tela de Início. Sem PWA instalada, a inscrição não começa.
+4. `notifications.js` registra a subscription em `push-subscriptions` e grava o pacote padrão: INMET, chuva nas próximas horas, chuva forte, tempestade, vento e calor, com a cidade aberta monitorada.
 3. O cron executa `push-process` a cada cinco minutos.
 4. A função consulta dados reais, normaliza eventos, cria um fingerprint e aplica preferências, severidade mínima e horário silencioso.
 5. `notification_deliveries` impede repetir o mesmo evento para a mesma subscription.
@@ -57,7 +59,7 @@ Para verificar o job, consultar `cron.job_run_details`, os logs de `push-process
 ## Limites meteorológicos
 
 - **Mudanças relevantes** está ativo e compara as próximas seis horas com a condição atual. Só cria evento para variação térmica relevante, transição para chuva ou aumento forte de rajadas; a mensagem identifica a origem como modelo e informa a incerteza.
-- **Chuva se aproximando** usa previsão horária do modelo. Não é radar nem nowcasting hiperlocal e, por isso, não promete minuto exato.
+- **Chuva nas próximas horas** usa previsão horária do modelo. Não é radar nem nowcasting hiperlocal e, por isso, não promete minuto exato.
 - **Raios** permanece indisponível até existir fonte observacional com API, cobertura, estabilidade e licença adequadas ao uso do PLUVIA. Código meteorológico de tempestade do modelo não é tratado como raio observado.
 
 ## Senhas

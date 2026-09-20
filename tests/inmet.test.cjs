@@ -38,7 +38,7 @@ async function test(label, fn) {await fn(); checks++; console.log(`PASS ${label}
 (async () => {
   await test("Go-out advice respects every active official severity", () => {
     const forecast = {hourly:{time:["2026-09-08T20:00"],precipitation:[0],precipitation_probability:[0],wind_gusts_10m:[0],apparent_temperature:[25]},current:{}};
-    for (const [severity,level] of [["yellow","attention"],["orange","wait"],["red","danger"],["unknown","attention"],["none","good"]]) {
+    for (const [severity,level] of [["yellow","attention"],["orange","wait"],["red","danger"],["unknown","degraded"],["none","good"]]) {
       nodes.get("inmetCard").dataset.severity = severity;
       context.renderGoOut(forecast, {current:{us_aqi:20}});
       assert.equal(nodes.get("goOutCard").dataset.level, level, severity);

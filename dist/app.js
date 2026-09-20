@@ -77,6 +77,21 @@ async function fetchForecast(city = activeCity, revision = cityRevision) {
   }
 }
 
+function prefetchForecast(city) {
+  if (!city) return;
+  try {
+    const saved = JSON.parse(localStorage.getItem(`pluvia-weather-${city.id}`) || "null");
+    const age = Date.now() - saved?.at;
+    if (age >= 0 && age <= CACHE_MAX_AGE_MS && validForecast(saved?.data?.forecast)) return;
+  } catch {}
+  fetchForecast(city, cityRevision).then(data => {
+    try {
+      if (localStorage.getItem(`pluvia-weather-${city.id}`)) return;
+      localStorage.setItem(`pluvia-weather-${city.id}`, JSON.stringify({at:Date.now(),weatherAt:Date.now(),airAt:null,data:{forecast:data,air:null}}));
+    } catch {}
+  }).catch(() => {});
+}
+
 const weatherIcons = globalThis.PLUVIA?.weatherIcons;
 weatherIcons?.hydrate?.(document);
 const smartSummary = globalThis.PLUVIA?.smartSummary;
@@ -97,6 +112,8 @@ function applyWeatherAtmosphere(code, isDay) {
   const type = weatherIconType(code);
   document.body.dataset.weather = type;
   document.body.dataset.phase = isDay ? "day" : "night";
+  const theme = isDay ? "#075dff" : "#0a111f";
+  document.querySelectorAll('meta[name="theme-color"]').forEach(meta => { meta.content = theme; });
 }
 
 function weatherIconSvg(code, isDay = true) {
@@ -314,8 +331,9 @@ function renderGoOut(forecast = displayedWeather?.forecast, air = displayedWeath
     air: globalThis.PLUVIA?.sources?.get('air-quality')?.status,
     weather: globalThis.PLUVIA?.sources?.get('weather')?.status
   };
-  const result = globalThis.PLUVIA?.signal?.evaluate({forecast,air,aqi:air?.current?.us_aqi,start:forecast?.hourly?.time?.length ? selectCurrentHour(forecast.hourly.time) : 0,officialSeverity:official,sourceStatus}) || {level:'unknown',label:'Sem leitura',summary:'Os dados necessários estão temporariamente indisponíveis.',confidence:'low',factors:[]};
+  const result = globalThis.PLUVIA?.signal?.evaluate({forecast,air,aqi:air?.current?.us_aqi,start:forecast?.hourly?.time?.length ? selectCurrentHour(forecast.hourly.time) : 0,officialSeverity:official,sourceStatus,radar:globalThis.PLUVIA?.radar?.get?.()}) || {level:'unknown',label:'Sem leitura',summary:'Os dados necessários estão temporariamente indisponíveis.',confidence:'low',factors:[],degraded:true};
   card.dataset.level = result.level;
+  card.classList?.toggle?.("is-degraded", result.level === "degraded" || result.degraded === true && result.level !== "danger" && result.level !== "wait");
   const title = $("goOutTitle");
   title.textContent = "";
   const code = forecast?.current?.weather_code;
@@ -328,6 +346,12 @@ function renderGoOut(forecast = displayedWeather?.forecast, air = displayedWeath
   label.textContent = result.label;
   title.appendChild(label);
   $("goOutReason").textContent = result.summary;
+  const degraded = $("goOutDegraded");
+  if (degraded) {
+    const show = result.level === "degraded";
+    degraded.hidden = !show;
+    if (show) degraded.textContent = "INMET sem confirmação agora. Isso é monitoramento incompleto, não um alerta amarelo de céu ruim.";
+  }
   const list = $("goOutFactors");
   if (list) {
     list.textContent = '';
@@ -343,10 +367,10 @@ async function loadInmetAlerts(revision = cityRevision) {
   try {
     const raw = await fetchJson(INMET_API);
     if (revision !== cityRevision) return;
-    renderInmetAlerts(raw);
     lastInmetResponse = raw;
     lastInmetReadAt = Date.now();
     globalThis.PLUVIA?.sources.set("alerts",{status:"ready",checkedAt:lastInmetReadAt,dataAt:null});
+    renderInmetAlerts(raw);
     updateInmetTimestamp();
   } catch {
     if (revision !== cityRevision) return;
@@ -795,7 +819,11 @@ function renderWeatherInsights(data, air, start) {
 }
 
 function markWeatherUnavailable(hasSavedData) {
-  setDataStatus(hasSavedData ? "Dados salvos · conexão indisponível" : "Conexão indisponível", true);
+  setDataStatus(hasSavedData ? "Dados salvos · sem confirmação atual" : "Conexão indisponível", true);
+  if (hasSavedData) {
+    renderGoOut();
+    return;
+  }
   $("attentionCard").classList.remove("ok", "warning", "danger");
   $("attentionCard").classList.add("unavailable");
   $("attentionSignal").textContent = "SEM LEITURA";
@@ -808,7 +836,7 @@ function markWeatherUnavailable(hasSavedData) {
   $("summaryLink").textContent = "Tentar novamente na previsão →";
   $("windCompass").style.setProperty("--wind-deg", "0deg");
   $("windCompass").setAttribute("aria-label", "Direção do vento indisponível");
-  if (!hasSavedData) clearWeatherInsights();
+  clearWeatherInsights();
 }
 
 function dataAge(at) {
@@ -875,11 +903,12 @@ async function loadWeather(revision = cityRevision) {
     }
     renderGoOut(data,air);
     clearTimeout(errorTimer); $("errorToast").classList.remove("show"); $("errorToast").setAttribute("aria-hidden", "true");
+    globalThis.PLUVIA?.radar?.probe?.(city);
     return true;
   } catch (error) {
     if (revision !== cityRevision) return false;
     const saved = cached();
-    if (!displayedWeather && saved) { render(saved.data.forecast, saved.data.air, true, saved.at); displayedWeather = saved.data; }
+    if (saved) { render(saved.data.forecast, saved.data.air, true, saved.at); displayedWeather = saved.data; }
     markWeatherUnavailable(Boolean(displayedWeather));
     globalThis.PLUVIA?.sources.set("weather",{status:displayedWeather ? "stale" : "error"});
     globalThis.PLUVIA?.sources.set("air-quality",{status:displayedWeather?.air ? "stale" : "error"});
@@ -893,6 +922,14 @@ async function loadWeather(revision = cityRevision) {
       $("sunPhrase").textContent = "Ciclo solar indisponível.";
       $("airCardQuality").textContent = "Indisponível";
       $("airGuidance").textContent = "Dados de partículas indisponíveis no momento.";
+      $("errorMessage").textContent = "Confira a conexão e puxe para atualizar.";
+      $("errorToast").setAttribute("aria-hidden", "false");
+      $("errorToast").classList.add("show");
+      clearTimeout(errorTimer);
+      errorTimer = setTimeout(() => {
+        $("errorToast").classList.remove("show");
+        $("errorToast").setAttribute("aria-hidden", "true");
+      }, 4500);
     }
     return false;
   } finally {
@@ -1070,6 +1107,7 @@ function chooseCity(id, locatedCity = null) {
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
   globalThis.pluviaAnalytics?.track('City Selected',{city:city.name,uf:city.uf,source:Number.isFinite(locatedCity?.distanceKm) ? 'location' : 'picker_or_saved'});
   globalThis.PLUVIA?.sources.reset(city.id);
+  globalThis.PLUVIA?.radar?.reset?.(city.id);
   globalThis.PLUVIA?.modules.location.reset?.();
   rainMapLocations = null; rainMapCityId = null;
   $("rainMapGrid").hidden = true;
@@ -1084,13 +1122,16 @@ function chooseCity(id, locatedCity = null) {
   clearTimeout(errorTimer);
   $("errorToast").classList.remove("show");
   $("errorToast").setAttribute("aria-hidden","true");
-  cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
-  $("attentionCard").classList.remove("ok","warning","danger","unavailable");
-  $("summaryHighlights").innerHTML = "";
-  clearWeatherInsights();
-  $("sunDot").style.left = "3%";
-  $("sunDot").style.top = "74px";
-  $("condition").textContent = "Buscando o céu de " + city.name + "…";
+  const saved = cached();
+  if (!saved) {
+    cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
+    $("attentionCard").classList.remove("ok","warning","danger","unavailable");
+    $("summaryHighlights").innerHTML = "";
+    clearWeatherInsights();
+    $("sunDot").style.left = "3%";
+    $("sunDot").style.top = "74px";
+    $("condition").textContent = "Buscando o céu de " + city.name + "…";
+  }
   ["inmet","defesa"].forEach(source => {
     $(source + "State").className = "source-state";
     $(source + "State").innerHTML = "<i></i>Consultando";
@@ -1100,10 +1141,14 @@ function chooseCity(id, locatedCity = null) {
   $("citySearch").value = "";
   $("stateSelect").value = "";
   renderCityOptions(); updateCityLabels();
-  setDataStatus("Consultando o tempo em " + city.name);
-  const saved = cached();
   $("weatherView")?.classList.toggle('initial-loading', !saved);
-  if (saved) { render(saved.data.forecast,saved.data.air,true,saved.at); displayedWeather = saved.data; }
+  if (saved) {
+    render(saved.data.forecast,saved.data.air,true,saved.at);
+    displayedWeather = saved.data;
+    setDataStatus(`Atualizando… · leitura salva de ${dataAge(saved.at)}`, true);
+  } else {
+    setDataStatus("Consultando o tempo em " + city.name);
+  }
   refreshAll();
 }
 function setupCityPicker() {
