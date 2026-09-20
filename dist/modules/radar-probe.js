@@ -1,7 +1,13 @@
 /* Radar observado: só eleva cautela se houver eco. Ausência de eco nunca prova céu seco. */
 (() => {
   const app = globalThis.PLUVIA = globalThis.PLUVIA || {};
+  const PROBE_TTL_MS = 8 * 60 * 1000;
+  const REQUEST_TIMEOUT_MS = 8000;
   const state = { status: "idle", precipitating: false, checkedAt: null, cityId: null };
+  let activeController = null;
+  let inFlight = null;
+  let inFlightCityId = null;
+  let generation = 0;
 
   function lonLatToPixel(lon, lat, z) {
     const n = 256 * (2 ** z);
@@ -21,15 +27,49 @@
     }
   }
 
-  async function probe(city) {
-    if (typeof document === "undefined" || !city || !Number.isFinite(Number(city.lat)) || !Number.isFinite(Number(city.lon))) {
-      return snapshot();
-    }
-    const cityId = String(city.id || "");
-    state.cityId = cityId;
-    state.status = "loading";
+  function reset(cityId = null) {
+    generation++;
+    activeController?.abort();
+    activeController = null;
+    inFlight = null;
+    inFlightCityId = null;
+    state.status = "idle";
+    state.precipitating = false;
+    state.checkedAt = null;
+    state.cityId = cityId == null ? null : String(cityId);
+    return snapshot();
+  }
+
+  function loadImage(url, signal) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      let settled = false;
+      const finish = (callback, value) => {
+        if (settled) return;
+        settled = true;
+        img.onload = null;
+        img.onerror = null;
+        signal?.removeEventListener?.("abort", onAbort);
+        callback(value);
+      };
+      const onAbort = () => {
+        try { img.src = ""; } catch {}
+        finish(reject, new Error("aborted"));
+      };
+      if (signal?.aborted) { onAbort(); return; }
+      signal?.addEventListener?.("abort", onAbort, { once: true });
+      img.crossOrigin = "anonymous";
+      img.onload = () => finish(resolve, img);
+      img.onerror = () => finish(reject, new Error("tile"));
+      img.src = url;
+    });
+  }
+
+  async function executeProbe(city, cityId, requestGeneration, controller) {
+    let timedOut = false;
+    const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, REQUEST_TIMEOUT_MS);
     try {
-      const meta = await fetch("https://api.rainviewer.com/public/weather-maps.json", { cache: "no-store" });
+      const meta = await fetch("https://api.rainviewer.com/public/weather-maps.json", { cache: "no-store", signal: controller.signal });
       if (!meta.ok) throw new Error("meta");
       const json = await meta.json();
       const past = json?.radar?.past || [];
@@ -38,15 +78,8 @@
       const z = 9;
       const { tileX, tileY, px, py } = lonLatToPixel(city.lon, city.lat, z);
       const url = `${frame.host}${frame.path}/256/${z}/${tileX}/${tileY}/2/1_1.png`;
-      const image = await new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        const timer = setTimeout(() => reject(new Error("timeout")), 8000);
-        img.onload = () => { clearTimeout(timer); resolve(img); };
-        img.onerror = () => { clearTimeout(timer); reject(new Error("tile")); };
-        img.src = url;
-      });
-      if (state.cityId !== cityId) return snapshot();
+      const image = await loadImage(url, controller.signal);
+      if (generation !== requestGeneration || state.cityId !== cityId) return snapshot();
       const canvas = document.createElement("canvas");
       canvas.width = image.width;
       canvas.height = image.height;
@@ -64,17 +97,48 @@
       state.status = "ready";
       state.checkedAt = Date.now();
       app.sources?.set("radar", { status: "ready", kind: "observation", dataAt: frame.time ? frame.time * 1000 : Date.now(), checkedAt: state.checkedAt });
-    } catch {
-      if (state.cityId !== cityId) return snapshot();
+    } catch (error) {
+      if (generation !== requestGeneration || state.cityId !== cityId) return snapshot();
       state.precipitating = false;
       state.status = "unavailable";
       state.checkedAt = Date.now();
-      app.sources?.set("radar", { status: "error" });
+      app.sources?.set("radar", { status: timedOut ? "timeout" : "error", checkedAt: state.checkedAt });
+    } finally {
+      clearTimeout(timeout);
+      if (activeController === controller) activeController = null;
     }
-    paintSignal();
+    if (generation === requestGeneration && state.cityId === cityId) paintSignal();
     return snapshot();
   }
 
-  app.radar = { probe, get: snapshot, lonLatToPixel };
+  function probe(city) {
+    if (typeof document === "undefined" || !city || !Number.isFinite(Number(city.lat)) || !Number.isFinite(Number(city.lon))) {
+      return Promise.resolve(snapshot());
+    }
+    const cityId = String(city.id || "");
+    if (state.cityId === cityId && state.status === "ready" && Date.now() - state.checkedAt < PROBE_TTL_MS) {
+      return Promise.resolve(snapshot());
+    }
+    if (inFlight && inFlightCityId === cityId) return inFlight;
+    activeController?.abort();
+    const controller = new AbortController();
+    activeController = controller;
+    const requestGeneration = ++generation;
+    state.cityId = cityId;
+    state.status = "loading";
+    state.precipitating = false;
+    app.sources?.set("radar", { status: "loading", checkedAt: null, dataAt: null });
+    inFlightCityId = cityId;
+    const task = executeProbe(city, cityId, requestGeneration, controller).finally(() => {
+      if (inFlight === task) {
+        inFlight = null;
+        inFlightCityId = null;
+      }
+    });
+    inFlight = task;
+    return task;
+  }
+
+  app.radar = { probe, reset, get: snapshot, lonLatToPixel, PROBE_TTL_MS };
   if (typeof module === "object" && module.exports) module.exports = app.radar;
 })();

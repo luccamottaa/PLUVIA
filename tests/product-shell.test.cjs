@@ -59,6 +59,8 @@ assert.match(html, /id="goOutDegraded"/);
 assert.match(html, /pluviaweather\.com\.br/);
 assert.match(app, /prefetchForecast/);
 assert.match(app, /Atualizando… · leitura salva/);
+assert.ok(app.indexOf('sources.set("alerts",{status:"ready"') < app.indexOf('renderInmetAlerts(raw);'), 'INMET must be ready before alert render repaints the signal');
+assert.match(app, /radar\?\.reset\?\.\(city\.id\)/);
 assert.match(app, /past_hours=24/);
 assert.match(html, /id="weatherExplanation"/);
 

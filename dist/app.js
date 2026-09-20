@@ -367,10 +367,10 @@ async function loadInmetAlerts(revision = cityRevision) {
   try {
     const raw = await fetchJson(INMET_API);
     if (revision !== cityRevision) return;
-    renderInmetAlerts(raw);
     lastInmetResponse = raw;
     lastInmetReadAt = Date.now();
     globalThis.PLUVIA?.sources.set("alerts",{status:"ready",checkedAt:lastInmetReadAt,dataAt:null});
+    renderInmetAlerts(raw);
     updateInmetTimestamp();
   } catch {
     if (revision !== cityRevision) return;
@@ -1107,6 +1107,7 @@ function chooseCity(id, locatedCity = null) {
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
   globalThis.pluviaAnalytics?.track('City Selected',{city:city.name,uf:city.uf,source:Number.isFinite(locatedCity?.distanceKm) ? 'location' : 'picker_or_saved'});
   globalThis.PLUVIA?.sources.reset(city.id);
+  globalThis.PLUVIA?.radar?.reset?.(city.id);
   globalThis.PLUVIA?.modules.location.reset?.();
   rainMapLocations = null; rainMapCityId = null;
   $("rainMapGrid").hidden = true;
