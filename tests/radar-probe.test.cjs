@@ -22,7 +22,7 @@ function runtime({fetchImpl,setTimeoutImpl=setTimeout,clearTimeoutImpl=clearTime
     clearTimeout:clearTimeoutImpl,
     queueMicrotask,
     Image: FakeImage,
-    fetch: fetchImpl || (async () => ({ok:true,json:async()=>({radar:{past:[{host:'https://tiles.example',path:'/frame',time:123}]}})})),
+    fetch: fetchImpl || (async () => ({ok:true,json:async()=>({host:'https://tiles.example',radar:{past:[{path:'/frame',time:123}]}})})),
     document: {createElement: () => ({getContext: () => ({drawImage(){},getImageData:()=>({data:new Uint8ClampedArray([0,0,0,255,0,0,0,255,0,0,0,255])})})})},
     PLUVIA: {sources:{set:(id,value)=>sourceStates.push({id,...value})}}
   };
@@ -50,7 +50,7 @@ test('deduplica probe em voo, lê o tile e reaproveita resultado dentro do TTL',
   let fetches = 0;
   const {radar,sourceStates} = runtime({fetchImpl:async()=>{
     fetches++;
-    return {ok:true,json:async()=>({radar:{past:[{host:'https://tiles.example',path:'/frame',time:123}]}})};
+    return {ok:true,json:async()=>({host:'https://tiles.example',radar:{past:[{path:'/frame',time:123}]}})};
   }});
   const city = {id:'1302603',lat:-3.119,lon:-60.021};
   const first = radar.probe(city);

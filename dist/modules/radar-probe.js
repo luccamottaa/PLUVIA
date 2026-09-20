@@ -74,10 +74,11 @@
       const json = await meta.json();
       const past = json?.radar?.past || [];
       const frame = past[past.length - 1];
-      if (!frame?.path || !frame.host) throw new Error("frame");
+      const host = frame?.host || json?.host;
+      if (!frame?.path || !host) throw new Error("frame");
       const z = 9;
       const { tileX, tileY, px, py } = lonLatToPixel(city.lon, city.lat, z);
-      const url = `${frame.host}${frame.path}/256/${z}/${tileX}/${tileY}/2/1_1.png`;
+      const url = `${host}${frame.path}/256/${z}/${tileX}/${tileY}/2/1_1.png`;
       const image = await loadImage(url, controller.signal);
       if (generation !== requestGeneration || state.cityId !== cityId) return snapshot();
       const canvas = document.createElement("canvas");
