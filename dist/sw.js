@@ -1,8 +1,8 @@
-const CACHE = "pluvia-core-61";
+const CACHE = "pluvia-core-62";
 const SHELL = "./index.html";
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll([
-    "./", SHELL, "./analytics.js?v=analytics-2", "./styles.css?v=core-60", "./capitals.js?v=core-47", "./app.js?v=core-60", "./p0.js?v=core-60", "./account.js?v=core-58", "./saved-places.js?v=core-60", "./notifications.js?v=push-4", "./weather-map.js?v=core-47",
+    "./", SHELL, "./analytics.js?v=analytics-2", "./styles.css?v=core-60", "./capitals.js?v=core-47", "./app.js?v=core-62", "./p0.js?v=core-60", "./account.js?v=core-58", "./saved-places.js?v=core-60", "./notifications.js?v=push-4", "./weather-map.js?v=core-47",
     "./modules/sources.js?v=core-47", "./modules/weather-data-layer.js?v=core-55", "./modules/weather-insights.js?v=core-56", "./modules/signal.js?v=core-60", "./modules/radar-probe.js?v=core-60", "./modules/smart-summary.js?v=core-49", "./modules/weather-icons.js?v=core-49", "./modules/weather-icon-system.js?v=glossy-2", "./modules/risks.js?v=core-47", "./modules/adapters.js?v=core-47",
     "./manifest.webmanifest", "./logo-mark.png", "./logo-pluvia.png", "./favicon-32.png", "./apple-touch-icon-180.png", "./icon-192.png", "./icon-512.png", "./icon-maskable-192.png", "./icon-maskable-512.png",
     "./vendor/weathericons/Sun.svg", "./vendor/weathericons/Moon.svg", "./vendor/weathericons/PartlySunny.svg", "./vendor/weathericons/PartlyMoon.svg", "./vendor/weathericons/Cloud.svg", "./vendor/weathericons/Haze.svg", "./vendor/weathericons/Rain.svg", "./vendor/weathericons/Snow.svg", "./vendor/weathericons/Storm.svg", "./vendor/weathericons/Hail.svg",
