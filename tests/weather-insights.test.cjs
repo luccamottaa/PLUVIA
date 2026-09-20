@@ -53,3 +53,30 @@ function fixture() {
 }
 
 console.log('PASS weather insights: ontem, sensação, UV, chuva e ausência de dados.');
+
+// A lacuna deve omitir a recomendação, não afirmar que o tempo está seco.
+for (const value of [null, undefined, '', ' ', false, [], NaN, Infinity, -1]) {
+  for (const field of ['precipitation', 'precipitation_probability']) {
+    const data = fixture();
+    data.hourly[field][28] = value;
+    const result = insights.build({forecast:data, start:24});
+    assert.equal(result.rain, null);
+    assert.ok(!result.highlights.some(text => /chuva/i.test(text)));
+    assert.ok(!result.reasons.some(text => /chance|mm/.test(text)));
+  }
+}
+{
+  const data = fixture();
+  data.hourly.precipitation_probability.fill(0);
+  data.hourly.precipitation.fill(0);
+  assert.equal(insights.rain(data.hourly, 24).volume, 0);
+  assert.equal(insights.rain(data.hourly, 24).chance, 0);
+  assert.ok(insights.build({forecast:data, start:24}).highlights.includes('Baixa chance de chuva'));
+  assert.equal(insights.rain(data.hourly, 40), null);
+  data.hourly.precipitation_probability[28] = 101;
+  assert.equal(insights.rain(data.hourly, 24), null);
+  data.hourly.precipitation_probability[28] = 45;
+  const result = insights.build({forecast:data, start:24});
+  assert.ok(result.highlights.includes('Possibilidade de chuva: 45%'));
+  assert.ok(!result.highlights.includes('Baixa chance de chuva'));
+}

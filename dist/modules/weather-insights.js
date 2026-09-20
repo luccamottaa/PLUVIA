@@ -6,7 +6,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const finite = value => value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
+  const finite = value => typeof value === "number" && Number.isFinite(value);
   const number = value => finite(value) ? Number(value) : null;
   const round = (value, digits = 0) => {
     const factor = 10 ** digits;
@@ -98,15 +98,18 @@
   function rain(hourly, start) {
     const times = hourly?.time || [];
     if (start < 0 || !times[start]) return null;
-    const end = Math.min(times.length, start + 12);
+    // A 12-hour aggregate requires every sample; missing is not dry weather.
+    const end = start + 12;
+    if (end > times.length) return null;
     let chance = 0;
     let volume = 0;
     let peak = 0;
     let first = -1;
     let last = -1;
     for (let index = start; index < end; index += 1) {
-      const probability = number(hourly.precipitation_probability?.[index]) || 0;
-      const amount = number(hourly.precipitation?.[index]) || 0;
+      const probability = number(hourly.precipitation_probability?.[index]);
+      const amount = number(hourly.precipitation?.[index]);
+      if (probability === null || probability < 0 || probability > 100 || amount === null || amount < 0) return null;
       chance = Math.max(chance, probability);
       volume += Math.max(0, amount);
       peak = Math.max(peak, amount);
@@ -137,6 +140,7 @@
     const highlights = [];
     if (comparison?.text) highlights.push(comparison.text);
     if (precipitation?.chance >= 60) highlights.push(`Chuva: ${precipitation.chance}% · ${precipitation.intensity}`);
+    else if (precipitation?.chance >= 35) highlights.push(`Possibilidade de chuva: ${precipitation.chance}%`);
     else if (precipitation) highlights.push("Baixa chance de chuva");
     if (ultraviolet?.peak >= 6) highlights.push(`UV ${ultraviolet.level} às ${ultraviolet.time}`);
     const reasons = [];
