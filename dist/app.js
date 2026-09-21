@@ -9,12 +9,6 @@ let displayedWeather = null;
 let errorTimer;
 let lastInmetResponse = null;
 let lastInmetReadAt = 0;
-let rainPulseTimer = null;
-let rainPulseFrames = [];
-let rainPulseIndex = 0;
-let rainPulsePlaying = false;
-let rainMapLocations = null;
-let rainMapCityId = null;
 let summaryAiInFlight = null;
 let summaryAiUnavailableUntil = 0;
 const CACHE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
@@ -486,127 +480,6 @@ function renderRain(hourly, start, daily) {
   $("rainChart").setAttribute("aria-label", `Chuva prevista por hora em ${activeCity.name}: barras mostram milímetros e os números mostram probabilidade.`);
   $("rainChart").scrollLeft = scrollLeft;
   $("dryWindow").textContent = findDryWindow(hourly, start);
-  renderRainSeasonContext(hourly, start);
-  renderRainPulse(hourly, start);
-}
-
-function rainSeasonPhase(city, month) {
-  const wetter = {
-    AM:[12,1,2,3,4,5], PA:[12,1,2,3,4,5], AP:[12,1,2,3,4,5],
-    RR:[5,6,7,8], AC:[10,11,12,1,2,3,4], RO:[10,11,12,1,2,3,4], TO:[10,11,12,1,2,3,4]
-  };
-  if (!wetter[city.uf]) return "";
-  return wetter[city.uf].includes(month) ? "fase geralmente mais chuvosa" : "fase geralmente menos chuvosa";
-}
-
-function renderRainSeasonContext(hourly, start) {
-  const date = hourly.time[start]?.slice(0, 10);
-  const indices = hourly.time.map((time, index) => time.startsWith(date) ? index : -1).filter(index => index >= 0);
-  const untilNow = indices.filter(index => index <= start).reduce((sum, index) => sum + (Number(hourly.precipitation[index]) || 0), 0);
-  const wholeDay = indices.reduce((sum, index) => sum + (Number(hourly.precipitation[index]) || 0), 0);
-  const month = Number(date?.slice(5, 7));
-  const phase = rainSeasonPhase(activeCity, month);
-  $("rainSeasonContext").textContent = `O modelo indica ${fmt(untilNow,1)} mm desde 0h e ${fmt(wholeDay,1)} mm no dia.${phase ? ` ${phase.replace(/^./, letter => letter.toUpperCase())} em ${activeCity.state}.` : ""} Volume previsto sozinho não vira alerta.`;
-}
-
-function paintRainPulse() {
-  const frame = rainPulseFrames[rainPulseIndex];
-  if (!frame) return;
-  const density = Math.min(1, (frame.mm || 0) / 8 + (frame.prob || 0) / 180);
-  $("rainPulseSky").style.setProperty("--rain-density", density.toFixed(2));
-  $("rainPulseSky").classList.toggle("is-wet", frame.mm >= .3 || frame.prob >= 50);
-  $("rainPulseTime").textContent = shortTime(frame.time);
-  $("rainPulseValue").textContent = `${Math.round(frame.prob)}% · ${fmt(frame.mm, 1)} mm`;
-  paintRainMap();
-}
-
-function paintRainMap() {
-  if (!rainMapLocations?.length || rainMapCityId !== activeCity?.id) return;
-  const grid = $("rainMapGrid");
-  if (!grid.children.length) {
-    const cells = Array.from({length:9}, () => {
-      const cell = document.createElement("span");
-      cell.setAttribute("aria-hidden", "true");
-      return cell;
-    });
-    grid.replaceChildren(...cells);
-  }
-  const values = rainMapLocations.map(location => ({
-    mm:Number(location.hourly?.precipitation?.[rainPulseIndex]) || 0,
-    prob:Number(location.hourly?.precipitation_probability?.[rainPulseIndex]) || 0
-  }));
-  const maxMm = Math.max(...values.map(value => value.mm));
-  const maxProb = Math.max(...values.map(value => value.prob));
-  [...grid.children].forEach((cell, index) => {
-    const value = values[index] || {mm:0,prob:0};
-    const intensity = Math.min(1, value.mm / 8 + value.prob / 180);
-    cell.style.setProperty("--rain", intensity.toFixed(2));
-    cell.title = `${fmt(value.mm,1)} mm · ${Math.round(value.prob)}%`;
-    const direction = ["Noroeste", "Norte", "Nordeste", "Oeste", "Município", "Leste", "Sudoeste", "Sul", "Sudeste"][index];
-    cell.textContent = `${direction}\n${fmt(value.mm,1)} mm\n${Math.round(value.prob)}%`;
-  });
-  const time = rainMapLocations[0].hourly?.time?.[rainPulseIndex] || rainPulseFrames[rainPulseIndex]?.time;
-  grid.setAttribute("aria-label", `Mapa do modelo às ${shortTime(time)}. Maior ponto: ${fmt(maxMm,1)} milímetro e ${Math.round(maxProb)} por cento.`);
-  $("rainMapStatus").textContent = maxMm === 0 ? `${shortTime(time)} · sem volume de chuva previsto nos nove pontos. Maior chance: ${Math.round(maxProb)}%.` : `${shortTime(time)} · maior volume ao redor: ${fmt(maxMm,1)} mm · maior chance: ${Math.round(maxProb)}%`;
-}
-
-async function loadRainMap() {
-  if (!activeCity) return;
-  const revision = cityRevision;
-  const cityId = activeCity.id;
-  const button = $("rainMapLoad");
-  button.disabled = true;
-  button.textContent = "Carregando…";
-  $("rainMapStatus").textContent = "Comparando nove pontos ao redor do centro municipal…";
-  try {
-    const raw = await services.weather.getPrecipitationGrid(activeCity, {timeoutMs:10000});
-    if (revision !== cityRevision || cityId !== activeCity.id) return;
-    const locations = Array.isArray(raw) ? raw : raw?.locations;
-    if (!Array.isArray(locations) || locations.length !== 9) throw new Error("grade incompleta");
-    if (locations.some(point => !point.hourly?.time?.length || !point.hourly.time.every((_,i) => Number.isFinite(point.hourly.precipitation?.[i]) && Number.isFinite(point.hourly.precipitation_probability?.[i])))) throw new Error("Dados de mapa incompletos");
-    rainMapLocations = locations;
-    rainMapCityId = cityId;
-    $("rainMapGrid").hidden = false;
-    button.textContent = "Atualizar mapa";
-    paintRainMap();
-    globalThis.PLUVIA?.sources.set("map",{status:"ready",checkedAt:Date.now(),dataAt:cityDate(locations[0].hourly.time[0]).getTime()});
-  } catch {
-    if (revision !== cityRevision) return;
-    globalThis.PLUVIA?.sources.set("map",{status:"error"});
-    $("rainMapStatus").textContent = "O mapa do modelo falhou agora. A previsão do ponto municipal continua valendo.";
-    button.textContent = "Tentar mapa de novo";
-  } finally {
-    if (revision === cityRevision) button.disabled = false;
-  }
-}
-
-function setRainPulsePlaying(playing) {
-  rainPulsePlaying = Boolean(playing && rainPulseFrames.length > 1);
-  clearInterval(rainPulseTimer);
-  const button = $("rainPulseToggle");
-  button.setAttribute("aria-pressed", String(rainPulsePlaying));
-  button.textContent = rainPulsePlaying ? "Pausar" : "Reproduzir";
-  if (rainPulsePlaying) rainPulseTimer = setInterval(() => {
-    rainPulseIndex = (rainPulseIndex + 1) % rainPulseFrames.length;
-    paintRainPulse();
-  }, 1400);
-}
-
-function renderRainPulse(hourly, start) {
-  if (rainMapCityId !== activeCity?.id) {
-    rainMapLocations = null;
-    rainMapCityId = null;
-    $("rainMapGrid").hidden = true;
-    $("rainMapGrid").replaceChildren();
-    $("rainMapStatus").textContent = "Toque em “Mapa ao redor” para comparar nove pontos próximos sem pesar a abertura.";
-    $("rainMapLoad").textContent = "Mapa ao redor";
-  }
-  rainPulseFrames = Array.from({length: 8}, (_, offset) => start + offset)
-    .filter(index => index < hourly.time.length)
-    .map(index => ({time:hourly.time[index], prob:Number(hourly.precipitation_probability[index]) || 0, mm:Number(hourly.precipitation[index]) || 0}));
-  rainPulseIndex = 0;
-  paintRainPulse();
-  setRainPulsePlaying(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 }
 
 function renderForecast(daily) {
@@ -816,8 +689,6 @@ async function loadWeather(revision = cityRevision) {
       $("condition").textContent = "Tempo indisponível";
       $("rainChart").innerHTML = '<p class="chart-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
-      $("rainPulseValue").textContent = "Dados temporariamente indisponíveis.";
-      $("rainSeasonContext").textContent = "Dados temporariamente indisponíveis.";
       $("dryWindow").textContent = "Sem dados";
       $("sunPhrase").textContent = "Ciclo solar indisponível.";
       $("airCardQuality").textContent = "Indisponível";
@@ -1011,13 +882,6 @@ function chooseCity(id, locatedCity = null) {
   globalThis.PLUVIA?.sources.reset(city.id);
   globalThis.PLUVIA?.radar?.reset?.(city.id);
   globalThis.PLUVIA?.modules.location.reset?.();
-  rainMapLocations = null; rainMapCityId = null;
-  $("rainMapGrid").hidden = true;
-  $("rainMapGrid").textContent = "";
-  $("rainMapStatus").textContent = "Toque em “Mapa ao redor” para comparar nove pontos próximos sem pesar a abertura.";
-  $("rainSeasonContext").textContent = "Calculando o contexto da chuva de hoje…";
-  $("rainMapLoad").textContent = "Mapa ao redor";
-  $("rainMapLoad").disabled = false;
   writePreference("pluvia-city", city.id);
   writePreference("pluvia-city-record", {id:city.id,name:city.name,uf:city.uf,state:city.state,lat:city.lat,lon:city.lon,timezone:city.timezone});
   globalThis.dispatchEvent?.(new CustomEvent('pluvia:city-changed',{detail:{id:city.id}}));
@@ -1152,8 +1016,6 @@ function requestLocation(source = 'automatic') {
 setupCityPicker();
 setupScrollAnimations();
 setupPullToRefresh();
-$("rainPulseToggle").addEventListener("click", () => setRainPulsePlaying(!rainPulsePlaying));
-$("rainMapLoad").addEventListener("click", loadRainMap);
 updateClock();
 setInterval(updateClock, 30000);
 requestLocation();

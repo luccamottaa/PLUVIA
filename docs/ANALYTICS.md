@@ -7,7 +7,7 @@ A instrumentação do PLUVIA fica em `dist/analytics.js` e só envia eventos qua
 - `PLUVIA Opened`
 - `Location Requested`, `Location Authorized`, `Location Denied`, `Location Unavailable`
 - `City Search Opened`, `City Searched`, `City Selected`, `Favorite City Toggled`
-- `Rain Map Opened`, `Rain Animation Toggled`
+- `Weather Map Opened`
 - `Alert Opened`, `Official Alert Link Opened`
 - `Account Dialog Opened`, `Auth Mode Selected`, `Auth Started`, `Auth Completed`, `Signup Confirmation Requested`, `Profile Name Saved`
 

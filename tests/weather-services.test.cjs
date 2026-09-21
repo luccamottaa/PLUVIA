@@ -21,15 +21,6 @@ test('constrói URLs meteorológicas somente a partir da localização normaliza
   assert.throws(() => services.weather.forecastUrl({lat:999,lon:0,timezone:'UTC'}), /Localização/);
 });
 
-test('grade de precipitação contém nove pontos e preserva o timezone', () => {
-  const services = createServices({client:{getJson(){}}});
-  const url = new URL(services.weather.precipitationGridUrl(manaus));
-  assert.equal(url.searchParams.get('latitude').split(',').length, 9);
-  assert.equal(url.searchParams.get('longitude').split(',').length, 9);
-  assert.equal(url.searchParams.get('timezone'), 'America/Manaus');
-  assert.equal(url.searchParams.get('forecast_hours'), '8');
-});
-
 test('serviços delegam transporte e timeout ao cliente HTTP compartilhado', async () => {
   const calls = [];
   let aborted = false;
@@ -39,10 +30,8 @@ test('serviços delegam transporte e timeout ao cliente HTTP compartilhado', asy
   assert.equal(await services.airQuality.getCurrent(manaus), payload);
   assert.equal(await services.alerts.getActive(), payload);
   assert.equal(await services.civilDefense.getManausRecent(), payload);
-  assert.equal(await services.weather.getPrecipitationGrid(manaus), payload);
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 4);
   assert(calls.every(call => call.options.timeoutMs > 0));
-  assert.equal(calls.at(-1).options.timeoutMs, 10000);
   services.abortAll();
   assert.equal(aborted, true);
 });

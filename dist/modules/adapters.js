@@ -5,5 +5,4 @@ Object.assign(PLUVIA.modules.location,{choose:chooseCity,locate:requestLocation,
 Object.assign(PLUVIA.modules['air-quality'],{guidance:airGuidance});
 Object.assign(PLUVIA.modules.disasters,{refresh:()=>loadDefesaAlerts()});
 Object.assign(PLUVIA.modules.auth,{open:()=>document.getElementById('accountButton').click()});
-Object.assign(PLUVIA.modules.map,{load:loadRainMap});
 Object.assign(PLUVIA.modules['weather-layers'],{status:'not-integrated'});

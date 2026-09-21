@@ -36,13 +36,15 @@ No core-67, `modules/http-client.js` passou a ser o cliente compartilhado das co
 
 No core-68, as camadas do mapa receberam uma instância HTTP própria e cancelam a consulta ativa na troca de camada ou no fechamento. O probe do radar consulta os metadados pela mesma infraestrutura, mas mantém um `AbortController` externo porque o ciclo completo também inclui o download e a leitura do tile de imagem. Assim, timeout, fechamento e troca de cidade cancelam metadados e imagem como uma única operação, sem compartilhar cancelamento com a Home.
 
-No core-69, `modules/weather-services.js` passou a concentrar endpoints, parâmetros e construção de URLs dos providers usados pela Home. `WeatherService`, `AirQualityService`, `AlertService` e o adaptador da Defesa Civil delegam transporte ao cliente HTTP comum. `app.js` deixou de conhecer URLs de Open-Meteo, CAMS, INMET e Prefeitura de Manaus; ele mantém somente retry de produto, validação, cache e apresentação. A grade modelada de precipitação também foi movida para o serviço meteorológico.
+No core-69, `modules/weather-services.js` passou a concentrar endpoints, parâmetros e construção de URLs dos providers usados pela Home. `WeatherService`, `AirQualityService`, `AlertService` e o adaptador da Defesa Civil delegam transporte ao cliente HTTP comum. `app.js` deixou de conhecer URLs de Open-Meteo, CAMS, INMET e Prefeitura de Manaus; ele mantém somente retry de produto, validação, cache e apresentação.
 
 Rollback: reverter o commit desta versão e restaurar conjuntamente os módulos alterados, referências versionadas do HTML e o identificador anterior do cache do service worker. Não reverter somente o identificador do cache, pois isso pode misturar shell e contrato de versões diferentes.
 
 ## Leitura contextual
 
 No core-70, o card “PLUVIA Sinal · Dá pra sair?” foi removido porque repetia a interpretação já exibida pelo Resumo Inteligente. O Resumo Inteligente permanece como a única leitura contextual na primeira dobra, mantém os fatores em “Por que está assim?” e continua cedendo prioridade visual aos avisos oficiais laranja e vermelho do INMET. A mudança também retirou o módulo, o CSS e o recálculo de radar exclusivos do card duplicado.
+
+No core-71, o card “Modelo de precipitação · Pulso de chuva no município” foi removido da Home. A mudança eliminou a animação, a grade estimada de nove pontos, o timer e a consulta meteorológica adicional. O gráfico horário continua apresentando probabilidade e volume previstos, enquanto o mapa do tempo mantém separadamente radar observado, satélite e nuvens com as respectivas fontes.
 
 ## Verificação e limites
 

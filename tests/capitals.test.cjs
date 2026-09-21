@@ -66,12 +66,6 @@ for(const [uf,expected] of [['AM','2026-09-08T16:00:00.000Z'],['DF','2026-09-08T
 }
 assert.equal(context.cityDate('2026-09-08T12:00:00Z').toISOString(),'2026-09-08T12:00:00.000Z');
 assert.throws(()=>context.nearestCapital(NaN,0));
-const rainMap = new URL(context.PLUVIA.services.weather.precipitationGridUrl(cities.find(c=>c.uf==='AM')));
-assert.equal(rainMap.searchParams.get('latitude').split(',').length,9);
-assert.equal(rainMap.searchParams.get('longitude').split(',').length,9);
-assert.equal(rainMap.searchParams.get('timezone'),'America/Manaus');
-assert.equal(context.rainSeasonPhase(cities.find(c=>c.uf==='AM'),3),'fase geralmente mais chuvosa');
-assert.equal(context.rainSeasonPhase(cities.find(c=>c.uf==='AM'),9),'fase geralmente menos chuvosa');
 run('activeCity = CAPITALS.find(c=>c.uf==="MT")');
 assert.equal(context.inmetArea({estados:'Mato Grosso do Sul'}),null);
 run('activeCity = CAPITALS.find(c=>c.uf==="AM")');

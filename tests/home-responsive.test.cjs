@@ -40,7 +40,7 @@ test('Resumo Inteligente tem altura por conteúdo e timeline tem scroll interno'
   const finalContract = css.slice(css.indexOf('/* Home responsive contract'));
   assert.match(finalContract, /\.insight-card\s*\{[^}]*min-height:0\s*!important;[^}]*height:auto/);
   assert.match(finalContract, /\.rain-chart\s*\{[^}]*overflow-x:auto/);
-  assert.match(html, /MODELO DE PRECIPITAÇÃO · PREVISÃO ANIMADA/);
+  assert.doesNotMatch(html, /MODELO DE PRECIPITAÇÃO|rainPulse|rainMapGrid/);
   assert.match(finalContract, /\.summary-highlights li[^}]*white-space:normal/);
   assert.match(finalContract, /\.summary-link\s*\{\s*white-space:normal/);
 });
