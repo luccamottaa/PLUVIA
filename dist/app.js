@@ -1,19 +1,8 @@
-const FORECAST_TEMPLATE = "https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,cloud_cover,visibility,wind_speed_10m,wind_gusts_10m,relative_humidity_2m,pressure_msl,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&timezone=America%2FManaus&past_hours=24&forecast_days=8";
-const AIR_TEMPLATE = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-3.119&longitude=-60.022&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi&timezone=America%2FManaus&forecast_days=3";
-const INMET_API = "https://apiprevmet3.inmet.gov.br/avisos/ativos";
-const DEFESA_API = "https://www.manaus.am.gov.br/wp-json/wp/v2/posts?search=Defesa%20Civil%20alerta&per_page=8&_fields=date,link,title,excerpt";
 const DEFESA_NACIONAL = "https://www.gov.br/mdr/pt-br/assuntos/protecao-e-defesa-civil";
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const $ = (id) => document.getElementById(id);
 let cityRevision = 0;
-const httpClient = globalThis.PLUVIA?.http?.client;
-function cityApi(template, city = activeCity) {
-  const url = new URL(template);
-  url.searchParams.set("latitude", city.lat);
-  url.searchParams.set("longitude", city.lon);
-  url.searchParams.set("timezone", city.timezone);
-  return url.href;
-}
+const services = globalThis.PLUVIA?.services;
 let lastRefreshAt = 0;
 let refreshInFlight = null;
 let displayedWeather = null;
@@ -32,14 +21,9 @@ const CACHE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 
 const RequestError = globalThis.PLUVIA?.http?.RequestError;
 
-async function fetchJson(url, timeoutMs = 12000) {
-  if (!httpClient || !RequestError) throw new Error("Cliente HTTP do PLUVIA não carregado.");
-  return httpClient.getJson(url, {timeoutMs});
-}
-
 async function fetchForecast(city = activeCity, revision = cityRevision) {
   try {
-    const data = await fetchJson(cityApi(FORECAST_TEMPLATE, city));
+    const data = await services.weather.getForecast(city);
     if (!validForecast(data)) throw new RequestError('Previsão incompleta.', {retryable:true});
     return data;
   } catch (error) {
@@ -47,7 +31,7 @@ async function fetchForecast(city = activeCity, revision = cityRevision) {
     if (revision !== cityRevision) throw new Error('Cidade alterada');
     await new Promise(resolve => setTimeout(resolve, 900));
     if (revision !== cityRevision) throw new Error('Cidade alterada');
-    const data = await fetchJson(cityApi(FORECAST_TEMPLATE, city), 12000);
+    const data = await services.weather.getForecast(city, {timeoutMs:12000});
     if (!validForecast(data)) throw new RequestError('Previsão incompleta.', {retryable:false});
     return data;
   }
@@ -342,7 +326,7 @@ function renderGoOut(forecast = displayedWeather?.forecast, air = displayedWeath
 
 async function loadInmetAlerts(revision = cityRevision) {
   try {
-    const raw = await fetchJson(INMET_API);
+    const raw = await services.alerts.getActive();
     if (revision !== cityRevision) return;
     lastInmetResponse = raw;
     lastInmetReadAt = Date.now();
@@ -371,7 +355,7 @@ async function loadDefesaAlerts(revision = cityRevision) {
       content.innerHTML = '<h3>Defesa Civil em ' + escapeHtml(activeCity.state || activeCity.uf) + '</h3><p>O PLUVIA ainda não lê o feed estadual desta região. Consulte a <a href="' + DEFESA_NACIONAL + '" target="_blank" rel="noreferrer">Defesa Civil Nacional ↗</a> para chegar aos canais locais.</p>';
       return;
     }
-    const posts = await fetchJson(DEFESA_API);
+    const posts = await services.civilDefense.getManausRecent();
     if (revision !== cityRevision) return;
     if (!Array.isArray(posts)) throw new Error("Resposta municipal desconhecida");
     const relevant = posts.filter(p => /alerta|chuva|alagamento|deslizamento|temporal|vendaval/i.test(decodeHtml(p.title?.rendered || "")));
@@ -579,21 +563,6 @@ function paintRainPulse() {
   paintRainMap();
 }
 
-function rainMapUrl(city) {
-  const latStep = .12;
-  const lonStep = .12 / Math.max(.4, Math.cos(city.lat * Math.PI / 180));
-  const points = [];
-  for (const y of [1,0,-1]) for (const x of [-1,0,1]) points.push([city.lat + y * latStep, city.lon + x * lonStep]);
-  const url = new URL("https://api.open-meteo.com/v1/forecast");
-  url.searchParams.set("latitude", points.map(point => point[0].toFixed(4)).join(","));
-  url.searchParams.set("longitude", points.map(point => point[1].toFixed(4)).join(","));
-  url.searchParams.set("hourly", "precipitation,precipitation_probability");
-  url.searchParams.set("forecast_hours", "8");
-  url.searchParams.set("precipitation_unit", "mm");
-  url.searchParams.set("timezone", city.timezone);
-  return url.href;
-}
-
 function paintRainMap() {
   if (!rainMapLocations?.length || rainMapCityId !== activeCity?.id) return;
   const grid = $("rainMapGrid");
@@ -633,7 +602,7 @@ async function loadRainMap() {
   button.textContent = "Carregando…";
   $("rainMapStatus").textContent = "Comparando nove pontos ao redor do centro municipal…";
   try {
-    const raw = await fetchJson(rainMapUrl(activeCity), 10000);
+    const raw = await services.weather.getPrecipitationGrid(activeCity, {timeoutMs:10000});
     if (revision !== cityRevision || cityId !== activeCity.id) return;
     const locations = Array.isArray(raw) ? raw : raw?.locations;
     if (!Array.isArray(locations) || locations.length !== 9) throw new Error("grade incompleta");
@@ -862,7 +831,7 @@ async function loadWeather(revision = cityRevision) {
   const city = activeCity;
   $("weatherView")?.setAttribute('aria-busy','true');
   try {
-    const [forecastResult, airResult] = await Promise.allSettled([fetchForecast(city, revision), fetchJson(cityApi(AIR_TEMPLATE, city))]);
+    const [forecastResult, airResult] = await Promise.allSettled([fetchForecast(city, revision), services.airQuality.getCurrent(city)]);
     if (revision !== cityRevision) return false;
     if (forecastResult.status !== "fulfilled") throw forecastResult.reason;
     const data = forecastResult.value;
@@ -1080,7 +1049,7 @@ function chooseCity(id, locatedCity = null) {
   $("siteNav").hidden = false;
   closeCitySearch();
   cityRevision++;
-  httpClient?.abortAll();
+  services?.abortAll();
   refreshInFlight = null;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
   globalThis.pluviaAnalytics?.track('City Selected',{city:city.name,uf:city.uf,source:Number.isFinite(locatedCity?.distanceKm) ? 'location' : 'picker_or_saved'});

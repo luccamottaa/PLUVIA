@@ -20,6 +20,8 @@ const context = vm.createContext({document:{getElementById:id=>nodes.get(id),que
   DOMParser:class {parseFromString(text){return {documentElement:{textContent:text}};}}
 });
 vm.runInContext(catalog,context);
+vm.runInContext(fs.readFileSync(path.join(root,'dist/modules/sources.js'),'utf8'),context);
+vm.runInContext(fs.readFileSync(path.join(root,'dist/modules/weather-services.js'),'utf8'),context);
 vm.runInContext(source.slice(0,source.lastIndexOf('\nsetupCityPicker();')),context);
 const run = code => vm.runInContext(code,context);
 assert.equal(run('activeCity'),null);
@@ -47,7 +49,7 @@ assert.equal(cities.length,27);
 assert.equal(new Set(cities.map(c=>c.uf)).size,27);
 assert.equal(new Set(cities.map(c=>c.id)).size,27);
 for(const city of cities){
-  const url = new URL(context.cityApi('https://api.open-meteo.com/v1/forecast',city));
+  const url = new URL(context.PLUVIA.services.weather.forecastUrl(city));
   assert.equal(Number(url.searchParams.get('latitude')),city.lat);
   assert.equal(url.searchParams.get('timezone'),city.timezone);
   assert.equal(context.inmetArea({geocodes:city.id}),city.uf==='AM'?'Manaus':null);
@@ -64,7 +66,7 @@ for(const [uf,expected] of [['AM','2026-09-08T16:00:00.000Z'],['DF','2026-09-08T
 }
 assert.equal(context.cityDate('2026-09-08T12:00:00Z').toISOString(),'2026-09-08T12:00:00.000Z');
 assert.throws(()=>context.nearestCapital(NaN,0));
-const rainMap = new URL(context.rainMapUrl(cities.find(c=>c.uf==='AM')));
+const rainMap = new URL(context.PLUVIA.services.weather.precipitationGridUrl(cities.find(c=>c.uf==='AM')));
 assert.equal(rainMap.searchParams.get('latitude').split(',').length,9);
 assert.equal(rainMap.searchParams.get('longitude').split(',').length,9);
 assert.equal(rainMap.searchParams.get('timezone'),'America/Manaus');
@@ -97,7 +99,9 @@ run('activeCity = CAPITALS.find(c=>c.uf==="AM")');
 (async()=>{
   const pending=[];const rendered=[];const requests=[];
   context.fetchForecast=city=>new Promise(resolve=>pending.push({city,resolve}));
-  context.fetchJson=async url=>{requests.push(url);return url.includes('/avisos/')?{hoje:[],futuro:[]}:url.includes('wp-json')?[]:{current:{us_aqi:10}};};
+  context.PLUVIA.services.alerts.getActive=async()=>{requests.push('inmet');return {hoje:[],futuro:[]};};
+  context.PLUVIA.services.civilDefense.getManausRecent=async()=>{requests.push('manaus.am.gov.br');return [];};
+  context.PLUVIA.services.airQuality.getCurrent=async city=>{requests.push(`air:${city.id}`);return {current:{us_aqi:10}};};
   context.render=data=>rendered.push(data.city);
   const old=context.refreshAll();
   context.chooseCity('5300108');
@@ -112,7 +116,7 @@ run('activeCity = CAPITALS.find(c=>c.uf==="AM")');
   assert(!nodes.get('defesaContent').innerHTML.includes('Prefeitura de Manaus'));
   assert(nodes.get('defesaContent').innerHTML.includes('ainda não lê o feed estadual'));
   assert(nodes.get('defesaContent').innerHTML.includes('Defesa Civil Nacional'));
-  assert(!requests.some(url=>url.includes('latitude=-3.119')&&url.includes('longitude=-47.883')));
+  assert(!requests.some(url=>url.includes('air:5300108')&&url.includes('1302603')));
   const beforeInterior = requests.length;
   context.chooseCity('1303403');
   assert.equal(nodes.get('cityName').textContent,'Parintins');
