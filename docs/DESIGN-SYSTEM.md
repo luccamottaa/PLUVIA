@@ -25,7 +25,6 @@ Os tokens ficam em `dist/styles.css` e são a única fonte para cores, espaçame
 - `card-primary`: condição atual, chuva e outros dados de decisão imediata.
 - `card-secondary`: interpretação, saúde e contexto.
 - `card-detail`: métricas complementares, com profundidade visual reduzida.
-- `card-interactive`: superfície com expansão ou ação; recebe realce em foco.
 
 Cards de leitura não ganham movimento no hover. Isso evita sugerir clique onde não existe ação.
 
@@ -37,11 +36,7 @@ Prioriza temperatura, condição, sensação, máxima/mínima, chuva atual, font
 
 ### InsightCard
 
-“Agora no PLUVIA” interpreta o conjunto de chuva, vento, calor e umidade. Não substitui o PLUVIA Sinal e não cria evento sem dados suficientes.
-
-### PLUVIA Sinal
-
-Usa os estados `good`, `attention`, `wait`, `danger` e `unknown`. O rótulo, a explicação, os fatores, a confiança e o horário do modelo são obrigatórios.
+O Resumo Inteligente interpreta chuva, vento, calor, umidade, ar e avisos oficiais sem criar evento quando faltam dados. Ele é a única leitura contextual na primeira dobra e explica seus fatores em “Por que está assim?”.
 
 ### MetricCard
 

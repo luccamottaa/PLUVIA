@@ -22,12 +22,6 @@
     return { status: state.status, precipitating: state.precipitating, kind: "observation", checkedAt: state.checkedAt, cityId: state.cityId };
   }
 
-  function paintSignal() {
-    if (typeof renderGoOut === "function" && typeof displayedWeather !== "undefined") {
-      renderGoOut(displayedWeather?.forecast, displayedWeather?.air);
-    }
-  }
-
   function reset(cityId = null) {
     generation++;
     activeController?.abort();
@@ -113,7 +107,6 @@
       clearTimeout(timeout);
       if (activeController === controller) activeController = null;
     }
-    if (generation === requestGeneration && state.cityId === cityId) paintSignal();
     return snapshot();
   }
 

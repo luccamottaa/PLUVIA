@@ -1,5 +1,7 @@
 # Auditoria de produto — 10/09/2026
 
+> Atualização core-70 (21/09/2026): o card PLUVIA Sinal citado nas rodadas históricas abaixo foi removido por duplicar o Resumo Inteligente. A Home agora possui uma única leitura contextual, com explicação dos fatores e prioridade para avisos oficiais do INMET.
+
 ## Expansão inteligente — Fundação — 14/09/2026
 
 ### Diagnóstico classificado

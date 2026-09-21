@@ -38,7 +38,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-60" />
+    <link rel="stylesheet" href="./styles.css?v=core-70" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -174,14 +174,6 @@
           <a id="summaryLink" class="summary-link" href="#previsao">Ver previsão detalhada →</a>
         </aside>
       </section>
-      <section id="goOutCard" class="go-out-card panel card-interactive" aria-labelledby="goOutTitle" aria-live="polite">
-        <span class="eyebrow">PLUVIA SINAL · DÁ PRA SAIR?</span>
-        <strong id="goOutTitle">Analisando as próximas horas…</strong>
-        <p id="goOutReason">Cruzando chuva, vento, calor, ar e avisos oficiais disponíveis.</p>
-        <p id="goOutDegraded" class="signal-degraded" hidden>INMET sem confirmação agora. Isso é monitoramento incompleto, não um alerta amarelo de céu ruim.</p>
-        <details class="signal-details"><summary>Por que este sinal?</summary><ul id="goOutFactors"><li>Aguardando os dados do município.</li></ul><p id="goOutConfidence">Confiança ainda não calculada.</p></details>
-        <small id="goOutUpdated">É uma leitura orientativa do município, não uma garantia de segurança na sua rua.</small>
-      </section>
       <section id="notificationPrompt" class="notification-prompt panel" aria-labelledby="notificationPromptTitle" hidden>
         <div class="notification-prompt-icon" aria-hidden="true">🔔</div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Avisos de chuva e INMET no celular</h2><p id="notificationPromptText">O PLUVIA avisa alerta oficial e chuva nas próximas horas da cidade aberta — modelo, sem minuto na sua rua.</p></div><button id="notificationPromptButton" type="button">Ativar alertas</button>
       </section>
@@ -261,13 +253,12 @@
     <script src="./modules/weather-services.js?v=core-69"></script>
     <script src="./modules/weather-data-layer.js?v=core-66"></script>
     <script src="./modules/weather-insights.js?v=core-64"></script>
-    <script src="./modules/signal.js?v=core-60"></script>
-    <script src="./modules/radar-probe.js?v=core-68"></script>
+    <script src="./modules/radar-probe.js?v=core-70"></script>
     <script src="./modules/weather-icons.js?v=core-49"></script>
     <script src="./modules/weather-icon-system.js?v=glossy-2"></script>
     <script src="./modules/smart-summary.js?v=core-49"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-69"></script>
+    <script src="./app.js?v=core-70"></script>
     <script src="./p0.js?v=core-60"></script>
     <script src="./modules/risks.js?v=core-47"></script>
     <script src="./modules/adapters.js?v=core-47"></script>

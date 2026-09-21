@@ -40,16 +40,9 @@ No core-69, `modules/weather-services.js` passou a concentrar endpoints, parâme
 
 Rollback: reverter o commit desta versão e restaurar conjuntamente os módulos alterados, referências versionadas do HTML e o identificador anterior do cache do service worker. Não reverter somente o identificador do cache, pois isso pode misturar shell e contrato de versões diferentes.
 
-## PLUVIA Sinal
+## Leitura contextual
 
-`dist/modules/signal.js` contém a regra pura do produto. Ela recebe dados já normalizados, estado das fontes e severidade oficial; não acessa DOM nem faz consulta externa. A saída mantém `level`, `label`, `summary`, `factors`, `confidence` e `score`.
-
-- 🟢 Pode sair: sem chuva relevante, rajada forte ou aviso oficial confirmado.
-- 🟡 Fica atento: chuva provável, calor/UV/ar relevantes ou monitoramento oficial incompleto.
-- 🟠 Melhor esperar: alerta laranja, trovoada possível, chuva volumosa ou rajada forte.
-- 🔴 Condição perigosa: alerta vermelho ou combinação modelada de alta severidade.
-
-Aviso oficial confirmado tem prioridade. Ausência de resposta do INMET nunca vira sinal verde. A interface mostra “Por que este sinal?”, fatores, confiança e horário do modelo. O sinal é do município, não da rua.
+No core-70, o card “PLUVIA Sinal · Dá pra sair?” foi removido porque repetia a interpretação já exibida pelo Resumo Inteligente. O Resumo Inteligente permanece como a única leitura contextual na primeira dobra, mantém os fatores em “Por que está assim?” e continua cedendo prioridade visual aos avisos oficiais laranja e vermelho do INMET. A mudança também retirou o módulo, o CSS e o recálculo de radar exclusivos do card duplicado.
 
 ## Verificação e limites
 
