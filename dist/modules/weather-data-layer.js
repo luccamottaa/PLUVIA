@@ -11,6 +11,97 @@
   const at = (list, index) => Array.isArray(list) ? list[index] : undefined;
   const freeze = value => Object.freeze(value);
 
+  const CURRENT_NUMERIC_FIELDS = [
+    "temperature_2m", "apparent_temperature", "relative_humidity_2m", "precipitation",
+    "rain", "showers", "weather_code", "cloud_cover", "wind_speed_10m",
+    "wind_direction_10m", "wind_gusts_10m"
+  ];
+  const HOURLY_NUMERIC_FIELDS = [
+    "temperature_2m", "apparent_temperature", "precipitation_probability", "precipitation",
+    "rain", "weather_code", "cloud_cover", "visibility", "wind_speed_10m",
+    "wind_gusts_10m", "relative_humidity_2m", "pressure_msl", "uv_index"
+  ];
+  const DAILY_NUMERIC_FIELDS = [
+    "weather_code", "temperature_2m_max", "temperature_2m_min", "apparent_temperature_max",
+    "apparent_temperature_min", "precipitation_sum", "rain_sum",
+    "precipitation_probability_max", "uv_index_max"
+  ];
+
+  function timestamp(value) {
+    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value) && Number.isFinite(Date.parse(value));
+  }
+
+  function date(value) {
+    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(`${value}T12:00:00Z`));
+  }
+
+  function validateForecast(forecast) {
+    const errors = [];
+    const current = forecast?.current;
+    const hourly = forecast?.hourly;
+    const daily = forecast?.daily;
+
+    if (!current || typeof current !== "object") errors.push("current ausente");
+    if (!timestamp(current?.time)) errors.push("current.time inválido");
+    for (const field of CURRENT_NUMERIC_FIELDS) {
+      if (!Number.isFinite(current?.[field])) errors.push(`current.${field} inválido`);
+    }
+    if (![0, 1].includes(current?.is_day)) errors.push("current.is_day inválido");
+    if (!Number.isFinite(current?.pressure_msl) && !Number.isFinite(current?.surface_pressure)) {
+      errors.push("pressão atual ausente");
+    }
+    if (Number.isFinite(current?.relative_humidity_2m) && (current.relative_humidity_2m < 0 || current.relative_humidity_2m > 100)) errors.push("umidade atual fora da faixa");
+    if (Number.isFinite(current?.wind_direction_10m) && (current.wind_direction_10m < 0 || current.wind_direction_10m > 360)) errors.push("direção do vento fora da faixa");
+
+    const hourlyLength = Array.isArray(hourly?.time) ? hourly.time.length : 0;
+    if (hourlyLength < 3 || !hourly.time.every(timestamp)) errors.push("hourly.time inválido");
+    for (const field of HOURLY_NUMERIC_FIELDS) {
+      const values = hourly?.[field];
+      if (!Array.isArray(values) || values.length !== hourlyLength || !values.every(Number.isFinite)) {
+        errors.push(`hourly.${field} inválido ou desalinhado`);
+      }
+    }
+    for (const field of ["relative_humidity_2m", "precipitation_probability", "cloud_cover"]) {
+      if (Array.isArray(hourly?.[field]) && hourly[field].some(value => value < 0 || value > 100)) errors.push(`hourly.${field} fora da faixa`);
+    }
+    for (const field of ["precipitation", "rain", "visibility", "wind_speed_10m", "wind_gusts_10m", "uv_index"]) {
+      if (Array.isArray(hourly?.[field]) && hourly[field].some(value => value < 0)) errors.push(`hourly.${field} fora da faixa`);
+    }
+
+    const dailyLength = Array.isArray(daily?.time) ? daily.time.length : 0;
+    if (dailyLength < 1 || !daily.time.every(date)) errors.push("daily.time inválido");
+    for (const field of DAILY_NUMERIC_FIELDS) {
+      const values = daily?.[field];
+      if (!Array.isArray(values) || values.length !== dailyLength || !values.every(Number.isFinite)) {
+        errors.push(`daily.${field} inválido ou desalinhado`);
+      }
+    }
+    for (const field of ["sunrise", "sunset"]) {
+      const values = daily?.[field];
+      if (!Array.isArray(values) || values.length !== dailyLength || !values.every(timestamp)) {
+        errors.push(`daily.${field} inválido ou desalinhado`);
+      }
+    }
+    if (Array.isArray(daily?.precipitation_probability_max) && daily.precipitation_probability_max.some(value => value < 0 || value > 100)) errors.push("probabilidade diária fora da faixa");
+    for (const field of ["precipitation_sum", "rain_sum", "uv_index_max"]) {
+      if (Array.isArray(daily?.[field]) && daily[field].some(value => value < 0)) errors.push(`daily.${field} fora da faixa`);
+    }
+
+    return freeze({valid: errors.length === 0, errors: freeze(errors)});
+  }
+
+  function validateAirQuality(air) {
+    const errors = [];
+    const current = air?.current;
+    if (!current || typeof current !== "object") errors.push("current ausente");
+    if (!timestamp(current?.time)) errors.push("current.time inválido");
+    if (!Number.isFinite(current?.us_aqi) || current.us_aqi < 0 || current.us_aqi > 500) errors.push("current.us_aqi inválido");
+    for (const field of ["pm2_5", "pm10", "ozone", "nitrogen_dioxide", "sulphur_dioxide", "carbon_monoxide"]) {
+      if (current?.[field] != null && (!Number.isFinite(current[field]) || current[field] < 0)) errors.push(`current.${field} inválido`);
+    }
+    return freeze({valid: errors.length === 0, errors: freeze(errors)});
+  }
+
   function normalizeLocation(city = {}) {
     return freeze({
       id: String(city.id || ""),
@@ -93,9 +184,9 @@
   }
 
   function normalizeOpenMeteo(forecast, air, city, metadata = {}) {
-    if (!forecast?.current || !Array.isArray(forecast?.hourly?.time) || !Array.isArray(forecast?.daily?.time)) {
-      throw new TypeError("Resposta meteorológica incompleta para normalização.");
-    }
+    const validation = validateForecast(forecast);
+    if (!validation.valid) throw new TypeError(`Resposta meteorológica incompleta para normalização: ${validation.errors[0]}.`);
+    if (air && !validateAirQuality(air).valid) air = null;
     const checkedAt = number(metadata.checkedAt) || Date.now();
     const location = normalizeLocation(city);
     return freeze({
@@ -134,5 +225,5 @@
   function get(cityId) { return snapshots.get(String(cityId || "")) || null; }
   function clear(cityId) { cityId == null ? snapshots.clear() : snapshots.delete(String(cityId)); }
 
-  return { normalizeOpenMeteo, ingestOpenMeteo, get, clear };
+  return { validateForecast, validateAirQuality, normalizeOpenMeteo, ingestOpenMeteo, get, clear };
 });

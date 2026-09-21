@@ -18,6 +18,10 @@
 
 Outros componentes existentes: municípios IBGE com coordenadas Kelvin S. do Prado/MIT (catálogo local); Supabase Auth (SDK local fixado, chave publishable; não fonte de riscos). Não se introduziu Neon/Railway ou outro banco: desnecessário para esta etapa.
 
+## Validação antes da interface
+
+O contrato core-65 exige que todas as séries solicitadas ao Open-Meteo tenham o mesmo comprimento do respectivo eixo de tempo e contenham números finitos. Probabilidades, umidade e nuvens ficam entre 0 e 100; precipitação, visibilidade, vento e UV não podem ser negativos; datas e horários precisam ser válidos. Uma resposta que falhe nessas regras não chega aos componentes nem ao cache. Qualidade do ar é validada separadamente para permitir que uma previsão íntegra continue disponível quando o AQI falhar.
+
 ## Camadas implementadas sob demanda
 
 | Camada | Fonte e endpoint | Natureza | Atualização e limites | Como o PLUVIA apresenta |
