@@ -19,6 +19,7 @@ vm.runInContext(fs.readFileSync(path.join(root, "dist/municipalities.js"), "utf8
 vm.runInContext(fs.readFileSync(path.join(root, "dist/capitals.js"), "utf8"), context);
 vm.runInContext(fs.readFileSync(path.join(root, "dist/modules/sources.js"), "utf8"), context);
 vm.runInContext(fs.readFileSync(path.join(root, "dist/modules/signal.js"), "utf8"), context);
+vm.runInContext(fs.readFileSync(path.join(root, "dist/modules/weather-services.js"), "utf8"), context);
 context.PLUVIA.sources.get = () => ({status:'ready'});
 vm.runInContext(source.slice(0, source.lastIndexOf("\nsetupCityPicker();")), context);
 vm.runInContext('activeCity = cityById.get("1302603")', context);
@@ -101,12 +102,12 @@ async function test(label, fn) {await fn(); checks++; console.log(`PASS ${label}
     assert.equal((content.match(/class="inmet-alert /g)||[]).length,2);
   });
   await test("Initial failure says unavailable; later failure keeps notices explicitly unconfirmed", async () => {
-    context.fetchJson = async () => {throw new Error("network");};
+    context.PLUVIA.services.alerts.getActive = async () => {throw new Error("network");};
     await context.loadInmetAlerts();
     assert(nodes.get("inmetState").innerHTML.includes("Consulta indisponível"));
-    context.fetchJson = async () => ({hoje:[aviso()],futuro:[]});
+    context.PLUVIA.services.alerts.getActive = async () => ({hoje:[aviso()],futuro:[]});
     await context.loadInmetAlerts();
-    context.fetchJson = async () => {throw new Error("network");};
+    context.PLUVIA.services.alerts.getActive = async () => {throw new Error("network");};
     await context.loadInmetAlerts();
     assert(nodes.get("inmetState").innerHTML.includes("Sem confirmação recente"));
     assert(nodes.get("inmetContent").innerHTML.includes('/900001'));
