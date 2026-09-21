@@ -31,30 +31,41 @@ let summaryAiUnavailableUntil = 0;
 const CACHE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 
 class RequestError extends Error {
-  constructor(message, {status = 0, retryable = false} = {}) {
+  constructor(message, {status = 0, retryable = false, code = "request_error"} = {}) {
     super(message);
     this.name = 'RequestError';
     this.status = status;
     this.retryable = retryable;
+    this.code = code;
   }
 }
 
 async function fetchJson(url, timeoutMs = 12000) {
   const controller = new AbortController();
   pendingRequests.add(controller);
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
   try {
     const response = await fetch(url, { cache: "default", signal: controller.signal });
     if (!response.ok) {
       const retryable = response.status === 408 || response.status === 425 || response.status === 429 || response.status >= 500;
-      throw new RequestError('Fonte temporariamente indisponível.', {status:response.status,retryable});
+      const code = response.status === 429 ? "rate_limited" : retryable ? "provider_unavailable" : "http_error";
+      throw new RequestError('Fonte temporariamente indisponível.', {status:response.status,retryable,code});
     }
     try { return await response.json(); }
-    catch { throw new RequestError('A fonte enviou uma resposta inválida.', {status:response.status,retryable:true}); }
+    catch { throw new RequestError('A fonte enviou uma resposta inválida.', {status:response.status,retryable:true,code:"invalid_response"}); }
   } catch (error) {
     if (error instanceof RequestError) throw error;
-    const retryable = error?.name === 'AbortError' || error instanceof TypeError;
-    throw new RequestError(error?.name === 'AbortError' ? 'A fonte demorou para responder.' : 'Não foi possível consultar a fonte.', {retryable});
+    if (error?.name === 'AbortError') {
+      throw new RequestError(timedOut ? 'A fonte demorou para responder.' : 'Consulta cancelada.', {
+        retryable: timedOut,
+        code: timedOut ? "timeout" : "cancelled"
+      });
+    }
+    throw new RequestError('Não foi possível consultar a fonte.', {retryable:error instanceof TypeError,code:"network_error"});
   } finally {
     clearTimeout(timeout);
     pendingRequests.delete(controller);
@@ -124,8 +135,9 @@ const fmt = (value, digits = 0) => Number.isFinite(value) ? value.toFixed(digits
 const shortTime = (iso) => iso?.slice(11, 16) || "--:--";
 
 function windDirection(deg) {
+  if (!Number.isFinite(deg)) return "—";
   const dirs = ["N", "NE", "L", "SE", "S", "SO", "O", "NO"];
-  return dirs[Math.round((deg || 0) / 45) % 8];
+  return dirs[Math.round(deg / 45) % 8];
 }
 
 function uvLabel(value) {
@@ -745,11 +757,7 @@ function renderSun(daily) {
 
 function cache(data, metadata = {}) { try { localStorage.setItem(`pluvia-weather-${activeCity.id}`, JSON.stringify({at: Date.now(),weatherAt:metadata.weatherAt || Date.now(),airAt:metadata.airAt || null,data})); } catch {} }
 function validForecast(data) {
-  const hourlyFields = ["time", "precipitation_probability", "precipitation", "weather_code", "uv_index"];
-  const dailyFields = ["time", "temperature_2m_min", "temperature_2m_max", "weather_code", "precipitation_probability_max", "precipitation_sum", "uv_index_max", "sunrise", "sunset"];
-  return Number.isFinite(data?.current?.temperature_2m) && Number.isFinite(cityDate(data.current.time).getTime()) &&
-    hourlyFields.every(key => Array.isArray(data?.hourly?.[key]) && data.hourly[key].length >= 3) &&
-    dailyFields.every(key => Array.isArray(data?.daily?.[key]) && data.daily[key].length >= 1);
+  return weatherData?.validateForecast?.(data).valid === true;
 }
 function cached() {
   if (!activeCity) return null;
@@ -866,10 +874,12 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   $("rainNowLabel").textContent = current.precipitation <= .05 && next2Prob >= 55 ? "Ainda seco, mas pode vir" : "Chuva agora";
   $("rainNow").textContent = `${fmt(current.precipitation, 1)} mm`; $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
-  $("windCompass").style.setProperty("--wind-deg", `${Number(current.wind_direction_10m) || 0}deg`);
+  $("windCompass").style.setProperty("--wind-deg", `${Number.isFinite(current.wind_direction_10m) ? current.wind_direction_10m : 0}deg`);
   $("windCompass").setAttribute("aria-label", `Vento de ${windDirection(current.wind_direction_10m)}, ${fmt(current.wind_speed_10m)} quilômetros por hora, rajadas de ${fmt(current.wind_gusts_10m)} quilômetros por hora`);
   $("pressure").innerHTML = `${fmt(current.pressure_msl ?? current.surface_pressure)}<sup> hPa</sup>`;
-  const pressureNow = data.hourly.pressure_msl?.[start]; const pressurePast = data.hourly.pressure_msl?.[Math.max(0,start - 3)]; const pressureDelta = pressureNow - pressurePast;
+  const pressureNow = data.hourly.pressure_msl?.[start];
+  const pressurePast = start >= 3 ? data.hourly.pressure_msl?.[start - 3] : null;
+  const pressureDelta = Number.isFinite(pressureNow) && Number.isFinite(pressurePast) ? pressureNow - pressurePast : null;
   $("pressureNote").textContent = Number.isFinite(pressureDelta) ? Math.abs(pressureDelta) < .8 ? "Estável nas últimas 3h" : pressureDelta > 0 ? `Subindo ${fmt(pressureDelta,1)} hPa em 3h` : `Caindo ${fmt(Math.abs(pressureDelta),1)} hPa em 3h` : "Tendência indisponível";
   const uvNow = data.hourly.uv_index[start]; $("uv").textContent = fmt(uvNow, 1); $("uvNote").textContent = uvLabel(uvNow);
   const [airName, airText] = aqiLabel(air?.current?.us_aqi); $("airQuality").textContent = airName; $("airNote").textContent = airText;
@@ -892,7 +902,7 @@ async function loadWeather(revision = cityRevision) {
     if (forecastResult.status !== "fulfilled") throw forecastResult.reason;
     const data = forecastResult.value;
     const previous = cached();
-    const freshAir = airResult.status === "fulfilled" && Number.isFinite(airResult.value?.current?.us_aqi);
+    const freshAir = airResult.status === "fulfilled" && weatherData?.validateAirQuality?.(airResult.value).valid === true;
     const air = freshAir ? airResult.value : previous?.data?.air || null;
     render(data, air); displayedWeather = {forecast: data, air};
     cache(displayedWeather,{weatherAt:Date.now(),airAt:freshAir ? Date.now() : previous?.airAt || null});
