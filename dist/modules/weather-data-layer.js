@@ -11,21 +11,29 @@
   const at = (list, index) => Array.isArray(list) ? list[index] : undefined;
   const freeze = value => Object.freeze(value);
 
-  const CURRENT_NUMERIC_FIELDS = [
+  const CURRENT_REQUIRED_FIELDS = [
     "temperature_2m", "apparent_temperature", "relative_humidity_2m", "precipitation",
-    "rain", "showers", "weather_code", "cloud_cover", "wind_speed_10m",
-    "wind_direction_10m", "wind_gusts_10m"
+    "weather_code", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m"
   ];
+  const CURRENT_OPTIONAL_FIELDS = ["rain", "showers", "cloud_cover"];
   const HOURLY_NUMERIC_FIELDS = [
     "temperature_2m", "apparent_temperature", "precipitation_probability", "precipitation",
     "rain", "weather_code", "cloud_cover", "visibility", "wind_speed_10m",
     "wind_gusts_10m", "relative_humidity_2m", "pressure_msl", "uv_index"
   ];
+  const HOURLY_REQUIRED_FIELDS = new Set([
+    "temperature_2m", "apparent_temperature", "precipitation_probability", "precipitation",
+    "weather_code", "wind_gusts_10m", "relative_humidity_2m", "pressure_msl", "uv_index"
+  ]);
   const DAILY_NUMERIC_FIELDS = [
     "weather_code", "temperature_2m_max", "temperature_2m_min", "apparent_temperature_max",
     "apparent_temperature_min", "precipitation_sum", "rain_sum",
     "precipitation_probability_max", "uv_index_max"
   ];
+  const DAILY_REQUIRED_FIELDS = new Set([
+    "weather_code", "temperature_2m_max", "temperature_2m_min", "precipitation_sum",
+    "precipitation_probability_max", "uv_index_max"
+  ]);
 
   function timestamp(value) {
     return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value) && Number.isFinite(Date.parse(value));
@@ -33,6 +41,18 @@
 
   function date(value) {
     return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(`${value}T12:00:00Z`));
+  }
+
+  const finiteOrNull = value => value === null || Number.isFinite(value);
+
+  function closestHourIndex(times, currentTime) {
+    const target = Date.parse(currentTime);
+    if (!Number.isFinite(target) || !Array.isArray(times) || !times.length) return 0;
+    return times.reduce((best, time, index) => {
+      const distance = Math.abs(Date.parse(time) - target);
+      const bestDistance = Math.abs(Date.parse(times[best]) - target);
+      return distance < bestDistance ? index : best;
+    }, 0);
   }
 
   function validateForecast(forecast) {
@@ -43,8 +63,11 @@
 
     if (!current || typeof current !== "object") errors.push("current ausente");
     if (!timestamp(current?.time)) errors.push("current.time inválido");
-    for (const field of CURRENT_NUMERIC_FIELDS) {
+    for (const field of CURRENT_REQUIRED_FIELDS) {
       if (!Number.isFinite(current?.[field])) errors.push(`current.${field} inválido`);
+    }
+    for (const field of CURRENT_OPTIONAL_FIELDS) {
+      if (current?.[field] != null && !Number.isFinite(current[field])) errors.push(`current.${field} inválido`);
     }
     if (![0, 1].includes(current?.is_day)) errors.push("current.is_day inválido");
     if (!Number.isFinite(current?.pressure_msl) && !Number.isFinite(current?.surface_pressure)) {
@@ -55,9 +78,13 @@
 
     const hourlyLength = Array.isArray(hourly?.time) ? hourly.time.length : 0;
     if (hourlyLength < 3 || !hourly.time.every(timestamp)) errors.push("hourly.time inválido");
+    const hourlyStart = closestHourIndex(hourly?.time, current?.time);
+    const hourlyEnd = Math.min(hourlyLength, hourlyStart + 36);
     for (const field of HOURLY_NUMERIC_FIELDS) {
       const values = hourly?.[field];
-      if (!Array.isArray(values) || values.length !== hourlyLength || !values.every(Number.isFinite)) {
+      const aligned = Array.isArray(values) && values.length === hourlyLength && values.every(finiteOrNull);
+      const visible = aligned && (!HOURLY_REQUIRED_FIELDS.has(field) || values.slice(hourlyStart, hourlyEnd).every(Number.isFinite));
+      if (!aligned || !visible) {
         errors.push(`hourly.${field} inválido ou desalinhado`);
       }
     }
@@ -70,15 +97,20 @@
 
     const dailyLength = Array.isArray(daily?.time) ? daily.time.length : 0;
     if (dailyLength < 1 || !daily.time.every(date)) errors.push("daily.time inválido");
+    const visibleDays = Math.min(7, dailyLength);
     for (const field of DAILY_NUMERIC_FIELDS) {
       const values = daily?.[field];
-      if (!Array.isArray(values) || values.length !== dailyLength || !values.every(Number.isFinite)) {
+      const aligned = Array.isArray(values) && values.length === dailyLength && values.every(finiteOrNull);
+      const visible = aligned && (!DAILY_REQUIRED_FIELDS.has(field) || values.slice(0, visibleDays).every(Number.isFinite));
+      if (!aligned || !visible) {
         errors.push(`daily.${field} inválido ou desalinhado`);
       }
     }
     for (const field of ["sunrise", "sunset"]) {
       const values = daily?.[field];
-      if (!Array.isArray(values) || values.length !== dailyLength || !values.every(timestamp)) {
+      const aligned = Array.isArray(values) && values.length === dailyLength && values.every(value => value === null || timestamp(value));
+      const visible = aligned && values.slice(0, visibleDays).every(timestamp);
+      if (!aligned || !visible) {
         errors.push(`daily.${field} inválido ou desalinhado`);
       }
     }

@@ -58,6 +58,40 @@ test('contrato rejeita séries desalinhadas e valores meteorológicos fora da fa
   assert.match(layer.validateForecast(invalidRange).errors.join(' '), /fora da faixa/);
 });
 
+test('aceita ausência declarada fora do horizonte exibido, mas não dentro dele', () => {
+  const input = structuredClone(forecast);
+  input.current.rain = null;
+  input.current.showers = null;
+  input.current.cloud_cover = null;
+  const hourlyFields = Object.keys(input.hourly).filter(field => field !== 'time');
+  for (let offset = 1; offset <= 40; offset++) {
+    input.hourly.time.push(new Date(Date.UTC(2026, 8, 14, 11 + offset)).toISOString().slice(0, 16));
+    for (const field of hourlyFields) input.hourly[field].push(input.hourly[field][input.hourly[field].length - 1]);
+  }
+  for (const field of hourlyFields) input.hourly[field][input.hourly[field].length - 1] = null;
+
+  const dailyFields = Object.keys(input.daily).filter(field => !['time', 'sunrise', 'sunset'].includes(field));
+  for (let offset = 1; offset <= 7; offset++) {
+    const day = String(14 + offset).padStart(2, '0');
+    input.daily.time.push(`2026-09-${day}`);
+    input.daily.sunrise.push(`2026-09-${day}T05:50`);
+    input.daily.sunset.push(`2026-09-${day}T17:58`);
+    for (const field of dailyFields) input.daily[field].push(input.daily[field][input.daily[field].length - 1]);
+  }
+  for (const field of dailyFields) input.daily[field][7] = null;
+  input.daily.sunrise[7] = null;
+  input.daily.sunset[7] = null;
+
+  assert.equal(layer.validateForecast(input).valid, true);
+  const optionalGap = structuredClone(input);
+  optionalGap.hourly.visibility[2] = null;
+  optionalGap.daily.rain_sum[0] = null;
+  assert.equal(layer.validateForecast(optionalGap).valid, true);
+  const visibleGap = structuredClone(input);
+  visibleGap.hourly.precipitation[2] = null;
+  assert.equal(layer.validateForecast(visibleGap).valid, false);
+});
+
 test('qualidade do ar inválida é descartada sem contaminar a previsão', () => {
   assert.equal(layer.validateAirQuality(air).valid, true);
   assert.equal(layer.validateAirQuality({current:{time:'inválido', us_aqi:'32'}}).valid, false);
