@@ -28,6 +28,7 @@ function runtime({fetchImpl,setTimeoutImpl=setTimeout,clearTimeoutImpl=clearTime
   };
   context.globalThis = context;
   vm.createContext(context);
+  vm.runInContext(fs.readFileSync('dist/modules/http-client.js', 'utf8'), context);
   vm.runInContext(fs.readFileSync('dist/modules/radar-probe.js', 'utf8'), context);
   return {radar:context.PLUVIA.radar,sourceStates};
 }
@@ -36,6 +37,7 @@ test('converte lat/lon em tile sem tratar ausência de eco como céu seco', () =
   const context = { globalThis: null, module: { exports: {} }, document: undefined };
   context.globalThis = context;
   vm.createContext(context);
+  vm.runInContext(fs.readFileSync('dist/modules/http-client.js', 'utf8'), context);
   vm.runInContext(fs.readFileSync('dist/modules/radar-probe.js', 'utf8'), context);
   const radar = context.PLUVIA.radar;
   const manaus = radar.lonLatToPixel(-60.021, -3.119, 9);

@@ -3,6 +3,7 @@
   const app = globalThis.PLUVIA = globalThis.PLUVIA || {};
   const PROBE_TTL_MS = 8 * 60 * 1000;
   const REQUEST_TIMEOUT_MS = 8000;
+  const metadataClient = app.http?.createClient?.({defaultTimeoutMs:REQUEST_TIMEOUT_MS});
   const state = { status: "idle", precipitating: false, checkedAt: null, cityId: null };
   let activeController = null;
   let inFlight = null;
@@ -30,6 +31,7 @@
   function reset(cityId = null) {
     generation++;
     activeController?.abort();
+    metadataClient?.abortAll();
     activeController = null;
     inFlight = null;
     inFlightCityId = null;
@@ -69,9 +71,12 @@
     let timedOut = false;
     const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, REQUEST_TIMEOUT_MS);
     try {
-      const meta = await fetch("https://api.rainviewer.com/public/weather-maps.json", { cache: "no-store", signal: controller.signal });
-      if (!meta.ok) throw new Error("meta");
-      const json = await meta.json();
+      if (!metadataClient) throw new Error("client");
+      const json = await metadataClient.getJson("https://api.rainviewer.com/public/weather-maps.json", {
+        cache: "no-store",
+        signal: controller.signal,
+        timeoutMs: 0
+      });
       const past = json?.radar?.past || [];
       const frame = past[past.length - 1];
       const host = frame?.host || json?.host;

@@ -18,6 +18,7 @@ const context = {
 };
 let code = fs.readFileSync('dist/weather-map.js','utf8');
 code = code.replace('  let leafletPromise;', '  globalThis.testMap = {selectLayer, state};\n  let leafletPromise;');
+vm.runInNewContext(fs.readFileSync('dist/modules/http-client.js','utf8'),context);
 vm.runInNewContext(code,context);
 context.testMap.state.map = {removeLayer(){}};
 const response = body => ({ok:true,json:async()=>body});
