@@ -54,6 +54,16 @@ function fixture() {
 
 console.log('PASS weather insights: ontem, sensação, UV, chuva e ausência de dados.');
 
+{
+  const labels = insights.uniqueHighlights(
+    ['Baixa chance de chuva', '0,9 °C mais quente', 'BAIXA CHANCE DE CHUVA'],
+    ['Baixa chance de chuva'],
+    3
+  );
+  assert.deepEqual(labels, ['0,9 °C mais quente']);
+  assert.deepEqual(insights.uniqueHighlights(['A', 'A', 'B', 'C'], [], 2), ['A', 'B']);
+}
+
 // A lacuna deve omitir a recomendação, não afirmar que o tempo está seco.
 for (const value of [null, undefined, '', ' ', false, [], NaN, Infinity, -1]) {
   for (const field of ['precipitation', 'precipitation_probability']) {
