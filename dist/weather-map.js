@@ -8,7 +8,8 @@
   const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
   const RAIN_META = 'https://api.rainviewer.com/public/weather-maps.json';
   const GIBS_ROOT = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best';
-  const state = { map:null, base:null, overlay:null, marker:null, layer:'rain', frames:[], index:0, timer:null, controller:null, cityId:null };
+  const httpClient = globalThis.PLUVIA?.http?.createClient?.({defaultTimeoutMs:10000});
+  const state = { map:null, base:null, overlay:null, marker:null, layer:'rain', frames:[], index:0, timer:null, cityId:null };
   let leafletPromise;
   let layerRevision = 0;
 
@@ -43,14 +44,9 @@
     return leafletPromise;
   }
   async function fetchJson(url) {
-    state.controller?.abort();
-    const controller = new AbortController(); state.controller = controller;
-    const timeout = setTimeout(() => controller.abort(),10000);
-    try {
-      const response = await fetch(url,{signal:controller.signal,cache:'no-store'});
-      if (!response.ok) throw new Error(`Fonte respondeu ${response.status}`);
-      return await response.json();
-    } finally { clearTimeout(timeout); }
+    if (!httpClient) throw new Error('Cliente de dados do mapa indisponível.');
+    httpClient.abortAll();
+    return httpClient.getJson(url,{timeoutMs:10000,cache:'no-store'});
   }
   function stop() {
     clearInterval(state.timer); state.timer = null;
@@ -144,7 +140,7 @@
   }
   async function selectLayer(name) {
     const revision = ++layerRevision;
-    stop(); setError(''); state.controller?.abort(); removeOverlay(); state.layer = name;
+    stop(); setError(''); httpClient?.abortAll(); removeOverlay(); state.layer = name;
     setFrames([],0);
     document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
     $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : name === 'satellite' ? 'Satélite' : 'Nuvens';
@@ -178,7 +174,7 @@
   }
   function step(amount) { if (!state.frames.length) return; state.index = (state.index + amount + state.frames.length) % state.frames.length; renderFrame(); }
   openButton.addEventListener('click',open);
-  function cancelLayer() { ++layerRevision; stop(); state.controller?.abort(); }
+  function cancelLayer() { ++layerRevision; stop(); httpClient?.abortAll(); }
   $('closeWeatherMap').addEventListener('click',() => { cancelLayer(); dialog.close(); });
   dialog.addEventListener('cancel',cancelLayer);
   document.querySelectorAll('[data-weather-layer]').forEach(button => button.addEventListener('click',() => selectLayer(button.dataset.weatherLayer)));
