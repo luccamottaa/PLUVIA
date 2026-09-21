@@ -14,6 +14,20 @@
   };
   const clock = value => String(value || "").slice(11, 16);
   const day = value => String(value || "").slice(0, 10);
+  const normalizedLabel = value => String(value || "").trim().toLocaleLowerCase("pt-BR");
+
+  function uniqueHighlights(labels = [], existing = [], limit = 3) {
+    const seen = new Set(existing.map(normalizedLabel).filter(Boolean));
+    const result = [];
+    for (const label of labels) {
+      const key = normalizedLabel(label);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      result.push(label);
+      if (result.length >= limit) break;
+    }
+    return result;
+  }
 
   function currentIndex(hourly, requested) {
     const times = hourly?.time || [];
@@ -157,5 +171,5 @@
     };
   }
 
-  return {currentIndex, yesterday, feelsLike, uv, rain, build};
+  return {currentIndex, yesterday, feelsLike, uv, rain, build, uniqueHighlights};
 });

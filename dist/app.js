@@ -798,7 +798,8 @@ function renderWeatherInsights(data, air, start) {
   const highlights = $("contextHighlights");
   if (highlights) {
     highlights.textContent = "";
-    (insight.highlights || []).slice(0, 3).forEach(label => {
+    const summaryLabels = Array.from($("summaryHighlights")?.children || [], item => item.textContent || "");
+    weatherInsights.uniqueHighlights(insight.highlights, summaryLabels, 3).forEach(label => {
       const item = document.createElement("li");
       item.textContent = label;
       highlights.appendChild(item);

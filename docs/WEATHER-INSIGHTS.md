@@ -27,3 +27,5 @@ O módulo é opcional: qualquer erro é isolado da previsão principal. Os dados
 A normalização preserva ausência como `null`: strings, booleanos, arrays, objetos e valores não finitos não são medições numéricas. `is_day` aceita somente 0 ou 1. Testes de regressão cobrem clima, AQI, séries e contexto de chuva. APIs e identidade visual não mudaram. Componentes legados que ainda consomem payload bruto precisam de revisão adicional; esta correção não conclui a Fase 1.
 
 Rollback: reverter o commit desta correção, mantendo os módulos e referências do shell sincronizados, e publicar uma nova versão de cache do service worker.
+
+O Resumo Inteligente e os destaques contextuais compartilham o mesmo card. Antes da exibição, rótulos equivalentes são deduplicados sem alterar a prioridade nem os dados de origem.
