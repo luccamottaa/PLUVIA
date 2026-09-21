@@ -1,5 +1,7 @@
 # Auditoria de produto — 10/09/2026
 
+> Atualização core-72 (21/09/2026): o modo escuro passou a usar preto puro `#000000` no canvas e na abertura, incluindo os estados atmosféricos. Cards e controles mantêm superfícies azul-escuras para preservar contraste e hierarquia visual em telas OLED.
+
 > Atualização core-70 (21/09/2026): o card PLUVIA Sinal citado nas rodadas históricas abaixo foi removido por duplicar o Resumo Inteligente. A Home agora possui uma única leitura contextual, com explicação dos fatores e prioridade para avisos oficiais do INMET.
 
 > Atualização core-71 (21/09/2026): o card “Modelo de precipitação · Pulso de chuva no município” foi removido para reduzir repetição e peso na seção de chuva. O gráfico horário permanece como previsão; o mapa do tempo continua oferecendo radar observado, satélite e nuvens em uma superfície separada.
