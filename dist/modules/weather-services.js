@@ -41,22 +41,6 @@
     return url.href;
   }
 
-  function precipitationGridUrl(city) {
-    const place = location(city);
-    const latStep = .12;
-    const lonStep = .12 / Math.max(.4, Math.cos(place.latitude * Math.PI / 180));
-    const points = [];
-    for (const y of [1,0,-1]) for (const x of [-1,0,1]) points.push([place.latitude + y * latStep, place.longitude + x * lonStep]);
-    const url = new URL(FORECAST_ENDPOINT);
-    url.searchParams.set("latitude", points.map(point => point[0].toFixed(4)).join(","));
-    url.searchParams.set("longitude", points.map(point => point[1].toFixed(4)).join(","));
-    url.searchParams.set("hourly", "precipitation,precipitation_probability");
-    url.searchParams.set("forecast_hours", "8");
-    url.searchParams.set("precipitation_unit", "mm");
-    url.searchParams.set("timezone", place.timezone);
-    return url.href;
-  }
-
   function createServices({client = runtime.PLUVIA?.http?.client} = {}) {
     const getJson = (url, options = {}) => {
       if (!client?.getJson) throw new Error("Cliente HTTP dos serviços meteorológicos não carregado.");
@@ -67,9 +51,7 @@
       weather: {
         source:"open-meteo",
         forecastUrl: city => buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS),
-        precipitationGridUrl,
-        getForecast: (city, options) => getJson(buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS), options),
-        getPrecipitationGrid: (city, options = {}) => getJson(precipitationGridUrl(city), {...options, timeoutMs:options.timeoutMs ?? 10000})
+        getForecast: (city, options) => getJson(buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS), options)
       },
       airQuality: {
         source:"open-meteo-cams",

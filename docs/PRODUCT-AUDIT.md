@@ -2,6 +2,8 @@
 
 > Atualização core-70 (21/09/2026): o card PLUVIA Sinal citado nas rodadas históricas abaixo foi removido por duplicar o Resumo Inteligente. A Home agora possui uma única leitura contextual, com explicação dos fatores e prioridade para avisos oficiais do INMET.
 
+> Atualização core-71 (21/09/2026): o card “Modelo de precipitação · Pulso de chuva no município” foi removido para reduzir repetição e peso na seção de chuva. O gráfico horário permanece como previsão; o mapa do tempo continua oferecendo radar observado, satélite e nuvens em uma superfície separada.
+
 ## Expansão inteligente — Fundação — 14/09/2026
 
 ### Diagnóstico classificado
@@ -67,7 +69,7 @@ Escopo observado no site publicado: abertura, home carregada, conta e busca. A c
 3. **Busca — estrutura saudável.** A lupa mostra a cidade atual. Ao abrir, o foco permanece no botão de fechar (`closeCitySearch`), comprovando que o campo não recebe foco automático. Capitais aparecem imediatamente e o índice municipal carrega sob demanda. O teclado do iPhone ainda precisa de teste real.
 4. **Conta — estrutura saudável.** Entrar e criar conta compartilham um diálogo curto; a conta é opcional e a sessão é restaurada pelo Supabase. O navegador de auditoria expôs a árvore acessível, mas não capturou visualmente a top layer do diálogo; alinhamento e teclado precisam de teste em aparelho.
 5. **Alertas e riscos — saudável com abrangência limitada.** INMET diferencia sucesso, falha e leitura antiga. Defesa Civil municipal só tem integração estruturada em Manaus. O índice evita declarar risco baixo quando fontes essenciais estão incompletas.
-6. **Previsão e chuva — saudável.** A leitura rápida, janela seca, gráfico horário e previsão diária respondem às perguntas principais. O “Mapa ao redor” é precipitação modelada em nove pontos, identificado corretamente como modelo e não radar.
+6. **Previsão e chuva — saudável.** A leitura rápida, janela seca, gráfico horário e previsão diária respondem às perguntas principais. O antigo modelo animado de nove pontos foi removido no core-71; observações e camadas meteorológicas permanecem no mapa do tempo com fonte identificada.
 
 ## Prioridades abertas
 

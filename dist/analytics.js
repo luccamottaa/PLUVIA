@@ -42,8 +42,6 @@
     on('welcomeSearch','click',()=>track('City Search Opened',{source:'welcome'}));
     on('openCitySearch','click',()=>track('City Search Opened',{source:'topbar'}));
     on('favoriteCity','click',()=>track('Favorite City Toggled',{city:document.getElementById('cityName')?.textContent||null}));
-    on('rainMapLoad','click',()=>track('Rain Map Opened',{city:document.getElementById('cityName')?.textContent||null}));
-    on('rainPulseToggle','click',()=>track('Rain Animation Toggled',{city:document.getElementById('cityName')?.textContent||null}));
     on('accountButton','click',()=>track('Account Dialog Opened'));
     on('accountLogin','click',()=>track('Auth Mode Selected',{mode:'login'}));
     on('accountSignup','click',()=>track('Auth Mode Selected',{mode:'signup'}));

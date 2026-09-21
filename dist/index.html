@@ -38,7 +38,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-70" />
+    <link rel="stylesheet" href="./styles.css?v=core-71" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -196,13 +196,6 @@
         <div class="section-heading"><div><span class="section-index">02</span><h2>Chuva nas próximas horas</h2></div><div class="dry-window"><span>PRÓXIMA JANELA SECA</span><strong id="dryWindow">Calculando…</strong></div></div>
         <p class="rain-phrase panel" id="rainPhraseWrap"><strong id="rainPhrase">Lendo as próximas horas…</strong><small id="rainPhraseMeta">Open-Meteo</small></p>
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region"><div class="chart-loading">Montando a previsão horária…</div></div>
-        <article class="rain-pulse panel" aria-labelledby="rainPulseTitle">
-          <div class="rain-pulse-head"><div><span>MODELO DE PRECIPITAÇÃO · PREVISÃO ANIMADA</span><h3 id="rainPulseTitle">Pulso de chuva no município</h3></div><div class="rain-pulse-actions"><button id="rainMapLoad" type="button">Mapa ao redor</button><button id="rainPulseToggle" type="button" aria-pressed="false">Reproduzir</button></div></div>
-          <div class="rain-pulse-layout"><div id="rainPulseSky" class="rain-pulse-sky"><i aria-hidden="true"></i><strong id="rainPulseTime">--:--</strong><span id="rainPulseValue">Carregando…</span></div><div id="rainMapGrid" class="rain-map-grid" hidden role="img" aria-label="Mapa do modelo ainda não carregado"></div></div>
-          <p id="rainMapStatus" class="rain-map-status">Toque em “Mapa ao redor” para comparar nove pontos próximos sem pesar a abertura.</p>
-          <p id="rainSeasonContext" class="rain-season-context">Calculando o contexto da chuva de hoje…</p>
-          <small>Open-Meteo no ponto do município e, quando aberto, em cerca de 15 km ao redor. É mapa de modelo, não radar nem chuva na sua rua.</small>
-        </article>
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
           <div><span class="eyebrow">OBSERVAÇÃO NO MAPA</span><h3 id="weatherMapCardTitle">Onde está a chuva?</h3><p>Radar quando houver cobertura, satélite com data visível e nuvens estimadas pelo modelo.</p></div>
           <button id="openWeatherMap" type="button">Abrir mapa do tempo</button>
@@ -247,10 +240,10 @@
       <button id="installPushReload" type="button">Já instalei — recarregar</button>
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div></dialog>
-    <script src="./analytics.js?v=analytics-2"></script>
-    <script src="./modules/sources.js?v=core-47"></script>
+    <script src="./analytics.js?v=analytics-3"></script>
+    <script src="./modules/sources.js?v=core-71"></script>
     <script src="./modules/http-client.js?v=core-67"></script>
-    <script src="./modules/weather-services.js?v=core-69"></script>
+    <script src="./modules/weather-services.js?v=core-71"></script>
     <script src="./modules/weather-data-layer.js?v=core-66"></script>
     <script src="./modules/weather-insights.js?v=core-64"></script>
     <script src="./modules/radar-probe.js?v=core-70"></script>
@@ -258,14 +251,14 @@
     <script src="./modules/weather-icon-system.js?v=glossy-2"></script>
     <script src="./modules/smart-summary.js?v=core-49"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-70"></script>
+    <script src="./app.js?v=core-71"></script>
     <script src="./p0.js?v=core-60"></script>
-    <script src="./modules/risks.js?v=core-47"></script>
-    <script src="./modules/adapters.js?v=core-47"></script>
+    <script src="./modules/risks.js?v=core-71"></script>
+    <script src="./modules/adapters.js?v=core-71"></script>
     <script src="./weather-map.js?v=core-68"></script>
     <script src="./account.js?v=core-58" defer></script>
     <script src="./saved-places.js?v=core-60" defer></script>
     <script src="./notifications.js?v=push-4" defer></script>
-    <!-- release core-62: aviso de localização coerente com a cidade selecionada -->
+    <!-- release core-71: modelo animado de precipitação removido -->
   </body>
 </html>
