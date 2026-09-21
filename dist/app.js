@@ -6,7 +6,7 @@ const DEFESA_NACIONAL = "https://www.gov.br/mdr/pt-br/assuntos/protecao-e-defesa
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const $ = (id) => document.getElementById(id);
 let cityRevision = 0;
-const pendingRequests = new Set();
+const httpClient = globalThis.PLUVIA?.http?.client;
 function cityApi(template, city = activeCity) {
   const url = new URL(template);
   url.searchParams.set("latitude", city.lat);
@@ -30,46 +30,11 @@ let summaryAiInFlight = null;
 let summaryAiUnavailableUntil = 0;
 const CACHE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 
-class RequestError extends Error {
-  constructor(message, {status = 0, retryable = false, code = "request_error"} = {}) {
-    super(message);
-    this.name = 'RequestError';
-    this.status = status;
-    this.retryable = retryable;
-    this.code = code;
-  }
-}
+const RequestError = globalThis.PLUVIA?.http?.RequestError;
 
 async function fetchJson(url, timeoutMs = 12000) {
-  const controller = new AbortController();
-  pendingRequests.add(controller);
-  let timedOut = false;
-  const timeout = setTimeout(() => {
-    timedOut = true;
-    controller.abort();
-  }, timeoutMs);
-  try {
-    const response = await fetch(url, { cache: "default", signal: controller.signal });
-    if (!response.ok) {
-      const retryable = response.status === 408 || response.status === 425 || response.status === 429 || response.status >= 500;
-      const code = response.status === 429 ? "rate_limited" : retryable ? "provider_unavailable" : "http_error";
-      throw new RequestError('Fonte temporariamente indisponível.', {status:response.status,retryable,code});
-    }
-    try { return await response.json(); }
-    catch { throw new RequestError('A fonte enviou uma resposta inválida.', {status:response.status,retryable:true,code:"invalid_response"}); }
-  } catch (error) {
-    if (error instanceof RequestError) throw error;
-    if (error?.name === 'AbortError') {
-      throw new RequestError(timedOut ? 'A fonte demorou para responder.' : 'Consulta cancelada.', {
-        retryable: timedOut,
-        code: timedOut ? "timeout" : "cancelled"
-      });
-    }
-    throw new RequestError('Não foi possível consultar a fonte.', {retryable:error instanceof TypeError,code:"network_error"});
-  } finally {
-    clearTimeout(timeout);
-    pendingRequests.delete(controller);
-  }
+  if (!httpClient || !RequestError) throw new Error("Cliente HTTP do PLUVIA não carregado.");
+  return httpClient.getJson(url, {timeoutMs});
 }
 
 async function fetchForecast(city = activeCity, revision = cityRevision) {
@@ -1115,8 +1080,7 @@ function chooseCity(id, locatedCity = null) {
   $("siteNav").hidden = false;
   closeCitySearch();
   cityRevision++;
-  pendingRequests.forEach(controller => controller.abort());
-  pendingRequests.clear();
+  httpClient?.abortAll();
   refreshInFlight = null;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
   globalThis.pluviaAnalytics?.track('City Selected',{city:city.name,uf:city.uf,source:Number.isFinite(locatedCity?.distanceKm) ? 'location' : 'picker_or_saved'});
