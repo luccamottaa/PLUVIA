@@ -34,6 +34,8 @@ assert.match(css, /\.context-highlights \{[\s\S]*display:flex;[\s\S]*max-width:1
 assert.match(css, /@media \(max-width:380px\)/);
 assert.match(css, /@media \(max-width:720px\)/);
 assert.match(css, /@media \(prefers-color-scheme: dark\)/);
+assert.match(css, /--bg: #000000;/, 'o canvas do modo escuro deve usar preto OLED');
+assert.match(css, /body\[data-weather="sun"\][\s\S]*body\[data-phase="night"\] \{ background:#000000; \}/, 'a atmosfera meteorológica não deve sobrescrever o fundo OLED');
 assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 assert.match(css, /\.metric:hover \{ transform:none; box-shadow:none; \}/);
 assert.match(css, /\.rain-chart \.hour-column \{[\s\S]*grid-template-rows:26px 28px 155px 30px 46px/);

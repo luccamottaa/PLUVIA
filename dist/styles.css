@@ -360,7 +360,7 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { po
    The interface theme is independent of the weather API's day/night icons. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0a111f;
+    --bg: #000000;
     --panel: #121e30;
     --panel-strong: #18283e;
     --line: #30445e;
@@ -374,11 +374,7 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { po
     --danger: #ff9189;
   }
 
-  body {
-    background:
-      radial-gradient(circle at 86% 4%, rgba(7,93,255,.12), transparent 30rem),
-      linear-gradient(155deg, var(--bg), #0d1829 48%, var(--bg));
-  }
+  body { background: #000000; }
   .noise, .orb { display: none; }
   .topbar, .panel {
     background: var(--panel);
@@ -534,9 +530,7 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 @media (prefers-color-scheme: dark) {
   .city-result { background:#101d32; border-color:#568eff44; }
   .pluvia-intro {
-    background:
-      radial-gradient(circle at 80% 12%, rgba(7,93,255,.22), transparent 28rem),
-      linear-gradient(165deg, #07111f 0%, #0a1628 100%);
+    background:#000000;
     color: #e7f0ff;
   }
   .pluvia-intro .intro-kicker, .pluvia-intro .intro-copy { color: #8aa0c2; }
@@ -806,7 +800,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 
 @media (prefers-color-scheme: dark) {
   :root { --bg-secondary:#101c2e; --panel-subtle:#17263c; --disabled:#6f829c; --shadow-soft:0 18px 48px rgba(0,0,0,.24); }
-  body[data-weather="sun"],body[data-weather="partly"],body[data-weather="cloud"],body[data-weather="rain"],body[data-weather="storm"],body[data-phase="night"] { background:radial-gradient(circle at 86% 4%,rgba(65,111,186,.16),transparent 28rem),linear-gradient(155deg,#09111e,#0e1a2d 52%,#09111e); }
+  body[data-weather="sun"],body[data-weather="partly"],body[data-weather="cloud"],body[data-weather="rain"],body[data-weather="storm"],body[data-phase="night"] { background:#000000; }
   .card-detail { background:#101c2e; border-color:#283c57; }
   .model-note::before { color:#9fc1ff; background:rgba(106,167,255,.10); }
   .current-bottom div { border-left-color:#29415f; }

@@ -19,6 +19,7 @@ Os tokens ficam em `dist/styles.css` e são a única fonte para cores, espaçame
 - Meteorologia: `--weather-rain`, `--weather-heavy-rain`, `--weather-storm`, `--weather-lightning`, `--weather-heat`, `--weather-cold`, `--weather-wind`, `--weather-snow`, `--weather-uv`, `--weather-air`, `--weather-smoke`.
 - Espaçamento: escala de 4, 8, 12, 16, 24, 32, 48 e 64 px.
 - Raios: `--radius-sm`, `--radius-md`, `--radius`, `--radius-lg`.
+- No modo escuro, o canvas usa preto puro `#000000` para telas OLED. Cards e controles mantêm superfícies azul-escuras para preservar hierarquia, contraste e separação visual.
 
 ## Hierarquia de superfícies
 
