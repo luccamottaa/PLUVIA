@@ -13,12 +13,12 @@ for (const token of [
   '--space-1', '--space-16', '--radius-sm', '--radius-lg'
 ]) assert(css.includes(token), `token ausente: ${token}`);
 
-assert(html.indexOf('weather-hero') < html.indexOf('id="goOutCard"'), 'o hero deve anteceder o PLUVIA Sinal');
+assert(html.indexOf('weather-hero') < html.indexOf('id="notificationPrompt"'), 'o hero e o Resumo Inteligente devem abrir a hierarquia da Home');
 assert.match(html, /card-primary/);
 assert.match(html, /card-secondary/);
 assert.match(html, /card-detail/);
-assert.match(html, /card-interactive/);
 assert.match(html, /RESUMO INTELIGENTE/);
+assert.doesNotMatch(html, /PLUVIA SINAL|goOutCard/);
 assert.match(html, /class="metric-head"/);
 assert.match(html, /data-weather-icon-name="humidity"/);
 assert.match(app, /weatherIcons\?\.hydrate\?\./);

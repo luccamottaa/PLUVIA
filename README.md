@@ -15,7 +15,6 @@ dist/
 ├── styles.css       # identidade visual, liquid glass e animações
 ├── app.js           # dados climáticos e comportamento da interface
 ├── notifications.js # opt-in, subscriptions, preferências e dispositivos Web Push
-├── modules/signal.js # regras puras e transparentes do PLUVIA Sinal
 ├── capitals.js      # capitais e carregadores lazy de municípios
 ├── municipality-index.js # índice leve usado pela busca
 ├── cities/          # coordenadas e fuso carregados por UF
@@ -55,7 +54,7 @@ Depois, abra `http://localhost:8080`.
 
 Cada cidade usa seu próprio fuso. Os dados são referência do ponto municipal, não da rua do visitante.
 
-O PLUVIA Sinal cruza previsão, vento, calor, UV, qualidade do ar e avisos oficiais. A regra é determinística, expõe os fatores usados e reduz a confiança quando alguma fonte essencial está indisponível.
+O Resumo Inteligente cruza previsão, vento, calor, UV, qualidade do ar e avisos oficiais. Ele expõe os fatores usados em “Por que está assim?” e não cria eventos sem dados suficientes.
 
 ## Documentação
 

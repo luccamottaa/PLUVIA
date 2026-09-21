@@ -47,6 +47,6 @@ test('Resumo Inteligente tem altura por conteúdo e timeline tem scroll interno'
 
 test('não usa 100vw nos cards da Home nem mascara overflow global', () => {
   const homeRules = css.replace(/\.weather-map-dialog\{[^}]*\}/g, '');
-  assert.doesNotMatch(homeRules, /(?:current-card|insight-card|go-out-card|dashboard-grid)[^{]*\{[^}]*100vw/i);
+  assert.doesNotMatch(homeRules, /(?:current-card|insight-card|dashboard-grid)[^{]*\{[^}]*100vw/i);
   assert.doesNotMatch(css, /(?:html|body)[^{]*\{[^}]*overflow-x\s*:\s*hidden/i);
 });
