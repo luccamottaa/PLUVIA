@@ -38,7 +38,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-75" />
+    <link rel="stylesheet" href="./styles.css?v=core-76" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -162,20 +162,6 @@
           <p id="yesterdayComparison" class="yesterday-comparison" hidden></p>
           <p class="model-note">Referência do município, não da sua rua. Modelo Open-Meteo.</p>
         </article>
-        <aside class="attention-card insight-card panel card-secondary" id="attentionCard" aria-labelledby="attentionTitle" aria-live="polite">
-          <div class="card-topline"><span>RESUMO INTELIGENTE</span><span class="signal" id="attentionSignal">LEITURA LOCAL</span></div>
-          <div class="attention-icon" id="attentionIcon"></div>
-          <h2 id="attentionTitle">Analisando o tempo</h2>
-          <p id="attentionText">Cruzando chuva das próximas horas.</p>
-          <ul id="summaryHighlights" class="summary-highlights" aria-label="Destaques meteorológicos"></ul>
-          <ul id="contextHighlights" class="context-highlights" aria-label="Contexto das próximas horas"></ul>
-          <details id="weatherExplanation" class="weather-explanation" hidden><summary>Por que está assim?</summary><ul id="weatherExplanationList"></ul></details>
-          <small id="attentionBasis">Leitura baseada nas próximas horas e nos avisos oficiais.</small>
-          <a id="summaryLink" class="summary-link" href="#previsao">Ver previsão detalhada →</a>
-        </aside>
-      </section>
-      <section id="notificationPrompt" class="notification-prompt panel" aria-labelledby="notificationPromptTitle" hidden>
-        <div class="notification-prompt-icon" aria-hidden="true">🔔</div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Avisos de chuva e INMET no celular</h2><p id="notificationPromptText">O PLUVIA avisa alerta oficial e chuva nas próximas horas da cidade aberta — modelo, sem minuto na sua rua.</p></div><button id="notificationPromptButton" type="button">Ativar alertas</button>
       </section>
       <section class="metrics" aria-label="Detalhes meteorológicos">
         <article class="metric panel card-detail"><div class="metric-head"><span>UMIDADE</span><span data-weather-icon-name="humidity"></span></div><strong id="humidity">--<sup>%</sup></strong><small id="humidityNote">—</small></article>
@@ -184,12 +170,25 @@
         <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>ÍNDICE UV</span><span data-weather-icon-name="uv-index"></span></div><strong id="uv">--</strong><small id="uvNote">—</small></article>
         <article class="metric panel air-metric card-secondary"><div class="metric-head"><span>QUALIDADE DO AR</span><span data-weather-icon-name="air-quality"></span></div><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small></article>
       </section>
+      <aside class="attention-card insight-card panel card-secondary" id="attentionCard" aria-labelledby="attentionTitle" aria-live="polite">
+        <div class="card-topline"><span>RESUMO INTELIGENTE</span><span class="signal" id="attentionSignal">LEITURA LOCAL</span></div>
+        <div class="attention-icon" id="attentionIcon"></div>
+        <h2 id="attentionTitle">Analisando o tempo</h2>
+        <p id="attentionText">Cruzando chuva das próximas horas.</p>
+        <ul id="summaryHighlights" class="summary-highlights" aria-label="Destaques meteorológicos"></ul>
+        <ul id="contextHighlights" class="context-highlights" aria-label="Contexto das próximas horas"></ul>
+        <details id="weatherExplanation" class="weather-explanation" hidden><summary>Por que está assim?</summary><ul id="weatherExplanationList"></ul></details>
+        <small id="attentionBasis">Leitura baseada nas próximas horas e nos avisos oficiais.</small>
+        <a id="summaryLink" class="summary-link" href="#previsao">Ver previsão detalhada →</a>
+      </aside>
+      <section id="notificationPrompt" class="notification-prompt panel" aria-labelledby="notificationPromptTitle" hidden>
+        <div class="notification-prompt-icon" aria-hidden="true">🔔</div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Avisos de chuva e INMET no celular</h2><p id="notificationPromptText">O PLUVIA avisa alerta oficial e chuva nas próximas horas da cidade aberta — modelo, sem minuto na sua rua.</p></div><button id="notificationPromptButton" type="button">Ativar alertas</button>
+      </section>
       <section class="alerts-section section-block" id="alertas">
         <div class="section-heading"><div><span class="section-index">01</span><h2>Alertas e saúde</h2></div><p id="alertsCityLabel">Fontes oficiais</p></div>
         <div class="safety-grid">
           <article class="source-card panel" id="inmetCard"><div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div><small id="inmetUpdated" class="source-updated">Buscando leitura oficial…</small><div id="inmetContent" class="source-content"></div><a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial</a></article>
           <article class="source-card panel" id="defesaCard"><div class="source-head"><span class="source-badge defesa">DEFESA CIVIL</span><span class="source-state" id="defesaState"><i></i>Consultando</span></div><div id="defesaContent" class="source-content"></div><div class="source-actions" id="defesaActions"><a class="source-link" href="sms:40199">Cadastrar CEP no 40199</a><a class="emergency-link" href="tel:199">Emergência: 199</a></div></article>
-          <article class="air-card panel"><div class="source-head"><span class="source-badge air">AR</span><span class="source-state"><i></i>Open-Meteo</span></div><div class="air-score"><strong id="airScore">--</strong><div><span id="airCardQuality">Calculando</span></div></div><div class="air-particles"><div><span>PM2.5</span><strong id="pm25">--</strong></div><div><span>PM10</span><strong id="pm10">--</strong></div><div><span>Ozônio</span><strong id="ozone">--</strong></div></div><p id="airGuidance"></p></article>
         </div>
       </section>
       <section class="rain-section section-block" id="chuva">
@@ -251,7 +250,7 @@
     <script src="./modules/weather-icon-system.js?v=glossy-2"></script>
     <script src="./modules/smart-summary.js?v=core-49"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-74"></script>
+    <script src="./app.js?v=core-76"></script>
     <script src="./p0.js?v=core-60"></script>
     <script src="./modules/risks.js?v=core-71"></script>
     <script src="./modules/adapters.js?v=core-71"></script>

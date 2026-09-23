@@ -9,9 +9,12 @@ const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 
 test('mantém a ordem mobile no fluxo normal da Home', () => {
   const current = html.indexOf('current-card weather-hero');
+  const metrics = html.indexOf('class="metrics"');
   const summary = html.indexOf('id="attentionCard"');
   const hourly = html.indexOf('id="rainChart"');
-  assert.ok(current >= 0 && current < summary && summary < hourly);
+  assert.ok(current >= 0 && current < metrics && metrics < summary && summary < hourly);
+  assert.match(html, /id="airQuality"/);
+  assert.doesNotMatch(html, /class="air-card|id="airScore"/);
   assert.doesNotMatch(css, /\.(?:dashboard-grid|current-card|insight-card)\s*\{[^}]*position\s*:\s*absolute/i);
 });
 

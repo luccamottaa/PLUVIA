@@ -1164,6 +1164,11 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
 
 
 /* Mobile rain timeline: reserve the real glossy icon height and keep rows isolated. */
+.dashboard-grid { grid-template-columns:minmax(0,1fr); }
+.insight-card { margin-top:var(--space-4); }
+@media (min-width:721px) {
+  .safety-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
 .rain-chart .hour-column {
   grid-template-rows:26px 28px 155px 30px 46px;
   row-gap:4px;
