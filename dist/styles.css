@@ -940,6 +940,33 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
   .insight-card .attention-icon { margin-top:var(--space-4); }
 }
 
+/* Keep PWA controls below the iPhone status bar, including long alert dialogs. */
+@media (max-width:720px) {
+  body::before {
+    content:"";
+    position:fixed;
+    inset:0 0 auto;
+    height:calc(env(safe-area-inset-top) + 10px);
+    z-index:39;
+    background:var(--bg);
+    pointer-events:none;
+  }
+  .topbar {
+    background:var(--panel-strong);
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+  .city-dialog {
+    max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px);
+  }
+  .city-dialog .dialog-heading {
+    position:sticky;
+    top:0;
+    z-index:2;
+    background:inherit;
+  }
+}
+
 @media (max-width:380px) {
   .shell { width:calc(100% - 20px - env(safe-area-inset-left) - env(safe-area-inset-right)); }
   .topbar { padding-inline:12px; }
