@@ -113,15 +113,6 @@ function aqiLabel(value) {
   return ["Muito ruim", `AQI ${Math.round(value)} · exposição alta`];
 }
 
-function airGuidance(value) {
-  if (!Number.isFinite(value)) return "Dados de partículas indisponíveis no momento.";
-  if (value <= 50) return "Pode respirar de boa: não há restrição indicada para atividades ao ar livre.";
-  if (value <= 100) return "Qualidade aceitável; pessoas muito sensíveis podem notar algum incômodo.";
-  if (value <= 150) return "O PM2.5 entra fundo no pulmão. Crianças, idosos e quem tem asma devem reduzir esforço ao ar livre.";
-  if (value <= 200) return "Ar ruim: evite exercício intenso fora. Crianças, idosos e pessoas com asma precisam de atenção extra.";
-  return "Partículas muito altas. Reduza a exposição fora de casa e siga as orientações de saúde e de queimadas da sua região.";
-}
-
 function decodeHtml(value = "") {
   const doc = new DOMParser().parseFromString(value, "text/html");
   return doc.documentElement.textContent || "";
@@ -646,9 +637,6 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   $("pressureNote").textContent = Number.isFinite(pressureDelta) ? Math.abs(pressureDelta) < .8 ? "Estável nas últimas 3h" : pressureDelta > 0 ? `Subindo ${fmt(pressureDelta,1)} hPa em 3h` : `Caindo ${fmt(Math.abs(pressureDelta),1)} hPa em 3h` : "Tendência indisponível";
   const uvNow = data.hourly.uv_index[start]; $("uv").textContent = fmt(uvNow, 1); $("uvNote").textContent = uvLabel(uvNow);
   const [airName, airText] = aqiLabel(air?.current?.us_aqi); $("airQuality").textContent = airName; $("airNote").textContent = airText;
-  const airIndex = air?.current?.us_aqi; $("airScore").textContent = Number.isFinite(airIndex) ? Math.round(airIndex) : "--"; $("airCardQuality").textContent = airName;
-  $("airScore").dataset.quality = Number.isFinite(airIndex) ? airIndex <= 50 ? "good" : airIndex <= 100 ? "moderate" : airIndex <= 150 ? "sensitive" : "poor" : "unknown";
-  $("pm25").textContent = fmt(air?.current?.pm2_5, 1); $("pm10").textContent = fmt(air?.current?.pm10, 1); $("ozone").textContent = fmt(air?.current?.ozone, 1); $("airGuidance").textContent = airGuidance(airIndex);
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
   setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)} · ${activeCity.name}`, fromCache);
   renderAttention(data, start, air); renderRain(data.hourly, start, day);
@@ -673,7 +661,6 @@ async function loadWeather(revision = cityRevision) {
     globalThis.PLUVIA?.sources.set("air-quality",{status:freshAir ? "ready" : air ? "stale" : "error",checkedAt:freshAir ? Date.now() : previous?.airAt || null,dataAt:air?.current?.time ? cityDate(air.current.time,city).getTime() : null});
     if (!freshAir && air) {
       $("airNote").textContent += ' · leitura anterior';
-      $("airGuidance").textContent = 'Última leitura disponível, sem confirmação atual. ' + $("airGuidance").textContent;
     }
     clearTimeout(errorTimer); $("errorToast").classList.remove("show"); $("errorToast").setAttribute("aria-hidden", "true");
     globalThis.PLUVIA?.radar?.probe?.(city);
@@ -691,8 +678,6 @@ async function loadWeather(revision = cityRevision) {
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("dryWindow").textContent = "Sem dados";
       $("sunPhrase").textContent = "Ciclo solar indisponível.";
-      $("airCardQuality").textContent = "Indisponível";
-      $("airGuidance").textContent = "Dados de partículas indisponíveis no momento.";
       $("errorMessage").textContent = "Confira a conexão e puxe para atualizar.";
       $("errorToast").setAttribute("aria-hidden", "false");
       $("errorToast").classList.add("show");
@@ -826,7 +811,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","highLow","rainNow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","airScore","airCardQuality","pm25","pm10","ozone","airGuidance","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset"];
+const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","highLow","rainNow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset"];
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;
