@@ -66,7 +66,7 @@ function applyWeatherAtmosphere(code, isDay) {
   const type = weatherIconType(code);
   document.body.dataset.weather = type;
   document.body.dataset.phase = isDay ? "day" : "night";
-  document.querySelectorAll('meta[name="theme-color"]').forEach(meta => { meta.content = "#dce6f2"; });
+  document.querySelectorAll('meta[name="theme-color"]').forEach(meta => { meta.content = "#10233f"; });
 }
 
 function weatherIconSvg(code, isDay = true) {
@@ -472,27 +472,32 @@ function renderRain(hourly, start, daily) {
   $("dryWindow").textContent = findDryWindow(hourly, start);
 }
 
-function renderForecast(daily) {
+function renderForecast(daily, currentTemperature) {
   const days = daily.time.slice(0, 7);
   const bestIndex = days.reduce((best, _, i) => {
     const score = (daily.precipitation_probability_max[i] || 0) + (daily.precipitation_sum[i] || 0) * 4;
     const bestScore = (daily.precipitation_probability_max[best] || 0) + (daily.precipitation_sum[best] || 0) * 4;
     return score < bestScore ? i : best;
   }, 0);
-  const minAll = Math.min(...daily.temperature_2m_min); const maxAll = Math.max(...daily.temperature_2m_max); const spread = Math.max(1, maxAll - minAll);
+  const minAll = Math.min(...daily.temperature_2m_min.slice(0, days.length));
+  const maxAll = Math.max(...daily.temperature_2m_max.slice(0, days.length));
+  const spread = Math.max(1, maxAll - minAll);
   $("forecastList").innerHTML = days.map((date, i) => {
     const d = new Date(`${date}T12:00:00`);
     const day = i === 0 ? "Hoje" : new Intl.DateTimeFormat("pt-BR", {weekday: "long"}).format(d).replace(/^./, c => c.toUpperCase());
     const label = new Intl.DateTimeFormat("pt-BR", {day: "2-digit", month: "short"}).format(d).replace(".", "");
     const [cond] = weather(daily.weather_code[i]); const min = daily.temperature_2m_min[i]; const max = daily.temperature_2m_max[i];
-    const width = Math.max(25, ((max - min) / spread) * 100);
+    const left = Math.max(0, Math.min(98, (min - minAll) / spread * 100));
+    const width = Math.max(2, (max - min) / spread * 100);
+    const currentPosition = i === 0 && Number.isFinite(currentTemperature) && currentTemperature >= min && currentTemperature <= max
+      ? Math.max(0, Math.min(100, (currentTemperature - minAll) / spread * 100)) : null;
     const rainProb = Math.round(daily.precipitation_probability_max[i] || 0); const rainMm = daily.precipitation_sum[i] || 0;
     const weekend = [0,6].includes(d.getDay());
     const reading = rainMm >= 20 ? "Acumulado de chuva elevado" : rainMm >= 8 ? "Chuva ao longo do dia" : rainProb >= 55 ? "Chuva provável, com baixo acumulado" : rainProb >= 30 ? "Chuva isolada" : "Baixa probabilidade de chuva";
     return `<div class="forecast-row ${i === bestIndex ? "best-day" : ""}">
-      <div class="forecast-day"><strong>${day}${weekend ? " · fim de semana" : ""}</strong><span>${label}</span></div>
+      <div class="forecast-day"><strong>${day}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label}</span></div>
       <div class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></div>
-      <div class="temp-range" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus"><strong>${fmt(min)}°</strong><div class="temp-track"><span style="width:${width}%"></span></div><strong>${fmt(max)}°</strong></div>
+      <div class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><div class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</div><strong aria-hidden="true">${fmt(max)}°</strong></div>
       <div class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span>${rainProb}% · ${fmt(rainMm, 1)} mm</span></div>
       <div class="forecast-uv">${reading} · UV ${fmt(daily.uv_index_max[i], 0)}</div>
     </div>`;
@@ -637,12 +642,14 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   const pressureDelta = Number.isFinite(pressureNow) && Number.isFinite(pressurePast) ? pressureNow - pressurePast : null;
   $("pressureNote").textContent = Number.isFinite(pressureDelta) ? Math.abs(pressureDelta) < .8 ? "Estável nas últimas 3h" : pressureDelta > 0 ? `Subindo ${fmt(pressureDelta,1)} hPa em 3h` : `Caindo ${fmt(Math.abs(pressureDelta),1)} hPa em 3h` : "Tendência indisponível";
   const uvNow = data.hourly.uv_index[start]; $("uv").textContent = fmt(uvNow, 1); $("uvNote").textContent = uvLabel(uvNow);
+  $("uvScale").hidden = !Number.isFinite(uvNow);
+  if (Number.isFinite(uvNow)) $("uvScale").style.setProperty("--uv-position", `${Math.max(0, Math.min(100, uvNow / 11 * 100))}%`);
   const [airName, airText] = aqiLabel(air?.current?.us_aqi); $("airQuality").textContent = airName; $("airNote").textContent = airText;
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
   setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)} · ${activeCity.name}`, fromCache);
   renderAttention(data, start, air); renderRain(data.hourly, start, day);
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
-  renderForecast(day); renderSun(day);
+  renderForecast(day, current.temperature_2m); renderSun(day);
 }
 
 async function loadWeather(revision = cityRevision) {
@@ -879,6 +886,7 @@ function chooseCity(id, locatedCity = null) {
   const saved = cached();
   if (!saved) {
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
+    $("uvScale").hidden = true;
     $("attentionCard").classList.remove("ok","warning","danger","unavailable");
     $("summaryHighlights").innerHTML = "";
     clearWeatherInsights();
