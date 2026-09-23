@@ -30,10 +30,10 @@ assert.doesNotMatch(app, /rainPulse|rainMapLocations|getPrecipitationGrid|Compar
 assert.match(app, /Defesa Civil Nacional/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-core-74/);
+assert.match(sw, /pluvia-core-75/);
 assert.match(html, /id="weatherView" class="initial-loading" aria-busy="true"/);
 assert.match(html, /viewport-fit=cover/);
-assert.match(html, /styles\.css\?v=core-74/);
+assert.match(html, /styles\.css\?v=core-75/);
 assert.match(html, /modules\/weather-icon-system\.js\?v=glossy-2/);
 assert.match(sw, /assets\/weather-icons\/conditions\/clear-day\.png/);
 assert.match(html, /id="openWeatherMap"/);
