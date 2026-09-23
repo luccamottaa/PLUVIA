@@ -739,9 +739,10 @@ body {
 .weather-hero .card-topline { color: var(--blue); }
 .weather-hero .weather-main { min-height: 205px !important; }
 .weather-hero .temperature { font-size: clamp(6rem,13vw,9rem) !important; font-variant-numeric: tabular-nums; }
-.weather-hero .temperature .deg { color: var(--blue); font-size: .24em; margin-top: .18em; }
+.weather-hero .temperature .deg { color: var(--blue); font-size: .24em; margin-top: .18em; margin-left: .35em; }
 .weather-hero .condition { max-width: 28ch; font-size: clamp(1.1rem,2vw,1.35rem) !important; font-weight: 650; }
-.weather-hero .weather-glyph,.weather-hero .weather-visual { width: 132px !important; height: 124px !important; }
+.weather-hero .weather-glyph,.weather-hero .weather-visual { width: 150px !important; height: 140px !important; }
+.weather-hero .weather-glyph { transform:translateY(-10px); }
 .current-bottom strong,.metric strong,.air-score strong,.hour-time,.hour-temp,.rain-mm,.forecast-row strong,.sun-times strong { font-variant-numeric: tabular-nums; }
 .current-bottom { gap: var(--space-6); }
 .current-bottom div { padding-left: var(--space-4); border-left: 2px solid rgba(7,93,255,.12); }
@@ -797,7 +798,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
   .weather-hero { min-height:0 !important; padding:var(--space-6); }
   .weather-hero .weather-main { min-height:150px !important; }
   .weather-hero .temperature { font-size:clamp(5rem,24vw,7.2rem) !important; }
-  .weather-hero .weather-glyph,.weather-hero .weather-visual { width:92px !important; height:88px !important; }
+  .weather-hero .weather-glyph,.weather-hero .weather-visual { width:112px !important; height:106px !important; }
+  .weather-hero .weather-glyph { transform:translateY(-12px); }
   .current-bottom { grid-template-columns:1fr 1fr; gap:var(--space-4); }
   .current-bottom div { padding-left:0; border-left:0; }
   .current-bottom div:last-child { grid-column:1 / -1; padding-top:var(--space-3); border-top:1px solid var(--line); }
@@ -813,7 +815,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 }
 
 @media (max-width:380px) {
-  .weather-hero .weather-glyph,.weather-hero .weather-visual { width:76px !important; height:74px !important; }
+  .weather-hero .weather-glyph,.weather-hero .weather-visual { width:88px !important; height:84px !important; }
   .weather-hero .temperature { font-size:clamp(4.6rem,23vw,5.5rem) !important; }
   .metrics { grid-template-columns:1fr; }
   .air-metric { grid-column:auto; }
