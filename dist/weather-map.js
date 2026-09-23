@@ -164,7 +164,7 @@
     } else state.map.setView([selectedCity.lat,selectedCity.lon],7);
     if (state.marker) state.map.removeLayer(state.marker);
     state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:7,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(`${selectedCity.name}/${selectedCity.uf}`);
-    state.cityId = selectedCity.id; $('weatherMapCity').textContent = `${selectedCity.name}/${selectedCity.uf} · ponto do município, não da sua rua`;
+    state.cityId = selectedCity.id; $('weatherMapCity').textContent = `${selectedCity.name}/${selectedCity.uf} · ponto de referência do município`;
     setTimeout(() => state.map.invalidateSize(),80);
   }
   async function open() {

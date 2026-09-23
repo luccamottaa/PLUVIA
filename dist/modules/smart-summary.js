@@ -50,7 +50,7 @@
     const h6 = context.next6h;
     const storm = h3.codes.some(code => [95, 96, 99].includes(code));
     let result = {
-      status: "calm", title: "Dá pra sair de boa",
+      status: "calm", title: "Condições estáveis nas próximas horas",
       summary: `Não há sinal de chuva forte ou rajadas relevantes em ${context.city.name} nas próximas três horas.`,
       highlights: [highlight("Baixa chance de chuva", "calm", "next3h.probability")],
       iconCode: c.code ?? 0, evidence: ["next3h.probability", "next3h.precipitation", "next3h.gust"]
@@ -60,15 +60,15 @@
       highlights:[highlight(`Chance de chuva ${Math.round(h3.probability)}%`,"danger","next3h.probability"),highlight("Trovoada prevista pelo modelo","danger","next3h.codes")], iconCode:95, evidence:["next3h.probability","next3h.codes"]
     };
     else if ((h3.probability >= 80 && h3.precipitation >= 8) || h6.precipitation >= 20) result = {
-      status:"danger", title:"Chuva volumosa no horizonte", summary:"O modelo indica chuva relevante nas próximas horas. Áreas com histórico de alagamento pedem rota e horário mais seguros.",
+      status:"danger", title:"Chuva intensa prevista", summary:"O modelo indica chuva relevante nas próximas horas. Considere rotas alternativas em áreas com histórico de alagamento.",
       highlights:[highlight(`${round(h6.precipitation,1)} mm em 6h`,"danger","next6h.precipitation"),highlight(`Pico de ${Math.round(h6.probability)}%`,"warning","next6h.probability")], iconCode:65, evidence:["next6h.precipitation","next6h.probability"]
     };
     else if (h3.gust >= 55) result = {
-      status:"warning", title:"Rajadas fortes podem aparecer", summary:"O vento é o principal ponto de atenção nas próximas três horas. Cuidado perto de galhos, placas e coberturas soltas.",
+      status:"warning", title:"Rajadas fortes previstas", summary:"O vento é o principal ponto de atenção nas próximas três horas. Evite ficar próximo a galhos, placas e coberturas soltas.",
       highlights:[highlight(`Rajadas de até ${Math.round(h3.gust)} km/h`,"warning","next3h.gust")], iconCode:c.code ?? 3, evidence:["next3h.gust"]
     };
     else if (h3.probability >= 60 && h3.precipitation >= .5) result = {
-      status:"warning", title:"Vale levar o guarda-chuva", summary:"Há indicação de chuva na região nas próximas três horas. O horário exato pode variar dentro do município.",
+      status:"warning", title:"Chuva prevista nas próximas horas", summary:"Há indicação de chuva na região nas próximas três horas. O horário exato pode variar dentro do município.",
       highlights:[highlight(`Chance de chuva ${Math.round(h3.probability)}%`,"warning","next3h.probability"),highlight(`${round(h3.precipitation,1)} mm em 3h`,"info","next3h.precipitation")], iconCode:63, evidence:["next3h.probability","next3h.precipitation"]
     };
     else if (c.apparent >= 40) result = {

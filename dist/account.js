@@ -62,7 +62,7 @@
         const {error}=await client.auth.updateUser({data});
         if(error) throw error;
       }
-      catch { message('Preferência salva neste aparelho, mas a sincronização da conta falhou agora.'); }
+      catch { message('Preferência salva neste dispositivo. Não foi possível sincronizá-la com a conta.'); }
     },450);
   }
   function setMode(next) {
@@ -82,13 +82,13 @@
   }
   function authError(error) {
     const code = error?.code;
-    if (code === 'invalid_credentials') return 'E-mail ou senha incorretos. Confere e tenta de novo.';
+    if (code === 'invalid_credentials') return 'E-mail ou senha incorretos. Confira os dados e tente novamente.';
     if (code === 'email_not_confirmed') return 'Confirme seu e-mail pelo link recebido e depois entre aqui.';
     if (code === 'user_already_exists') return 'Já existe uma conta com esse e-mail. Use Entrar.';
     if (code === 'weak_password') return 'Use uma senha mais forte, com letras, números e símbolos.';
     if (/rate_limit/.test(code || '')) return 'Muitas tentativas. Espere um pouco e tente novamente.';
     if (code === 'email_address_not_authorized') return 'O envio de e-mails ainda precisa ser liberado pelo PLUVIA. Tente novamente mais tarde.';
-    return 'Não consegui acessar sua conta agora. Confira a conexão e tente de novo.';
+    return 'Não foi possível acessar a conta. Confira a conexão e tente novamente.';
   }
   function getClient() {
     if (clientPromise) return clientPromise;
@@ -129,7 +129,7 @@
   el('accountForm').addEventListener('submit', async event => {
     event.preventDefault(); if(busy) return;
     const name = el('accountName').value.trim();
-    if(mode === 'signup' && !name) { message('Conta pra gente como te chamar.'); return; }
+    if(mode === 'signup' && !name) { message('Informe um nome para exibição.'); return; }
     const email = el('accountEmail').value.trim(), password = el('accountPassword').value;
     if(mode === 'signup' && (password.length < 12 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password))) {
       message('Crie uma senha com 12 ou mais caracteres, incluindo maiúscula, minúscula, número e símbolo.'); return;

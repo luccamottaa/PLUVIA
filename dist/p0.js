@@ -34,7 +34,7 @@ function buildRainPhrase(hourly) {
   const mms = hourly?.precipitation || hourly?.rain || [];
   const start = typeof selectCurrentHour === "function" ? selectCurrentHour(times) : 0;
   const end = Math.min(times.length, start + 18);
-  let phrase = "Próximas horas sem chuva clara.";
+  let phrase = "Sem chuva significativa prevista nas próximas horas.";
   let severity = "dry";
   let peakMm = 0;
   let peakAt = -1;
@@ -63,21 +63,21 @@ function buildRainPhrase(hourly) {
   }
   if (sum3 >= 15) {
     severity = "heavy";
-    phrase = `Chuva pesada entre ${hourLabel(times[start])} e ${hourLabel(times[Math.min(start + 2, times.length - 1)])}. Em área que alaga, muda a rota.`;
+    phrase = `Chuva intensa prevista entre ${hourLabel(times[start])} e ${hourLabel(times[Math.min(start + 2, times.length - 1)])}. Evite áreas sujeitas a alagamentos.`;
   } else if (firstWet >= 0) {
     severity = "wet";
     const from = hourLabel(times[firstWet]);
     const to = hourLabel(times[Math.min(lastWet + 1, times.length - 1)]);
     const wetHours = Math.max(1, lastWet - firstWet + 1);
     const startsLightAndGetsHeavy = firstWet === start && (Number(mms[start]) || 0) < 1 && peakMm >= 3 && peakAt > start;
-    phrase = startsLightAndGetsHeavy ? `Chuvisco agora, mais pesado depois das ${hourLabel(times[peakAt])}.` : firstWet === start ? `Chuva agora, com trégua perto das ${to}.` : wetHours <= 2 ? `Pancada curta perto das ${from}.` : `Chuva prevista entre ${from} e ${to}.`;
+    phrase = startsLightAndGetsHeavy ? `Chuva fraca agora, com aumento previsto após ${hourLabel(times[peakAt])}.` : firstWet === start ? `Chuva agora, com redução prevista por volta das ${to}.` : wetHours <= 2 ? `Chuva de curta duração prevista por volta das ${from}.` : `Chuva prevista entre ${from} e ${to}.`;
   } else if (peakProb >= 55 && peakMm < 0.4) {
     severity = "threat";
-    phrase = "Nuvem ameaça, mas o volume previsto é baixo.";
+    phrase = "Probabilidade de chuva elevada, com baixo acumulado previsto.";
   } else if (bestDry >= 3 && bestDryAt === start) {
-    phrase = `Próximas ${bestDry}h secas.`;
+    phrase = `Baixa probabilidade de chuva nas próximas ${bestDry}h.`;
   } else if (bestDry >= 3) {
-    phrase = `Janela seca às ${hourLabel(times[bestDryAt])} · ${bestDry}h.`;
+    phrase = `Período com baixa probabilidade de chuva a partir das ${hourLabel(times[bestDryAt])} · ${bestDry}h.`;
   }
   if (phrase.length > 140) phrase = phrase.slice(0, 137) + "…";
   return { phrase, severity };
@@ -85,8 +85,8 @@ function buildRainPhrase(hourly) {
 function aqiLabel(value) {
   if (!Number.isFinite(value)) return ["--", "qualidade do ar indisponível"];
   if (value <= 50) return ["Boa", `Índice ${Math.round(value)} · ar limpo`];
-  if (value <= 100) return ["Moderada", `Índice ${Math.round(value)} · atenção se você é sensível`];
-  if (value <= 150) return ["Ruim p/ sensíveis", `Índice ${Math.round(value)} · asma, criança e idoso sentem mais`];
+  if (value <= 100) return ["Moderada", `Índice ${Math.round(value)} · atenção para grupos sensíveis`];
+  if (value <= 150) return ["Ruim para grupos sensíveis", `Índice ${Math.round(value)} · maior risco para grupos sensíveis`];
   if (value <= 200) return ["Ruim", `Índice ${Math.round(value)} · evite esforço ao ar livre`];
   if (value <= 300) return ["Muito ruim", `Índice ${Math.round(value)} · partículas altas`];
   return ["Péssima", `Índice ${Math.round(value)} · exposição perigosa`];
@@ -98,7 +98,7 @@ renderRain = function (hourly, start) {
   const phrase = document.getElementById("rainPhrase");
   const meta = document.getElementById("rainPhraseMeta");
   if (phrase) phrase.textContent = rain.phrase;
-  if (meta) meta.textContent = rain.severity === "heavy" ? "volume alto nas próximas horas" : rain.severity === "threat" ? "probabilidade sem volume" : "leitura das próximas 12–18h";
+  if (meta) meta.textContent = rain.severity === "heavy" ? "acumulado elevado nas próximas horas" : rain.severity === "threat" ? "probabilidade com baixo acumulado" : "previsão para as próximas 12–18h";
 };
 const _updateCityLabels = updateCityLabels;
 updateCityLabels = function () {
@@ -116,7 +116,7 @@ updateCityLabels = function () {
   const actions = document.getElementById("defesaActions");
   if (actions) actions.hidden = activeCity.uf !== "AM";
   const forecast = document.getElementById("forecastCityLabel");
-  if (forecast) forecast.textContent = "Referência do município de " + activeCity.name + " — não da sua rua.";
+  if (forecast) forecast.textContent = "Previsão para o ponto de referência de " + activeCity.name + ", não para um endereço específico.";
   globalThis.PLUVIA?.modules?.['weather-layers']?.cityChanged?.(activeCity);
 };
 let activeResultIndex = -1;
@@ -135,7 +135,7 @@ renderCityOptions = function () {
     const capital = CAPITALS.some(item => item.id === city.id);
     return `<li><button class="city-result" type="button" role="option" aria-selected="false" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
   }).join("");
-  document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Não achei essa cidade. Tenta sem acento ou confira o nome." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Favoritas primeiro, depois capitais.";
+  document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
 };
 
 function moveCityResult(direction) {
@@ -179,10 +179,10 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
     const notice = document.getElementById("locationNotice");
     if (notice) {
       notice.hidden = false;
-      notice.innerHTML = 'Sem localização — mostrando Manaus, cidade-mãe do PLUVIA. <button type="button" id="noticeChangeCity">Trocar cidade</button>';
+      notice.innerHTML = 'Localização indisponível. Manaus está selecionada como referência. <button type="button" id="noticeChangeCity">Trocar cidade</button>';
       document.getElementById("noticeChangeCity")?.addEventListener("click", openCitySearch);
     }
-    locationMessage("Localização indisponível. Manaus entrou como referência; você pode trocar quando quiser.");
+    locationMessage("Localização indisponível. Manaus foi selecionada como referência. É possível trocar a cidade a qualquer momento.");
   }, 1500);
   }
   const intro = document.getElementById("pluviaIntro");

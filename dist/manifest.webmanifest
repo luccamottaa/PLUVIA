@@ -1,6 +1,6 @@
 {
   "id": "https://pluviaweather.com.br/",
-  "name": "PLUVIA — Olha o céu antes de sair",
+  "name": "PLUVIA — Consulte o tempo antes de sair",
   "short_name": "PLUVIA",
   "description": "Clima, alertas e condições do céu para cidades do Brasil.",
   "start_url": "https://pluviaweather.com.br/?source=pwa",

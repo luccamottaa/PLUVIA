@@ -74,7 +74,7 @@ function clientHash(context: WeatherContext) {
 }
 
 async function serverHash(context: WeatherContext) {
-  const bytes = new TextEncoder().encode(JSON.stringify(context));
+  const bytes = new TextEncoder().encode(JSON.stringify({ copyVersion: 2, context }));
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map(value => value.toString(16).padStart(2, "0")).join("");
 }
@@ -116,7 +116,7 @@ async function generate(context: WeatherContext, apiKey: string, model: string) 
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model, store: false, max_output_tokens: 450,
-      instructions: "Você é o editor meteorológico do PLUVIA. Interprete somente o JSON fornecido. Não faça previsão nova, não cite radar, satélite ou alerta oficial, não invente número, horário ou evento. Escreva em português brasileiro, de forma curta, prática e sem alarmismo. Cada afirmação deve listar a chave de evidência correspondente.",
+      instructions: "Você é o editor meteorológico do PLUVIA. Interprete somente o JSON fornecido. Não faça previsão nova, não cite radar, satélite ou alerta oficial, não invente número, horário ou evento. Escreva em português brasileiro claro, profissional e acessível, sem gírias, abreviações coloquiais ou formas como 'tu', 'pra' e 'tá'. Evite alarmismo. Cada afirmação deve listar a chave de evidência correspondente.",
       input: JSON.stringify(context),
       text: { format: { type: "json_schema", name: "pluvia_smart_summary", strict: true, schema: schema() } },
     }),
