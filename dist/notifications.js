@@ -172,7 +172,7 @@
     promptText.textContent = active
       ? `Alertas ligados para ${city}. O PLUVIA avisa mesmo fechado.`
       : `Avisa alerta oficial e chuva nas próximas horas em ${city}. A permissão só aparece depois do seu toque.`;
-    message(active ? "Este dispositivo pode receber Web Push mesmo com o PLUVIA fechado." : pendingEnable && currentUser() ? "Conta conectada. Toque em “Ativar alertas” para o sistema pedir permissão." : "A permissão só será solicitada depois que você tocar em “Ativar alertas”.");
+    message(active ? "Este dispositivo pode receber notificações mesmo com o PLUVIA fechado." : pendingEnable && currentUser() ? "Conta conectada. Toque em “Ativar alertas” para solicitar permissão." : "A permissão será solicitada após o toque em “Ativar alertas”.");
     prompt.hidden = active;
   }
 

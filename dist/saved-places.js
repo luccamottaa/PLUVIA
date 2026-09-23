@@ -138,7 +138,7 @@
         if (typeof activeCity === "undefined" || activeCity?.id !== item.cityId) throw new Error("city");
         status("");
       } catch {
-        status("Não foi possível abrir esta cidade agora. Confira a conexão e tente novamente.");
+        status("Não foi possível abrir esta cidade. Confira a conexão e tente novamente.");
       } finally {busy=false;paint();}
     }
     el("savedPlacesForm").addEventListener("submit",event=>{

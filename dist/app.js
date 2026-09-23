@@ -84,15 +84,15 @@ function windDirection(deg) {
 }
 
 function uvLabel(value) {
-  if (value < 3) return "Baixo — dá pra sair de boa";
-  if (value < 6) return "Moderado — protetor ajuda";
-  if (value < 8) return "Alto — boné e protetor agora";
-  if (value < 11) return "Muito alto — 10h–15h é fogo";
-  return "Extremo — procure sombra";
+  if (value < 3) return "Baixo";
+  if (value < 6) return "Moderado — considere proteção solar";
+  if (value < 8) return "Alto — use proteção solar";
+  if (value < 11) return "Muito alto — evite exposição prolongada";
+  return "Extremo — evite exposição direta";
 }
 
 function humidityLabel(value) {
-  if (value >= 85) return "Ar bem carregado";
+  if (value >= 85) return "Umidade muito alta";
   if (value >= 70) return "Umidade alta";
   if (value >= 50) return "Faixa confortável";
   return "Ar mais seco";
@@ -108,7 +108,7 @@ function aqiLabel(value) {
   if (!Number.isFinite(value)) return ["--", "AQI indisponível"];
   if (value <= 50) return ["Boa", `AQI ${Math.round(value)} · ar limpo`];
   if (value <= 100) return ["Moderada", `AQI ${Math.round(value)} · aceitável`];
-  if (value <= 150) return ["Ruim p/ sensíveis", `AQI ${Math.round(value)} · atenção`];
+  if (value <= 150) return ["Ruim para grupos sensíveis", `AQI ${Math.round(value)} · atenção para grupos sensíveis`];
   if (value <= 200) return ["Ruim", `AQI ${Math.round(value)} · evite esforço`];
   return ["Muito ruim", `AQI ${Math.round(value)} · exposição alta`];
 }
@@ -256,7 +256,7 @@ function applyOfficialAlertPriority() {
   card.classList.remove("ok", "warning", "danger", "unavailable", "official-orange", "official-red");
   card.classList.add("danger", `official-${severity}`);
   $("attentionSignal").textContent = severity === "red" ? "INMET · GRANDE PERIGO" : "INMET · PERIGO";
-  $("attentionTitle").textContent = severity === "red" ? "Fica em casa se puder" : "Sai de casa preparado";
+  $("attentionTitle").textContent = severity === "red" ? "Alerta de grande perigo vigente" : "Alerta de perigo vigente";
   $("attentionText").textContent = `Há aviso ${severity === "red" ? "vermelho" : "laranja"} vigente para a região. Abra o aviso e confira área, horário e orientações antes de sair.`;
   $("attentionIcon").innerHTML = weatherIcons?.markup(95, displayedWeather?.forecast?.current?.is_day !== 0, {className:"summary-weather-icon"}) || "";
   $("attentionIcon").setAttribute("aria-label", "Trovoada e alerta oficial");
@@ -349,13 +349,13 @@ const SUMMARY_CACHE_MAX_AGE = 45 * 60 * 1000;
 
 function summaryCache(context) {
   try {
-    const value = JSON.parse(localStorage.getItem(`pluvia-summary-${activeCity.id}`) || "null");
+    const value = JSON.parse(localStorage.getItem(`pluvia-summary-copy-2-${activeCity.id}`) || "null");
     return value?.hash === smartSummary.contextHash(context) && Date.now() - value.savedAt <= SUMMARY_CACHE_MAX_AGE ? value.summary : null;
   } catch { return null; }
 }
 
 function saveSummary(summary) {
-  try { localStorage.setItem(`pluvia-summary-${activeCity.id}`, JSON.stringify({hash:summary.contextHash,savedAt:Date.now(),summary})); } catch {}
+  try { localStorage.setItem(`pluvia-summary-copy-2-${activeCity.id}`, JSON.stringify({hash:summary.contextHash,savedAt:Date.now(),summary})); } catch {}
 }
 
 function paintSummary(summary, data) {
@@ -439,10 +439,10 @@ function findDryWindow(hourly, start) {
   for (let i = start; i < Math.min(hourly.time.length - 2, start + 36); i++) {
     if (hourly.precipitation_probability[i] < 30 && hourly.precipitation_probability[i + 1] < 30) {
       const day = i === start ? "Agora" : hourly.time[i].slice(0, 10) === hourly.time[start].slice(0, 10) ? "Hoje" : "Amanhã";
-      return `${day === "Agora" ? "Agora" : day}, das ${shortTime(hourly.time[i])} às ${shortTime(hourly.time[i + 2])} deve dar uma trégua`;
+      return `${day === "Agora" ? "A partir de agora" : day}, das ${shortTime(hourly.time[i])} às ${shortTime(hourly.time[i + 2])}: menor probabilidade de chuva`;
     }
   }
-  return "Sem janela clara em 36h";
+  return "Sem período com baixa probabilidade de chuva nas próximas 36h";
 }
 
 function forecastIsDay(time, daily) {
@@ -489,9 +489,9 @@ function renderForecast(daily) {
     const width = Math.max(25, ((max - min) / spread) * 100);
     const rainProb = Math.round(daily.precipitation_probability_max[i] || 0); const rainMm = daily.precipitation_sum[i] || 0;
     const weekend = [0,6].includes(d.getDay());
-    const reading = rainMm >= 20 ? "Dia bem molhado" : rainMm >= 8 ? "Pancadas fortes ao longo do dia" : rainProb >= 55 ? "Pode chover, mas sem volume grande" : rainProb >= 30 ? "Chuva isolada" : "Boa janela pra sair";
+    const reading = rainMm >= 20 ? "Acumulado de chuva elevado" : rainMm >= 8 ? "Chuva ao longo do dia" : rainProb >= 55 ? "Chuva provável, com baixo acumulado" : rainProb >= 30 ? "Chuva isolada" : "Baixa probabilidade de chuva";
     return `<div class="forecast-row ${i === bestIndex ? "best-day" : ""}">
-      <div class="forecast-day"><strong>${day}${weekend ? " · fim de semana" : ""}</strong><span>${label}${i === bestIndex ? " · melhor dia pra rolê" : ""}</span></div>
+      <div class="forecast-day"><strong>${day}${weekend ? " · fim de semana" : ""}</strong><span>${label}</span></div>
       <div class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></div>
       <div class="temp-range" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus"><strong>${fmt(min)}°</strong><div class="temp-track"><span style="width:${width}%"></span></div><strong>${fmt(max)}°</strong></div>
       <div class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span>${rainProb}% · ${fmt(rainMm, 1)} mm</span></div>
@@ -507,7 +507,9 @@ function renderSun(daily) {
   const now = new Date(); const progress = Math.min(1, Math.max(0, (now - rise) / (set - rise)));
   document.querySelector(".sun-section")?.classList.toggle("is-night", now < rise || now > set);
   $("sunDot").style.left = `${3 + progress * 91}%`; $("sunDot").style.top = `${74 - Math.sin(progress * Math.PI) * 58}px`;
-  $("sunPhrase").textContent = now < rise ? "O sol ainda não nasceu." : now > set ? `O sol já se pôs em ${activeCity.name}.` : `Restam cerca de ${Math.max(0, Math.round((set - now) / 3600000))}h de claridade.`;
+  const remainingMinutes = Math.max(1, Math.ceil((set - now) / 60000));
+  const remainingTime = remainingMinutes < 60 ? `${remainingMinutes} min` : `${Math.floor(remainingMinutes / 60)} h ${remainingMinutes % 60} min`;
+  $("sunPhrase").textContent = now < rise ? "O sol ainda não nasceu." : now >= set ? `O sol já se pôs em ${activeCity.name}.` : `Restam cerca de ${remainingTime} de luz natural.`;
 }
 
 function cache(data, metadata = {}) { try { localStorage.setItem(`pluvia-weather-${activeCity.id}`, JSON.stringify({at: Date.now(),weatherAt:metadata.weatherAt || Date.now(),airAt:metadata.airAt || null,data})); } catch {} }
@@ -625,7 +627,7 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   applyWeatherAtmosphere(current.weather_code, current.is_day !== 0);
   $("condition").textContent = heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, current.is_day !== 0); $("highLow").textContent = `${fmt(day.temperature_2m_max[0])}° / ${fmt(day.temperature_2m_min[0])}°`;
   const next2Prob = Math.max(...data.hourly.precipitation_probability.slice(start, start + 2));
-  $("rainNowLabel").textContent = current.precipitation <= .05 && next2Prob >= 55 ? "Ainda seco, mas pode vir" : "Chuva agora";
+  $("rainNowLabel").textContent = current.precipitation <= .05 && next2Prob >= 55 ? "Sem chuva agora; previsão de chuva" : "Chuva agora";
   $("rainNow").textContent = `${fmt(current.precipitation, 1)} mm`; $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
   $("windCompass").style.setProperty("--wind-deg", `${Number.isFinite(current.wind_direction_10m) ? current.wind_direction_10m : 0}deg`);
@@ -836,7 +838,7 @@ function renderCityOptions() {
   const shown = matches.slice(0,60);
   $("citySelect").innerHTML = '<option value="">Selecione uma cidade</option>' + shown.map(city => '<option value="' + city.id + '">' + (favorites.has(city.id) ? "★ " : "") + escapeHtml(city.name) + " · " + city.uf + "</option>").join("");
   $("citySelect").value = shown.some(city => city.id === activeCity?.id) ? activeCity.id : "";
-  $("cityPickerStatus").textContent = browsing ? "Busque pelo nome para encontrar cidades do interior. Favoritas e capitais aparecem na lista inicial." : !matches.length ? "Nenhuma cidade encontrada. Confira o nome ou o estado." : matches.length > 60 ? "Mostrando 60 de " + matches.length + " cidades. Digite mais do nome para refinar." : matches.length + " cidades encontradas. Escolha na lista.";
+  $("cityPickerStatus").textContent = browsing ? "Digite o nome para buscar municípios. Cidades favoritas e capitais aparecem na lista inicial." : !matches.length ? "Nenhuma cidade encontrada. Confira o nome ou o estado." : matches.length > 60 ? "Mostrando 60 de " + matches.length + " cidades. Digite mais letras para refinar a busca." : matches.length + " cidades encontradas. Selecione uma cidade na lista.";
 }
 function chooseCity(id, locatedCity = null) {
   const city = locatedCity || cityById.get(id);
@@ -846,7 +848,7 @@ function chooseCity(id, locatedCity = null) {
     $("cityPickerStatus").textContent = `Abrindo ${city.name}/${city.uf}…`;
     ensureCityDetails(city.id).then(fullCity => {
       if (choice === cityChoiceAttempt && fullCity) chooseCity(fullCity.id, fullCity);
-    }).catch(() => { $("cityPickerStatus").textContent = "Não consegui abrir essa cidade agora. Tenta de novo."; });
+    }).catch(() => { $("cityPickerStatus").textContent = "Não foi possível abrir esta cidade. Tente novamente."; });
     return;
   }
   cityChoiceAttempt++;
@@ -883,7 +885,7 @@ function chooseCity(id, locatedCity = null) {
     clearWeatherInsights();
     $("sunDot").style.left = "3%";
     $("sunDot").style.top = "74px";
-    $("condition").textContent = "Buscando o céu de " + city.name + "…";
+    $("condition").textContent = "Consultando as condições em " + city.name + "…";
   }
   ["inmet","defesa"].forEach(source => {
     $(source + "State").className = "source-state";
@@ -950,6 +952,12 @@ function openCitySearch() {
   locationAttempt++;
   locationPending = false;
   locationButtons(false);
+  const examples = [...CAPITALS];
+  for (let i = 0; i < Math.min(3, examples.length); i++) {
+    const j = i + Math.floor(Math.random() * (examples.length - i));
+    [examples[i], examples[j]] = [examples[j], examples[i]];
+  }
+  $("citySearch").placeholder = "Ex.: " + examples.slice(0, 3).map(city => city.name).join(", ");
   renderCityOptions();
   const dialog = $("cityDialog");
   if (!dialog.open) dialog.showModal();
@@ -968,13 +976,13 @@ function requestLocation(source = 'automatic') {
   globalThis.pluviaAnalytics?.track('Location Requested',{source});
   if (!navigator.geolocation) {
     globalThis.pluviaAnalytics?.track('Location Unavailable',{reason:'unsupported'});
-    locationMessage("Seu navegador não disponibilizou a localização. Escolha uma cidade pelo nome.");
+    locationMessage("A localização não está disponível neste navegador. Selecione uma cidade pelo nome.");
     return;
   }
   const attempt = ++locationAttempt;
   locationPending = true;
   locationButtons(true);
-  locationMessage("Autorize a localização no navegador para encontrar o clima perto de você.");
+  locationMessage("Autorize o acesso à localização para consultar as condições meteorológicas da sua região.");
   navigator.geolocation.getCurrentPosition(position => {
     if (attempt !== locationAttempt) return;
     const applyLocation = () => {
@@ -983,12 +991,12 @@ function requestLocation(source = 'automatic') {
       locationPending = false; locationButtons(false);
       globalThis.pluviaAnalytics?.track('Location Authorized',{city:city.name,uf:city.uf});
       chooseCity(city.id, city);
-      locationMessage("Referência do município: cerca de " + Math.round(city.distanceKm) + " km do centro de " + city.name + ". Não é a sua rua.");
+      locationMessage("A previsão usa um ponto de referência a cerca de " + Math.round(city.distanceKm) + " km do centro de " + city.name + ", não o endereço exato.");
     };
     const failLocation = () => {
       if (attempt !== locationAttempt) return;
       locationPending = false; locationButtons(false);
-      locationMessage("Não foi possível identificar a cidade. Escolha pelo nome.");
+      locationMessage("Não foi possível identificar a cidade. Selecione-a pelo nome.");
     };
     if (municipalitiesReady) applyLocation();
     else ensureMunicipalities().then(applyLocation).catch(failLocation);
@@ -996,7 +1004,7 @@ function requestLocation(source = 'automatic') {
     if (attempt !== locationAttempt) return;
     locationPending = false; locationButtons(false);
     globalThis.pluviaAnalytics?.track(error.code === 1 ? 'Location Denied' : 'Location Unavailable',{reason:error.code === 1 ? 'permission' : error.code === 3 ? 'timeout' : 'position'});
-    locationMessage(error.code === 1 ? "Localização não autorizada. Você pode escolher a cidade sem compartilhar sua posição." : "Não conseguimos obter sua localização agora. Tente novamente ou escolha uma cidade.");
+    locationMessage(error.code === 1 ? "Localização não autorizada. Selecione uma cidade sem compartilhar sua posição." : "Não foi possível obter a localização. Tente novamente ou selecione uma cidade.");
   }, {enableHighAccuracy:false,timeout:4000,maximumAge:60000});
 }
 
