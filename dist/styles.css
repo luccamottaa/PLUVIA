@@ -2,6 +2,8 @@
   color-scheme: light dark;
   --brand-blue: #075dff;
   --bg: #dce6f2;
+  --canvas-text: #10233f;
+  --canvas-muted: #506580;
   --bg-secondary: #edf5ff;
   --panel: rgba(255, 255, 255, .84);
   --panel-strong: rgba(255, 255, 255, .94);
@@ -426,6 +428,12 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { po
   .error-toast { background: #321e26; color: #ffe7e4; border-color: #6b3941; }
   .error-toast span { color: #f5b9b1; }
 }
+
+/* Text outside dark cards must stay legible on the light blue canvas. */
+.intro, .section-heading { color: var(--canvas-text); }
+.intro .eyebrow, .intro .clock-wrap span, .intro .clock-wrap small,
+.intro #cityDistance, .section-heading > p, .dry-window span,
+footer, .sobre.shell { color: var(--canvas-muted); }
 
 a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
 
