@@ -349,10 +349,8 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { po
   .rain-bar,
   .forecast-row { animation: none; }
 
-  .section-block, .sun-section, footer {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 520px;
-  }
+  /* These sections vary far beyond 520px. Deferred layout made iOS pause and
+     readjust the page when an alert entered the viewport. */
 }
 
 /* Follow the device preference directly, including changes while the page is
@@ -954,7 +952,7 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
   .topbar {
     top:calc(env(safe-area-inset-top) + 16px);
     margin-top:calc(env(safe-area-inset-top) + 16px);
-    background:var(--panel-strong);
+    background:#fff;
     -webkit-backdrop-filter:none;
     backdrop-filter:none;
     animation:none;
@@ -968,6 +966,10 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
     z-index:2;
     background:inherit;
   }
+}
+
+@media (max-width:720px) and (prefers-color-scheme:dark) {
+  .topbar { background:#18283e; }
 }
 
 @media (max-width:380px) {
