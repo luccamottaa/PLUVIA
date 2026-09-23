@@ -1,7 +1,7 @@
 :root {
   color-scheme: light dark;
   --brand-blue: #075dff;
-  --bg: #f6f9ff;
+  --bg: #dce6f2;
   --bg-secondary: #edf5ff;
   --panel: rgba(255, 255, 255, .84);
   --panel-strong: rgba(255, 255, 255, .94);
@@ -56,10 +56,7 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--text);
-  background:
-    radial-gradient(circle at 86% 4%, rgba(7, 93, 255, .12), transparent 30rem),
-    radial-gradient(circle at 10% 34%, rgba(7, 93, 255, .07), transparent 32rem),
-    linear-gradient(155deg, #ffffff 0%, var(--bg) 48%, #ffffff 100%);
+  background: var(--bg);
   background-attachment: scroll;
   font-family: "Manrope", system-ui, sans-serif;
   font-size: 16px;
@@ -362,7 +359,6 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { po
    The interface theme is independent of the weather API's day/night icons. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #000000;
     --panel: #121e30;
     --panel-strong: #18283e;
     --line: #30445e;
@@ -376,7 +372,6 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { po
     --danger: #ff9189;
   }
 
-  body { background: #000000; }
   .noise, .orb { display: none; }
   .topbar, .panel {
     background: var(--panel);
@@ -501,9 +496,7 @@ body:has(.city-dialog[open]) { overflow:hidden; }
   position: fixed; inset: 0; z-index: 80;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 32px 24px;
-  background:
-    radial-gradient(circle at 80% 12%, rgba(7,93,255,.16), transparent 28rem),
-    linear-gradient(165deg, #ffffff 0%, #f4f8ff 55%, #ffffff 100%);
+  background: var(--bg);
   text-align: center;
 }
 .pluvia-intro[hidden] { display: none !important; }
@@ -531,11 +524,7 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 }
 @media (prefers-color-scheme: dark) {
   .city-result { background:#101d32; border-color:#568eff44; }
-  .pluvia-intro {
-    background:#000000;
-    color: #e7f0ff;
-  }
-  .pluvia-intro .intro-kicker, .pluvia-intro .intro-copy { color: #8aa0c2; }
+  .pluvia-intro { color: #10233f; }
   .city-result[aria-selected="true"], .city-result:hover { background:#18283e; }
   .location-notice { background:rgba(16,29,50,.72); border-color:#568eff55; }
   .skip-intro { background:rgba(16,29,50,.72); color:#8db5ff; border-color:#568eff55; }
@@ -729,21 +718,6 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 body {
   transition: background-color .35s ease;
 }
-body[data-weather="sun"][data-phase="day"] {
-  background: radial-gradient(circle at 82% 4%, rgba(255,190,74,.14), transparent 25rem), linear-gradient(155deg,#fff 0%,#f3f8ff 52%,#fff 100%);
-}
-body[data-weather="partly"] {
-  background: radial-gradient(circle at 86% 4%,rgba(76,145,255,.13),transparent 28rem),linear-gradient(155deg,#fff 0%,#eef6ff 52%,#fff 100%);
-}
-body[data-weather="cloud"] {
-  background: radial-gradient(circle at 80% 5%,rgba(101,128,161,.14),transparent 30rem),linear-gradient(155deg,#fbfdff 0%,#edf3fa 55%,#fff 100%);
-}
-body[data-weather="rain"] {
-  background: radial-gradient(circle at 82% 4%,rgba(24,119,242,.16),transparent 30rem),linear-gradient(155deg,#f9fcff 0%,#eaf3ff 55%,#f8fbff 100%);
-}
-body[data-weather="storm"] {
-  background: radial-gradient(circle at 82% 4%,rgba(114,87,214,.15),transparent 30rem),linear-gradient(155deg,#f9faff 0%,#eaeafa 55%,#f8fbff 100%);
-}
 
 .card-primary { box-shadow: var(--shadow-soft); }
 .card-secondary { box-shadow: 0 12px 34px rgba(33,86,153,.07); }
@@ -761,8 +735,6 @@ body[data-weather="storm"] {
 .current-bottom { gap: var(--space-6); }
 .current-bottom div { padding-left: var(--space-4); border-left: 2px solid rgba(7,93,255,.12); }
 .current-bottom div:first-child { padding-left: 0; border-left: 0; }
-.model-note { display: inline-flex; align-items: center; gap: var(--space-2); }
-.model-note::before { content:"MODELO"; padding:3px 7px; border-radius:999px; color:var(--blue); background:rgba(7,93,255,.08); font:500 .65rem/1.4 "DM Mono",monospace; letter-spacing:.06em; }
 
 .insight-card { min-height:0; height:auto; }
 .insight-card .attention-icon { margin-top:var(--space-5); }
@@ -802,9 +774,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 
 @media (prefers-color-scheme: dark) {
   :root { --bg-secondary:#101c2e; --panel-subtle:#17263c; --disabled:#6f829c; --shadow-soft:0 18px 48px rgba(0,0,0,.24); }
-  body[data-weather="sun"],body[data-weather="partly"],body[data-weather="cloud"],body[data-weather="rain"],body[data-weather="storm"],body[data-phase="night"] { background:#000000; }
   .card-detail { background:#101c2e; border-color:#283c57; }
-  .model-note::before { color:#9fc1ff; background:rgba(106,167,255,.10); }
   .current-bottom div { border-left-color:#29415f; }
   .air-score > strong[data-quality="moderate"] { color:#ffd06d; }
 }

@@ -66,8 +66,7 @@ function applyWeatherAtmosphere(code, isDay) {
   const type = weatherIconType(code);
   document.body.dataset.weather = type;
   document.body.dataset.phase = isDay ? "day" : "night";
-  const theme = isDay ? "#075dff" : "#0a111f";
-  document.querySelectorAll('meta[name="theme-color"]').forEach(meta => { meta.content = theme; });
+  document.querySelectorAll('meta[name="theme-color"]').forEach(meta => { meta.content = "#dce6f2"; });
 }
 
 function weatherIconSvg(code, isDay = true) {
