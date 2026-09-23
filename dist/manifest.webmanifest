@@ -7,8 +7,8 @@
   "scope": "https://pluviaweather.com.br/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#dce6f2",
-  "theme_color": "#dce6f2",
+  "background_color": "#10233f",
+  "theme_color": "#10233f",
   "lang": "pt-BR",
   "categories": ["weather", "utilities"],
   "icons": [

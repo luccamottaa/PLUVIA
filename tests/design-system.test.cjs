@@ -34,10 +34,13 @@ assert.match(css, /\.context-highlights \{[\s\S]*display:flex;[\s\S]*max-width:1
 assert.match(css, /@media \(max-width:380px\)/);
 assert.match(css, /@media \(max-width:720px\)/);
 assert.match(css, /@media \(prefers-color-scheme: dark\)/);
-assert.match(css, /--bg: #dce6f2;/, 'o fundo deve usar o azul claro solicitado');
-assert.match(css, /--canvas-text: #10233f;/, 'títulos sobre o fundo claro devem usar tinta escura');
+assert.match(css, /--bg: #10233f;/, 'o fundo deve usar o azul escuro solicitado');
+assert.match(css, /--canvas-text: #f1f6ff;/, 'títulos sobre o fundo escuro devem usar tinta clara');
 assert.match(css, /\.intro, \.section-heading \{ color: var\(--canvas-text\); \}/, 'cidade, relógio e títulos externos devem contrastar com o fundo');
-assert.match(css, /\.intro \.eyebrow,[\s\S]*\.dry-window span,[\s\S]*footer, \.sobre\.shell \{ color: var\(--canvas-muted\); \}/, 'rótulos externos devem permanecer legíveis no modo escuro');
+assert.match(css, /\.intro \.eyebrow,[\s\S]*\.dry-window span,[\s\S]*footer, \.sobre\.shell \{ color: var\(--canvas-muted\); \}/, 'rótulos externos devem permanecer legíveis nos dois modos');
+assert.match(html, /id="uvScale"[^>]*aria-hidden="true" hidden/);
+assert.match(css, /\.uv-scale \{[^}]*linear-gradient/);
+assert.match(css, /\.temp-track \.temp-now/);
 assert.doesNotMatch(css, /body\[data-weather=[^{}]*\{[^{}]*background:/, 'a atmosfera meteorológica deve manter o fundo uniforme');
 assert.doesNotMatch(css, /\.model-note::before/, 'a nota da previsão não deve exibir o selo MODELO');
 assert.match(html, /Previsão para o ponto de referência do município\./);
