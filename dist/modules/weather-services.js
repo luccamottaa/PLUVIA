@@ -18,7 +18,8 @@
     temperature_unit:"celsius", wind_speed_unit:"kmh", precipitation_unit:"mm", past_hours:"24", forecast_days:"8"
   };
   const AIR_PARAMS = {
-    current:"pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi", forecast_days:"3"
+    current:"pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi",
+    hourly:"pm2_5", forecast_days:"3"
   };
 
   function location(city) {
