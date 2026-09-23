@@ -21,8 +21,8 @@ test('exporta todos os ícones instaláveis nas dimensões declaradas', () => {
   assert.deepEqual(pngDimensions('favicon-32.png'), {width:32,height:32});
 });
 
-test('mantém fundo branco no padrão visual instalável', () => {
-  assert.equal(manifest.background_color, '#075dff');
+test('mantém o fundo azul claro no aplicativo instalável', () => {
+  assert.equal(manifest.background_color, '#dce6f2');
   assert.ok(manifest.icons.some(icon => icon.purpose === 'any'));
   assert.ok(manifest.icons.some(icon => icon.purpose === 'maskable'));
 });
