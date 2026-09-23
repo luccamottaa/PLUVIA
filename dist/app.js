@@ -736,6 +736,7 @@ function setupPullToRefresh() {
   const indicator = $("pullRefresh");
   const label = $("pullRefreshText");
   const threshold = 88;
+  const revealThreshold = 28;
   let gesture = null;
   let loading = false;
   let hideTimer;
@@ -764,7 +765,8 @@ function setupPullToRefresh() {
     const dy = touch.clientY - gesture.y;
     if (dy < 0 || Math.abs(dx) > Math.max(10, dy)) { reset(); return; }
     gesture.distance = dy;
-    if (dy < 4) { indicator.hidden = true; return; }
+    // Small scroll corrections must not flash the refresh chip on iOS.
+    if (dy < revealThreshold) { indicator.hidden = true; return; }
     if (!event.cancelable) { reset(); return; }
     event.preventDefault();
     indicator.hidden = false;
