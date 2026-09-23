@@ -946,15 +946,18 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
     content:"";
     position:fixed;
     inset:0 0 auto;
-    height:calc(env(safe-area-inset-top) + 10px);
+    height:env(safe-area-inset-top);
     z-index:39;
     background:var(--bg);
     pointer-events:none;
   }
   .topbar {
+    top:calc(env(safe-area-inset-top) + 16px);
+    margin-top:calc(env(safe-area-inset-top) + 16px);
     background:var(--panel-strong);
     -webkit-backdrop-filter:none;
     backdrop-filter:none;
+    animation:none;
   }
   .city-dialog {
     max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px);
