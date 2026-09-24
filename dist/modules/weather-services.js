@@ -19,7 +19,7 @@
   };
   const AIR_PARAMS = {
     current:"pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi",
-    hourly:"pm2_5", forecast_days:"3"
+    forecast_days:"3"
   };
 
   function location(city) {
