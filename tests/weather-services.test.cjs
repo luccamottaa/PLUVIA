@@ -14,6 +14,8 @@ test('constrói URLs meteorológicas somente a partir da localização normaliza
   assert.equal(forecast.searchParams.get('past_hours'), '24');
   assert.equal(forecast.searchParams.get('forecast_days'), '8');
   assert.match(forecast.searchParams.get('hourly'), /wind_direction_10m/);
+  assert.match(forecast.searchParams.get('daily'), /sunshine_duration/);
+  assert.match(forecast.searchParams.get('daily'), /daylight_duration/);
 
   const air = new URL(services.airQuality.currentUrl(manaus));
   assert.equal(air.hostname, 'air-quality-api.open-meteo.com');
@@ -29,10 +31,11 @@ test('serviços delegam transporte e timeout ao cliente HTTP compartilhado', asy
   const payload = {ok:true};
   const services = createServices({client:{getJson:async (url,options) => {calls.push({url,options}); return payload;},abortAll:()=>{aborted=true;}}});
   assert.equal(await services.weather.getForecast(manaus), payload);
+  assert.equal(await services.ensemble.getForecast(manaus), payload);
   assert.equal(await services.airQuality.getCurrent(manaus), payload);
   assert.equal(await services.alerts.getActive(), payload);
   assert.equal(await services.civilDefense.getManausRecent(), payload);
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 5);
   assert(calls.every(call => call.options.timeoutMs > 0));
   services.abortAll();
   assert.equal(aborted, true);

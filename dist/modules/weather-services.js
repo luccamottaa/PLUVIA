@@ -14,13 +14,14 @@
   const FORECAST_PARAMS = {
     current:"temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m",
     hourly:"temperature_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,cloud_cover,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,relative_humidity_2m,pressure_msl,uv_index",
-    daily:"weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset",
+    daily:"weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset,sunshine_duration,daylight_duration",
     temperature_unit:"celsius", wind_speed_unit:"kmh", precipitation_unit:"mm", past_hours:"24", forecast_days:"8"
   };
   const AIR_PARAMS = {
     current:"pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi",
     forecast_days:"3"
   };
+  const ENSEMBLE_PARAMS = {hourly:"precipitation", models:"icon_seamless_eps", forecast_days:"2"};
 
   function location(city) {
     const latitude = Number(city?.lat ?? city?.latitude);
@@ -53,6 +54,10 @@
         source:"open-meteo",
         forecastUrl: city => buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS),
         getForecast: (city, options) => getJson(buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS), options)
+      },
+      ensemble: {
+        source:"open-meteo-icon-eps",
+        getForecast: (city, options) => getJson(buildUrl("https://ensemble-api.open-meteo.com/v1/ensemble", city, ENSEMBLE_PARAMS), options)
       },
       airQuality: {
         source:"open-meteo-cams",
