@@ -325,6 +325,7 @@ function updateClock() {
   const now = new Date();
   $("localClock").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
   $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
+  renderMoon(now);
 }
 
 const dateOffsets = new Map();
@@ -451,24 +452,64 @@ function forecastIsDay(time, daily) {
   return weatherIcons.isDayAt(time, daily.sunrise?.[dayIndex], daily.sunset?.[dayIndex]);
 }
 
-function renderRain(hourly, start, daily) {
-  const scrollLeft = $("rainChart").scrollLeft;
+let hourlyMode = "conditions";
+function renderHourly(hourly, start, daily) {
+  const chart = $("rainChart");
+  const scrollLeft = chart.scrollLeft;
   const indices = Array.from({length: 24}, (_, i) => start + i).filter(i => i < hourly.time.length);
-  $("rainChart").innerHTML = indices.map((i, p) => {
+  const temperatures = indices.map(i => hourly.temperature_2m[i]).filter(Number.isFinite);
+  const minTemp = temperatures.length ? Math.min(...temperatures) : 0;
+  const tempSpread = temperatures.length ? Math.max(1, Math.max(...temperatures) - minTemp) : 1;
+  const windValues = indices.map(i => hourly.wind_speed_10m?.[i]).filter(Number.isFinite);
+  const maxWind = Math.max(10, ...windValues);
+  chart.dataset.hourlyMode = hourlyMode;
+  if (hourlyMode === "wind" && !windValues.length) {
+    chart.innerHTML = '<p class="chart-loading">Vento por hora indisponível.</p>';
+    chart.setAttribute("aria-label", `Vento por hora indisponível em ${activeCity.name}.`);
+    $("dryWindow").textContent = findDryWindow(hourly, start);
+    return;
+  }
+  chart.innerHTML = indices.map((i, p) => {
+    const time = p === 0 ? "AGORA" : shortTime(hourly.time[i]);
+    const temperature = hourly.temperature_2m?.[i];
+    const icon = weatherIcons.markup(hourly.weather_code[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:false});
+    if (hourlyMode === "conditions") {
+      const height = 24 + (temperature - minTemp) / tempSpread * 111;
+      return `<div class="hour-column ${p === 0 ? "now" : ""}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${weather(hourly.weather_code[i])[0]}">
+        <span class="hour-time">${time}</span><span class="hour-temp">${fmt(temperature)}°</span>
+        <div class="bar-area"><div class="temp-bar" style="height:${height.toFixed(0)}px"></div></div>
+        <span class="hour-detail">Temp.</span><span class="hour-icon">${icon}</span></div>`;
+    }
+    if (hourlyMode === "wind") {
+      const speed = hourly.wind_speed_10m?.[i];
+      const gust = hourly.wind_gusts_10m?.[i];
+      const direction = hourly.wind_direction_10m?.[i];
+      const validDirection = Number.isFinite(speed) && speed > 0 && Number.isFinite(direction) && direction >= 0 && direction <= 360;
+      const arrow = validDirection ? `<span style="transform:rotate(${direction}deg)">↑</span>` : "—";
+      const bar = Number.isFinite(speed) ? `<div class="wind-bar" style="height:${(16 + Math.max(0, speed) / maxWind * 125).toFixed(0)}px"></div>` : "";
+      return `<div class="hour-column ${p === 0 ? "now" : ""}" title="${shortTime(hourly.time[i])}: vento ${fmt(speed)} km/h, rajadas ${fmt(gust)} km/h${validDirection ? `, vindo de ${windDirection(direction)}` : ""}">
+        <span class="hour-time">${time}</span><span class="hour-temp">${fmt(speed)}</span>
+        <div class="bar-area">${bar}</div><span class="hour-detail">km/h<small>Raj. ${fmt(gust)}</small></span>
+        <span class="wind-direction" aria-hidden="true">${arrow}</span></div>`;
+    }
     const prob = Math.round(hourly.precipitation_probability[i] || 0);
     const mm = hourly.precipitation[i] || 0;
     const barHeight = mm > 0 ? Math.min(150, 8 + Math.sqrt(mm) * 42) : Math.max(3, prob * .2);
-    const temperature = hourly.temperature_2m?.[i];
     const gust = hourly.wind_gusts_10m?.[i];
     return `<div class="hour-column ${p === 0 ? "now" : ""}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${prob}% de chuva, ${fmt(mm, 1)} milímetro${gust >= 45 ? `, rajadas de ${fmt(gust)} quilômetros por hora` : ""}">
-      <span class="hour-time">${p === 0 ? "AGORA" : shortTime(hourly.time[i])}</span>
+      <span class="hour-time">${time}</span>
       <span class="hour-temp">${fmt(temperature)}°</span>
       <div class="bar-area"><div class="rain-bar" data-prob="${prob}" style="height:${barHeight}px"></div></div>
-      <span class="rain-mm">${fmt(mm, 1)} mm</span><span class="hour-icon">${weatherIcons.markup(hourly.weather_code[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:false})}</span>
+      <span class="rain-mm">${fmt(mm, 1)} mm</span><span class="hour-icon">${icon}</span>
     </div>`;
-  }).join("");
-  $("rainChart").setAttribute("aria-label", `Chuva prevista por hora em ${activeCity.name}: barras mostram milímetros e os números mostram probabilidade.`);
-  $("rainChart").scrollLeft = scrollLeft;
+  }).join("") || '<p class="chart-loading">Previsão por hora indisponível.</p>';
+  const descriptions = {
+    conditions:"barras mostram a temperatura e os ícones mostram as condições previstas",
+    rain:"barras mostram milímetros e os números mostram probabilidade",
+    wind:"barras mostram a velocidade em km/h, com rajadas e direção quando disponíveis"
+  };
+  chart.setAttribute("aria-label", `Previsão por hora em ${activeCity.name}: ${descriptions[hourlyMode]}.`);
+  chart.scrollLeft = scrollLeft;
   $("dryWindow").textContent = findDryWindow(hourly, start);
 }
 
@@ -514,6 +555,31 @@ function renderSun(daily) {
   const remainingMinutes = Math.max(1, Math.ceil((set - now) / 60000));
   const remainingTime = remainingMinutes < 60 ? `${remainingMinutes} min` : `${Math.floor(remainingMinutes / 60)} h ${remainingMinutes % 60} min`;
   $("sunPhrase").textContent = now < rise ? "O sol ainda não nasceu." : now >= set ? `O sol já se pôs em ${activeCity.name}.` : `Restam cerca de ${remainingTime} de luz natural.`;
+}
+
+function renderMoon(now = new Date()) {
+  const phase = globalThis.PLUVIA?.moon?.getMoonIllumination(now)?.phase;
+  if (!Number.isFinite(phase)) {
+    $("moonIcon").textContent = "◌";
+    $("moonPhase").textContent = "Fase indisponível";
+    return;
+  }
+  const names = ["Lua nova","Lua crescente","Quarto crescente","Gibosa crescente","Lua cheia","Gibosa minguante","Quarto minguante","Lua minguante"];
+  const icons = ["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘"];
+  const index = Math.round(phase * 8) % 8;
+  $("moonIcon").textContent = icons[index];
+  $("moonPhase").textContent = names[index];
+}
+
+function renderVisibility(value, fromCache = false) {
+  const available = Number.isFinite(value) && value >= 0;
+  const reduced = available && value < 5000;
+  $("visibilityValue").textContent = !available ? "--" : value < 1000 ? `${fmt(value)} m` : `${fmt(value / 1000, value < 10000 ? 1 : 0)} km`;
+  $("visibilityNote").textContent = !available ? "Visibilidade indisponível para esta hora."
+    : `${value < 1000 ? "Visibilidade baixa" : reduced ? "Visibilidade reduzida" : "Boa visibilidade"} · ${fromCache ? "previsão salva" : "estimativa regional"}`;
+  $("visibilityBadge").hidden = !reduced;
+  $("visibilityBadge").textContent = !reduced ? "" : value < 1000 ? "Visibilidade baixa" : "Visibilidade reduzida";
+  $("visibilityBadge").dataset.level = value < 1000 ? "low" : "reduced";
 }
 
 function cache(data, metadata = {}) { try { localStorage.setItem(`pluvia-weather-${activeCity.id}`, JSON.stringify({at: Date.now(),weatherAt:metadata.weatherAt || Date.now(),airAt:metadata.airAt || null,data})); } catch {} }
@@ -647,7 +713,8 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   const [airName, airText] = aqiLabel(air?.current?.us_aqi); $("airQuality").textContent = airName; $("airNote").textContent = airText;
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
   setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)} · ${activeCity.name}`, fromCache);
-  renderAttention(data, start, air); renderRain(data.hourly, start, day);
+  renderVisibility(data.hourly.visibility?.[start], fromCache);
+  renderAttention(data, start, air); renderHourly(data.hourly, start, day);
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
   renderForecast(day, current.temperature_2m); renderSun(day);
 }
@@ -682,6 +749,7 @@ async function loadWeather(revision = cityRevision) {
     globalThis.PLUVIA?.sources.set("air-quality",{status:displayedWeather?.air ? "stale" : "error"});
     if (!displayedWeather) {
       $("condition").textContent = "Tempo indisponível";
+      renderVisibility(null);
       $("rainChart").innerHTML = '<p class="chart-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("dryWindow").textContent = "Sem dados";
@@ -819,7 +887,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","highLow","rainNow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset"];
+const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","highLow","rainNow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset"];
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;
@@ -887,6 +955,7 @@ function chooseCity(id, locatedCity = null) {
   if (!saved) {
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
     $("uvScale").hidden = true;
+    $("visibilityBadge").hidden = true;
     $("attentionCard").classList.remove("ok","warning","danger","unavailable");
     $("summaryHighlights").innerHTML = "";
     clearWeatherInsights();
@@ -1016,6 +1085,14 @@ function requestLocation(source = 'automatic') {
 }
 
 setupCityPicker();
+document.querySelector(".hourly-modes")?.addEventListener("click", event => {
+  const button = event.target.closest("button[data-hourly-mode]");
+  if (!button || !event.currentTarget.contains(button)) return;
+  hourlyMode = button.dataset.hourlyMode;
+  event.currentTarget.querySelectorAll("button[data-hourly-mode]").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+  const forecast = displayedWeather?.forecast;
+  if (forecast) renderHourly(forecast.hourly, selectCurrentHour(forecast.hourly.time), forecast.daily);
+});
 setupScrollAnimations();
 setupPullToRefresh();
 updateClock();
