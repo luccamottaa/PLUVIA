@@ -5,16 +5,16 @@ const path = require('node:path');
 const icons = require('../dist/modules/weather-icon-system.js');
 
 test('mapeia códigos WMO e respeita variantes de dia e noite', () => {
-  assert.equal(icons.assetFor(0, true), 'clear-day.png');
-  assert.equal(icons.assetFor(0, false), 'clear-night.png');
-  assert.equal(icons.assetFor(1, true), 'partly-cloudy-day.png');
-  assert.equal(icons.assetFor(1, false), 'partly-cloudy-night.png');
-  assert.equal(icons.icon(1, true).source, 'pluvia-glossy');
-  assert.equal(icons.assetFor(2, true), 'partly-cloudy-day.png');
-  assert.equal(icons.assetFor(2, false), 'partly-cloudy-night.png');
-  assert.equal(icons.assetFor(45, true), 'fog.png');
-  assert.equal(icons.assetFor(65, true), 'heavy-rain.png');
-  assert.equal(icons.assetFor(96, true), 'thunderstorm-hail.png');
+  assert.equal(icons.assetFor(0, true), 'clear-day.svg');
+  assert.equal(icons.assetFor(0, false), 'clear-night.svg');
+  assert.equal(icons.assetFor(1, true), 'partly-cloudy-day.svg');
+  assert.equal(icons.assetFor(1, false), 'partly-cloudy-night.svg');
+  assert.equal(icons.icon(1, true).source, 'pluvia-vector');
+  assert.equal(icons.assetFor(2, true), 'partly-cloudy-day.svg');
+  assert.equal(icons.assetFor(2, false), 'partly-cloudy-night.svg');
+  assert.equal(icons.assetFor(45, true), 'fog.svg');
+  assert.equal(icons.assetFor(65, true), 'heavy-rain.svg');
+  assert.equal(icons.assetFor(96, true), 'thunderstorm-hail.svg');
 });
 
 test('centraliza ícones nomeados e usa fallback local sem gerar 404', () => {
@@ -24,12 +24,17 @@ test('centraliza ícones nomeados e usa fallback local sem gerar 404', () => {
   assert.equal(icons.namedIcon('radar').src, './vendor/weathericons/Cloud.svg');
 });
 
-test('todos os PNGs glossy declarados existem e não são arquivos vazios', () => {
+test('ícones de condições em SVG e métricas em PNG existem e são válidos', () => {
   for (const [category, entries] of Object.entries(icons.ASSETS)) {
     for (const file of Object.values(entries)) {
       const asset = path.join(__dirname, '..', 'dist', 'assets', 'weather-icons', category, file);
       assert.ok(fs.existsSync(asset), `${category}/${file} ausente`);
-      assert.ok(fs.statSync(asset).size > 10_000, `${category}/${file} parece inválido`);
+      const contents = fs.readFileSync(asset);
+      if (file.endsWith('.svg')) {
+        assert.match(contents.toString(), /<svg[^>]*viewBox="0 0 128 128"[\s\S]*<\/svg>/, `${category}/${file} parece inválido`);
+      } else {
+        assert.ok(contents.length > 10_000, `${category}/${file} parece inválido`);
+      }
     }
   }
 });
