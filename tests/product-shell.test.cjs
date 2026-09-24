@@ -47,10 +47,10 @@ assert.doesNotMatch(app, /rainPulse|rainMapLocations|getPrecipitationGrid|Compar
 assert.match(app, /não verifica automaticamente os alertas da Defesa Civil/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-core-100/);
+assert.match(sw, /pluvia-core-101/);
 assert.match(html, /id="weatherView" class="initial-loading" aria-busy="true"/);
 assert.match(html, /viewport-fit=cover/);
-assert.match(html, /styles\.css\?v=core-100/);
+assert.match(html, /styles\.css\?v=core-101/);
 assert.match(html, /modules\/weather-icon-system\.js\?v=vector-1/);
 assert.match(sw, /assets\/weather-icons\/conditions\/clear-day\.svg/);
 assert.match(html, /id="openWeatherMap"/);
@@ -58,7 +58,7 @@ assert.match(html, /data-weather-layer="rain"[\s\S]+data-weather-layer="clouds"/
 assert.doesNotMatch(html, /data-weather-layer="satellite"/);
 assert.doesNotMatch(html, /id="goOutCard"|PLUVIA SINAL · DÁ PRA SAIR\?|Por que este sinal\?/);
 assert.doesNotMatch(app, /renderGoOut/);
-assert.match(sw, /weather-map\.js\?v=core-100/);
+assert.match(sw, /weather-map\.js\?v=core-101/);
 assert.doesNotMatch(html, /modules\/signal\.js/);
 assert.match(html, /RESUMO INTELIGENTE/);
 assert.doesNotMatch(html, /id="smokeCard"|FUMAÇA E PARTÍCULAS/);
@@ -72,11 +72,11 @@ assert(manifest.icons.some(icon => icon.sizes === '192x192' && icon.purpose === 
 assert.equal(manifest.background_color, '#10233f');
 assert.match(html, /apple-touch-icon-180\.png/);
 assert.match(html, /apple-mobile-web-app-status-bar-style" content="black-translucent"/);
-assert.match(html, /modules\/weather-data-layer\.js\?v=core-100/);
+assert.match(html, /modules\/weather-data-layer\.js\?v=core-101/);
 assert.match(html, /modules\/http-client\.js\?v=core-67/);
-assert.match(html, /modules\/weather-services\.js\?v=core-100/);
+assert.match(html, /modules\/weather-services\.js\?v=core-101/);
 assert.match(html, /modules\/weather-insights\.js\?v=core-64/);
-assert.match(html, /app\.js\?v=core-100/);
+assert.match(html, /app\.js\?v=core-101/);
 assert.match(html, /modules\/radar-probe\.js\?v=core-70/);
 assert.match(html, /pluviaweather\.com\.br/);
 assert.match(app, /prefetchForecast/);

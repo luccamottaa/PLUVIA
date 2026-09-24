@@ -727,6 +727,7 @@ function clearWeatherInsights() {
   if (explanation) explanation.hidden = true;
   const reasons = $("weatherExplanationList");
   if (reasons) reasons.textContent = "";
+  if ($("rainPhrase")) $("rainPhrase").textContent = "Previsão de chuva indisponível.";
 }
 
 function renderWeatherInsights(data, air, start) {
@@ -760,7 +761,15 @@ function renderWeatherInsights(data, air, start) {
     });
     explanation.hidden = !reasons.childElementCount;
   }
-  if ($("rainPhraseMeta") && insight.rain?.meta) $("rainPhraseMeta").textContent = insight.rain.meta;
+  if ($("rainPhrase")) {
+    const rain = insight.rain;
+    $("rainPhrase").textContent = !rain ? "Previsão de chuva indisponível."
+      : rain.chance >= 60 && rain.volume >= 5 ? "Chuva significativa prevista nas próximas 12 horas."
+      : rain.chance >= 35 && rain.window ? `Possibilidade de chuva entre ${rain.window}.`
+      : rain.chance >= 35 ? "Possibilidade de chuva nas próximas 12 horas."
+      : "Baixa probabilidade de chuva nas próximas 12 horas.";
+  }
+  if ($("rainPhraseMeta")) $("rainPhraseMeta").textContent = insight.rain?.meta || "";
 }
 
 function markWeatherUnavailable(hasSavedData) {
