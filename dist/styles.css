@@ -1344,14 +1344,14 @@ button.compare-city:hover { border-color:var(--blue); }
 .sunshine-note { margin:0; max-width:850px; color:var(--muted); font-size:.86rem; line-height:1.4; }
 .sun-section.is-night .sunshine-note { color:#c0d0e7; }
 
-/* O grau acompanha a largura real do número; o ícone e o texto compartilham o mesmo eixo. */
-.weather-hero .weather-main { display:grid !important; grid-template-columns:minmax(0,1fr) minmax(88px,150px); align-items:center; column-gap:clamp(8px,3vw,32px); }
-.weather-hero .wx-copy { display:flex; flex-direction:column; justify-content:center; align-items:flex-start; min-width:0; }
+/* Temperatura e ícone ocupam a mesma linha; a descrição começa abaixo dos dois. */
+.weather-hero .weather-main { display:grid !important; grid-template-columns:minmax(0,1fr) minmax(88px,150px); grid-template-rows:auto auto; align-items:center; column-gap:clamp(8px,3vw,32px); row-gap:clamp(12px,2vw,20px); min-height:0 !important; }
+.weather-hero .wx-copy { display:block; grid-column:1; grid-row:1; min-width:0; }
 .weather-hero .temperature { display:inline-flex !important; align-items:flex-start; width:max-content; max-width:100%; gap:clamp(2px,.4vw,6px); letter-spacing:-.045em; }
 .weather-hero .temperature #temperature { display:inline-block; font-variant-numeric:proportional-nums; white-space:nowrap; }
 .weather-hero .temperature .deg { flex:0 0 auto; margin:0 !important; padding-top:.05em; font-size:.23em; line-height:1; letter-spacing:0; }
-.weather-hero .condition { margin-top:clamp(12px,2vw,24px) !important; max-width:100%; }
-.weather-hero .weather-glyph { justify-self:center; align-self:center; transform:none !important; }
+.weather-hero .condition { grid-column:1 / -1; grid-row:2; margin:0 !important; max-width:100%; }
+.weather-hero .weather-glyph { grid-column:2; grid-row:1; justify-self:center; align-self:center; transform:translateY(-5px) !important; }
 .weather-hero .current-bottom { align-items:start; }
 .weather-hero .current-bottom > div { align-content:start; }
 @media (max-width:720px) {
