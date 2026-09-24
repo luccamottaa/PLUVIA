@@ -67,6 +67,17 @@ test('direção horária do vento é opcional para dados salvos e validada quand
   assert.equal(layer.validateForecast(withDirection).valid, false);
 });
 
+test('horas de sol são opcionais para cache antigo e exigem duração válida quando presentes', () => {
+  assert.equal(layer.validateForecast(forecast).valid, true);
+  const withSun = structuredClone(forecast);
+  withSun.daily.sunshine_duration = [24500];
+  withSun.daily.daylight_duration = [43500];
+  assert.equal(layer.validateForecast(withSun).valid, true);
+  assert.equal(layer.normalizeOpenMeteo(withSun,null,city).daily[0].sunshineDuration,24500);
+  withSun.daily.sunshine_duration = [90000];
+  assert.equal(layer.validateForecast(withSun).valid, false);
+});
+
 test('aceita ausência declarada fora do horizonte exibido, mas não dentro dele', () => {
   const input = structuredClone(forecast);
   input.current.rain = null;

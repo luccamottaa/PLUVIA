@@ -120,6 +120,9 @@
         errors.push(`daily.${field} inválido ou desalinhado`);
       }
     }
+    for (const field of ["sunshine_duration", "daylight_duration"]) {
+      if (daily?.[field] !== undefined && (!Array.isArray(daily[field]) || daily[field].length !== dailyLength || daily[field].some(value => value !== null && (!Number.isFinite(value) || value < 0 || value > 86400)))) errors.push(`daily.${field} inválido ou desalinhado`);
+    }
     if (Array.isArray(daily?.precipitation_probability_max) && daily.precipitation_probability_max.some(value => value < 0 || value > 100)) errors.push("probabilidade diária fora da faixa");
     for (const field of ["precipitation_sum", "rain_sum", "uv_index_max"]) {
       if (Array.isArray(daily?.[field]) && daily[field].some(value => value < 0)) errors.push(`daily.${field} fora da faixa`);
@@ -204,7 +207,9 @@
       precipitationProbabilityMax: number(at(daily.precipitation_probability_max, index)),
       uvIndexMax: number(at(daily.uv_index_max, index)),
       sunrise: at(daily.sunrise, index) || null,
-      sunset: at(daily.sunset, index) || null
+      sunset: at(daily.sunset, index) || null,
+      sunshineDuration: number(at(daily.sunshine_duration, index)),
+      daylightDuration: number(at(daily.daylight_duration, index))
     })));
   }
 
