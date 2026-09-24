@@ -8,26 +8,6 @@ function pinTop() {
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
 }
-function revealWeather() {
-  const welcome = document.getElementById("locationWelcome");
-  const view = document.getElementById("weatherView");
-  const nav = document.getElementById("siteNav");
-  if (welcome) welcome.hidden = true;
-  if (view) view.hidden = false;
-  if (nav) nav.hidden = false;
-  pinTop();
-  requestAnimationFrame(pinTop);
-  setTimeout(pinTop, 50);
-}
-function dismissIntro() {
-  const intro = document.getElementById("pluviaIntro");
-  if (!intro || intro.hidden || intro.dataset.done) return;
-  intro.dataset.done = "1";
-  intro.classList.add("is-leaving");
-  revealWeather();
-  setTimeout(() => { intro.hidden = true; pinTop(); }, 480);
-}
-document.getElementById("skipIntro")?.addEventListener("click", dismissIntro);
 function buildRainPhrase(hourly) {
   const times = hourly?.time || [];
   const probs = hourly?.precipitation_probability || [];
@@ -185,16 +165,10 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
     locationMessage("Localização indisponível. Manaus foi selecionada como referência. É possível trocar a cidade a qualquer momento.");
   }, 1500);
   }
-  const intro = document.getElementById("pluviaIntro");
-  const seen = sessionStorage.getItem("pluvia-intro-seen");
-  if (seen && intro) intro.hidden = true;
-  else sessionStorage.setItem("pluvia-intro-seen", "1");
   const welcome = document.getElementById("locationWelcome");
   if (welcome) welcome.hidden = true;
   pinTop();
   setTimeout(() => { clearTimeout(fallbackTimer); if (!activeCity && fallback) chooseCity(fallback.id); }, 1650);
-  const introDuration = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? 250 : 2900;
-  setTimeout(dismissIntro, introDuration);
 })();
 if ("serviceWorker" in navigator && window.isSecureContext) {
   const hadController = Boolean(navigator.serviceWorker.controller);

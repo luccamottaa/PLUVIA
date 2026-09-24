@@ -38,17 +38,46 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-88" />
+    <link rel="stylesheet" href="./styles.css?v=core-90" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
     <div id="pluviaIntro" class="pluvia-intro">
       <button id="skipIntro" class="skip-intro" type="button">Pular</button>
       <p class="intro-kicker">Feito no Norte</p>
-      <div class="intro-logo"><img src="./assets/pluvia-footer-logo.jpeg" alt="PLUVIA — O céu de cada cidade" width="1254" height="1254" decoding="async" /></div>
+      <div class="intro-sky" aria-hidden="true"><span class="intro-sun"></span><span class="intro-cloud intro-cloud-back"></span><span class="intro-cloud intro-cloud-front"></span><span class="intro-rain"></span><span class="intro-bolt"></span></div>
+      <div class="intro-wordmark"><span class="intro-drop" aria-hidden="true"></span><strong>PLUVIA</strong></div>
+      <p class="intro-tagline">O céu de cada cidade</p>
       <p class="intro-copy">Consulte o tempo antes de sair.</p>
       <div class="intro-progress" aria-hidden="true"><span></span></div>
     </div>
+    <script>
+      (function () {
+        var intro = document.getElementById("pluviaIntro");
+        var seen = false;
+        try { seen = sessionStorage.getItem("pluvia-intro-seen") === "1"; sessionStorage.setItem("pluvia-intro-seen", "1"); } catch (_) {}
+        function reveal() {
+          var welcome = document.getElementById("locationWelcome");
+          var view = document.getElementById("weatherView");
+          var nav = document.getElementById("siteNav");
+          if (welcome) welcome.hidden = true;
+          if (view) view.hidden = false;
+          if (nav) nav.hidden = false;
+        }
+        function dismiss() {
+          if (!intro || intro.hidden || intro.dataset.done) return;
+          intro.dataset.done = "1";
+          intro.classList.add("is-leaving");
+          reveal();
+          setTimeout(function () { intro.hidden = true; }, 450);
+        }
+        window.dismissPluviaIntro = dismiss;
+        document.getElementById("skipIntro").addEventListener("click", dismiss);
+        if (seen) { intro.hidden = true; return; }
+        var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        setTimeout(dismiss, reduced ? 300 : 3400);
+      })();
+    </script>
     <header class="topbar shell" id="top">
       <a class="brand" href="#top" aria-label="PLUVIA, início"><img src="./logo-mark.png" alt="" width="44" height="44" /><span>PLUVIA</span></a>
       <button id="accountButton" class="account-trigger" type="button" aria-haspopup="dialog" aria-controls="accountDialog">Entrar / cadastrar</button>
@@ -219,8 +248,7 @@
       </section>
       </div>
     </main>
-    <footer class="shell"><div class="footer-brand"><img src="./assets/pluvia-footer-logo.jpeg" alt="PLUVIA — O céu de cada cidade" width="1254" height="1254" loading="lazy" decoding="async" /></div><p>Clima: Open-Meteo · Fase da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a><br>Alertas: INMET · Defesa Civil Manaus e canal nacional<br>Ícones: PLUVIA Glossy · <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> como fallback · SIL OFL 1.1<br><button id="openSources" class="footer-link" type="button">Fontes de dados</button></p></footer>
-    <section class="sobre shell" id="sobre"><h2>Sobre</h2><p>PLUVIA — consulte o tempo antes de sair. Feito no Norte.</p><p>Dados do Open-Meteo para o ponto de referência do município, avisos do INMET e informações da Defesa Civil de Manaus e da Defesa Civil Nacional. Municípios: IBGE, com coordenadas sob licença MIT.</p></section>
+    <footer class="shell"><div class="footer-brand"><span class="footer-brand-icon" aria-hidden="true"></span><div class="footer-brand-copy"><strong>PLUVIA</strong><span>O céu de cada cidade</span></div></div><p>Clima: Open-Meteo · Fase da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a><br>Alertas: INMET · Defesa Civil Manaus e canal nacional<br>Ícones: PLUVIA Glossy · <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> como fallback · SIL OFL 1.1<br><button id="openSources" class="footer-link" type="button">Fontes de dados</button></p></footer>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Sem confirmação atual.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
     <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody"></div></dialog>
@@ -249,22 +277,22 @@
     <script src="./analytics.js?v=analytics-3"></script>
     <script src="./modules/sources.js?v=core-71"></script>
     <script src="./modules/http-client.js?v=core-67"></script>
-    <script src="./modules/weather-services.js?v=core-88"></script>
-    <script src="./modules/weather-data-layer.js?v=core-88"></script>
+    <script src="./modules/weather-services.js?v=core-90"></script>
+    <script src="./modules/weather-data-layer.js?v=core-90"></script>
     <script src="./modules/weather-insights.js?v=core-64"></script>
     <script src="./modules/radar-probe.js?v=core-70"></script>
     <script src="./modules/weather-icons.js?v=core-49"></script>
     <script src="./modules/weather-icon-system.js?v=glossy-2"></script>
-    <script src="./vendor/suncalc.js?v=core-88"></script>
-    <script src="./modules/smart-summary.js?v=core-88"></script>
+    <script src="./vendor/suncalc.js?v=core-90"></script>
+    <script src="./modules/smart-summary.js?v=core-90"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-88"></script>
-    <script src="./p0.js?v=core-88"></script>
+    <script src="./app.js?v=core-90"></script>
+    <script src="./p0.js?v=core-90"></script>
     <script src="./modules/risks.js?v=core-71"></script>
     <script src="./modules/adapters.js?v=core-71"></script>
-    <script src="./weather-map.js?v=core-88"></script>
-    <script src="./account.js?v=core-88" defer></script>
-    <script src="./saved-places.js?v=core-88" defer></script>
-    <script src="./notifications.js?v=core-88" defer></script>
+    <script src="./weather-map.js?v=core-90"></script>
+    <script src="./account.js?v=core-90" defer></script>
+    <script src="./saved-places.js?v=core-90" defer></script>
+    <script src="./notifications.js?v=core-90" defer></script>
   </body>
 </html>

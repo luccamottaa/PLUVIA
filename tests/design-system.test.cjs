@@ -37,7 +37,7 @@ assert.match(css, /@media \(prefers-color-scheme: dark\)/);
 assert.match(css, /--bg: #10233f;/, 'o fundo deve usar o azul escuro solicitado');
 assert.match(css, /--canvas-text: #f1f6ff;/, 'títulos sobre o fundo escuro devem usar tinta clara');
 assert.match(css, /\.intro, \.section-heading \{ color: var\(--canvas-text\); \}/, 'cidade, relógio e títulos externos devem contrastar com o fundo');
-assert.match(css, /\.intro \.eyebrow,[\s\S]*\.dry-window span,[\s\S]*footer, \.sobre\.shell \{ color: var\(--canvas-muted\); \}/, 'rótulos externos devem permanecer legíveis nos dois modos');
+assert.match(css, /\.intro \.eyebrow,[\s\S]*\.dry-window span,[\s\S]*footer \{ color: var\(--canvas-muted\); \}/, 'rótulos externos devem permanecer legíveis nos dois modos');
 assert.match(html, /id="uvScale"[^>]*aria-hidden="true" hidden/);
 assert.match(css, /\.uv-scale \{[^}]*linear-gradient/);
 assert.match(css, /\.temp-track \.temp-now/);
