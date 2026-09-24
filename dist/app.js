@@ -557,13 +557,21 @@ function renderForecast(daily, currentTemperature) {
   }).join("");
 }
 
+function solarArcPoint(progress) {
+  const t = Math.min(1, Math.max(0, progress));
+  // Mesma curva quadrática do caminho SVG: M9 115 Q50 -65 91 115.
+  return { left: 9 + 82 * t, top: 115 - 360 * t * (1 - t) };
+}
+
 function renderSun(daily) {
   const rise = cityDate(daily.sunrise[0]); const set = cityDate(daily.sunset[0]); const minutes = Math.round((set - rise) / 60000);
   $("sunrise").textContent = shortTime(daily.sunrise[0]); $("sunset").textContent = shortTime(daily.sunset[0]);
   $("daylight").textContent = `${Math.floor(minutes / 60)}h ${minutes % 60}min de luz`;
   const now = new Date(); const progress = Math.min(1, Math.max(0, (now - rise) / (set - rise)));
   document.querySelector(".sun-section")?.classList.toggle("is-night", now < rise || now > set);
-  $("sunDot").style.left = `${3 + progress * 91}%`; $("sunDot").style.top = `${74 - Math.sin(progress * Math.PI) * 58}px`;
+  const point = solarArcPoint(progress);
+  $("sunDot").style.left = `${point.left}%`; $("sunDot").style.top = `${point.top}px`;
+  $("sunDot").hidden = false;
   const remainingMinutes = Math.max(1, Math.ceil((set - now) / 60000));
   const remainingTime = remainingMinutes < 60 ? `${remainingMinutes} min` : `${Math.floor(remainingMinutes / 60)} h ${remainingMinutes % 60} min`;
   $("sunPhrase").textContent = now < rise ? "O sol ainda não nasceu." : now >= set ? `O sol já se pôs em ${activeCity.name}.` : `Restam cerca de ${remainingTime} de luz natural.`;
@@ -973,8 +981,7 @@ function chooseCity(id, locatedCity = null) {
     $("attentionCard").classList.remove("ok","warning","danger","unavailable");
     $("summaryHighlights").innerHTML = "";
     clearWeatherInsights();
-    $("sunDot").style.left = "3%";
-    $("sunDot").style.top = "74px";
+    $("sunDot").hidden = true;
     $("condition").textContent = "Consultando as condições em " + city.name + "…";
   }
   ["inmet","defesa"].forEach(source => {
