@@ -58,6 +58,15 @@ test('contrato rejeita séries desalinhadas e valores meteorológicos fora da fa
   assert.match(layer.validateForecast(invalidRange).errors.join(' '), /fora da faixa/);
 });
 
+test('direção horária do vento é opcional para dados salvos e validada quando fornecida', () => {
+  assert.equal(layer.validateForecast(forecast).valid, true);
+  const withDirection = structuredClone(forecast);
+  withDirection.hourly.wind_direction_10m = [0, 90, null];
+  assert.equal(layer.validateForecast(withDirection).valid, true);
+  withDirection.hourly.wind_direction_10m[1] = 361;
+  assert.equal(layer.validateForecast(withDirection).valid, false);
+});
+
 test('aceita ausência declarada fora do horizonte exibido, mas não dentro dele', () => {
   const input = structuredClone(forecast);
   input.current.rain = null;

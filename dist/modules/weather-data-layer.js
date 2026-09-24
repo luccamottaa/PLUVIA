@@ -88,6 +88,12 @@
         errors.push(`hourly.${field} inválido ou desalinhado`);
       }
     }
+    if (hourly?.wind_direction_10m !== undefined) {
+      const values = hourly.wind_direction_10m;
+      if (!Array.isArray(values) || values.length !== hourlyLength || values.some(value => value !== null && (!Number.isFinite(value) || value < 0 || value > 360))) {
+        errors.push("hourly.wind_direction_10m inválido ou desalinhado");
+      }
+    }
     for (const field of ["relative_humidity_2m", "precipitation_probability", "cloud_cover"]) {
       if (Array.isArray(hourly?.[field]) && hourly[field].some(value => value < 0 || value > 100)) errors.push(`hourly.${field} fora da faixa`);
     }

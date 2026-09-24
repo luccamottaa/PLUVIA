@@ -13,6 +13,7 @@ test('constrói URLs meteorológicas somente a partir da localização normaliza
   assert.equal(forecast.searchParams.get('timezone'), 'America/Manaus');
   assert.equal(forecast.searchParams.get('past_hours'), '24');
   assert.equal(forecast.searchParams.get('forecast_days'), '8');
+  assert.match(forecast.searchParams.get('hourly'), /wind_direction_10m/);
 
   const air = new URL(services.airQuality.currentUrl(manaus));
   assert.equal(air.hostname, 'air-quality-api.open-meteo.com');

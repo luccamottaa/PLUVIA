@@ -1183,6 +1183,45 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
   margin:auto;
 }
 
+.hourly-modes { display:inline-flex; flex-wrap:wrap; gap:4px; margin:var(--space-4) 0 var(--space-3); padding:4px; border:1px solid var(--line); border-radius:999px; background:var(--panel-subtle); }
+.hourly-modes button { min-width:75px; min-height:40px; padding:7px 16px; border:0; border-radius:999px; color:var(--muted); background:transparent; font:700 .82rem/1.2 Manrope,sans-serif; cursor:pointer; }
+.hourly-modes button[aria-pressed="true"] { color:var(--text); background:var(--panel-strong); box-shadow:0 2px 9px rgba(8,30,62,.14); }
+.rain-chart[data-hourly-mode="conditions"] .bar-area,.rain-chart[data-hourly-mode="wind"] .bar-area { align-items:end; }
+.rain-chart .temp-bar,.rain-chart .wind-bar { width:32px; min-height:10px; border-radius:9px 9px 3px 3px; }
+.rain-chart .temp-bar { background:linear-gradient(180deg,#ffbd77,#e7824e); }
+.rain-chart .wind-bar { background:linear-gradient(180deg,#80c9e5,#2788be); }
+.rain-chart .hour-detail { align-self:center; color:var(--muted); font:500 .68rem/1.2 "DM Mono",monospace; white-space:nowrap; }
+.rain-chart .hour-detail small { display:block; font-size:.62rem; }
+.rain-chart .wind-direction { display:grid; place-items:center; align-self:start; min-height:44px; color:var(--weather-wind); font-size:1.5rem; line-height:1; }
+.rain-chart .wind-direction span { display:inline-block; }
+
+.weather-details { margin-top:var(--space-3); padding:0 var(--space-5); }
+.weather-details summary { display:flex; align-items:center; flex-wrap:wrap; gap:8px 14px; min-height:54px; cursor:pointer; font-weight:700; }
+.weather-details summary::marker { color:var(--muted); }
+.weather-details summary::after { content:"⌄"; margin-left:auto; color:var(--muted); font-size:1.25rem; }
+.weather-details[open] summary::after { transform:rotate(180deg); }
+.weather-details[open] summary { border-bottom:1px solid var(--line); }
+.visibility-badge { padding:5px 9px; border-radius:999px; color:var(--danger); background:color-mix(in srgb,var(--danger) 12%,var(--panel)); font-size:.72rem; }
+.visibility-badge[data-level="reduced"] { color:var(--orange); background:color-mix(in srgb,var(--orange) 12%,var(--panel)); }
+.visibility-badge[hidden] { display:none; }
+.visibility-detail { display:flex; align-items:center; gap:var(--space-3); padding:var(--space-4) 0; }
+.visibility-detail > span { display:grid; place-items:center; width:48px; height:48px; flex:0 0 48px; }
+.visibility-detail > div { display:grid; gap:3px; min-width:0; }
+.visibility-detail > div > span { color:var(--muted); font:500 .7rem/1.4 "DM Mono",monospace; letter-spacing:.07em; }
+.visibility-detail strong { font-size:1.5rem; line-height:1.1; }
+.visibility-detail small { color:var(--muted); font-size:.78rem; }
+
+.moon-inline { display:inline-flex; align-items:center; justify-content:center; gap:10px; max-width:100%; padding-top:var(--space-3); border-top:1px solid var(--line); color:var(--muted); font-size:.8rem; }
+.moon-inline > span:first-child { font-size:1.7rem; line-height:1; }
+.moon-inline strong { display:block; margin-top:2px; color:var(--text); font-size:.85rem; }
+.sun-section.is-night .moon-inline { border-top-color:rgba(188,215,255,.3); color:#c0d0e7; }
+.sun-section.is-night .moon-inline strong { color:#f0f6ff; }
+@media (max-width:720px) {
+  .hourly-modes { width:100%; justify-content:center; }
+  .hourly-modes button { flex:1 1 0; min-width:0; }
+  .weather-details { padding:0 var(--space-4); }
+}
+
 /* A translated fixed toast could leave a red strip above the iOS safe area. */
 .error-toast {
   opacity:0;
