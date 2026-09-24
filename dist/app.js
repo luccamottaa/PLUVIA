@@ -104,12 +104,25 @@ function pressureLabel(value) {
 }
 
 function aqiLabel(value) {
-  if (!Number.isFinite(value)) return ["--", "AQI indisponível"];
+  if (!Number.isFinite(value) || value < 0) return ["--", "AQI indisponível"];
   if (value <= 50) return ["Boa", `AQI ${Math.round(value)} · ar limpo`];
   if (value <= 100) return ["Moderada", `AQI ${Math.round(value)} · aceitável`];
   if (value <= 150) return ["Ruim para grupos sensíveis", `AQI ${Math.round(value)} · atenção para grupos sensíveis`];
   if (value <= 200) return ["Ruim", `AQI ${Math.round(value)} · evite esforço`];
-  return ["Muito ruim", `AQI ${Math.round(value)} · exposição alta`];
+  if (value <= 300) return ["Muito ruim", `AQI ${Math.round(value)} · exposição alta`];
+  return ["Perigosa", `AQI ${Math.round(value)} · risco elevado`];
+}
+
+function renderAirQuality(value) {
+  const [label, note] = aqiLabel(value);
+  const card = $("airQualityCard");
+  const level = !Number.isFinite(value) || value < 0 ? null
+    : value <= 50 ? "good" : value <= 100 ? "moderate" : value <= 150 ? "sensitive"
+    : value <= 200 ? "poor" : value <= 300 ? "very-poor" : "hazardous";
+  if (level) card.dataset.aqiLevel = level;
+  else delete card.dataset.aqiLevel;
+  $("airQuality").textContent = label;
+  $("airNote").textContent = note;
 }
 
 function decodeHtml(value = "") {
@@ -711,7 +724,7 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   const uvNow = data.hourly.uv_index[start]; $("uv").textContent = fmt(uvNow, 1); $("uvNote").textContent = uvLabel(uvNow);
   $("uvScale").hidden = !Number.isFinite(uvNow);
   if (Number.isFinite(uvNow)) $("uvScale").style.setProperty("--uv-position", `${Math.max(0, Math.min(100, uvNow / 11 * 100))}%`);
-  const [airName, airText] = aqiLabel(air?.current?.us_aqi); $("airQuality").textContent = airName; $("airNote").textContent = airText;
+  renderAirQuality(air?.current?.us_aqi);
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
   setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)} · ${activeCity.name}`, fromCache);
   renderVisibility(data.hourly.visibility?.[start], fromCache);
@@ -955,6 +968,7 @@ function chooseCity(id, locatedCity = null) {
   const saved = cached();
   if (!saved) {
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
+    delete $("airQualityCard").dataset.aqiLevel;
     $("uvScale").hidden = true;
     $("visibilityBadge").hidden = true;
     $("attentionCard").classList.remove("ok","warning","danger","unavailable");
