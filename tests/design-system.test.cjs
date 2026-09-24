@@ -34,8 +34,11 @@ assert.match(css, /\.context-highlights \{[\s\S]*display:flex;[\s\S]*max-width:1
 assert.match(css, /@media \(max-width:380px\)/);
 assert.match(css, /@media \(max-width:720px\)/);
 assert.match(css, /@media \(prefers-color-scheme: dark\)/);
-assert.match(css, /--bg: #10233f;/, 'o fundo deve usar o azul escuro solicitado');
-assert.match(css, /--canvas-text: #f1f6ff;/, 'títulos sobre o fundo escuro devem usar tinta clara');
+assert.match(css, /--bg: #f6f3ed;/, 'o modo claro deve usar o fundo off-white solicitado');
+assert.match(css, /--canvas-text: #10233f;/, 'títulos sobre o fundo claro devem ter contraste');
+assert.match(css, /@media \(prefers-color-scheme: dark\) \{[\s\S]*?:root \{\s*--bg: #10233f;\s*--canvas-text: #f1f6ff;/, 'o modo escuro deve preservar o azul original');
+assert.match(html, /name="theme-color" content="#f6f3ed" media="\(prefers-color-scheme: light\)"/);
+assert.match(html, /name="theme-color" content="#10233f" media="\(prefers-color-scheme: dark\)"/);
 assert.match(css, /\.intro, \.section-heading \{ color: var\(--canvas-text\); \}/, 'cidade, relógio e títulos externos devem contrastar com o fundo');
 assert.match(css, /\.intro \.eyebrow,[\s\S]*\.dry-window span,[\s\S]*footer \{ color: var\(--canvas-muted\); \}/, 'rótulos externos devem permanecer legíveis nos dois modos');
 assert.match(html, /id="uvScale"[^>]*aria-hidden="true" hidden/);

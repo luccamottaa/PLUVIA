@@ -2,9 +2,9 @@
   color-scheme: light dark;
   --font-ui: "Nunito", ui-rounded, system-ui, sans-serif;
   --brand-blue: #075dff;
-  --bg: #10233f;
-  --canvas-text: #f1f6ff;
-  --canvas-muted: #b2c5dd;
+  --bg: #f6f3ed;
+  --canvas-text: #10233f;
+  --canvas-muted: #536781;
   --bg-secondary: #edf5ff;
   --panel: rgba(255, 255, 255, .84);
   --panel-strong: rgba(255, 255, 255, .94);
@@ -89,7 +89,7 @@ nav a:hover { transform: translateY(-1px); }
 .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 5px rgba(7,93,255,.11); animation: live-pulse 2.4s ease-out infinite; }
 h1 { margin: 12px 0 0; font-size: clamp(2.25rem, 6vw, 4.25rem); line-height: 1.1; letter-spacing: -.055em; font-weight: 700; }
 .eyebrow.stale .live-dot { background: var(--muted); box-shadow: none; animation: none; }
-h1 em { color: #8bb9ff; font-style: normal; }
+h1 em { color: var(--brand-blue); font-style: normal; }
 .clock-wrap { text-align: right; padding-bottom: 4px; }
 .clock-wrap span, .card-topline, .sun-label span { color: var(--muted); font-family: var(--font-ui); font-size: .75rem; letter-spacing: .1em; }
 .clock-wrap strong { display: block; margin: 4px 0; font-family: var(--font-ui); font-size: 2.1rem; font-weight: 600; letter-spacing: -.06em; }
@@ -371,6 +371,9 @@ footer > .footer-brand { display:flex; align-items:center; gap:15px; min-width:0
    The interface theme is independent of the weather API's day/night icons. */
 @media (prefers-color-scheme: dark) {
   :root {
+    --bg: #10233f;
+    --canvas-text: #f1f6ff;
+    --canvas-muted: #b2c5dd;
     --panel: #121e30;
     --panel-strong: #18283e;
     --line: #30445e;
@@ -385,6 +388,7 @@ footer > .footer-brand { display:flex; align-items:center; gap:15px; min-width:0
   }
 
   .noise, .orb { display: none; }
+  h1 em { color: #8bb9ff; }
   .topbar, .panel {
     background: var(--panel);
     border-color: var(--line);
@@ -444,7 +448,8 @@ footer > .footer-brand { display:flex; align-items:center; gap:15px; min-width:0
 .intro .eyebrow, .intro .clock-wrap span, .intro .clock-wrap small,
 .intro #cityDistance, .section-heading > p, .dry-window span,
 footer { color: var(--canvas-muted); }
-footer a, footer .footer-link { color: #8bb9ff; }
+footer a, footer .footer-link { color: var(--brand-blue); }
+@media (prefers-color-scheme: dark) { footer a, footer .footer-link { color: #8bb9ff; } }
 
 a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
 
@@ -513,7 +518,7 @@ body:has(.city-dialog[open]) { overflow:hidden; }
   position: fixed; inset: 0; z-index: 80;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 32px 24px;
-  background: radial-gradient(circle at 50% 32%,#275893 0%,#163659 45%,var(--bg) 86%);
+  background: radial-gradient(circle at 50% 32%,#275893 0%,#163659 45%,#10233f 86%);
   text-align: center;
   overflow:hidden;
 }
@@ -534,13 +539,13 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 .intro-drop { display:block; width:clamp(40px,10vw,65px); height:clamp(52px,13vw,82px); background:currentColor; -webkit-mask:url("./logo-mark.png") center / contain no-repeat; mask:url("./logo-mark.png") center / contain no-repeat; }
 .pluvia-intro .intro-tagline { position:relative; z-index:1; margin:7px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.15rem); font-weight:700; letter-spacing:.16em; opacity:0; animation:intro-caption-in .6s ease-out 1s both; }
 .pluvia-intro .intro-kicker {
-  position:relative; z-index:1; margin:0 0 5px; color:var(--canvas-muted); font-family:var(--font-ui); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+  position:relative; z-index:1; margin:0 0 5px; color:#b2c5dd; font-family:var(--font-ui); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
   opacity:0; animation:intro-caption-in .6s ease-out .15s both;
 }
-.pluvia-intro .intro-copy { position:relative; z-index:1; margin:18px 0 0; max-width:25ch; color:var(--canvas-muted); font-size:.98rem; opacity:0; animation:intro-caption-in .65s ease-out 1.3s both; }
+.pluvia-intro .intro-copy { position:relative; z-index:1; margin:18px 0 0; max-width:25ch; color:#b2c5dd; font-size:.98rem; opacity:0; animation:intro-caption-in .65s ease-out 1.3s both; }
 .pluvia-intro .intro-progress { position:absolute; bottom:max(36px,env(safe-area-inset-bottom)); left:50%; width:80px; height:3px; transform:translateX(-50%); border-radius:999px; overflow:hidden; background:rgba(164,195,246,.25); }
 .pluvia-intro .intro-progress span { display:block; width:100%; height:100%; border-radius:inherit; background:#8bb9ff; transform-origin:left center; animation:intro-progress-fill 3.4s linear both; }
-.pluvia-intro { color: var(--canvas-text); }
+.pluvia-intro { color: #f1f6ff; }
 @keyframes intro-mark-in { from { opacity:0; transform:translateY(26px) scale(.87); filter:blur(9px); } 65% { filter:blur(0); } to { opacity:1; transform:translateY(0) scale(1); filter:blur(0); } }
 @keyframes intro-caption-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 @keyframes intro-sky-change { 0%,34% { opacity:.45; } 70%,100% { opacity:1; } }
@@ -688,9 +693,11 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 .city-dialog #cityPickerStatus { margin:4px 0 0; font-size:12px; line-height:1.5; }
 
 .weather-map-card{margin-top:16px;padding:20px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.weather-map-card h3{margin:6px 0 4px;font-size:1.35rem;letter-spacing:-.035em}.weather-map-card p{margin:0;color:var(--muted);max-width:58ch}
+.weather-map-copy { min-width:0; }
+.weather-map-card h3{margin:6px 0 5px;font-size:1.26rem;letter-spacing:-.025em;line-height:1.2}.weather-map-card p{margin:0;color:var(--muted);max-width:42ch;font-size:.9rem;line-height:1.42}
 .weather-map-card button,.weather-layer-chips button,.weather-player button{border:1px solid #2f6bff55;background:#fff;color:var(--blue);font:750 .88rem var(--font-ui);cursor:pointer}
-.weather-map-card button{min-height:46px;padding:10px 18px;border-radius:999px;white-space:nowrap}
+.weather-map-card button{min-height:46px;padding:10px 18px;border-radius:999px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.weather-map-card button span{font-size:1.1rem;line-height:1}
 .weather-map-dialog{width:min(1040px,calc(100vw - 28px));height:min(820px,calc(100dvh - 28px));padding:0;border:1px solid #2f6bff33;border-radius:28px;background:var(--panel);color:var(--text);box-shadow:0 30px 100px #10234055;overflow:hidden}
 .weather-map-dialog::backdrop{background:#071224aa;backdrop-filter:blur(12px)}
 .weather-map-head{min-height:86px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px}.weather-map-head h2{margin:4px 0 0;font-size:1.35rem}.weather-map-head p{margin:3px 0 0;color:var(--muted);font-size:.82rem}
@@ -704,7 +711,7 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 .initial-loading .temperature,.initial-loading .current-bottom strong,.initial-loading .metric strong{animation:pluvia-placeholder 1.15s ease-in-out infinite}.initial-loading .condition,.initial-loading .metric small{opacity:.68}@keyframes pluvia-placeholder{0%,100%{opacity:.42}50%{opacity:1}}
 .footer-link{padding:0;border:0;background:none;color:var(--blue);font:inherit;text-decoration:underline;cursor:pointer}.sources-dialog{max-width:660px}.sources-list{display:grid;gap:10px;margin:14px 0}.sources-list article{padding:14px;border:1px solid #2f6bff22;border-radius:16px;background:#2f6bff08}.sources-list strong,.sources-list span{display:block}.sources-list span{margin-top:4px;color:var(--muted);font-size:.88rem}.sources-list b{font-size:.72rem;letter-spacing:.06em;color:var(--blue)}
 .alert-preferences{margin-top:18px;padding-top:16px;border-top:1px solid #2f6bff22}.alert-preferences fieldset{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:0 0 9px;padding:0;border:0}.alert-preferences legend{margin-bottom:10px;font-weight:800}.alert-preferences label{display:flex!important;align-items:center;gap:7px;font-size:.9rem}.alert-preferences input{width:auto!important;margin:0;accent-color:var(--blue)}.alert-preferences small{display:block;margin-bottom:10px;color:var(--muted);line-height:1.4}
-@media(max-width:640px){.weather-map-card{align-items:flex-start;flex-direction:column}.weather-map-card button{width:100%}.weather-map-dialog{width:100vw;height:100dvh;max-width:none;max-height:none;border:0;border-radius:0}.weather-map-head{padding-top:calc(12px + env(safe-area-inset-top))}.weather-map-stage{height:calc(100% - 270px);min-height:280px}.weather-timebar{grid-template-columns:1fr;padding-inline:14px;gap:8px}.weather-timebar>small{grid-column:1}.weather-player{grid-template-columns:42px 46px 42px 1fr}.weather-map-legend{left:12px;right:auto;bottom:12px}.alert-preferences fieldset{grid-template-columns:1fr}}
+@media(max-width:640px){.weather-map-card{align-items:flex-start;flex-direction:column;gap:14px;padding:18px}.weather-map-card h3{font-size:1.2rem}.weather-map-card button{width:100%}.weather-map-dialog{width:100vw;height:100dvh;max-width:none;max-height:none;border:0;border-radius:0}.weather-map-head{padding-top:calc(12px + env(safe-area-inset-top))}.weather-map-stage{height:calc(100% - 270px);min-height:280px}.weather-timebar{grid-template-columns:1fr;padding-inline:14px;gap:8px}.weather-timebar>small{grid-column:1}.weather-player{grid-template-columns:42px 46px 42px 1fr}.weather-map-legend{left:12px;right:auto;bottom:12px}.alert-preferences fieldset{grid-template-columns:1fr}}
 @media(prefers-color-scheme:dark){.weather-map-card button,.weather-layer-chips button,.weather-player button{background:#101e33;color:#a9c5ff}.weather-layer-chips button[aria-pressed="true"]{background:#2f6bff;color:#fff}.weather-map-error,.weather-map-legend{background:#101e33eb;color:#e7efff}.sources-list article{background:#183252}.weather-map-stage{background:#0c1d38}}
 @media(prefers-reduced-motion:reduce){.weather-map-dialog *{scroll-behavior:auto!important;transition:none!important}}
 @media(max-width:600px) { .city-dialog { width:calc(100% - 24px); padding:16px; border-radius:22px; } .dialog-heading h2 { font-size:1.1rem; } }
