@@ -616,40 +616,6 @@ function dataAge(at) {
   return `há ${hours}h`;
 }
 
-function renderSmoke(air, previous = false) {
-  const pm25 = air?.current?.pm2_5;
-  const available = Number.isFinite(pm25) && pm25 >= 0;
-  $("smokePm25").textContent = available ? fmt(pm25, 1) : "--";
-  $("smokeStatus").textContent = !available ? "PM2,5 indisponível para esta cidade."
-    : `${previous ? "Leitura anterior" : "Estimativa regional"} · ${shortTime(air.current.time)}`;
-
-  const times = air?.hourly?.time;
-  const particles = air?.hourly?.pm2_5;
-  const trend = $("smokeTrend");
-  if (!Array.isArray(times) || !Array.isArray(particles) || times.length !== particles.length) {
-    trend.textContent = "Previsão de partículas indisponível.";
-    return;
-  }
-  const now = Date.now();
-  let first = -1;
-  try {
-    first = times.findIndex(time => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(time)
-      && cityDate(time).getTime() >= now - 60 * 60 * 1000);
-  } catch { /* Sem horário confiável para exibir a tendência. */ }
-  if (first < 0) {
-    trend.textContent = "Previsão de partículas indisponível.";
-    return;
-  }
-  const points = [0, 4, 8, 12].map(offset => first + offset).filter(index => index >= 0 && index < times.length
-    && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(times[index])
-    && Number.isFinite(particles[index]) && particles[index] >= 0);
-  if (!points.length) {
-    trend.textContent = "Previsão de partículas indisponível.";
-    return;
-  }
-  trend.innerHTML = points.map(index => `<div class="smoke-hour"><span>${index === first ? "Agora" : shortTime(times[index])}</span><strong>${fmt(particles[index], 0)}</strong><small>µg/m³</small></div>`).join("");
-}
-
 function render(data, air, fromCache = false, cacheAt = 0) {
   try {
     weatherData?.ingestOpenMeteo(data, air, activeCity, {
@@ -679,7 +645,6 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   $("uvScale").hidden = !Number.isFinite(uvNow);
   if (Number.isFinite(uvNow)) $("uvScale").style.setProperty("--uv-position", `${Math.max(0, Math.min(100, uvNow / 11 * 100))}%`);
   const [airName, airText] = aqiLabel(air?.current?.us_aqi); $("airQuality").textContent = airName; $("airNote").textContent = airText;
-  renderSmoke(air, fromCache);
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
   setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)} · ${activeCity.name}`, fromCache);
   renderAttention(data, start, air); renderRain(data.hourly, start, day);
@@ -704,7 +669,6 @@ async function loadWeather(revision = cityRevision) {
     globalThis.PLUVIA?.sources.set("air-quality",{status:freshAir ? "ready" : air ? "stale" : "error",checkedAt:freshAir ? Date.now() : previous?.airAt || null,dataAt:air?.current?.time ? cityDate(air.current.time,city).getTime() : null});
     if (!freshAir && air) {
       $("airNote").textContent += ' · leitura anterior';
-      renderSmoke(air, true);
     }
     clearTimeout(errorTimer); $("errorToast").classList.remove("show"); $("errorToast").setAttribute("aria-hidden", "true");
     globalThis.PLUVIA?.radar?.probe?.(city);
@@ -718,7 +682,6 @@ async function loadWeather(revision = cityRevision) {
     globalThis.PLUVIA?.sources.set("air-quality",{status:displayedWeather?.air ? "stale" : "error"});
     if (!displayedWeather) {
       $("condition").textContent = "Tempo indisponível";
-      renderSmoke(null);
       $("rainChart").innerHTML = '<p class="chart-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("dryWindow").textContent = "Sem dados";
@@ -924,9 +887,6 @@ function chooseCity(id, locatedCity = null) {
   if (!saved) {
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
     $("uvScale").hidden = true;
-    $("smokePm25").textContent = "--";
-    $("smokeStatus").textContent = "Consultando a qualidade do ar…";
-    $("smokeTrend").textContent = "Aguardando previsão.";
     $("attentionCard").classList.remove("ok","warning","danger","unavailable");
     $("summaryHighlights").innerHTML = "";
     clearWeatherInsights();

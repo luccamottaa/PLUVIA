@@ -766,21 +766,6 @@ body {
 .uv-metric strong { color:var(--weather-uv); }
 .uv-scale { --uv-position:0%; position:relative; width:100%; height:7px; margin-top:12px; border-radius:999px; background:linear-gradient(90deg,#59bd72 0%,#d5d956 25%,#f6b54b 50%,#f37259 72%,#bf55bf 100%); }
 .uv-scale span { position:absolute; top:50%; left:clamp(6px,var(--uv-position),calc(100% - 6px)); width:12px; height:12px; border:2px solid var(--panel-strong); border-radius:50%; background:var(--text); box-shadow:0 0 0 1px var(--text); transform:translate(-50%,-50%); }
-.smoke-card { margin-top:var(--space-4); padding:var(--space-6); }
-.smoke-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px 16px; }
-.smoke-provider { color:var(--muted); font-size:.75rem; }
-.smoke-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.25fr); gap:var(--space-6); margin-top:var(--space-4); }
-.smoke-current h2 { margin:0 0 12px; font-size:clamp(1.15rem,2.4vw,1.5rem); }
-.smoke-reading { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; margin:0; }
-.smoke-reading strong { font-size:clamp(2.3rem,5vw,3.5rem); line-height:1; font-variant-numeric:tabular-nums; }
-.smoke-reading span,.smoke-current > p:last-child,.smoke-forecast h3,.smoke-explanation { color:var(--muted); }
-.smoke-current > p:last-child { margin:10px 0 0; font-size:.82rem; }
-.smoke-forecast h3 { margin:0 0 12px; font-size:.82rem; font-weight:650; }
-.smoke-hours { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; color:var(--muted); font-size:.82rem; }
-.smoke-hour { display:grid; gap:3px; min-width:0; padding:10px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--panel-subtle); text-align:center; }
-.smoke-hour strong { color:var(--text); font-size:1.15rem; font-variant-numeric:tabular-nums; }
-.smoke-hour small { font-size:.7rem; }
-.smoke-explanation { margin:var(--space-4) 0 0; padding-top:var(--space-3); border-top:1px solid var(--line); font-size:.78rem; line-height:1.5; }
 .air-metric strong { color:var(--weather-air); }
 .air-score > strong[data-quality="good"] { color:var(--ok); }
 .air-score > strong[data-quality="moderate"] { color:#a66f00; }
@@ -810,8 +795,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 
 @media (max-width:720px) {
   .dashboard-grid { grid-template-columns:minmax(0,1fr); gap:var(--space-3); }
-  .smoke-layout { grid-template-columns:minmax(0,1fr); gap:var(--space-4); }
-  .smoke-card { padding:var(--space-5); }
   .weather-hero { min-height:0 !important; padding:var(--space-6); }
   .weather-hero .weather-main { min-height:150px !important; }
   .weather-hero .temperature { font-size:clamp(5rem,24vw,7.2rem) !important; }
