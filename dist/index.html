@@ -13,7 +13,8 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#10233f" />
+    <meta name="theme-color" content="#f6f3ed" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#10233f" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -38,7 +39,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-92" />
+    <link rel="stylesheet" href="./styles.css?v=core-93" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -228,8 +229,8 @@
         <div class="hourly-modes" role="group" aria-label="Dado da previsão por hora"><button type="button" data-hourly-mode="conditions" aria-pressed="true">Tempo</button><button type="button" data-hourly-mode="rain" aria-pressed="false">Chuva</button><button type="button" data-hourly-mode="wind" aria-pressed="false">Vento</button></div>
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region" aria-label="Previsão por hora"><div class="chart-loading">Montando a previsão horária…</div></div>
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
-          <div><span class="eyebrow">OBSERVAÇÃO NO MAPA</span><h3 id="weatherMapCardTitle">Chuva na região</h3><p>Radar quando houver cobertura, satélite com data visível e nuvens estimadas pelo modelo.</p></div>
-          <button id="openWeatherMap" type="button">Abrir mapa do tempo</button>
+          <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h3 id="weatherMapCardTitle">Chuva e nuvens na região</h3><p>Radar observado, imagens de satélite e nuvens estimadas.</p></div>
+          <button id="openWeatherMap" type="button">Abrir mapa <span aria-hidden="true">↗</span></button>
         </article>
       </section>
       <div id="riskAnchor"></div>
@@ -274,22 +275,22 @@
     <script src="./analytics.js?v=analytics-3"></script>
     <script src="./modules/sources.js?v=core-71"></script>
     <script src="./modules/http-client.js?v=core-67"></script>
-    <script src="./modules/weather-services.js?v=core-92"></script>
-    <script src="./modules/weather-data-layer.js?v=core-92"></script>
+    <script src="./modules/weather-services.js?v=core-93"></script>
+    <script src="./modules/weather-data-layer.js?v=core-93"></script>
     <script src="./modules/weather-insights.js?v=core-64"></script>
     <script src="./modules/radar-probe.js?v=core-70"></script>
     <script src="./modules/weather-icons.js?v=core-49"></script>
     <script src="./modules/weather-icon-system.js?v=vector-1"></script>
-    <script src="./vendor/suncalc.js?v=core-92"></script>
-    <script src="./modules/smart-summary.js?v=core-92"></script>
+    <script src="./vendor/suncalc.js?v=core-93"></script>
+    <script src="./modules/smart-summary.js?v=core-93"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-92"></script>
-    <script src="./p0.js?v=core-92"></script>
+    <script src="./app.js?v=core-93"></script>
+    <script src="./p0.js?v=core-93"></script>
     <script src="./modules/risks.js?v=core-71"></script>
     <script src="./modules/adapters.js?v=core-71"></script>
-    <script src="./weather-map.js?v=core-92"></script>
-    <script src="./account.js?v=core-92" defer></script>
-    <script src="./saved-places.js?v=core-92" defer></script>
-    <script src="./notifications.js?v=core-92" defer></script>
+    <script src="./weather-map.js?v=core-93"></script>
+    <script src="./account.js?v=core-93" defer></script>
+    <script src="./saved-places.js?v=core-93" defer></script>
+    <script src="./notifications.js?v=core-93" defer></script>
   </body>
 </html>
