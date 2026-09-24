@@ -195,5 +195,15 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   setTimeout(() => { clearTimeout(fallbackTimer); if (!activeCity && fallback) chooseCity(fallback.id); dismissIntro(); }, 1650);
 })();
 if ("serviceWorker" in navigator && window.isSecureContext) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  let reloadingForUpdate = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (hadController && !reloadingForUpdate) {
+      reloadingForUpdate = true;
+      location.reload();
+    }
+  });
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js")
+    .then(registration => registration.update())
+    .catch(() => {}));
 }
