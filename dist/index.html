@@ -39,7 +39,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-98" />
+    <link rel="stylesheet" href="./styles.css?v=core-99" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -233,7 +233,7 @@
           <article class="planning-card panel" aria-labelledby="agreementTitle"><span class="eyebrow">CENÁRIOS DE CHUVA</span><h3 id="agreementTitle">Concordância da previsão</h3><strong id="agreementValue">Consultar cenários</strong><p id="agreementNote">Veja se os membros do modelo projetam resultados semelhantes.</p><button id="loadAgreement" type="button">Analisar cenários</button><small>A concordância não garante que a previsão vá se confirmar.</small></article>
         </div>
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
-          <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h3 id="weatherMapCardTitle">Chuva e nuvens na região</h3><p>Radar observado, imagens de satélite e nuvens estimadas.</p></div>
+          <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h3 id="weatherMapCardTitle">Chuva e nuvens na região</h3><p>Radar observado e estimativa da cobertura de nuvens.</p></div>
           <button id="openWeatherMap" type="button">Abrir mapa <span aria-hidden="true">↗</span></button>
         </article>
       </section>
@@ -258,7 +258,7 @@
     <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody"></div></dialog>
     <dialog id="weatherMapDialog" class="weather-map-dialog" aria-labelledby="weatherMapTitle">
       <div class="weather-map-head"><div><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapTitle">Chuva ao redor</h2><p id="weatherMapCity">Referência do município</p></div><button id="closeWeatherMap" class="dialog-close" type="button" aria-label="Fechar mapa">×</button></div>
-      <div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button type="button" data-weather-layer="satellite" aria-pressed="false">Satélite</button><button type="button" data-weather-layer="clouds" aria-pressed="false">Nuvens</button></div>
+      <div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button type="button" data-weather-layer="clouds" aria-pressed="false">Nuvens</button></div>
       <div class="weather-map-stage"><div id="weatherMap" aria-label="Mapa meteorológico interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
       <div class="weather-timebar">
         <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
@@ -279,25 +279,25 @@
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div></dialog>
     <script src="./analytics.js?v=analytics-3"></script>
-    <script src="./modules/sources.js?v=core-98"></script>
+    <script src="./modules/sources.js?v=core-99"></script>
     <script src="./modules/http-client.js?v=core-67"></script>
-    <script src="./modules/weather-services.js?v=core-98"></script>
-    <script src="./modules/weather-data-layer.js?v=core-98"></script>
-    <script src="./modules/weather-extras.js?v=core-98"></script>
+    <script src="./modules/weather-services.js?v=core-99"></script>
+    <script src="./modules/weather-data-layer.js?v=core-99"></script>
+    <script src="./modules/weather-extras.js?v=core-99"></script>
     <script src="./modules/weather-insights.js?v=core-64"></script>
     <script src="./modules/radar-probe.js?v=core-70"></script>
     <script src="./modules/weather-icons.js?v=core-49"></script>
     <script src="./modules/weather-icon-system.js?v=vector-1"></script>
-    <script src="./vendor/suncalc.js?v=core-98"></script>
-    <script src="./modules/smart-summary.js?v=core-98"></script>
+    <script src="./vendor/suncalc.js?v=core-99"></script>
+    <script src="./modules/smart-summary.js?v=core-99"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-98"></script>
-    <script src="./p0.js?v=core-98"></script>
+    <script src="./app.js?v=core-99"></script>
+    <script src="./p0.js?v=core-99"></script>
     <script src="./modules/risks.js?v=core-71"></script>
     <script src="./modules/adapters.js?v=core-71"></script>
-    <script src="./weather-map.js?v=core-98"></script>
-    <script src="./account.js?v=core-98" defer></script>
-    <script src="./saved-places.js?v=core-98" defer></script>
-    <script src="./notifications.js?v=core-98" defer></script>
+    <script src="./weather-map.js?v=core-99"></script>
+    <script src="./account.js?v=core-99" defer></script>
+    <script src="./saved-places.js?v=core-99" defer></script>
+    <script src="./notifications.js?v=core-99" defer></script>
   </body>
 </html>

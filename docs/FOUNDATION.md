@@ -6,7 +6,7 @@
 
 `dist/modules/weather-data-layer.js` é a fronteira canônica entre provedores e novos recursos. O adaptador Open-Meteo normaliza localização, fonte, fuso, unidades, condição atual, séries horárias/diárias e qualidade do ar; mantém o payload bruto somente como ponte de compatibilidade para os componentes legados. Novos recursos devem consumir `PLUVIA.weatherData`, não interpretar nomes de campos do provedor. A migração da UI é incremental para não quebrar a Home em produção.
 
-weather-layers carrega o mapa somente sob demanda. Chuva usa frames observados do RainViewer; satélite usa NASA GIBS com data explícita; nuvens usa estimativa Open-Meteo em nove pontos. Cemaden, focos de calor e raios permanecem apenas registrados como provedores preparados, sem fetch nem dado exibido, porque nenhum endpoint público estável para o navegador foi validado.
+weather-layers carrega o mapa somente sob demanda. Chuva usa frames observados do RainViewer; nuvens usa estimativa Open-Meteo em nove pontos. Cemaden, focos de calor e raios permanecem apenas registrados como provedores preparados, sem fetch nem dado exibido, porque nenhum endpoint público estável para o navegador foi validado.
 
 ## Contrato das fontes
 
@@ -44,7 +44,7 @@ Rollback: reverter o commit desta versão e restaurar conjuntamente os módulos 
 
 No core-70, o card “PLUVIA Sinal · Dá pra sair?” foi removido porque repetia a interpretação já exibida pelo Resumo Inteligente. O Resumo Inteligente permanece como a única leitura contextual na primeira dobra, mantém os fatores em “Por que está assim?” e continua cedendo prioridade visual aos avisos oficiais laranja e vermelho do INMET. A mudança também retirou o módulo, o CSS e o recálculo de radar exclusivos do card duplicado.
 
-No core-71, o card “Modelo de precipitação · Pulso de chuva no município” foi removido da Home. A mudança eliminou a animação, a grade estimada de nove pontos, o timer e a consulta meteorológica adicional. O gráfico horário continua apresentando probabilidade e volume previstos, enquanto o mapa do tempo mantém separadamente radar observado, satélite e nuvens com as respectivas fontes.
+No core-71, o card “Modelo de precipitação · Pulso de chuva no município” foi removido da Home. A mudança eliminou a animação, a grade estimada de nove pontos, o timer e a consulta meteorológica adicional. O gráfico horário continua apresentando probabilidade e volume previstos, enquanto o mapa do tempo mantém radar observado e nuvens estimadas com as respectivas fontes.
 
 ## Verificação e limites
 

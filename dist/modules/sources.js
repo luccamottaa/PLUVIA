@@ -6,7 +6,6 @@
     'air-quality':{name:'Open-Meteo / CAMS',type:'Qualidade do ar',kind:'estimate',ttl:600000},
     disasters:{name:'Defesa Civil',type:'Comunicados de Manaus e canais nacionais',kind:'official',ttl:600000},
     radar:{name:'RainViewer',type:'Radar de precipitação',kind:'observation',ttl:600000},
-    satellite:{name:'NASA GIBS',type:'Imagem orbital em cor natural',kind:'observation',ttl:21600000},
     clouds:{name:'Open-Meteo',type:'Cobertura de nuvens',kind:'estimate',ttl:600000}
   };
   const states = new Map();

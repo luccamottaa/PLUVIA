@@ -1349,7 +1349,7 @@ button.compare-city:hover { border-color:var(--blue); }
 .weather-hero .wx-copy { display:block; grid-column:1; grid-row:1; min-width:0; }
 .weather-hero .temperature { display:inline-flex !important; align-items:flex-start; width:max-content; max-width:100%; gap:clamp(2px,.4vw,6px); letter-spacing:-.045em; }
 .weather-hero .temperature #temperature { display:inline-block; font-variant-numeric:proportional-nums; white-space:nowrap; }
-.weather-hero .temperature .deg { flex:0 0 auto; margin:0 !important; padding-top:.05em; font-size:.23em; line-height:1; letter-spacing:0; }
+.weather-hero .temperature .deg { flex:0 0 auto; margin:0 !important; padding-top:0; font-size:.3em; line-height:1; letter-spacing:0; transform:translateY(.35em); }
 .weather-hero .condition { grid-column:1 / -1; grid-row:2; margin:0 !important; max-width:100%; }
 .weather-hero .weather-glyph { grid-column:2; grid-row:1; justify-self:center; align-self:center; transform:translateY(-5px) !important; }
 .weather-hero .current-bottom { align-items:start; }
@@ -1364,4 +1364,15 @@ button.compare-city:hover { border-color:var(--blue); }
   .compare-list { grid-template-columns:minmax(0,1fr); }
   .weather-hero .weather-main { grid-template-columns:minmax(0,1fr) minmax(66px,84px); }
   .weather-hero .temperature { font-size:clamp(3.7rem,21vw,5.5rem) !important; }
+}
+
+/* O mapa usa o espaço restante entre o cabeçalho e os controles, inclusive no iPhone. */
+.weather-map-dialog[open] { display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; }
+.weather-map-dialog .weather-map-stage { height:auto; min-height:0; overflow:hidden; }
+.weather-map-dialog .weather-timebar { box-sizing:border-box; min-height:0; }
+@media (max-width:640px) {
+  .weather-map-dialog[open] { inset:0; margin:0; width:100vw; height:100dvh; max-width:none; max-height:none; box-sizing:border-box; }
+  .weather-map-dialog .weather-map-head { box-sizing:border-box; min-height:0; padding:calc(12px + env(safe-area-inset-top)) 16px 12px; }
+  .weather-map-dialog .weather-timebar { max-height:45dvh; overflow-y:auto; padding:12px 14px calc(12px + env(safe-area-inset-bottom)); }
+  .weather-map-dialog .weather-player { grid-template-columns:42px 46px 42px minmax(0,1fr); }
 }
