@@ -503,7 +503,6 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 .location-notice button { border:0; padding:4px 6px; background:transparent; color:var(--brand-blue); font:inherit; font-weight:800; cursor:pointer; }
 .source-updated { display:block; margin:8px 0 12px; color:var(--muted); }
 .forecast-row.best-day { background:rgba(47,107,255,.07); box-shadow:inset 3px 0 0 var(--brand-blue); }
-.skip-intro { position:absolute; top:max(18px,env(safe-area-inset-top)); right:18px; min-height:44px; padding:8px 14px; border:1px solid rgba(47,107,255,.22); border-radius:999px; color:#2f6bff; background:rgba(255,255,255,.6); font:inherit; font-weight:700; cursor:pointer; }
 .rain-phrase { margin:0 0 14px; padding:16px 18px; display:flex; flex-direction:column; gap:4px; }
 .rain-phrase strong { font-size:1.15rem; letter-spacing:-.03em; }
 .rain-phrase small { color:var(--muted); }
@@ -541,7 +540,6 @@ body:has(.city-dialog[open]) { overflow:hidden; }
 .pluvia-intro .intro-copy { position:relative; z-index:1; margin:18px 0 0; max-width:25ch; color:var(--canvas-muted); font-size:.98rem; opacity:0; animation:intro-caption-in .65s ease-out 1.3s both; }
 .pluvia-intro .intro-progress { position:absolute; bottom:max(36px,env(safe-area-inset-bottom)); left:50%; width:80px; height:3px; transform:translateX(-50%); border-radius:999px; overflow:hidden; background:rgba(164,195,246,.25); }
 .pluvia-intro .intro-progress span { display:block; width:100%; height:100%; border-radius:inherit; background:#8bb9ff; transform-origin:left center; animation:intro-progress-fill 3.4s linear both; }
-.pluvia-intro .skip-intro { z-index:2; }
 .pluvia-intro { color: var(--canvas-text); }
 @keyframes intro-mark-in { from { opacity:0; transform:translateY(26px) scale(.87); filter:blur(9px); } 65% { filter:blur(0); } to { opacity:1; transform:translateY(0) scale(1); filter:blur(0); } }
 @keyframes intro-caption-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
@@ -569,7 +567,6 @@ body:has(.city-dialog[open]) { overflow:hidden; }
   .city-result { background:#101d32; border-color:#568eff44; }
   .city-result[aria-selected="true"], .city-result:hover { background:#18283e; }
   .location-notice { background:rgba(16,29,50,.72); border-color:#568eff55; }
-  .skip-intro { background:rgba(16,29,50,.72); color:#8db5ff; border-color:#568eff55; }
 }
 
 .weather-main {
@@ -1139,9 +1136,9 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
 .metric-weather-icon { width:40px; height:40px; }
 
 /* Humidity, wind and pressure readings sit under their headings instead of dropping to the card bottom. */
-.metric-sky > strong { margin-top:18px; }
-.metric-sky .wind-reading { margin-top:18px; }
-.metric-sky > small { margin-top:12px; }
+.metric-sky > strong { margin-top:8px; }
+.metric-sky .wind-reading { margin-top:8px; }
+.metric-sky > small { margin-top:10px; }
 
 @media (prefers-color-scheme:dark) {
   [data-icon-source="weathericons-fallback"] {

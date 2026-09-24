@@ -12,8 +12,7 @@ function runIntro({ saved = false, storageBlocked = false, reduced = false } = {
   const timers = [];
   const intro = { hidden: false, dataset: {}, classList: { classes: [], add(name) { this.classes.push(name); } } };
   const view = { hidden: true }, nav = { hidden: true }, welcome = { hidden: false };
-  const skip = { addEventListener(name, callback) { this[name] = callback; } };
-  const nodes = { pluviaIntro: intro, locationWelcome: welcome, weatherView: view, siteNav: nav, skipIntro: skip };
+  const nodes = { pluviaIntro: intro, locationWelcome: welcome, weatherView: view, siteNav: nav };
   const context = {
     document: { getElementById: id => nodes[id] },
     window: { matchMedia: () => ({ matches: reduced }) },
@@ -24,7 +23,7 @@ function runIntro({ saved = false, storageBlocked = false, reduced = false } = {
     setTimeout: (callback, delay) => { timers.push({ callback, delay }); },
   };
   vm.runInNewContext(script, context);
-  return { intro, view, nav, welcome, skip, timers };
+  return { intro, view, nav, welcome, timers };
 }
 
 test('a abertura sai sozinha mesmo sem executar o código da previsão', () => {
@@ -39,9 +38,9 @@ test('a abertura sai sozinha mesmo sem executar o código da previsão', () => {
   assert.equal(intro.hidden, true);
 });
 
-test('Pular funciona imediatamente e impede a saída automática duplicada', () => {
-  const { intro, skip, timers } = runIntro();
-  skip.click();
+test('a saída automática não dispara duas vezes', () => {
+  const { intro, timers } = runIntro();
+  timers[0].callback();
   timers[0].callback();
   assert.deepEqual(intro.classList.classes, ['is-leaving']);
   timers.find(timer => timer.delay === 450).callback();
