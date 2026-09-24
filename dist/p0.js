@@ -1,85 +1,8 @@
-function hourLabel(iso) {
-  const raw = (iso || "").slice(11, 16);
-  if (!raw) return "--";
-  return raw.replace(/^0/, "");
-}
 function pinTop() {
   window.scrollTo(0, 0);
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
 }
-function buildRainPhrase(hourly) {
-  const times = hourly?.time || [];
-  const probs = hourly?.precipitation_probability || [];
-  const mms = hourly?.precipitation || hourly?.rain || [];
-  const start = typeof selectCurrentHour === "function" ? selectCurrentHour(times) : 0;
-  const end = Math.min(times.length, start + 18);
-  let phrase = "Sem chuva significativa prevista nas próximas horas.";
-  let severity = "dry";
-  let peakMm = 0;
-  let peakAt = -1;
-  let peakProb = 0;
-  let firstWet = -1;
-  let lastWet = -1;
-  for (let i = start; i < end; i++) {
-    const mm = Number(mms[i]) || 0;
-    const prob = Number(probs[i]) || 0;
-    if (mm > peakMm) { peakMm = mm; peakAt = i; }
-    if (prob > peakProb) peakProb = prob;
-    if (prob >= 40 && mm >= 0.4) {
-      if (firstWet < 0) firstWet = i;
-      lastWet = i;
-    }
-  }
-  const sum3 = mms.slice(start, start + 3).reduce((a, b) => a + (Number(b) || 0), 0);
-  let dryStart = -1, dryLen = 0, bestDry = 0, bestDryAt = -1;
-  for (let i = start; i < end; i++) {
-    const dry = (Number(mms[i]) || 0) < 0.2 && (Number(probs[i]) || 0) < 30;
-    if (dry) {
-      if (dryStart < 0) dryStart = i;
-      dryLen++;
-      if (dryLen > bestDry) { bestDry = dryLen; bestDryAt = dryStart; }
-    } else { dryStart = -1; dryLen = 0; }
-  }
-  if (sum3 >= 15) {
-    severity = "heavy";
-    phrase = `Chuva intensa prevista entre ${hourLabel(times[start])} e ${hourLabel(times[Math.min(start + 2, times.length - 1)])}. Evite áreas sujeitas a alagamentos.`;
-  } else if (firstWet >= 0) {
-    severity = "wet";
-    const from = hourLabel(times[firstWet]);
-    const to = hourLabel(times[Math.min(lastWet + 1, times.length - 1)]);
-    const wetHours = Math.max(1, lastWet - firstWet + 1);
-    const startsLightAndGetsHeavy = firstWet === start && (Number(mms[start]) || 0) < 1 && peakMm >= 3 && peakAt > start;
-    phrase = startsLightAndGetsHeavy ? `Chuva fraca agora, com aumento previsto após ${hourLabel(times[peakAt])}.` : firstWet === start ? `Chuva agora, com redução prevista por volta das ${to}.` : wetHours <= 2 ? `Chuva de curta duração prevista por volta das ${from}.` : `Chuva prevista entre ${from} e ${to}.`;
-  } else if (peakProb >= 55 && peakMm < 0.4) {
-    severity = "threat";
-    phrase = "Probabilidade de chuva elevada, com baixo acumulado previsto.";
-  } else if (bestDry >= 3 && bestDryAt === start) {
-    phrase = `Baixa probabilidade de chuva nas próximas ${bestDry}h.`;
-  } else if (bestDry >= 3) {
-    phrase = `Período com baixa probabilidade de chuva a partir das ${hourLabel(times[bestDryAt])} · ${bestDry}h.`;
-  }
-  if (phrase.length > 140) phrase = phrase.slice(0, 137) + "…";
-  return { phrase, severity };
-}
-function aqiLabel(value) {
-  if (!Number.isFinite(value)) return ["--", "qualidade do ar indisponível"];
-  if (value <= 50) return ["Boa", `Índice ${Math.round(value)} · ar limpo`];
-  if (value <= 100) return ["Moderada", `Índice ${Math.round(value)} · atenção para grupos sensíveis`];
-  if (value <= 150) return ["Ruim para grupos sensíveis", `Índice ${Math.round(value)} · maior risco para grupos sensíveis`];
-  if (value <= 200) return ["Ruim", `Índice ${Math.round(value)} · evite esforço ao ar livre`];
-  if (value <= 300) return ["Muito ruim", `Índice ${Math.round(value)} · partículas altas`];
-  return ["Péssima", `Índice ${Math.round(value)} · exposição perigosa`];
-}
-const _renderRain = renderRain;
-renderRain = function (hourly, start) {
-  _renderRain(hourly, start);
-  const rain = buildRainPhrase(hourly);
-  const phrase = document.getElementById("rainPhrase");
-  const meta = document.getElementById("rainPhraseMeta");
-  if (phrase) phrase.textContent = rain.phrase;
-  if (meta) meta.textContent = rain.severity === "heavy" ? "acumulado elevado nas próximas horas" : rain.severity === "threat" ? "probabilidade com baixo acumulado" : "previsão para as próximas 12–18h";
-};
 const _updateCityLabels = updateCityLabels;
 updateCityLabels = function () {
   _updateCityLabels();
@@ -94,7 +17,7 @@ updateCityLabels = function () {
   const card = document.getElementById("defesaCard");
   if (card) card.hidden = false;
   const actions = document.getElementById("defesaActions");
-  if (actions) actions.hidden = activeCity.uf !== "AM";
+  if (actions) actions.hidden = false;
   const forecast = document.getElementById("forecastCityLabel");
   if (forecast) forecast.textContent = "Previsão para o ponto de referência de " + activeCity.name + ", não para um endereço específico.";
   globalThis.PLUVIA?.modules?.['weather-layers']?.cityChanged?.(activeCity);
