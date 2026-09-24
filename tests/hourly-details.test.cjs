@@ -21,7 +21,7 @@ function screen() {
   const elements = {
     rainChart:chart, dryWindow:{textContent:''}, visibilityValue:{textContent:''},
     visibilityNote:{textContent:''}, visibilityBadge:{hidden:true,textContent:'',dataset:{}},
-    moonIcon:{textContent:''}, moonPhase:{textContent:''}
+    moonIcon:{d:'',setAttribute(name,value){this[name]=value;}}, moonPhase:{textContent:''}
   };
   const ctx = {
     $:id => elements[id], activeCity:{name:'Manaus'},
@@ -33,7 +33,7 @@ function screen() {
   };
   const hourly = vm.runInNewContext(`${hourlySource}\n({renderHourly,setMode:mode=>hourlyMode=mode})`,ctx);
   const details = vm.runInNewContext(`${detailsSource}\n({renderMoon,renderVisibility})`,ctx);
-  return {hourly,details,elements};
+  return {hourly,details,elements,ctx};
 }
 
 test('o mesmo gráfico alterna tempo, chuva e vento sem inventar leituras ausentes', () => {
@@ -82,4 +82,20 @@ test('a fase da Lua segue as efemérides de setembro de 2026', () => {
   assert.match(html,/data-hourly-mode="conditions"[\s\S]+data-hourly-mode="rain"[\s\S]+data-hourly-mode="wind"/);
   assert.match(html,/id="moonPhase"/);
   assert.match(html,/id="visibilityValue"/);
+});
+
+test('o ícone original muda de desenho com as oito fases e limpa o desenho sem dados', () => {
+  const {details,elements,ctx} = screen();
+  const paths = new Set();
+  ctx.PLUVIA = {moon:{getMoonIllumination:date => ({phase:date.getUTCHours() / 8})}};
+  for (let hour = 0; hour < 8; hour++) {
+    details.renderMoon(new Date(`2026-09-24T0${hour}:00:00Z`));
+    paths.add(elements.moonIcon.d);
+  }
+  assert.equal(paths.size,8);
+  assert.equal(elements.moonIcon.d.includes('A28 28'),true);
+  ctx.PLUVIA = {moon:{getMoonIllumination:() => ({phase:NaN})}};
+  details.renderMoon(new Date());
+  assert.equal(elements.moonIcon.d,'');
+  assert.match(html,/<svg class="moon-phase-icon"[^>]*>[\s\S]*?id="moonIcon"/);
 });

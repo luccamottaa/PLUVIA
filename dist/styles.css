@@ -251,15 +251,15 @@ h1 em { color: #8bb9ff; font-style: normal; }
 .forecast-rain { display: flex; justify-content: end; gap: 8px; color: var(--blue); font-family: "DM Mono", monospace; font-size: .75rem; }
 .forecast-uv { text-align: right; color: var(--muted); font-size: .75rem; }
 
-.sun-section { margin: 90px 0 0; min-height: 210px; padding: 32px; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center; gap: 18px; text-align: center; overflow: hidden; background: linear-gradient(135deg, rgba(255,255,255,.66), rgba(208,235,255,.42)); }
-.sun-copy { max-width: 48ch; }
+.sun-section { margin: 90px 0 0; min-height: 480px; padding: clamp(28px, 5vw, 56px); display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center; gap: 22px; text-align: center; overflow: hidden; background: linear-gradient(135deg, rgba(255,255,255,.66), rgba(208,235,255,.42)); }
+.sun-copy { width: 100%; max-width: 860px; }
 .sun-label { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .sun-label svg { flex: 0 0 22px; width: 22px; height: 22px; color: #d99018; }
-.sun-copy strong { display: block; margin-top: 13px; font-size: 1.5rem; letter-spacing: -.04em; }.sun-copy p { color: var(--muted); font-size: .78rem; margin-bottom: 0; }
-.sun-arc { width: min(360px, 100%); height: 95px; position: relative; overflow: hidden; }
+.sun-copy strong { display: block; margin-top: 14px; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.14; letter-spacing: -.05em; }.sun-copy p { color: var(--muted); font-size: clamp(.9rem, 1.5vw, 1.05rem); margin: 12px 0 0; }
+.sun-arc { width: min(760px, 100%); height: 95px; position: relative; overflow: hidden; }
 .arc-line { position: absolute; left: 3%; right: 3%; top: 20px; height: 145px; border: 1px dashed rgba(7,88,211,.35); border-radius: 50% 50% 0 0; }
 .sun-dot { position: absolute; width: 16px; height: 16px; top: 38px; left: 50%; border-radius: 50%; background: var(--blue); box-shadow: 0 0 26px rgba(7,88,211,.35); animation: sun-glow 3s ease-in-out infinite; }
-.sun-times { display: flex; justify-content: center; gap: clamp(32px, 8vw, 90px); }.sun-times div { display: grid; gap: 4px; text-align: center; }.sun-times span { color: var(--muted); font-size: .75rem; }.sun-times strong { font-family: "DM Mono", monospace; font-weight: 500; }
+.sun-times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(760px, 100%); }.sun-times div { display: grid; gap: 5px; text-align: center; }.sun-times div + div { border-left: 1px solid var(--line); }.sun-times span { color: var(--muted); font-size: .82rem; }.sun-times strong { font-family: "DM Mono", monospace; font-size: clamp(1.2rem, 2.4vw, 1.65rem); font-weight: 500; }
 
 footer { min-height: 180px; margin-top: 90px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; color: var(--muted); }
 footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { position: relative; width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.78); border-radius: 16px; overflow: hidden; background: rgba(255,255,255,.72); box-shadow: inset 0 1px 0 rgba(255,255,255,.94), 0 10px 28px rgba(31,91,169,.10); backdrop-filter: blur(18px); }.footer-mark img { width: 34px; height: 34px; object-fit: contain; opacity: 0; }.footer-mark::after { content: ""; position: absolute; inset: 5px; background: var(--brand-blue); -webkit-mask: url("./logo-mark.png") center / contain no-repeat; mask: url("./logo-mark.png") center / contain no-repeat; } footer p { margin: 0; font-size: .75rem; } footer > p { text-align: right; line-height: 1.65; }
@@ -290,7 +290,7 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { po
   .metrics { grid-template-columns: repeat(3, 1fr); }.air-metric { grid-column: span 2; }
   .safety-grid { grid-template-columns: 1fr 1fr; }.air-card { grid-column: span 2; min-height: 260px; }
   .forecast-row { grid-template-columns: 1fr .6fr 1fr .8fr; }.forecast-uv { display: none; }
-  .sun-arc { display: none; }
+  .sun-arc { height: 95px; }
 }
 
 @media (max-width: 720px) {
@@ -322,7 +322,7 @@ footer > div { display: flex; align-items: center; gap: 13px; }.footer-mark { po
   .source-content p, .attention-card p { font-size: 1rem; }
   .source-link, .emergency-link { display: inline-flex; align-items: center; min-height: 44px; }
   .error-toast { left: 14px; right: 14px; min-width: 0; bottom: max(14px, env(safe-area-inset-bottom)); }
-  .sun-section { margin-top: 70px; gap: 30px; }
+  .sun-section { margin-top: 70px; min-height: 440px; padding: 28px 18px; gap: 22px; }
   footer { min-height: 160px; margin-top: 70px; align-items: start; padding-top: 38px; gap: 30px; } footer > p { text-align: right; }
 
   /* On phones, translucent gradients keep the visual identity while avoiding
@@ -1211,15 +1211,26 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
 .visibility-detail strong { font-size:1.5rem; line-height:1.1; }
 .visibility-detail small { color:var(--muted); font-size:.78rem; }
 
-.moon-inline { display:inline-flex; align-items:center; justify-content:center; gap:10px; max-width:100%; padding-top:var(--space-3); border-top:1px solid var(--line); color:var(--muted); font-size:.8rem; }
-.moon-inline > span:first-child { font-size:1.7rem; line-height:1; }
-.moon-inline strong { display:block; margin-top:2px; color:var(--text); font-size:.85rem; }
+.moon-inline { display:flex; align-items:center; justify-content:center; gap:22px; width:min(760px,100%); padding:20px 12px 0; border-top:1px solid var(--line); color:var(--muted); }
+.moon-phase-icon { display:block; width:82px; height:82px; flex:0 0 82px; overflow:visible; filter:drop-shadow(0 5px 12px rgba(34,72,134,.16)); }
+.moon-orbit { fill:rgba(119,169,236,.09); stroke:rgba(88,139,205,.25); stroke-width:1; }
+.moon-shadow { fill:#233d62; stroke:#85a8d7; stroke-width:1.5; }
+.moon-light { fill:url(#pluviaMoonLight); }
+.moon-crater { fill:#7196ce; opacity:.22; pointer-events:none; }
+.moon-sparkle { fill:none; stroke:#6096dc; stroke-width:1.5; stroke-linecap:round; }
+.moon-inline > span { min-width:0; text-align:left; font:500 .75rem/1.35 "DM Mono",monospace; letter-spacing:.09em; }
+.moon-inline strong { display:block; margin-top:5px; color:var(--text); font:700 clamp(1.1rem,2vw,1.45rem)/1.25 Manrope,sans-serif; letter-spacing:0; }
+.sun-section.is-night .sun-label span { color:#c0d0e7; }
+.sun-section.is-night .sun-times div + div { border-left-color:rgba(188,215,255,.3); }
 .sun-section.is-night .moon-inline { border-top-color:rgba(188,215,255,.3); color:#c0d0e7; }
 .sun-section.is-night .moon-inline strong { color:#f0f6ff; }
+.sun-section.is-night .moon-orbit { fill:rgba(188,215,255,.08); stroke:rgba(188,215,255,.24); }
 @media (max-width:720px) {
   .hourly-modes { width:100%; justify-content:center; }
   .hourly-modes button { flex:1 1 0; min-width:0; }
   .weather-details { padding:0 var(--space-4); }
+  .moon-phase-icon { width:68px; height:68px; flex-basis:68px; }
+  .moon-inline { gap:14px; padding-inline:0; }
 }
 
 /* A translated fixed toast could leave a red strip above the iOS safe area. */
