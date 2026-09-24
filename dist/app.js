@@ -591,7 +591,8 @@ function renderOuting(hourly, start) {
     $("outingNote").textContent = "Não há dados suficientes nas próximas horas.";
     return;
   }
-  $("outingWindow").textContent = `${shortTime(window.start)}–${shortTime(window.end)} · ${window.probability}% de chuva`;
+  const windowStart = window.start === hourly.time[start] ? "Agora" : shortTime(window.start);
+  $("outingWindow").textContent = `${windowStart}–${shortTime(window.end)} · ${window.probability}% de chuva`;
   const cautions = [];
   if (window.rain >= .5) cautions.push(`${fmt(window.rain,1)} mm previstos`);
   if (window.heat >= 35) cautions.push(`sensação de até ${fmt(window.heat)}°`);
