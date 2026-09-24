@@ -7,7 +7,6 @@
   const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
   const RAIN_META = 'https://api.rainviewer.com/public/weather-maps.json';
-  const GIBS_ROOT = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best';
   const httpClient = globalThis.PLUVIA?.http?.createClient?.({defaultTimeoutMs:10000});
   const state = { map:null, base:null, overlay:null, marker:null, layer:'rain', frames:[], index:0, timer:null, cityId:null };
   let leafletPromise;
@@ -19,14 +18,6 @@
   function zoneTime(unix) {
     const value = new Date(unix * 1000);
     return new Intl.DateTimeFormat('pt-BR',{timeZone:city()?.timezone || 'UTC',hour:'2-digit',minute:'2-digit'}).format(value);
-  }
-  function dateLabel(value) {
-    const date = new Date(value + 'T12:00:00Z');
-    return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',timeZone:'UTC'}).format(date).replace('.','');
-  }
-  function utcDate(offset) {
-    const date = new Date(Date.now() + offset * 86400000);
-    return date.toISOString().slice(0,10);
   }
   function loadLeaflet() {
     if (globalThis.L) return Promise.resolve(globalThis.L);
@@ -73,21 +64,6 @@
     $('weatherSourceNote').textContent = 'Radar observado · RainViewer · cobertura depende dos radares disponíveis; não é previsão.';
     $('weatherMapLegend').innerHTML = '<span>Fraca</span><i class="legend-rain"></i><span>Forte</span>';
   }
-  function renderSatelliteFrame() {
-    const frame = state.frames[state.index]; if (!frame) return;
-    removeOverlay();
-    const url = `${GIBS_ROOT}/MODIS_Aqua_CorrectedReflectance_TrueColor/default/${frame.date}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`;
-    const layer = L.tileLayer(url,{opacity:.88,maxNativeZoom:9,maxZoom:11,attribution:'Imagem: NASA GIBS'});
-    let failures = 0;
-    layer.on('tileerror',() => {
-      failures++;
-      if (failures === 5) setError('Alguns blocos da imagem orbital ainda não foram publicados para esta data. Tente o frame anterior.');
-    });
-    state.overlay = fadeTileLayer(layer,.88);
-    $('weatherFrameTime').textContent = dateLabel(frame.date);
-    $('weatherSourceNote').textContent = 'Observação orbital em cor natural · NASA GIBS / MODIS Aqua · produto diário, identificado pela data.';
-    $('weatherMapLegend').innerHTML = '<span>Cor natural: nuvens claras, superfície e massas atmosféricas visíveis.</span>';
-  }
   function cloudPoints(selectedCity) {
     const delta = .24, points = [];
     for (let row=-1; row<=1; row++) for (let col=-1; col<=1; col++) points.push({lat:selectedCity.lat-row*delta,lon:selectedCity.lon+col*delta,row,col});
@@ -103,12 +79,12 @@
     });
     state.overlay = L.layerGroup(layers).addTo(state.map);
     $('weatherFrameTime').textContent = zoneTime(frame.time);
-    $('weatherSourceNote').textContent = 'Cobertura de nuvens estimada · Open-Meteo · modelo no município e arredores, não imagem de satélite.';
+    $('weatherSourceNote').textContent = 'Cobertura de nuvens estimada · Open-Meteo · modelo no município e arredores.';
     $('weatherMapLegend').innerHTML = '<span>Menos nuvens</span><i class="legend-clouds"></i><span>Mais nuvens</span>';
   }
   function renderFrame() {
     $('weatherTimeline').value = String(state.index);
-    if (state.layer === 'rain') renderRainFrame(); else if (state.layer === 'satellite') renderSatelliteFrame(); else renderCloudFrame();
+    if (state.layer === 'rain') renderRainFrame(); else renderCloudFrame();
   }
   async function loadRain(revision) {
     source('radar',{status:'loading'});
@@ -118,11 +94,6 @@
     if (!frames.length) throw new Error('O radar não enviou frames recentes.');
     setFrames(frames,frames.length-1); renderFrame();
     source('radar',{status:'ready',dataAt:frames.at(-1).time*1000});
-  }
-  async function loadSatellite() {
-    const frames = [utcDate(-3),utcDate(-2),utcDate(-1)].map(date => ({date}));
-    setFrames(frames,frames.length-1); renderFrame();
-    source('satellite',{status:'ready',dataAt:new Date(`${frames.at(-1).date}T12:00:00Z`).getTime()});
   }
   async function loadClouds(revision) {
     source('clouds',{status:'loading'});
@@ -139,15 +110,16 @@
     source('clouds',{status:'ready',dataAt:Date.now()});
   }
   async function selectLayer(name) {
+    if (name !== 'rain' && name !== 'clouds') return;
     const revision = ++layerRevision;
     stop(); setError(''); httpClient?.abortAll(); removeOverlay(); state.layer = name;
     setFrames([],0);
     document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
-    $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : name === 'satellite' ? 'Satélite' : 'Nuvens';
-    $('weatherMapTitle').textContent = name === 'rain' ? 'Chuva ao redor' : name === 'satellite' ? 'Satélite sobre a região' : 'Nuvens ao redor';
+    $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : 'Nuvens';
+    $('weatherMapTitle').textContent = name === 'rain' ? 'Chuva ao redor' : 'Nuvens ao redor';
     $('weatherFrameTime').textContent = 'Carregando…'; $('weatherSourceNote').textContent = 'Consultando a fonte escolhida…';
     try {
-      if (name === 'rain') await loadRain(revision); else if (name === 'satellite') await loadSatellite(); else await loadClouds(revision);
+      if (name === 'rain') await loadRain(revision); else await loadClouds(revision);
     } catch (error) {
       if (revision !== layerRevision) return;
       const id = name === 'rain' ? 'radar' : name;
@@ -183,14 +155,13 @@
   $('weatherPlay').addEventListener('click',() => {
     if (state.timer) { stop(); return; }
     $('weatherPlay').setAttribute('aria-pressed','true'); $('weatherPlay').textContent='❚❚'; $('weatherPlay').setAttribute('aria-label','Pausar animação');
-    state.timer=setInterval(() => step(1),state.layer==='satellite'?1300:850);
+    state.timer=setInterval(() => step(1),850);
   });
   const sourceEntries = [
     ['INMET','Dado oficial','Avisos meteorológicos vigentes e previstos para o município.'],
     ['Defesa Civil de Manaus','Dado oficial','Comunicados municipais quando a cidade selecionada é Manaus.'],
     ['Open-Meteo','Estimativa meteorológica','Tempo, chuva, nuvens e qualidade do ar no ponto do município.'],
     ['RainViewer','Observação de radar','Composição de radares; cobertura e disponibilidade variam por região.'],
-    ['NASA GIBS','Observação por satélite','Última imagem orbital diária completa, com a data do produto sempre visível.'],
     ['OpenStreetMap','Base cartográfica','Ruas e referências geográficas do mapa.'],
     ['IBGE','Referência territorial','Municípios, códigos e coordenadas centrais usadas na busca.']
   ];
