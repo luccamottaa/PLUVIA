@@ -192,7 +192,9 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   const welcome = document.getElementById("locationWelcome");
   if (welcome) welcome.hidden = true;
   pinTop();
-  setTimeout(() => { clearTimeout(fallbackTimer); if (!activeCity && fallback) chooseCity(fallback.id); dismissIntro(); }, 1650);
+  setTimeout(() => { clearTimeout(fallbackTimer); if (!activeCity && fallback) chooseCity(fallback.id); }, 1650);
+  const introDuration = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? 250 : 2900;
+  setTimeout(dismissIntro, introDuration);
 })();
 if ("serviceWorker" in navigator && window.isSecureContext) {
   const hadController = Boolean(navigator.serviceWorker.controller);
