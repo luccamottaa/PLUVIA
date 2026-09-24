@@ -1138,6 +1138,11 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
 .rain-metric-icon { width:22px; height:22px; }
 .metric-weather-icon { width:40px; height:40px; }
 
+/* Humidity, wind and pressure readings sit under their headings instead of dropping to the card bottom. */
+.metric-sky > strong { margin-top:18px; }
+.metric-sky .wind-reading { margin-top:18px; }
+.metric-sky > small { margin-top:12px; }
+
 @media (prefers-color-scheme:dark) {
   [data-icon-source="weathericons-fallback"] {
     filter:invert(65%) sepia(60%) saturate(1759%) hue-rotate(189deg) brightness(105%) contrast(101%) !important;

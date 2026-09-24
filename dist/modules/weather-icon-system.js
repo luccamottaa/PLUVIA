@@ -27,9 +27,9 @@
   });
   const ASSETS = Object.freeze({
     conditions: Object.freeze({
-      "clear-day":"clear-day.png", "clear-night":"clear-night.png", "partly-cloudy-day":"partly-cloudy-day.png", "partly-cloudy-night":"partly-cloudy-night.png",
-      cloudy:"cloudy.png", overcast:"overcast.png", fog:"fog.png", haze:"haze.png", "light-rain":"light-rain.png", "moderate-rain":"moderate-rain.png",
-      "heavy-rain":"heavy-rain.png", showers:"showers.png", thunderstorm:"thunderstorm.png", "thunderstorm-rain":"thunderstorm-rain.png", "thunderstorm-hail":"thunderstorm-hail.png", snow:"snow.png"
+      "clear-day":"clear-day.svg", "clear-night":"clear-night.svg", "partly-cloudy-day":"partly-cloudy-day.svg", "partly-cloudy-night":"partly-cloudy-night.svg",
+      cloudy:"cloudy.svg", overcast:"overcast.svg", fog:"fog.svg", haze:"haze.svg", "light-rain":"light-rain.svg", "moderate-rain":"moderate-rain.svg",
+      "heavy-rain":"heavy-rain.svg", showers:"showers.svg", thunderstorm:"thunderstorm.svg", "thunderstorm-rain":"thunderstorm-rain.svg", "thunderstorm-hail":"thunderstorm-hail.svg", snow:"snow.svg"
     }),
     metrics: Object.freeze({
       temperature:"temperature.png", "feels-like":"feels-like.png", "temperature-high":"temperature-high.png", "temperature-low":"temperature-low.png",
@@ -76,7 +76,7 @@
   }
   function findAsset(name) {
     const resolvedName = ASSET_ALIASES[name] || name;
-    for (const [category, entries] of Object.entries(ASSETS)) if (entries[resolvedName]) return { name, resolvedName, category, file:entries[resolvedName], src:`${BASE}${category}/${entries[resolvedName]}`, source:"pluvia-glossy" };
+    for (const [category, entries] of Object.entries(ASSETS)) if (entries[resolvedName]) return { name, resolvedName, category, file:entries[resolvedName], src:`${BASE}${category}/${entries[resolvedName]}`, source:category === "conditions" ? "pluvia-vector" : "pluvia-glossy" };
     const legacy = LEGACY_FALLBACKS[name] || LEGACY_FALLBACKS["weather-unknown"];
     return { name, category:"fallback", file:legacy, src:`${LEGACY_BASE}${legacy}`, source:"weathericons-fallback" };
   }
