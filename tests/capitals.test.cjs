@@ -108,8 +108,15 @@ run('activeCity = CAPITALS.find(c=>c.uf==="AM")');
   await old;
   assert.deepEqual(rendered,['Brasília']);
   assert(!nodes.get('defesaContent').innerHTML.includes('Prefeitura de Manaus'));
-  assert(nodes.get('defesaContent').innerHTML.includes('ainda não lê o feed estadual'));
-  assert(nodes.get('defesaContent').innerHTML.includes('Defesa Civil Nacional'));
+  assert(nodes.get('defesaContent').innerHTML.includes('Alertas para Brasília'));
+  assert(nodes.get('defesaContent').innerHTML.includes('não verifica automaticamente'));
+  assert(html.includes('https://wa.me/556120344611'));
+  for (const city of cities.filter(city=>city.id!=='1302603')) {
+    run('activeCity = CAPITALS.find(c=>c.id==='+JSON.stringify(city.id)+')');
+    await context.loadDefesaAlerts();
+    assert(nodes.get('defesaContent').innerHTML.includes('Alertas para '+city.name));
+    assert(nodes.get('defesaContent').innerHTML.includes('não verifica automaticamente'));
+  }
   assert(!requests.some(url=>url.includes('air:5300108')&&url.includes('1302603')));
   const beforeInterior = requests.length;
   context.chooseCity('1303403');
