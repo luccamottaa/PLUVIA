@@ -38,7 +38,7 @@ test('gera identificador compatível mesmo sem randomUUID',()=>{
 test('integra formulário acessível, cache e escrita segura',()=>{
  const html=fs.readFileSync('dist/index.html','utf8'),sw=fs.readFileSync('dist/sw.js','utf8'),source=fs.readFileSync('dist/saved-places.js','utf8');
  assert.match(html,/id="savedPlacesForm"/);assert.match(html,/for="savedPlaceName"/);
- assert.ok(html.includes('saved-places.js?v=core-96'));assert.ok(sw.includes('saved-places.js?v=core-96'));
+ assert.ok(html.includes('saved-places.js?v=core-97'));assert.ok(sw.includes('saved-places.js?v=core-97'));
  assert.doesNotMatch(source,/innerHTML/);assert.match(source,/owner !== requestedOwner/);
  assert.match(source,/await ensureCityDetails\(item\.cityId\)/);
  assert.match(source,/client\.auth\.getUser/);

@@ -1,4 +1,4 @@
-const DEFESA_NACIONAL = "https://www.gov.br/mdr/pt-br/assuntos/protecao-e-defesa-civil";
+const DEFESA_NACIONAL = "https://www.gov.br/mdr/pt-br/assuntos/protecao-e-defesa-civil/alertas-de-desastres-1";
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const $ = (id) => document.getElementById(id);
 let cityRevision = 0;
@@ -305,8 +305,8 @@ async function loadDefesaAlerts(revision = cityRevision) {
   try {
     if (activeCity.id !== "1302603") {
       globalThis.PLUVIA?.sources.set("disasters",{status:"unsupported"});
-      state.className = "source-state"; state.innerHTML = "<i></i>Orientação nacional";
-      content.innerHTML = '<h3>Defesa Civil em ' + escapeHtml(activeCity.state || activeCity.uf) + '</h3><p>O PLUVIA ainda não lê o feed estadual desta região. Consulte a <a href="' + DEFESA_NACIONAL + '" target="_blank" rel="noreferrer">Defesa Civil Nacional ↗</a> para chegar aos canais locais.</p>';
+      state.className = "source-state"; state.innerHTML = "<i></i>Consulta oficial";
+      content.innerHTML = '<h3>Alertas para ' + escapeHtml(activeCity.name) + '</h3><p>Consulte os alertas vigentes da Defesa Civil no canal oficial do WhatsApp: envie “olá” e selecione ' + escapeHtml(activeCity.name) + ' como área de interesse. Também é possível cadastrar o CEP por SMS para receber avisos. O PLUVIA não verifica automaticamente os alertas da Defesa Civil nesta cidade; <a href="' + DEFESA_NACIONAL + '" target="_blank" rel="noreferrer">veja as orientações oficiais ↗</a>.</p>';
       return;
     }
     const posts = await services.civilDefense.getManausRecent();
