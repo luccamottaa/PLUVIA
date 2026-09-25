@@ -17,6 +17,7 @@ const rays = `<g stroke="#ffc35f" stroke-width="4.5" stroke-linecap="round"><pat
 const sun = `${rays}<circle cx="64" cy="64" r="26" fill="url(#sun)" stroke="#ffdc88" stroke-width="1.5" filter="url(#soft)"/><circle cx="57" cy="55" r="12" fill="#fff9df" opacity=".32"/>`;
 const partialSun = `<g transform="translate(-23 -21) scale(.9)">${sun}</g>`;
 const moon = `<g filter="url(#soft)"><circle cx="60" cy="55" r="30" fill="url(#moon)" mask="url(#crescent)"/><circle cx="60" cy="55" r="30" fill="none" stroke="#d5e8ff" stroke-width="1.5" mask="url(#crescent)"/></g><circle cx="99" cy="25" r="2" fill="#dceaff"/><path d="M107 43v8m-4-4h8" stroke="#dceaff" stroke-width="2" stroke-linecap="round"/>`;
+const risingMoon = `<g transform="translate(-17 -19)">${moon}</g>`;
 const cloudShape = 'M27 96c-12 0-20-8-20-19 0-10 7-18 17-20 3-17 17-29 35-29 15 0 28 9 32 23 14-1 25 9 25 22 0 13-10 23-24 23H27z';
 const cloud = (dark = false) => `<path d="${cloudShape}" fill="url(#${dark ? 'darkCloud' : 'cloud'})" stroke="${dark ? '#9bbcec' : '#f2f8ff'}" stroke-width="2" stroke-linejoin="round" filter="url(#soft)"/><path d="M24 64c4-16 17-26 35-26" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".48"/>`;
 const backCloud = `<g transform="translate(29 -16) scale(.82)" opacity=".7">${cloud(true)}</g>`;
@@ -31,7 +32,7 @@ const symbols = {
   'clear-day':sun,
   'clear-night':moon,
   'partly-cloudy-day':`${partialSun}${cloud()}`,
-  'partly-cloudy-night':`${moon}${cloud()}`,
+  'partly-cloudy-night':`${risingMoon}${cloud()}`,
   cloudy:`${backCloud}${cloud()}`,
   overcast:`${backCloud}${cloud(true)}`,
   fog:`${cloud()}${fog}`,
@@ -40,7 +41,7 @@ const symbols = {
   'moderate-rain':`${cloud(true)}${rain}`,
   'heavy-rain':`${cloud(true)}${strongRain}`,
   showers:`${partialSun}${cloud()}${rain}`,
-  'showers-night':`${moon}${cloud()}${rain}`,
+  'showers-night':`${risingMoon}${cloud()}${rain}`,
   thunderstorm:`${cloud(true)}${lightning}`,
   'thunderstorm-rain':`${cloud(true)}${rain}${lightning}`,
   'thunderstorm-hail':`${cloud(true)}${lightning}${hail}`,
