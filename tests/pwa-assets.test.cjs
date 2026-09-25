@@ -19,6 +19,7 @@ test('exporta todos os ícones instaláveis nas dimensões declaradas', () => {
   }
   assert.deepEqual(pngDimensions('apple-touch-icon-180.png'), {width:180,height:180});
   assert.deepEqual(pngDimensions('favicon-32.png'), {width:32,height:32});
+  assert.deepEqual(pngDimensions('favicon-96.png'), {width:96,height:96});
 });
 
 test('mantém o fundo azul escuro no aplicativo instalável', () => {

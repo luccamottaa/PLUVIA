@@ -930,7 +930,6 @@ function updateCityLabels() {
   if (!activeCity) return;
   $("selectedCityLabel").textContent = activeCity.name + " · " + activeCity.uf;
   $("cityName").textContent = activeCity.name;
-  document.title = "PLUVIA — " + activeCity.name + " agora";
   $("alertsCityLabel").textContent = "Fontes oficiais e leitura ambiental para " + activeCity.name;
   $("forecastCityLabel").textContent = "Previsão diária para a área urbana de " + activeCity.name;
   $("cityTimezone").textContent = activeCity.uf + " · " + new Intl.DateTimeFormat("pt-BR", {timeZone:activeCity.timezone,timeZoneName:"longOffset"}).formatToParts(new Date()).find(part => part.type === "timeZoneName").value.replace("GMT","UTC");
