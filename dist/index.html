@@ -105,9 +105,9 @@
       }
     </style>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="./styles.css?v=core-113" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <link rel="stylesheet" href="./styles.css?v=core-114" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="./styles.css?v=core-113" /></noscript>
+    <noscript><link rel="stylesheet" href="./styles.css?v=core-114" /></noscript>
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -299,8 +299,14 @@
       </section>
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
-          <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapCardTitle">Chuva e nuvens na região</h2><p>Radar observado e estimativa da cobertura de nuvens.</p></div>
-          <button id="openWeatherMap" type="button">Abrir mapa <span aria-hidden="true">↗</span></button>
+          <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapCardTitle">Chuva e nuvens na região</h2><p id="weatherMapCity">Referência do município</p></div>
+          <div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button type="button" data-weather-layer="clouds" aria-pressed="false">Nuvens</button></div>
+          <div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Mapa meteorológico interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
+          <div class="weather-timebar">
+            <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
+            <div class="weather-player"><button id="weatherFramePrev" type="button" aria-label="Frame anterior" disabled>‹</button><button id="weatherPlay" type="button" aria-label="Reproduzir animação" aria-pressed="false" disabled>▶</button><button id="weatherFrameNext" type="button" aria-label="Próximo frame" disabled>›</button><input id="weatherTimeline" type="range" min="0" max="0" value="0" aria-label="Linha do tempo meteorológica" disabled /></div>
+            <small id="weatherSourceNote">O radar observado e a estimativa de nuvens aparecem aqui.</small>
+          </div>
         </article>
       </section>
       <div id="riskAnchor"></div>
@@ -322,16 +328,6 @@
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Sem confirmação atual.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
     <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody"></div></dialog>
-    <dialog id="weatherMapDialog" class="weather-map-dialog" aria-labelledby="weatherMapTitle">
-      <div class="weather-map-head"><div><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapTitle">Chuva ao redor</h2><p id="weatherMapCity">Referência do município</p></div><button id="closeWeatherMap" class="dialog-close" type="button" aria-label="Fechar mapa">×</button></div>
-      <div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button type="button" data-weather-layer="clouds" aria-pressed="false">Nuvens</button></div>
-      <div class="weather-map-stage"><div id="weatherMap" aria-label="Mapa meteorológico interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
-      <div class="weather-timebar">
-        <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
-        <div class="weather-player"><button id="weatherFramePrev" type="button" aria-label="Frame anterior">‹</button><button id="weatherPlay" type="button" aria-label="Reproduzir animação" aria-pressed="false">▶</button><button id="weatherFrameNext" type="button" aria-label="Próximo frame">›</button><input id="weatherTimeline" type="range" min="0" max="0" value="0" aria-label="Linha do tempo meteorológica" /></div>
-        <small id="weatherSourceNote">A fonte e o horário aparecerão aqui.</small>
-      </div>
-    </dialog>
     <dialog id="installPushDialog" class="city-dialog" aria-labelledby="installPushTitle">
       <div class="dialog-heading"><h2 id="installPushTitle">Alertas no iPhone</h2><button id="installPushClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
       <p>Safari no iPhone só entrega Web Push se o PLUVIA estiver na Tela de Início e aberto pelo ícone.</p>
@@ -362,7 +358,7 @@
     <script src="./p0.js?v=core-109" defer></script>
     <script src="./modules/risks.js?v=core-71" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
-    <script src="./weather-map.js?v=core-109" defer></script>
+    <script src="./weather-map.js?v=core-114" defer></script>
     <script src="./account.js?v=core-109" defer></script>
     <script src="./saved-places.js?v=core-109" defer></script>
     <script src="./notifications.js?v=core-109" defer></script>

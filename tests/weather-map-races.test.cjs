@@ -8,12 +8,13 @@ const node = id => {
 };
 let requests = [];
 const context = {
-  document:{getElementById:node,querySelectorAll:()=>[]},
+  document:{getElementById:node,querySelector:()=>({}),querySelectorAll:()=>[]},
   activeCity:{id:'1302603',lat:-3,lon:-60,timezone:'America/Manaus'},
   PLUVIA:{modules:{'weather-layers':{}},sources:{set(){}}},
   fetch:()=>new Promise((resolve,reject)=>requests.push({resolve,reject})),
   AbortController, URLSearchParams, setTimeout, clearTimeout, clearInterval,
   requestAnimationFrame:fn=>fn(),
+  IntersectionObserver:class { observe(){} disconnect(){} },
   L:{rectangle:()=>({}),layerGroup:()=>({addTo(){return this}})}
 };
 let code = fs.readFileSync('dist/weather-map.js','utf8');

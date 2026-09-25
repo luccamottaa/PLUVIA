@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
 const map = fs.readFileSync('dist/weather-map.js','utf8');
+const html = fs.readFileSync('dist/index.html','utf8');
 const sources = fs.readFileSync('dist/modules/sources.js','utf8');
 const docs = fs.readFileSync('docs/DATA-SOURCES.md','utf8');
 
@@ -16,6 +17,13 @@ assert.match(map,/PLUVIA\?\.http\?\.createClient/);
 assert.match(map,/httpClient\?\.abortAll/);
 assert.doesNotMatch(map,/await fetch\(/);
 assert.match(map,/Esta camada está temporariamente indisponível\. As outras continuam funcionando\./);
+assert.match(html, /class="weather-map-card panel"[\s\S]*?id="weatherMap"[\s\S]*?id="weatherPlay"/);
+assert.doesNotMatch(html, /id="openWeatherMap"|id="weatherMapDialog"/);
+assert.match(map, /IntersectionObserver[\s\S]*?observer\.observe\(mapCard\)/);
+assert.match(map, /mapVisible && !initializing/);
+assert.match(map, /mapainterativo\.cemaden\.gov\.br/);
+assert.match(map, /terrabrasilis\.dpi\.inpe\.br\/queimadas\/bdqueimadas/);
+assert.match(map, /star\.nesdis\.noaa\.gov\/goes/);
 assert.match(sources,/cemaden:\{name:'Cemaden',status:'prepared'/);
 assert.match(sources,/fires:\{name:'INPE BDQueimadas',status:'prepared'/);
 assert.match(sources,/lightning:\{name:'Raios',status:'prepared'/);
