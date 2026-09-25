@@ -32,8 +32,8 @@
       "heavy-rain":"heavy-rain.svg", showers:"showers.svg", "showers-night":"showers-night.svg", thunderstorm:"thunderstorm.svg", "thunderstorm-rain":"thunderstorm-rain.svg", "thunderstorm-hail":"thunderstorm-hail.svg", snow:"snow.svg"
     }),
     metrics: Object.freeze({
-      temperature:"temperature.png", "feels-like":"feels-like.png", "temperature-high":"temperature-high.png", "temperature-low":"temperature-low.png",
-      humidity:"humidity.png", "dew-point":"dew-point.png", pressure:"pressure.png", visibility:"visibility.png", "wind-speed":"wind-speed.png", "wind-gust":"wind-gust.png",
+      temperature:"temperature.png", "feels-like":"feels-like-pluvia.svg", "temperature-high":"temperature-high-pluvia.svg", "temperature-low":"temperature-low-pluvia.svg",
+      humidity:"humidity.png", "dew-point":"dew-point.png", pressure:"pressure.png", visibility:"visibility-pluvia.svg", "wind-speed":"wind-speed.png", "wind-gust":"wind-gust.png",
       "wind-direction":"wind-direction.png", "cloud-cover":"cloud-cover.png", "uv-index":"uv-index.png", "air-quality":"air-quality.png", "rain-probability":"rain-probability.png", "rain-volume":"rain-volume.png"
     }),
     astronomy: Object.freeze({}), maps: Object.freeze({}), alerts: Object.freeze({}), status: Object.freeze({}), fallback: Object.freeze({})
