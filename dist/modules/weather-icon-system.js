@@ -76,7 +76,10 @@
   }
   function findAsset(name) {
     const resolvedName = ASSET_ALIASES[name] || name;
-    for (const [category, entries] of Object.entries(ASSETS)) if (entries[resolvedName]) return { name, resolvedName, category, file:entries[resolvedName], src:`${BASE}${category}/${entries[resolvedName]}`, source:category === "conditions" ? "pluvia-vector" : "pluvia-glossy" };
+    for (const [category, entries] of Object.entries(ASSETS)) if (entries[resolvedName]) {
+      const version = ["partly-cloudy-night", "showers-night"].includes(resolvedName) ? "?v=moon-2" : "";
+      return { name, resolvedName, category, file:entries[resolvedName], src:`${BASE}${category}/${entries[resolvedName]}${version}`, source:category === "conditions" ? "pluvia-vector" : "pluvia-glossy" };
+    }
     const legacy = LEGACY_FALLBACKS[name] || LEGACY_FALLBACKS["weather-unknown"];
     return { name, category:"fallback", file:legacy, src:`${LEGACY_BASE}${legacy}`, source:"weathericons-fallback" };
   }

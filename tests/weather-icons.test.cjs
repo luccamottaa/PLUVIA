@@ -18,6 +18,8 @@ test('mapeia códigos WMO e respeita variantes de dia e noite', () => {
   assert.equal(icons.assetFor(80, true), 'showers.svg');
   assert.equal(icons.assetFor(80, false), 'showers-night.svg');
   assert.equal(icons.assetFor(81, false), 'showers-night.svg');
+  assert.match(icons.icon(80, false).src, /showers-night\.svg\?v=moon-2$/);
+  assert.match(icons.icon(2, false).src, /partly-cloudy-night\.svg\?v=moon-2$/);
   assert.equal(icons.assetFor(82, false), 'heavy-rain.svg');
 });
 
