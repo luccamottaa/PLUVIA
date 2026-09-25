@@ -1201,6 +1201,23 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
 
 
 /* Mobile rain timeline: reserve the real glossy icon height and keep rows isolated. */
+.met-forecast { margin:18px 0 22px; padding:22px; }
+.met-forecast-head { display:flex; align-items:start; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; }
+.met-forecast-head h3 { margin:2px 0 0; font-size:1.28rem; }
+.met-forecast-head [role="status"] { color:var(--muted); font-size:.8rem; }
+.met-forecast-values { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:18px; }
+.met-forecast-values > div { display:grid; gap:5px; padding:12px 14px; border:1px solid var(--line); border-radius:14px; min-width:0; }
+.met-forecast-values span { color:var(--muted); font-size:.78rem; }
+.met-forecast-values strong { font-size:1.5rem; line-height:1.2; }
+.met-forecast p { margin:12px 0 4px; color:var(--muted); font-size:.8rem; }
+.met-forecast small { color:var(--muted); font-size:.72rem; }
+.met-forecast a { color:var(--brand-blue); text-underline-offset:3px; }
+@media (prefers-color-scheme:dark) { .met-forecast a { color:#8bb9ff; } }
+@media (max-width:600px) {
+  .met-forecast { padding:18px; }
+  .met-forecast-values { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .met-forecast-values > div:last-child { grid-column:1/-1; }
+}
 .dashboard-grid { grid-template-columns:minmax(0,1fr); }
 .insight-card { margin-top:var(--space-4); }
 @media (min-width:721px) {

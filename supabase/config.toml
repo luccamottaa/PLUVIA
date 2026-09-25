@@ -11,3 +11,7 @@ verify_jwt = false
 
 [functions.smart-summary]
 verify_jwt = true
+
+[functions.met-forecast]
+verify_jwt = false
+entrypoint = "./functions/met-forecast/index.js"

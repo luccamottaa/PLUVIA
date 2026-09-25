@@ -160,6 +160,7 @@
   const sourceEntries = [
     ['INMET','Dado oficial','Avisos meteorológicos vigentes e previstos para o município.'],
     ['Open-Meteo','Estimativa meteorológica','Tempo, chuva, nuvens e qualidade do ar no ponto do município.'],
+    ['MET Norway','Segunda previsão','Temperatura, vento e precipitação previstos no ponto de referência; dados CC BY 4.0.'],
     ['RainViewer','Observação de radar','Composição de radares; cobertura e disponibilidade variam por região.'],
     ['OpenStreetMap','Base cartográfica','Ruas e referências geográficas do mapa.'],
     ['IBGE','Referência territorial','Municípios, códigos e coordenadas centrais usadas na busca.']
