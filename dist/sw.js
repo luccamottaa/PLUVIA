@@ -1,8 +1,8 @@
-const CACHE = "pluvia-core-111";
+const CACHE = "pluvia-core-112";
 const SHELL = "./index.html";
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll([
-    "./", SHELL, "./analytics.js?v=analytics-3", "./styles.css?v=core-111", "./capitals.js?v=core-47", "./app.js?v=core-110", "./p0.js?v=core-109", "./account.js?v=core-109", "./saved-places.js?v=core-109", "./notifications.js?v=core-109", "./weather-map.js?v=core-109",
+    "./", SHELL, "./analytics.js?v=analytics-3", "./styles.css?v=core-112", "./capitals.js?v=core-47", "./app.js?v=core-110", "./p0.js?v=core-109", "./account.js?v=core-109", "./saved-places.js?v=core-109", "./notifications.js?v=core-109", "./weather-map.js?v=core-109",
     "./modules/sources.js?v=core-109", "./modules/http-client.js?v=core-67", "./modules/weather-services.js?v=core-109", "./modules/weather-data-layer.js?v=core-109", "./modules/met-merge.js?v=core-109", "./modules/weather-extras.js?v=core-109", "./modules/weather-insights.js?v=core-64", "./modules/radar-probe.js?v=core-70", "./modules/smart-summary.js?v=core-109", "./modules/weather-icons.js?v=core-49", "./modules/weather-icon-system.js?v=vector-4", "./modules/risks.js?v=core-71", "./modules/adapters.js?v=core-109", "./vendor/suncalc.js?v=core-109", "./vendor/suncalc-LICENSE",
     "./manifest.webmanifest", "./logo-mark.png", "./logo-pluvia.png", "./favicon-32.png", "./favicon-96.png", "./apple-touch-icon-180.png", "./icon-192.png", "./icon-512.png", "./icon-splash-192.png", "./icon-splash-512.png", "./icon-maskable-192.png", "./icon-maskable-512.png",
     "./vendor/weathericons/Sun.svg", "./vendor/weathericons/Moon.svg", "./vendor/weathericons/PartlySunny.svg", "./vendor/weathericons/PartlyMoon.svg", "./vendor/weathericons/Cloud.svg", "./vendor/weathericons/Haze.svg", "./vendor/weathericons/Rain.svg", "./vendor/weathericons/Snow.svg", "./vendor/weathericons/Storm.svg", "./vendor/weathericons/Hail.svg",

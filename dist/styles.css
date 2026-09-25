@@ -271,6 +271,10 @@ footer > .footer-brand { display:flex; align-items:center; gap:15px; min-width:0
 .footer-details { display:grid; gap:5px; max-width:590px; min-width:0; text-align:right; font-size:.78rem; line-height:1.5; }
 .footer-details p { margin:0; font-size:inherit; }
 .footer-details .footer-link { justify-self:end; }
+.source-credits { margin-top:20px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); }
+.source-credits h3 { margin:0 0 8px; color:var(--text); font-size:1rem; }
+.source-credits p { margin:0; line-height:1.6; }
+.source-credits a { color:var(--blue); text-underline-offset:3px; }
 .footer-brand-icon { flex:0 0 62px; width:62px; height:74px; background:#316dff; -webkit-mask:url("./logo-mark.png") center / contain no-repeat; mask:url("./logo-mark.png") center / contain no-repeat; }
 .footer-brand-copy { display:flex; flex-direction:column; align-items:flex-start; min-width:0; line-height:1.1; }
 .footer-brand-copy strong { color:#316dff; font-size:clamp(1.9rem,4vw,2.6rem); font-weight:900; letter-spacing:.015em; }
