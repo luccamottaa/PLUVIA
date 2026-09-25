@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-test('os scripts de inicialização carregam e mostram os canais nacionais em outra capital', () => {
+test('os scripts de inicialização carregam sem a antiga seção da Defesa Civil', () => {
   const city = {id:'5300108',name:'Brasília',uf:'DF',state:'Distrito Federal'};
   const nodes = new Map();
   const element = id => {
@@ -19,13 +19,13 @@ test('os scripts de inicialização carregam e mostram os canais nacionais em ou
     updateCityLabels(){},renderCityOptions(){},chooseCity(){},
     searchCities:()=>[city],normalizeName:value=>value.toLowerCase(),escapeHtml:value=>value,
     readPreference:()=>null,prefetchForecast(){},
-    PLUVIA:{modules:Object.fromEntries(['weather','alerts','location','air-quality','disasters','auth','weather-layers'].map(key=>[key,{}]))},
+    PLUVIA:{modules:Object.fromEntries(['weather','alerts','location','air-quality','auth','weather-layers'].map(key=>[key,{}]))},
     loadWeather(){},validForecast(){},loadInmetAlerts(){},selectInmetAlerts(){},requestLocation(){},
-    loadDefesaAlerts(){},aqiLabel:()=>['Boa','AQI 10'],
+    aqiLabel:()=>['Boa','AQI 10'],
   });
   assert.doesNotThrow(() => vm.runInContext(fs.readFileSync('dist/p0.js','utf8'),context));
   assert.doesNotThrow(() => vm.runInContext(fs.readFileSync('dist/modules/adapters.js','utf8'),context));
   vm.runInContext('updateCityLabels()',context);
-  assert.equal(nodes.get('defesaActions').hidden,false);
+  assert.equal(nodes.has('defesaActions'),false);
   assert.equal(vm.runInContext('PLUVIA.modules["air-quality"].guidance(10)[0]',context),'Boa');
 });

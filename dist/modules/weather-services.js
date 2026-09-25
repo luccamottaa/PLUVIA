@@ -9,7 +9,6 @@
   const FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
   const AIR_QUALITY_ENDPOINT = "https://air-quality-api.open-meteo.com/v1/air-quality";
   const INMET_ACTIVE_ENDPOINT = "https://apiprevmet3.inmet.gov.br/avisos/ativos";
-  const MANAUS_DEFENSE_ENDPOINT = "https://www.manaus.am.gov.br/wp-json/wp/v2/posts?search=Defesa%20Civil%20alerta&per_page=8&_fields=date,link,title,excerpt";
 
   const FORECAST_PARAMS = {
     current:"temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m",
@@ -69,11 +68,6 @@
         activeUrl:INMET_ACTIVE_ENDPOINT,
         getActive: options => getJson(INMET_ACTIVE_ENDPOINT, options)
       },
-      civilDefense: {
-        source:"defesa-civil-manaus",
-        recentUrl:MANAUS_DEFENSE_ENDPOINT,
-        getManausRecent: options => getJson(MANAUS_DEFENSE_ENDPOINT, options)
-      }
     };
   }
 

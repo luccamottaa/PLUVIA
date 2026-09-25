@@ -70,7 +70,7 @@ Escopo observado no site publicado: abertura, home carregada, conta e busca. A c
 2. **Clima atual — saudável.** Cidade, temperatura, sensação e leitura rápida dominam a primeira tela. O texto deixa claro que o dado representa o ponto do município. No desktop, o bloco de qualidade do ar trunca a orientação visualmente; a versão mobile precisa de conferência em aparelho.
 3. **Busca — estrutura saudável.** A lupa mostra a cidade atual. Ao abrir, o foco permanece no botão de fechar (`closeCitySearch`), comprovando que o campo não recebe foco automático. Capitais aparecem imediatamente e o índice municipal carrega sob demanda. O teclado do iPhone ainda precisa de teste real.
 4. **Conta — estrutura saudável.** Entrar e criar conta compartilham um diálogo curto; a conta é opcional e a sessão é restaurada pelo Supabase. O navegador de auditoria expôs a árvore acessível, mas não capturou visualmente a top layer do diálogo; alinhamento e teclado precisam de teste em aparelho.
-5. **Alertas e riscos — saudável com abrangência limitada.** INMET diferencia sucesso, falha e leitura antiga. Defesa Civil municipal só tem integração estruturada em Manaus. O índice evita declarar risco baixo quando fontes essenciais estão incompletas.
+5. **Alertas e riscos — saudável com abrangência limitada.** INMET diferencia sucesso, falha e leitura antiga. O índice evita declarar risco baixo quando fontes essenciais estão incompletas.
 6. **Previsão e chuva — saudável.** A leitura rápida, janela seca, gráfico horário e previsão diária respondem às perguntas principais. O antigo modelo animado de nove pontos foi removido no core-71; observações e camadas meteorológicas permanecem no mapa do tempo com fonte identificada.
 
 ## Prioridades abertas

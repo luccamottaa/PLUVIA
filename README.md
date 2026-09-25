@@ -49,7 +49,7 @@ Depois, abra `http://localhost:8080`.
 - Clima e previsão: Open-Meteo
 - Qualidade do ar: Open-Meteo Air Quality
 - Alertas meteorológicos: INMET
-- Comunicados locais: Defesa Civil de Manaus; fora de Manaus, orientação da Defesa Civil Nacional
+- Avisos meteorológicos oficiais: INMET
 - Municípios: IBGE; coordenadas de Kelvin S. do Prado, sob licença MIT
 
 Cada cidade usa seu próprio fuso. Os dados são referência do ponto municipal, não da rua do visitante.

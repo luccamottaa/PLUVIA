@@ -1,4 +1,3 @@
-const DEFESA_NACIONAL = "https://www.gov.br/mdr/pt-br/assuntos/protecao-e-defesa-civil/alertas-de-desastres-1";
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const $ = (id) => document.getElementById(id);
 let cityRevision = 0;
@@ -134,10 +133,6 @@ function escapeHtml(value = "") {
   return String(value).replace(/[&<>\"']/g, char => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;", "'":"&#039;"})[char]);
 }
 
-function safeManausUrl(value = "") {
-  try { const url = new URL(value); return url.protocol === "https:" && (url.hostname === "manaus.am.gov.br" || url.hostname.endsWith(".manaus.am.gov.br")) ? url.href : "https://www.manaus.am.gov.br/?s=defesa+civil"; }
-  catch { return "https://www.manaus.am.gov.br/?s=defesa+civil"; }
-}
 
 function firstValue(obj, keys, fallback = "") {
   for (const key of keys) if (obj?.[key] !== undefined && obj[key] !== null && obj[key] !== "") return obj[key];
@@ -297,39 +292,6 @@ async function loadInmetAlerts(revision = cityRevision) {
     content.innerHTML = "<h3>Abra o mapa do INMET</h3><p>A fonte automática não respondeu agora. Use o atalho abaixo para conferir os avisos oficiais diretamente no INMET.</p>";
     applyOfficialAlertPriority();
     updateInmetTimestamp(true);
-  }
-}
-
-async function loadDefesaAlerts(revision = cityRevision) {
-  const state = $("defesaState"); const content = $("defesaContent");
-  try {
-    if (activeCity.id !== "1302603") {
-      globalThis.PLUVIA?.sources.set("disasters",{status:"unsupported"});
-      state.className = "source-state"; state.innerHTML = "<i></i>Consulta oficial";
-      content.innerHTML = '<h3>Alertas para ' + escapeHtml(activeCity.name) + '</h3><p>Consulte os alertas vigentes da Defesa Civil no canal oficial do WhatsApp: envie “olá” e selecione ' + escapeHtml(activeCity.name) + ' como área de interesse. Também é possível cadastrar o CEP por SMS para receber avisos. O PLUVIA não verifica automaticamente os alertas da Defesa Civil nesta cidade; <a href="' + DEFESA_NACIONAL + '" target="_blank" rel="noreferrer">veja as orientações oficiais ↗</a>.</p>';
-      return;
-    }
-    const posts = await services.civilDefense.getManausRecent();
-    if (revision !== cityRevision) return;
-    if (!Array.isArray(posts)) throw new Error("Resposta municipal desconhecida");
-    const relevant = posts.filter(p => /alerta|chuva|alagamento|deslizamento|temporal|vendaval/i.test(decodeHtml(p.title?.rendered || "")));
-    const latest = relevant[0]; const ageHours = latest ? (Date.now() - cityDate(latest.date).getTime()) / 3600000 : Infinity;
-    if (!latest || ageHours > 48) {
-      globalThis.PLUVIA?.sources.set("disasters",{status:"ready",checkedAt:Date.now(),dataAt:latest ? cityDate(latest.date).getTime() : null});
-      state.className = "source-state"; state.innerHTML = "<i></i>Sem comunicado recente";
-      const lastLink = latest ? `<a href="${safeManausUrl(latest.link)}" target="_blank" rel="noreferrer">Ver último comunicado oficial ↗</a>` : "";
-      content.innerHTML = `<h3>Consulte os canais oficiais</h3><p>A busca não encontrou comunicados nas últimas 48 horas. Isso não confirma ausência de alertas. ${lastLink}</p>`;
-      return;
-    }
-    globalThis.PLUVIA?.sources.set("disasters",{status:"ready",checkedAt:Date.now(),dataAt:cityDate(latest.date).getTime()});
-    const title = decodeHtml(latest.title?.rendered || "Comunicado da Defesa Civil"); const summary = decodeHtml(latest.excerpt?.rendered || "Consulte as orientações oficiais da Prefeitura de Manaus.");
-    state.className = "source-state warning"; state.innerHTML = "<i></i>Comunicado recente";
-    content.innerHTML = `<h3>${escapeHtml(title)}</h3><p>${escapeHtml(summary.slice(0, 210))}</p><div class="source-meta"><span>${new Intl.DateTimeFormat("pt-BR", {dateStyle:"short", timeStyle:"short", timeZone:activeCity.timezone}).format(cityDate(latest.date))}</span><span><a href="${safeManausUrl(latest.link)}" target="_blank" rel="noreferrer">Ler publicação ↗</a></span></div>`;
-  } catch {
-    if (revision !== cityRevision) return;
-    globalThis.PLUVIA?.sources.set("disasters",{status:"error"});
-    state.className = "source-state warning"; state.innerHTML = "<i></i>Canal direto";
-    content.innerHTML = "<h3>Alertas direto no celular</h3><p>O portal municipal não respondeu. Envie seu CEP por SMS para 40199; alertas extremos também chegam automaticamente em celulares compatíveis.</p>";
   }
 }
 
@@ -896,7 +858,7 @@ async function refreshAll() {
   if (!activeCity) return false;
   if (refreshInFlight) return refreshInFlight;
   const revision = cityRevision;
-  refreshInFlight = Promise.allSettled([loadWeather(revision), loadInmetAlerts(revision), loadDefesaAlerts(revision)]).then(results => {
+  refreshInFlight = Promise.allSettled([loadWeather(revision), loadInmetAlerts(revision)]).then(results => {
     const success = results[0].status === "fulfilled" && results[0].value === true;
     if (success && revision === cityRevision) lastRefreshAt = Date.now();
     return success;
@@ -1088,7 +1050,7 @@ function chooseCity(id, locatedCity = null) {
     $("sunDot").hidden = true;
     $("condition").textContent = "Consultando as condições em " + city.name + "…";
   }
-  ["inmet","defesa"].forEach(source => {
+  ["inmet"].forEach(source => {
     $(source + "State").className = "source-state";
     $(source + "State").innerHTML = "<i></i>Consultando";
     $(source + "Content").innerHTML = "<h3>Consultando " + escapeHtml(city.name) + "</h3><p>Buscando informações para a cidade selecionada.</p>";
