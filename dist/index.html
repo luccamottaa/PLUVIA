@@ -39,7 +39,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-106" />
+    <link rel="stylesheet" href="./styles.css?v=core-107" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -190,8 +190,7 @@
             <div class="hero-temperature-extreme"><span data-weather-icon-name="temperature-high" aria-hidden="true"></span><div><small>Máxima</small><strong id="todayHigh">--°</strong></div></div>
             <div class="hero-temperature-extreme"><span data-weather-icon-name="temperature-low" aria-hidden="true"></span><div><small>Mínima</small><strong id="todayLow">--°</strong></div></div>
           </div>
-          <p id="yesterdayComparison" class="yesterday-comparison" hidden></p>
-          <p class="model-note">Previsão para o ponto de referência do município.</p>
+          <p class="model-note">Previsão para o ponto de referência do município. <span id="forecastSourceNote">Consultando as fontes meteorológicas…</span></p>
         </article>
       </section>
       <section class="quick-metrics" aria-label="Sensação térmica e visibilidade">
@@ -228,12 +227,6 @@
       <section class="rain-section section-block" id="chuva">
         <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h2>Previsão por hora</h2></div><div class="dry-window"><span>PRÓXIMA JANELA SECA</span><strong id="dryWindow">Calculando…</strong></div></div>
         <p class="rain-phrase panel" id="rainPhraseWrap"><strong id="rainPhrase">Lendo as próximas horas…</strong><small id="rainPhraseMeta">Open-Meteo</small></p>
-        <article class="met-forecast panel" aria-labelledby="metForecastTitle">
-          <div class="met-forecast-head"><div><span class="eyebrow">SEGUNDA PREVISÃO</span><h3 id="metForecastTitle">MET Norway</h3></div><span id="metForecastStatus" role="status">Consultando…</span></div>
-          <div class="met-forecast-values"><div><span>Temperatura prevista</span><strong id="metForecastTemp">—</strong></div><div><span>Vento previsto</span><strong id="metForecastWind">—</strong></div><div><span id="metForecastRainLabel">Chuva prevista</span><strong id="metForecastRain">—</strong></div></div>
-          <p id="metForecastAt">Previsão para o ponto de referência da cidade.</p>
-          <small>Previsão independente do Open-Meteo · <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">Dados: MET Norway</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a></small>
-        </article>
         <div class="hourly-modes" role="group" aria-label="Dado da previsão por hora"><button type="button" data-hourly-mode="conditions" aria-pressed="true">Tempo</button><button type="button" data-hourly-mode="rain" aria-pressed="false">Chuva</button><button type="button" data-hourly-mode="wind" aria-pressed="false">Vento</button></div>
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region" aria-label="Previsão por hora"><div class="chart-loading">Montando a previsão horária…</div></div>
         <div class="planning-grid">
@@ -260,7 +253,7 @@
       </section>
       </div>
     </main>
-    <footer class="shell"><div class="footer-brand"><span class="footer-brand-icon" aria-hidden="true"></span><div class="footer-brand-copy"><strong>PLUVIA</strong><span>O céu de cada cidade</span></div></div><div class="footer-details"><p>Clima: Open-Meteo · MET Norway · Fase da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a></p><p>Alertas meteorológicos: INMET</p><p>Ícones: PLUVIA Glossy · <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> como fallback · SIL OFL 1.1</p><button id="openSources" class="footer-link" type="button">Fontes de dados</button></div></footer>
+    <footer class="shell"><div class="footer-brand"><span class="footer-brand-icon" aria-hidden="true"></span><div class="footer-brand-copy"><strong>PLUVIA</strong><span>O céu de cada cidade</span></div></div><div class="footer-details"><p>Clima: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) · Open-Meteo · Fase da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a></p><p>Alertas meteorológicos: INMET</p><p>Ícones: PLUVIA Glossy · <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> como fallback · SIL OFL 1.1</p><button id="openSources" class="footer-link" type="button">Fontes de dados</button></div></footer>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Sem confirmação atual.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
     <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody"></div></dialog>
@@ -287,25 +280,26 @@
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div></dialog>
     <script src="./analytics.js?v=analytics-3"></script>
-    <script src="./modules/sources.js?v=core-106"></script>
+    <script src="./modules/sources.js?v=core-107"></script>
     <script src="./modules/http-client.js?v=core-67"></script>
-    <script src="./modules/weather-services.js?v=core-106"></script>
-    <script src="./modules/weather-data-layer.js?v=core-106"></script>
-    <script src="./modules/weather-extras.js?v=core-106"></script>
+    <script src="./modules/weather-services.js?v=core-107"></script>
+    <script src="./modules/weather-data-layer.js?v=core-107"></script>
+    <script src="./modules/met-merge.js?v=core-107"></script>
+    <script src="./modules/weather-extras.js?v=core-107"></script>
     <script src="./modules/weather-insights.js?v=core-64"></script>
     <script src="./modules/radar-probe.js?v=core-70"></script>
     <script src="./modules/weather-icons.js?v=core-49"></script>
     <script src="./modules/weather-icon-system.js?v=vector-4"></script>
-    <script src="./vendor/suncalc.js?v=core-106"></script>
-    <script src="./modules/smart-summary.js?v=core-106"></script>
+    <script src="./vendor/suncalc.js?v=core-107"></script>
+    <script src="./modules/smart-summary.js?v=core-107"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-106"></script>
-    <script src="./p0.js?v=core-106"></script>
+    <script src="./app.js?v=core-107"></script>
+    <script src="./p0.js?v=core-107"></script>
     <script src="./modules/risks.js?v=core-71"></script>
-    <script src="./modules/adapters.js?v=core-106"></script>
-    <script src="./weather-map.js?v=core-106"></script>
-    <script src="./account.js?v=core-106" defer></script>
-    <script src="./saved-places.js?v=core-106" defer></script>
-    <script src="./notifications.js?v=core-106" defer></script>
+    <script src="./modules/adapters.js?v=core-107"></script>
+    <script src="./weather-map.js?v=core-107"></script>
+    <script src="./account.js?v=core-107" defer></script>
+    <script src="./saved-places.js?v=core-107" defer></script>
+    <script src="./notifications.js?v=core-107" defer></script>
   </body>
 </html>

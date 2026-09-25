@@ -236,7 +236,7 @@
       schemaVersion: 1,
       location,
       source: freeze({
-        weather: "open-meteo",
+        weather: forecast.pluviaSources?.metNorway?.length ? "met-norway+open-meteo" : "open-meteo",
         airQuality: air ? "open-meteo-cams" : null,
         kind: "model",
         checkedAt,

@@ -28,7 +28,7 @@ assert.match(app, /document\.body\.dataset\.phase/);
 assert.match(app, /classList\.toggle\("is-night"/);
 assert.match(app, /class="hour-temp"/);
 assert.match(app, /Sem alertas meteorológicos ativos/);
-assert.match(html, /id="yesterdayComparison"/);
+assert.doesNotMatch(html, /id="yesterdayComparison"/, 'a comparação com ontem pertence apenas ao resumo');
 assert.match(html, /id="weatherExplanation"/);
 assert.match(css, /\.context-highlights \{[\s\S]*display:flex;[\s\S]*max-width:100%/);
 assert.match(css, /@media \(max-width:380px\)/);

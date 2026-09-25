@@ -1,4 +1,4 @@
-// Fonte secundária de previsão: MET Norway Locationforecast 2.0 (CC BY 4.0).
+// Previsão meteorológica MET Norway Locationforecast 2.0 (CC BY 4.0).
 // Apenas coordenadas no Brasil, arredondadas para compartilhar o cache do provedor.
 const SITE = 'https://pluviaweather.com.br';
 const ORIGINS = new Set([SITE, 'https://luccamottaa.github.io']);
@@ -48,12 +48,35 @@ function normalize(data, now = Date.now()) {
     const amount = finite(step.data?.[`next_${hours}_hours`]?.details?.precipitation_amount,0,1000);
     if (amount !== null) { precipitation = {hours,amountMm:amount}; break; }
   }
+  // A série conserva o instante UTC e o período da chuva. O navegador só
+  // substitui valores quando o horário local da outra fonte corresponde.
+  const hourly = series.filter(item => {
+    const time = Date.parse(item?.time);
+    return Number.isFinite(time) && time >= now - 60 * 60_000 && time <= now + 8 * 86400_000;
+  }).slice(0, 240).map(item => {
+    const details = item.data?.instant?.details || {};
+    const rain = finite(item.data?.next_1_hours?.details?.precipitation_amount,0,1000);
+    const symbol = item.data?.next_1_hours?.summary?.symbol_code;
+    return {
+      time:item.time,
+      temperatureC:finite(details.air_temperature,-90,70),
+      humidity:finite(details.relative_humidity,0,100),
+      pressureHpa:finite(details.air_pressure_at_sea_level,850,1100),
+      cloudCover:finite(details.cloud_area_fraction,0,100),
+      windKmh:finite(details.wind_speed,0,120) === null ? null : Math.round(details.wind_speed * 36) / 10,
+      gustKmh:finite(details.wind_speed_of_gust,0,120) === null ? null : Math.round(details.wind_speed_of_gust * 36) / 10,
+      windDirection:finite(details.wind_from_direction,0,360),
+      precipitationNextHourMm:rain,
+      symbol:typeof symbol === 'string' && /^[a-z_]{1,45}$/.test(symbol) ? symbol : null
+    };
+  });
   return {
     source:'MET Norway',
     time:step.time,
     temperatureC:temperature,
     windKmh:Math.round(wind * 36) / 10,
     precipitation,
+    hourly,
     // Números do modelo global; sem chance de chuva ou rajadas onde a fonte não entrega.
     attribution:'Dados do MET Norway · CC BY 4.0'
   };

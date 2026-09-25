@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const source = fs.readFileSync('supabase/functions/met-forecast/index.js','utf8');
 const freshTime = () => new Date(Date.now()+30*60_000).toISOString();
 const payload = (precipitation = 1.3) => ({properties:{timeseries:[{
-  time:freshTime(), data:{instant:{details:{air_temperature:31,wind_speed:2}},next_1_hours:{details:{precipitation_amount:precipitation}}}
+  time:freshTime(), data:{instant:{details:{air_temperature:31,wind_speed:2,wind_speed_of_gust:3,relative_humidity:72,wind_from_direction:90,cloud_area_fraction:50,air_pressure_at_sea_level:1008}},next_1_hours:{details:{precipitation_amount:precipitation},summary:{symbol_code:'rainshowers_day'}}}
 }]}});
 
 test('MET Norway é consultado no servidor com identificação, cache e unidades corretas', async () => {
@@ -29,6 +29,13 @@ test('MET Norway é consultado no servidor com identificação, cache e unidades
   assert.equal(data.windKmh,7.2);
   assert.equal(data.precipitation.amountMm,1.3);
   assert.equal(data.precipitation.hours,1);
+  assert.equal(data.hourly.length,1);
+  assert.equal(data.hourly[0].humidity,72);
+  assert.equal(data.hourly[0].windDirection,90);
+  assert.equal(data.hourly[0].gustKmh,10.8);
+  assert.equal(data.hourly[0].pressureHpa,1008);
+  assert.equal(data.hourly[0].precipitationNextHourMm,1.3);
+  assert.equal(data.hourly[0].symbol,'rainshowers_day');
   assert.match(requests[0].url,/lat=-3\.12&lon=-60\.02/);
   assert.match(requests[0].options.headers['User-Agent'],/PLUVIA\/1\.0/);
   assert.match(first.headers.get('cache-control'),/max-age=/);
@@ -58,7 +65,7 @@ test('fonte secundária exibe ausências e falhas sem fabricar probabilidade de 
   assert.equal(failure.status,502);
 });
 
-test('o cliente isola previsões de cidades e não confunde a fonte independente com Open-Meteo', async () => {
+test('o cliente consulta o MET Norway e apresenta a atribuição da previsão combinada', async () => {
   const service = require('../dist/modules/weather-services.js');
   const calls=[];
   const clone=service.createServices({client:{getJson:async (url,options)=>{calls.push({url,options});return {source:'MET Norway'};}}});
@@ -68,9 +75,12 @@ test('o cliente isola previsões de cidades e não confunde a fonte independente
   assert.equal(calls[0].options.timeoutMs,11000);
   assert.equal(clone.weather.source,'open-meteo');
   const html=fs.readFileSync('dist/index.html','utf8');
-  assert.match(html,/SEGUNDA PREVISÃO[\s\S]*MET Norway[\s\S]*Dados: MET Norway/);
+  assert.doesNotMatch(html,/SEGUNDA PREVISÃO/);
+  assert.match(html,/id="forecastSourceNote"/);
   assert.match(html,/creativecommons\.org\/licenses\/by\/4\.0/);
   const app=fs.readFileSync('dist/app.js','utf8');
-  assert.match(app,/loadWeather\(revision\), loadInmetAlerts\(revision\), loadMetForecast\(revision\)/);
+  assert.match(app,/fetchForecast\(city, revision\), services\.airQuality\.getCurrent\(city\), Promise\.resolve\(\)\.then\(\(\) => services\.metNorway\.getForecast\(city\)\)/);
+  assert.match(app,/loadWeather\(revision\), loadInmetAlerts\(revision\)/);
+  assert.doesNotMatch(app,/yesterdayComparison/);
   assert.match(app,/if \(revision !== cityRevision\) return;/);
 });
