@@ -50,6 +50,7 @@ Depois, abra `http://localhost:8080`.
 - Qualidade do ar: Open-Meteo Air Quality
 - Alertas meteorológicos: INMET
 - Avisos meteorológicos oficiais: INMET
+- Segunda previsão: MET Norway via função pública `met-forecast`, com cache e crédito à fonte. Temperatura, vento e chuva são apresentados separadamente da previsão principal do Open-Meteo.
 - Municípios: IBGE; coordenadas de Kelvin S. do Prado, sob licença MIT
 
 Cada cidade usa seu próprio fuso. Os dados são referência do ponto municipal, não da rua do visitante.

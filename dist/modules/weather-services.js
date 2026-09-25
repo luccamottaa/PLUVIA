@@ -9,6 +9,7 @@
   const FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
   const AIR_QUALITY_ENDPOINT = "https://air-quality-api.open-meteo.com/v1/air-quality";
   const INMET_ACTIVE_ENDPOINT = "https://apiprevmet3.inmet.gov.br/avisos/ativos";
+  const MET_ENDPOINT = "https://dszyyrcvwrpyiypwyvxe.supabase.co/functions/v1/met-forecast";
 
   const FORECAST_PARAMS = {
     current:"temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m",
@@ -42,6 +43,14 @@
     return url.href;
   }
 
+  function metUrl(city) {
+    const place = location(city);
+    const url = new URL(MET_ENDPOINT);
+    url.searchParams.set("lat",place.latitude.toFixed(2));
+    url.searchParams.set("lon",place.longitude.toFixed(2));
+    return url.href;
+  }
+
   function createServices({client = runtime.PLUVIA?.http?.client} = {}) {
     const getJson = (url, options = {}) => {
       if (!client?.getJson) throw new Error("Cliente HTTP dos serviços meteorológicos não carregado.");
@@ -53,6 +62,11 @@
         source:"open-meteo",
         forecastUrl: city => buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS),
         getForecast: (city, options) => getJson(buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS), options)
+      },
+      metNorway: {
+        source:"met-norway",
+        forecastUrl: metUrl,
+        getForecast: (city, options) => getJson(metUrl(city),{timeoutMs:11000,...options})
       },
       ensemble: {
         source:"open-meteo-icon-eps",

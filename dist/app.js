@@ -854,11 +854,42 @@ async function loadWeather(revision = cityRevision) {
   }
 }
 
+async function loadMetForecast(revision = cityRevision) {
+  const city = activeCity;
+  const state = $("metForecastStatus");
+  try {
+    const data = await services.metNorway.getForecast(city);
+    if (revision !== cityRevision) return;
+    const period = data?.precipitation;
+    if (data?.source !== 'MET Norway' || !Number.isFinite(Date.parse(data.time)) ||
+      !Number.isFinite(data.temperatureC) || !Number.isFinite(data.windKmh) ||
+      (period && (![1,6,12].includes(period.hours) || !Number.isFinite(period.amountMm)))) {
+      throw new Error('Previsão secundária inválida');
+    }
+    $("metForecastTemp").textContent = `${fmt(data.temperatureC)}°C`;
+    $("metForecastWind").textContent = `${fmt(data.windKmh)} km/h`;
+    $("metForecastRainLabel").textContent = period ? `Chuva nas próximas ${period.hours}h` : 'Chuva prevista';
+    $("metForecastRain").textContent = period ? `${fmt(period.amountMm,1)} mm` : 'Não informada';
+    $("metForecastAt").textContent = 'Previsão para ' + new Intl.DateTimeFormat('pt-BR',{timeZone:city.timezone,hour:'2-digit',minute:'2-digit'}).format(new Date(data.time)) + ' · ponto de referência de ' + city.name + '.';
+    state.textContent = 'Atualizada';
+    globalThis.PLUVIA?.sources.set('met-norway',{status:'ready',checkedAt:Date.now(),dataAt:Date.parse(data.time)});
+  } catch {
+    if (revision !== cityRevision) return;
+    state.textContent = 'Indisponível agora';
+    $("metForecastTemp").textContent = '—';
+    $("metForecastWind").textContent = '—';
+    $("metForecastRain").textContent = '—';
+    $("metForecastRainLabel").textContent = 'Chuva prevista';
+    $("metForecastAt").textContent = 'A segunda fonte não respondeu. A previsão principal permanece identificada como Open-Meteo.';
+    globalThis.PLUVIA?.sources.set('met-norway',{status:'error'});
+  }
+}
+
 async function refreshAll() {
   if (!activeCity) return false;
   if (refreshInFlight) return refreshInFlight;
   const revision = cityRevision;
-  refreshInFlight = Promise.allSettled([loadWeather(revision), loadInmetAlerts(revision)]).then(results => {
+  refreshInFlight = Promise.allSettled([loadWeather(revision), loadInmetAlerts(revision), loadMetForecast(revision)]).then(results => {
     const success = results[0].status === "fulfilled" && results[0].value === true;
     if (success && revision === cityRevision) lastRefreshAt = Date.now();
     return success;
@@ -1055,6 +1086,12 @@ function chooseCity(id, locatedCity = null) {
     $(source + "State").innerHTML = "<i></i>Consultando";
     $(source + "Content").innerHTML = "<h3>Consultando " + escapeHtml(city.name) + "</h3><p>Buscando informações para a cidade selecionada.</p>";
   });
+  $("metForecastStatus").textContent = 'Consultando…';
+  $("metForecastTemp").textContent = '—';
+  $("metForecastWind").textContent = '—';
+  $("metForecastRain").textContent = '—';
+  $("metForecastRainLabel").textContent = 'Chuva prevista';
+  $("metForecastAt").textContent = 'Previsão para o ponto de referência da cidade.';
   $("inmetCard").dataset.severity = "unknown";
   $("citySearch").value = "";
   $("stateSelect").value = "";
