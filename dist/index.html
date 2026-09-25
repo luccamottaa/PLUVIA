@@ -39,7 +39,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-107" />
+    <link rel="stylesheet" href="./styles.css?v=core-108" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -190,7 +190,6 @@
             <div class="hero-temperature-extreme"><span data-weather-icon-name="temperature-high" aria-hidden="true"></span><div><small>Máxima</small><strong id="todayHigh">--°</strong></div></div>
             <div class="hero-temperature-extreme"><span data-weather-icon-name="temperature-low" aria-hidden="true"></span><div><small>Mínima</small><strong id="todayLow">--°</strong></div></div>
           </div>
-          <p class="model-note">Previsão para o ponto de referência do município. <span id="forecastSourceNote">Consultando as fontes meteorológicas…</span></p>
         </article>
       </section>
       <section class="quick-metrics" aria-label="Sensação térmica e visibilidade">
@@ -229,10 +228,6 @@
         <p class="rain-phrase panel" id="rainPhraseWrap"><strong id="rainPhrase">Lendo as próximas horas…</strong><small id="rainPhraseMeta">Open-Meteo</small></p>
         <div class="hourly-modes" role="group" aria-label="Dado da previsão por hora"><button type="button" data-hourly-mode="conditions" aria-pressed="true">Tempo</button><button type="button" data-hourly-mode="rain" aria-pressed="false">Chuva</button><button type="button" data-hourly-mode="wind" aria-pressed="false">Vento</button></div>
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region" aria-label="Previsão por hora"><div class="chart-loading">Montando a previsão horária…</div></div>
-        <div class="planning-grid">
-          <article class="planning-card panel" aria-labelledby="outingTitle"><span class="eyebrow">PLANEJE SUA SAÍDA</span><h3 id="outingTitle">Melhor janela nas próximas 12 horas</h3><strong id="outingWindow">Consultando a previsão…</strong><p id="outingNote">Análise de chuva, sensação térmica, UV e vento.</p><small>Estimativa para o ponto de referência da cidade.</small></article>
-          <article class="planning-card panel" aria-labelledby="agreementTitle"><span class="eyebrow">CENÁRIOS DE CHUVA</span><h3 id="agreementTitle">Concordância da previsão</h3><strong id="agreementValue">Consultar cenários</strong><p id="agreementNote">Veja se os membros do modelo projetam resultados semelhantes.</p><button id="loadAgreement" type="button">Analisar cenários</button><small>A concordância não garante que a previsão vá se confirmar.</small></article>
-        </div>
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
           <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h3 id="weatherMapCardTitle">Chuva e nuvens na região</h3><p>Radar observado e estimativa da cobertura de nuvens.</p></div>
           <button id="openWeatherMap" type="button">Abrir mapa <span aria-hidden="true">↗</span></button>
@@ -280,26 +275,26 @@
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div></dialog>
     <script src="./analytics.js?v=analytics-3"></script>
-    <script src="./modules/sources.js?v=core-107"></script>
+    <script src="./modules/sources.js?v=core-108"></script>
     <script src="./modules/http-client.js?v=core-67"></script>
-    <script src="./modules/weather-services.js?v=core-107"></script>
-    <script src="./modules/weather-data-layer.js?v=core-107"></script>
-    <script src="./modules/met-merge.js?v=core-107"></script>
-    <script src="./modules/weather-extras.js?v=core-107"></script>
+    <script src="./modules/weather-services.js?v=core-108"></script>
+    <script src="./modules/weather-data-layer.js?v=core-108"></script>
+    <script src="./modules/met-merge.js?v=core-108"></script>
+    <script src="./modules/weather-extras.js?v=core-108"></script>
     <script src="./modules/weather-insights.js?v=core-64"></script>
     <script src="./modules/radar-probe.js?v=core-70"></script>
     <script src="./modules/weather-icons.js?v=core-49"></script>
     <script src="./modules/weather-icon-system.js?v=vector-4"></script>
-    <script src="./vendor/suncalc.js?v=core-107"></script>
-    <script src="./modules/smart-summary.js?v=core-107"></script>
+    <script src="./vendor/suncalc.js?v=core-108"></script>
+    <script src="./modules/smart-summary.js?v=core-108"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-107"></script>
-    <script src="./p0.js?v=core-107"></script>
+    <script src="./app.js?v=core-108"></script>
+    <script src="./p0.js?v=core-108"></script>
     <script src="./modules/risks.js?v=core-71"></script>
-    <script src="./modules/adapters.js?v=core-107"></script>
-    <script src="./weather-map.js?v=core-107"></script>
-    <script src="./account.js?v=core-107" defer></script>
-    <script src="./saved-places.js?v=core-107" defer></script>
-    <script src="./notifications.js?v=core-107" defer></script>
+    <script src="./modules/adapters.js?v=core-108"></script>
+    <script src="./weather-map.js?v=core-108"></script>
+    <script src="./account.js?v=core-108" defer></script>
+    <script src="./saved-places.js?v=core-108" defer></script>
+    <script src="./notifications.js?v=core-108" defer></script>
   </body>
 </html>

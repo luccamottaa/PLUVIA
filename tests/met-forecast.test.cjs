@@ -76,7 +76,7 @@ test('o cliente consulta o MET Norway e apresenta a atribuição da previsão co
   assert.equal(clone.weather.source,'open-meteo');
   const html=fs.readFileSync('dist/index.html','utf8');
   assert.doesNotMatch(html,/SEGUNDA PREVISÃO/);
-  assert.match(html,/id="forecastSourceNote"/);
+  assert.doesNotMatch(html,/id="forecastSourceNote"/);
   assert.match(html,/creativecommons\.org\/licenses\/by\/4\.0/);
   const app=fs.readFileSync('dist/app.js','utf8');
   assert.match(app,/fetchForecast\(city, revision\), services\.airQuality\.getCurrent\(city\), Promise\.resolve\(\)\.then\(\(\) => services\.metNorway\.getForecast\(city\)\)/);

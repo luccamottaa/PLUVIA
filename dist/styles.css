@@ -468,7 +468,6 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px s
 .city-picker label { display:block; font-size:14px; margin-bottom:7px; color:var(--muted); }
 .city-search-field, .city-select-field { flex:1 1 200px; min-width:0; }
 .city-state-field { flex:1 1 180px; min-width:0; }
-.model-note { font-size:14px; line-height:1.5; color:var(--muted); margin:18px 0 0; }
 [hidden] { display:none !important; }
 .topbar { grid-template-columns:minmax(0,1fr) auto auto; gap:12px; }
 .search-trigger { display:flex; align-items:center; gap:8px; min-width:44px; min-height:44px; padding:10px; border:1px solid #075dff30; border-radius:999px; background:transparent; color:var(--blue); cursor:pointer; font:inherit; font-size:14px; }
@@ -1107,8 +1106,7 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
 .insight-card p,
 .insight-card small,
 .summary-link,
-.summary-highlights li,
-.model-note { max-width:100%; overflow-wrap:anywhere; }
+.summary-highlights li { max-width:100%; overflow-wrap:anywhere; }
 .summary-link { white-space:normal; }
 .summary-highlights li { white-space:normal; }
 
@@ -1331,15 +1329,6 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
 .saved-places [hidden] { display:none; }
 .saved-places button:disabled { opacity:.6; cursor:wait; }
 
-/* Planejamento e comparação usam o mesmo ritmo e largura dos demais cards. */
-.planning-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-4); margin-top:var(--space-4); }
-.planning-card { display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding:clamp(20px,3vw,32px); min-width:0; }
-.planning-card h3 { margin:0; font-size:clamp(1.1rem,2vw,1.45rem); line-height:1.2; }
-.planning-card > strong { font-size:clamp(1.35rem,2.6vw,2rem); line-height:1.15; color:var(--text); }
-.planning-card p { margin:0; color:var(--muted); line-height:1.45; }
-.planning-card small { color:var(--muted); font-size:.75rem; }
-.planning-card button { margin-top:auto; min-height:44px; padding:9px 17px; border:1px solid var(--line); border-radius:999px; background:var(--panel); color:var(--blue); font:750 .9rem var(--font-ui); cursor:pointer; }
-.planning-card button:disabled { opacity:.6; cursor:wait; }
 .compare-section { margin-top:var(--space-8); }
 .compare-list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-4); }
 .compare-city { display:grid; justify-items:start; gap:9px; padding:clamp(20px,3vw,30px); min-width:0; text-align:left; color:var(--text); font-family:var(--font-ui); }
@@ -1391,7 +1380,6 @@ button.compare-city:hover { border-color:var(--blue); }
 }
 @media (max-width:350px) { .quick-metrics { grid-template-columns:minmax(0,1fr); } }
 @media (max-width:720px) {
-  .planning-grid { grid-template-columns:minmax(0,1fr); }
   .compare-list { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .weather-hero .weather-main { grid-template-columns:minmax(0,1fr) minmax(72px,112px); }
   .weather-hero .temperature { font-size:clamp(4.2rem,22vw,7.2rem) !important; }
