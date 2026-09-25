@@ -105,9 +105,9 @@
       }
     </style>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="./styles.css?v=core-114" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <link rel="stylesheet" href="./styles.css?v=core-115" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="./styles.css?v=core-114" /></noscript>
+    <noscript><link rel="stylesheet" href="./styles.css?v=core-115" /></noscript>
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -300,12 +300,13 @@
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
           <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapCardTitle">Chuva e nuvens na região</h2><p id="weatherMapCity">Referência do município</p></div>
-          <div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button type="button" data-weather-layer="clouds" aria-pressed="false">Nuvens</button></div>
+          <div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button type="button" data-weather-layer="clouds" aria-pressed="false">Nuvens</button><button type="button" data-weather-layer="lightning" aria-pressed="false">Raios</button></div>
           <div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Mapa meteorológico interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
           <div class="weather-timebar">
             <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
             <div class="weather-player"><button id="weatherFramePrev" type="button" aria-label="Frame anterior" disabled>‹</button><button id="weatherPlay" type="button" aria-label="Reproduzir animação" aria-pressed="false" disabled>▶</button><button id="weatherFrameNext" type="button" aria-label="Próximo frame" disabled>›</button><input id="weatherTimeline" type="range" min="0" max="0" value="0" aria-label="Linha do tempo meteorológica" disabled /></div>
             <small id="weatherSourceNote">O radar observado e a estimativa de nuvens aparecem aqui.</small>
+            <a id="weatherLightningAttribution" href="https://www.xweather.com/" target="_blank" rel="noopener noreferrer" hidden>Powered by Vaisala Xweather</a>
           </div>
         </article>
       </section>
@@ -341,7 +342,7 @@
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></dialog>
     <script src="./analytics.js?v=analytics-3" defer></script>
-    <script src="./modules/sources.js?v=core-109" defer></script>
+    <script src="./modules/sources.js?v=core-115" defer></script>
     <script src="./modules/http-client.js?v=core-67" defer></script>
     <script src="./modules/weather-services.js?v=core-109" defer></script>
     <script src="./modules/weather-data-layer.js?v=core-109" defer></script>
@@ -358,7 +359,7 @@
     <script src="./p0.js?v=core-109" defer></script>
     <script src="./modules/risks.js?v=core-71" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
-    <script src="./weather-map.js?v=core-114" defer></script>
+    <script src="./weather-map.js?v=core-115" defer></script>
     <script src="./account.js?v=core-109" defer></script>
     <script src="./saved-places.js?v=core-109" defer></script>
     <script src="./notifications.js?v=core-109" defer></script>

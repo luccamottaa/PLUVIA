@@ -6,6 +6,7 @@
   const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
   const RAIN_META = 'https://api.rainviewer.com/public/weather-maps.json';
+  const LIGHTNING_ENDPOINT = 'https://dszyyrcvwrpyiypwyvxe.supabase.co/functions/v1/lightning';
   const httpClient = globalThis.PLUVIA?.http?.createClient?.({defaultTimeoutMs:10000});
   const state = { map:null, base:null, overlay:null, marker:null, layer:'rain', frames:[], index:0, timer:null, cityId:null };
   let leafletPromise;
@@ -83,7 +84,7 @@
   }
   function renderFrame() {
     $('weatherTimeline').value = String(state.index);
-    if (state.layer === 'rain') renderRainFrame(); else renderCloudFrame();
+    if (state.layer === 'rain') renderRainFrame(); else if (state.layer === 'clouds') renderCloudFrame();
   }
   async function loadRain(revision) {
     source('radar',{status:'loading'});
@@ -108,21 +109,54 @@
     setFrames(frames,nearest); renderFrame();
     source('clouds',{status:'ready',dataAt:Date.now()});
   }
+  async function loadLightning(revision) {
+    source('lightning',{status:'loading'});
+    const selectedCity = city();
+    const url = new URL(LIGHTNING_ENDPOINT);
+    url.searchParams.set('lat',Number(selectedCity.lat).toFixed(2));
+    url.searchParams.set('lon',Number(selectedCity.lon).toFixed(2));
+    const data = await fetchJson(url.href);
+    if (revision !== layerRevision) return;
+    if (data?.source !== 'Vaisala Xweather' || !Array.isArray(data.events) || !Number.isFinite(data.checkedAt) ||
+      Date.now()-data.checkedAt > 660_000 || data.events.length > 100) throw new Error('Leitura de raios indisponível ou antiga.');
+    const marks = data.events.map(event => {
+      if (!Number.isFinite(event.lat) || !Number.isFinite(event.lon) || !Number.isFinite(event.time) || !['CG','IC'].includes(event.type)) throw new Error('Leitura de raios inválida.');
+      return L.circleMarker([event.lat,event.lon],{radius:event.type === 'CG' ? 6 : 4,color:'#fff',weight:1.5,
+        fillColor:event.type === 'CG' ? '#ffc247' : '#8b7bff',fillOpacity:.9,interactive:false});
+    });
+    state.overlay = L.layerGroup(marks).addTo(state.map);
+    setFrames([],0);
+    const checked = zoneTime(data.checkedAt/1000);
+    $('weatherFrameTime').textContent = `${checked} · últimos 5 min`;
+    $('weatherSourceNote').textContent = data.events.length
+      ? `${data.events.length}${data.truncated ? '+' : ''} registro(s) em até 40 km · consulta de ${checked}. Raios observados, não previsão nem alerta.`
+      : `Nenhum registro retornado na consulta de ${checked} em até 40 km. Isso não confirma ausência de raios agora.`;
+    $('weatherMapLegend').innerHTML = '<span><i class="legend-strike"></i> Solo</span><span><i class="legend-cloud-strike"></i> Nuvem</span>';
+    source('lightning',{status:'ready',dataAt:data.checkedAt});
+  }
   async function selectLayer(name) {
-    if (name !== 'rain' && name !== 'clouds') return;
+    if (!['rain','clouds','lightning'].includes(name)) return;
+    if (!state.map) {
+      state.layer = name;
+      if (!initializing) showMap();
+      return;
+    }
     const revision = ++layerRevision;
     stop(); setError(''); httpClient?.abortAll(); removeOverlay(); state.layer = name;
+    $('weatherLightningAttribution').hidden = name !== 'lightning';
     setFrames([],0);
     document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
-    $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : 'Nuvens';
+    $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : name === 'clouds' ? 'Nuvens' : 'Raios';
     $('weatherFrameTime').textContent = 'Carregando…'; $('weatherSourceNote').textContent = 'Consultando a fonte escolhida…';
     try {
-      if (name === 'rain') await loadRain(revision); else await loadClouds(revision);
+      if (name === 'rain') await loadRain(revision); else if (name === 'clouds') await loadClouds(revision); else await loadLightning(revision);
     } catch (error) {
       if (revision !== layerRevision) return;
       const id = name === 'rain' ? 'radar' : name;
       source(id,{status:'error'}); setFrames([],0); setError('Esta camada está temporariamente indisponível. As outras continuam funcionando.');
-      $('weatherFrameTime').textContent = 'Indisponível'; $('weatherSourceNote').textContent = error?.message || 'Dados temporariamente indisponíveis.';
+      $('weatherFrameTime').textContent = 'Indisponível'; $('weatherSourceNote').textContent = name === 'lightning'
+        ? 'Raios ainda não ativados ou temporariamente indisponíveis. Nenhuma observação foi confirmada.'
+        : error?.message || 'Dados temporariamente indisponíveis.';
     }
   }
   async function initMap() {
@@ -172,6 +206,7 @@
     ['Open-Meteo','Estimativa meteorológica','Tempo, chuva, nuvens e qualidade do ar no ponto do município.'],
     ['MET Norway','Segunda previsão','Temperatura, vento e precipitação previstos no ponto de referência; dados CC BY 4.0.'],
     ['RainViewer','Observação de radar','Composição de radares; cobertura e disponibilidade variam por região.'],
+    ['Vaisala Xweather','Raios observados sob demanda','Detecções nos últimos cinco minutos em até 40 km; disponível após ativação das credenciais no servidor.'],
     ['OpenStreetMap','Base cartográfica','Ruas e referências geográficas do mapa.'],
     ['IBGE','Referência territorial','Municípios, códigos e coordenadas centrais usadas na busca.']
   ];
@@ -190,7 +225,8 @@
     [
       ['Chuva medida por estações · Cemaden','https://mapainterativo.cemaden.gov.br/'],
       ['Focos de fogo por satélite · INPE','https://terrabrasilis.dpi.inpe.br/queimadas/bdqueimadas/'],
-      ['Raios detectados por satélite · NOAA','https://www.star.nesdis.noaa.gov/goes/']
+      ['Raios detectados por satélite · NOAA','https://www.star.nesdis.noaa.gov/goes/'],
+      ['Rede de raios · Vaisala Xweather','https://www.xweather.com/']
     ].forEach(([label,url]) => {
       const link=document.createElement('a'); link.href=url; link.target='_blank'; link.rel='noopener noreferrer'; link.textContent=label; official.appendChild(link);
     });
