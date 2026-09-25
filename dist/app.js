@@ -50,7 +50,6 @@ weatherIcons?.hydrate?.(document);
 const smartSummary = globalThis.PLUVIA?.smartSummary;
 const weatherData = globalThis.PLUVIA?.weatherData;
 const weatherInsights = globalThis.PLUVIA?.weatherInsights;
-const weatherExtras = globalThis.PLUVIA?.extras;
 const weather = code => [weatherIcons?.condition(code).label || "Tempo variável"];
 
 function weatherIconType(code) {
@@ -546,23 +545,6 @@ function renderSun(daily) {
     : "Duração prevista de sol indisponível.";
 }
 
-function renderOuting(hourly, start) {
-  const window = weatherExtras?.bestWindow(hourly, start);
-  if (!window) {
-    $("outingWindow").textContent = "Janela indisponível";
-    $("outingNote").textContent = "Não há dados suficientes nas próximas horas.";
-    return;
-  }
-  const windowStart = window.start === hourly.time[start] ? "Agora" : shortTime(window.start);
-  $("outingWindow").textContent = `${windowStart}–${shortTime(window.end)} · ${window.probability}% de chuva`;
-  const cautions = [];
-  if (window.rain >= .5) cautions.push(`${fmt(window.rain,1)} mm previstos`);
-  if (window.heat >= 35) cautions.push(`sensação de até ${fmt(window.heat)}°`);
-  if (window.uv >= 6) cautions.push(`UV até ${fmt(window.uv)}`);
-  if (window.gust >= 45) cautions.push(`rajadas até ${fmt(window.gust)} km/h`);
-  $("outingNote").textContent = (window.probability >= 55 ? "Menor risco relativo nas próximas 12 horas" : "Menor exposição prevista nas próximas 12 horas") + (cautions.length ? ` · ${cautions.join(" · ")}.` : ".");
-}
-
 let comparisonRevision = 0;
 async function renderComparison() {
   const revision = ++comparisonRevision;
@@ -597,34 +579,6 @@ async function renderComparison() {
     const forecast = results[i], currentData = forecast?.current, day = forecast?.daily;
     return `<button class="panel compare-city" type="button" data-city-id="${place.id}" aria-label="Abrir ${escapeHtml(place.name)}"><span>${escapeHtml(place.name)}/${escapeHtml(place.uf)}</span><strong>${forecast ? `${fmt(currentData.temperature_2m)}°` : "—"}</strong><small>${forecast ? `${fmt(day.precipitation_probability_max[0])}% de chuva hoje · ${fmt(day.temperature_2m_max[0])}° / ${fmt(day.temperature_2m_min[0])}°` : "Previsão indisponível"}</small></button>`;
   }).join("");
-}
-
-const ensembleCache = new Map();
-async function loadAgreement() {
-  const city = activeCity, revision = cityRevision;
-  const forecast = displayedWeather?.forecast;
-  if (!city || !forecast) return;
-  const button = $("loadAgreement");
-  button.disabled = true;
-  $("agreementValue").textContent = "Analisando cenários…";
-  try {
-    const previous = ensembleCache.get(city.id);
-    const data = previous && Date.now() - previous.at < 30 * 60 * 1000 ? previous.data : await services.ensemble.getForecast(city, {timeoutMs:12000});
-    if (revision !== cityRevision) return;
-    if (!previous || previous.data !== data) ensembleCache.set(city.id,{at:Date.now(),data});
-    const start = selectCurrentHour(forecast.hourly.time);
-    const times = forecast.hourly.time.slice(start + 1,start + 13);
-    const result = weatherExtras?.ensembleAgreement(data?.hourly, times);
-    if (!result) throw new Error("Dados de cenários insuficientes");
-    $("agreementValue").textContent = `Concordância ${result.level}`;
-    $("agreementNote").textContent = `${result.members} cenários avaliados em ${result.hours} horários · ${result.tendency}. Modelo ICON EPS; é concordância entre simulações, não certeza do tempo.`;
-    button.textContent = "Atualizar análise";
-  } catch {
-    if (revision === cityRevision) {
-      $("agreementValue").textContent = "Análise indisponível";
-      $("agreementNote").textContent = "Não foi possível obter os cenários agora. A previsão por hora continua disponível.";
-    }
-  } finally { if (revision === cityRevision) button.disabled = false; }
 }
 
 function renderMoon(now = new Date()) {
@@ -758,8 +712,6 @@ function dataAge(at) {
 }
 
 function render(data, air, fromCache = false, cacheAt = 0) {
-  const hasMet = Boolean(data.pluviaSources?.metNorway?.length);
-  $("forecastSourceNote").textContent = `${hasMet ? 'MET Norway nos dados disponíveis · Open-Meteo nos demais.' : 'Open-Meteo · MET Norway indisponível para este horário.'}${fromCache ? ' Previsão salva.' : ''}`;
   try {
     weatherData?.ingestOpenMeteo(data, air, activeCity, {
       checkedAt: cacheAt || Date.now(), freshness: fromCache ? "stale" : "current"
@@ -793,7 +745,7 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   renderVisibility(data.hourly.visibility?.[start], fromCache);
   renderAttention(data, start, air); renderHourly(data.hourly, start, day);
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
-  renderForecast(day, current.temperature_2m); renderSun(day); renderOuting(data.hourly, start);
+  renderForecast(day, current.temperature_2m); renderSun(day);
   displayedWeather = {forecast:data,air};
   renderComparison();
 }
@@ -828,7 +780,6 @@ async function loadWeather(revision = cityRevision) {
     if (revision !== cityRevision) return false;
     const saved = cached();
     if (saved) { render(saved.data.forecast, saved.data.air, true, saved.at); displayedWeather = saved.data; }
-    if (!saved) $("forecastSourceNote").textContent = 'Previsão indisponível neste momento.';
     markWeatherUnavailable(Boolean(displayedWeather));
     globalThis.PLUVIA?.sources.set("weather",{status:displayedWeather ? "stale" : "error"});
     globalThis.PLUVIA?.sources.set("air-quality",{status:displayedWeather?.air ? "stale" : "error"});
@@ -972,7 +923,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","outingWindow","outingNote"];
+const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote"];
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;
@@ -1027,10 +978,6 @@ function chooseCity(id, locatedCity = null) {
   services?.abortAll();
   refreshInFlight = null;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
-  $("agreementValue").textContent = "Consultar cenários";
-  $("agreementNote").textContent = "Veja se os membros do modelo projetam resultados semelhantes.";
-  $("loadAgreement").disabled = false;
-  $("loadAgreement").textContent = "Analisar cenários";
   globalThis.pluviaAnalytics?.track('City Selected',{city:city.name,uf:city.uf,source:Number.isFinite(locatedCity?.distanceKm) ? 'location' : 'picker_or_saved'});
   globalThis.PLUVIA?.sources.reset(city.id);
   globalThis.PLUVIA?.radar?.reset?.(city.id);
@@ -1058,7 +1005,6 @@ function chooseCity(id, locatedCity = null) {
     $(source + "State").innerHTML = "<i></i>Consultando";
     $(source + "Content").innerHTML = "<h3>Consultando " + escapeHtml(city.name) + "</h3><p>Buscando informações para a cidade selecionada.</p>";
   });
-  $("forecastSourceNote").textContent = 'Consultando as fontes meteorológicas…';
   $("inmetCard").dataset.severity = "unknown";
   $("citySearch").value = "";
   $("stateSelect").value = "";
@@ -1177,7 +1123,6 @@ function requestLocation(source = 'automatic') {
 }
 
 setupCityPicker();
-$("loadAgreement").addEventListener("click", loadAgreement);
 $("compareList").addEventListener("click", event => {
   const button = event.target.closest("button[data-city-id]");
   if (button) chooseCity(button.dataset.cityId);
