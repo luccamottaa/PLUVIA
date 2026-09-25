@@ -13,10 +13,10 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-core-110"/);
-  assert.match(html, /styles\.css\?v=core-109/);
+  assert.match(sw, /const CACHE = "pluvia-core-111"/);
+  assert.match(html, /styles\.css\?v=core-111/);
   assert.match(html, /app\.js\?v=core-110/);
-  assert.equal((sw.match(/pluvia-core-\d+/g) || []).every(token => token === 'pluvia-core-110'), true);
+  assert.equal((sw.match(/pluvia-core-\d+/g) || []).every(token => token === 'pluvia-core-111'), true);
 });
 
 test('shell iOS e domínio canônico estão travados', () => {

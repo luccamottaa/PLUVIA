@@ -40,8 +40,74 @@
     <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-109" />
+    <style>
+      /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
+      html { background:#f6f3ed; font-family:"Nunito",ui-rounded,system-ui,sans-serif; }
+      @media (prefers-color-scheme:dark) { html { background:#10233f; } }
+      *,*::before,*::after { box-sizing:border-box; }
+      html.awaiting-styles body > :not(#pluviaIntro) { visibility:hidden; }
+      body { margin:0; }
+      [hidden] { display:none !important; }
+.pluvia-intro {
+  position: fixed; inset: 0; z-index: 80;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 32px 24px;
+  background: radial-gradient(circle at 50% 32%,#275893 0%,#163659 45%,#10233f 86%);
+  text-align: center;
+  overflow:hidden;
+}
+.pluvia-intro::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 65% 28%,rgba(131,177,244,.3),transparent 40%),linear-gradient(180deg,transparent 15%,rgba(4,15,39,.7)); pointer-events:none; animation:intro-sky-change 2.6s ease-in-out both; }
+.pluvia-intro[hidden] { display: none !important; }
+.pluvia-intro.is-leaving { opacity:0; pointer-events:none; transition:opacity .42s ease; }
+.pluvia-intro .intro-sky { position:relative; z-index:1; width:min(490px,90vw); height:210px; margin:0 0 12px; overflow:hidden; -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent); mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent); }
+.intro-sun { position:absolute; left:15%; top:110px; width:76px; height:76px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#fff9c6,#ffd76b 65%,#ffaf48); box-shadow:0 0 36px 16px rgba(255,184,91,.48),0 0 98px 40px rgba(252,178,89,.18); animation:intro-sun-travel 2.5s ease-in-out both; }
+.intro-cloud { position:absolute; display:block; width:190px; height:62px; border-radius:70px; background:linear-gradient(155deg,#dce9f8,#869ab8); filter:drop-shadow(0 18px 20px rgba(4,13,35,.22)); }
+.intro-cloud::before,.intro-cloud::after { content:""; position:absolute; display:block; border-radius:50%; background:inherit; }
+.intro-cloud::before { left:27px; bottom:17px; width:84px; height:84px; }.intro-cloud::after { left:82px; bottom:19px; width:98px; height:98px; }
+.intro-cloud-back { top:88px; left:0; opacity:.58; transform:scale(.68); animation:intro-cloud-back 2.5s ease-in-out both; }
+.intro-cloud-front { top:100px; left:22%; background:linear-gradient(145deg,#b9cce7,#4a6489 85%); animation:intro-cloud-front 2.5s ease-in-out both; }
+.intro-rain { position:absolute; left:38%; top:151px; width:170px; height:52px; opacity:0; transform:skewX(-16deg); background:repeating-linear-gradient(90deg,transparent 0 11px,rgba(133,199,255,.85) 12px 14px,transparent 15px 23px); -webkit-mask-image:linear-gradient(180deg,transparent,#000 20%,transparent 90%); mask-image:linear-gradient(180deg,transparent,#000 20%,transparent 90%); animation:intro-rain-fall .35s linear 1.5s 3 both; }
+.intro-bolt { position:absolute; left:65%; top:133px; width:28px; height:47px; background:#e2f5ff; clip-path:polygon(55% 0,15% 55%,50% 53%,35% 100%,90% 37%,57% 40%,75% 0); filter:drop-shadow(0 0 18px white); opacity:0; animation:intro-lightning 2.5s linear both; }
+.intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; justify-content:center; gap:12px; color:#4885ff; font-size:clamp(2.7rem,10vw,4.5rem); font-weight:900; line-height:1; letter-spacing:.025em; opacity:0; animation:intro-mark-in .8s cubic-bezier(.17,.8,.2,1) .65s both; }
+.intro-wordmark strong { font-weight:900; }
+.intro-drop { display:block; width:clamp(40px,10vw,65px); height:clamp(52px,13vw,82px); background:currentColor; -webkit-mask:url("./logo-mark.png") center / contain no-repeat; mask:url("./logo-mark.png") center / contain no-repeat; }
+.pluvia-intro .intro-tagline { position:relative; z-index:1; margin:7px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.15rem); font-weight:700; letter-spacing:.16em; opacity:0; animation:intro-caption-in .6s ease-out 1s both; }
+.pluvia-intro .intro-kicker {
+  position:relative; z-index:1; margin:0 0 5px; color:#b2c5dd; font-family:var(--font-ui); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+  opacity:0; animation:intro-caption-in .6s ease-out .15s both;
+}
+.pluvia-intro .intro-copy { position:relative; z-index:1; margin:18px 0 0; max-width:25ch; color:#b2c5dd; font-size:.98rem; opacity:0; animation:intro-caption-in .65s ease-out 1.3s both; }
+.pluvia-intro .intro-progress { position:absolute; bottom:max(36px,env(safe-area-inset-bottom)); left:50%; width:80px; height:3px; transform:translateX(-50%); border-radius:999px; overflow:hidden; background:rgba(164,195,246,.25); }
+.pluvia-intro .intro-progress span { display:block; width:100%; height:100%; border-radius:inherit; background:#8bb9ff; transform-origin:left center; animation:intro-progress-fill 2.6s linear both; }
+.pluvia-intro { color: #f1f6ff; }
+@keyframes intro-mark-in { from { opacity:0; transform:translateY(26px) scale(.87); filter:blur(9px); } 65% { filter:blur(0); } to { opacity:1; transform:translateY(0) scale(1); filter:blur(0); } }
+@keyframes intro-caption-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes intro-sky-change { 0%,34% { opacity:.45; } 70%,100% { opacity:1; } }
+@keyframes intro-sun-travel { 0% { transform:translate(-80px,50px) scale(.65); opacity:0; } 13% { opacity:1; } 45% { transform:translate(115px,-88px) scale(1); opacity:1; } 75%,100% { transform:translate(340px,35px) scale(.72); opacity:0; } }
+@keyframes intro-cloud-back { 0% { transform:translateX(-150px) scale(.68); opacity:0; } 40% { opacity:.55; } 100% { transform:translateX(410px) scale(.68); opacity:.2; } }
+@keyframes intro-cloud-front { 0% { transform:translateX(-280px); opacity:0; } 45% { transform:translateX(-70px); opacity:.8; } 80%,100% { transform:translateX(65px); opacity:1; } }
+@keyframes intro-rain-fall { 0% { opacity:0; background-position:0 -12px; } 50% { opacity:.9; } 100% { opacity:0; background-position:0 18px; } }
+@keyframes intro-lightning { 0%,64%,67%,71%,100% { opacity:0; } 65%,69% { opacity:1; } }
+@keyframes intro-progress-fill { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+@media (prefers-reduced-motion:reduce) {
+  .pluvia-intro .intro-wordmark,.pluvia-intro .intro-kicker,.pluvia-intro .intro-tagline,.pluvia-intro .intro-copy { animation:none; opacity:1; }
+  .pluvia-intro .intro-sky,.pluvia-intro .intro-progress { display:none; }
+  .pluvia-intro.is-leaving { transition:none; }
+}
+@media (max-width:480px) { .pluvia-intro .intro-sky { height:180px; } .intro-cloud-front { left:12%; } .intro-rain { left:28%; } }
+      @media (prefers-color-scheme:light) {
+        .pluvia-intro { background:#f6f3ed; color:#10233f; }
+        .pluvia-intro::before { background:radial-gradient(circle at 65% 30%,rgba(110,171,255,.12),transparent 48%); }
+        .pluvia-intro .intro-tagline { color:#10233f; }
+        .pluvia-intro .intro-kicker,.pluvia-intro .intro-copy { color:#536781; }
+        .pluvia-intro .intro-progress { background:rgba(16,35,63,.15); }
+        .pluvia-intro .intro-progress span { background:#075dff; }
+      }
+    </style>
+    <script>document.documentElement.classList.add("awaiting-styles");</script>
+    <link rel="stylesheet" href="./styles.css?v=core-111" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="./styles.css?v=core-111" /></noscript>
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -75,7 +141,7 @@
         }
         if (seen) { intro.hidden = true; return; }
         var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        setTimeout(dismiss, reduced ? 300 : 3400);
+        setTimeout(dismiss, reduced ? 300 : 2600);
       })();
     </script>
     <header class="topbar shell" id="top">
@@ -276,25 +342,25 @@
       <button id="installPushReload" type="button">Recarregar após a instalação</button>
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div></dialog>
-    <script src="./analytics.js?v=analytics-3"></script>
-    <script src="./modules/sources.js?v=core-109"></script>
-    <script src="./modules/http-client.js?v=core-67"></script>
-    <script src="./modules/weather-services.js?v=core-109"></script>
-    <script src="./modules/weather-data-layer.js?v=core-109"></script>
-    <script src="./modules/met-merge.js?v=core-109"></script>
-    <script src="./modules/weather-extras.js?v=core-109"></script>
-    <script src="./modules/weather-insights.js?v=core-64"></script>
-    <script src="./modules/radar-probe.js?v=core-70"></script>
-    <script src="./modules/weather-icons.js?v=core-49"></script>
-    <script src="./modules/weather-icon-system.js?v=vector-4"></script>
-    <script src="./vendor/suncalc.js?v=core-109"></script>
-    <script src="./modules/smart-summary.js?v=core-109"></script>
-    <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-110"></script>
-    <script src="./p0.js?v=core-109"></script>
-    <script src="./modules/risks.js?v=core-71"></script>
-    <script src="./modules/adapters.js?v=core-109"></script>
-    <script src="./weather-map.js?v=core-109"></script>
+    <script src="./analytics.js?v=analytics-3" defer></script>
+    <script src="./modules/sources.js?v=core-109" defer></script>
+    <script src="./modules/http-client.js?v=core-67" defer></script>
+    <script src="./modules/weather-services.js?v=core-109" defer></script>
+    <script src="./modules/weather-data-layer.js?v=core-109" defer></script>
+    <script src="./modules/met-merge.js?v=core-109" defer></script>
+    <script src="./modules/weather-extras.js?v=core-109" defer></script>
+    <script src="./modules/weather-insights.js?v=core-64" defer></script>
+    <script src="./modules/radar-probe.js?v=core-70" defer></script>
+    <script src="./modules/weather-icons.js?v=core-49" defer></script>
+    <script src="./modules/weather-icon-system.js?v=vector-4" defer></script>
+    <script src="./vendor/suncalc.js?v=core-109" defer></script>
+    <script src="./modules/smart-summary.js?v=core-109" defer></script>
+    <script src="./capitals.js?v=core-47" defer></script>
+    <script src="./app.js?v=core-110" defer></script>
+    <script src="./p0.js?v=core-109" defer></script>
+    <script src="./modules/risks.js?v=core-71" defer></script>
+    <script src="./modules/adapters.js?v=core-109" defer></script>
+    <script src="./weather-map.js?v=core-109" defer></script>
     <script src="./account.js?v=core-109" defer></script>
     <script src="./saved-places.js?v=core-109" defer></script>
     <script src="./notifications.js?v=core-109" defer></script>

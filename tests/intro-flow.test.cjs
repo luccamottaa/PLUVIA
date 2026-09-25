@@ -8,6 +8,13 @@ const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8')
 const script = html.match(/<script>\s*(\(function \(\) \{\s*var intro = document\.getElementById\("pluviaIntro"\);[\s\S]*?\}\)\(\);)\s*<\/script>/)?.[1];
 assert.ok(script, 'o controlador da introdução deve rodar sem depender do carregamento da previsão');
 
+test('a intro recebe estilo e cor do tema antes dos recursos externos', () => {
+  assert.ok(html.indexOf('.pluvia-intro {') < html.indexOf('href="./styles.css'), 'o estilo inicial deve estar no HTML');
+  assert.match(html, /@media \(prefers-color-scheme:light\) \{[\s\S]*?\.pluvia-intro \{ background:#f6f3ed;/);
+  assert.match(html, /rel="stylesheet" href="\.\/styles\.css\?v=core-111" media="print"/);
+  assert.match(html, /rel="stylesheet" media="print" onload="this\.media='all'"/);
+});
+
 function runIntro({ saved = false, storageBlocked = false, reduced = false } = {}) {
   const timers = [];
   const intro = { hidden: false, dataset: {}, classList: { classes: [], add(name) { this.classes.push(name); } } };
@@ -28,7 +35,7 @@ function runIntro({ saved = false, storageBlocked = false, reduced = false } = {
 
 test('a abertura sai sozinha mesmo sem executar o código da previsão', () => {
   const { intro, view, nav, welcome, timers } = runIntro({ storageBlocked: true });
-  assert.equal(timers[0].delay, 3400);
+  assert.equal(timers[0].delay, 2600);
   timers[0].callback();
   assert.equal(view.hidden, false);
   assert.equal(nav.hidden, false);
