@@ -6,7 +6,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  /** @typedef {'clear-day'|'clear-night'|'few-clouds-day'|'few-clouds-night'|'partly-cloudy-day'|'partly-cloudy-night'|'cloudy'|'overcast'|'light-rain'|'moderate-rain'|'heavy-rain'|'showers'|'thunderstorm'|'thunderstorm-rain'|'thunderstorm-hail'|'snow'|'sleet'|'hail'|'fog'|'mist'|'haze'|'smoke'|'dust'|'sand'|'windy'|'windy-cloudy'|'tropical-storm'|'cyclone'} WeatherConditionIcon */
+  /** @typedef {'clear-day'|'clear-night'|'few-clouds-day'|'few-clouds-night'|'partly-cloudy-day'|'partly-cloudy-night'|'cloudy'|'overcast'|'light-rain'|'moderate-rain'|'heavy-rain'|'showers'|'showers-night'|'thunderstorm'|'thunderstorm-rain'|'thunderstorm-hail'|'snow'|'sleet'|'hail'|'fog'|'mist'|'haze'|'smoke'|'dust'|'sand'|'windy'|'windy-cloudy'|'tropical-storm'|'cyclone'} WeatherConditionIcon */
   /** @typedef {'temperature'|'feels-like'|'temperature-high'|'temperature-low'|'humidity'|'dew-point'|'pressure'|'wind-speed'|'wind-gust'|'wind-direction'|'visibility'|'cloud-cover'|'uv-index'|'air-quality'|'rain-probability'|'rain-volume'|'precipitation'|'snow-probability'|'snow-accumulation'} WeatherMetricIcon */
   /** @typedef {'sunrise'|'sunset'|'daylight'|'clear-night'|'starry-night'|'moon-new'|'moon-waxing-crescent'|'moon-first-quarter'|'moon-waxing-gibbous'|'moon-full'|'moon-waning-gibbous'|'moon-last-quarter'|'moon-waning-crescent'} AstronomyIcon */
   /** @typedef {'radar'|'satellite'|'clouds'|'precipitation'|'map-rain'|'map-temperature'|'map-feels-like'|'map-wind'|'map-pressure'|'map-humidity'|'map-air-quality'|'map-visibility'|'map-uv'|'waves'|'sea-temperature'|'cyclone'|'wildfire'|'lightning'} WeatherMapIcon */
@@ -29,7 +29,7 @@
     conditions: Object.freeze({
       "clear-day":"clear-day.svg", "clear-night":"clear-night.svg", "partly-cloudy-day":"partly-cloudy-day.svg", "partly-cloudy-night":"partly-cloudy-night.svg",
       cloudy:"cloudy.svg", overcast:"overcast.svg", fog:"fog.svg", haze:"haze.svg", "light-rain":"light-rain.svg", "moderate-rain":"moderate-rain.svg",
-      "heavy-rain":"heavy-rain.svg", showers:"showers.svg", thunderstorm:"thunderstorm.svg", "thunderstorm-rain":"thunderstorm-rain.svg", "thunderstorm-hail":"thunderstorm-hail.svg", snow:"snow.svg"
+      "heavy-rain":"heavy-rain.svg", showers:"showers.svg", "showers-night":"showers-night.svg", thunderstorm:"thunderstorm.svg", "thunderstorm-rain":"thunderstorm-rain.svg", "thunderstorm-hail":"thunderstorm-hail.svg", snow:"snow.svg"
     }),
     metrics: Object.freeze({
       temperature:"temperature.png", "feels-like":"feels-like.png", "temperature-high":"temperature-high.png", "temperature-low":"temperature-low.png",
@@ -68,7 +68,7 @@
     if (["rain","freezing-rain"].includes(key)) return "moderate-rain";
     if (key === "heavy-rain") return "heavy-rain";
     if (key.includes("showers") && key.includes("snow")) return "snow";
-    if (key.includes("showers")) return key === "heavy-showers" ? "heavy-rain" : "showers";
+    if (key.includes("showers")) return key === "heavy-showers" ? "heavy-rain" : isDay ? "showers" : "showers-night";
     if (key.includes("snow")) return "snow";
     if (key === "hail-storm") return "thunderstorm-hail";
     if (key === "storm") return "thunderstorm";

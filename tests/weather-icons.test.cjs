@@ -15,6 +15,10 @@ test('mapeia códigos WMO e respeita variantes de dia e noite', () => {
   assert.equal(icons.assetFor(45, true), 'fog.svg');
   assert.equal(icons.assetFor(65, true), 'heavy-rain.svg');
   assert.equal(icons.assetFor(96, true), 'thunderstorm-hail.svg');
+  assert.equal(icons.assetFor(80, true), 'showers.svg');
+  assert.equal(icons.assetFor(80, false), 'showers-night.svg');
+  assert.equal(icons.assetFor(81, false), 'showers-night.svg');
+  assert.equal(icons.assetFor(82, false), 'heavy-rain.svg');
 });
 
 test('centraliza ícones nomeados e usa fallback local sem gerar 404', () => {
