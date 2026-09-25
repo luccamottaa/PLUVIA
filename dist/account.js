@@ -138,7 +138,7 @@
     try {
       const client = await getClient();
       const result = mode === 'signup'
-        ? await client.auth.signUp({email,password,options:{data:{name},emailRedirectTo:location.origin + location.pathname}})
+        ? await client.auth.signUp({email,password,options:{data:{name},emailRedirectTo:window.Capacitor?.isNativePlatform?.() ? 'https://pluviaweather.com.br/' : location.origin + location.pathname}})
         : await client.auth.signInWithPassword({email,password});
       if(result.error) throw result.error;
       el('accountPassword').value = '';

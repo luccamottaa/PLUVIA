@@ -1,0 +1,48 @@
+name: Gerar PLUVIA para teste no iPhone
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/ios-device-test]
+    paths:
+      - dist/**
+      - package.json
+      - capacitor.config.json
+      - .github/workflows/ios-device-test.yml
+
+permissions:
+  contents: read
+
+jobs:
+  unsigned-ipa:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar Capacitor e gerar projeto iOS
+        run: |
+          npm install --no-audit --no-fund
+          npx cap add ios --packagemanager SPM
+          npx cap sync ios
+      - name: Ajustar permissão de localização e ícone
+        run: |
+          /usr/libexec/PlistBuddy -c 'Add :NSLocationWhenInUseUsageDescription string O PLUVIA usa sua localização para mostrar o tempo da sua cidade.' ios/App/App/Info.plist
+          cp dist/pwa-icon-source-1024.png ios/App/App/Assets.xcassets/AppIcon.appiconset/Pluvia.png
+          node -e 'const fs=require("fs"); const p="ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json"; const value=JSON.parse(fs.readFileSync(p)); value.images=[{filename:"Pluvia.png",idiom:"universal",platform:"ios",size:"1024x1024"}]; fs.writeFileSync(p,JSON.stringify(value,null,2)+"\n")'
+      - name: Compilar sem assinatura (AltStore assina no PC)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath .ios-build CODE_SIGNING_ALLOWED=NO build
+          mkdir -p .ios-build/output/Payload
+          cp -R .ios-build/Build/Products/Release-iphoneos/App.app .ios-build/output/Payload/App.app
+          cd .ios-build/output
+          zip -qry PLUVIA-unsigned.ipa Payload
+      - name: Disponibilizar IPA de teste
+        uses: actions/upload-artifact@v4
+        with:
+          name: PLUVIA-iPhone-teste
+          path: .ios-build/output/PLUVIA-unsigned.ipa
+          retention-days: 7
+          if-no-files-found: error

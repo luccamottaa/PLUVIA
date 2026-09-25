@@ -89,7 +89,7 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   pinTop();
   setTimeout(() => { clearTimeout(fallbackTimer); if (!activeCity && fallback) chooseCity(fallback.id); }, 1650);
 })();
-if ("serviceWorker" in navigator && window.isSecureContext) {
+if (!window.Capacitor?.isNativePlatform?.() && "serviceWorker" in navigator && window.isSecureContext) {
   const hadController = Boolean(navigator.serviceWorker.controller);
   let reloadingForUpdate = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {

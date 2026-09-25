@@ -11,6 +11,17 @@
   let config = null, busy = false, pendingEnable = false;
   try { pendingEnable = sessionStorage.getItem("pluvia-push-pending-enable") === "1"; } catch {}
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const nativeApp = Boolean(window.Capacitor?.isNativePlatform?.());
+  if (nativeApp) {
+    prompt.hidden = true;
+    toggle.disabled = true;
+    toggle.textContent = "Notificações em preparação";
+    if (testButton) testButton.hidden = true;
+    if (supportNote) supportNote.textContent = "O app de teste ainda não recebe notificações nativas. Previsão, mapa e busca continuam disponíveis.";
+    if (statusBadge) statusBadge.textContent = "Indisponível neste teste";
+    window.pluviaPush = {beforeLogout: async () => {}};
+    return;
+  }
   const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   const supported = window.isSecureContext && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
   const track = (name, properties) => window.pluviaAnalytics?.track(name, properties);

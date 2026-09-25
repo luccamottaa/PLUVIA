@@ -1,0 +1,9 @@
+{
+  "appId": "br.com.pluviaweather.pluvia.dev",
+  "appName": "PLUVIA",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "automatic",
+    "preferredContentMode": "mobile"
+  }
+}
