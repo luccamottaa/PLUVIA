@@ -46,7 +46,6 @@
     on('accountLogin','click',()=>track('Auth Mode Selected',{mode:'login'}));
     on('accountSignup','click',()=>track('Auth Mode Selected',{mode:'signup'}));
     document.querySelector('#inmetCard .source-link')?.addEventListener('click',()=>track('Official Alert Link Opened',{source:'INMET'}));
-    document.querySelector('#defesaCard .source-link')?.addEventListener('click',()=>track('Civil Defense Signup Opened'));
     let searchTimer;
     on('citySearch','input',event=>{ clearTimeout(searchTimer); searchTimer=setTimeout(()=>{
       const length=event.target.value.trim().length;

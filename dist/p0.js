@@ -14,10 +14,6 @@ updateCityLabels = function () {
     dist.hidden = !(activeCity.distanceKm >= 2);
     if (activeCity.distanceKm >= 2) dist.textContent = "a " + Math.round(activeCity.distanceKm) + " km de " + activeCity.name + " · " + activeCity.uf;
   }
-  const card = document.getElementById("defesaCard");
-  if (card) card.hidden = false;
-  const actions = document.getElementById("defesaActions");
-  if (actions) actions.hidden = false;
   const forecast = document.getElementById("forecastCityLabel");
   if (forecast) forecast.textContent = "Previsão para o ponto de referência de " + activeCity.name + ", não para um endereço específico.";
   globalThis.PLUVIA?.modules?.['weather-layers']?.cityChanged?.(activeCity);

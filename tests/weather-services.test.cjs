@@ -34,8 +34,7 @@ test('serviços delegam transporte e timeout ao cliente HTTP compartilhado', asy
   assert.equal(await services.ensemble.getForecast(manaus), payload);
   assert.equal(await services.airQuality.getCurrent(manaus), payload);
   assert.equal(await services.alerts.getActive(), payload);
-  assert.equal(await services.civilDefense.getManausRecent(), payload);
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 4);
   assert(calls.every(call => call.options.timeoutMs > 0));
   services.abortAll();
   assert.equal(aborted, true);

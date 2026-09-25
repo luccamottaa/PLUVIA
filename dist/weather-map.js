@@ -159,7 +159,6 @@
   });
   const sourceEntries = [
     ['INMET','Dado oficial','Avisos meteorológicos vigentes e previstos para o município.'],
-    ['Defesa Civil de Manaus','Dado oficial','Comunicados municipais quando a cidade selecionada é Manaus.'],
     ['Open-Meteo','Estimativa meteorológica','Tempo, chuva, nuvens e qualidade do ar no ponto do município.'],
     ['RainViewer','Observação de radar','Composição de radares; cobertura e disponibilidade variam por região.'],
     ['OpenStreetMap','Base cartográfica','Ruas e referências geográficas do mapa.'],

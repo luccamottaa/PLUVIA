@@ -3,6 +3,5 @@ Object.assign(PLUVIA.modules.weather,{refresh:()=>loadWeather(),validate:validFo
 Object.assign(PLUVIA.modules.alerts,{refresh:()=>loadInmetAlerts(),select:selectInmetAlerts});
 Object.assign(PLUVIA.modules.location,{choose:chooseCity,locate:requestLocation,search:searchCities});
 Object.assign(PLUVIA.modules['air-quality'],{guidance:aqiLabel});
-Object.assign(PLUVIA.modules.disasters,{refresh:()=>loadDefesaAlerts()});
 Object.assign(PLUVIA.modules.auth,{open:()=>document.getElementById('accountButton').click()});
 Object.assign(PLUVIA.modules['weather-layers'],{status:'not-integrated'});

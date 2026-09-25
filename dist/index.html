@@ -39,7 +39,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=core-101" />
+    <link rel="stylesheet" href="./styles.css?v=core-102" />
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -220,7 +220,6 @@
         <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg></span><h2>Alertas e saúde</h2></div><p id="alertsCityLabel">Fontes oficiais</p></div>
         <div class="safety-grid">
           <article class="source-card panel" id="inmetCard"><div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div><small id="inmetUpdated" class="source-updated">Buscando leitura oficial…</small><div id="inmetContent" class="source-content"></div><a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial</a></article>
-          <article class="source-card panel" id="defesaCard"><div class="source-head"><span class="source-badge defesa">DEFESA CIVIL</span><span class="source-state" id="defesaState"><i></i>Consultando</span></div><div id="defesaContent" class="source-content"></div><div class="source-actions" id="defesaActions"><a class="source-link" href="https://wa.me/556120344611" target="_blank" rel="noreferrer">Consultar alertas no WhatsApp ↗</a><a class="source-link" href="sms:40199">Cadastrar CEP no 40199</a><a class="emergency-link" href="tel:199">Emergência: 199</a></div></article>
         </div>
       </section>
       <section class="rain-section section-block" id="chuva">
@@ -252,7 +251,7 @@
       </section>
       </div>
     </main>
-    <footer class="shell"><div class="footer-brand"><span class="footer-brand-icon" aria-hidden="true"></span><div class="footer-brand-copy"><strong>PLUVIA</strong><span>O céu de cada cidade</span></div></div><p>Clima: Open-Meteo · Fase da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a><br>Alertas: INMET · comunicados de Manaus · canais nacionais da Defesa Civil<br>Ícones: PLUVIA Glossy · <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> como fallback · SIL OFL 1.1<br><button id="openSources" class="footer-link" type="button">Fontes de dados</button></p></footer>
+    <footer class="shell"><div class="footer-brand"><span class="footer-brand-icon" aria-hidden="true"></span><div class="footer-brand-copy"><strong>PLUVIA</strong><span>O céu de cada cidade</span></div></div><div class="footer-details"><p>Clima: Open-Meteo · Fase da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a></p><p>Alertas meteorológicos: INMET</p><p>Ícones: PLUVIA Glossy · <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> como fallback · SIL OFL 1.1</p><button id="openSources" class="footer-link" type="button">Fontes de dados</button></div></footer>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Sem confirmação atual.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
     <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody"></div></dialog>
@@ -279,25 +278,25 @@
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div></dialog>
     <script src="./analytics.js?v=analytics-3"></script>
-    <script src="./modules/sources.js?v=core-101"></script>
+    <script src="./modules/sources.js?v=core-102"></script>
     <script src="./modules/http-client.js?v=core-67"></script>
-    <script src="./modules/weather-services.js?v=core-101"></script>
-    <script src="./modules/weather-data-layer.js?v=core-101"></script>
-    <script src="./modules/weather-extras.js?v=core-101"></script>
+    <script src="./modules/weather-services.js?v=core-102"></script>
+    <script src="./modules/weather-data-layer.js?v=core-102"></script>
+    <script src="./modules/weather-extras.js?v=core-102"></script>
     <script src="./modules/weather-insights.js?v=core-64"></script>
     <script src="./modules/radar-probe.js?v=core-70"></script>
     <script src="./modules/weather-icons.js?v=core-49"></script>
     <script src="./modules/weather-icon-system.js?v=vector-1"></script>
-    <script src="./vendor/suncalc.js?v=core-101"></script>
-    <script src="./modules/smart-summary.js?v=core-101"></script>
+    <script src="./vendor/suncalc.js?v=core-102"></script>
+    <script src="./modules/smart-summary.js?v=core-102"></script>
     <script src="./capitals.js?v=core-47"></script>
-    <script src="./app.js?v=core-101"></script>
-    <script src="./p0.js?v=core-101"></script>
+    <script src="./app.js?v=core-102"></script>
+    <script src="./p0.js?v=core-102"></script>
     <script src="./modules/risks.js?v=core-71"></script>
-    <script src="./modules/adapters.js?v=core-101"></script>
-    <script src="./weather-map.js?v=core-101"></script>
-    <script src="./account.js?v=core-101" defer></script>
-    <script src="./saved-places.js?v=core-101" defer></script>
-    <script src="./notifications.js?v=core-101" defer></script>
+    <script src="./modules/adapters.js?v=core-102"></script>
+    <script src="./weather-map.js?v=core-102"></script>
+    <script src="./account.js?v=core-102" defer></script>
+    <script src="./saved-places.js?v=core-102" defer></script>
+    <script src="./notifications.js?v=core-102" defer></script>
   </body>
 </html>
