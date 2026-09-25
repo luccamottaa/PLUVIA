@@ -40,6 +40,7 @@ const symbols = {
   'moderate-rain':`${cloud(true)}${rain}`,
   'heavy-rain':`${cloud(true)}${strongRain}`,
   showers:`${partialSun}${cloud()}${rain}`,
+  'showers-night':`${moon}${cloud()}${rain}`,
   thunderstorm:`${cloud(true)}${lightning}`,
   'thunderstorm-rain':`${cloud(true)}${rain}${lightning}`,
   'thunderstorm-hail':`${cloud(true)}${lightning}${hail}`,
