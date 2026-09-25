@@ -23,6 +23,11 @@ test('exporta todos os ícones instaláveis nas dimensões declaradas', () => {
 
 test('mantém o fundo azul escuro no aplicativo instalável', () => {
   assert.equal(manifest.background_color, '#10233f');
+  assert.equal(manifest.theme_color, '#10233f');
+  assert.equal(manifest.name, 'PLUVIA');
+  assert.equal(manifest.id, 'https://pluviaweather.com.br/', 'o ID estável mantém a instalação existente atualizável');
+  assert.ok(manifest.icons.some(icon => icon.src === './icon-splash-512.png' && icon.purpose === 'any'));
+  assert.ok(manifest.icons.some(icon => icon.src === './icon-splash-192.png' && icon.purpose === 'any'));
   assert.ok(manifest.icons.some(icon => icon.purpose === 'any'));
   assert.ok(manifest.icons.some(icon => icon.purpose === 'maskable'));
 });
