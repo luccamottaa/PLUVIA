@@ -46,11 +46,11 @@ Depois, abra `http://localhost:8080`.
 
 ## Dados
 
-- Clima e previsão: Open-Meteo
+- Clima e previsão: MET Norway nos horários e campos disponíveis; Open-Meteo completa os campos ausentes e fornece o histórico e os dados que o MET Norway não entrega.
 - Qualidade do ar: Open-Meteo Air Quality
 - Alertas meteorológicos: INMET
 - Avisos meteorológicos oficiais: INMET
-- Segunda previsão: MET Norway via função pública `met-forecast`, com cache e crédito à fonte. Temperatura, vento e chuva são apresentados separadamente da previsão principal do Open-Meteo.
+- MET Norway: função pública `met-forecast` com cache e crédito à fonte; valores são combinados por horário com a previsão principal.
 - Municípios: IBGE; coordenadas de Kelvin S. do Prado, sob licença MIT
 
 Cada cidade usa seu próprio fuso. Os dados são referência do ponto municipal, não da rua do visitante.

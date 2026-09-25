@@ -1,8 +1,8 @@
 /* Registro comum; dataAt é o horário fornecido pela fonte, checkedAt é a consulta. */
 (() => {
   const definitions = {
-    weather:{name:'Open-Meteo',type:'Previsão meteorológica',kind:'estimate',ttl:600000},
-    'met-norway':{name:'MET Norway',type:'Segunda previsão meteorológica',kind:'estimate',ttl:600000},
+    weather:{name:'Open-Meteo',type:'Dados complementares da previsão',kind:'estimate',ttl:600000},
+    'met-norway':{name:'MET Norway',type:'Dados principais da previsão',kind:'estimate',ttl:600000},
     alerts:{name:'INMET',type:'Avisos meteorológicos',kind:'official',ttl:600000},
     'air-quality':{name:'Open-Meteo / CAMS',type:'Qualidade do ar',kind:'estimate',ttl:600000},
     radar:{name:'RainViewer',type:'Radar de precipitação',kind:'observation',ttl:600000},

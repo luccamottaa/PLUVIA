@@ -679,7 +679,7 @@ function formatUpdateTime(at) {
 
 
 function clearWeatherInsights() {
-  ["yesterdayComparison","feelsLikeNote","uvNote","rainPhraseMeta"].forEach(id => {
+  ["feelsLikeNote","uvNote","rainPhraseMeta"].forEach(id => {
     const node = $(id);
     if (node) node.textContent = "";
   });
@@ -695,11 +695,6 @@ function clearWeatherInsights() {
 function renderWeatherInsights(data, air, start) {
   if (!weatherInsights?.build) return;
   const insight = weatherInsights.build({forecast:data, air, start, timezone:activeCity?.timezone});
-  const comparison = $("yesterdayComparison");
-  if (comparison) {
-    comparison.textContent = insight.comparison || "";
-    comparison.hidden = !insight.comparison;
-  }
   if ($("feelsLikeNote") && insight.feelsLike) $("feelsLikeNote").textContent = insight.feelsLike;
   if ($("uvNote") && insight.uv?.label) $("uvNote").textContent = insight.uv.label;
   const highlights = $("contextHighlights");
@@ -731,7 +726,7 @@ function renderWeatherInsights(data, air, start) {
       : rain.chance >= 35 ? "Possibilidade de chuva nas próximas 12 horas."
       : "Baixa probabilidade de chuva nas próximas 12 horas.";
   }
-  if ($("rainPhraseMeta")) $("rainPhraseMeta").textContent = insight.rain?.meta || "";
+  if ($("rainPhraseMeta")) $("rainPhraseMeta").textContent = insight.rain?.meta ? insight.rain.meta + (data.pluviaSources?.metNorway?.includes('hourly.precipitation') ? ' · volume: MET Norway; probabilidade: Open-Meteo' : ' · Open-Meteo') : '';
 }
 
 function markWeatherUnavailable(hasSavedData) {
@@ -763,6 +758,8 @@ function dataAge(at) {
 }
 
 function render(data, air, fromCache = false, cacheAt = 0) {
+  const hasMet = Boolean(data.pluviaSources?.metNorway?.length);
+  $("forecastSourceNote").textContent = `${hasMet ? 'MET Norway nos dados disponíveis · Open-Meteo nos demais.' : 'Open-Meteo · MET Norway indisponível para este horário.'}${fromCache ? ' Previsão salva.' : ''}`;
   try {
     weatherData?.ingestOpenMeteo(data, air, activeCity, {
       checkedAt: cacheAt || Date.now(), freshness: fromCache ? "stale" : "current"
@@ -805,16 +802,21 @@ async function loadWeather(revision = cityRevision) {
   const city = activeCity;
   $("weatherView")?.setAttribute('aria-busy','true');
   try {
-    const [forecastResult, airResult] = await Promise.allSettled([fetchForecast(city, revision), services.airQuality.getCurrent(city)]);
+    const [forecastResult, airResult, metResult] = await Promise.allSettled([fetchForecast(city, revision), services.airQuality.getCurrent(city), Promise.resolve().then(() => services.metNorway.getForecast(city))]);
     if (revision !== cityRevision) return false;
     if (forecastResult.status !== "fulfilled") throw forecastResult.reason;
-    const data = forecastResult.value;
+    const original = forecastResult.value;
+    let merged = null;
+    try { if (metResult.status === 'fulfilled') merged = globalThis.PLUVIA?.metMerge?.merge(original,metResult.value,city.timezone); } catch { /* Uma fonte não deve ocultar a outra. */ }
+    const data = merged?.used && validForecast(merged.forecast) ? merged.forecast : original;
+    const usingMet = data !== original;
     const previous = cached();
     const freshAir = airResult.status === "fulfilled" && weatherData?.validateAirQuality?.(airResult.value).valid === true;
     const air = freshAir ? airResult.value : previous?.data?.air || null;
     render(data, air); displayedWeather = {forecast: data, air};
     cache(displayedWeather,{weatherAt:Date.now(),airAt:freshAir ? Date.now() : previous?.airAt || null});
     globalThis.PLUVIA?.sources.set("weather",{status:"ready",checkedAt:Date.now(),dataAt:cityDate(data.current.time,city).getTime()});
+    globalThis.PLUVIA?.sources.set('met-norway',{status:usingMet ? 'ready' : 'error',checkedAt:usingMet ? Date.now() : null,dataAt:usingMet ? Date.parse(merged.time) : null});
     globalThis.PLUVIA?.sources.set("air-quality",{status:freshAir ? "ready" : air ? "stale" : "error",checkedAt:freshAir ? Date.now() : previous?.airAt || null,dataAt:air?.current?.time ? cityDate(air.current.time,city).getTime() : null});
     if (!freshAir && air) {
       $("airNote").textContent += ' · leitura anterior';
@@ -826,6 +828,7 @@ async function loadWeather(revision = cityRevision) {
     if (revision !== cityRevision) return false;
     const saved = cached();
     if (saved) { render(saved.data.forecast, saved.data.air, true, saved.at); displayedWeather = saved.data; }
+    if (!saved) $("forecastSourceNote").textContent = 'Previsão indisponível neste momento.';
     markWeatherUnavailable(Boolean(displayedWeather));
     globalThis.PLUVIA?.sources.set("weather",{status:displayedWeather ? "stale" : "error"});
     globalThis.PLUVIA?.sources.set("air-quality",{status:displayedWeather?.air ? "stale" : "error"});
@@ -854,42 +857,11 @@ async function loadWeather(revision = cityRevision) {
   }
 }
 
-async function loadMetForecast(revision = cityRevision) {
-  const city = activeCity;
-  const state = $("metForecastStatus");
-  try {
-    const data = await services.metNorway.getForecast(city);
-    if (revision !== cityRevision) return;
-    const period = data?.precipitation;
-    if (data?.source !== 'MET Norway' || !Number.isFinite(Date.parse(data.time)) ||
-      !Number.isFinite(data.temperatureC) || !Number.isFinite(data.windKmh) ||
-      (period && (![1,6,12].includes(period.hours) || !Number.isFinite(period.amountMm)))) {
-      throw new Error('Previsão secundária inválida');
-    }
-    $("metForecastTemp").textContent = `${fmt(data.temperatureC)}°C`;
-    $("metForecastWind").textContent = `${fmt(data.windKmh)} km/h`;
-    $("metForecastRainLabel").textContent = period ? `Chuva nas próximas ${period.hours}h` : 'Chuva prevista';
-    $("metForecastRain").textContent = period ? `${fmt(period.amountMm,1)} mm` : 'Não informada';
-    $("metForecastAt").textContent = 'Previsão para ' + new Intl.DateTimeFormat('pt-BR',{timeZone:city.timezone,hour:'2-digit',minute:'2-digit'}).format(new Date(data.time)) + ' · ponto de referência de ' + city.name + '.';
-    state.textContent = 'Atualizada';
-    globalThis.PLUVIA?.sources.set('met-norway',{status:'ready',checkedAt:Date.now(),dataAt:Date.parse(data.time)});
-  } catch {
-    if (revision !== cityRevision) return;
-    state.textContent = 'Indisponível agora';
-    $("metForecastTemp").textContent = '—';
-    $("metForecastWind").textContent = '—';
-    $("metForecastRain").textContent = '—';
-    $("metForecastRainLabel").textContent = 'Chuva prevista';
-    $("metForecastAt").textContent = 'A segunda fonte não respondeu. A previsão principal permanece identificada como Open-Meteo.';
-    globalThis.PLUVIA?.sources.set('met-norway',{status:'error'});
-  }
-}
-
 async function refreshAll() {
   if (!activeCity) return false;
   if (refreshInFlight) return refreshInFlight;
   const revision = cityRevision;
-  refreshInFlight = Promise.allSettled([loadWeather(revision), loadInmetAlerts(revision), loadMetForecast(revision)]).then(results => {
+  refreshInFlight = Promise.allSettled([loadWeather(revision), loadInmetAlerts(revision)]).then(results => {
     const success = results[0].status === "fulfilled" && results[0].value === true;
     if (success && revision === cityRevision) lastRefreshAt = Date.now();
     return success;
@@ -1086,12 +1058,7 @@ function chooseCity(id, locatedCity = null) {
     $(source + "State").innerHTML = "<i></i>Consultando";
     $(source + "Content").innerHTML = "<h3>Consultando " + escapeHtml(city.name) + "</h3><p>Buscando informações para a cidade selecionada.</p>";
   });
-  $("metForecastStatus").textContent = 'Consultando…';
-  $("metForecastTemp").textContent = '—';
-  $("metForecastWind").textContent = '—';
-  $("metForecastRain").textContent = '—';
-  $("metForecastRainLabel").textContent = 'Chuva prevista';
-  $("metForecastAt").textContent = 'Previsão para o ponto de referência da cidade.';
+  $("forecastSourceNote").textContent = 'Consultando as fontes meteorológicas…';
   $("inmetCard").dataset.severity = "unknown";
   $("citySearch").value = "";
   $("stateSelect").value = "";
