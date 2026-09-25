@@ -26,7 +26,10 @@ assert.match(map, /terrabrasilis\.dpi\.inpe\.br\/queimadas\/bdqueimadas/);
 assert.match(map, /star\.nesdis\.noaa\.gov\/goes/);
 assert.match(sources,/cemaden:\{name:'Cemaden',status:'prepared'/);
 assert.match(sources,/fires:\{name:'INPE BDQueimadas',status:'prepared'/);
-assert.match(sources,/lightning:\{name:'Raios',status:'prepared'/);
+assert.match(sources,/lightning:\{name:'Vaisala Xweather'/);
+assert.match(map,/functions\/v1\/lightning/);
+assert.match(map,/L\.circleMarker\(\[event\.lat,event\.lon\]/);
+assert.match(html,/id="weatherLightningAttribution"[^>]*>Powered by Vaisala Xweather/);
 assert.match(docs,/RainViewer Weather Maps API/);
 assert.doesNotMatch(map,/Math\.random|mock|fake/i);
 
