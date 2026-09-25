@@ -105,9 +105,9 @@
       }
     </style>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="./styles.css?v=core-112" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <link rel="stylesheet" href="./styles.css?v=core-113" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="./styles.css?v=core-112" /></noscript>
+    <noscript><link rel="stylesheet" href="./styles.css?v=core-113" /></noscript>
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -296,8 +296,10 @@
         <p class="rain-phrase panel" id="rainPhraseWrap"><strong id="rainPhrase">Lendo as próximas horas…</strong><small id="rainPhraseMeta">Open-Meteo</small></p>
         <div class="hourly-modes" role="group" aria-label="Dado da previsão por hora"><button type="button" data-hourly-mode="conditions" aria-pressed="true">Tempo</button><button type="button" data-hourly-mode="rain" aria-pressed="false">Chuva</button><button type="button" data-hourly-mode="wind" aria-pressed="false">Vento</button></div>
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region" aria-label="Previsão por hora"><div class="chart-loading">Montando a previsão horária…</div></div>
+      </section>
+      <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
-          <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h3 id="weatherMapCardTitle">Chuva e nuvens na região</h3><p>Radar observado e estimativa da cobertura de nuvens.</p></div>
+          <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapCardTitle">Chuva e nuvens na região</h2><p>Radar observado e estimativa da cobertura de nuvens.</p></div>
           <button id="openWeatherMap" type="button">Abrir mapa <span aria-hidden="true">↗</span></button>
         </article>
       </section>
