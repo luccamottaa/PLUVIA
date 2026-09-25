@@ -1,8 +1,7 @@
 (function () {
   const $ = id => document.getElementById(id);
-  const dialog = $('weatherMapDialog');
-  const openButton = $('openWeatherMap');
-  if (!dialog || !openButton) return;
+  const mapCard = document.querySelector('.weather-map-card');
+  if (!mapCard || !$('weatherMap')) return;
 
   const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
@@ -116,7 +115,6 @@
     setFrames([],0);
     document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
     $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : 'Nuvens';
-    $('weatherMapTitle').textContent = name === 'rain' ? 'Chuva ao redor' : 'Nuvens ao redor';
     $('weatherFrameTime').textContent = 'Carregando…'; $('weatherSourceNote').textContent = 'Consultando a fonte escolhida…';
     try {
       if (name === 'rain') await loadRain(revision); else await loadClouds(revision);
@@ -129,7 +127,7 @@
   }
   async function initMap() {
     await loadLeaflet();
-    const selectedCity = city(); if (!selectedCity) throw new Error('Escolha uma cidade antes de abrir o mapa.');
+    const selectedCity = city(); if (!selectedCity) throw new Error('Escolha uma cidade para ver o mapa.');
     if (!state.map) {
       state.map = L.map('weatherMap',{zoomControl:true,minZoom:3,maxZoom:11}).setView([selectedCity.lat,selectedCity.lon],7);
       state.base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map);
@@ -139,16 +137,28 @@
     state.cityId = selectedCity.id; $('weatherMapCity').textContent = `${selectedCity.name}/${selectedCity.uf} · ponto de referência do município`;
     setTimeout(() => state.map.invalidateSize(),80);
   }
-  async function open() {
-    dialog.showModal(); $('closeWeatherMap').focus(); setError('');
-    try { await initMap(); await selectLayer(state.layer); globalThis.pluviaAnalytics?.track('Weather Map Opened',{layer:state.layer,city:city()?.name,uf:city()?.uf}); }
-    catch (error) { setError(error?.message || 'Não foi possível abrir o mapa agora.'); }
+  let initializing = false;
+  let mapVisible = false;
+  async function showMap() {
+    if (initializing || !city()) return;
+    initializing = true; setError('');
+    try {
+      await initMap();
+      await selectLayer(state.layer);
+      globalThis.pluviaAnalytics?.track('Weather Map Viewed',{layer:state.layer,city:city()?.name,uf:city()?.uf});
+    } catch (error) { setError(error?.message || 'Não foi possível carregar o mapa agora.'); }
+    finally {
+      initializing = false;
+      if (state.map && city()?.id !== state.cityId) showMap();
+    }
   }
   function step(amount) { if (!state.frames.length) return; state.index = (state.index + amount + state.frames.length) % state.frames.length; renderFrame(); }
-  openButton.addEventListener('click',open);
-  function cancelLayer() { ++layerRevision; stop(); httpClient?.abortAll(); }
-  $('closeWeatherMap').addEventListener('click',() => { cancelLayer(); dialog.close(); });
-  dialog.addEventListener('cancel',cancelLayer);
+  if ('IntersectionObserver' in globalThis) {
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) { mapVisible = true; observer.disconnect(); showMap(); }
+    },{rootMargin:'240px'});
+    observer.observe(mapCard);
+  } else { mapVisible = true; showMap(); }
   document.querySelectorAll('[data-weather-layer]').forEach(button => button.addEventListener('click',() => selectLayer(button.dataset.weatherLayer)));
   $('weatherFramePrev').addEventListener('click',() => step(-1)); $('weatherFrameNext').addEventListener('click',() => step(1));
   $('weatherTimeline').addEventListener('input',event => { stop(); state.index=Number(event.target.value); renderFrame(); });
@@ -174,11 +184,22 @@
       tag.textContent=kind.toUpperCase(); title.textContent=name; copy.textContent=description; article.append(tag,title,copy); list.appendChild(article);
     });
     body.appendChild(list);
-    const pending=document.createElement('p'); pending.textContent='Cemaden, focos de calor e raios ainda não aparecem: faltou validar um endpoint público estável e adequado ao navegador. O PLUVIA não inventa esses dados.'; body.appendChild(pending);
+    const official=document.createElement('section'); official.className='official-observations';
+    const heading=document.createElement('h3'); heading.textContent='Outras observações oficiais'; official.appendChild(heading);
+    const note=document.createElement('p'); note.textContent='Consulte os painéis oficiais abaixo. Eles abrem em outro site; ainda não são camadas do mapa do PLUVIA.'; official.appendChild(note);
+    [
+      ['Chuva medida por estações · Cemaden','https://mapainterativo.cemaden.gov.br/'],
+      ['Focos de fogo por satélite · INPE','https://terrabrasilis.dpi.inpe.br/queimadas/bdqueimadas/'],
+      ['Raios detectados por satélite · NOAA','https://www.star.nesdis.noaa.gov/goes/']
+    ].forEach(([label,url]) => {
+      const link=document.createElement('a'); link.href=url; link.target='_blank'; link.rel='noopener noreferrer'; link.textContent=label; official.appendChild(link);
+    });
+    body.appendChild(official);
   }
   $('openSources')?.addEventListener('click',() => { renderSources(); $('sourcesDialog').showModal(); $('closeSources').focus(); });
   $('closeSources')?.addEventListener('click',() => $('sourcesDialog').close());
   $('sourcesDialog')?.addEventListener('click',event => { if(event.target === $('sourcesDialog')) $('sourcesDialog').close(); });
-  globalThis.PLUVIA.modules['weather-layers'].open = open;
-  globalThis.PLUVIA.modules['weather-layers'].cityChanged = () => { if(dialog.open) initMap().then(()=>selectLayer(state.layer)).catch(error=>setError(error.message)); };
+  globalThis.PLUVIA.modules['weather-layers'].cityChanged = () => {
+    if (mapVisible && !initializing) showMap();
+  };
 })();
