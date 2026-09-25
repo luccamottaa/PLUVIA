@@ -775,10 +775,10 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   const heatGap = current.apparent_temperature - current.temperature_2m;
   const localCondition = current.is_day === 0 && current.weather_code === 1 ? "Céu quase limpo" : condition;
   applyWeatherAtmosphere(current.weather_code, current.is_day !== 0);
-  $("condition").textContent = heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, current.is_day !== 0); $("highLow").textContent = `${fmt(day.temperature_2m_max[0])}° / ${fmt(day.temperature_2m_min[0])}°`;
-  const next2Prob = Math.max(...data.hourly.precipitation_probability.slice(start, start + 2));
-  $("rainNowLabel").textContent = current.precipitation <= .05 && next2Prob >= 55 ? "Sem chuva agora; previsão de chuva" : "Chuva agora";
-  $("rainNow").textContent = `${fmt(current.precipitation, 1)} mm`; $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
+  $("condition").textContent = heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, current.is_day !== 0);
+  $("todayHigh").textContent = `${fmt(day.temperature_2m_max[0])}°`;
+  $("todayLow").textContent = `${fmt(day.temperature_2m_min[0])}°`;
+  $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
   $("windCompass").style.setProperty("--wind-deg", `${Number.isFinite(current.wind_direction_10m) ? current.wind_direction_10m : 0}deg`);
   $("windCompass").setAttribute("aria-label", `Vento de ${windDirection(current.wind_direction_10m)}, ${fmt(current.wind_speed_10m)} quilômetros por hora, rajadas de ${fmt(current.wind_gusts_10m)} quilômetros por hora`);
@@ -1000,7 +1000,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","highLow","rainNow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","outingWindow","outingNote"];
+const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","outingWindow","outingNote"];
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;

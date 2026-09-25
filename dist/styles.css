@@ -1379,6 +1379,34 @@ button.compare-city:hover { border-color:var(--blue); }
 .weather-hero .weather-glyph { grid-column:2; grid-row:1; justify-self:center; align-self:center; transform:translateY(-5px) !important; }
 .weather-hero .current-bottom { align-items:start; }
 .weather-hero .current-bottom > div { align-content:start; }
+
+/* Máxima e mínima acompanham a condição atual; sensação e visibilidade têm seus próprios cards. */
+.hero-temperature-range { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; width:min(460px,100%); margin-top:clamp(18px,3vw,30px); padding-top:18px; border-top:1px solid var(--line); position:relative; z-index:1; }
+.hero-temperature-extreme { display:flex; align-items:center; gap:10px; min-width:0; padding:10px 14px; border:1px solid var(--line); border-radius:18px; background:color-mix(in srgb,var(--panel) 75%,transparent); }
+.hero-temperature-extreme > span { display:grid; place-items:center; flex:0 0 44px; width:44px; height:44px; }
+.hero-temperature-extreme .metric-weather-icon { width:44px; height:44px; }
+.hero-temperature-extreme > div { display:grid; gap:1px; min-width:0; }
+.hero-temperature-extreme small { color:var(--muted); font-size:.76rem; line-height:1.2; }
+.hero-temperature-extreme strong { color:var(--text); font-size:clamp(1.25rem,2.4vw,1.7rem); font-weight:800; font-variant-numeric:tabular-nums; line-height:1.12; }
+.quick-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-3); margin-top:var(--space-3); }
+.quick-metric { min-width:0; min-height:182px; padding:clamp(18px,3vw,28px); }
+.quick-metric .metric-head > span:first-child { font-weight:750; letter-spacing:.065em; }
+.quick-metric .metric-weather-icon { width:50px; height:50px; }
+.quick-metric > strong { margin:16px 0 0; color:var(--text); font-size:clamp(2rem,4vw,3rem); font-weight:800; letter-spacing:-.045em; font-variant-numeric:tabular-nums; }
+.quick-metric > small { margin:10px 0 0; color:var(--muted); font-size:.86rem; line-height:1.4; white-space:normal; overflow:visible; text-overflow:clip; }
+.quick-metric .visibility-badge { align-self:flex-start; margin-top:10px; font-size:.72rem; }
+@media (max-width:600px) {
+  .hero-temperature-range { gap:8px; margin-top:20px; padding-top:16px; }
+  .hero-temperature-extreme { gap:7px; padding:9px; border-radius:15px; }
+  .hero-temperature-extreme > span,.hero-temperature-extreme .metric-weather-icon { width:36px; height:36px; flex-basis:36px; }
+  .hero-temperature-extreme strong { font-size:1.25rem; }
+  .quick-metric { padding:16px; min-height:192px; }
+  .quick-metric .metric-head { align-items:start; gap:6px; }
+  .quick-metric .metric-weather-icon { width:38px; height:38px; }
+  .quick-metric > strong { font-size:clamp(1.7rem,7vw,2.3rem); }
+  .quick-metric > small { font-size:.78rem; }
+}
+@media (max-width:350px) { .quick-metrics { grid-template-columns:minmax(0,1fr); } }
 @media (max-width:720px) {
   .planning-grid { grid-template-columns:minmax(0,1fr); }
   .compare-list { grid-template-columns:repeat(2,minmax(0,1fr)); }

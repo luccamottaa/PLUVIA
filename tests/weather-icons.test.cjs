@@ -25,6 +25,9 @@ test('mapeia códigos WMO e respeita variantes de dia e noite', () => {
 
 test('centraliza ícones nomeados e usa fallback local sem gerar 404', () => {
   assert.equal(icons.namedIcon('humidity').src, './assets/weather-icons/metrics/humidity.png');
+  for (const name of ['temperature-high','temperature-low','feels-like','visibility']) {
+    assert.equal(icons.namedIcon(name).src, `./assets/weather-icons/metrics/${name}-pluvia.svg`);
+  }
   assert.equal(icons.namedIcon('rain-probability').source, 'pluvia-glossy');
   assert.equal(icons.namedIcon('radar').source, 'weathericons-fallback');
   assert.equal(icons.namedIcon('radar').src, './vendor/weathericons/Cloud.svg');
