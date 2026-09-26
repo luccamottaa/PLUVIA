@@ -105,9 +105,9 @@
       }
     </style>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="./styles.css?v=core-115" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <link rel="stylesheet" href="./styles.css?v=core-116" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="./styles.css?v=core-115" /></noscript>
+    <noscript><link rel="stylesheet" href="./styles.css?v=core-116" /></noscript>
   </head>
   <body>
     <a class="skip-link" href="#agora">Ir para o clima</a>
@@ -234,7 +234,6 @@
         <p id="accountStatus" role="status" aria-live="polite"></p>
       </dialog>
       <div id="weatherView" class="initial-loading" aria-busy="true">
-      <section id="riskSummary" class="panel risk-summary" aria-labelledby="riskTitle"><h2 id="riskTitle">Riscos próximos</h2><strong id="riskLevel">Monitoramento incompleto</strong><p id="riskScope">Consultando as fontes para esta cidade.</p><div id="nearbyRisks"><p>Dados temporariamente indisponíveis.</p></div><details><summary>Fontes e horários</summary><ul id="riskSources"></ul></details></section>
       <p id="locationNotice" class="location-notice" hidden role="status"></p>
       <section class="intro" id="agora">
         <div>
@@ -310,7 +309,6 @@
           </div>
         </article>
       </section>
-      <div id="riskAnchor"></div>
       <section class="forecast-section section-block" id="previsao">
         <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 4h2m4 0h2m-8 4h2m4 0h2"/></svg></span><h2>Próximos 7 dias</h2></div><p id="forecastCityLabel">Referência do município</p></div>
         <div class="forecast-list panel" id="forecastList"></div>
@@ -357,7 +355,7 @@
     <script src="./capitals.js?v=core-47" defer></script>
     <script src="./app.js?v=core-110" defer></script>
     <script src="./p0.js?v=core-109" defer></script>
-    <script src="./modules/risks.js?v=core-71" defer></script>
+    <script src="./modules/risks.js?v=core-116" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
     <script src="./weather-map.js?v=core-115" defer></script>
     <script src="./account.js?v=core-109" defer></script>

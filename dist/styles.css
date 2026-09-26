@@ -713,15 +713,7 @@ body:has(.city-dialog[open]) { overflow:hidden; }
   .topbar .search-trigger { width:44px; height:44px; padding:10px; justify-content:center; }
 }
 
-.risk-summary { padding:20px; margin:20px 0; border-left:4px solid var(--line); }
-.risk-summary h2 { font-size:1.3rem; margin:0 0 10px; }
-.risk-summary p,.risk-summary li { font-size:14px; line-height:1.6; }
-.risk-summary article { padding:12px 0; border-top:1px solid var(--line); }
-.risk-summary button,.inmet-alert button { min-height:44px; border:1px solid var(--line); border-radius:12px; background:transparent; color:var(--blue); font:inherit; padding:8px 12px; cursor:pointer; }
-.risk-summary[data-level="1"] { border-left-color:#d49c00; }
-.risk-summary[data-level="2"] { border-left-color:#e87817; }
-.risk-summary[data-level="3"] { border-left-color:#dc3434; }
-#riskSources { padding-left:18px; } #riskSources li { margin:12px 0; }
+.inmet-alert button { min-height:44px; border:1px solid var(--line); border-radius:12px; background:transparent; color:var(--blue); font:inherit; padding:8px 12px; cursor:pointer; }
 #alertDetailBody { overflow-wrap:anywhere; font-size:16px; line-height:1.6; }
 #alertDetailBody dt { font-weight:800; margin-top:14px; } #alertDetailBody dd { margin:4px 0; }
 #alertDetailBody a { color:var(--blue); }
@@ -820,6 +812,48 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
   .weather-hero .temperature { font-size:clamp(4.6rem,23vw,5.5rem) !important; }
   .metrics { grid-template-columns:1fr; }
   .air-metric { grid-column:auto; }
+}
+
+/* Vidro translúcido: brilho na borda e profundidade sem cobrir os dados. */
+.panel:not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night) {
+  border-color:rgba(255,255,255,.84);
+  background:linear-gradient(138deg,rgba(255,255,255,.83),rgba(250,253,255,.63) 55%,rgba(222,239,255,.68));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.97),inset 0 0 0 1px rgba(255,255,255,.22),0 17px 38px rgba(33,86,153,.12);
+  -webkit-backdrop-filter:blur(18px) saturate(160%);
+  backdrop-filter:blur(18px) saturate(160%);
+}
+.panel:not(.attention-card)::before {
+  background:linear-gradient(112deg,rgba(255,255,255,.40),transparent 35%,rgba(119,178,255,.055) 72%,rgba(255,255,255,.18));
+  animation:none;
+  opacity:1;
+}
+@media (prefers-color-scheme:dark) {
+  .panel:not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night) {
+    border-color:rgba(169,205,255,.26);
+    background:linear-gradient(140deg,rgba(79,117,172,.22),rgba(20,40,69,.78) 46%,rgba(15,30,52,.83));
+    box-shadow:inset 0 1px 0 rgba(223,239,255,.19),inset 0 0 0 1px rgba(137,184,255,.055),0 16px 38px rgba(2,10,26,.22);
+  }
+  .panel:not(.attention-card)::before {
+    background:linear-gradient(120deg,rgba(200,226,255,.08),transparent 36%,rgba(112,167,237,.035) 70%,rgba(200,226,255,.025));
+  }
+  .topbar {
+    border-color:rgba(169,205,255,.25);
+    background:linear-gradient(135deg,rgba(65,102,151,.20),rgba(13,30,53,.83));
+    box-shadow:inset 0 1px 0 rgba(225,240,255,.17),0 14px 32px rgba(2,10,26,.21);
+    -webkit-backdrop-filter:blur(18px) saturate(150%);
+    backdrop-filter:blur(18px) saturate(150%);
+  }
+}
+@media (max-width:720px) {
+  .panel:not(.attention-card),.topbar {
+    -webkit-backdrop-filter:blur(10px) saturate(145%);
+    backdrop-filter:blur(10px) saturate(145%);
+  }
+}
+@media (prefers-reduced-transparency:reduce) {
+  .panel:not(.attention-card),.topbar { -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .panel:not(.attention-card) { background:var(--panel-strong); }
+  .topbar { background:var(--panel-strong); }
 }
 
 /* Web Push: contextual permission and account-synced settings. */
