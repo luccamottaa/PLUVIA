@@ -11,7 +11,7 @@ assert.ok(script, 'o controlador da introdução deve rodar sem depender do carr
 test('a intro recebe estilo e cor do tema antes dos recursos externos', () => {
   assert.ok(html.indexOf('.pluvia-intro {') < html.indexOf('href="./styles.css'), 'o estilo inicial deve estar no HTML');
   assert.match(html, /@media \(prefers-color-scheme:light\) \{[\s\S]*?\.pluvia-intro \{ background:#f6f3ed;/);
-  assert.match(html, /rel="stylesheet" href="\.\/styles\.css\?v=core-117" media="print"/);
+  assert.match(html, /rel="stylesheet" href="\.\/styles\.css\?v=core-118" media="print"/);
   assert.match(html, /rel="stylesheet" media="print" onload="this\.media='all'"/);
 });
 
