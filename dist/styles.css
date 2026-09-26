@@ -814,27 +814,52 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
   .air-metric { grid-column:auto; }
 }
 
-/* Vidro translúcido: brilho na borda e profundidade sem cobrir os dados. */
+/* Vidro vivo: superfície transparente e reflexo que acompanha o toque. */
 .panel:not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night) {
-  border-color:rgba(255,255,255,.84);
-  background:linear-gradient(138deg,rgba(255,255,255,.83),rgba(250,253,255,.63) 55%,rgba(222,239,255,.68));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.97),inset 0 0 0 1px rgba(255,255,255,.22),0 17px 38px rgba(33,86,153,.12);
-  -webkit-backdrop-filter:blur(18px) saturate(160%);
-  backdrop-filter:blur(18px) saturate(160%);
+  border-color:rgba(255,255,255,.72);
+  background:linear-gradient(142deg,rgba(255,255,255,.58),rgba(233,245,255,.32) 58%,rgba(193,223,255,.27));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(61,134,229,.10),0 15px 36px rgba(33,86,153,.13);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);
+  backdrop-filter:blur(22px) saturate(170%);
 }
 .panel:not(.attention-card)::before {
-  background:linear-gradient(112deg,rgba(255,255,255,.40),transparent 35%,rgba(119,178,255,.055) 72%,rgba(255,255,255,.18));
+  background:linear-gradient(125deg,rgba(255,255,255,.18),transparent 45%,rgba(94,160,244,.045));
   animation:none;
   opacity:1;
 }
+.panel.glass-interactive::before {
+  background:radial-gradient(circle 240px at var(--glass-x,50%) var(--glass-y,50%),rgba(255,255,255,.72),rgba(177,218,255,.22) 48%,transparent 100%);
+  opacity:.42;
+  transition:opacity .28s ease;
+}
+.panel.glass-interactive.glass-active::before { opacity:1; }
+.panel.glass-interactive.glass-active {
+  border-color:rgba(255,255,255,.95);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 0 26px rgba(114,187,255,.24),0 17px 42px rgba(33,86,153,.19);
+}
+.glass-touch-ring {
+  position:absolute; z-index:0; left:var(--glass-x,50%); top:var(--glass-y,50%);
+  width:44px; height:44px; border:1px solid rgba(255,255,255,.8);
+  border-radius:50%; pointer-events:none; transform:translate(-50%,-50%) scale(.4);
+  box-shadow:0 0 18px rgba(133,199,255,.45),inset 0 0 16px rgba(255,255,255,.3);
+  animation:glass-touch-wave .62s ease-out both;
+}
+@keyframes glass-touch-wave { to { opacity:0; transform:translate(-50%,-50%) scale(5); } }
 @media (prefers-color-scheme:dark) {
   .panel:not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night) {
-    border-color:rgba(169,205,255,.26);
-    background:linear-gradient(140deg,rgba(79,117,172,.22),rgba(20,40,69,.78) 46%,rgba(15,30,52,.83));
-    box-shadow:inset 0 1px 0 rgba(223,239,255,.19),inset 0 0 0 1px rgba(137,184,255,.055),0 16px 38px rgba(2,10,26,.22);
+    border-color:rgba(178,215,255,.32);
+    background:linear-gradient(145deg,rgba(100,157,229,.21),rgba(28,54,86,.47) 55%,rgba(13,31,58,.51));
+    box-shadow:inset 0 1px 0 rgba(223,239,255,.29),inset 0 -1px 0 rgba(131,189,255,.08),0 16px 38px rgba(2,10,26,.24);
   }
   .panel:not(.attention-card)::before {
-    background:linear-gradient(120deg,rgba(200,226,255,.08),transparent 36%,rgba(112,167,237,.035) 70%,rgba(200,226,255,.025));
+    background:linear-gradient(120deg,rgba(200,226,255,.11),transparent 43%,rgba(112,167,237,.04));
+  }
+  .panel.glass-interactive::before {
+    background:radial-gradient(circle 245px at var(--glass-x,50%) var(--glass-y,50%),rgba(183,219,255,.40),rgba(70,142,233,.15) 48%,transparent 100%);
+  }
+  .panel.glass-interactive.glass-active {
+    border-color:rgba(202,229,255,.61);
+    box-shadow:inset 0 1px 0 rgba(225,241,255,.46),inset 0 0 28px rgba(115,177,255,.16),0 18px 42px rgba(2,10,26,.28);
   }
   .topbar {
     border-color:rgba(169,205,255,.25);
@@ -846,14 +871,19 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 }
 @media (max-width:720px) {
   .panel:not(.attention-card),.topbar {
-    -webkit-backdrop-filter:blur(10px) saturate(145%);
-    backdrop-filter:blur(10px) saturate(145%);
+    -webkit-backdrop-filter:blur(14px) saturate(160%);
+    backdrop-filter:blur(14px) saturate(160%);
   }
+}
+@media (prefers-reduced-motion:reduce) {
+  .panel.glass-interactive::before { transition:none; }
+  .glass-touch-ring { display:none; }
 }
 @media (prefers-reduced-transparency:reduce) {
   .panel:not(.attention-card),.topbar { -webkit-backdrop-filter:none; backdrop-filter:none; }
   .panel:not(.attention-card) { background:var(--panel-strong); }
   .topbar { background:var(--panel-strong); }
+  .panel.glass-interactive::before,.glass-touch-ring { display:none; }
 }
 
 /* Web Push: contextual permission and account-synced settings. */
