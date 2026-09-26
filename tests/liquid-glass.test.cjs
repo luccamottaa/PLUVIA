@@ -19,6 +19,7 @@ test('o reflexo dos cards acompanha dedo/cursor e entra no precache', () => {
   assert.match(script, /--glass-x/);
   assert.match(css, /radial-gradient\(circle 240px at var\(--glass-x,50%\) var\(--glass-y,50%\)/);
   assert.match(css, /glass-touch-wave/);
+  assert.match(css, /\.dashboard-grid::before,\.metrics::before,\.safety-grid::before/);
   assert.doesNotMatch(script, /preventDefault|setPointerCapture/, 'o efeito não deve bloquear rolagem ou controles do mapa');
 });
 

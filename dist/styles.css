@@ -815,6 +815,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 }
 
 /* Vidro vivo: superfície transparente e reflexo que acompanha o toque. */
+.dashboard-grid,.metrics,.safety-grid { position:relative; isolation:isolate; }
+.dashboard-grid::before,.metrics::before,.safety-grid::before {
+  content:""; position:absolute; z-index:-1; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 43% 62% at 75% 24%,rgba(76,151,255,.28),transparent 100%),radial-gradient(ellipse 38% 60% at 15% 82%,rgba(87,175,255,.21),transparent 100%);
+}
 .panel:not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night) {
   border-color:rgba(255,255,255,.72);
   background:linear-gradient(142deg,rgba(255,255,255,.58),rgba(233,245,255,.32) 58%,rgba(193,223,255,.27));
@@ -828,8 +833,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
   opacity:1;
 }
 .panel.glass-interactive::before {
-  background:radial-gradient(circle 240px at var(--glass-x,50%) var(--glass-y,50%),rgba(255,255,255,.72),rgba(177,218,255,.22) 48%,transparent 100%);
-  opacity:.42;
+  background:radial-gradient(circle 240px at var(--glass-x,50%) var(--glass-y,50%),rgba(255,255,255,.78),rgba(131,196,255,.34) 48%,transparent 100%);
+  opacity:.72;
   transition:opacity .28s ease;
 }
 .panel.glass-interactive.glass-active::before { opacity:1; }
@@ -846,6 +851,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 }
 @keyframes glass-touch-wave { to { opacity:0; transform:translate(-50%,-50%) scale(5); } }
 @media (prefers-color-scheme:dark) {
+  .dashboard-grid::before,.metrics::before,.safety-grid::before {
+    background:radial-gradient(ellipse 43% 62% at 75% 24%,rgba(63,132,233,.38),transparent 100%),radial-gradient(ellipse 38% 60% at 15% 82%,rgba(50,112,220,.27),transparent 100%);
+  }
   .panel:not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night) {
     border-color:rgba(178,215,255,.32);
     background:linear-gradient(145deg,rgba(100,157,229,.21),rgba(28,54,86,.47) 55%,rgba(13,31,58,.51));
@@ -880,6 +888,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
   .glass-touch-ring { display:none; }
 }
 @media (prefers-reduced-transparency:reduce) {
+  .dashboard-grid::before,.metrics::before,.safety-grid::before { display:none; }
   .panel:not(.attention-card),.topbar { -webkit-backdrop-filter:none; backdrop-filter:none; }
   .panel:not(.attention-card) { background:var(--panel-strong); }
   .topbar { background:var(--panel-strong); }
