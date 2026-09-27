@@ -556,42 +556,6 @@ function renderSun(daily) {
     : "Duração prevista de sol indisponível.";
 }
 
-let comparisonRevision = 0;
-async function renderComparison() {
-  const revision = ++comparisonRevision;
-  const city = activeCity;
-  if (!city) return;
-  if (!validForecast(displayedWeather?.forecast)) {
-    $("compareList").innerHTML = '<p class="panel compare-empty">Consultando a previsão das cidades favoritas…</p>';
-    return;
-  }
-  const selected = [city, ...[...favorites].filter(id => id !== city.id).slice(0,2).map(id => cityById.get(id)).filter(Boolean)];
-  if (selected.length < 2) {
-    $("compareList").innerHTML = '<p class="panel compare-empty">Favorita outra cidade na busca para comparar temperatura e chuva com a cidade aberta.</p>';
-    return;
-  }
-  const current = displayedWeather?.forecast;
-  $("compareList").innerHTML = selected.map(place => `<div class="panel compare-city"><span>${escapeHtml(place.name)}/${escapeHtml(place.uf)}</span><strong>${place.id === city.id && current ? `${fmt(current.current.temperature_2m)}°` : "…"}</strong><small>${place.id === city.id && current ? `${fmt(current.daily.precipitation_probability_max[0])}% de chuva hoje` : "Consultando previsão…"}</small></div>`).join("");
-  const results = await Promise.all(selected.map(async place => {
-    if (place.id === city.id) return current;
-    try {
-      const saved = JSON.parse(localStorage.getItem(`pluvia-weather-${place.id}`) || "null");
-      if (Date.now() - saved?.at < 20 * 60 * 1000 && validForecast(saved?.data?.forecast)) return saved.data.forecast;
-      const full = place.needsDetails ? await ensureCityDetails(place.id) : place;
-      if (!full || revision !== comparisonRevision) return null;
-      const forecast = await services.weather.getForecast(full, {timeoutMs:8000});
-      if (!validForecast(forecast)) return null;
-      try { localStorage.setItem(`pluvia-weather-${place.id}`, JSON.stringify({at:Date.now(),data:{forecast,air:null}})); } catch {}
-      return forecast;
-    } catch { return null; }
-  }));
-  if (revision !== comparisonRevision || city.id !== activeCity?.id) return;
-  $("compareList").innerHTML = selected.map((place,i) => {
-    const forecast = results[i], currentData = forecast?.current, day = forecast?.daily;
-    return `<button class="panel compare-city" type="button" data-city-id="${place.id}" aria-label="Abrir ${escapeHtml(place.name)}"><span>${escapeHtml(place.name)}/${escapeHtml(place.uf)}</span><strong>${forecast ? `${fmt(currentData.temperature_2m)}°` : "—"}</strong><small>${forecast ? `${fmt(day.precipitation_probability_max[0])}% de chuva hoje · ${fmt(day.temperature_2m_max[0])}° / ${fmt(day.temperature_2m_min[0])}°` : "Previsão indisponível"}</small></button>`;
-  }).join("");
-}
-
 function renderMoon(now = new Date()) {
   const phase = globalThis.PLUVIA?.moon?.getMoonIllumination(now)?.phase;
   if (!Number.isFinite(phase)) {
@@ -758,7 +722,6 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
   renderForecast(day, current.temperature_2m); renderSun(day);
   displayedWeather = {forecast:data,air};
-  renderComparison();
 }
 
 async function loadWeather(revision = cityRevision) {
@@ -985,7 +948,6 @@ function chooseCity(id, locatedCity = null) {
   $("siteNav").hidden = false;
   closeCitySearch();
   cityRevision++;
-  comparisonRevision++;
   services?.abortAll();
   refreshInFlight = null;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
@@ -1045,8 +1007,7 @@ function setupCityPicker() {
     writePreference("pluvia-favorites", [...favorites]);
     globalThis.dispatchEvent?.(new CustomEvent('pluvia:favorites-changed',{detail:{ids:[...favorites]}}));
     renderCityOptions(); updateCityLabels();
-    renderComparison();
-  });
+    });
   $("locateCity").addEventListener("click", () => requestLocation('city_picker'));
   $("welcomeLocate").addEventListener("click", () => requestLocation('welcome'));
   $("openCitySearch").addEventListener("click", openCitySearch);
@@ -1134,10 +1095,6 @@ function requestLocation(source = 'automatic') {
 }
 
 setupCityPicker();
-$("compareList").addEventListener("click", event => {
-  const button = event.target.closest("button[data-city-id]");
-  if (button) chooseCity(button.dataset.cityId);
-});
 document.querySelector(".hourly-modes")?.addEventListener("click", event => {
   const button = event.target.closest("button[data-hourly-mode]");
   if (!button || !event.currentTarget.contains(button)) return;

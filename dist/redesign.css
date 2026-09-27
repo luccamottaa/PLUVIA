@@ -257,3 +257,51 @@ html,body { background:#041936; }
   .weather-hero .weather-glyph,.weather-hero .weather-visual { width:76px !important; height:76px !important; }
   .hourly-peek { padding-inline:10px; }
 }
+
+/* Janelas do Painel Noturno: vidro azul estático e controles consistentes. */
+.city-dialog {
+  box-sizing:border-box; width:min(560px,calc(100% - 24px));
+  max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px);
+  padding:24px; border:1px solid rgba(125,186,255,.48); border-radius:28px;
+  background:linear-gradient(145deg,rgba(30,72,128,.97),rgba(6,30,66,.98) 65%);
+  color:#f2f7ff; box-shadow:inset 0 1px 0 #dceeff38,0 24px 80px #0008;
+  overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:#638ec277 transparent;
+}
+.city-dialog::backdrop { background:rgba(1,12,30,.66); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+.city-dialog .dialog-heading { position:sticky; top:-24px; z-index:3; margin:-24px -24px 20px; padding:20px 24px 16px; background:#0c2b54; border-bottom:1px solid #91bfff26; gap:12px; }
+.city-dialog .dialog-heading h2 { margin:0; font-size:1.3rem; line-height:1.25; font-weight:850; letter-spacing:-.025em; }
+.city-dialog .dialog-close { display:grid; place-items:center; flex:0 0 44px; width:44px; height:44px; padding:0; border:1px solid #9bc8ff40; border-radius:50%; background:#8abaff12; font:400 28px/1 var(--font-ui); }
+.city-dialog .dialog-close:focus { outline:none; }
+.city-dialog .dialog-close:focus-visible { outline:2px solid #a9d2ff; outline-offset:3px; }
+.city-dialog p { color:#bad1ed; font-size:.9rem; line-height:1.6; }
+.city-dialog :is(input:not([type=checkbox]),select) { min-width:0; max-width:100%; background:#061d3b99; color:#f2f7ff; border:1px solid #8bbcff45; border-radius:14px; }
+.city-dialog input::placeholder { color:#92accb; opacity:1; }
+.city-dialog .city-picker { padding-top:0; }
+.city-dialog .city-results { display:grid; gap:6px; max-height:min(34dvh,300px); padding:0; }
+.city-dialog .city-result { width:100%; padding:12px 14px; border:1px solid #8bbcff26; border-radius:16px; background:#659eea10; }
+.city-dialog .city-result:hover,.city-dialog .city-result[aria-selected=true] { background:#3479d536; border-color:#8bbcff70; }
+.city-dialog .city-result small { color:#adc9eb; }
+.city-dialog .city-button,.city-dialog button:not(.dialog-close):not(.city-result) { border-radius:14px; }
+.city-dialog .city-button { background:#659eea16; }
+.account-dialog :is(#accountSubmit,#profileSave,#notificationPreferencesSave),.account-tabs button[aria-pressed=true] { background:#2868da; border-color:#79acff66; color:white; }
+.city-dialog .saved-places,.city-dialog .notification-settings,.city-dialog .source-credits { margin-top:24px; padding-top:20px; border-top:1px solid #91bfff30; }
+.city-dialog h3 { font-size:1.1rem; letter-spacing:-.02em; }
+.city-dialog .notification-diagnostics { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+.city-dialog .notification-diagnostics li { font-size:.72rem; padding:8px; background:#061d3b55; }
+.city-dialog .sources-list { gap:12px; }
+.city-dialog .sources-list article { padding:18px; border-radius:20px; border:1px solid #8bbcff35; background:linear-gradient(135deg,#548ed526,#15488520); box-shadow:inset 0 1px 0 #dceeff14; }
+.city-dialog .sources-list b { display:block; margin-bottom:8px; font-size:.65rem; line-height:1.5; letter-spacing:.08em; color:#91c2ff; }
+.city-dialog .sources-list strong { font-size:1.08rem; }
+.city-dialog .sources-list span { margin-top:8px; font-size:.88rem; line-height:1.55; color:#bad1ed; }
+.city-dialog .source-credits a { color:#9bccff; }
+@media(max-width:600px) {
+  .city-dialog { padding:18px; border-radius:24px; }
+  .city-dialog .dialog-heading { top:-18px; margin:-18px -18px 18px; padding:16px 18px; }
+  .city-dialog .dialog-heading h2 { font-size:1.18rem; }
+  .city-dialog .sources-list article { padding:16px; }
+}
+
+/* O grau acompanha a largura real do número, inclusive em temperaturas negativas. */
+.weather-hero .temperature { gap:.09em; letter-spacing:-.045em; }
+.weather-hero .temperature .deg { font-size:.36em; transform:translateY(.12em); }
+.topbar .account-trigger { margin-right:12px; }
