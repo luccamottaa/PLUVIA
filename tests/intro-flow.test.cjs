@@ -10,7 +10,7 @@ assert.ok(script, 'o controlador da introdução deve rodar sem depender do carr
 
 test('a intro recebe estilo e cor do tema antes dos recursos externos', () => {
   assert.ok(html.indexOf('.pluvia-intro {') < html.indexOf('href="./styles.css'), 'o estilo inicial deve estar no HTML');
-  assert.match(html, /\.pluvia-intro \{[\s\S]*?background: radial-gradient\(circle at 50% 32%,#275893/);
+  assert.match(html, /\.pluvia-intro \{[\s\S]*?panel-night-sky\.webp[\s\S]*?cover no-repeat/);
   assert.match(html, /rel="stylesheet" href="\.\/styles\.css\?v=core-119" media="print"/);
   assert.match(html, /rel="stylesheet" media="print" onload="this\.media='all'"/);
 });

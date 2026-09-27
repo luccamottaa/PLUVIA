@@ -13,11 +13,11 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-10"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-11"/);
   assert.match(html, /styles\.css\?v=core-119/);
-  assert.match(html, /redesign\.css\?v=panel-10/);
+  assert.match(html, /redesign\.css\?v=panel-11/);
   assert.doesNotMatch(sw, /glass\.js/);
-  assert.match(html, /app\.js\?v=panel-10/);
+  assert.match(html, /app\.js\?v=panel-11/);
   assert.ok(sw.includes('"./assets/panel-night-sky.webp"'));
 });
 

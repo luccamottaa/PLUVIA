@@ -413,7 +413,7 @@ body.page-hidden .sky-effects * { animation-play-state:paused; }
 .quick-metrics { grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:0; }
 .quick-metrics > .quick-metric:first-child { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:116px; gap:1px; padding:10px 4px; border-radius:24px 0 0 24px; border-right:0 !important; }
 .quick-metrics > .quick-metric:first-child .metric-head { display:flex; flex-direction:column-reverse; align-items:center; gap:1px; }
-.quick-metrics > .quick-metric:first-child .metric-head > span:first-child { font-size:.75rem; font-weight:400; text-transform:none; letter-spacing:0; color:#c0d6f4; }
+.quick-metrics > .quick-metric:first-child .metric-head > span:first-child { align-self:center; width:100%; text-align:center; font-size:.75rem; font-weight:400; text-transform:none; letter-spacing:0; color:#c0d6f4; }
 .quick-metrics > .quick-metric:first-child .metric-weather-icon { width:32px; height:32px; }
 .quick-metrics > .quick-metric:first-child > strong { margin:0; font-size:1.6rem; line-height:1.12; }
 .quick-metrics > .quick-metric:first-child > small { display:none; }
@@ -440,3 +440,8 @@ body.page-hidden .sky-effects * { animation-play-state:paused; }
 .insight-card :is(.weather-explanation,#attentionBasis,.summary-link) { grid-column:1/-1; margin:0; }
 .insight-card #attentionBasis { font-size:.72rem; line-height:1.45; }
 .insight-card .summary-link { padding-top:4px; }
+
+/* A área do relógio do iPhone não deve revelar conteúdo rolando por baixo. */
+@media(display-mode:standalone) {
+  body::before { display:block; content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top); z-index:79; background:var(--sky-base,#041936); backdrop-filter:none !important; -webkit-backdrop-filter:none !important; pointer-events:none; }
+}

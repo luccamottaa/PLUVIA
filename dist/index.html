@@ -47,56 +47,42 @@
       body { margin:0; }
       [hidden] { display:none !important; }
 .pluvia-intro {
-  position: fixed; inset: 0; z-index: 80;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 32px 24px;
-  background: radial-gradient(circle at 50% 32%,#275893 0%,#163659 45%,#10233f 86%);
-  text-align: center;
-  overflow:hidden;
+  position:fixed; inset:0; z-index:100; min-height:100dvh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:32px 24px; overflow:hidden; text-align:center;
+  background:#172c40 url("./assets/panel-night-sky.webp") center / cover no-repeat;
 }
-.pluvia-intro::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 65% 28%,rgba(131,177,244,.3),transparent 40%),linear-gradient(180deg,transparent 15%,rgba(4,15,39,.7)); pointer-events:none; animation:intro-sky-change 2.6s ease-in-out both; }
-.pluvia-intro[hidden] { display: none !important; }
+.pluvia-intro[hidden] { display:none !important; }
+.pluvia-intro::before {
+  content:""; position:absolute; inset:-5%; pointer-events:none;
+  background:radial-gradient(ellipse at 75% 20%,#ffdba67a,transparent 48%),linear-gradient(180deg,#d9e7ec33,transparent 40%,#071425d9);
+  animation:intro-horizon 2.6s ease-out both;
+}
 .pluvia-intro.is-leaving { opacity:0; pointer-events:none; transition:opacity .42s ease; }
-.pluvia-intro .intro-sky { position:relative; z-index:1; width:min(490px,90vw); height:210px; margin:0 0 12px; overflow:hidden; -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent); mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent); }
-.intro-sun { position:absolute; left:15%; top:110px; width:76px; height:76px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#fff9c6,#ffd76b 65%,#ffaf48); box-shadow:0 0 36px 16px rgba(255,184,91,.48),0 0 98px 40px rgba(252,178,89,.18); animation:intro-sun-travel 2.5s ease-in-out both; }
-.intro-cloud { position:absolute; display:block; width:190px; height:62px; border-radius:70px; background:linear-gradient(155deg,#dce9f8,#869ab8); filter:drop-shadow(0 18px 20px rgba(4,13,35,.22)); }
-.intro-cloud::before,.intro-cloud::after { content:""; position:absolute; display:block; border-radius:50%; background:inherit; }
-.intro-cloud::before { left:27px; bottom:17px; width:84px; height:84px; }.intro-cloud::after { left:82px; bottom:19px; width:98px; height:98px; }
-.intro-cloud-back { top:88px; left:0; opacity:.58; transform:scale(.68); animation:intro-cloud-back 2.5s ease-in-out both; }
-.intro-cloud-front { top:100px; left:22%; background:linear-gradient(145deg,#b9cce7,#4a6489 85%); animation:intro-cloud-front 2.5s ease-in-out both; }
-.intro-rain { position:absolute; left:38%; top:151px; width:170px; height:52px; opacity:0; transform:skewX(-16deg); background:repeating-linear-gradient(90deg,transparent 0 11px,rgba(133,199,255,.85) 12px 14px,transparent 15px 23px); -webkit-mask-image:linear-gradient(180deg,transparent,#000 20%,transparent 90%); mask-image:linear-gradient(180deg,transparent,#000 20%,transparent 90%); animation:intro-rain-fall .35s linear 1.5s 3 both; }
-.intro-bolt { position:absolute; left:65%; top:133px; width:28px; height:47px; background:#e2f5ff; clip-path:polygon(55% 0,15% 55%,50% 53%,35% 100%,90% 37%,57% 40%,75% 0); filter:drop-shadow(0 0 18px white); opacity:0; animation:intro-lightning 2.5s linear both; }
-.intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; justify-content:center; gap:12px; color:#4885ff; font-size:clamp(2.7rem,10vw,4.5rem); font-weight:900; line-height:1; letter-spacing:.025em; opacity:0; animation:intro-mark-in .8s cubic-bezier(.17,.8,.2,1) .65s both; }
+.pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; pointer-events:none; }
+.intro-sun { position:absolute; top:15%; right:15%; width:clamp(85px,24vw,190px); aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 35% 30%,#fff9df,#ffdfa0); box-shadow:0 0 90px 35px #ffe3a94d; animation:intro-sunrise 2.6s ease-out both; }
+.intro-cloud { position:absolute; inset:-10%; background:url("./assets/panel-night-sky.webp") center / cover; opacity:.4; -webkit-mask-image:linear-gradient(transparent 20%,#000 80%); mask-image:linear-gradient(transparent 20%,#000 80%); animation:intro-cloud-drift 3s ease-out both; }
+.intro-cloud-back { display:none; }
+.intro-rain,.intro-bolt { display:none; }
+.intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; gap:12px; color:#f6faff; font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; animation:intro-mark-in .8s ease-out .2s both; }
 .intro-wordmark strong { font-weight:900; }
-.intro-drop { display:block; width:clamp(40px,10vw,65px); height:clamp(52px,13vw,82px); background:currentColor; -webkit-mask:url("./logo-mark.png") center / contain no-repeat; mask:url("./logo-mark.png") center / contain no-repeat; }
-.pluvia-intro .intro-tagline { position:relative; z-index:1; margin:7px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.15rem); font-weight:700; letter-spacing:.16em; opacity:0; animation:intro-caption-in .6s ease-out 1s both; }
-.pluvia-intro .intro-kicker {
-  position:relative; z-index:1; margin:0 0 5px; color:#b2c5dd; font-family:var(--font-ui); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
-  opacity:0; animation:intro-caption-in .6s ease-out .15s both;
-}
-.pluvia-intro .intro-copy { position:relative; z-index:1; margin:18px 0 0; max-width:25ch; color:#b2c5dd; font-size:.98rem; opacity:0; animation:intro-caption-in .65s ease-out 1.3s both; }
-.pluvia-intro .intro-progress { position:absolute; bottom:max(36px,env(safe-area-inset-bottom)); left:50%; width:80px; height:3px; transform:translateX(-50%); border-radius:999px; overflow:hidden; background:rgba(164,195,246,.25); }
-.pluvia-intro .intro-progress span { display:block; width:100%; height:100%; border-radius:inherit; background:#8bb9ff; transform-origin:left center; animation:intro-progress-fill 2.6s linear both; }
-.pluvia-intro { color: #f1f6ff; }
-@keyframes intro-mark-in { from { opacity:0; transform:translateY(26px) scale(.87); filter:blur(9px); } 65% { filter:blur(0); } to { opacity:1; transform:translateY(0) scale(1); filter:blur(0); } }
-@keyframes intro-caption-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-@keyframes intro-sky-change { 0%,34% { opacity:.45; } 70%,100% { opacity:1; } }
-@keyframes intro-sun-travel { 0% { transform:translate(-80px,50px) scale(.65); opacity:0; } 13% { opacity:1; } 45% { transform:translate(115px,-88px) scale(1); opacity:1; } 75%,100% { transform:translate(340px,35px) scale(.72); opacity:0; } }
-@keyframes intro-cloud-back { 0% { transform:translateX(-150px) scale(.68); opacity:0; } 40% { opacity:.55; } 100% { transform:translateX(410px) scale(.68); opacity:.2; } }
-@keyframes intro-cloud-front { 0% { transform:translateX(-280px); opacity:0; } 45% { transform:translateX(-70px); opacity:.8; } 80%,100% { transform:translateX(65px); opacity:1; } }
-@keyframes intro-rain-fall { 0% { opacity:0; background-position:0 -12px; } 50% { opacity:.9; } 100% { opacity:0; background-position:0 18px; } }
-@keyframes intro-lightning { 0%,64%,67%,71%,100% { opacity:0; } 65%,69% { opacity:1; } }
+.intro-drop { display:block; width:clamp(42px,11vw,70px); height:clamp(55px,14vw,88px); background:#6babff; -webkit-mask:url("./logo-mark.png") center / contain no-repeat; mask:url("./logo-mark.png") center / contain no-repeat; }
+.pluvia-intro .intro-tagline { position:relative; z-index:1; margin:16px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.2rem); letter-spacing:.08em; animation:intro-caption-in .65s ease-out .5s both; }
+.pluvia-intro .intro-kicker { position:absolute; bottom:calc(65px + env(safe-area-inset-bottom)); color:#e1ebf5; font-size:.65rem; font-weight:750; letter-spacing:.24em; text-transform:uppercase; }
+.pluvia-intro .intro-copy { display:none; }
+.pluvia-intro .intro-progress { position:absolute; bottom:calc(40px + env(safe-area-inset-bottom)); width:64px; height:2px; border-radius:999px; overflow:hidden; background:#ffffff30; }
+.pluvia-intro .intro-progress span { display:block; height:100%; background:#dceeff; transform-origin:left; animation:intro-progress-fill 2.6s linear both; }
+@keyframes intro-horizon { from { opacity:.4; transform:scale(1.05); } to { opacity:1; transform:scale(1); } }
+@keyframes intro-sunrise { from { transform:translateY(45px); opacity:0; } to { transform:translateY(0); opacity:.9; } }
+@keyframes intro-cloud-drift { from { transform:translateX(-3%) scale(1.04); } to { transform:translateX(3%) scale(1); } }
+@keyframes intro-mark-in { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+@keyframes intro-caption-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 @keyframes intro-progress-fill { from { transform:scaleX(0); } to { transform:scaleX(1); } }
-@media (prefers-reduced-motion:reduce) {
-  .pluvia-intro .intro-wordmark,.pluvia-intro .intro-kicker,.pluvia-intro .intro-tagline,.pluvia-intro .intro-copy { animation:none; opacity:1; }
-  .pluvia-intro .intro-sky,.pluvia-intro .intro-progress { display:none; }
-  .pluvia-intro.is-leaving { transition:none; }
-}
-@media (max-width:480px) { .pluvia-intro .intro-sky { height:180px; } .intro-cloud-front { left:12%; } .intro-rain { left:28%; } }
+@media(prefers-reduced-motion:reduce) { .pluvia-intro *,.pluvia-intro::before { animation:none !important; } }
     </style>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-119" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-10" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-11" media="print" onload="this.media='all'" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-119" /></noscript>
   </head>
@@ -337,13 +323,13 @@
     <script src="./vendor/suncalc.js?v=core-109" defer></script>
     <script src="./modules/smart-summary.js?v=core-109" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
-    <script src="./app.js?v=panel-10" defer></script>
+    <script src="./app.js?v=panel-11" defer></script>
     <script src="./p0.js?v=core-109" defer></script>
     <script src="./modules/risks.js?v=core-116" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
     <script src="./weather-map.js?v=core-115" defer></script>
     <script src="./account.js?v=core-109" defer></script>
     <script src="./saved-places.js?v=core-109" defer></script>
-    <script src="./notifications.js?v=panel-10" defer></script>
+    <script src="./notifications.js?v=panel-11" defer></script>
   </body>
 </html>
