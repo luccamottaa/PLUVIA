@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="420" viewBox="0 0 360 420">
+  <defs>
+    <linearGradient id="drop" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#e2f3ff" stop-opacity="0"/>
+      <stop offset=".8" stop-color="#e2f3ff" stop-opacity=".38"/>
+      <stop offset="1" stop-color="#e2f3ff" stop-opacity=".12"/>
+    </linearGradient>
+    <path id="a" d="M3 0 0 16" stroke="url(#drop)" stroke-width="1.2" stroke-linecap="round"/>
+    <path id="b" d="M2 0 0 9" stroke="url(#drop)" stroke-width=".7" stroke-linecap="round"/>
+  </defs>
+  <g fill="none">
+    <use href="#a" x="28" y="17"/><use href="#b" x="146" y="42"/>
+    <use href="#a" x="279" y="8" opacity=".6"/><use href="#b" x="331" y="86"/>
+    <use href="#b" x="73" y="112"/><use href="#a" x="211" y="135"/>
+    <use href="#a" x="119" y="191" opacity=".7"/><use href="#b" x="301" y="213"/>
+    <use href="#b" x="15" y="247"/><use href="#a" x="253" y="288" opacity=".65"/>
+    <use href="#b" x="175" y="320"/><use href="#a" x="61" y="357"/>
+    <use href="#b" x="326" y="382"/><use href="#b" x="202" y="400"/>
+  </g>
+</svg>

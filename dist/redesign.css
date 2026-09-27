@@ -338,8 +338,8 @@ body[data-weather="sun"][data-phase="night"] {
 body[data-weather="partly"] { --sky-clouds:.32; }
 body[data-weather="cloud"] { --sky-clouds:.48; --sky-base:#102c47; --sky-color:linear-gradient(160deg,#476885,#233f60 46%,#102c47 90%); }
 body[data-weather="cloud"][data-phase="night"] { --sky-base:#081b30; --sky-color:linear-gradient(160deg,#273d58,#102941 48%,#081b30 90%); --sky-clouds:.3; }
-body[data-weather="rain"] { --sky-base:#0b263d; --sky-clouds:.54; --sky-color:repeating-linear-gradient(110deg,transparent 0 45px,#afceec08 46px,transparent 47px 95px),linear-gradient(170deg,#36546d,#163853 45%,#0b263d 90%); }
-body[data-weather="rain"][data-phase="night"] { --sky-base:#06192c; --sky-color:repeating-linear-gradient(110deg,transparent 0 45px,#afceec08 46px,transparent 47px 95px),linear-gradient(170deg,#203b58,#102941 45%,#06192c 90%); }
+body[data-weather="rain"] { --sky-base:#0b263d; --sky-clouds:.54; --sky-color:linear-gradient(170deg,#36546d,#163853 45%,#0b263d 90%); }
+body[data-weather="rain"][data-phase="night"] { --sky-base:#06192c; --sky-color:linear-gradient(170deg,#203b58,#102941 45%,#06192c 90%); }
 body[data-weather="storm"] { --sky-base:#10192e; --sky-clouds:.65; --sky-color:radial-gradient(ellipse at 80% 22%,#6a70985c,transparent 45%),linear-gradient(165deg,#2e3955,#18273e 50%,#10192e 90%); }
 body[data-weather="storm"][data-phase="night"] { --sky-base:#080f23; --sky-clouds:.42; --sky-color:linear-gradient(165deg,#262c49,#101c35 50%,#080f23 90%); }
 body[data-weather="fog"] { --sky-base:#263e51; --sky-clouds:0; --sky-color:linear-gradient(180deg,#73889888,transparent 75%),repeating-linear-gradient(175deg,#afbdc314 0 70px,transparent 150px 220px); }
@@ -366,7 +366,7 @@ body[data-phase="day"][data-weather="cloud"] {
 }
 body[data-phase="day"][data-weather="rain"] {
   --sky-base:#88a9c0; --sky-clouds:.22;
-  --sky-color:repeating-linear-gradient(110deg,transparent 0 45px,#fff2 46px,transparent 47px 95px),linear-gradient(165deg,#6d96b4,#b2cbdc 60%,#88a9c0);
+  --sky-color:linear-gradient(165deg,#6d96b4,#b2cbdc 60%,#88a9c0);
 }
 body[data-phase="day"][data-weather="storm"] {
   --sky-base:#7c96af; --sky-clouds:.18;
@@ -386,4 +386,13 @@ body[data-phase="day"] .footer-link { color:#193d60; }
 body[data-phase="day"] .panel:not(.weather-hero):not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night),
 body[data-phase="day"] .hourly-peek.panel,body[data-phase="day"] .quick-metrics > .quick-metric.panel,body[data-phase="day"] .quick-metrics .hero-temperature-range {
   background:linear-gradient(145deg,rgba(23,65,111,.95),rgba(8,37,77,.94)) !important;
+}
+
+/* Gotas finas e curtas em profundidades diferentes, sem faixas atravessando a tela. */
+body[data-weather="rain"] .night-stage::before,
+body[data-weather="storm"] .night-stage::before {
+  background-image:url("./assets/rain-drops.svg"),var(--sky-color);
+  background-size:360px 420px,100% 100%;
+  background-repeat:repeat,no-repeat;
+  background-position:17px 43px,center top;
 }
