@@ -431,6 +431,17 @@ function renderHourly(hourly, start, daily) {
   const chart = $("rainChart");
   const scrollLeft = chart.scrollLeft;
   const indices = Array.from({length: 24}, (_, i) => start + i).filter(i => i < hourly.time.length);
+  const peek = $("hourlyPeek");
+  if (peek) {
+    peek.innerHTML = indices.slice(0, 5).map((i, p) => {
+      const time = p === 0 ? "Agora" : shortTime(hourly.time[i]);
+      const temperature = hourly.temperature_2m?.[i];
+      const probability = hourly.precipitation_probability?.[i];
+      const icon = weatherIcons.markup(hourly.weather_code?.[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:true});
+      const rain = Number.isFinite(probability) ? `${Math.round(probability)}%` : "—";
+      return `<a class="hourly-peek-item ${p === 0 ? "is-now" : ""}" href="#chuva" aria-label="${time}: ${fmt(temperature)} graus, ${rain} de chance de chuva. Ver previsão completa"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain"><img src="./assets/weather-icons/metrics/rain-probability.png" alt="" />${rain}</span><strong>${fmt(temperature)}°</strong></a>`;
+    }).join("") || '<p>Previsão por hora indisponível.</p>';
+  }
   const temperatures = indices.map(i => hourly.temperature_2m[i]).filter(Number.isFinite);
   const minTemp = temperatures.length ? Math.min(...temperatures) : 0;
   const tempSpread = temperatures.length ? Math.max(1, Math.max(...temperatures) - minTemp) : 1;
@@ -787,6 +798,7 @@ async function loadWeather(revision = cityRevision) {
       $("condition").textContent = "Tempo indisponível";
       renderVisibility(null);
       $("rainChart").innerHTML = '<p class="chart-loading">Previsão indisponível. Tentaremos novamente.</p>';
+      $("hourlyPeek").innerHTML = '<p>Previsão por hora indisponível.</p>';
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("dryWindow").textContent = "Sem dados";
       $("sunPhrase").textContent = "Ciclo solar indisponível.";
@@ -923,7 +935,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","attentionSignal","attentionTitle","attentionText","attentionIcon","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote"];
+const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","attentionSignal","attentionTitle","attentionText","attentionIcon","hourlyPeek","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote"];
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;

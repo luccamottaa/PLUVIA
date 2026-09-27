@@ -106,6 +106,7 @@
     </style>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-118" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-1" media="print" onload="this.media='all'" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-118" /></noscript>
   </head>
@@ -238,10 +239,10 @@
       <section class="intro" id="agora">
         <div>
           <div class="eyebrow" id="dataStatus"><span class="live-dot" aria-hidden="true"></span><span id="statusText" role="status">Consultando o tempo</span></div>
+          <div class="clock-wrap"><span id="cityTimezone">Horário local</span><strong id="localClock">--:--</strong><small id="localDate"></small></div>
           <h1><span id="cityName">Sua cidade</span> <em>agora.</em></h1>
           <p id="cityDistance" hidden></p>
         </div>
-        <div class="clock-wrap"><span id="cityTimezone">Horário local</span><strong id="localClock">--:--</strong><small id="localDate"></small></div>
       </section>
       <section class="dashboard-grid" aria-label="Condições atuais">
         <article class="current-card weather-hero panel card-primary">
@@ -253,14 +254,18 @@
             <div class="weather-glyph" id="weatherGlyph" aria-hidden="true"></div>
             <p class="condition" id="condition">Consultando o tempo…</p>
           </div>
-          <div class="hero-temperature-range" aria-label="Temperaturas máxima e mínima previstas para hoje">
-            <div class="hero-temperature-extreme"><span data-weather-icon-name="temperature-high" aria-hidden="true"></span><div><small>Máxima</small><strong id="todayHigh">--°</strong></div></div>
-            <div class="hero-temperature-extreme"><span data-weather-icon-name="temperature-low" aria-hidden="true"></span><div><small>Mínima</small><strong id="todayLow">--°</strong></div></div>
-          </div>
         </article>
       </section>
+      <section class="hourly-peek panel" aria-labelledby="hourlyPeekTitle">
+        <div class="hourly-peek-heading"><h2 id="hourlyPeekTitle">Próximas horas</h2><a href="#chuva" aria-label="Ver previsão completa por hora">Ver previsão <span aria-hidden="true">›</span></a></div>
+        <div class="hourly-peek-list" id="hourlyPeek" role="group" aria-label="Condições nas próximas horas"><p>Consultando as próximas horas…</p></div>
+      </section>
       <section class="quick-metrics" aria-label="Sensação térmica e visibilidade">
-        <article class="metric quick-metric panel card-detail" aria-label="Sensação térmica atual"><div class="metric-head"><span>SENSAÇÃO TÉRMICA</span><span data-weather-icon-name="feels-like" aria-hidden="true"></span></div><strong id="feelsLike">--°</strong><small id="feelsLikeNote">Consultando…</small></article>
+        <article class="metric quick-metric panel card-detail" aria-label="Sensação térmica atual"><div class="metric-head"><span>Sensação</span><span data-weather-icon-name="feels-like" aria-hidden="true"></span></div><strong id="feelsLike">--°</strong><small id="feelsLikeNote">Consultando…</small></article>
+        <div class="hero-temperature-range" aria-label="Temperaturas máxima e mínima previstas para hoje">
+          <div class="hero-temperature-extreme"><span data-weather-icon-name="temperature-high" aria-hidden="true"></span><div><small>Máxima</small><strong id="todayHigh">--°</strong></div></div>
+          <div class="hero-temperature-extreme"><span data-weather-icon-name="temperature-low" aria-hidden="true"></span><div><small>Mínima</small><strong id="todayLow">--°</strong></div></div>
+        </div>
         <article class="metric quick-metric panel card-detail" aria-label="Visibilidade prevista"><div class="metric-head"><span>VISIBILIDADE</span><span data-weather-icon-name="visibility" aria-hidden="true"></span></div><strong id="visibilityValue">--</strong><small id="visibilityNote">Consultando a previsão…</small><span id="visibilityBadge" class="visibility-badge" hidden>Visibilidade reduzida</span></article>
       </section>
       <section class="metrics" aria-label="Detalhes meteorológicos">
@@ -354,7 +359,7 @@
     <script src="./vendor/suncalc.js?v=core-109" defer></script>
     <script src="./modules/smart-summary.js?v=core-109" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
-    <script src="./app.js?v=core-110" defer></script>
+    <script src="./app.js?v=panel-1" defer></script>
     <script src="./p0.js?v=core-109" defer></script>
     <script src="./modules/risks.js?v=core-116" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>

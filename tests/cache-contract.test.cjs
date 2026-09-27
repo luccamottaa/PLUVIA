@@ -8,16 +8,17 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 
 test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
-  const htmlRefs = [...html.matchAll(/src="(\.\/(?:modules\/)?[^"]+\.js\?v=[^"]+)"/g), ...html.matchAll(/href="(\.\/styles\.css\?v=[^"]+)"/g)].map(m => m[1]);
+  const htmlRefs = [...html.matchAll(/src="(\.\/(?:modules\/)?[^"]+\.js\?v=[^"]+)"/g), ...html.matchAll(/href="(\.\/(?:styles|redesign)\.css\?v=[^"]+)"/g)].map(m => m[1]);
   assert.ok(htmlRefs.length >= 10);
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-core-118"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-1"/);
   assert.match(html, /styles\.css\?v=core-118/);
+  assert.match(html, /redesign\.css\?v=panel-1/);
   assert.match(html, /glass\.js\?v=core-117/);
-  assert.match(html, /app\.js\?v=core-110/);
-  assert.equal((sw.match(/pluvia-core-\d+/g) || []).every(token => token === 'pluvia-core-118'), true);
+  assert.match(html, /app\.js\?v=panel-1/);
+  assert.ok(sw.includes('"./assets/panel-night-sky.webp"'));
 });
 
 test('shell iOS e domínio canônico estão travados', () => {
