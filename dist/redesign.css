@@ -347,3 +347,43 @@ body[data-weather="fog"][data-phase="night"] { --sky-base:#142638; --sky-color:l
 body[data-weather="snow"] { --sky-base:#24445f; --sky-clouds:.15; --sky-color:radial-gradient(circle at 20% 15%,#fff9 0 2px,transparent 3px),radial-gradient(circle at 75% 30%,#fff9 0 2px,transparent 3px),linear-gradient(160deg,#6f90aa,#24445f 85%); }
 body[data-weather="snow"][data-phase="night"] { --sky-base:#101e35; --sky-color:radial-gradient(circle at 20% 15%,#fff9 0 2px,transparent 3px),linear-gradient(160deg,#3b526e,#101e35 85%); }
 @media(prefers-reduced-motion:reduce) { body,.night-stage::after { transition:none; } }
+
+/* Dia claro em toda a página, mesmo quando o aparelho usa o modo escuro. */
+body[data-phase="day"] {
+  --sky-base:#8dc5e7;
+  --sky-color:linear-gradient(165deg,#5aaee4,#b5def4 65%,#8dc5e7);
+  --bg:var(--sky-base);
+  --canvas-text:#123457; --canvas-muted:#294e72;
+}
+body[data-phase="day"][data-weather="sun"] {
+  --sky-base:#91cfee;
+  --sky-color:radial-gradient(ellipse at 83% 8%,#fff0bb,transparent 35%),linear-gradient(165deg,#62b7eb,#b8e4f7 65%,#91cfee);
+}
+body[data-phase="day"][data-weather="partly"] { --sky-clouds:.55; }
+body[data-phase="day"][data-weather="cloud"] {
+  --sky-base:#a1bdcf; --sky-clouds:.25;
+  --sky-color:linear-gradient(165deg,#88acc8,#d3e2eb 58%,#a1bdcf);
+}
+body[data-phase="day"][data-weather="rain"] {
+  --sky-base:#88a9c0; --sky-clouds:.22;
+  --sky-color:repeating-linear-gradient(110deg,transparent 0 45px,#fff2 46px,transparent 47px 95px),linear-gradient(165deg,#6d96b4,#b2cbdc 60%,#88a9c0);
+}
+body[data-phase="day"][data-weather="storm"] {
+  --sky-base:#7c96af; --sky-clouds:.18;
+  --sky-color:linear-gradient(165deg,#607c9b,#a6b9cc 60%,#7c96af);
+}
+body[data-phase="day"][data-weather="fog"] {
+  --sky-base:#bfced8; --sky-color:linear-gradient(165deg,#a9c1d2,#e0e9ef 60%,#bfced8);
+}
+body[data-phase="day"][data-weather="snow"] {
+  --sky-base:#b9d5e7; --sky-clouds:.12;
+  --sky-color:radial-gradient(circle at 20% 15%,white 0 2px,transparent 3px),linear-gradient(165deg,#92bddb,#e4f1f8 65%,#b9d5e7);
+}
+body[data-phase="day"] .topbar { background:transparent !important; box-shadow:none; }
+body[data-phase="day"] :is(.intro h1,.intro .eyebrow,.intro .clock-wrap small,.intro .clock-wrap strong,.weather-hero .temperature,.weather-hero .temperature .deg,.weather-hero .condition,.topbar .brand span:last-child,.topbar .account-trigger) { color:#123457; text-shadow:none; }
+body[data-phase="day"] .section-heading :is(h2,p),body[data-phase="day"] footer { color:#193d60; }
+body[data-phase="day"] .footer-link { color:#193d60; }
+body[data-phase="day"] .panel:not(.weather-hero):not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night),
+body[data-phase="day"] .hourly-peek.panel,body[data-phase="day"] .quick-metrics > .quick-metric.panel,body[data-phase="day"] .quick-metrics .hero-temperature-range {
+  background:linear-gradient(145deg,rgba(23,65,111,.95),rgba(8,37,77,.94)) !important;
+}
