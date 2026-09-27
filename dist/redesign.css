@@ -1,3 +1,9 @@
+/* Only the base tiles are darkened; radar and cloud data keep their colors. */
+.pluvia-dark-basemap { filter:invert(1) hue-rotate(180deg) brightness(.7) saturate(.65); }
+#weatherMap { background:#101f32; }
+#weatherMap .leaflet-bar a { background:#142945; color:#e8f2ff; border-color:#385276; }
+#weatherMap .leaflet-control-attribution { background:#10233fe8; color:#bdcde2; }
+#weatherMap .leaflet-control-attribution a { color:#8cbcff; }
 /* Painel Noturno: o céu atravessa o topo e o conteúdo sem uma emenda. */
 .night-stage { position:relative; isolation:isolate; display:flow-root; }
 .night-stage::before {

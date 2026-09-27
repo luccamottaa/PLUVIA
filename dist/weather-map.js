@@ -65,21 +65,34 @@
     $('weatherMapLegend').innerHTML = '<span>Fraca</span><i class="legend-rain"></i><span>Forte</span>';
   }
   function cloudPoints(selectedCity) {
-    const delta = .24, points = [];
+    const delta = 1.2, points = [];
     for (let row=-1; row<=1; row++) for (let col=-1; col<=1; col++) points.push({lat:selectedCity.lat-row*delta,lon:selectedCity.lon+col*delta,row,col});
     return points;
   }
   function renderCloudFrame() {
     const frame = state.frames[state.index]; if (!frame) return;
     removeOverlay();
-    const delta = .24;
-    const layers = frame.values.map((cover,index) => {
-      const point = frame.points[index], opacity = .06 + Math.max(0,Math.min(100,Number(cover)||0)) / 100 * .7;
-      return L.rectangle([[point.lat-delta/2,point.lon-delta/2],[point.lat+delta/2,point.lon+delta/2]],{stroke:false,fillColor:'#e8f3ff',fillOpacity:opacity,interactive:false});
-    });
-    state.overlay = L.layerGroup(layers).addTo(state.map);
+    // Interpolate the model's sampled coverage, without inventing satellite detail.
+    const canvas = document.createElement('canvas'), size = 192;
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d'), pixels = ctx.createImageData(size,size);
+    for (let y=0;y<size;y++) for (let x=0;x<size;x++) {
+      const gx=x/(size-1)*2, gy=y/(size-1)*2;
+      const col=Math.min(1,Math.floor(gx)), row=Math.min(1,Math.floor(gy));
+      const fx=gx-col, fy=gy-row;
+      const a=frame.values[row*3+col]*(1-fx)+frame.values[row*3+col+1]*fx;
+      const b=frame.values[(row+1)*3+col]*(1-fx)+frame.values[(row+1)*3+col+1]*fx;
+      const coverage=(a*(1-fy)+b*fy)/100;
+      const edge=Math.min(1,Math.min(x,y,size-1-x,size-1-y)/(size*.16));
+      const i=(y*size+x)*4;
+      pixels.data[i]=218; pixels.data[i+1]=232; pixels.data[i+2]=248;
+      pixels.data[i+3]=Math.round(coverage*edge*150);
+    }
+    ctx.putImageData(pixels,0,0);
+    const northWest=frame.points[0], southEast=frame.points[8];
+    state.overlay = L.imageOverlay(canvas.toDataURL(),[[southEast.lat,northWest.lon],[northWest.lat,southEast.lon]],{interactive:false}).addTo(state.map);
     $('weatherFrameTime').textContent = zoneTime(frame.time);
-    $('weatherSourceNote').textContent = 'Cobertura de nuvens estimada · Open-Meteo · modelo no município e arredores.';
+    $('weatherSourceNote').textContent = 'Cobertura de nuvens estimada · Open-Meteo · interpolação regional, não imagem de satélite. Fora da área suavizada não há leitura nesta camada.';
     $('weatherMapLegend').innerHTML = '<span>Menos nuvens</span><i class="legend-clouds"></i><span>Mais nuvens</span>';
   }
   function renderFrame() {
@@ -164,7 +177,7 @@
     const selectedCity = city(); if (!selectedCity) throw new Error('Escolha uma cidade para ver o mapa.');
     if (!state.map) {
       state.map = L.map('weatherMap',{zoomControl:true,minZoom:3,maxZoom:11}).setView([selectedCity.lat,selectedCity.lon],7);
-      state.base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map);
+      state.base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{className:'pluvia-dark-basemap',maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map);
     } else state.map.setView([selectedCity.lat,selectedCity.lon],7);
     if (state.marker) state.map.removeLayer(state.marker);
     state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:7,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(`${selectedCity.name}/${selectedCity.uf}`);

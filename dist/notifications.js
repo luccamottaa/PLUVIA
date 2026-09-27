@@ -192,11 +192,11 @@
     return config;
   }
 
-  async function register(subscription) {
+  async function register(subscription, explicitLocation = null) {
     config ||= await loadConfig();
-    const result = await invoke("push-subscriptions", { action: "register", subscription: subscription.toJSON(), device: deviceInfo(), location: currentLocation() });
+    const result = await invoke("push-subscriptions", { action: "register", subscription: subscription.toJSON(), device: deviceInfo(), location: explicitLocation });
     saveSubscriptionId(result.subscriptionId);
-    await saveAlertSetup();
+    if (explicitLocation) await saveAlertSetup(explicitLocation);
     await loadConfig();
   }
 
@@ -209,8 +209,7 @@
     };
   }
 
-  async function saveAlertSetup() {
-    const location = currentLocation();
+  async function saveAlertSetup(location) {
     const existing = config?.preferences;
     const preferences = {
       ...allAlertPreferences(),
@@ -239,7 +238,7 @@
       const registration = await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: publicKeyBytes(config.publicKey) });
-      await register(subscription);
+      await register(subscription, currentLocation());
       setPendingEnable(false);
       track("Push Enabled", { platform: deviceInfo().platform, city: currentLocation()?.cityId || "" });
       message(`Alertas ligados para ${cityLabel()}. INMET e chuva nas próximas horas. Envie um teste se quiser conferir.`);
@@ -326,7 +325,7 @@
     await paintState();
   });
   navigator.serviceWorker?.addEventListener("message", event => { if (event.data?.type === "push-subscription-changed" && currentUser()) loadConfig().then(async () => { const subscription = await browserSubscription(); if (subscription) await register(subscription); }).catch(() => {}); });
-  window.addEventListener("pluvia:city-changed", () => { const checkbox = form.elements.namedItem("monitor_current_city"); if (checkbox) checkbox.checked = true; paintState().catch(() => {}); });
+  window.addEventListener("pluvia:city-changed", () => { const checkbox = form.elements.namedItem("monitor_current_city"); if (checkbox) checkbox.checked = false; paintState().catch(() => {}); });
   window.pluviaPush = { beforeLogout, enable, disable };
   paintState().catch(() => {});
 })();

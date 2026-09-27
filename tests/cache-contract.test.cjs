@@ -13,16 +13,16 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-11"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-12"/);
   assert.match(html, /styles\.css\?v=core-119/);
-  assert.match(html, /redesign\.css\?v=panel-11/);
+  assert.match(html, /redesign\.css\?v=panel-12/);
   assert.doesNotMatch(sw, /glass\.js/);
-  assert.match(html, /app\.js\?v=panel-11/);
+  assert.match(html, /app\.js\?v=panel-12/);
   assert.ok(sw.includes('"./assets/panel-night-sky.webp"'));
 });
 
 test('shell iOS e domínio canônico estão travados', () => {
-  assert.match(html, /apple-mobile-web-app-status-bar-style" content="black-translucent"/);
+  assert.match(html, /apple-mobile-web-app-status-bar-style" content="black"/);
   assert.match(html, /mobile-web-app-capable" content="yes"/);
   assert.match(html, /luccamottaa\.github\.io/);
   assert.match(html, /https:\/\/pluviaweather\.com\.br/);
