@@ -391,8 +391,52 @@ body[data-phase="day"] .hourly-peek.panel,body[data-phase="day"] .quick-metrics 
 /* Gotas finas e curtas em profundidades diferentes, sem faixas atravessando a tela. */
 body[data-weather="rain"] .night-stage::before,
 body[data-weather="storm"] .night-stage::before {
-  background-image:url("./assets/rain-drops.svg"),var(--sky-color);
-  background-size:360px 420px,100% 100%;
-  background-repeat:repeat,no-repeat;
-  background-position:17px 43px,center top;
+  background-image:var(--sky-color);
 }
+
+/* Céu em movimento, com uma camada isolada atrás de todo o conteúdo. */
+.sky-effects { position:absolute; inset:0 0 auto; height:min(1450px,145vh); overflow:hidden; pointer-events:none; z-index:-1; }
+.sky-sun { display:none; position:absolute; top:155px; right:10%; width:110px; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 35% 30%,#fffdeb,#ffe793 65%,#ffd266); box-shadow:0 0 45px 18px #fff3bb66,0 0 110px 50px #ffe99b33; animation:sun-breathe 8s ease-in-out infinite alternate; }
+body[data-phase="day"][data-weather="sun"] .sky-sun,body[data-phase="day"][data-weather="partly"] .sky-sun { display:block; }
+body[data-weather="partly"] .sky-sun { opacity:.7; }
+.sky-rain { display:none; position:absolute; inset:-420px 0 0; background:url("./assets/rain-drops.svg") 17px 0 / 360px 420px repeat; animation:rain-fall 1.6s linear infinite; }
+body[data-weather="rain"] .sky-rain,body[data-weather="storm"] .sky-rain { display:block; }
+body[data-weather="storm"] .sky-rain { animation-duration:1s; }
+@keyframes rain-fall { to { transform:translateY(420px); } }
+@keyframes sun-breathe { to { transform:scale(1.07); opacity:.88; } }
+.topbar,.topbar .search-trigger { backdrop-filter:none !important; -webkit-backdrop-filter:none !important; filter:none; }
+body::before { display:none; }
+body.page-hidden .sky-effects * { animation-play-state:paused; }
+@media(prefers-reduced-motion:reduce) { .sky-effects * { animation:none !important; } }
+
+/* Sensação, máxima e mínima compartilham a mesma hierarquia visual. */
+.quick-metrics { grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:0; }
+.quick-metrics > .quick-metric:first-child { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:116px; gap:1px; padding:10px 4px; border-radius:24px 0 0 24px; border-right:0 !important; }
+.quick-metrics > .quick-metric:first-child .metric-head { display:flex; flex-direction:column-reverse; align-items:center; gap:1px; }
+.quick-metrics > .quick-metric:first-child .metric-head > span:first-child { font-size:.75rem; font-weight:400; text-transform:none; letter-spacing:0; color:#c0d6f4; }
+.quick-metrics > .quick-metric:first-child .metric-weather-icon { width:32px; height:32px; }
+.quick-metrics > .quick-metric:first-child > strong { margin:0; font-size:1.6rem; line-height:1.12; }
+.quick-metrics > .quick-metric:first-child > small { display:none; }
+.quick-metrics .hero-temperature-range { border-radius:0 24px 24px 0; }
+.quick-metrics .hero-temperature-extreme { align-items:center; text-align:center; flex-direction:column; gap:1px; padding:10px 4px; }
+.quick-metrics .hero-temperature-extreme strong { font-size:1.6rem; }
+.quick-metrics .hero-temperature-extreme > span,.quick-metrics .hero-temperature-extreme .metric-weather-icon { width:32px; height:32px; flex-basis:32px; }
+.quick-metrics > .quick-metric:last-child { margin-top:12px; }
+
+/* Resumo: título e leitura principal primeiro, detalhes em uma lista única. */
+.insight-card { display:grid; grid-template-columns:minmax(0,1fr) 54px; gap:12px; padding:22px; min-height:0; }
+.insight-card .card-topline { grid-column:1/-1; flex-wrap:nowrap; align-items:center; margin:0; }
+.insight-card .card-topline > span:first-child { flex:1; font-size:.7rem; letter-spacing:.07em; }
+.insight-card .signal { font-size:.65rem; }
+.insight-card .attention-icon { grid-column:2; grid-row:2; width:54px; height:54px; margin:0; background:none; }
+.insight-card .attention-icon img,.insight-card .attention-icon svg { width:54px; height:54px; }
+.insight-card h2 { grid-column:1; grid-row:2; margin:0; align-self:center; font-size:1.4rem; line-height:1.22; }
+.insight-card > p { grid-column:1/-1; margin:0; font-size:.94rem; line-height:1.6; }
+.insight-card .summary-highlights { display:none; }
+.insight-card .context-highlights { grid-column:1/-1; display:grid; gap:0; margin:0; border-block:1px solid #b5d5ff26; }
+.insight-card .context-highlights:empty { display:none; }
+.insight-card .context-highlights li { padding:10px 0; border:0; border-radius:0; background:none; font-size:.85rem; line-height:1.4; }
+.insight-card .context-highlights li + li { border-top:1px solid #b5d5ff1a; }
+.insight-card :is(.weather-explanation,#attentionBasis,.summary-link) { grid-column:1/-1; margin:0; }
+.insight-card #attentionBasis { font-size:.72rem; line-height:1.45; }
+.insight-card .summary-link { padding-top:4px; }

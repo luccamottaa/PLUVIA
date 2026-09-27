@@ -96,7 +96,7 @@
     </style>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-119" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-9" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-10" media="print" onload="this.media='all'" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-119" /></noscript>
   </head>
@@ -136,6 +136,7 @@
       })();
     </script>
     <div class="night-stage">
+    <div class="sky-effects" aria-hidden="true"><div class="sky-sun"></div><div class="sky-rain"></div></div>
     <header class="topbar shell" id="top">
       <a class="brand" href="#top" aria-label="PLUVIA, início"><span class="brand-mark" aria-hidden="true"></span><span>PLUVIA</span></a>
       <button id="accountButton" class="account-trigger" type="button" aria-haspopup="dialog" aria-controls="accountDialog">Entrar / cadastrar</button>
@@ -199,21 +200,8 @@
             <p id="notificationContinueNote" class="notification-continue" hidden>Conta conectada. Toque em <strong>Ativar alertas</strong> para solicitar permissão no iPhone.</p>
             <div class="notification-actions"><button id="notificationToggle" type="button">Ativar alertas</button><button id="notificationTest" type="button" hidden>Enviar notificação de teste</button></div>
             <form id="notificationPreferencesForm" class="alert-preferences">
-              <fieldset><legend>Alertas</legend>
-                <label><input type="checkbox" name="official_alerts" checked> Alertas meteorológicos oficiais</label>
-                <label><input type="checkbox" name="rain_approaching" checked> Chuva nas próximas horas <small>modelo, sem minuto exato</small></label>
-                <label><input type="checkbox" name="heavy_rain" checked> Chuva forte</label>
-                <label><input type="checkbox" name="storms" checked> Tempestades</label>
-                <label><input type="checkbox" name="lightning" disabled> Raios <small>indisponível: falta fonte observacional licenciada</small></label>
-                <label><input type="checkbox" name="strong_wind" checked> Vento forte</label>
-                <label><input type="checkbox" name="extreme_heat" checked> Calor extremo</label>
-                <label><input type="checkbox" name="air_quality"> Qualidade do ar</label>
-                <label><input type="checkbox" name="weather_changes"> Mudanças relevantes <small>temperatura, chuva ou vento nas próximas horas</small></label>
-                <label><input type="checkbox" name="daily_summary"> Resumo diário</label>
-              </fieldset>
-              <label>Severidade mínima<select name="minimum_severity"><option value="1">Informativa</option><option value="2" selected>Atenção</option><option value="3">Perigo</option><option value="4">Crítica</option></select></label>
-              <div class="notification-time-grid"><label>Silenciar a partir de<input name="quiet_start" type="time" value="22:00"></label><label>Voltar a avisar às<input name="quiet_end" type="time" value="07:00"></label></div>
-              <label>Horário do resumo<input name="daily_summary_time" type="time" value="07:00"></label>
+              <p class="notification-all-note">Todos os alertas disponíveis, em qualquer horário: avisos oficiais, chuva, tempestades, vento, calor, qualidade do ar e mudanças no tempo.</p>
+              <small>Alertas de raios ainda não estão disponíveis. O resumo diário programado está desativado.</small>
               <label class="notification-location"><input name="monitor_current_city" type="checkbox" checked> Monitorar a cidade aberta no PLUVIA</label>
               <small id="notificationPrivacy">Usamos somente as cidades que você escolher para enviar alertas meteorológicos relevantes. Não monitoramos GPS em segundo plano.</small>
               <button id="notificationPreferencesSave" type="submit">Salvar notificações</button>
@@ -349,13 +337,13 @@
     <script src="./vendor/suncalc.js?v=core-109" defer></script>
     <script src="./modules/smart-summary.js?v=core-109" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
-    <script src="./app.js?v=panel-9" defer></script>
+    <script src="./app.js?v=panel-10" defer></script>
     <script src="./p0.js?v=core-109" defer></script>
     <script src="./modules/risks.js?v=core-116" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
     <script src="./weather-map.js?v=core-115" defer></script>
     <script src="./account.js?v=core-109" defer></script>
     <script src="./saved-places.js?v=core-109" defer></script>
-    <script src="./notifications.js?v=core-109" defer></script>
+    <script src="./notifications.js?v=panel-10" defer></script>
   </body>
 </html>

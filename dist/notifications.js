@@ -179,6 +179,13 @@
   async function loadConfig() {
     if (!currentUser()) return null;
     config = await invoke("push-subscriptions", { action: "config" });
+    if (config.preferences?.notifications_enabled) {
+      const desired = allAlertPreferences();
+      if (Object.entries(desired).some(([key, value]) => config.preferences[key] !== value)) {
+        await invoke("push-subscriptions", { action: "preferences", preferences: desired });
+        Object.assign(config.preferences, desired);
+      }
+    }
     paintPreferences(config.preferences);
     paintDevices(config.devices);
     paintLocations(config.locations);
@@ -193,25 +200,20 @@
     await loadConfig();
   }
 
+  function allAlertPreferences() {
+    return {
+      notifications_enabled:true, official_alerts:true, rain_approaching:true,
+      heavy_rain:true, storms:true, lightning:false, strong_wind:true,
+      extreme_heat:true, air_quality:true, weather_changes:true,
+      daily_summary:false, minimum_severity:1, quiet_start:null, quiet_end:null
+    };
+  }
+
   async function saveAlertSetup() {
     const location = currentLocation();
     const existing = config?.preferences;
     const preferences = {
-      notifications_enabled: true,
-      official_alerts: existing ? Boolean(existing.official_alerts) : true,
-      rain_approaching: existing ? Boolean(existing.rain_approaching) : true,
-      heavy_rain: existing ? Boolean(existing.heavy_rain) : true,
-      storms: existing ? Boolean(existing.storms) : true,
-      lightning: false,
-      strong_wind: existing ? Boolean(existing.strong_wind) : true,
-      extreme_heat: existing ? Boolean(existing.extreme_heat) : true,
-      air_quality: Boolean(existing?.air_quality),
-      weather_changes: Boolean(existing?.weather_changes),
-      daily_summary: Boolean(existing?.daily_summary),
-      minimum_severity: Number(existing?.minimum_severity) || 2,
-      quiet_start: existing?.quiet_start || form.elements.namedItem("quiet_start")?.value || "22:00",
-      quiet_end: existing?.quiet_end || form.elements.namedItem("quiet_end")?.value || "07:00",
-      daily_summary_time: existing?.daily_summary_time || "07:00",
+      ...allAlertPreferences(),
       timezone: location?.timezone || existing?.timezone || "America/Manaus"
     };
     await invoke("push-subscriptions", { action: "preferences", preferences, location });
@@ -285,9 +287,7 @@
   form.addEventListener("submit", async event => {
     event.preventDefault(); if (busy || !currentUser()) return;
     busy = true; const button = el("notificationPreferencesSave"); button.disabled = true;
-    const preferences = { notifications_enabled: true };
-    for (const field of boolFields) preferences[field] = Boolean(form.elements.namedItem(field)?.checked);
-    for (const field of ["minimum_severity", "quiet_start", "quiet_end", "daily_summary_time"]) preferences[field] = form.elements.namedItem(field)?.value || null;
+    const preferences = allAlertPreferences();
     const location = form.elements.namedItem("monitor_current_city")?.checked ? currentLocation() : null;
     if (location) preferences.timezone = location.timezone;
     try { await invoke("push-subscriptions", { action: "preferences", preferences, location }); await loadConfig(); message(location ? `${location.cityName} está sendo monitorada. Preferências salvas.` : "Preferências salvas. Nenhuma nova cidade foi adicionada."); track("Push Preferences Saved"); }
