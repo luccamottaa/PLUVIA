@@ -65,8 +65,13 @@
     $('weatherMapLegend').innerHTML = '<span>Fraca</span><i class="legend-rain"></i><span>Forte</span>';
   }
   function cloudPoints(selectedCity) {
-    const delta = 1.2, points = [];
-    for (let row=-1; row<=1; row++) for (let col=-1; col<=1; col++) points.push({lat:selectedCity.lat-row*delta,lon:selectedCity.lon+col*delta,row,col});
+    const bounds = state.map?.getBounds?.();
+    const north = Math.min(85,bounds?.getNorth() ?? selectedCity.lat+1.2);
+    const south = Math.max(-85,bounds?.getSouth() ?? selectedCity.lat-1.2);
+    const west = bounds?.getWest() ?? selectedCity.lon-1.2;
+    const east = bounds?.getEast() ?? selectedCity.lon+1.2;
+    const points = [];
+    for (let row=0; row<3; row++) for (let col=0; col<3; col++) points.push({lat:north+(south-north)*row/2,lon:west+(east-west)*col/2,row,col});
     return points;
   }
   function renderCloudFrame() {
@@ -83,7 +88,8 @@
       const a=frame.values[row*3+col]*(1-fx)+frame.values[row*3+col+1]*fx;
       const b=frame.values[(row+1)*3+col]*(1-fx)+frame.values[(row+1)*3+col+1]*fx;
       const coverage=(a*(1-fy)+b*fy)/100;
-      const edge=Math.min(1,Math.min(x,y,size-1-x,size-1-y)/(size*.16));
+      const radius=Math.hypot((x/(size-1)-.5)*2,(y/(size-1)-.5)*2);
+      const edge=Math.max(0,Math.min(1,(1.42-radius)/.32));
       const i=(y*size+x)*4;
       pixels.data[i]=218; pixels.data[i+1]=232; pixels.data[i+2]=248;
       pixels.data[i+3]=Math.round(coverage*edge*150);
@@ -178,6 +184,11 @@
     if (!state.map) {
       state.map = L.map('weatherMap',{zoomControl:true,minZoom:3,maxZoom:11}).setView([selectedCity.lat,selectedCity.lon],7);
       state.base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{className:'pluvia-dark-basemap',maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map);
+      let cloudMoveTimer;
+      state.map.on('moveend',() => {
+        clearTimeout(cloudMoveTimer);
+        if (state.layer === 'clouds' && !initializing) cloudMoveTimer=setTimeout(() => { if (state.layer === 'clouds') selectLayer('clouds'); },400);
+      });
     } else state.map.setView([selectedCity.lat,selectedCity.lon],7);
     if (state.marker) state.map.removeLayer(state.marker);
     state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:7,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(`${selectedCity.name}/${selectedCity.uf}`);
