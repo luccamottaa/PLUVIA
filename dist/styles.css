@@ -814,7 +814,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
   .air-metric { grid-column:auto; }
 }
 
-/* Vidro vivo: superfície transparente e reflexo que acompanha o toque. */
+/* Superfícies translúcidas estáticas dos cards. */
 .dashboard-grid,.metrics,.safety-grid { position:relative; isolation:isolate; }
 .dashboard-grid::before,.metrics::before,.safety-grid::before {
   content:""; position:absolute; z-index:-1; inset:0; pointer-events:none;
@@ -832,24 +832,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
   animation:none;
   opacity:1;
 }
-.panel.glass-interactive::before {
-  background:radial-gradient(circle 240px at var(--glass-x,50%) var(--glass-y,50%),rgba(255,255,255,.78),rgba(131,196,255,.34) 48%,transparent 100%);
-  opacity:.72;
-  transition:opacity .28s ease;
-}
-.panel.glass-interactive.glass-active::before { opacity:1; }
-.panel.glass-interactive.glass-active {
-  border-color:rgba(255,255,255,.95);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 0 26px rgba(114,187,255,.24),0 17px 42px rgba(33,86,153,.19);
-}
-.glass-touch-ring {
-  position:absolute; z-index:0; left:var(--glass-x,50%); top:var(--glass-y,50%);
-  width:44px; height:44px; border:1px solid rgba(255,255,255,.8);
-  border-radius:50%; pointer-events:none; transform:translate(-50%,-50%) scale(.4);
-  box-shadow:0 0 18px rgba(133,199,255,.45),inset 0 0 16px rgba(255,255,255,.3);
-  animation:glass-touch-wave .62s ease-out both;
-}
-@keyframes glass-touch-wave { to { opacity:0; transform:translate(-50%,-50%) scale(5); } }
 @media (prefers-color-scheme:dark) {
   .dashboard-grid::before,.metrics::before,.safety-grid::before {
     background:radial-gradient(ellipse 43% 62% at 75% 24%,rgba(63,132,233,.38),transparent 100%),radial-gradient(ellipse 38% 60% at 15% 82%,rgba(50,112,220,.27),transparent 100%);
@@ -861,13 +843,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
   }
   .panel:not(.attention-card)::before {
     background:linear-gradient(120deg,rgba(200,226,255,.11),transparent 43%,rgba(112,167,237,.04));
-  }
-  .panel.glass-interactive::before {
-    background:radial-gradient(circle 245px at var(--glass-x,50%) var(--glass-y,50%),rgba(183,219,255,.40),rgba(70,142,233,.15) 48%,transparent 100%);
-  }
-  .panel.glass-interactive.glass-active {
-    border-color:rgba(202,229,255,.61);
-    box-shadow:inset 0 1px 0 rgba(225,241,255,.46),inset 0 0 28px rgba(115,177,255,.16),0 18px 42px rgba(2,10,26,.28);
   }
   .topbar {
     border-color:rgba(169,205,255,.25);
@@ -883,16 +858,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
     backdrop-filter:blur(14px) saturate(160%);
   }
 }
-@media (prefers-reduced-motion:reduce) {
-  .panel.glass-interactive::before { transition:none; }
-  .glass-touch-ring { display:none; }
-}
 @media (prefers-reduced-transparency:reduce) {
   .dashboard-grid::before,.metrics::before,.safety-grid::before { display:none; }
   .panel:not(.attention-card),.topbar { -webkit-backdrop-filter:none; backdrop-filter:none; }
   .panel:not(.attention-card) { background:var(--panel-strong); }
   .topbar { background:var(--panel-strong); }
-  .panel.glass-interactive::before,.glass-touch-ring { display:none; }
 }
 
 /* Web Push: contextual permission and account-synced settings. */

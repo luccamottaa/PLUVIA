@@ -34,6 +34,7 @@
 .hourly-peek-list { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(90px,1fr); gap:3px; overflow-x:auto; overscroll-behavior-inline:contain; scroll-snap-type:x proximity; scrollbar-width:none; padding:2px; }
 .hourly-peek-list::-webkit-scrollbar { display:none; }
 .hourly-peek-list > p { grid-column:1 / -1; color:var(--muted); }
+.hourly-peek-list:has(> p) { display:block; overflow:visible; }
 .hourly-peek-item { display:flex; flex-direction:column; align-items:center; min-height:180px; padding:14px 6px 12px; border:1px solid transparent; border-radius:20px; color:var(--text); text-decoration:none; scroll-snap-align:start; transition:background .2s ease,border-color .2s ease,transform .2s ease; }
 .hourly-peek-item:hover { transform:translateY(-2px); }
 .hourly-peek-item.is-now { border-color:rgba(75,154,255,.62); background:rgba(52,127,235,.18); }
@@ -87,7 +88,7 @@
   .topbar { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-rows:44px auto; min-height:0; row-gap:12px; top:calc(env(safe-area-inset-top) + 8px); margin-top:calc(env(safe-area-inset-top) + 8px); padding:12px 0; border:0; background:transparent !important; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
   .topbar .brand { grid-column:1; grid-row:1; width:auto; height:44px; display:flex; align-items:center; gap:5px; }
   .topbar .brand::after { display:none; }
-  .topbar .brand img { display:block; width:34px; height:42px; object-fit:contain; visibility:visible; opacity:1; }
+  .topbar .brand-mark { width:34px; height:42px; flex-basis:34px; }
   .topbar .brand span { display:block; visibility:visible; font-size:1.7rem; font-weight:900; letter-spacing:-.035em; }
   .topbar .account-trigger { grid-column:2; grid-row:1; justify-self:end; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .topbar .top-actions { grid-column:1 / -1; grid-row:2; width:100%; }
@@ -147,7 +148,15 @@ html,body { background:#041936; }
 .topbar nav { background:rgba(9,31,62,.7); border-color:var(--line); }
 .topbar nav a { color:#c5d9f3; }
 .topbar nav a.active,.topbar nav a:hover { background:#286bc6; color:#fff; }
-.topbar .brand::after { background:#78b6ff; }
+.topbar { position:relative; top:auto; }
+.topbar .brand { display:inline-flex; align-items:center; width:auto; height:44px; gap:7px; filter:none; }
+.topbar .brand::after { content:none; display:none; }
+.topbar .brand-mark {
+  display:block; flex:0 0 34px; width:34px; height:42px; background:#2F6BFF;
+  -webkit-mask:url("./logo-mark.png") center / contain no-repeat;
+  mask:url("./logo-mark.png") center / contain no-repeat;
+}
+.topbar .brand span:last-child { display:block; visibility:visible; color:#f4f8ff; font-size:1.7rem; font-weight:900; letter-spacing:-.035em; }
 .panel:not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night) {
   color:var(--text); border-color:rgba(125,186,255,.39);
   background:linear-gradient(145deg,rgba(70,131,212,.24),rgba(10,42,86,.58) 58%,rgba(8,31,68,.57));
@@ -155,9 +164,6 @@ html,body { background:#041936; }
 }
 .panel:not(.attention-card)::before {
   background:linear-gradient(120deg,rgba(213,233,255,.12),transparent 43%,rgba(112,167,237,.06));
-}
-.panel.glass-interactive::before {
-  background:radial-gradient(circle 245px at var(--glass-x,50%) var(--glass-y,50%),rgba(183,219,255,.4),rgba(70,142,233,.15) 48%,transparent 100%);
 }
 .intro h1,.weather-hero .temperature,.weather-hero .condition { color:#f4f8ff; text-shadow:0 5px 24px rgba(0,14,40,.25); }
 .weather-hero .temperature .deg { color:#d3e8ff; }
@@ -217,13 +223,14 @@ html,body { background:#041936; }
 /* Mobile: mais respiro para a leitura sem transformar o topo em metade da tela. */
 @media (max-width:720px) {
   .topbar {
+    grid-template-columns:minmax(0,1fr) max-content; column-gap:8px;
     grid-template-rows:38px auto; row-gap:7px;
     padding:8px 0 6px; margin-top:calc(env(safe-area-inset-top) + 6px);
   }
   .topbar .brand { height:38px; }
-  .topbar .brand img { width:30px; height:36px; }
-  .topbar .brand span { font-size:1.48rem; }
-  .topbar .account-trigger { font-size:.78rem; }
+  .topbar .brand-mark { width:30px; height:36px; flex-basis:30px; }
+  .topbar .brand span:last-child { font-size:1.48rem; }
+  .topbar .account-trigger { max-width:min(44vw,180px); padding-right:4px; font-size:.78rem; }
   .topbar .search-trigger { min-height:48px; border-radius:18px; padding:6px 14px; }
   .topbar .search-trigger-label { font-size:.94rem; }
   .intro { padding:14px 6px 3px; }
