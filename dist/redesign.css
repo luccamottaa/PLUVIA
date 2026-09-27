@@ -1,9 +1,9 @@
 /* Painel Noturno — a home mantém o tema do aparelho e os dados reais do PLUVIA. */
 main { position:relative; isolation:isolate; }
 main::before {
-  content:""; position:absolute; inset:0 0 auto; height:min(1350px,120vh); z-index:-1;
+  content:""; position:absolute; top:0; left:50%; width:100vw; height:min(1350px,120vh); z-index:-1;
   background:url("./assets/panel-night-sky.webp") center top / cover no-repeat;
-  opacity:0; pointer-events:none;
+  opacity:.86; pointer-events:none; transform:translateX(-50%);
   -webkit-mask-image:linear-gradient(#000 0%,#000 64%,transparent 100%);
   mask-image:linear-gradient(#000 0%,#000 64%,transparent 100%);
 }
@@ -130,4 +130,85 @@ main::before {
 }
 @media (prefers-reduced-transparency:reduce) {
   .hourly-peek.panel,.quick-metrics .hero-temperature-range,.quick-metrics > .quick-metric.panel { -webkit-backdrop-filter:none; backdrop-filter:none; background:#102a50; }
+}
+
+/* O Painel Noturno é a identidade desta versão, inclusive com o aparelho em modo claro. */
+:root {
+  color-scheme:dark;
+  --bg:#041936; --bg-secondary:#101c2e; --text:#f2f7ff; --muted:#abc6e9;
+  --canvas-text:#f2f7ff; --canvas-muted:#abc6e9;
+  --line:rgba(98,171,255,.35); --blue:#68abff; --brand-blue:#68abff;
+  --panel:rgba(12,44,88,.52); --panel-strong:#18283e; --panel-subtle:#17263c;
+}
+html,body { background:#041936; }
+.noise,.orb { display:none; }
+.topbar { border-color:rgba(125,186,255,.35); background:rgba(12,38,75,.82); box-shadow:inset 0 1px 0 rgba(224,241,255,.2),0 12px 30px rgba(0,0,0,.18); }
+.topbar nav { background:rgba(9,31,62,.7); border-color:var(--line); }
+.topbar nav a { color:#c5d9f3; }
+.topbar nav a.active,.topbar nav a:hover { background:#286bc6; color:#fff; }
+.topbar .brand::after { background:#78b6ff; }
+.panel:not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night) {
+  color:var(--text); border-color:rgba(125,186,255,.39);
+  background:linear-gradient(145deg,rgba(70,131,212,.24),rgba(10,42,86,.58) 58%,rgba(8,31,68,.57));
+  box-shadow:inset 0 1px 0 rgba(224,241,255,.28),0 16px 38px rgba(1,12,35,.25);
+}
+.panel:not(.attention-card)::before {
+  background:linear-gradient(120deg,rgba(213,233,255,.12),transparent 43%,rgba(112,167,237,.06));
+}
+.panel.glass-interactive::before {
+  background:radial-gradient(circle 245px at var(--glass-x,50%) var(--glass-y,50%),rgba(183,219,255,.4),rgba(70,142,233,.15) 48%,transparent 100%);
+}
+.intro h1,.weather-hero .temperature,.weather-hero .condition { color:#f4f8ff; text-shadow:0 5px 24px rgba(0,14,40,.25); }
+.weather-hero .temperature .deg { color:#d3e8ff; }
+.intro .eyebrow,.intro .clock-wrap small { color:#b7d2f5; }
+.hourly-peek.panel,.quick-metrics .hero-temperature-range,.quick-metrics > .quick-metric.panel {
+  color:#f2f7ff; border:1px solid rgba(90,166,255,.52) !important;
+  background:rgba(8,39,82,.57) !important;
+  box-shadow:inset 0 1px 0 rgba(214,236,255,.33),0 12px 35px rgba(1,12,35,.3) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(150%); backdrop-filter:blur(22px) saturate(150%);
+}
+.hourly-peek-item,.quick-metrics .hero-temperature-extreme strong { color:#f4f8ff; }
+.hourly-peek-item.is-now { background:rgba(42,110,218,.3); }
+.peek-time,.quick-metrics .hero-temperature-extreme small { color:#c0d6f4; }
+.hourly-peek-item.is-now .peek-time,.peek-rain { color:#8ec4ff; }
+.quick-metrics .hero-temperature-extreme + .hero-temperature-extreme { border-color:rgba(119,180,255,.35); }
+.metric small,.section-heading > p,.sunshine-note { color:var(--muted); }
+.card-detail { background:#101c2e; border-color:#283c57; }
+.sun-section.is-night { color:#f0f6ff; }
+.attention-card { color:var(--text); background:rgba(13,44,84,.72); border-color:var(--line); }
+.attention-card.ok { background:#102c26; border-color:#265748; }
+.attention-card.warning { background:#30271c; border-color:#645034; }
+.attention-card.danger { background:#321e26; border-color:#6b3941; }
+.attention-card p,.attention-card small { color:var(--muted); }
+.air-metric[data-aqi-level="good"] { --aqi-accent:#6ad9a1; }
+.air-metric[data-aqi-level="moderate"] { --aqi-accent:#ffdb69; }
+.air-metric[data-aqi-level="sensitive"] { --aqi-accent:#ffad66; }
+.air-metric[data-aqi-level="poor"] { --aqi-accent:#ff8288; }
+.air-metric[data-aqi-level="very-poor"] { --aqi-accent:#c9a0fc; }
+.air-metric[data-aqi-level="hazardous"] { --aqi-accent:#f2a3b9; }
+.weather-visual,.hourly-weather-icon,.forecast-weather-icon,.rain-metric-icon { filter:invert(65%) sepia(60%) saturate(1759%) hue-rotate(189deg) brightness(105%) contrast(101%); }
+.city-dialog,.account-dialog,.weather-map-dialog { background:#101d32; color:#e5f0ff; border-color:rgba(105,170,255,.43); }
+.city-dialog .city-button,.city-dialog .city-picker input,.city-dialog .city-picker select,.city-dialog .city-result { background:#18283e; color:#e5f0ff; border-color:var(--line); }
+.forecast-row:hover { background:var(--panel-strong); }
+.source-content a,.source-content a:visited { color:#a9d2ff; }
+.sun-section:not(.is-night) { color:#f0f6ff; }
+.topbar .account-trigger { color:#b9d7ff; }
+
+@media (max-width:720px) {
+  .shell { margin-left:max(12px,env(safe-area-inset-left)); margin-right:max(12px,env(safe-area-inset-right)); }
+  .topbar { margin-top:calc(env(safe-area-inset-top) + 8px); }
+  .topbar .brand span { color:#f4f8ff; }
+  .topbar .search-trigger {
+    background:rgba(8,39,82,.65); border-color:rgba(90,166,255,.55); color:#f1f7ff;
+    box-shadow:inset 0 1px 0 rgba(218,237,255,.29),0 8px 25px rgba(1,12,35,.16);
+  }
+  .hourly-peek-list { grid-auto-columns:minmax(62px,1fr); }
+  .hourly-peek-heading a { color:#a9d2ff; }
+  .quick-metrics > .quick-metric:first-child { padding-inline:9px; }
+}
+@media (max-width:380px) {
+  .shell { margin-left:max(10px,env(safe-area-inset-left)); margin-right:max(10px,env(safe-area-inset-right)); }
+  .hourly-peek { padding:12px 10px; }
+  .hourly-peek-item { padding-inline:1px; }
+  .hourly-peek-heading a { font-size:.75rem; }
 }

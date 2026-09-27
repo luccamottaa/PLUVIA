@@ -13,8 +13,7 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#f6f3ed" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#10233f" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#041936" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -42,8 +41,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
-      html { background:#f6f3ed; font-family:"Nunito",ui-rounded,system-ui,sans-serif; }
-      @media (prefers-color-scheme:dark) { html { background:#10233f; } }
+      html { background:#041936; font-family:"Nunito",ui-rounded,system-ui,sans-serif; }
       *,*::before,*::after { box-sizing:border-box; }
       html.awaiting-styles body > :not(#pluviaIntro) { visibility:hidden; }
       body { margin:0; }
@@ -95,18 +93,10 @@
   .pluvia-intro.is-leaving { transition:none; }
 }
 @media (max-width:480px) { .pluvia-intro .intro-sky { height:180px; } .intro-cloud-front { left:12%; } .intro-rain { left:28%; } }
-      @media (prefers-color-scheme:light) {
-        .pluvia-intro { background:#f6f3ed; color:#10233f; }
-        .pluvia-intro::before { background:radial-gradient(circle at 65% 30%,rgba(110,171,255,.12),transparent 48%); }
-        .pluvia-intro .intro-tagline { color:#10233f; }
-        .pluvia-intro .intro-kicker,.pluvia-intro .intro-copy { color:#536781; }
-        .pluvia-intro .intro-progress { background:rgba(16,35,63,.15); }
-        .pluvia-intro .intro-progress span { background:#075dff; }
-      }
     </style>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-118" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-1" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-2" media="print" onload="this.media='all'" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-118" /></noscript>
   </head>
