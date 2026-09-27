@@ -752,7 +752,7 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   if (Number.isFinite(uvNow)) $("uvScale").style.setProperty("--uv-position", `${Math.max(0, Math.min(100, uvNow / 11 * 100))}%`);
   renderAirQuality(air?.current?.us_aqi);
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
-  setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)} · ${activeCity.name}`, fromCache);
+  setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache);
   renderVisibility(data.hourly.visibility?.[start], fromCache);
   renderAttention(data, start, air); renderHourly(data.hourly, start, day);
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
