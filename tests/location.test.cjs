@@ -12,7 +12,7 @@ const nodes=new Map([...html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g)].map(([tag,
 }]));
 const requests=[];
 const storage=new Map([['pluvia-city','"2611101"']]); // Old saved city must not be displayed on arrival.
-const context=vm.createContext({document:{getElementById:id=>nodes.get(id),querySelectorAll:()=>[]},
+const context=vm.createContext({document:{body:{dataset:{}},getElementById:id=>nodes.get(id),querySelectorAll:()=>[]},
   navigator:{geolocation:{getCurrentPosition(success,error){requests.push({success,error});}}},
   localStorage:{getItem:key=>storage.get(key),setItem:(k,v)=>storage.set(k,v)},
   Intl,Date,URL,AbortController,setTimeout,clearTimeout,

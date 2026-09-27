@@ -62,9 +62,10 @@ function weatherIconType(code) {
 }
 
 function applyWeatherAtmosphere(code, isDay) {
-  const type = weatherIconType(code);
+  const known = [0,1,2,3,45,48,51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99].includes(code);
+  const type = !known ? "unknown" : [45,48].includes(code) ? "fog" : weatherIconType(code);
   document.body.dataset.weather = type;
-  document.body.dataset.phase = isDay ? "day" : "night";
+  document.body.dataset.phase = isDay === 1 ? "day" : isDay === 0 ? "night" : "unknown";
 }
 
 function weatherIconSvg(code, isDay = true) {
@@ -698,7 +699,7 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   $("temperature").textContent = fmt(current.temperature_2m); $("feelsLike").textContent = `${fmt(current.apparent_temperature)}°`;
   const heatGap = current.apparent_temperature - current.temperature_2m;
   const localCondition = current.is_day === 0 && current.weather_code === 1 ? "Céu quase limpo" : condition;
-  applyWeatherAtmosphere(current.weather_code, current.is_day !== 0);
+  applyWeatherAtmosphere(current.weather_code, current.is_day);
   $("condition").textContent = heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, current.is_day !== 0);
   $("todayHigh").textContent = `${fmt(day.temperature_2m_max[0])}°`;
   $("todayLow").textContent = `${fmt(day.temperature_2m_min[0])}°`;
@@ -951,6 +952,7 @@ function chooseCity(id, locatedCity = null) {
   services?.abortAll();
   refreshInFlight = null;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
+  applyWeatherAtmosphere(null, null);
   globalThis.pluviaAnalytics?.track('City Selected',{city:city.name,uf:city.uf,source:Number.isFinite(locatedCity?.distanceKm) ? 'location' : 'picker_or_saved'});
   globalThis.PLUVIA?.sources.reset(city.id);
   globalThis.PLUVIA?.radar?.reset?.(city.id);

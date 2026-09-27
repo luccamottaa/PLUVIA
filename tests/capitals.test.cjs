@@ -14,7 +14,7 @@ const nodes = new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id]) => [id, {
   focus(){}, showModal(){this.open=true;},close(){this.open=false;},
   addEventListener(key,fn){this.events[key]=fn;}
 }]));
-const context = vm.createContext({document:{getElementById:id=>nodes.get(id),querySelectorAll:()=>[]},
+const context = vm.createContext({document:{body:{dataset:{}},getElementById:id=>nodes.get(id),querySelectorAll:()=>[]},
   localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)},
   Intl,Date,URL,AbortController,setTimeout,clearTimeout,navigator:{},
   DOMParser:class {parseFromString(text){return {documentElement:{textContent:text}};}}

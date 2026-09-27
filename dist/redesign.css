@@ -305,3 +305,45 @@ html,body { background:#041936; }
 .weather-hero .temperature { gap:.09em; letter-spacing:-.045em; }
 .weather-hero .temperature .deg { font-size:.36em; transform:translateY(.12em); }
 .topbar .account-trigger { margin-right:12px; }
+
+/* Céu associado à condição atual da cidade; sem animação contínua. */
+body {
+  --sky-base:#041936;
+  --sky-color:linear-gradient(180deg,#0c315b,transparent 85%);
+  --sky-clouds:0;
+  background:var(--sky-base);
+  transition:background-color .6s ease;
+}
+html { background:#041936; }
+.night-stage::before {
+  background-image:var(--sky-color); background-size:cover; opacity:1;
+  height:min(1450px,145vh);
+}
+.night-stage::after {
+  content:""; position:absolute; inset:0 0 auto; height:min(1450px,145vh); z-index:-1; pointer-events:none;
+  background:url("./assets/panel-night-sky.webp") center top / cover no-repeat;
+  opacity:var(--sky-clouds); mix-blend-mode:screen;
+  -webkit-mask-image:linear-gradient(transparent,#000 24%,#000 60%,transparent);
+  mask-image:linear-gradient(transparent,#000 24%,#000 60%,transparent);
+  transition:opacity .6s ease;
+}
+body[data-phase="day"] { --sky-base:#0d365b; --sky-color:linear-gradient(165deg,#328fbc 0%,#226b9d 35%,#0d365b 85%); }
+body[data-phase="night"] { --sky-base:#041329; --sky-color:linear-gradient(165deg,#112e59,#071e3d 50%,#041329 90%); }
+body[data-weather="sun"][data-phase="day"] {
+  --sky-color:radial-gradient(ellipse at 83% 9%,#ffe6a099,transparent 33%),linear-gradient(170deg,#278cbd,#18628e 48%,#0d365b 90%);
+}
+body[data-weather="sun"][data-phase="night"] {
+  --sky-color:radial-gradient(circle at 82% 12%,#c2dcff38,transparent 22%),radial-gradient(circle at 23% 20%,#d6eaff99 0 1px,transparent 2px),radial-gradient(circle at 68% 33%,#d6eaff99 0 1px,transparent 2px),linear-gradient(165deg,#102b51,#041329 90%);
+}
+body[data-weather="partly"] { --sky-clouds:.32; }
+body[data-weather="cloud"] { --sky-clouds:.48; --sky-base:#102c47; --sky-color:linear-gradient(160deg,#476885,#233f60 46%,#102c47 90%); }
+body[data-weather="cloud"][data-phase="night"] { --sky-base:#081b30; --sky-color:linear-gradient(160deg,#273d58,#102941 48%,#081b30 90%); --sky-clouds:.3; }
+body[data-weather="rain"] { --sky-base:#0b263d; --sky-clouds:.54; --sky-color:repeating-linear-gradient(110deg,transparent 0 45px,#afceec08 46px,transparent 47px 95px),linear-gradient(170deg,#36546d,#163853 45%,#0b263d 90%); }
+body[data-weather="rain"][data-phase="night"] { --sky-base:#06192c; --sky-color:repeating-linear-gradient(110deg,transparent 0 45px,#afceec08 46px,transparent 47px 95px),linear-gradient(170deg,#203b58,#102941 45%,#06192c 90%); }
+body[data-weather="storm"] { --sky-base:#10192e; --sky-clouds:.65; --sky-color:radial-gradient(ellipse at 80% 22%,#6a70985c,transparent 45%),linear-gradient(165deg,#2e3955,#18273e 50%,#10192e 90%); }
+body[data-weather="storm"][data-phase="night"] { --sky-base:#080f23; --sky-clouds:.42; --sky-color:linear-gradient(165deg,#262c49,#101c35 50%,#080f23 90%); }
+body[data-weather="fog"] { --sky-base:#263e51; --sky-clouds:0; --sky-color:linear-gradient(180deg,#73889888,transparent 75%),repeating-linear-gradient(175deg,#afbdc314 0 70px,transparent 150px 220px); }
+body[data-weather="fog"][data-phase="night"] { --sky-base:#142638; --sky-color:linear-gradient(180deg,#45566c88,transparent 85%); }
+body[data-weather="snow"] { --sky-base:#24445f; --sky-clouds:.15; --sky-color:radial-gradient(circle at 20% 15%,#fff9 0 2px,transparent 3px),radial-gradient(circle at 75% 30%,#fff9 0 2px,transparent 3px),linear-gradient(160deg,#6f90aa,#24445f 85%); }
+body[data-weather="snow"][data-phase="night"] { --sky-base:#101e35; --sky-color:radial-gradient(circle at 20% 15%,#fff9 0 2px,transparent 3px),linear-gradient(160deg,#3b526e,#101e35 85%); }
+@media(prefers-reduced-motion:reduce) { body,.night-stage::after { transition:none; } }
