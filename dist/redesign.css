@@ -1,9 +1,9 @@
 /* Painel Noturno — a home mantém o tema do aparelho e os dados reais do PLUVIA. */
-main { position:relative; isolation:isolate; }
-main::before {
-  content:""; position:absolute; top:0; left:50%; width:100vw; height:min(1350px,120vh); z-index:-1;
+.night-stage { position:relative; isolation:isolate; }
+.night-stage::before {
+  content:""; position:absolute; inset:0 0 auto; height:min(1350px,120vh); z-index:-1;
   background:url("./assets/panel-night-sky.webp") center top / cover no-repeat;
-  opacity:.86; pointer-events:none; transform:translateX(-50%);
+  opacity:.86; pointer-events:none;
   -webkit-mask-image:linear-gradient(#000 0%,#000 64%,transparent 100%);
   mask-image:linear-gradient(#000 0%,#000 64%,transparent 100%);
 }
@@ -58,7 +58,7 @@ main::before {
 @media (prefers-color-scheme:dark) {
   :root { --bg:#041936; --text:#f2f7ff; --muted:#abc6e9; --line:rgba(98,171,255,.35); --blue:#68abff; --panel:rgba(12,44,88,.52); }
   html,body { background:#041936; }
-  main::before { opacity:.86; }
+  .night-stage::before { opacity:.86; }
   .intro .eyebrow { color:#8cbaf3; }
   .intro .clock-wrap small { color:#a8c9f4; }
   .intro h1,.weather-hero .temperature,.weather-hero .condition { color:#f4f8ff; text-shadow:0 5px 24px rgba(0,14,40,.25); }
