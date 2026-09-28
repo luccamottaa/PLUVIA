@@ -566,3 +566,14 @@ html body .wind-compass { --wind-visible:0; display:block; width:76px; height:76
   .wind-metric .wind-reading > strong { display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
   .wind-metric .wind-reading > strong sup { margin-left:0; font-size:.65rem; }
 }
+
+/* Amanhecer e entardecer acompanham os horários solares da cidade. */
+.sky-twilight { position:absolute; inset:0; opacity:var(--twilight-opacity,0); background:radial-gradient(ellipse at 78% 35%,#ffe4a6bb,transparent 45%),linear-gradient(180deg,#596ba8 0%,#c593b1 23%,#f3b58c 43%,#e2b887 57%,transparent 90%); transition:opacity 28s linear; }
+body[data-solar="sunset"] .sky-twilight { background:radial-gradient(ellipse at 78% 35%,#ffd690aa,transparent 40%),linear-gradient(180deg,#414a80 0%,#966b9a 23%,#e99682 43%,#c5857b 60%,transparent 90%); }
+.sky-horizon-sun { position:absolute; top:var(--twilight-sun-top,35%); right:16%; width:86px; aspect-ratio:1; border-radius:50%; background:linear-gradient(#fff1b2,#ffc277); box-shadow:0 0 65px 26px #ffd49450; opacity:var(--twilight-opacity,0); transition:top 28s linear,opacity 28s linear; }
+body[data-solar="sunrise"] .sky-sun,body[data-solar="sunset"] .sky-sun { display:none; }
+body:is([data-weather="cloud"],[data-weather="rain"],[data-weather="fog"],[data-weather="snow"]) .sky-horizon-sun { opacity:calc(var(--twilight-opacity,0) * .18); }
+body[data-weather="storm"] .sky-horizon-sun { visibility:hidden; }
+body:is([data-weather="cloud"],[data-weather="rain"],[data-weather="fog"],[data-weather="snow"]) .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .55); }
+body[data-weather="storm"] .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .25); }
+@media(prefers-reduced-motion:reduce) { .sky-twilight,.sky-horizon-sun { transition:none; } }

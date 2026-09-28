@@ -61,11 +61,37 @@ function weatherIconType(code) {
   return "sun";
 }
 
-function applyWeatherAtmosphere(code, isDay) {
+let solarAtmosphereTimes = [];
+function updateSolarAtmosphere(now = Date.now()) {
+  const windowMs = 40 * 60000;
+  let solar = "none", strength = 0, progress = 0;
+  for (const {rise, set} of solarAtmosphereTimes) {
+    if (now >= rise - 3 * 3600000 && now <= set + 3 * 3600000) {
+      document.body.dataset.phase = now >= rise && now < set ? "day" : "night";
+    }
+    for (const [name, time] of [["sunrise", rise], ["sunset", set]]) {
+      if (Math.abs(now - time) <= windowMs) {
+        solar = name;
+        progress = (now - time + windowMs) / (2 * windowMs);
+        strength = Math.sin(Math.PI * progress);
+      }
+    }
+  }
+  document.body.dataset.solar = solar;
+  document.body.style?.setProperty("--twilight-opacity", strength.toFixed(3));
+  const height = solar === "sunrise" ? 42 - progress * 24 : 18 + progress * 24;
+  document.body.style?.setProperty("--twilight-sun-top", height.toFixed(2) + "%");
+}
+function applyWeatherAtmosphere(code, isDay, daily = null) {
   const known = [0,1,2,3,45,48,51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99].includes(code);
   const type = !known ? "unknown" : [45,48].includes(code) ? "fog" : weatherIconType(code);
   document.body.dataset.weather = type;
   document.body.dataset.phase = isDay === 1 ? "day" : isDay === 0 ? "night" : "unknown";
+  solarAtmosphereTimes = (daily?.sunrise || []).map((rise, i) => ({
+    rise:rise ? cityDate(rise).getTime() : NaN,
+    set:daily.sunset?.[i] ? cityDate(daily.sunset[i]).getTime() : NaN
+  })).filter(({rise,set}) => Number.isFinite(rise) && Number.isFinite(set) && set > rise);
+  updateSolarAtmosphere();
 }
 
 function weatherIconSvg(code, isDay = true) {
@@ -304,6 +330,7 @@ function updateClock() {
   $("localClock").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
   $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
   renderMoon(now);
+  updateSolarAtmosphere(now.getTime());
 }
 
 const dateOffsets = new Map();
@@ -703,7 +730,7 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   $("temperature").textContent = fmt(current.temperature_2m); $("feelsLike").textContent = `${fmt(current.apparent_temperature)}°`;
   const heatGap = current.apparent_temperature - current.temperature_2m;
   const localCondition = current.is_day === 0 && current.weather_code === 1 ? "Céu quase limpo" : condition;
-  applyWeatherAtmosphere(current.weather_code, current.is_day);
+  applyWeatherAtmosphere(current.weather_code, current.is_day, day);
   $("condition").textContent = heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, current.is_day !== 0);
   $("todayHigh").textContent = `${fmt(day.temperature_2m_max[0])}°`;
   $("todayLow").textContent = `${fmt(day.temperature_2m_min[0])}°`;

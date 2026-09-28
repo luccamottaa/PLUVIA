@@ -19,3 +19,26 @@ test('dados ausentes limpam a condição anterior sem inventar céu limpo',()=>{
  assert.equal(context.document.body.dataset.weather,'unknown');
  assert.equal(context.document.body.dataset.phase,'unknown');
 });
+
+test('amanhecer e entardecer usam os horários da cidade, com retorno ao céu normal',()=>{
+ context.cityDate = value => new Date(value);
+ context.applyWeatherAtmosphere(2,1,{sunrise:['2026-09-28T05:46:00-04:00'],sunset:['2026-09-28T17:54:00-04:00']});
+ for (const [time,solar,phase] of [
+  ['05:26','sunrise','night'],['06:06','sunrise','day'],
+  ['12:00','none','day'],['17:34','sunset','day'],['18:14','sunset','night'],['19:00','none','night']
+ ]) {
+  context.updateSolarAtmosphere(Date.parse(`2026-09-28T${time}:00-04:00`));
+  assert.equal(context.document.body.dataset.solar,solar,time);
+  assert.equal(context.document.body.dataset.phase,phase,time);
+  assert.equal(context.document.body.dataset.weather,'partly');
+ }
+ context.applyWeatherAtmosphere(null,null);
+ context.updateSolarAtmosphere(Date.parse('2026-09-28T17:54:00-04:00'));
+ assert.equal(context.document.body.dataset.solar,'none','trocar cidade elimina horários anteriores');
+});
+test('sem horários solares válidos preserva o dia/noite do provedor',()=>{
+ context.applyWeatherAtmosphere(95,0,{sunrise:['inválido'],sunset:[]});
+ assert.equal(context.document.body.dataset.solar,'none');
+ assert.equal(context.document.body.dataset.phase,'night');
+ assert.equal(context.document.body.dataset.weather,'storm');
+});
