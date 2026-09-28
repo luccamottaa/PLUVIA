@@ -484,7 +484,7 @@ html body .quick-metrics .hero-temperature-range { border-radius:0 24px 24px 0 !
 .insight-card .signal { border:0; background:#5aa9ba20; color:#9cdacb; padding:6px 10px; font-size:.6rem; letter-spacing:.05em; }
 .insight-card.warning .signal { background:#f8bc4820; color:#ffda8e; }
 .insight-card.danger .signal { background:#ff647b20; color:#ffabb9; }
-.forecast-row { border:0; border-bottom:1px solid #aac8eb1a; border-radius:0; background:transparent; padding:20px 6px; }
+.forecast-row { border:0; border-bottom:1px solid #aac8eb1a; border-radius:0; background:transparent; padding:24px; }
 .forecast-row:last-child { border-bottom:0; }
 .forecast-row:hover { background:#6b9ce80a; }
 .sun-section,.inmet-card,.notification-prompt { padding:24px; }
@@ -498,7 +498,7 @@ html body .quick-metrics .hero-temperature-range { border-radius:0 24px 24px 0 !
 .weather-map-legend { border:1px solid #accbf325; border-radius:12px; background:#0d2038ed; color:#cfdef0; font-size:.65rem; backdrop-filter:none; }
 #weatherSourceNote { color:#99aec9; font-size:.74rem; line-height:1.5; }
 .leaflet-layer, .leaflet-tile-container { transition:opacity .4s ease; }
-.pluvia-cloud-overlay { mix-blend-mode:screen; filter:grayscale(1) contrast(1.45); }
+.pluvia-cloud-overlay { mix-blend-mode:screen; filter:grayscale(1) contrast(1.2) blur(.4px); }
 .leaflet-tooltip { background:#0e223be8; border:1px solid #a1c8f330; color:#edf5ff; box-shadow:0 3px 12px #0002; border-radius:10px; }
 html body .metrics .air-metric { grid-column:1/-1; padding:24px; gap:18px; min-height:0; }
 .air-reading { display:flex; align-items:center; gap:22px; }
@@ -531,3 +531,14 @@ html body .air-metric .air-description strong { font-size:1.24rem; line-height:1
   .air-description strong { overflow-wrap:anywhere; }
 }
 @media(prefers-reduced-motion:reduce) { .leaflet-layer,.leaflet-tile-container,.air-scale i { transition:none; } }
+
+/* Espaço interno consistente na previsão, inclusive em telas estreitas. */
+@media(max-width:720px) {
+  .forecast-list .forecast-row { padding:22px 20px; grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr); gap:14px 16px; }
+  .forecast-list .temp-range { width:100%; min-width:0; gap:6px; }
+  .forecast-list .temp-track { min-width:24px; }
+  .forecast-list .forecast-condition { min-width:0; gap:8px; line-height:1.4; font-size:.82rem; }
+  .forecast-list .forecast-weather-icon { width:36px; height:36px; }
+  .forecast-list .forecast-rain { align-items:center; gap:6px; font-size:.75rem; }
+  .forecast-list .forecast-uv { line-height:1.5; font-size:.75rem; }
+}

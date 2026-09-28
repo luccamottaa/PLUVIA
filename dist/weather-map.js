@@ -102,7 +102,7 @@
     setError('');
     const iso = new Date(frame.time*1000).toISOString().replace('.000Z','Z');
     const overlay = L.tileLayer(`${SATELLITE_ROOT}/${SATELLITE_LAYER}/default/${iso}/${SATELLITE_MATRIX}/{z}/{y}/{x}.png`,{
-      opacity:0,maxNativeZoom:6,maxZoom:11,noWrap:true,className:'pluvia-cloud-overlay',
+      opacity:0,maxNativeZoom:6,maxZoom:7,noWrap:true,className:'pluvia-cloud-overlay',
       attribution:'GOES-East / NOAA · NASA GIBS'
     });
     let loaded = 0, failed = 0;
@@ -183,6 +183,9 @@
     }
     const revision = ++layerRevision;
     stop(); setError(''); httpClient?.abortAll(); removeOverlay(); state.layer = name;
+    // Satellite tiles are native at zoom 6; avoid magnifying them into large blocks.
+    state.map.setMaxZoom?.(name === 'clouds' ? 7 : 11);
+    if (name === 'clouds' && state.map.getZoom?.() > 6) state.map.setZoom?.(6);
     $('weatherLightningAttribution').hidden = name !== 'lightning';
     setFrames([],0);
     document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
