@@ -549,3 +549,20 @@ html body img[data-icon-source="pluvia-vector"] { filter:none !important; object
 .moon-phase-icon .moon-orbit,.moon-phase-icon .moon-crater,.moon-phase-icon .moon-sparkle { display:none; }
 .moon-phase-icon .moon-shadow { fill:#335473; stroke:#90b9df; stroke-width:1.5; }
 .moon-phase-icon .moon-light { fill:#d9eafa; }
+
+/* Bússola: a ponta indica a origem meteorológica do vento. */
+html body .wind-compass { --wind-visible:0; display:block; width:76px; height:76px; flex:0 0 76px; border:0; background:none; border-radius:0; }
+.wind-compass::before { content:none; }
+.wind-compass svg { display:block; width:100%; height:100%; overflow:visible; }
+.compass-ring { fill:#79bcdf08; stroke:#98bfdf40; stroke-width:1; }
+.compass-labels { fill:#c3d9ef; font-family:var(--font-ui); font-size:8px; font-weight:700; text-anchor:middle; dominant-baseline:central; }
+.compass-needle { transform:rotate(var(--wind-deg)); transform-origin:40px 40px; opacity:var(--wind-visible); }
+.compass-tip { fill:#81e2ed; stroke:#b6f2f7; stroke-width:.7; stroke-linejoin:round; }
+.compass-tail { fill:#7294b4; }
+.compass-center { fill:#dbf5ff; }
+.wind-metric .wind-reading { gap:8px; flex-wrap:wrap; }
+@media(max-width:720px) {
+  html body .wind-compass { width:64px; height:64px; flex-basis:64px; }
+  .wind-metric .wind-reading > strong { display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
+  .wind-metric .wind-reading > strong sup { margin-left:0; font-size:.65rem; }
+}

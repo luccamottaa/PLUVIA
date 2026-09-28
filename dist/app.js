@@ -678,6 +678,7 @@ function markWeatherUnavailable(hasSavedData) {
   $("summaryLink").href = "#previsao";
   $("summaryLink").textContent = "Tentar novamente na previsão →";
   $("windCompass").style.setProperty("--wind-deg", "0deg");
+  $("windCompass").style.setProperty("--wind-visible", "0");
   $("windCompass").setAttribute("aria-label", "Direção do vento indisponível");
   clearWeatherInsights();
 }
@@ -707,8 +708,9 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   $("todayHigh").textContent = `${fmt(day.temperature_2m_max[0])}°`;
   $("todayLow").textContent = `${fmt(day.temperature_2m_min[0])}°`;
   $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
-  $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
+  $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `De ${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
   $("windCompass").style.setProperty("--wind-deg", `${Number.isFinite(current.wind_direction_10m) ? current.wind_direction_10m : 0}deg`);
+  $("windCompass").style.setProperty("--wind-visible", Number.isFinite(current.wind_direction_10m) ? "1" : "0");
   $("windCompass").setAttribute("aria-label", `Vento de ${windDirection(current.wind_direction_10m)}, ${fmt(current.wind_speed_10m)} quilômetros por hora, rajadas de ${fmt(current.wind_gusts_10m)} quilômetros por hora`);
   $("pressure").innerHTML = `${fmt(current.pressure_msl ?? current.surface_pressure)}<sup> hPa</sup>`;
   const pressureNow = data.hourly.pressure_msl?.[start];
