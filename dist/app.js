@@ -443,7 +443,7 @@ function renderHourly(hourly, start, daily) {
       const probability = hourly.precipitation_probability?.[i];
       const icon = weatherIcons.markup(hourly.weather_code?.[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:true});
       const rain = Number.isFinite(probability) ? `${Math.round(probability)}%` : "—";
-      return `<a class="hourly-peek-item ${p === 0 ? "is-now" : ""}" href="#chuva" aria-label="${time}: ${fmt(temperature)} graus, ${rain} de chance de chuva. Ver previsão completa"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain"><img src="./assets/weather-icons/metrics/rain-probability.png" alt="" />${rain}</span><strong>${fmt(temperature)}°</strong></a>`;
+      return `<a class="hourly-peek-item ${p === 0 ? "is-now" : ""}" href="#chuva" aria-label="${time}: ${fmt(temperature)} graus, ${rain} de chance de chuva. Ver previsão completa"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain">${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}${rain}</span><strong>${fmt(temperature)}°</strong></a>`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
   }
   const temperatures = indices.map(i => hourly.temperature_2m[i]).filter(Number.isFinite);

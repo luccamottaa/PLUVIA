@@ -542,3 +542,10 @@ html body .air-metric .air-description strong { font-size:1.24rem; line-height:1
   .forecast-list .forecast-rain { align-items:center; gap:6px; font-size:.75rem; }
   .forecast-list .forecast-uv { line-height:1.5; font-size:.75rem; }
 }
+
+/* PLUVIA: palette and contours are authored in each vector. */
+html body img[data-icon-source="pluvia-vector"] { filter:none !important; object-fit:contain; }
+.peek-rain .rain-metric-icon { width:16px; height:16px; }
+.moon-phase-icon .moon-orbit,.moon-phase-icon .moon-crater,.moon-phase-icon .moon-sparkle { display:none; }
+.moon-phase-icon .moon-shadow { fill:#335473; stroke:#90b9df; stroke-width:1.5; }
+.moon-phase-icon .moon-light { fill:#d9eafa; }

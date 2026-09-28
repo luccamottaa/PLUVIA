@@ -1,0 +1,57 @@
+{
+  "conditions": {
+    "clear-day": "clear-day.svg",
+    "clear-night": "clear-night.svg",
+    "few-clouds-day": "few-clouds-day.svg",
+    "few-clouds-night": "few-clouds-night.svg",
+    "partly-cloudy-day": "partly-cloudy-day.svg",
+    "partly-cloudy-night": "partly-cloudy-night.svg",
+    "cloudy": "cloudy.svg",
+    "overcast": "overcast.svg",
+    "drizzle": "drizzle.svg",
+    "light-rain": "light-rain.svg",
+    "moderate-rain": "moderate-rain.svg",
+    "heavy-rain": "heavy-rain.svg",
+    "showers": "showers.svg",
+    "showers-night": "showers-night.svg",
+    "thunderstorm": "thunderstorm.svg",
+    "thunderstorm-rain": "thunderstorm-rain.svg",
+    "thunderstorm-hail": "thunderstorm-hail.svg",
+    "snow": "snow.svg",
+    "sleet": "sleet.svg",
+    "fog": "fog.svg",
+    "haze": "haze.svg",
+    "windy": "windy.svg"
+  },
+  "metrics": {
+    "temperature": "temperature.svg",
+    "feels-like": "feels-like.svg",
+    "temperature-high": "temperature-high.svg",
+    "temperature-low": "temperature-low.svg",
+    "humidity": "humidity.svg",
+    "dew-point": "dew-point.svg",
+    "pressure": "pressure.svg",
+    "visibility": "visibility.svg",
+    "wind-speed": "wind-speed.svg",
+    "wind-gust": "wind-gust.svg",
+    "wind-direction": "wind-direction.svg",
+    "cloud-cover": "cloud-cover.svg",
+    "uv-index": "uv-index.svg",
+    "air-quality": "air-quality.svg",
+    "rain-probability": "rain-probability.svg",
+    "rain-volume": "rain-volume.svg"
+  },
+  "astronomy": {
+    "sunrise": "sunrise.svg",
+    "sunset": "sunset.svg",
+    "daylight": "daylight.svg"
+  },
+  "maps": {
+    "radar": "radar.svg",
+    "satellite": "satellite.svg",
+    "lightning": "lightning.svg"
+  },
+  "fallback": {
+    "weather-unknown": "weather-unknown.svg"
+  }
+}

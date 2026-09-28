@@ -26,22 +26,63 @@
     95: ["storm", "Trovoadas"], 96: ["hail-storm", "Trovoadas com granizo"], 99: ["hail-storm", "Trovoadas fortes com granizo"]
   });
   const ASSETS = Object.freeze({
-    conditions: Object.freeze({
-      "clear-day":"clear-day.svg", "clear-night":"clear-night.svg", "partly-cloudy-day":"partly-cloudy-day.svg", "partly-cloudy-night":"partly-cloudy-night.svg",
-      cloudy:"cloudy.svg", overcast:"overcast.svg", fog:"fog.svg", haze:"haze.svg", "light-rain":"light-rain.svg", "moderate-rain":"moderate-rain.svg",
-      "heavy-rain":"heavy-rain.svg", showers:"showers.svg", "showers-night":"showers-night.svg", thunderstorm:"thunderstorm.svg", "thunderstorm-rain":"thunderstorm-rain.svg", "thunderstorm-hail":"thunderstorm-hail.svg", snow:"snow.svg"
-    }),
-    metrics: Object.freeze({
-      temperature:"temperature.png", "feels-like":"feels-like-pluvia.svg", "temperature-high":"temperature-high-pluvia.svg", "temperature-low":"temperature-low-pluvia.svg",
-      humidity:"humidity.png", "dew-point":"dew-point.png", pressure:"pressure.png", visibility:"visibility-pluvia.svg", "wind-speed":"wind-speed.png", "wind-gust":"wind-gust.png",
-      "wind-direction":"wind-direction.png", "cloud-cover":"cloud-cover.png", "uv-index":"uv-index.png", "air-quality":"air-quality.png", "rain-probability":"rain-probability.png", "rain-volume":"rain-volume.png"
-    }),
-    astronomy: Object.freeze({}), maps: Object.freeze({}), alerts: Object.freeze({}), status: Object.freeze({}), fallback: Object.freeze({})
-  });
-  const ASSET_ALIASES = Object.freeze({
-    "few-clouds-day":"partly-cloudy-day",
-    "few-clouds-night":"partly-cloudy-night"
-  });
+  "conditions": {
+    "clear-day": "clear-day.svg",
+    "clear-night": "clear-night.svg",
+    "few-clouds-day": "few-clouds-day.svg",
+    "few-clouds-night": "few-clouds-night.svg",
+    "partly-cloudy-day": "partly-cloudy-day.svg",
+    "partly-cloudy-night": "partly-cloudy-night.svg",
+    "cloudy": "cloudy.svg",
+    "overcast": "overcast.svg",
+    "drizzle": "drizzle.svg",
+    "light-rain": "light-rain.svg",
+    "moderate-rain": "moderate-rain.svg",
+    "heavy-rain": "heavy-rain.svg",
+    "showers": "showers.svg",
+    "showers-night": "showers-night.svg",
+    "thunderstorm": "thunderstorm.svg",
+    "thunderstorm-rain": "thunderstorm-rain.svg",
+    "thunderstorm-hail": "thunderstorm-hail.svg",
+    "snow": "snow.svg",
+    "sleet": "sleet.svg",
+    "fog": "fog.svg",
+    "haze": "haze.svg",
+    "windy": "windy.svg"
+  },
+  "metrics": {
+    "temperature": "temperature.svg",
+    "feels-like": "feels-like.svg",
+    "temperature-high": "temperature-high.svg",
+    "temperature-low": "temperature-low.svg",
+    "humidity": "humidity.svg",
+    "dew-point": "dew-point.svg",
+    "pressure": "pressure.svg",
+    "visibility": "visibility.svg",
+    "wind-speed": "wind-speed.svg",
+    "wind-gust": "wind-gust.svg",
+    "wind-direction": "wind-direction.svg",
+    "cloud-cover": "cloud-cover.svg",
+    "uv-index": "uv-index.svg",
+    "air-quality": "air-quality.svg",
+    "rain-probability": "rain-probability.svg",
+    "rain-volume": "rain-volume.svg"
+  },
+  "astronomy": {
+    "sunrise": "sunrise.svg",
+    "sunset": "sunset.svg",
+    "daylight": "daylight.svg"
+  },
+  "maps": {
+    "radar": "radar.svg",
+    "satellite": "satellite.svg",
+    "lightning": "lightning.svg"
+  },
+  "fallback": {
+    "weather-unknown": "weather-unknown.svg"
+  }
+});
+  const ASSET_ALIASES = Object.freeze({"clouds":"cloudy","precipitation":"moderate-rain","map-rain":"moderate-rain","map-temperature":"temperature","map-feels-like":"feels-like","map-wind":"wind-speed","map-pressure":"pressure","map-humidity":"humidity","map-air-quality":"air-quality","map-visibility":"visibility","map-uv":"uv-index","starry-night":"clear-night"});
   const LABELS = Object.freeze({
     temperature:"Temperatura", "feels-like":"Sensação térmica", "temperature-high":"Temperatura máxima", "temperature-low":"Temperatura mínima", humidity:"Umidade",
     "dew-point":"Ponto de orvalho", pressure:"Pressão atmosférica", visibility:"Visibilidade", "wind-speed":"Velocidade do vento", "wind-gust":"Rajadas de vento",
@@ -64,7 +105,9 @@
     if (key === "partly-cloudy") return isDay ? "partly-cloudy-day" : "partly-cloudy-night";
     if (key === "overcast") return "overcast";
     if (key === "fog") return "fog";
-    if (["drizzle","freezing-drizzle","light-rain"].includes(key)) return "light-rain";
+    if (key === "drizzle") return "drizzle";
+    if (["freezing-drizzle","freezing-rain"].includes(key)) return "sleet";
+    if (key === "light-rain") return "light-rain";
     if (["rain","freezing-rain"].includes(key)) return "moderate-rain";
     if (key === "heavy-rain") return "heavy-rain";
     if (key.includes("showers") && key.includes("snow")) return "snow";
@@ -77,11 +120,10 @@
   function findAsset(name) {
     const resolvedName = ASSET_ALIASES[name] || name;
     for (const [category, entries] of Object.entries(ASSETS)) if (entries[resolvedName]) {
-      const version = ["partly-cloudy-night", "showers-night"].includes(resolvedName) ? "?v=moon-2" : "";
-      return { name, resolvedName, category, file:entries[resolvedName], src:`${BASE}${category}/${entries[resolvedName]}${version}`, source:category === "conditions" ? "pluvia-vector" : "pluvia-glossy" };
+      const version = "?v=modern-1";
+      return { name, resolvedName, category, file:entries[resolvedName], src:`${BASE}${category}/${entries[resolvedName]}${version}`, source:"pluvia-vector" };
     }
-    const legacy = LEGACY_FALLBACKS[name] || LEGACY_FALLBACKS["weather-unknown"];
-    return { name, category:"fallback", file:legacy, src:`${LEGACY_BASE}${legacy}`, source:"weathericons-fallback" };
+    return { name, category:"fallback", file:"weather-unknown.svg", src:`${BASE}fallback/weather-unknown.svg?v=modern-1`, source:"pluvia-vector" };
   }
   function assetFor(code, isDay = true) { return findAsset(conditionIconName(code, isDay)).file; }
   function icon(code, isDay = true, options = {}) { const info=condition(code); return { ...info, ...findAsset(conditionIconName(code,isDay)), isDay:Boolean(isDay), label:options.label || info.label }; }
