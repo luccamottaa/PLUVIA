@@ -44,6 +44,8 @@
     $('weatherPlay').setAttribute('aria-pressed','false'); $('weatherPlay').textContent = '▶'; $('weatherPlay').setAttribute('aria-label','Reproduzir animação');
   }
   function removeOverlay() {
+    if (state.nextOverlay && state.map) state.map.removeLayer(state.nextOverlay);
+    state.nextOverlay = null;
     if (state.overlay && state.map) state.map.removeLayer(state.overlay);
     state.overlay = null;
   }
@@ -53,13 +55,25 @@
     $('weatherFramePrev').disabled = frames.length < 2; $('weatherFrameNext').disabled = frames.length < 2; $('weatherPlay').disabled = frames.length < 2;
   }
   function fadeTileLayer(layer, opacity) {
-    layer.setOpacity?.(0); layer.addTo(state.map); requestAnimationFrame(() => layer.setOpacity?.(opacity));
-    return layer;
+    if (state.nextOverlay) state.map.removeLayer(state.nextOverlay);
+    const previous = state.overlay;
+    state.nextOverlay = layer;
+    layer.setOpacity?.(0);
+    layer.on('load',() => {
+      if (state.nextOverlay !== layer) return;
+      state.nextOverlay = null; state.overlay = layer;
+      requestAnimationFrame(() => {
+        if (state.overlay !== layer) return;
+        layer.setOpacity?.(opacity);
+        previous?.setOpacity?.(0);
+      });
+      if (previous) setTimeout(() => state.map.removeLayer(previous),450);
+    });
+    layer.addTo(state.map);
   }
   function renderRainFrame() {
     const frame = state.frames[state.index]; if (!frame) return;
-    removeOverlay();
-    state.overlay = fadeTileLayer(L.tileLayer(`${frame.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:.76,maxNativeZoom:7,maxZoom:11,attribution:'Radar: RainViewer'}),.76);
+    fadeTileLayer(L.tileLayer(`${frame.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:.76,maxNativeZoom:7,maxZoom:11,attribution:'Radar: RainViewer'}),.76);
     $('weatherFrameTime').textContent = zoneTime(frame.time);
     $('weatherSourceNote').textContent = 'Radar observado · RainViewer · cobertura depende dos radares disponíveis; não é previsão.';
     $('weatherMapLegend').innerHTML = '<span>Fraca</span><i class="legend-rain"></i><span>Forte</span>';
@@ -85,17 +99,17 @@
   }
   function renderCloudFrame() {
     const frame = state.frames[state.index]; if (!frame) return;
-    removeOverlay(); setError('');
+    setError('');
     const iso = new Date(frame.time*1000).toISOString().replace('.000Z','Z');
     const overlay = L.tileLayer(`${SATELLITE_ROOT}/${SATELLITE_LAYER}/default/${iso}/${SATELLITE_MATRIX}/{z}/{y}/{x}.png`,{
-      opacity:1,maxNativeZoom:6,maxZoom:11,noWrap:true,
+      opacity:0,maxNativeZoom:6,maxZoom:11,noWrap:true,className:'pluvia-cloud-overlay',
       attribution:'GOES-East / NOAA · NASA GIBS'
     });
     let loaded = 0, failed = 0;
     overlay.on('tileload',() => { loaded++; });
     overlay.on('tileerror',() => { failed++; });
     overlay.on('load',() => {
-      if (state.overlay !== overlay || state.layer !== 'clouds') return;
+      if ((state.overlay !== overlay && state.nextOverlay !== overlay) || state.layer !== 'clouds') return;
       if (!loaded) {
         stop(); setError('Imagem de satélite indisponível nesta região ou horário.');
         source('clouds',{status:'error'});
@@ -104,13 +118,12 @@
         source('clouds',{status:'ready',dataAt:frame.time*1000});
       }
     });
-    state.overlay = overlay;
-    overlay.addTo(state.map);
-    state.marker?.openTooltip?.();
+    fadeTileLayer(overlay,.62);
+    state.marker?.closeTooltip?.();
     const date = new Intl.DateTimeFormat('pt-BR',{timeZone:city()?.timezone || 'UTC',day:'2-digit',month:'2-digit'}).format(new Date(frame.time*1000));
     $('weatherFrameTime').textContent = date + ' · ' + zoneTime(frame.time);
     $('weatherSourceNote').textContent = 'Satélite GOES-East · NOAA / NASA GIBS · imagem observada no horário indicado, com atraso de processamento. Composição GeoColor de dia e infravermelho à noite.';
-    $('weatherMapLegend').innerHTML = '<span>Nuvens reais · satélite GOES-East</span>';
+    $('weatherMapLegend').innerHTML = '<span>Nuvens · GOES-East</span>';
   }
   function renderFrame() {
     $('weatherTimeline').value = String(state.index);
@@ -213,7 +226,7 @@
       if (state.map && city()?.id !== state.cityId) showMap();
     }
   }
-  function step(amount) { if (!state.frames.length) return; state.index = (state.index + amount + state.frames.length) % state.frames.length; renderFrame(); }
+  function step(amount) { if (!state.frames.length || state.nextOverlay) return; state.index = (state.index + amount + state.frames.length) % state.frames.length; renderFrame(); }
   if ('IntersectionObserver' in globalThis) {
     const observer = new IntersectionObserver(entries => {
       if (entries.some(entry => entry.isIntersecting)) { mapVisible = true; observer.disconnect(); showMap(); }
@@ -226,7 +239,7 @@
   $('weatherPlay').addEventListener('click',() => {
     if (state.timer) { stop(); return; }
     $('weatherPlay').setAttribute('aria-pressed','true'); $('weatherPlay').textContent='❚❚'; $('weatherPlay').setAttribute('aria-label','Pausar animação');
-    state.timer=setInterval(() => step(1),850);
+    state.timer=setInterval(() => step(1),1400);
   });
   const sourceEntries = [
     ['INMET','Dado oficial','Avisos meteorológicos vigentes e previstos para o município.'],

@@ -122,6 +122,9 @@ function renderAirQuality(value) {
   else delete card.dataset.aqiLevel;
   $("airQuality").textContent = label;
   $("airNote").textContent = note;
+  if ($("airValue")) $("airValue").textContent = level ? Math.round(value) : '--';
+  if ($("airScale")) $("airScale").hidden = !level;
+  if ($("airScaleMarker")) $("airScaleMarker").style.left = Math.min(100,Math.max(0,value)/500*100) + '%';
 }
 
 function decodeHtml(value = "") {
@@ -967,6 +970,7 @@ function chooseCity(id, locatedCity = null) {
   if (!saved) {
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
     delete $("airQualityCard").dataset.aqiLevel;
+    renderAirQuality(null);
     $("uvScale").hidden = true;
     $("visibilityBadge").hidden = true;
     $("attentionCard").classList.remove("ok","warning","danger","unavailable");

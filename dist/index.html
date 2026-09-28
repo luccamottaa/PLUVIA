@@ -82,7 +82,7 @@
     </style>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-119" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-14" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-15" media="print" onload="this.media='all'" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-119" /></noscript>
   </head>
@@ -239,7 +239,7 @@
         <article class="metric metric-sky wind-metric panel card-detail"><div class="metric-head"><span>VENTO</span><span data-weather-icon-name="wind-speed"></span></div><div class="wind-reading"><strong id="wind">--<sup> km/h</sup></strong><span class="wind-compass" id="windCompass" role="img" aria-label="Direção do vento indisponível"><i aria-hidden="true"></i></span></div><small id="windNote">—</small></article>
         <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>PRESSÃO</span><span data-weather-icon-name="pressure"></span></div><strong id="pressure">----<sup> hPa</sup></strong><small id="pressureNote">—</small></article>
         <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>ÍNDICE UV</span><span data-weather-icon-name="uv-index"></span></div><strong id="uv">--</strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote">—</small></article>
-        <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>QUALIDADE DO AR</span><span data-weather-icon-name="air-quality"></span></div><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small></article>
+        <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>QUALIDADE DO AR</span><span data-weather-icon-name="air-quality"></span></div><div class="air-reading"><div class="air-index"><b id="airValue">--</b><span>US AQI</span></div><div class="air-description"><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div><small class="air-source">Estimativa regional · Open-Meteo / CAMS</small></article>
       </section>
       <aside class="attention-card insight-card panel card-secondary" id="attentionCard" aria-labelledby="attentionTitle" aria-live="polite">
         <div class="card-topline"><span>RESUMO INTELIGENTE</span><span class="signal" id="attentionSignal">LEITURA LOCAL</span></div>
@@ -311,8 +311,8 @@
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></dialog>
     <script src="./analytics.js?v=analytics-3" defer></script>
-    <script src="./modules/sources.js?v=panel-14" defer></script>
-    <script src="./modules/http-client.js?v=panel-14" defer></script>
+    <script src="./modules/sources.js?v=panel-15" defer></script>
+    <script src="./modules/http-client.js?v=panel-15" defer></script>
     <script src="./modules/weather-services.js?v=core-109" defer></script>
     <script src="./modules/weather-data-layer.js?v=core-109" defer></script>
     <script src="./modules/met-merge.js?v=core-109" defer></script>
@@ -324,13 +324,13 @@
     <script src="./vendor/suncalc.js?v=core-109" defer></script>
     <script src="./modules/smart-summary.js?v=core-109" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
-    <script src="./app.js?v=panel-14" defer></script>
+    <script src="./app.js?v=panel-15" defer></script>
     <script src="./p0.js?v=core-109" defer></script>
     <script src="./modules/risks.js?v=core-116" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
-    <script src="./weather-map.js?v=panel-14" defer></script>
+    <script src="./weather-map.js?v=panel-15" defer></script>
     <script src="./account.js?v=core-109" defer></script>
     <script src="./saved-places.js?v=core-109" defer></script>
-    <script src="./notifications.js?v=panel-14" defer></script>
+    <script src="./notifications.js?v=panel-15" defer></script>
   </body>
 </html>

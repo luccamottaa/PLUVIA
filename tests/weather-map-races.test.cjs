@@ -19,7 +19,7 @@ const context = {
   L:{tileLayer:(url)=>{const layer={url,events:{},on(name,fn){this.events[name]=fn;return this;},addTo(){return this;},setOpacity(){}};layers.push(layer);return layer;},layerGroup:()=>({addTo(){return this}})}
 };
 let code = fs.readFileSync('dist/weather-map.js','utf8');
-code = code.replace('  let leafletPromise;', '  globalThis.testMap = {selectLayer, state, satelliteFrames};\n  let leafletPromise;');
+code = code.replace('  let leafletPromise;', '  globalThis.testMap = {selectLayer, state, satelliteFrames, fadeTileLayer};\n  let leafletPromise;');
 vm.runInNewContext(fs.readFileSync('dist/modules/http-client.js','utf8'),context);
 vm.runInNewContext(code,context);
 context.testMap.state.map = {removeLayer(){}};
@@ -39,6 +39,14 @@ const clouds = `<Domains><Domain>${new Date(latest-3600000).toISOString()}/${new
   assert.equal(context.testMap.state.frames.length,7);
   assert.equal(context.testMap.state.frames.at(-1).time,latest/1000);
   assert.match(layers.at(-1).url,/GOES-East_ABI_GeoColor/);
+  const first=layers.at(-1);
+  first.events.load();
+  assert.equal(context.testMap.state.overlay,first);
+  const second=context.L.tileLayer('next');
+  context.testMap.fadeTileLayer(second,.62);
+  assert.equal(context.testMap.state.overlay,first,'keep displayed image while next loads');
+  second.events.load();
+  assert.equal(context.testMap.state.overlay,second,'swap only after new tiles load');
   assert.throws(()=>context.testMap.satelliteFrames('<Domain>2020-01-01T00:00:00Z</Domain>'),/Sem imagens recentes/);
   const missing = context.testMap.selectLayer('clouds');
   requests[2].resolve(response('<Domains/>'));
