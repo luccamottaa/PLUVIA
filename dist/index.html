@@ -17,7 +17,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="O céu do Brasil agora no PLUVIA. Consulte a previsão do tempo, a chuva e a qualidade do ar em cidades de todo o país." />
     <link rel="canonical" href="https://pluviaweather.com.br/" />
     <meta property="og:site_name" content="PLUVIA" />
@@ -82,7 +82,7 @@
     </style>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-119" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-13" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-14" media="print" onload="this.media='all'" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-119" /></noscript>
   </head>
@@ -311,8 +311,8 @@
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></dialog>
     <script src="./analytics.js?v=analytics-3" defer></script>
-    <script src="./modules/sources.js?v=core-115" defer></script>
-    <script src="./modules/http-client.js?v=core-67" defer></script>
+    <script src="./modules/sources.js?v=panel-14" defer></script>
+    <script src="./modules/http-client.js?v=panel-14" defer></script>
     <script src="./modules/weather-services.js?v=core-109" defer></script>
     <script src="./modules/weather-data-layer.js?v=core-109" defer></script>
     <script src="./modules/met-merge.js?v=core-109" defer></script>
@@ -324,13 +324,13 @@
     <script src="./vendor/suncalc.js?v=core-109" defer></script>
     <script src="./modules/smart-summary.js?v=core-109" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
-    <script src="./app.js?v=panel-13" defer></script>
+    <script src="./app.js?v=panel-14" defer></script>
     <script src="./p0.js?v=core-109" defer></script>
     <script src="./modules/risks.js?v=core-116" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
-    <script src="./weather-map.js?v=panel-13" defer></script>
+    <script src="./weather-map.js?v=panel-14" defer></script>
     <script src="./account.js?v=core-109" defer></script>
     <script src="./saved-places.js?v=core-109" defer></script>
-    <script src="./notifications.js?v=panel-13" defer></script>
+    <script src="./notifications.js?v=panel-14" defer></script>
   </body>
 </html>

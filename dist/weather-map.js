@@ -64,42 +64,53 @@
     $('weatherSourceNote').textContent = 'Radar observado · RainViewer · cobertura depende dos radares disponíveis; não é previsão.';
     $('weatherMapLegend').innerHTML = '<span>Fraca</span><i class="legend-rain"></i><span>Forte</span>';
   }
-  function cloudPoints(selectedCity) {
-    const bounds = state.map?.getBounds?.();
-    const north = Math.min(85,bounds?.getNorth() ?? selectedCity.lat+1.2);
-    const south = Math.max(-85,bounds?.getSouth() ?? selectedCity.lat-1.2);
-    const west = bounds?.getWest() ?? selectedCity.lon-1.2;
-    const east = bounds?.getEast() ?? selectedCity.lon+1.2;
-    const points = [];
-    for (let row=0; row<3; row++) for (let col=0; col<3; col++) points.push({lat:north+(south-north)*row/2,lon:west+(east-west)*col/2,row,col});
-    return points;
+  const SATELLITE_LAYER = 'GOES-East_ABI_GeoColor';
+  const SATELLITE_MATRIX = 'GoogleMapsCompatible_Level7';
+  const SATELLITE_ROOT = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best';
+  function satelliteFrames(xml, now = Date.now()) {
+    const domain = xml.match(/<Domain>([^<]+)<\/Domain>/)?.[1];
+    if (!domain) throw new Error('O satélite não informou horários disponíveis.');
+    const times = new Set();
+    for (const range of domain.split(',')) {
+      const [startText,endText,period] = range.trim().split('/');
+      const start = Date.parse(startText), end = Date.parse(endText || startText);
+      if (!Number.isFinite(start) || !Number.isFinite(end) || end < start || (period && period !== 'PT10M')) continue;
+      for (let time=end, count=0; time>=start && count<72; time-=600000,count++) {
+        if (time<=now && now-time<=6*3600000) times.add(time/1000);
+      }
+    }
+    const frames = [...times].sort((a,b)=>a-b).slice(-7).map(time=>({time}));
+    if (!frames.length) throw new Error('Sem imagens recentes de satélite. Tente novamente mais tarde.');
+    return frames;
   }
   function renderCloudFrame() {
     const frame = state.frames[state.index]; if (!frame) return;
-    removeOverlay();
-    // Interpolate the model's sampled coverage, without inventing satellite detail.
-    const canvas = document.createElement('canvas'), size = 192;
-    canvas.width = canvas.height = size;
-    const ctx = canvas.getContext('2d'), pixels = ctx.createImageData(size,size);
-    for (let y=0;y<size;y++) for (let x=0;x<size;x++) {
-      const gx=x/(size-1)*2, gy=y/(size-1)*2;
-      const col=Math.min(1,Math.floor(gx)), row=Math.min(1,Math.floor(gy));
-      const fx=gx-col, fy=gy-row;
-      const a=frame.values[row*3+col]*(1-fx)+frame.values[row*3+col+1]*fx;
-      const b=frame.values[(row+1)*3+col]*(1-fx)+frame.values[(row+1)*3+col+1]*fx;
-      const coverage=(a*(1-fy)+b*fy)/100;
-      const radius=Math.hypot((x/(size-1)-.5)*2,(y/(size-1)-.5)*2);
-      const edge=Math.max(0,Math.min(1,(1.42-radius)/.32));
-      const i=(y*size+x)*4;
-      pixels.data[i]=218; pixels.data[i+1]=232; pixels.data[i+2]=248;
-      pixels.data[i+3]=Math.round(coverage*edge*150);
-    }
-    ctx.putImageData(pixels,0,0);
-    const northWest=frame.points[0], southEast=frame.points[8];
-    state.overlay = L.imageOverlay(canvas.toDataURL(),[[southEast.lat,northWest.lon],[northWest.lat,southEast.lon]],{interactive:false}).addTo(state.map);
-    $('weatherFrameTime').textContent = zoneTime(frame.time);
-    $('weatherSourceNote').textContent = 'Cobertura de nuvens estimada · Open-Meteo · interpolação regional, não imagem de satélite. Fora da área suavizada não há leitura nesta camada.';
-    $('weatherMapLegend').innerHTML = '<span>Menos nuvens</span><i class="legend-clouds"></i><span>Mais nuvens</span>';
+    removeOverlay(); setError('');
+    const iso = new Date(frame.time*1000).toISOString().replace('.000Z','Z');
+    const overlay = L.tileLayer(`${SATELLITE_ROOT}/${SATELLITE_LAYER}/default/${iso}/${SATELLITE_MATRIX}/{z}/{y}/{x}.png`,{
+      opacity:1,maxNativeZoom:6,maxZoom:11,noWrap:true,
+      attribution:'GOES-East / NOAA · NASA GIBS'
+    });
+    let loaded = 0, failed = 0;
+    overlay.on('tileload',() => { loaded++; });
+    overlay.on('tileerror',() => { failed++; });
+    overlay.on('load',() => {
+      if (state.overlay !== overlay || state.layer !== 'clouds') return;
+      if (!loaded) {
+        stop(); setError('Imagem de satélite indisponível nesta região ou horário.');
+        source('clouds',{status:'error'});
+      } else {
+        if (failed) setError('Parte da imagem não carregou. Tente outro horário.');
+        source('clouds',{status:'ready',dataAt:frame.time*1000});
+      }
+    });
+    state.overlay = overlay;
+    overlay.addTo(state.map);
+    state.marker?.openTooltip?.();
+    const date = new Intl.DateTimeFormat('pt-BR',{timeZone:city()?.timezone || 'UTC',day:'2-digit',month:'2-digit'}).format(new Date(frame.time*1000));
+    $('weatherFrameTime').textContent = date + ' · ' + zoneTime(frame.time);
+    $('weatherSourceNote').textContent = 'Satélite GOES-East · NOAA / NASA GIBS · imagem observada no horário indicado, com atraso de processamento. Composição GeoColor de dia e infravermelho à noite.';
+    $('weatherMapLegend').innerHTML = '<span>Nuvens reais · satélite GOES-East</span>';
   }
   function renderFrame() {
     $('weatherTimeline').value = String(state.index);
@@ -116,17 +127,14 @@
   }
   async function loadClouds(revision) {
     source('clouds',{status:'loading'});
-    const selectedCity = city(), points = cloudPoints(selectedCity);
-    const params = new URLSearchParams({latitude:points.map(p=>p.lat).join(','),longitude:points.map(p=>p.lon).join(','),hourly:'cloud_cover',past_hours:'2',forecast_hours:'8',timeformat:'unixtime',timezone:'auto'});
-    const raw = await fetchJson(`https://api.open-meteo.com/v1/forecast?${params}`);
+    if (!httpClient?.getText) throw new Error('Cliente de satélite indisponível. Recarregue o app.');
+    const now = Date.now(), start = new Date(now-6*3600000).toISOString().replace(/\.\d{3}Z$/,'Z');
+    const end = new Date(now).toISOString().replace(/\.\d{3}Z$/,'Z');
+    const url = `${SATELLITE_ROOT}/1.0.0/${SATELLITE_LAYER}/default/${SATELLITE_MATRIX}/all/${start}--${end}.xml`;
+    const xml = await httpClient.getText(url,{timeoutMs:15000});
     if (revision !== layerRevision) return;
-    const rows = Array.isArray(raw) ? raw : [raw], times = rows[0]?.hourly?.time || [];
-    const frames = times.map((time,i) => ({time,points,values:rows.map(row => row?.hourly?.cloud_cover?.[i])}));
-    if (!frames.length || frames.some(frame => !Number.isFinite(frame.time) || frame.values.length !== points.length || frame.values.some(value => !Number.isFinite(value) || value < 0 || value > 100))) throw new Error('A estimativa de nuvens veio incompleta.');
-    const now = new Date(); let nearest = 0, distance = Infinity;
-    times.forEach((time,i) => { const d=Math.abs(time*1000-now.getTime()); if(d<distance){distance=d;nearest=i;} });
-    setFrames(frames,nearest); renderFrame();
-    source('clouds',{status:'ready',dataAt:Date.now()});
+    const frames = satelliteFrames(xml,now);
+    setFrames(frames,frames.length-1); renderFrame();
   }
   async function loadLightning(revision) {
     source('lightning',{status:'loading'});
@@ -184,11 +192,6 @@
     if (!state.map) {
       state.map = L.map('weatherMap',{zoomControl:true,minZoom:3,maxZoom:11}).setView([selectedCity.lat,selectedCity.lon],7);
       state.base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{className:'pluvia-dark-basemap',maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map);
-      let cloudMoveTimer;
-      state.map.on('moveend',() => {
-        clearTimeout(cloudMoveTimer);
-        if (state.layer === 'clouds' && !initializing) cloudMoveTimer=setTimeout(() => { if (state.layer === 'clouds') selectLayer('clouds'); },400);
-      });
     } else state.map.setView([selectedCity.lat,selectedCity.lon],7);
     if (state.marker) state.map.removeLayer(state.marker);
     state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:7,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(`${selectedCity.name}/${selectedCity.uf}`);
@@ -227,7 +230,8 @@
   });
   const sourceEntries = [
     ['INMET','Dado oficial','Avisos meteorológicos vigentes e previstos para o município.'],
-    ['Open-Meteo','Estimativa meteorológica','Tempo, chuva, nuvens e qualidade do ar no ponto do município.'],
+    ['Open-Meteo','Estimativa meteorológica','Tempo, chuva e qualidade do ar no ponto do município.'],
+    ['NOAA / NASA GIBS','Nuvens observadas por satélite','Imagens GOES-East GeoColor, com horário da captura e atraso de processamento.'],
     ['MET Norway','Segunda previsão','Temperatura, vento e precipitação previstos no ponto de referência; dados CC BY 4.0.'],
     ['RainViewer','Observação de radar','Composição de radares; cobertura e disponibilidade variam por região.'],
     ['Vaisala Xweather','Raios observados sob demanda','Detecções nos últimos cinco minutos em até 40 km; disponível após ativação das credenciais no servidor.'],

@@ -56,7 +56,7 @@
           throw new RequestError("Fonte temporariamente indisponível.", {status:response.status,retryable,code});
         }
         try {
-          return await response.json();
+          return await (requestOptions.responseType === 'text' ? response.text() : response.json());
         } catch {
           throw new RequestError("A fonte enviou uma resposta inválida.", {status:response.status,retryable:true,code:"invalid_response"});
         }
@@ -84,7 +84,8 @@
       pending.clear();
     }
 
-    return Object.freeze({getJson, abortAll, pendingCount:() => pending.size});
+    const getText = (url, requestOptions = {}) => getJson(url, {...requestOptions,responseType:'text'});
+    return Object.freeze({getJson, getText, abortAll, pendingCount:() => pending.size});
   }
 
   return Object.freeze({RequestError, createClient, client:createClient()});

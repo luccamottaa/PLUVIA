@@ -23,7 +23,7 @@
 .intro h1 { margin:24px 0 0; font-size:clamp(3rem,9vw,5rem); line-height:1.02; font-weight:900; overflow-wrap:anywhere; }
 .intro h1 em { display:none; }
 .dashboard-grid { display:block; }
-.dashboard-grid::before { display:none; }
+.dashboard-grid::before,.metrics::before,.safety-grid::before { display:none !important; }
 .weather-hero.panel { border:0 !important; border-radius:0; background:transparent !important; box-shadow:none !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; min-height:0 !important; padding:0 6px 25px; }
 .weather-hero.panel::before,.weather-hero::after { display:none !important; }
 .weather-hero .card-topline { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
@@ -311,6 +311,7 @@ html,body { background:#041936; }
 .weather-hero .temperature { gap:.09em; letter-spacing:-.045em; }
 .weather-hero .temperature .deg { font-size:.36em; transform:translateY(.12em); }
 .topbar .account-trigger { margin-right:12px; }
+.topbar .brand-mark { margin-left:8px; }
 
 /* Céu associado à condição atual da cidade; sem animação contínua. */
 body {
@@ -446,8 +447,3 @@ body.page-hidden .sky-effects * { animation-play-state:paused; }
 .insight-card :is(.weather-explanation,#attentionBasis,.summary-link) { grid-column:1/-1; margin:0; }
 .insight-card #attentionBasis { font-size:.72rem; line-height:1.45; }
 .insight-card .summary-link { padding-top:4px; }
-
-/* A área do relógio do iPhone não deve revelar conteúdo rolando por baixo. */
-@media(display-mode:standalone) {
-  body::before { display:block; content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top); z-index:79; background:var(--sky-base,#041936); backdrop-filter:none !important; -webkit-backdrop-filter:none !important; pointer-events:none; }
-}
