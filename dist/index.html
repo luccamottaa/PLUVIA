@@ -85,7 +85,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-29" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-6" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-7" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
@@ -239,7 +239,7 @@
             <div class="wx-copy">
               <div class="temperature"><span id="temperature">--</span><span class="deg">°</span></div>
             </div>
-            <p class="weather-description" id="condition">Consultando o tempo…</p>
+            <p class="condition" id="condition">Consultando o tempo…</p>
           </div>
         </article>
       </section>
@@ -291,7 +291,6 @@
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
           <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapCardTitle">Chuva na região</h2><p id="weatherMapCity">Referência do município</p></div>
-          <div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button></div>
           <div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Radar de chuva interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
           <div class="weather-timebar">
             <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
