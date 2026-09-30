@@ -62,7 +62,7 @@ assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('mu
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
 assert.match(sw, /pluvia-panel-23/);
 assert.match(html, /redesign\.css\?v=panel-23/);
-assert.match(sw, /assets\/panel-night-sky\.webp/);
+assert.match(sw, /assets\/sky-cloud-bank\.webp/);
 assert.match(html, /id="weatherView" class="initial-loading" aria-busy="true"/);
 assert.match(html, /viewport-fit=cover/);
 assert.match(html, /styles\.css\?v=core-119/);
