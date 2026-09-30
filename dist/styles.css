@@ -1260,19 +1260,13 @@ main,.topbar,#weatherView,.intro,.dashboard-grid,.dashboard-grid > *,.metrics,.m
 .visibility-detail small { color:var(--muted); font-size:.78rem; }
 
 .moon-inline { display:flex; align-items:center; justify-content:center; gap:22px; width:min(980px,100%); padding:20px 12px 0; border-top:1px solid var(--line); color:var(--muted); }
-.moon-phase-icon { display:block; width:82px; height:82px; flex:0 0 82px; overflow:visible; filter:drop-shadow(0 5px 12px rgba(34,72,134,.16)); }
-.moon-orbit { fill:rgba(119,169,236,.09); stroke:rgba(88,139,205,.25); stroke-width:1; }
-.moon-shadow { fill:#233d62; stroke:#85a8d7; stroke-width:1.5; }
-.moon-light { fill:url(#pluviaMoonLight); }
-.moon-crater { fill:#7196ce; opacity:.22; pointer-events:none; }
-.moon-sparkle { fill:none; stroke:#6096dc; stroke-width:1.5; stroke-linecap:round; }
+.moon-phase-icon { display:block; width:82px; height:82px; flex:0 0 82px; overflow:visible; filter:drop-shadow(0 3px 7px rgba(9,18,32,.22)); }
 .moon-inline > span { min-width:0; text-align:left; font:500 .75rem/1.35 var(--font-ui); letter-spacing:.09em; }
 .moon-inline strong { display:block; margin-top:5px; color:var(--text); font:700 clamp(1.1rem,2vw,1.45rem)/1.25 var(--font-ui); letter-spacing:0; }
 .sun-section.is-night .sun-label span { color:#c0d0e7; }
 .sun-section.is-night .sun-times div + div { border-left-color:rgba(188,215,255,.3); }
 .sun-section.is-night .moon-inline { border-top-color:rgba(188,215,255,.3); color:#c0d0e7; }
 .sun-section.is-night .moon-inline strong { color:#f0f6ff; }
-.sun-section.is-night .moon-orbit { fill:rgba(188,215,255,.08); stroke:rgba(188,215,255,.24); }
 
 /* Cores das seis faixas do índice AQI dos EUA. Sem leitura, o card volta ao neutro. */
 .air-metric[data-aqi-level="good"] { --aqi-accent:#167047; }

@@ -3,7 +3,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   else {
     root.PLUVIA = root.PLUVIA || {};
-    root.PLUVIA.sky = api.create({document:root.document, sun:root.PLUVIA.sun});
+    root.PLUVIA.sky = api.create({document:root.document, sun:root.PLUVIA.sun, moonView:root.PLUVIA.moonView});
     let storage;
     try { storage = root.localStorage; } catch (_) {}
     root.PLUVIA.sky.bootstrap(storage);
@@ -41,7 +41,7 @@
     const offset = new Intl.DateTimeFormat('en',{timeZone:city.timezone,timeZoneName:'longOffset'}).formatToParts(new Date(value + 'Z')).find(part => part.type === 'timeZoneName').value;
     return Date.parse(value + (offset === 'GMT' ? 'Z' : offset.replace('GMT','')));
   }
-  function create({document, sun = null, now = () => Date.now()} = {}) {
+  function create({document, sun = null, moonView = null, now = () => Date.now()} = {}) {
     let city = null, rows = [], weather = 'unknown', providerPhase = 'unknown', code = null;
     let calculatedDay = '', calculatedTimes = null;
     function write(state) {
@@ -100,6 +100,7 @@
       }
       // A small decorative arc stays above the content throughout the cycle.
       // It follows the real clock instead of replaying an entrance on launch.
+      moonView?.update(at);
       return write({phase,solar,weather,strength,sunVisibility,moonVisibility,
         sunX:(dayProgress - .5) * 28,sunY:Math.pow(dayProgress * 2 - 1,2) * 14,
         moonX:(.5 - nightProgress) * 24,moonY:Math.pow(nightProgress * 2 - 1,2) * 12});

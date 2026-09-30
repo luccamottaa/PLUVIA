@@ -295,7 +295,6 @@ function updateClock() {
   const now = new Date();
   $("localClock").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
   $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
-  renderMoon(now);
   updateSolarAtmosphere(now.getTime());
 }
 
@@ -551,21 +550,6 @@ function renderSun(daily) {
   $("sunshineNote").textContent = Number.isFinite(sunshine) && Number.isFinite(daylight)
     ? `Sol previsto hoje: ${Math.floor(sunshineMinutes / 60)}h ${sunshineMinutes % 60}min · Luz do dia: ${Math.floor(daylightMinutes / 60)}h ${daylightMinutes % 60}min. A previsão de sol considera as nuvens.`
     : "Duração prevista de sol indisponível.";
-}
-
-function renderMoon(now = new Date()) {
-  const phase = globalThis.PLUVIA?.moon?.getMoonIllumination(now)?.phase;
-  if (!Number.isFinite(phase)) {
-    $("moonIcon").setAttribute("d", "");
-    $("moonPhase").textContent = "Fase indisponível";
-    return;
-  }
-  const names = ["Lua nova","Lua crescente","Quarto crescente","Gibosa crescente","Lua cheia","Gibosa minguante","Quarto minguante","Lua minguante"];
-  // O lado iluminado avança pela direita na crescente e pela esquerda na minguante.
-  const shapes = ["", "M40 12 A28 28 0 0 1 40 68 C53 58 53 22 40 12Z", "M40 12 A28 28 0 0 1 40 68Z", "M40 12 A28 28 0 0 1 40 68 C25 58 25 22 40 12Z", "M40 12 A28 28 0 1 1 39.99 12Z", "M40 12 A28 28 0 0 0 40 68 C55 58 55 22 40 12Z", "M40 12 A28 28 0 0 0 40 68Z", "M40 12 A28 28 0 0 0 40 68 C27 58 27 22 40 12Z"];
-  const index = Math.round(phase * 8) % 8;
-  $("moonIcon").setAttribute("d", shapes[index]);
-  $("moonPhase").textContent = names[index];
 }
 
 function renderVisibility(value, fromCache = false) {
