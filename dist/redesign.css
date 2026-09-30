@@ -1,9 +1,9 @@
-/* Only the base tiles are darkened; radar and cloud data keep their colors. */
-.pluvia-dark-basemap { filter:invert(1) hue-rotate(180deg) brightness(.7) saturate(.65); }
-#weatherMap { background:#101f32; }
-#weatherMap .leaflet-bar a { background:#142945; color:#e8f2ff; border-color:#385276; }
-#weatherMap .leaflet-control-attribution { background:#10233fe8; color:#bdcde2; }
-#weatherMap .leaflet-control-attribution a { color:#8cbcff; }
+/* Keep the original light map and satellite colors. */
+.pluvia-light-basemap { filter:none; }
+#weatherMap { background:#e8eee6; }
+#weatherMap .leaflet-bar a { background:#f8fbff; color:#193b59; border-color:#c3d4e1; }
+#weatherMap .leaflet-control-attribution { background:#fffffff0; color:#294e6b; }
+#weatherMap .leaflet-control-attribution a { color:#0757aa; }
 /* Painel Noturno: o céu atravessa o topo e o conteúdo sem uma emenda. */
 .night-stage { position:relative; isolation:isolate; display:flow-root; }
 
@@ -477,7 +477,7 @@ html body .quick-metrics .hero-temperature-range { border-radius:0 24px 24px 0 !
 .weather-map-legend { border:1px solid #accbf325; border-radius:12px; background:#0d2038ed; color:#cfdef0; font-size:.65rem; backdrop-filter:none; }
 #weatherSourceNote { color:#99aec9; font-size:.74rem; line-height:1.5; }
 .leaflet-layer, .leaflet-tile-container { transition:opacity .4s ease; }
-.pluvia-cloud-overlay { mix-blend-mode:screen; filter:grayscale(1) contrast(1.2) blur(.4px); }
+.pluvia-cloud-overlay { mix-blend-mode:normal; filter:none; }
 .leaflet-tooltip { background:#0e223be8; border:1px solid #a1c8f330; color:#edf5ff; box-shadow:0 3px 12px #0002; border-radius:10px; }
 html body .metrics .air-metric { grid-column:1/-1; padding:24px; gap:18px; min-height:0; }
 .air-reading { display:flex; align-items:center; gap:22px; }

@@ -16,13 +16,13 @@ const context = {
   AbortController, URLSearchParams, setTimeout, clearTimeout, clearInterval,
   requestAnimationFrame:fn=>fn(),
   IntersectionObserver:class { observe(){} disconnect(){} },
-  L:{tileLayer:(url)=>{const layer={url,events:{},on(name,fn){this.events[name]=fn;return this;},addTo(){return this;},setOpacity(){}};layers.push(layer);return layer;},layerGroup:()=>({addTo(){return this}})}
+  L:{tileLayer:(url,options)=>{const layer={url,options,opacity:null,events:{},on(name,fn){this.events[name]=fn;return this;},addTo(){return this;},setOpacity(value){this.opacity=value;}};layers.push(layer);return layer;},layerGroup:()=>({addTo(){return this}})}
 };
 let code = fs.readFileSync('dist/weather-map.js','utf8');
 code = code.replace('  let leafletPromise;', '  globalThis.testMap = {selectLayer, state, satelliteFrames, fadeTileLayer};\n  let leafletPromise;');
 vm.runInNewContext(fs.readFileSync('dist/modules/http-client.js','utf8'),context);
 vm.runInNewContext(code,context);
-context.testMap.state.map = {removeLayer(){}};
+context.testMap.state.map = {removeLayer(){},setMaxZoom(value){this.maxZoom=value;},getZoom(){return 7;},setZoom(value){this.zoom=value;}};
 const response = body => ({ok:true,json:async()=>body,text:async()=>body});
 const latest = Math.floor(Date.now()/600000)*600000;
 const clouds = `<Domains><Domain>${new Date(latest-3600000).toISOString()}/${new Date(latest).toISOString()}/PT10M</Domain></Domains>`;
@@ -42,6 +42,11 @@ const clouds = `<Domains><Domain>${new Date(latest-3600000).toISOString()}/${new
   const first=layers.at(-1);
   first.events.load();
   assert.equal(context.testMap.state.overlay,first);
+  assert.equal(first.opacity,.92,"satellite clouds remain visible at high opacity");
+  assert.equal(first.options.maxNativeZoom,6);
+  assert.equal(first.options.maxZoom,6,"avoid enlarging satellite pixels beyond their native zoom");
+  assert.equal(context.testMap.state.map.maxZoom,6);
+  assert.equal(context.testMap.state.map.zoom,6);
   const second=context.L.tileLayer('next');
   context.testMap.fadeTileLayer(second,.62);
   assert.equal(context.testMap.state.overlay,first,'keep displayed image while next loads');
@@ -56,3 +61,4 @@ const clouds = `<Domains><Domain>${new Date(latest-3600000).toISOString()}/${new
   assert.match(node('weatherMapError').textContent,/temporariamente indisponível/);
   console.log('PASS map requests: cancelled layer cannot overwrite satellite; missing or stale frames fail honestly.');
 })().catch(error=>{console.error(error);process.exitCode=1});
+

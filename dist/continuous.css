@@ -156,3 +156,10 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
   #weatherView .insight-card { grid-template-columns:minmax(0,1fr) 44px; }
   #weatherView .insight-card .attention-icon,#weatherView .insight-card .attention-icon img { width:44px; height:44px; }
 }
+
+/* Reading colors follow the actual sky phase, even on a dark-mode device. */
+#weatherView .temp-track { background:var(--reading-line); box-shadow:none; }
+#weatherView .temp-track .temp-now { background:#f8fbff; border-color:var(--reading-link); box-shadow:0 0 0 1px #f8fbff; }
+body[data-phase="day"] #weatherView [data-weather-layer]:not([aria-pressed="true"]) { background:#edf7fbd9 !important; color:#294e6b !important; border-color:#12345724 !important; }
+body[data-phase="day"] #weatherView .weather-player button { background:#edf7fbd9; color:#0757aa; border-color:#12345724; }
+#weatherView .weather-map-legend { background:#f8fbfff2; color:#193b59; border-color:#c3d4e1; }
