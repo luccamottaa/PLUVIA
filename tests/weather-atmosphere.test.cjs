@@ -84,3 +84,38 @@ test('horários sem offset usam o fuso da cidade e a troca limpa os horários an
  context.applyWeatherAtmosphere(2,0,{sunrise:[],sunset:[]});
  assert.equal(context.document.body.dataset.solar,'none');
 });
+test('sol e lua desaparecem nos horários solares sem um segundo sol após o entardecer',()=>{
+ const sky=create();
+ const daily={sunrise:['2026-09-30T05:46:00-04:00'],sunset:['2026-09-30T17:54:00-04:00']};
+ const at=time=>Date.parse(`2026-09-30T${time}:00-04:00`);
+ sky.apply(0,1,daily,null,at('12:00'));
+ for(const [time,sun,moon] of [
+  ['05:30',0,1],['05:38',0,8/15],['05:46',0,0],['05:53',7/15,0],['06:01',1,0],
+  ['12:00',1,0],['17:39',1,0],['17:47',7/15,0],['17:54',0,0],['18:01',0,7/15],['18:09',0,1],['23:00',0,1]
+ ]) {
+  const state=sky.update(at(time));
+  assert.ok(Math.abs(state.sunVisibility-sun)<1e-9,time+' sol');
+  assert.ok(Math.abs(state.moonVisibility-moon)<1e-9,time+' lua');
+  assert.ok(state.sunVisibility*state.moonVisibility===0,time+' não sobrepõe os astros');
+  assert.ok(Math.abs(state.sunX)<=14 && state.sunY>=0 && state.sunY<=14,'sol fica no pequeno arco superior');
+  assert.ok(Math.abs(state.moonX)<=12 && state.moonY>=0 && state.moonY<=12,'lua fica no pequeno arco superior');
+ }
+});
+test('reabrir conserva a posição do relógio; trocar cidade usa outro nascer e pôr do sol',()=>{
+ const daily={sunrise:['2026-09-30T05:46:00-04:00'],sunset:['2026-09-30T17:54:00-04:00']};
+ const at=Date.parse('2026-09-30T17:47:00-04:00');
+ const opened=create().apply(0,1,daily,null,at);
+ const running=create();running.apply(0,1,daily,null,at-3600000);
+ assert.deepEqual(opened,running.update(at),'não recomeça o ciclo ao abrir');
+ const other={sunrise:['2026-09-30T05:59:00-03:00'],sunset:['2026-09-30T18:18:00-03:00']};
+ const changed=running.apply(0,1,other,{timezone:'America/Sao_Paulo'},at);
+ assert.equal(changed.sunVisibility,0);assert.equal(changed.moonVisibility,1);
+});
+test('horários inválidos mantêm o ciclo disponível do provedor sem posições inválidas',()=>{
+ const sky=create();
+ for(const [day,sun,moon] of [[1,1,0],[0,0,1],[null,0,0]]) {
+  const state=sky.apply(0,day,{sunrise:['inválido'],sunset:[]});
+  assert.equal(state.sunVisibility,sun);assert.equal(state.moonVisibility,moon);
+  for(const key of ['sunX','sunY','moonX','moonY'])assert.ok(Number.isFinite(state[key]),key);
+ }
+});
