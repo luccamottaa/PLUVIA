@@ -291,17 +291,12 @@ async function loadInmetAlerts(revision = cityRevision) {
 }
 
 function updateClock() {
-  if (!activeCity) return;
+  if (!activeCity || document.hidden) return;
   const now = new Date();
   $("localClock").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
   $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
   renderMoon(now);
-  const previousPhase = document.body.dataset.phase;
-  const atmosphere = updateSolarAtmosphere(now.getTime());
-  const current = displayedWeather?.forecast?.current;
-  if (current && atmosphere && atmosphere.phase !== previousPhase) {
-    $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, atmosphere.phase === "day");
-  }
+  updateSolarAtmosphere(now.getTime());
 }
 
 const dateOffsets = new Map();
@@ -703,7 +698,7 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   const atmosphere = applyWeatherAtmosphere(current.weather_code, current.is_day, day);
   const isDay = atmosphere?.phase === "night" ? false : atmosphere?.phase === "day" ? true : current.is_day !== 0;
   const localCondition = !isDay && current.weather_code === 1 ? "Céu quase limpo" : condition;
-  $("condition").textContent = heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition; $("weatherGlyph").innerHTML = weatherIconSvg(current.weather_code, isDay);
+  $("condition").textContent = heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition;
   $("todayHigh").textContent = `${fmt(day.temperature_2m_max[0])}°`;
   $("todayLow").textContent = `${fmt(day.temperature_2m_min[0])}°`;
   $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
@@ -820,6 +815,7 @@ function setupPullToRefresh() {
 
   function reset() {
     gesture = null;
+    document.removeEventListener("touchmove", handlePullMove);
     if (!loading) { indicator.hidden = true; label.textContent = ""; }
   }
 
@@ -828,12 +824,15 @@ function setupPullToRefresh() {
     clearTimeout(hideTimer);
     reset();
     if (event.touches.length !== 1 || window.scrollY > 0 || (window.visualViewport?.scale || 1) > 1 ||
-      event.target.closest?.("a, button, input, select, textarea, [contenteditable], .rain-chart")) return;
+      event.target.closest?.("a, button, input, select, textarea, [contenteditable], .rain-chart, .hourly-peek-list, dialog, .leaflet-container")) return;
     const touch = event.touches[0];
     gesture = {id: touch.identifier, x: touch.clientX, y: touch.clientY, distance: 0};
+    // Normal scrolling has no blocking touchmove listener. Only a pull from
+    // the top temporarily opts in, and an upward/horizontal gesture removes it.
+    document.addEventListener("touchmove", handlePullMove, {passive: false});
   }, {passive: true});
 
-  document.addEventListener("touchmove", event => {
+  function handlePullMove(event) {
     if (!gesture || loading) return;
     const touch = event.touches[0];
     if (event.touches.length !== 1 || touch.identifier !== gesture.id || window.scrollY > 0 ||
@@ -850,12 +849,13 @@ function setupPullToRefresh() {
     indicator.style.setProperty("--pull-offset", `${Math.min(64, dy * .4)}px`);
     const message = dy >= threshold ? "Solte para atualizar" : "Puxe para atualizar";
     if (label.textContent !== message) label.textContent = message;
-  }, {passive: false});
+  }
 
   document.addEventListener("touchend", async event => {
     if (!gesture || loading) return;
     const ready = gesture.distance >= threshold && event.touches.length === 0;
     gesture = null;
+    document.removeEventListener("touchmove", handlePullMove);
     if (!ready) { reset(); return; }
     loading = true;
     indicator.classList.add("loading");
@@ -903,7 +903,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","weatherGlyph","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","attentionSignal","attentionTitle","attentionText","attentionIcon","hourlyPeek","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote"];
+const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","attentionSignal","attentionTitle","attentionText","attentionIcon","hourlyPeek","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote"];
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;

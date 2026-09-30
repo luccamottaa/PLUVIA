@@ -7,6 +7,9 @@
     let storage;
     try { storage = root.localStorage; } catch (_) {}
     root.PLUVIA.sky.bootstrap(storage);
+    const startMotion = () => { root.PLUVIA.skyMotion = api.observeMotion(root.document,root.IntersectionObserver); };
+    if (root.document?.readyState === 'loading') root.document.addEventListener?.('DOMContentLoaded',startMotion,{once:true});
+    else startMotion();
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
@@ -107,5 +110,28 @@
     }
     return {apply,update,bootstrap};
   }
-  return {create,weatherType,cityTime};
+  function observeMotion(document, Observer) {
+    const scene = document?.querySelector?.('.sky-effects');
+    const intro = document?.getElementById?.('pluviaIntro');
+    const opening = intro?.querySelector?.('.intro-sky');
+    let inView = true;
+    function sync() {
+      const introVisible = intro && !intro.hidden && !intro.classList.contains('is-leaving');
+      if (scene) scene.dataset.motion = !document.hidden && inView && !introVisible ? 'running' : 'paused';
+      if (opening) opening.dataset.motion = !document.hidden && introVisible ? 'running' : 'paused';
+    }
+    // No scroll handler or per-frame JavaScript. Offscreen/hidden scenes stop
+    // while native scrolling and CSS transforms keep their own timing.
+    if (scene && Observer) {
+      const observer = new Observer(entries => {
+        inView = entries.some(entry => entry.target === scene && entry.isIntersecting);
+        sync();
+      });
+      observer.observe(scene);
+    }
+    document?.addEventListener?.('visibilitychange',sync);
+    sync();
+    return {sync};
+  }
+  return {create,weatherType,cityTime,observeMotion};
 });

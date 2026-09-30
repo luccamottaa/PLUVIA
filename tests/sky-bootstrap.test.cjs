@@ -65,7 +65,7 @@ test('animações da atmosfera não colidem com animações dos ícones',()=>{
   const base=fs.readFileSync('dist/styles.css','utf8')+fs.readFileSync('dist/redesign.css','utf8');
   for(const [,name] of sky.matchAll(/@keyframes\s+([\w-]+)/g)) assert.ok(!base.includes('@keyframes '+name),name);
 });
-test('retomar à noite atualiza o ícone diurno de uma previsão salva',()=>{
+test('retomar à noite atualiza o céu de uma previsão diurna salva',()=>{
   const {sky,body,storage}=setup(manaus,{current:{weather_code:0,is_day:1}});
   sky.bootstrap(storage,Date.parse('2026-09-30T12:00:00-04:00'));
   const at=Date.parse('2026-09-30T23:00:00-04:00');
@@ -76,5 +76,6 @@ test('retomar à noite atualiza o ícone diurno de uma previsão salva',()=>{
   const app=fs.readFileSync('dist/app.js','utf8');
   vm.runInNewContext(app.slice(app.indexOf('function updateClock()'),app.indexOf('const dateOffsets')),context);
   context.updateClock();
-  assert.equal(el('weatherGlyph').innerHTML,'moon');
+  assert.equal(body.dataset.phase,'night');
+  assert.equal(fields.has('weatherGlyph'),false);
 });
