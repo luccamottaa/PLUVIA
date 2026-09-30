@@ -166,39 +166,37 @@ body[data-phase="day"] #weatherView .weather-player button { background:#edf7fbd
 
 /* Stronger labels and graphics on the continuous sky, independent of device theme. */
 #weatherView {
-  --range-cool:#42acf0; --range-warm:#ffc349; --range-hot:#ff814b;
-  --chart-rain-top:#56baff; --chart-rain-bottom:#228ce6;
-  --chart-wind-top:#64c7e7; --chart-wind-bottom:#279bcd;
+  --range-cool:#32b8ff; --range-warm:#ffd34a; --range-hot:#ff762f;
+  --chart-rain-top:#22b8ff; --chart-rain-bottom:#2673ff;
+  --chart-wind-top:#1bddda; --chart-wind-bottom:#138be1;
+  --graphic-blue:#65acff;
 }
-body[data-phase="day"] #weatherView {
-  --range-cool:#00649f; --range-warm:#995100; --range-hot:#ad3c15;
-  --chart-rain-top:#00649f; --chart-rain-bottom:#064c94;
-  --chart-wind-top:#00788e; --chart-wind-bottom:#005b76;
-}
-#weatherView .section-icon { color:var(--reading-link); }
+body[data-phase="day"] #weatherView { --graphic-blue:#126ce4; }
+#weatherView .section-icon { color:var(--graphic-blue); }
 #weatherView .section-icon svg { stroke-width:2.2; }
-#weatherView .source-badge.inmet { background:#064c94; color:#fff; border-color:#064c94; box-shadow:none; font-weight:700; }
+#weatherView .source-badge.inmet { background:#246ce5; color:#fff; border-color:#246ce5; box-shadow:none; font-weight:700; }
 #weatherView .source-meta span { color:var(--reading-muted); font-weight:600; }
 #weatherView .source-state { font-weight:700; }
 #weatherView .inmet-yellow { --alert-color:#ffe178; --alert-accent:#f4c430; }
 #weatherView .inmet-orange { --alert-color:#ffba75; --alert-accent:#ee861d; }
 #weatherView .inmet-red { --alert-color:#ffaba4; --alert-accent:#e1534b; }
-body[data-phase="day"] #weatherView .inmet-yellow { --alert-color:#594000; --alert-accent:#895900; }
-body[data-phase="day"] #weatherView .inmet-orange { --alert-color:#713800; --alert-accent:#9e4e09; }
-body[data-phase="day"] #weatherView .inmet-red { --alert-color:#812029; --alert-accent:#ae3038; }
+body[data-phase="day"] #weatherView .inmet-yellow { --alert-color:#594000; --alert-accent:#ffca24; }
+body[data-phase="day"] #weatherView .inmet-orange { --alert-color:#713800; --alert-accent:#ff881e; }
+body[data-phase="day"] #weatherView .inmet-red { --alert-color:#812029; --alert-accent:#f54857; }
 #weatherView .temp-track .temp-fill { background:linear-gradient(90deg,var(--range-cool),var(--range-warm),var(--range-hot)); }
 #weatherView .rain-chart .rain-bar { background:linear-gradient(180deg,var(--chart-rain-top),var(--chart-rain-bottom)); }
 #weatherView .rain-chart .temp-bar { background:linear-gradient(180deg,var(--range-warm),var(--range-hot)); }
 #weatherView .rain-chart .wind-bar { background:linear-gradient(180deg,var(--chart-wind-top),var(--chart-wind-bottom)); }
-#weatherView .rain-chart .wind-direction { color:var(--reading-link); }
-#weatherView .sun-label :is(span,svg) { color:var(--reading-link); }
+#weatherView .rain-chart .wind-direction { color:var(--graphic-blue); }
+#weatherView .sun-label :is(span,svg) { color:var(--graphic-blue); }
 /* Darker daytime rain/storm skies need deeper ink than the clear-sky palette. */
 body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView {
   --reading-ink:#041a2e; --reading-muted:#08243b; --reading-link:#042a48;
-  --range-cool:#00365c; --range-warm:#594000; --range-hot:#822c11;
-  --chart-rain-top:#00365c; --chart-rain-bottom:#042a48;
-  --chart-wind-top:#00404c; --chart-wind-bottom:#002e3d;
 }
-body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-yellow { --alert-color:#2f2100; --alert-accent:#594000; }
-body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-orange { --alert-color:#3d1f00; --alert-accent:#822c11; }
-body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-red { --alert-color:#4b101b; --alert-accent:#6e1725; }
+body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-yellow { --alert-color:#2f2100; }
+body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-orange { --alert-color:#3d1f00; }
+body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-red { --alert-color:#4b101b; }
+
+/* A fine edge defines vivid graphics without darkening their fills. */
+#weatherView .temp-track .temp-fill,
+#weatherView .rain-chart :is(.rain-bar,.temp-bar,.wind-bar) { box-shadow:inset 0 0 0 1px #12345726; }
