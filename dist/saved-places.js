@@ -92,8 +92,8 @@
     function paint() {
       const list = el("savedPlacesList"); list.textContent = "";
       el("savedPlacesMode").textContent = owner
-        ? "Sincronizado com sua conta. Em dois aparelhos, o apelido mais recente prevalece — não a lista inteira."
-        : "Salvo apenas neste navegador. Locais de visitante não são enviados à conta automaticamente.";
+        ? "Seus locais são sincronizados com sua conta."
+        : "Seus locais ficam salvos neste dispositivo.";
       const shown = visible(records);
       if (!shown.length) {const p=doc.createElement("li");p.textContent="Salve a cidade aberta como Casa, Faculdade ou Trabalho.";list.appendChild(p);}
       for (const item of shown) {
@@ -180,3 +180,4 @@
   }
   return {MAX,normalize,upsert,remove,merge,visible,persistable,makeId,mount};
 });
+

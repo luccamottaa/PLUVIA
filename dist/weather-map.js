@@ -248,7 +248,7 @@
     ['INMET','Dado oficial','Avisos meteorológicos vigentes e previstos para o município.'],
     ['Open-Meteo','Estimativa meteorológica','Tempo, chuva e qualidade do ar no ponto do município.'],
     ['NOAA / NASA GIBS','Nuvens observadas por satélite','Imagens GOES-East GeoColor, com horário da captura e atraso de processamento.'],
-    ['MET Norway','Segunda previsão','Temperatura, vento e precipitação previstos no ponto de referência; dados CC BY 4.0.'],
+    ['MET Norway','Previsão meteorológica','Fonte principal de temperatura, vento e precipitação. Quando indisponível, usamos Open-Meteo. Dados CC BY 4.0.'],
     ['RainViewer','Observação de radar','Composição de radares; cobertura e disponibilidade variam por região.'],
     ['Vaisala Xweather','Raios observados sob demanda','Detecções nos últimos cinco minutos em até 40 km; disponível após ativação das credenciais no servidor.'],
     ['OpenStreetMap','Base cartográfica','Ruas e referências geográficas do mapa.'],
@@ -256,11 +256,11 @@
   ];
   function renderSources() {
     const body = $('sourcesBody'); body.textContent = '';
-    const intro = document.createElement('p'); intro.textContent = 'O PLUVIA separa alerta oficial, observação e estimativa para não vender modelo como fato.'; body.appendChild(intro);
+    const intro = document.createElement('p'); intro.textContent = 'Saiba de onde vêm os dados e como interpretar cada informação.'; body.appendChild(intro);
     const list = document.createElement('div'); list.className = 'sources-list';
     sourceEntries.forEach(([name,kind,description]) => {
       const article=document.createElement('article'), tag=document.createElement('b'), title=document.createElement('strong'), copy=document.createElement('span');
-      tag.textContent=kind.toUpperCase(); title.textContent=name; copy.textContent=description; article.append(tag,title,copy); list.appendChild(article);
+      tag.textContent=kind.toUpperCase(); title.textContent=name; copy.textContent=description; article.dataset.kind = kind.includes('oficial') ? 'official' : /Observa|observad|satélite/.test(kind) ? 'observation' : 'reference'; article.append(tag,title,copy); list.appendChild(article);
     });
     body.appendChild(list);
     const official=document.createElement('section'); official.className='official-observations';
@@ -276,7 +276,7 @@
     });
     body.appendChild(official);
   }
-  $('openSources')?.addEventListener('click',() => { renderSources(); $('sourcesDialog').showModal(); $('closeSources').focus(); });
+  $('openSources')?.addEventListener('click',() => { renderSources(); $('sourcesDialog').showModal(); $('sourcesDialog').querySelector?.('.dialog-scroll')?.scrollTo?.(0,0); $('closeSources').focus(); });
   $('closeSources')?.addEventListener('click',() => $('sourcesDialog').close());
   $('sourcesDialog')?.addEventListener('click',event => { if(event.target === $('sourcesDialog')) $('sourcesDialog').close(); });
   globalThis.PLUVIA.modules['weather-layers'].cityChanged = () => {

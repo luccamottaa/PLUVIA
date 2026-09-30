@@ -61,19 +61,20 @@ function weatherIconType(code) {
   return "sun";
 }
 
+// Twilight is a clock state, never an animation triggered by opening the app.
+const SOLAR_WINDOW_MS = 30 * 60000;
 let solarAtmosphereTimes = [];
 function updateSolarAtmosphere(now = Date.now()) {
-  const windowMs = 40 * 60000;
   let solar = "none", strength = 0, progress = 0;
-  for (const {rise, set} of solarAtmosphereTimes) {
-    if (now >= rise - 3 * 3600000 && now <= set + 3 * 3600000) {
-      document.body.dataset.phase = now >= rise && now < set ? "day" : "night";
-    }
-    for (const [name, time] of [["sunrise", rise], ["sunset", set]]) {
-      if (Math.abs(now - time) <= windowMs) {
+  const today = solarAtmosphereTimes.find(({start,end}) => now >= start && now < end);
+  if (today) {
+    document.body.dataset.phase = now >= today.rise && now < today.set ? "day" : "night";
+    for (const [name,time] of [["sunrise",today.rise],["sunset",today.set]]) {
+      if (Math.abs(now - time) < SOLAR_WINDOW_MS) {
         solar = name;
-        progress = (now - time + windowMs) / (2 * windowMs);
+        progress = (now - time + SOLAR_WINDOW_MS) / (2 * SOLAR_WINDOW_MS);
         strength = Math.sin(Math.PI * progress);
+        break;
       }
     }
   }
@@ -84,13 +85,20 @@ function updateSolarAtmosphere(now = Date.now()) {
 }
 function applyWeatherAtmosphere(code, isDay, daily = null) {
   const known = [0,1,2,3,45,48,51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99].includes(code);
-  const type = !known ? "unknown" : [45,48].includes(code) ? "fog" : weatherIconType(code);
-  document.body.dataset.weather = type;
+  document.body.dataset.weather = !known ? "unknown" : [45,48].includes(code) ? "fog" : weatherIconType(code);
   document.body.dataset.phase = isDay === 1 ? "day" : isDay === 0 ? "night" : "unknown";
-  solarAtmosphereTimes = (daily?.sunrise || []).map((rise, i) => ({
-    rise:rise ? cityDate(rise).getTime() : NaN,
-    set:daily.sunset?.[i] ? cityDate(daily.sunset[i]).getTime() : NaN
-  })).filter(({rise,set}) => Number.isFinite(rise) && Number.isFinite(set) && set > rise);
+  solarAtmosphereTimes = (daily?.sunrise || []).map((rise,i) => {
+    if (typeof rise !== "string") return {};
+    const suffix = rise.match(/(?:Z|[+-]\d{2}:?\d{2})$/i)?.[0] || "";
+    const next = new Date(rise.slice(0,10) + "T12:00:00Z");
+    if (!Number.isFinite(next.getTime())) return {};
+    next.setUTCDate(next.getUTCDate() + 1);
+    return {
+      rise:cityDate(rise).getTime(), set:cityDate(daily.sunset?.[i] || "").getTime(),
+      start:cityDate(rise.slice(0,10) + "T00:00:00" + suffix).getTime(),
+      end:cityDate(next.toISOString().slice(0,10) + "T00:00:00" + suffix).getTime()
+    };
+  }).filter(({rise,set,start,end}) => [rise,set,start,end].every(Number.isFinite) && set > rise && end > start);
   updateSolarAtmosphere();
 }
 
@@ -1082,6 +1090,7 @@ function openCitySearch() {
   renderCityOptions();
   const dialog = $("cityDialog");
   if (!dialog.open) dialog.showModal();
+  dialog.querySelector?.(".dialog-scroll")?.scrollTo?.(0, 0);
   $("closeCitySearch").focus();
   if (!cityIndexReady) {
     $("cityPickerStatus").textContent = "Carregando cidades do Brasil…";
@@ -1144,7 +1153,7 @@ updateClock();
 setInterval(updateClock, 30000);
 requestLocation();
 setInterval(() => { if (!document.hidden) refreshAll(); }, AUTO_REFRESH_MS);
-document.addEventListener("visibilitychange", refreshIfStale);
-window.addEventListener("pageshow", refreshIfStale);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) updateClock(); refreshIfStale(); });
+window.addEventListener("pageshow", () => { updateClock(); refreshIfStale(); });
 window.addEventListener("online", () => refreshAll());
 document.addEventListener("visibilitychange", () => document.body.classList.toggle("page-hidden", document.hidden));
