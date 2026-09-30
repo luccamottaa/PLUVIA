@@ -102,7 +102,7 @@
     setError('');
     const iso = new Date(frame.time*1000).toISOString().replace('.000Z','Z');
     const overlay = L.tileLayer(`${SATELLITE_ROOT}/${SATELLITE_LAYER}/default/${iso}/${SATELLITE_MATRIX}/{z}/{y}/{x}.png`,{
-      opacity:0,maxNativeZoom:6,maxZoom:7,noWrap:true,className:'pluvia-cloud-overlay',
+      opacity:0,maxNativeZoom:6,maxZoom:6,noWrap:true,className:'pluvia-cloud-overlay',
       attribution:'GOES-East / NOAA · NASA GIBS'
     });
     let loaded = 0, failed = 0;
@@ -118,7 +118,7 @@
         source('clouds',{status:'ready',dataAt:frame.time*1000});
       }
     });
-    fadeTileLayer(overlay,.62);
+    fadeTileLayer(overlay,.92);
     state.marker?.closeTooltip?.();
     const date = new Intl.DateTimeFormat('pt-BR',{timeZone:city()?.timezone || 'UTC',day:'2-digit',month:'2-digit'}).format(new Date(frame.time*1000));
     $('weatherFrameTime').textContent = date + ' · ' + zoneTime(frame.time);
@@ -184,7 +184,7 @@
     const revision = ++layerRevision;
     stop(); setError(''); httpClient?.abortAll(); removeOverlay(); state.layer = name;
     // Satellite tiles are native at zoom 6; avoid magnifying them into large blocks.
-    state.map.setMaxZoom?.(name === 'clouds' ? 7 : 11);
+    state.map.setMaxZoom?.(name === 'clouds' ? 6 : 11);
     if (name === 'clouds' && state.map.getZoom?.() > 6) state.map.setZoom?.(6);
     $('weatherLightningAttribution').hidden = name !== 'lightning';
     setFrames([],0);
@@ -207,7 +207,7 @@
     const selectedCity = city(); if (!selectedCity) throw new Error('Escolha uma cidade para ver o mapa.');
     if (!state.map) {
       state.map = L.map('weatherMap',{zoomControl:true,minZoom:3,maxZoom:11}).setView([selectedCity.lat,selectedCity.lon],7);
-      state.base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{className:'pluvia-dark-basemap',maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map);
+      state.base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{className:'pluvia-light-basemap',maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map);
     } else state.map.setView([selectedCity.lat,selectedCity.lon],7);
     if (state.marker) state.map.removeLayer(state.marker);
     state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:7,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(`${selectedCity.name}/${selectedCity.uf}`);
