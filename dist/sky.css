@@ -49,11 +49,14 @@ html,body { background:var(--sky-base); }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) .sky-twilight { display:block; }
 :root:is([data-weather="cloud"],[data-weather="rain"],[data-weather="fog"],[data-weather="snow"]) .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .6); }
 :root[data-weather="storm"] .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .3); }
-/* The disk, short round rays and bloom stay one sun in each scene. */
-.sky-sun { display:none; position:absolute; z-index:1; top:0; left:0; width:92px; aspect-ratio:1; opacity:calc(var(--sun-opacity) * var(--sun-visibility,0)); transform:translate3d(calc(var(--sun-orbit-x,.5) * 100vw - 50%),calc(env(safe-area-inset-top,0px) + var(--orbit-top) + var(--sun-orbit-y,0) * var(--orbit-height) - 50%),0); background:url("./assets/sky-sun.svg") center / contain no-repeat; }
-.sky-sun::before { content:""; position:absolute; inset:-45%; z-index:-1; border-radius:50%; background:radial-gradient(circle,#fff7cf60 0%,#ffe9a63d 22%,#ffdf9b1c 40%,transparent 66%); animation:sky-bloom 7s ease-in-out infinite alternate; }
+/* A luminous photosphere and atmospheric glow travel as one object.
+   Static gradients keep the light steady and avoid animated blur on mobile. */
+.sky-sun { display:none; position:absolute; z-index:1; top:0; left:0; width:108px; aspect-ratio:1; opacity:calc(var(--sun-opacity) * var(--sun-visibility,0)); transform:translate3d(calc(var(--sun-orbit-x,.5) * 100vw - 50%),calc(env(safe-area-inset-top,0px) + var(--orbit-top) + var(--sun-orbit-y,0) * var(--orbit-height) - 50%),0); background:url("./assets/sky-sun.svg?v=sun-2") center / contain no-repeat; }
+.sky-sun::before { content:""; position:absolute; inset:-120%; z-index:-1; border-radius:50%; background:radial-gradient(circle,#fff8da55 0%,#fff0bf38 13%,#ffe6a41c 27%,#ffdea309 44%,transparent 68%); }
+.sky-sun::after { content:""; position:absolute; inset:24.45%; border-radius:50%; background:radial-gradient(circle,#ffde87 0%,#ffc461 70%,#ff9f49 96%,#ff9f4900 100%); opacity:0; }
+:root:is([data-solar="sunrise"],[data-solar="sunset"]) .sky-sun::after { opacity:calc(var(--twilight-opacity,0) * .8); }
 :root[data-phase="day"]:is([data-weather="sun"],[data-weather="partly"],[data-weather="unknown"]) .sky-sun { display:block; }
-.intro-sky .sky-sun { width:clamp(64px,18vw,92px); }
+.intro-sky .sky-sun { width:clamp(84px,22vw,108px); }
 .moon-definitions { position:absolute; width:0; height:0; overflow:hidden; pointer-events:none; }
 .sky-moon { display:none; position:absolute; z-index:1; top:0; left:0; width:64px; aspect-ratio:1; opacity:var(--moon-visibility,0); transform:translate3d(calc(var(--moon-orbit-x,.5) * 100vw - 50%),calc(env(safe-area-inset-top,0px) + var(--orbit-top) + var(--moon-orbit-y,0) * var(--orbit-height) - 50%),0); }
 :root[data-sky-transition="live"] :is(.sky-sun,.sky-moon) { transition:transform 28s linear,opacity 28s linear; }
@@ -80,12 +83,11 @@ html,body { background:var(--sky-base); }
 @keyframes clouds-back { from { transform:translate3d(0,0,0); } to { transform:translate3d(-1000px,0,0); } }
 @keyframes clouds-front { from { transform:translate3d(0,0,0); } to { transform:translate3d(-850px,0,0); } }
 @keyframes sky-rain-fall { to { transform:translateY(420px); } }
-@keyframes sky-bloom { to { transform:scale(1.1); opacity:.75; } }
 @keyframes storm-flash { 0%,8%,11%,14%,100% { opacity:0; } 9% { opacity:.65; } 10% { opacity:.1; } 12% { opacity:.35; } 13% { opacity:.08; } }
 body.page-hidden :is(.sky-effects,.intro-sky) *,
 :is(.sky-effects,.intro-sky)[data-motion="paused"] *,
 :is(.sky-effects,.intro-sky)[data-motion="paused"] *::before { animation-play-state:paused !important; }
-@media(max-width:720px) { .sky-effects .sky-sun { width:70px; } .sky-effects .sky-moon { width:46px; } }
+@media(max-width:720px) { .sky-effects .sky-sun { width:84px; } .sky-effects .sky-moon { width:46px; } }
 @media(prefers-reduced-motion:reduce) {
   :is(.sky-effects,.intro-sky) * { animation:none !important; transition:none !important; }
   .sky-clouds { transform:translateX(-380px); }
