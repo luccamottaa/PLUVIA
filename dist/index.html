@@ -271,13 +271,13 @@
       </section>
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
-          <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapCardTitle">Chuva e nuvens na região</h2><p id="weatherMapCity">Referência do município</p></div>
-          <div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button type="button" data-weather-layer="clouds" aria-pressed="false">Nuvens</button><button type="button" data-weather-layer="lightning" aria-pressed="false">Raios</button></div>
-          <div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Mapa meteorológico interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
+          <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapCardTitle">Chuva na região</h2><p id="weatherMapCity">Referência do município</p></div>
+          <div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button></div>
+          <div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Radar de chuva interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
           <div class="weather-timebar">
             <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
-            <div class="weather-player"><button id="weatherFramePrev" type="button" aria-label="Frame anterior" disabled>‹</button><button id="weatherPlay" type="button" aria-label="Reproduzir animação" aria-pressed="false" disabled>▶</button><button id="weatherFrameNext" type="button" aria-label="Próximo frame" disabled>›</button><input id="weatherTimeline" type="range" min="0" max="0" value="0" aria-label="Linha do tempo meteorológica" disabled /></div>
-            <small id="weatherSourceNote">O radar observado e a estimativa de nuvens aparecem aqui.</small>
+            <div class="weather-player"><button id="weatherFramePrev" type="button" aria-label="Frame anterior" disabled>‹</button><button id="weatherPlay" type="button" aria-label="Reproduzir animação" aria-pressed="false" disabled>▶</button><button id="weatherFrameNext" type="button" aria-label="Próximo frame" disabled>›</button><input id="weatherTimeline" type="range" min="0" max="0" value="0" aria-label="Linha do tempo da chuva" disabled /></div>
+            <small id="weatherSourceNote">Radar observado · RainViewer · cobertura depende dos radares disponíveis; não é previsão.</small>
             <a id="weatherLightningAttribution" href="https://www.xweather.com/" target="_blank" rel="noopener noreferrer" hidden>Powered by Vaisala Xweather</a>
           </div>
         </article>
