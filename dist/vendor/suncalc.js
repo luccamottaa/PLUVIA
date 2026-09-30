@@ -532,4 +532,5 @@ const api = {getMoonIllumination};
 if (typeof module === "object" && module.exports) module.exports = api;
 root.PLUVIA = root.PLUVIA || {};
 root.PLUVIA.moon = api;
+root.PLUVIA.sun = {getTimes};
 })(typeof globalThis !== "undefined" ? globalThis : this);

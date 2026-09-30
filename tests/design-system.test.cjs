@@ -23,8 +23,8 @@ assert.match(html, /class="metric-head"/);
 assert.match(html, /data-weather-icon-name="humidity"/);
 assert.match(app, /weatherIcons\?\.hydrate\?\./);
 assert.match(html, /id="windCompass"[^>]+role="img"[^>]+aria-label=/);
-assert.match(app, /document\.body\.dataset\.weather/);
-assert.match(app, /document\.body\.dataset\.phase/);
+assert.match(app, /PLUVIA\?\.sky\?\.apply/);
+assert.match(fs.readFileSync('dist/modules/sky-atmosphere.js','utf8'), /Object\.assign\(node\.dataset,\{phase:state.phase,solar:state.solar,weather\}\)/);
 assert.match(app, /classList\.toggle\("is-night"/);
 assert.match(app, /class="hour-temp"/);
 assert.match(app, /Sem alertas meteorológicos ativos/);
@@ -53,3 +53,4 @@ assert.match(css, /\.rain-chart \.hour-column \{[\s\S]*grid-template-rows:26px 2
 assert.match(css, /\.error-toast \{[\s\S]*visibility:hidden;[\s\S]*translateY\(calc\(100% \+ 80px\)\)/);
 
 console.log('PASS Design System: tokens, hierarchy, atmosphere, wind, hourly temperature, dark mode, mobile and reduced motion.');
+

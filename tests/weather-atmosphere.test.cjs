@@ -1,9 +1,11 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm');
-const app=fs.readFileSync('dist/app.js','utf8');
-const context=vm.createContext({document:{body:{dataset:{}}}});
-vm.runInContext(app.slice(app.indexOf('function weatherIconType'),app.indexOf('function weatherIconSvg')),context);
+const {create}=require('../dist/modules/sky-atmosphere.js');
+const context={document:{documentElement:{dataset:{},style:{setProperty(){}}},body:{dataset:{}}},activeCity:null};
+const sky=create({document:context.document});
+context.applyWeatherAtmosphere=(code,day,daily)=>sky.apply(code,day,daily,context.activeCity);
+context.updateSolarAtmosphere=sky.update;
 test('atmosfera acompanha os códigos meteorológicos e o dia/noite do provedor',()=>{
  for(const [code,type] of [[0,'sun'],[2,'partly'],[3,'cloud'],[45,'fog'],[48,'fog'],[61,'rain'],[82,'rain'],[75,'snow'],[99,'storm']]) {
   for(const [day,phase] of [[0,'night'],[1,'day']]) {
@@ -21,7 +23,7 @@ test('dados ausentes limpam a condição anterior sem inventar céu limpo',()=>{
 });
 
 test('amanhecer e entardecer usam os horários da cidade, com retorno ao céu normal',()=>{
- context.cityDate = value => new Date(value);
+ context.activeCity = null;
  context.applyWeatherAtmosphere(2,1,{sunrise:['2026-09-28T05:46:00-04:00'],sunset:['2026-09-28T17:54:00-04:00']});
  for (const [time,solar,phase] of [
   ['05:26','sunrise','night'],['06:06','sunrise','day'],
@@ -44,7 +46,7 @@ test('sem horários solares válidos preserva o dia/noite do provedor',()=>{
 });
 
 test('abrir às 23h e antes do amanhecer ignora o is_day antigo do cache',()=>{
- context.cityDate = value => new Date(value);
+ context.activeCity = null;
  const daily={sunrise:['2026-09-29T05:46:00-04:00'],sunset:['2026-09-29T17:54:00-04:00']};
  for(const time of ['00:05','03:00','23:06']) {
   context.applyWeatherAtmosphere(0,1,daily);
@@ -55,7 +57,7 @@ test('abrir às 23h e antes do amanhecer ignora o is_day antigo do cache',()=>{
 });
 test('efeito limitado a trinta minutos e encerrado imediatamente ao sair da janela',()=>{
  const values={};context.document.body.style={setProperty:(key,value)=>values[key]=value};
- context.cityDate = value => new Date(value);
+ context.activeCity = null;
  context.applyWeatherAtmosphere(0,1,{sunrise:['2026-09-29T05:46:00-04:00'],sunset:['2026-09-29T17:54:00-04:00']});
  for(const time of ['05:46','17:54']) {
   context.updateSolarAtmosphere(Date.parse(`2026-09-29T${time}:00-04:00`));
@@ -71,7 +73,7 @@ test('efeito limitado a trinta minutos e encerrado imediatamente ao sair da jane
 });
 test('horários sem offset usam o fuso da cidade e a troca limpa os horários anteriores',()=>{
  for(const [zone,offset,rise,set] of [['Manaus','-04:00','05:46','17:54'],['Curitiba','-03:00','05:59','18:18']]) {
-  context.cityDate=value=>new Date(value+offset);
+  context.activeCity={timezone:zone === 'Manaus' ? 'America/Manaus' : 'America/Sao_Paulo'};
   context.applyWeatherAtmosphere(2,1,{sunrise:[`2026-09-29T${rise}:00`],sunset:[`2026-09-29T${set}:00`]});
   context.updateSolarAtmosphere(Date.parse(`2026-09-29T${set}:00${offset}`));
   assert.equal(context.document.body.dataset.solar,'sunset',zone);

@@ -8,17 +8,18 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 
 test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
-  const htmlRefs = [...html.matchAll(/src="(\.\/(?:modules\/)?[^"]+\.js\?v=[^"]+)"/g), ...html.matchAll(/href="(\.\/(?:styles|redesign)\.css\?v=[^"]+)"/g)].map(m => m[1]);
+  const htmlRefs = [...html.matchAll(/src="(\.\/(?:modules\/)?[^"]+\.js\?v=[^"]+)"/g), ...html.matchAll(/href="(\.\/[^"?]+\.css\?v=[^"]+)"/g)].map(m => m[1]);
   assert.ok(htmlRefs.length >= 10);
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-21"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-22"/);
   assert.match(html, /styles\.css\?v=core-119/);
-  assert.match(html, /redesign\.css\?v=panel-21/);
+  assert.match(html, /redesign\.css\?v=panel-22/);
   assert.doesNotMatch(sw, /glass\.js/);
-  assert.match(html, /app\.js\?v=panel-21/);
+  assert.match(html, /app\.js\?v=panel-22/);
   assert.ok(sw.includes('"./assets/panel-night-sky.webp"'));
+  for (const asset of ['sky-sun.svg','sky-clouds.svg']) assert.ok(sw.includes(`./assets/${asset}`));
 });
 
 test('shell iOS e domínio canônico estão travados', () => {
@@ -32,4 +33,3 @@ test('shell iOS e domínio canônico estão travados', () => {
   assert.equal(manifest.theme_color, '#10233f');
   assert.equal(manifest.start_url, 'https://pluviaweather.com.br/?source=pwa');
 });
-

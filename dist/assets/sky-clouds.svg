@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400">
+  <defs>
+    <linearGradient id="body" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".95"/><stop offset=".48" stop-color="#e4edf5" stop-opacity=".88"/><stop offset="1" stop-color="#829aaf" stop-opacity="0"/></linearGradient>
+    <radialGradient id="crest" cx=".42" cy=".22" r=".72"><stop stop-color="#fff" stop-opacity=".9"/><stop offset=".54" stop-color="#e6eff8" stop-opacity=".65"/><stop offset="1" stop-color="#bccddc" stop-opacity="0"/></radialGradient>
+    <filter id="soft" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".014 .024" numOctaves="3" seed="8" result="wisps"/><feDisplacementMap in="SourceGraphic" in2="wisps" scale="18" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur stdDeviation="2" result="billow"/><feTurbulence type="fractalNoise" baseFrequency=".011 .018" numOctaves="3" seed="4" result="texture"/><feColorMatrix in="texture" type="saturate" values="0"/><feComponentTransfer><feFuncR type="gamma" amplitude=".8" exponent="1.8" offset=".35"/><feFuncG type="gamma" amplitude=".8" exponent="1.8" offset=".35"/><feFuncB type="gamma" amplitude=".8" exponent="1.8" offset=".35"/></feComponentTransfer><feComposite in2="billow" operator="in" result="shading"/><feBlend in="billow" in2="shading" mode="multiply"/></filter>
+  </defs>
+  <g filter="url(#soft)">
+    <path d="M-100 285c0-52 45-93 100-84 8-51 61-79 107-54 5-73 76-125 145-99 44-46 122-17 135 39 63-34 134 8 143 70 42-18 91 10 94 56 45-6 92 24 96 68v93H-100Z" fill="url(#body)"/>
+    <path d="M675 298c-8-47 29-82 78-80-1-63 56-106 114-87 30-51 107-61 150-14 54-14 114 17 120 76 56-4 101 33 103 86v112H675Z" fill="url(#body)"/>
+    <ellipse cx="229" cy="139" rx="98" ry="96" fill="url(#crest)"/>
+    <ellipse cx="331" cy="135" rx="67" ry="83" fill="url(#crest)"/>
+    <ellipse cx="448" cy="188" rx="82" ry="90" fill="url(#crest)"/>
+    <ellipse cx="80" cy="214" rx="72" ry="76" fill="url(#crest)"/>
+    <ellipse cx="942" cy="186" rx="93" ry="93" fill="url(#crest)"/>
+    <ellipse cx="1057" cy="222" rx="79" ry="96" fill="url(#crest)"/>
+    <ellipse cx="180" cy="129" rx="42" ry="51" fill="url(#crest)"/>
+    <ellipse cx="254" cy="96" rx="50" ry="57" fill="url(#crest)"/>
+    <ellipse cx="300" cy="114" rx="38" ry="55" fill="url(#crest)"/>
+    <ellipse cx="369" cy="137" rx="32" ry="41" fill="url(#crest)"/>
+    <ellipse cx="419" cy="158" rx="46" ry="55" fill="url(#crest)"/>
+    <ellipse cx="487" cy="203" rx="40" ry="61" fill="url(#crest)"/>
+    <ellipse cx="132" cy="209" rx="48" ry="49" fill="url(#crest)"/>
+    <ellipse cx="40" cy="239" rx="37" ry="52" fill="url(#crest)"/>
+    <ellipse cx="865" cy="169" rx="49" ry="43" fill="url(#crest)"/>
+    <ellipse cx="917" cy="144" rx="43" ry="52" fill="url(#crest)"/>
+    <ellipse cx="968" cy="158" rx="38" ry="47" fill="url(#crest)"/>
+    <ellipse cx="1011" cy="182" rx="40" ry="52" fill="url(#crest)"/>
+    <ellipse cx="1095" cy="234" rx="45" ry="47" fill="url(#crest)"/>
+  </g>
+</svg>
