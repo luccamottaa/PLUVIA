@@ -122,9 +122,28 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
   checkForUpdate();
 }
 
-// iOS's visual viewport shrinks when the keyboard opens, unlike the layout viewport.
-if (window.visualViewport) {
-  const resizeDialogs = () => document.documentElement.style.setProperty('--dialog-height', window.visualViewport.height + 'px');
-  window.visualViewport.addEventListener('resize', resizeDialogs);
-  resizeDialogs();
-}
+// The keyboard shrinks AND pans the visible area on iOS. Keep dialogs inside
+// that area, rather than attaching their bottom edge to the layout viewport.
+(function setupDialogViewport() {
+  const viewport = window.visualViewport;
+  let scheduled = false;
+  const sync = () => {
+    scheduled = false;
+    const height = viewport?.height ?? window.innerHeight;
+    const offsetTop = viewport?.offsetTop ?? 0;
+    if (!Number.isFinite(height) || height <= 0) return;
+    const style = document.documentElement.style;
+    style.setProperty('--dialog-height', height + 'px');
+    style.setProperty('--dialog-offset-top', Math.max(0, Number.isFinite(offsetTop) ? offsetTop : 0) + 'px');
+  };
+  const schedule = () => {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(sync);
+  };
+  viewport?.addEventListener('resize', schedule, {passive:true});
+  viewport?.addEventListener('scroll', schedule, {passive:true});
+  window.addEventListener('resize', schedule, {passive:true});
+  window.addEventListener('pageshow', schedule);
+  sync();
+})();

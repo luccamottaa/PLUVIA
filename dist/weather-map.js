@@ -41,7 +41,7 @@
   }
   function stop() {
     clearInterval(state.timer); state.timer = null;
-    $('weatherPlay').setAttribute('aria-pressed','false'); $('weatherPlay').textContent = '▶'; $('weatherPlay').setAttribute('aria-label','Reproduzir animação');
+    $('weatherPlay').setAttribute('aria-pressed','false'); $('weatherPlay').setAttribute('aria-label','Reproduzir animação');
   }
   function removeOverlay() {
     if (state.nextOverlay && state.map) state.map.removeLayer(state.nextOverlay);
@@ -241,7 +241,7 @@
   $('weatherTimeline').addEventListener('input',event => { stop(); state.index=Number(event.target.value); renderFrame(); });
   $('weatherPlay').addEventListener('click',() => {
     if (state.timer) { stop(); return; }
-    $('weatherPlay').setAttribute('aria-pressed','true'); $('weatherPlay').textContent='❚❚'; $('weatherPlay').setAttribute('aria-label','Pausar animação');
+    $('weatherPlay').setAttribute('aria-pressed','true'); $('weatherPlay').setAttribute('aria-label','Pausar animação');
     state.timer=setInterval(() => step(1),1400);
   });
   const sourceEntries = [
