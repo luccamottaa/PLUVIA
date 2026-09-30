@@ -45,6 +45,8 @@ html,body { background:var(--sky-base); }
 .sky-sun { display:none; position:absolute; z-index:1; top:132px; right:5%; width:190px; aspect-ratio:1; opacity:var(--sun-opacity); background:url("./assets/sky-sun.svg") center / contain no-repeat; filter:drop-shadow(0 0 8px #ffe3a1aa); }
 .sky-sun::before { content:""; position:absolute; inset:-60%; z-index:-1; border-radius:50%; background:radial-gradient(circle,#fff7cf60 0%,#ffe9a63d 22%,#ffdf9b1c 40%,transparent 66%); animation:sky-bloom 7s ease-in-out infinite alternate; }
 :root[data-phase="day"]:is([data-weather="sun"],[data-weather="partly"],[data-weather="unknown"]) .sky-sun { display:block; }
+:root[data-phase="day"]:is([data-weather="sun"],[data-weather="partly"]) .weather-hero #weatherGlyph,
+:root:is([data-solar="sunrise"],[data-solar="sunset"]):is([data-weather="sun"],[data-weather="partly"]) .weather-hero #weatherGlyph { visibility:hidden; }
 .intro-sky .sky-sun { top:12%; right:9%; width:clamp(160px,45vw,260px); }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) .sky-sun { display:block; top:var(--twilight-sun-top,30%); right:10%; width:170px; opacity:var(--twilight-opacity,0); filter:drop-shadow(0 0 12px #ffcc8aaa); transition:top 28s linear; }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) .intro-sky .sky-sun { top:calc(var(--twilight-sun-top,30%) * .5); width:clamp(160px,45vw,240px); }
@@ -73,6 +75,7 @@ html,body { background:var(--sky-base); }
 @keyframes sky-bloom { to { transform:scale(1.1); opacity:.75; } }
 @keyframes storm-flash { 0%,8%,11%,14%,100% { opacity:0; } 9% { opacity:.65; } 10% { opacity:.1; } 12% { opacity:.35; } 13% { opacity:.08; } }
 body.page-hidden :is(.sky-effects,.intro-sky) * { animation-play-state:paused !important; }
+@media(max-width:720px) { .sky-effects .sky-sun { top:245px; right:3%; width:150px; } }
 @media(prefers-reduced-motion:reduce) {
   :is(.sky-effects,.intro-sky) * { animation:none !important; transition:none !important; }
   .sky-clouds { transform:translateX(-380px); }
