@@ -27,7 +27,7 @@ renderCityOptions = function () {
     ...CAPITALS
   ].filter(Boolean).map(city => [city.id, city])).values()];
   const matches = query ? searchCities(query) : initial;
-  const shown = matches.slice(0, 12);
+  const shown = query ? matches.slice(0, 12) : matches;
   const list = document.getElementById("cityResults");
   activeResultIndex = -1;
   list.innerHTML = shown.map(city => {

@@ -13,7 +13,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-29"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-30"/);
   assert.match(html, /styles\.css\?v=core-119/);
   assert.match(html, /redesign\.css\?v=panel-27/);
   assert.doesNotMatch(sw, /glass\.js/);
