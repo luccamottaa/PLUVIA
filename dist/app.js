@@ -555,16 +555,28 @@ function renderSun(daily) {
 
 function renderMoon(now = new Date()) {
   const phase = globalThis.PLUVIA?.moon?.getMoonIllumination(now)?.phase;
-  if (!Number.isFinite(phase)) {
+  const disc = $("moonDisc");
+  if (!Number.isFinite(phase) || phase < 0 || phase > 1) {
     $("moonIcon").setAttribute("d", "");
+    disc.setAttribute("visibility", "hidden");
     $("moonPhase").textContent = "Fase indisponível";
     return;
   }
   const names = ["Lua nova","Lua crescente","Quarto crescente","Gibosa crescente","Lua cheia","Gibosa minguante","Quarto minguante","Lua minguante"];
-  // O lado iluminado avança pela direita na crescente e pela esquerda na minguante.
-  const shapes = ["", "M40 12 A28 28 0 0 1 40 68 C53 58 53 22 40 12Z", "M40 12 A28 28 0 0 1 40 68Z", "M40 12 A28 28 0 0 1 40 68 C25 58 25 22 40 12Z", "M40 12 A28 28 0 1 1 39.99 12Z", "M40 12 A28 28 0 0 0 40 68 C55 58 55 22 40 12Z", "M40 12 A28 28 0 0 0 40 68Z", "M40 12 A28 28 0 0 0 40 68 C27 58 27 22 40 12Z"];
+  // Projeção do terminador de uma esfera: a elipse acompanha a fase exata,
+  // sem saltar entre oito desenhos. Convenção norte para cima, como a textura.
+  const waxing = phase < .5;
+  const terminator = (waxing ? 1 : -1) * Math.cos(phase * Math.PI * 2);
+  const radius = 34;
+  const ellipseWidth = Math.abs(terminator) * radius;
+  const limb = `M40 6 A${radius} ${radius} 0 0 ${waxing ? 1 : 0} 40 74`;
+  const boundary = ellipseWidth < .0001
+    ? "L40 6"
+    : `A${ellipseWidth.toFixed(4)} ${radius} 0 0 ${terminator > 0 ? 0 : 1} 40 6`;
+  const shape = phase === 0 || phase === 1 ? "" : `${limb} ${boundary}Z`;
   const index = Math.round(phase * 8) % 8;
-  $("moonIcon").setAttribute("d", shapes[index]);
+  $("moonIcon").setAttribute("d", shape);
+  disc.setAttribute("visibility", "visible");
   $("moonPhase").textContent = names[index];
 }
 

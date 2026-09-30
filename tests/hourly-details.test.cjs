@@ -21,7 +21,8 @@ function screen() {
   const elements = {
     rainChart:chart, dryWindow:{textContent:''}, visibilityValue:{textContent:''},
     visibilityNote:{textContent:''}, visibilityBadge:{hidden:true,textContent:'',dataset:{}},
-    moonIcon:{d:'',setAttribute(name,value){this[name]=value;}}, moonPhase:{textContent:''}
+    moonIcon:{d:'',setAttribute(name,value){this[name]=value;}},
+    moonDisc:{visibility:'hidden',setAttribute(name,value){this[name]=value;}}, moonPhase:{textContent:''}
   };
   const ctx = {
     $:id => elements[id], activeCity:{name:'Manaus'},
@@ -84,7 +85,7 @@ test('a fase da Lua segue as efemérides de setembro de 2026', () => {
   assert.match(html,/id="visibilityValue"/);
 });
 
-test('o ícone original muda de desenho com as oito fases e limpa o desenho sem dados', () => {
+test('a lua texturizada acompanha as oito fases e desaparece sem dados', () => {
   const {details,elements,ctx} = screen();
   const paths = new Set();
   ctx.PLUVIA = {moon:{getMoonIllumination:date => ({phase:date.getUTCHours() / 8})}};
@@ -93,9 +94,43 @@ test('o ícone original muda de desenho com as oito fases e limpa o desenho sem 
     paths.add(elements.moonIcon.d);
   }
   assert.equal(paths.size,8);
-  assert.equal(elements.moonIcon.d.includes('A28 28'),true);
+  assert.equal(elements.moonIcon.d.includes('A34 34'),true);
+  assert.equal(elements.moonDisc.visibility,'visible');
   ctx.PLUVIA = {moon:{getMoonIllumination:() => ({phase:NaN})}};
   details.renderMoon(new Date());
   assert.equal(elements.moonIcon.d,'');
+  assert.equal(elements.moonDisc.visibility,'hidden');
   assert.match(html,/<svg class="moon-phase-icon"[^>]*>[\s\S]*?id="moonIcon"/);
+  assert.match(html,/href="\.\/assets\/moon-surface\.webp"/);
+});
+
+test('a iluminação varia dentro da mesma fase e respeita os quartos e extremos', () => {
+  const {details,elements,ctx} = screen();
+  let phase = .64;
+  ctx.PLUVIA = {moon:{getMoonIllumination:() => ({phase})}};
+  details.renderMoon();
+  const before = elements.moonIcon.d;
+  const name = elements.moonPhase.textContent;
+  phase = .65; details.renderMoon();
+  assert.equal(elements.moonPhase.textContent,name);
+  assert.notEqual(elements.moonIcon.d,before);
+  for (phase of [.25,.75]) {
+    details.renderMoon();
+    assert.match(elements.moonIcon.d,/L40 6Z$/);
+    assert.doesNotMatch(elements.moonIcon.d,/NaN|Infinity/);
+  }
+  for (phase of [0,1]) {
+    details.renderMoon();
+    assert.equal(elements.moonIcon.d,'');
+    assert.equal(elements.moonDisc.visibility,'visible');
+    assert.equal(elements.moonPhase.textContent,'Lua nova');
+  }
+  for (phase of [NaN,-.1,1.1]) {
+    details.renderMoon();
+    assert.equal(elements.moonIcon.d,'');
+    assert.equal(elements.moonDisc.visibility,'hidden');
+  }
+  phase = .5; details.renderMoon();
+  assert.equal(elements.moonDisc.visibility,'visible');
+  assert.equal(elements.moonPhase.textContent,'Lua cheia');
 });
