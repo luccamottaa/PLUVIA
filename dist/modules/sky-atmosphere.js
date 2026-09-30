@@ -7,10 +7,15 @@
     let storage;
     try { storage = root.localStorage; } catch (_) {}
     root.PLUVIA.sky.bootstrap(storage);
+    const startMotion = () => { root.PLUVIA.skyMotion = api.observeMotion(root.document,root.IntersectionObserver); };
+    if (root.document?.readyState === 'loading') root.document.addEventListener?.('DOMContentLoaded',startMotion,{once:true});
+    else startMotion();
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
   const WINDOW_MS = 30 * 60000;
+  const CELESTIAL_FADE_MS = 15 * 60000;
+  const DAY_MS = 24 * 3600000;
   const CACHE_AGE_MS = 36 * 3600000;
   const DEFAULT_CITY = {id:'1302603',lat:-3.119,lon:-60.022,timezone:'America/Manaus'};
 
@@ -43,7 +48,12 @@
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
         Object.assign(node.dataset,{phase:state.phase,solar:state.solar,weather});
         node.style?.setProperty('--twilight-opacity',state.strength.toFixed(3));
-        node.style?.setProperty('--twilight-sun-top',state.sunTop.toFixed(2) + '%');
+        node.style?.setProperty('--sun-visibility',state.sunVisibility.toFixed(3));
+        node.style?.setProperty('--moon-visibility',state.moonVisibility.toFixed(3));
+        node.style?.setProperty('--sun-drift-x',state.sunX.toFixed(2) + 'px');
+        node.style?.setProperty('--sun-drift-y',state.sunY.toFixed(2) + 'px');
+        node.style?.setProperty('--moon-drift-x',state.moonX.toFixed(2) + 'px');
+        node.style?.setProperty('--moon-drift-y',state.moonY.toFixed(2) + 'px');
         node.style?.setProperty('--rain-opacity',weather === 'storm' ? '.85' : [65,67,82].includes(code) ? '.8' : '.6');
         node.style?.setProperty('--rain-speed',weather === 'storm' || [65,67,82].includes(code) ? '1s' : '1.6s');
       }
@@ -74,7 +84,25 @@
           }
         }
       }
-      return write({phase,solar,weather,strength,sunTop:solar === 'sunrise' ? 42 - progress * 24 : 18 + progress * 24});
+      const clamp = value => Math.max(0,Math.min(1,value));
+      let sunVisibility = phase === 'day' ? 1 : 0;
+      let moonVisibility = phase === 'night' ? 1 : 0;
+      let dayProgress = .5, nightProgress = .5;
+      if (today) {
+        // The disk belongs only to its side of the solar clock. Twilight
+        // colors may linger after sunset, but they never bring the sun back.
+        sunVisibility = phase === 'day' ? clamp(Math.min(at - today.rise,today.set - at) / CELESTIAL_FADE_MS) : 0;
+        moonVisibility = phase === 'night' ? clamp((at < today.rise ? today.rise - at : at - today.set) / CELESTIAL_FADE_MS) : 0;
+        dayProgress = clamp((at - today.rise) / (today.set - today.rise));
+        const nightStart = at < today.rise ? today.set - DAY_MS : today.set;
+        const nightEnd = at < today.rise ? today.rise : today.rise + DAY_MS;
+        nightProgress = clamp((at - nightStart) / (nightEnd - nightStart));
+      }
+      // A small decorative arc stays above the content throughout the cycle.
+      // It follows the real clock instead of replaying an entrance on launch.
+      return write({phase,solar,weather,strength,sunVisibility,moonVisibility,
+        sunX:(dayProgress - .5) * 28,sunY:Math.pow(dayProgress * 2 - 1,2) * 14,
+        moonX:(.5 - nightProgress) * 24,moonY:Math.pow(nightProgress * 2 - 1,2) * 12});
     }
     function apply(nextCode, isDay, daily = null, nextCity = city, at = now()) {
       city = nextCity; code = nextCode; weather = weatherType(code);
@@ -107,5 +135,28 @@
     }
     return {apply,update,bootstrap};
   }
-  return {create,weatherType,cityTime};
+  function observeMotion(document, Observer) {
+    const scene = document?.querySelector?.('.sky-effects');
+    const intro = document?.getElementById?.('pluviaIntro');
+    const opening = intro?.querySelector?.('.intro-sky');
+    let inView = true;
+    function sync() {
+      const introVisible = intro && !intro.hidden && !intro.classList.contains('is-leaving');
+      if (scene) scene.dataset.motion = !document.hidden && inView && !introVisible ? 'running' : 'paused';
+      if (opening) opening.dataset.motion = !document.hidden && introVisible ? 'running' : 'paused';
+    }
+    // No scroll handler or per-frame JavaScript. Offscreen/hidden scenes stop
+    // while native scrolling and CSS transforms keep their own timing.
+    if (scene && Observer) {
+      const observer = new Observer(entries => {
+        inView = entries.some(entry => entry.target === scene && entry.isIntersecting);
+        sync();
+      });
+      observer.observe(scene);
+    }
+    document?.addEventListener?.('visibilitychange',sync);
+    sync();
+    return {sync};
+  }
+  return {create,weatherType,cityTime,observeMotion};
 });
