@@ -24,7 +24,9 @@ assert.match(html, /data-weather-icon-name="humidity"/);
 assert.match(app, /weatherIcons\?\.hydrate\?\./);
 assert.match(html, /id="windCompass"[^>]+role="img"[^>]+aria-label=/);
 assert.match(app, /PLUVIA\?\.sky\?\.apply/);
-assert.match(fs.readFileSync('dist/modules/sky-atmosphere.js','utf8'), /Object\.assign\(node\.dataset,\{phase:state.phase,solar:state.solar,weather\}\)/);
+const themedNodes=[{dataset:{}},{dataset:{}}];
+require('../dist/modules/sky-atmosphere.js').create({document:{documentElement:themedNodes[0],body:themedNodes[1]}}).apply(2,0);
+for(const node of themedNodes) assert.deepEqual({phase:node.dataset.phase,solar:node.dataset.solar,weather:node.dataset.weather},{phase:'night',solar:'none',weather:'partly'});
 assert.match(app, /classList\.toggle\("is-night"/);
 assert.match(app, /class="hour-temp"/);
 assert.match(app, /Sem alertas meteorológicos ativos/);
@@ -53,4 +55,3 @@ assert.match(css, /\.rain-chart \.hour-column \{[\s\S]*grid-template-rows:26px 2
 assert.match(css, /\.error-toast \{[\s\S]*visibility:hidden;[\s\S]*translateY\(calc\(100% \+ 80px\)\)/);
 
 console.log('PASS Design System: tokens, hierarchy, atmosphere, wind, hourly temperature, dark mode, mobile and reduced motion.');
-

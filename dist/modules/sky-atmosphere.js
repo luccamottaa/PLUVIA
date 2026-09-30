@@ -16,6 +16,8 @@
   const WINDOW_MS = 30 * 60000;
   const CELESTIAL_FADE_MS = 15 * 60000;
   const DAY_MS = 24 * 3600000;
+  const CLOCK_STEP_MS = 60000;
+  const ORBIT_MARGIN = .12;
   const CACHE_AGE_MS = 36 * 3600000;
   const DEFAULT_CITY = {id:'1302603',lat:-3.119,lon:-60.022,timezone:'America/Manaus'};
 
@@ -43,36 +45,50 @@
   }
   function create({document, sun = null, moonView = null, now = () => Date.now()} = {}) {
     let city = null, rows = [], weather = 'unknown', providerPhase = 'unknown', code = null;
-    let calculatedDay = '', calculatedTimes = null;
-    function write(state) {
+    let lastUpdate = null;
+    const calculatedDays = new Map();
+    function dayAt(at) {
+      // Forecast first; before it arrives or after an offline date change,
+      // use the selected city's coordinates instead of yesterday's is_day.
+      const forecast = rows.find(row => at >= row.start && at < row.end);
+      if (forecast) return forecast;
+      if (!Number.isFinite(at) || !city?.timezone || !sun || !Number.isFinite(city.lat) || !Number.isFinite(city.lon)) return null;
+      // Cache a few adjacent local days so the night crosses midnight (and
+      // daylight-saving changes) using the actual next sunrise.
+      try {
+        const date = localDate(at,city.timezone);
+        if (!calculatedDays.has(date)) {
+          const next = new Date(date + 'T12:00:00Z');
+          next.setUTCDate(next.getUTCDate() + 1);
+          const result = sun.getTimes(new Date(cityTime(date + 'T12:00:00',city)),city.lat,city.lon);
+          const times = {rise:result.sunrise?.getTime(),set:result.sunset?.getTime(),
+            start:cityTime(date + 'T00:00:00',city),end:cityTime(next.toISOString().slice(0,10) + 'T00:00:00',city)};
+          calculatedDays.set(date,Object.values(times).every(Number.isFinite) && times.set > times.rise ? times : null);
+          if (calculatedDays.size > 3) calculatedDays.delete(calculatedDays.keys().next().value);
+        }
+        return calculatedDays.get(date);
+      } catch (_) { return null; }
+    }
+    function write(state, animate) {
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
-        Object.assign(node.dataset,{phase:state.phase,solar:state.solar,weather});
+        Object.assign(node.dataset,{phase:state.phase,solar:state.solar,weather,skyTransition:animate ? 'live' : 'instant'});
         node.style?.setProperty('--twilight-opacity',state.strength.toFixed(3));
         node.style?.setProperty('--sun-visibility',state.sunVisibility.toFixed(3));
         node.style?.setProperty('--moon-visibility',state.moonVisibility.toFixed(3));
-        node.style?.setProperty('--sun-drift-x',state.sunX.toFixed(2) + 'px');
-        node.style?.setProperty('--sun-drift-y',state.sunY.toFixed(2) + 'px');
-        node.style?.setProperty('--moon-drift-x',state.moonX.toFixed(2) + 'px');
-        node.style?.setProperty('--moon-drift-y',state.moonY.toFixed(2) + 'px');
+        node.style?.setProperty('--sun-orbit-x',state.sunX.toFixed(6));
+        node.style?.setProperty('--sun-orbit-y',state.sunY.toFixed(6));
+        node.style?.setProperty('--moon-orbit-x',state.moonX.toFixed(6));
+        node.style?.setProperty('--moon-orbit-y',state.moonY.toFixed(6));
         node.style?.setProperty('--rain-opacity',weather === 'storm' ? '.85' : [65,67,82].includes(code) ? '.8' : '.6');
         node.style?.setProperty('--rain-speed',weather === 'storm' || [65,67,82].includes(code) ? '1s' : '1.6s');
       }
       return state;
     }
-    function update(at = now()) {
+    function update(at = now(), allowMotion = true) {
+      const animate = allowMotion && Number.isFinite(lastUpdate) && at > lastUpdate && at - lastUpdate <= CLOCK_STEP_MS;
+      lastUpdate = Number.isFinite(at) ? at : null;
       let phase = providerPhase, solar = 'none', strength = 0, progress = 0;
-      let today = rows.find(row => at >= row.start && at < row.end);
-      // Before the forecast arrives, and after an offline date change, use the
-      // selected city's coordinates. Never reuse yesterday's cached is_day.
-      if (!today && city?.timezone && sun && Number.isFinite(city.lat) && Number.isFinite(city.lon)) {
-        const date = localDate(at,city.timezone);
-        if (calculatedDay !== date) {
-          const result = sun.getTimes(new Date(cityTime(date + 'T12:00:00',city)),city.lat,city.lon);
-          calculatedTimes = {rise:result.sunrise?.getTime(),set:result.sunset?.getTime()};
-          calculatedDay = date;
-        }
-        if (Number.isFinite(calculatedTimes?.rise) && Number.isFinite(calculatedTimes?.set)) today = calculatedTimes;
-      }
+      const today = dayAt(at);
       if (today) {
         phase = at >= today.rise && at < today.set ? 'day' : 'night';
         for (const [name,time] of [['sunrise',today.rise],['sunset',today.set]]) {
@@ -94,21 +110,22 @@
         sunVisibility = phase === 'day' ? clamp(Math.min(at - today.rise,today.set - at) / CELESTIAL_FADE_MS) : 0;
         moonVisibility = phase === 'night' ? clamp((at < today.rise ? today.rise - at : at - today.set) / CELESTIAL_FADE_MS) : 0;
         dayProgress = clamp((at - today.rise) / (today.set - today.rise));
-        const nightStart = at < today.rise ? today.set - DAY_MS : today.set;
-        const nightEnd = at < today.rise ? today.rise : today.rise + DAY_MS;
+        const nightStart = at < today.rise ? dayAt(today.start - 1)?.set ?? today.set - DAY_MS : today.set;
+        const nightEnd = at < today.rise ? today.rise : dayAt(today.end)?.rise ?? today.rise + DAY_MS;
         nightProgress = clamp((at - nightStart) / (nightEnd - nightStart));
       }
-      // A small decorative arc stays above the content throughout the cycle.
-      // It follows the real clock instead of replaying an entrance on launch.
+      // A full-width decorative arc: sunrise on the left, noon at the top,
+      // sunset on the right. The Moon follows the sunset-to-sunrise interval;
+      // this is a night illustration, not an astronomical moonrise plot.
       moonView?.update(at);
       return write({phase,solar,weather,strength,sunVisibility,moonVisibility,
-        sunX:(dayProgress - .5) * 28,sunY:Math.pow(dayProgress * 2 - 1,2) * 14,
-        moonX:(.5 - nightProgress) * 24,moonY:Math.pow(nightProgress * 2 - 1,2) * 12});
+        sunX:ORBIT_MARGIN + dayProgress * (1 - 2 * ORBIT_MARGIN),sunY:1 - Math.sin(Math.PI * dayProgress),
+        moonX:ORBIT_MARGIN + nightProgress * (1 - 2 * ORBIT_MARGIN),moonY:1 - Math.sin(Math.PI * nightProgress)},animate);
     }
     function apply(nextCode, isDay, daily = null, nextCity = city, at = now()) {
       city = nextCity; code = nextCode; weather = weatherType(code);
       providerPhase = isDay === 1 ? 'day' : isDay === 0 ? 'night' : 'unknown';
-      calculatedDay = ''; calculatedTimes = null;
+      calculatedDays.clear();
       rows = (Array.isArray(daily?.sunrise) ? daily.sunrise : []).map((rise,i) => {
         if (typeof rise !== 'string') return {};
         const suffix = rise.match(/(?:Z|[+-]\d{2}:?\d{2})$/i)?.[0] || '';
@@ -119,7 +136,7 @@
           start:cityTime(rise.slice(0,10) + 'T00:00:00' + suffix,city),
           end:cityTime(next.toISOString().slice(0,10) + 'T00:00:00' + suffix,city)};
       }).filter(row => Object.values(row).length === 4 && Object.values(row).every(Number.isFinite) && row.set > row.rise && row.end > row.start);
-      return update(at);
+      return update(at,false);
     }
     function bootstrap(storage, at = now()) {
       let saved = null, selected = DEFAULT_CITY;
