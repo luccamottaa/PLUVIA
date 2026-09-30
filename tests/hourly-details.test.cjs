@@ -7,8 +7,9 @@ const vm = require('node:vm');
 const app = fs.readFileSync(path.join(__dirname, '..', 'dist', 'app.js'), 'utf8');
 const html = fs.readFileSync(path.join(__dirname, '..', 'dist', 'index.html'), 'utf8');
 const moon = require('../dist/vendor/suncalc.js');
+const moonView = require('../dist/modules/moon-view.js');
 const hourlySource = app.slice(app.indexOf('let hourlyMode = '), app.indexOf('\nfunction renderForecast('));
-const detailsSource = app.slice(app.indexOf('function renderMoon('), app.indexOf('\nfunction cache(', app.indexOf('function renderMoon(')));
+const detailsSource = app.slice(app.indexOf('function renderVisibility('), app.indexOf('\nfunction cache(', app.indexOf('function renderVisibility(')));
 const hours = ['2026-09-24T16:00','2026-09-24T17:00','2026-09-24T18:00'];
 const data = {
   time:hours, temperature_2m:[27,29,28], weather_code:[1,2,3],
@@ -33,7 +34,10 @@ function screen() {
     findDryWindow:() => 'Sem chuva nas próximas horas', PLUVIA:{moon}
   };
   const hourly = vm.runInNewContext(`${hourlySource}\n({renderHourly,setMode:mode=>hourlyMode=mode})`,ctx);
-  const details = vm.runInNewContext(`${detailsSource}\n({renderMoon,renderVisibility})`,ctx);
+  ctx.PLUVIA.moonView = moonView.create({document:{getElementById:id=>elements[id]},
+    getIllumination:date=>ctx.PLUVIA.moon?.getMoonIllumination(date)});
+  const details = {...vm.runInNewContext(`${detailsSource}\n({renderVisibility})`,ctx),
+    renderMoon:at=>ctx.PLUVIA.moonView.update(at)};
   return {hourly,details,elements,ctx};
 }
 
@@ -88,7 +92,7 @@ test('a fase da Lua segue as efemérides de setembro de 2026', () => {
 test('a lua texturizada acompanha as oito fases e desaparece sem dados', () => {
   const {details,elements,ctx} = screen();
   const paths = new Set();
-  ctx.PLUVIA = {moon:{getMoonIllumination:date => ({phase:date.getUTCHours() / 8})}};
+  ctx.PLUVIA.moon = {getMoonIllumination:date => ({phase:date.getUTCHours() / 8})};
   for (let hour = 0; hour < 8; hour++) {
     details.renderMoon(new Date(`2026-09-24T0${hour}:00:00Z`));
     paths.add(elements.moonIcon.d);
@@ -96,18 +100,18 @@ test('a lua texturizada acompanha as oito fases e desaparece sem dados', () => {
   assert.equal(paths.size,8);
   assert.equal(elements.moonIcon.d.includes('A34 34'),true);
   assert.equal(elements.moonDisc.visibility,'visible');
-  ctx.PLUVIA = {moon:{getMoonIllumination:() => ({phase:NaN})}};
+  ctx.PLUVIA.moon = {getMoonIllumination:() => ({phase:NaN})};
   details.renderMoon(new Date());
   assert.equal(elements.moonIcon.d,'');
   assert.equal(elements.moonDisc.visibility,'hidden');
-  assert.match(html,/<svg class="moon-phase-icon"[^>]*>[\s\S]*?id="moonIcon"/);
+  assert.match(html,/<svg class="moon-phase-icon"[^>]*>[\s\S]*?<use href="#moonDisc"/);
   assert.match(html,/href="\.\/assets\/moon-surface\.webp"/);
 });
 
 test('a iluminação varia dentro da mesma fase e respeita os quartos e extremos', () => {
   const {details,elements,ctx} = screen();
   let phase = .64;
-  ctx.PLUVIA = {moon:{getMoonIllumination:() => ({phase})}};
+  ctx.PLUVIA.moon = {getMoonIllumination:() => ({phase})};
   details.renderMoon();
   const before = elements.moonIcon.d;
   const name = elements.moonPhase.textContent;

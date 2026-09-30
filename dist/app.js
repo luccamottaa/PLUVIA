@@ -295,7 +295,6 @@ function updateClock() {
   const now = new Date();
   $("localClock").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
   $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
-  renderMoon(now);
   updateSolarAtmosphere(now.getTime());
 }
 
@@ -551,33 +550,6 @@ function renderSun(daily) {
   $("sunshineNote").textContent = Number.isFinite(sunshine) && Number.isFinite(daylight)
     ? `Sol previsto hoje: ${Math.floor(sunshineMinutes / 60)}h ${sunshineMinutes % 60}min · Luz do dia: ${Math.floor(daylightMinutes / 60)}h ${daylightMinutes % 60}min. A previsão de sol considera as nuvens.`
     : "Duração prevista de sol indisponível.";
-}
-
-function renderMoon(now = new Date()) {
-  const phase = globalThis.PLUVIA?.moon?.getMoonIllumination(now)?.phase;
-  const disc = $("moonDisc");
-  if (!Number.isFinite(phase) || phase < 0 || phase > 1) {
-    $("moonIcon").setAttribute("d", "");
-    disc.setAttribute("visibility", "hidden");
-    $("moonPhase").textContent = "Fase indisponível";
-    return;
-  }
-  const names = ["Lua nova","Lua crescente","Quarto crescente","Gibosa crescente","Lua cheia","Gibosa minguante","Quarto minguante","Lua minguante"];
-  // Projeção do terminador de uma esfera: a elipse acompanha a fase exata,
-  // sem saltar entre oito desenhos. Convenção norte para cima, como a textura.
-  const waxing = phase < .5;
-  const terminator = (waxing ? 1 : -1) * Math.cos(phase * Math.PI * 2);
-  const radius = 34;
-  const ellipseWidth = Math.abs(terminator) * radius;
-  const limb = `M40 6 A${radius} ${radius} 0 0 ${waxing ? 1 : 0} 40 74`;
-  const boundary = ellipseWidth < .0001
-    ? "L40 6"
-    : `A${ellipseWidth.toFixed(4)} ${radius} 0 0 ${terminator > 0 ? 0 : 1} 40 6`;
-  const shape = phase === 0 || phase === 1 ? "" : `${limb} ${boundary}Z`;
-  const index = Math.round(phase * 8) % 8;
-  $("moonIcon").setAttribute("d", shape);
-  disc.setAttribute("visibility", "visible");
-  $("moonPhase").textContent = names[index];
 }
 
 function renderVisibility(value, fromCache = false) {
