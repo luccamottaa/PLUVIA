@@ -55,12 +55,11 @@
 .pluvia-intro[hidden] { display:none !important; }
 .pluvia-intro::before {
   content:""; position:absolute; inset:-5%; pointer-events:none;
-  background:radial-gradient(ellipse at 75% 20%,#ffdba67a,transparent 48%),linear-gradient(180deg,#d9e7ec33,transparent 40%,#071425d9);
+  background:linear-gradient(180deg,#d9e7ec22,transparent 40%,#071425d9);
   animation:intro-horizon 2.6s ease-out both;
 }
 .pluvia-intro.is-leaving { opacity:0; pointer-events:none; transition:opacity .42s ease; }
 .pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; pointer-events:none; }
-.intro-sun { position:absolute; top:15%; right:15%; width:clamp(85px,24vw,190px); aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 35% 30%,#fff9df,#ffdfa0); box-shadow:0 0 90px 35px #ffe3a94d; animation:intro-sunrise 2.6s ease-out both; }
 .intro-cloud { position:absolute; inset:-10%; background:url("./assets/panel-night-sky.webp") center / cover; opacity:.4; -webkit-mask-image:linear-gradient(transparent 20%,#000 80%); mask-image:linear-gradient(transparent 20%,#000 80%); animation:intro-cloud-drift 3s ease-out both; }
 .intro-cloud-back { display:none; }
 .intro-rain,.intro-bolt { display:none; }
@@ -73,7 +72,6 @@
 .pluvia-intro .intro-progress { position:absolute; bottom:calc(40px + env(safe-area-inset-bottom)); width:64px; height:2px; border-radius:999px; overflow:hidden; background:#ffffff30; }
 .pluvia-intro .intro-progress span { display:block; height:100%; background:#dceeff; transform-origin:left; animation:intro-progress-fill 2.6s linear both; }
 @keyframes intro-horizon { from { opacity:.4; transform:scale(1.05); } to { opacity:1; transform:scale(1); } }
-@keyframes intro-sunrise { from { transform:translateY(45px); opacity:0; } to { transform:translateY(0); opacity:.9; } }
 @keyframes intro-cloud-drift { from { transform:translateX(-3%) scale(1.04); } to { transform:translateX(3%) scale(1); } }
 @keyframes intro-mark-in { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
 @keyframes intro-caption-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
@@ -82,7 +80,7 @@
     </style>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-119" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-20" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-21" media="print" onload="this.media='all'" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-119" /></noscript>
   </head>
@@ -90,7 +88,7 @@
     <a class="skip-link" href="#agora">Ir para o clima</a>
     <div id="pluviaIntro" class="pluvia-intro">
       <p class="intro-kicker">Feito no Norte</p>
-      <div class="intro-sky" aria-hidden="true"><span class="intro-sun"></span><span class="intro-cloud intro-cloud-back"></span><span class="intro-cloud intro-cloud-front"></span><span class="intro-rain"></span><span class="intro-bolt"></span></div>
+      <div class="intro-sky" aria-hidden="true"><span class="intro-cloud intro-cloud-back"></span><span class="intro-cloud intro-cloud-front"></span><span class="intro-rain"></span><span class="intro-bolt"></span></div>
       <div class="intro-wordmark"><span class="intro-drop" aria-hidden="true"></span><strong>PLUVIA</strong></div>
       <p class="intro-tagline">O céu de cada cidade</p>
       <p class="intro-copy">Consulte o tempo antes de sair.</p>
@@ -122,7 +120,7 @@
       })();
     </script>
     <div class="night-stage">
-    <div class="sky-effects" aria-hidden="true"><div class="sky-twilight"></div><div class="sky-horizon-sun"></div><div class="sky-sun"></div><div class="sky-rain"></div></div>
+    <div class="sky-effects" aria-hidden="true"><div class="sky-twilight"></div><div class="sky-sun"></div><div class="sky-rain"></div></div>
     <header class="topbar shell" id="top">
       <a class="brand" href="#top" aria-label="PLUVIA, início"><span class="brand-mark" aria-hidden="true"></span><span>PLUVIA</span></a>
       <button id="accountButton" class="account-trigger" type="button" aria-haspopup="dialog" aria-controls="accountDialog">Entrar / cadastrar</button>
@@ -142,20 +140,20 @@
         <p id="locationStatus" role="status" aria-live="polite"></p>
       </section>
       <dialog id="cityDialog" class="city-dialog" aria-labelledby="cityDialogTitle">
-        <div class="dialog-heading"><h2 id="cityDialogTitle">Selecione uma cidade</h2><button id="closeCitySearch" class="dialog-close" type="button" aria-label="Fechar busca" autofocus>×</button></div>
+        <div class="dialog-heading"><h2 id="cityDialogTitle">Suas cidades</h2><button id="closeCitySearch" class="dialog-close" type="button" aria-label="Fechar busca" autofocus>×</button></div><div class="dialog-scroll">
         <section class="city-picker" aria-label="Buscar cidade">
         <div class="city-search-field"><label for="citySearch">Cidade</label><input id="citySearch" type="search" placeholder="Ex.: Manaus, Recife, Curitiba" autocomplete="off" aria-controls="cityResults" aria-autocomplete="list" /></div>
         <select id="stateSelect" hidden aria-hidden="true"><option value="">Todos os estados</option></select>
         <select id="citySelect" hidden aria-hidden="true"><option value="">Selecione uma cidade</option></select>
-        <ul id="cityResults" class="city-results" role="listbox" aria-label="Cidades encontradas"></ul>
-        <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
+        <div class="city-actions">        <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
         <button id="locateCity" class="city-button" type="button">Usar localização</button>
+</div>
+        <ul id="cityResults" class="city-results" role="listbox" aria-label="Cidades encontradas"></ul>
         <p id="cityPickerStatus" role="status" aria-live="polite"></p>
       </section>
-      <section class="saved-places" aria-labelledby="savedPlacesTitle">
-        <h3 id="savedPlacesTitle">Meus locais</h3>
+      <details class="saved-places"><summary id="savedPlacesTitle">Meus locais <span>Casa, faculdade e trabalho</span></summary>
         <p id="savedPlacesMode"></p>
-        <p>Os nomes dos locais usam a previsão da cidade, não do endereço. Locais na mesma cidade compartilham os mesmos dados.</p>
+        <p>Cada local usa a previsão da cidade selecionada.</p>
         <form id="savedPlacesForm">
           <label for="savedPlaceName">Nome do local</label>
           <input id="savedPlaceName" maxlength="40" required placeholder="Casa, Faculdade, Trabalho…" autocomplete="off">
@@ -163,11 +161,11 @@
         </form>
         <p id="savedPlacesStatus" role="status" aria-live="polite"></p>
         <ul id="savedPlacesList" aria-label="Locais salvos"></ul>
-      </section>
-      </dialog>
+      </details>
+      </div></dialog>
       <dialog id="accountDialog" class="city-dialog account-dialog" aria-labelledby="accountTitle">
-        <div class="dialog-heading"><h2 id="accountTitle">Sua conta PLUVIA</h2><button id="accountClose" class="dialog-close" type="button" autofocus aria-label="Fechar conta">×</button></div>
-        <p id="accountIntro">A previsão está disponível sem uma conta. O cadastro é opcional.</p>
+        <div class="dialog-heading"><h2 id="accountTitle">Minha conta</h2><button id="accountClose" class="dialog-close" type="button" autofocus aria-label="Fechar conta">×</button></div><div class="dialog-scroll">
+        <p id="accountIntro">Entre para sincronizar suas cidades e receber alertas. A previsão continua disponível sem cadastro.</p>
         <div id="accountTabs" class="account-tabs"><button type="button" id="accountLogin" aria-pressed="true">Entrar</button><button type="button" id="accountSignup" aria-pressed="false">Criar conta</button></div>
         <form id="accountForm">
           <label id="accountNameField" hidden>Nome para exibição<input id="accountName" autocomplete="given-name" maxlength="60" /></label>
@@ -177,19 +175,19 @@
           <button id="accountSubmit" type="submit">Entrar</button>
         </form>
         <div id="accountProfile" hidden>
-          <p id="accountIdentity"></p>
+          <div class="profile-identity"><span id="profileAvatar" class="profile-avatar" aria-hidden="true">P</span><div><strong id="profileDisplayName">Sua conta</strong><p id="accountIdentity"></p></div></div>
           <form id="profileForm"><label>Seu nome<input id="profileName" autocomplete="given-name" required maxlength="60" aria-describedby="profileNameHint" /></label><small id="profileNameHint"></small><button id="profileSave" type="submit">Salvar nome</button></form>
           <section id="notificationSettings" class="notification-settings" aria-labelledby="notificationSettingsTitle">
             <div class="notification-settings-head"><div><span class="eyebrow">CONFIGURAÇÕES</span><h3 id="notificationSettingsTitle">Notificações</h3></div><span id="notificationStatusBadge" class="notification-status is-off">Alertas desativados</span></div>
             <p id="notificationSupportNote">Verificando compatibilidade deste dispositivo…</p>
-            <ul id="notificationDiagnostics" class="notification-diagnostics" aria-label="Diagnóstico de notificações"></ul>
+            <details class="notification-checks"><summary>Compatibilidade deste dispositivo</summary><ul id="notificationDiagnostics" class="notification-diagnostics" aria-label="Diagnóstico de notificações"></ul></details>
             <p id="notificationContinueNote" class="notification-continue" hidden>Conta conectada. Toque em <strong>Ativar alertas</strong> para solicitar permissão no iPhone.</p>
             <div class="notification-actions"><button id="notificationToggle" type="button">Ativar alertas</button><button id="notificationTest" type="button" hidden>Enviar notificação de teste</button></div>
             <form id="notificationPreferencesForm" class="alert-preferences">
-              <p class="notification-all-note">Todos os alertas disponíveis, em qualquer horário: avisos oficiais, chuva, tempestades, vento, calor, qualidade do ar e mudanças no tempo.</p>
+              <p class="notification-all-note">Receba avisos oficiais e alertas de chuva, tempestades, vento, calor e qualidade do ar, em qualquer horário.</p>
               <small>Alertas de raios ainda não estão disponíveis. O resumo diário programado está desativado.</small>
-              <label class="notification-location"><input name="monitor_current_city" type="checkbox"> Adicionar a cidade aberta às cidades monitoradas</label>
-              <p class="notification-help">Consultar ou favoritar uma cidade não ativa notificações. Adicione aqui apenas as cidades que deseja monitorar. Remova abaixo as adicionadas anteriormente sem querer.</p>
+              <label class="notification-location"><input name="monitor_current_city" type="checkbox"> Receber alertas para a cidade aberta</label>
+              <p class="notification-help">Escolha abaixo as cidades para receber alertas. Buscar ou favoritar uma cidade não ativa notificações.</p>
               <small id="notificationPrivacy">Usamos somente as cidades que você escolher para enviar alertas meteorológicos relevantes. Não monitoramos GPS em segundo plano.</small>
               <button id="notificationPreferencesSave" type="submit">Salvar notificações</button>
             </form>
@@ -199,7 +197,7 @@
           <button id="accountLogout" type="button">Sair da conta</button>
         </div>
         <p id="accountStatus" role="status" aria-live="polite"></p>
-      </dialog>
+      </div></dialog>
       <div id="weatherView" class="initial-loading" aria-busy="true">
       <p id="locationNotice" class="location-notice" hidden role="status"></p>
       <section class="intro" id="agora">
@@ -309,10 +307,10 @@
       <p>O sistema envia avisos oficiais do INMET e previsões de chuva para o município selecionado. A previsão não representa as condições exatas de um endereço.</p>
       <button id="installPushReload" type="button">Recarregar após a instalação</button>
     </dialog>
-    <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></dialog>
+    <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
     <script src="./analytics.js?v=analytics-3" defer></script>
-    <script src="./modules/sources.js?v=panel-20" defer></script>
-    <script src="./modules/http-client.js?v=panel-20" defer></script>
+    <script src="./modules/sources.js?v=panel-21" defer></script>
+    <script src="./modules/http-client.js?v=panel-21" defer></script>
     <script src="./modules/weather-services.js?v=core-109" defer></script>
     <script src="./modules/weather-data-layer.js?v=core-109" defer></script>
     <script src="./modules/met-merge.js?v=core-109" defer></script>
@@ -324,13 +322,14 @@
     <script src="./vendor/suncalc.js?v=core-109" defer></script>
     <script src="./modules/smart-summary.js?v=core-109" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
-    <script src="./app.js?v=panel-20" defer></script>
-    <script src="./p0.js?v=core-109" defer></script>
+    <script src="./app.js?v=panel-21" defer></script>
+    <script src="./p0.js?v=panel-21" defer></script>
     <script src="./modules/risks.js?v=core-116" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
-    <script src="./weather-map.js?v=panel-20" defer></script>
-    <script src="./account.js?v=core-109" defer></script>
-    <script src="./saved-places.js?v=core-109" defer></script>
-    <script src="./notifications.js?v=panel-20" defer></script>
+    <script src="./weather-map.js?v=panel-21" defer></script>
+    <script src="./account.js?v=panel-21" defer></script>
+    <script src="./saved-places.js?v=panel-21" defer></script>
+    <script src="./notifications.js?v=panel-21" defer></script>
   </body>
 </html>
+

@@ -21,6 +21,9 @@
     el('accountForm').hidden = !!user;
     el('accountTabs').hidden = !!user;
     el('accountIdentity').textContent = user?.email || '';
+    el('profileAvatar').textContent = (name || 'P').slice(0,1).toUpperCase();
+    el('profileDisplayName').textContent = fullName || 'Sua conta';
+    el('accountIntro').hidden = !!user;
     el('profileName').value = fullName;
     el('profileNameHint').textContent = name ? 'Esse nome aparece na saudação do topo.' : 'Falta seu nome. Salve abaixo para aparecer “Olá, seu nome” no topo.';
     window.dispatchEvent?.(new CustomEvent('pluvia:auth-changed',{detail:{user}}));
@@ -120,6 +123,7 @@
   }
   el('accountButton').addEventListener('click', () => {
     dialog.showModal(); el('accountClose').focus();
+    dialog.querySelector?.('.dialog-scroll')?.scrollTo?.(0, 0);
     restoreAccount().catch(() => {});
   });
   el('accountClose').addEventListener('click', () => dialog.close());
@@ -174,7 +178,7 @@
     finally { el('accountLogout').disabled = false; }
   });
   setMode('login');
-  window.pluviaAccount = {getClient,getUser:()=>currentUser,open(){ if(!dialog.open) dialog.showModal(); el('accountClose').focus(); restoreAccount().catch(()=>{}); }};
+  window.pluviaAccount = {getClient,getUser:()=>currentUser,open(){ if(!dialog.open) dialog.showModal(); dialog.querySelector?.('.dialog-scroll')?.scrollTo?.(0, 0); el('accountClose').focus(); restoreAccount().catch(()=>{}); }};
   // Supabase owns session persistence. Restore it on every page load instead of
   // guessing the SDK's storage key, which may change between client versions.
   restoreAccount();

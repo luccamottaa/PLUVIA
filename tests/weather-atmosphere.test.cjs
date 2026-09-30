@@ -42,3 +42,43 @@ test('sem horários solares válidos preserva o dia/noite do provedor',()=>{
  assert.equal(context.document.body.dataset.phase,'night');
  assert.equal(context.document.body.dataset.weather,'storm');
 });
+
+test('abrir às 23h e antes do amanhecer ignora o is_day antigo do cache',()=>{
+ context.cityDate = value => new Date(value);
+ const daily={sunrise:['2026-09-29T05:46:00-04:00'],sunset:['2026-09-29T17:54:00-04:00']};
+ for(const time of ['00:05','03:00','23:06']) {
+  context.applyWeatherAtmosphere(0,1,daily);
+  context.updateSolarAtmosphere(Date.parse(`2026-09-29T${time}:00-04:00`));
+  assert.equal(context.document.body.dataset.solar,'none');
+  assert.equal(context.document.body.dataset.phase,'night');
+ }
+});
+test('efeito limitado a trinta minutos e encerrado imediatamente ao sair da janela',()=>{
+ const values={};context.document.body.style={setProperty:(key,value)=>values[key]=value};
+ context.cityDate = value => new Date(value);
+ context.applyWeatherAtmosphere(0,1,{sunrise:['2026-09-29T05:46:00-04:00'],sunset:['2026-09-29T17:54:00-04:00']});
+ for(const time of ['05:46','17:54']) {
+  context.updateSolarAtmosphere(Date.parse(`2026-09-29T${time}:00-04:00`));
+  assert.equal(values['--twilight-opacity'],'1.000');
+ }
+ for(const time of ['05:15','06:17','17:23','18:25','23:00']) {
+  context.updateSolarAtmosphere(Date.parse(`2026-09-29T${time}:00-04:00`));
+  assert.equal(context.document.body.dataset.solar,'none');
+  assert.equal(values['--twilight-opacity'],'0.000');
+ }
+ context.applyWeatherAtmosphere(null,null);
+ assert.equal(values['--twilight-opacity'],'0.000');
+});
+test('horários sem offset usam o fuso da cidade e a troca limpa os horários anteriores',()=>{
+ for(const [zone,offset,rise,set] of [['Manaus','-04:00','05:46','17:54'],['Curitiba','-03:00','05:59','18:18']]) {
+  context.cityDate=value=>new Date(value+offset);
+  context.applyWeatherAtmosphere(2,1,{sunrise:[`2026-09-29T${rise}:00`],sunset:[`2026-09-29T${set}:00`]});
+  context.updateSolarAtmosphere(Date.parse(`2026-09-29T${set}:00${offset}`));
+  assert.equal(context.document.body.dataset.solar,'sunset',zone);
+  context.updateSolarAtmosphere(Date.parse(`2026-09-29T23:06:00${offset}`));
+  assert.equal(context.document.body.dataset.phase,'night',zone);
+  assert.equal(context.document.body.dataset.solar,'none',zone);
+ }
+ context.applyWeatherAtmosphere(2,0,{sunrise:[],sunset:[]});
+ assert.equal(context.document.body.dataset.solar,'none');
+});

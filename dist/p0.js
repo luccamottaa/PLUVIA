@@ -32,7 +32,7 @@ renderCityOptions = function () {
   activeResultIndex = -1;
   list.innerHTML = shown.map(city => {
     const capital = CAPITALS.some(item => item.id === city.id);
-    return `<li><button class="city-result" type="button" role="option" aria-selected="false" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
+    return `<li><button class="city-result" type="button" role="option" aria-selected="false" data-current="${city.id === activeCity?.id}" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
   }).join("");
   document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
 };
@@ -101,4 +101,11 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
   window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js")
     .then(registration => registration.update())
     .catch(() => {}));
+}
+
+// iOS's visual viewport shrinks when the keyboard opens, unlike the layout viewport.
+if (window.visualViewport) {
+  const resizeDialogs = () => document.documentElement.style.setProperty('--dialog-height', window.visualViewport.height + 'px');
+  window.visualViewport.addEventListener('resize', resizeDialogs);
+  resizeDialogs();
 }
