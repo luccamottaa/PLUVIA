@@ -1,9 +1,12 @@
-/* Keep the original light map and satellite colors. */
+/* The selected city's solar clock themes the base map, never the radar tiles. */
+.weather-map-section { --map-background:#e8eee6; --map-surface:#f8fbfff2; --map-ink:#193b59; --map-line:#c3d4e1; --map-link:#0757aa; }
+body[data-phase="night"] .weather-map-section { --map-background:#17212b; --map-surface:#14283bf2; --map-ink:#edf5ff; --map-line:#a4c7e538; --map-link:#a4ceff; }
 .pluvia-light-basemap { filter:none; }
-#weatherMap { background:#e8eee6; }
-#weatherMap .leaflet-bar a { background:#f8fbff; color:#193b59; border-color:#c3d4e1; }
-#weatherMap .leaflet-control-attribution { background:#fffffff0; color:#294e6b; }
-#weatherMap .leaflet-control-attribution a { color:#0757aa; }
+body[data-phase="night"] .pluvia-light-basemap { filter:invert(1) hue-rotate(180deg) saturate(.6) brightness(.82) contrast(.9); }
+#weatherMap { background:var(--map-background); }
+#weatherMap .leaflet-bar a { background:var(--map-surface); color:var(--map-ink); border-color:var(--map-line); }
+#weatherMap .leaflet-control-attribution { background:var(--map-surface); color:var(--map-ink); }
+#weatherMap .leaflet-control-attribution a { color:var(--map-link); }
 /* Painel Noturno: o céu atravessa o topo e o conteúdo sem uma emenda. */
 .night-stage { position:relative; isolation:isolate; display:flow-root; }
 
@@ -259,9 +262,11 @@ html,body { background:#041936; }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) {
   --dialog-bg:#0d2239; --dialog-surface:#162e48; --dialog-line:#a4c7e51f;
   --dialog-text:#f1f7ff; --dialog-muted:#aac0d7;
+  --dialog-top-gap:max(16px,env(safe-area-inset-top)); --dialog-bottom-gap:max(16px,env(safe-area-inset-bottom));
   width:min(600px,calc(100% - 32px)); max-width:none;
-  max-height:calc(var(--dialog-height,100dvh) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px);
-  margin:auto; padding:0; overflow:hidden; border:1px solid var(--dialog-line); border-radius:28px;
+  position:fixed; top:calc(var(--dialog-offset-top,0px) + var(--dialog-top-gap)); bottom:auto;
+  max-height:calc(var(--dialog-height,100dvh) - var(--dialog-top-gap) - var(--dialog-bottom-gap));
+  margin:0 auto; padding:0; overflow:hidden; border:1px solid var(--dialog-line); border-radius:28px;
   background:var(--dialog-bg); color:var(--dialog-text); box-shadow:0 32px 100px #0008;
   color-scheme:dark;
 }
@@ -275,7 +280,7 @@ html body :is(#cityDialog,#accountDialog,#sourcesDialog) .dialog-heading h2 { fo
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) .dialog-close { flex:none; width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:14px; background:#aac7e513; color:var(--dialog-text); font:400 28px/1 var(--font-ui); padding:0; }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) .dialog-close:focus { outline:none; }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) :is(button,input,summary,a):focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
-.dialog-scroll { min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; padding:24px; scrollbar-width:thin; scrollbar-color:#5e85ae66 transparent; scroll-padding-block:20px; }
+.dialog-scroll { flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; padding:24px; scrollbar-width:thin; scrollbar-color:#5e85ae66 transparent; scroll-padding-block:20px; }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) p { color:var(--dialog-muted); font-size:1rem; line-height:1.55; }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) p:empty { display:none; }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) :is(input:not([type=checkbox]),select) { width:100%; min-width:0; min-height:52px; padding:14px 16px; border:1px solid #8eb4df38; border-radius:14px; background:#071a2d; color:var(--dialog-text); font:inherit; font-size:1rem; box-shadow:none; }
@@ -283,7 +288,7 @@ html body :is(#cityDialog,#accountDialog,#sourcesDialog) input::placeholder { co
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) button:not(.dialog-close):not(.city-result) { min-height:48px; border-radius:14px; padding:12px 16px; font-size:.9375rem; font-weight:750; line-height:1.35; }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) h3 { margin:0 0 16px; font-size:1.1875rem; font-weight:800; letter-spacing:-.02em; }
 #cityDialog .city-picker { display:flex; flex-direction:column; gap:16px; margin:0; padding:0; }
-#cityDialog .city-search-field { display:block; margin:0; }
+#cityDialog .city-search-field { display:block; flex:none; margin:0; padding:16px 24px; border-bottom:1px solid var(--dialog-line); background:var(--dialog-bg); }
 #cityDialog .city-search-field label { display:block; color:var(--dialog-muted); font-size:.875rem; margin-bottom:8px; }
 #cityDialog .city-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 #cityDialog .city-actions button { margin:0; border:1px solid var(--dialog-line); color:var(--dialog-text); background:var(--dialog-surface); }
@@ -349,10 +354,11 @@ html body :is(#cityDialog,#accountDialog,#sourcesDialog) h3 { margin:0 0 16px; f
 #sourcesDialog .official-observations a { display:block; margin:8px 0; padding:12px 14px; border:1px solid var(--dialog-line); border-radius:12px; color:#accfff; background:var(--dialog-surface); font-size:.875rem; }
 #sourcesDialog a { color:#accfff; overflow-wrap:anywhere; }
 @media(max-width:600px) {
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog) { width:100%; margin:auto 0 0; border-radius:26px 26px 0 0; border-bottom:0; max-height:calc(var(--dialog-height,100dvh) - env(safe-area-inset-top) - 16px); }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog) { width:calc(100% - 16px); border-radius:24px; }
   html body :is(#cityDialog,#accountDialog,#sourcesDialog) .dialog-heading { padding:20px; }
+  #cityDialog .city-search-field { padding:12px 20px 16px; }
   html body :is(#cityDialog,#accountDialog,#sourcesDialog) .dialog-heading h2 { font-size:1.375rem; }
-  .dialog-scroll { padding:20px 20px calc(24px + env(safe-area-inset-bottom)); }
+  .dialog-scroll { padding:20px; }
 }
 @media(prefers-reduced-motion:no-preference) {
   html body :is(#cityDialog,#accountDialog,#sourcesDialog)[open] { animation:dialog-appear .2s ease-out; }

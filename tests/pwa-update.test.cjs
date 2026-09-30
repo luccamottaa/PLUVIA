@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 
 const p0 = fs.readFileSync('dist/p0.js', 'utf8');
-const update = p0.slice(p0.indexOf('if ("serviceWorker" in navigator'), p0.indexOf('// iOS\'s visual viewport'));
+const update = p0.slice(p0.indexOf('if ("serviceWorker" in navigator'), p0.indexOf('(function setupDialogViewport()'));
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
 function boot(controlled = true) {
