@@ -98,9 +98,28 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
       location.reload();
     }
   });
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js")
-    .then(registration => registration.update())
-    .catch(() => {}));
+  let registration;
+  let checking;
+  let lastCheck = -Infinity;
+  const checkForUpdate = () => {
+    if (document.visibilityState === "hidden" || navigator.onLine === false || checking || Date.now() - lastCheck < 30000) return;
+    lastCheck = Date.now();
+    checking = (registration
+      ? registration.update()
+      : navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then(value => {
+        registration = value;
+        return value.update();
+      }))
+      .catch(() => { lastCheck = -Infinity; })
+      .finally(() => { checking = null; });
+  };
+  // Installed apps can resume an existing document without firing load again.
+  window.addEventListener("pageshow", checkForUpdate);
+  window.addEventListener("focus", checkForUpdate);
+  window.addEventListener("online", checkForUpdate);
+  document.addEventListener("visibilitychange", checkForUpdate);
+  setInterval(checkForUpdate, 5 * 60 * 1000);
+  checkForUpdate();
 }
 
 // iOS's visual viewport shrinks when the keyboard opens, unlike the layout viewport.
