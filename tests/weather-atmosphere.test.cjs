@@ -97,8 +97,8 @@ test('sol e lua desaparecem nos horários solares sem um segundo sol após o ent
   assert.ok(Math.abs(state.sunVisibility-sun)<1e-9,time+' sol');
   assert.ok(Math.abs(state.moonVisibility-moon)<1e-9,time+' lua');
   assert.ok(state.sunVisibility*state.moonVisibility===0,time+' não sobrepõe os astros');
-  assert.ok(Math.abs(state.sunX)<=14 && state.sunY>=0 && state.sunY<=14,'sol fica no pequeno arco superior');
-  assert.ok(Math.abs(state.moonX)<=12 && state.moonY>=0 && state.moonY<=12,'lua fica no pequeno arco superior');
+  assert.ok(state.sunX>=.12 && state.sunX<=.88 && state.sunY>=0 && state.sunY<=1,'sol percorre o arco responsivo');
+  assert.ok(state.moonX>=.12 && state.moonX<=.88 && state.moonY>=0 && state.moonY<=1,'lua percorre o arco responsivo');
  }
 });
 test('reabrir conserva a posição do relógio; trocar cidade usa outro nascer e pôr do sol',()=>{
