@@ -2,10 +2,10 @@
   <defs>
     <linearGradient id="drop" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
       <stop stop-color="#e2f3ff" stop-opacity="0"/>
-      <stop offset=".8" stop-color="#e2f3ff" stop-opacity=".38"/>
-      <stop offset="1" stop-color="#e2f3ff" stop-opacity=".12"/>
+      <stop offset=".8" stop-color="#e2f3ff" stop-opacity=".68"/>
+      <stop offset="1" stop-color="#e2f3ff" stop-opacity=".28"/>
     </linearGradient>
-    <path id="a" d="M3 0 0 16" stroke="url(#drop)" stroke-width="1.2" stroke-linecap="round"/>
+    <path id="a" d="M3 0 0 16" stroke="url(#drop)" stroke-width="1.4" stroke-linecap="round"/>
     <path id="b" d="M2 0 0 9" stroke="url(#drop)" stroke-width=".7" stroke-linecap="round"/>
   </defs>
   <g fill="none">
@@ -18,3 +18,4 @@
     <use href="#b" x="326" y="382"/><use href="#b" x="202" y="400"/>
   </g>
 </svg>
+
