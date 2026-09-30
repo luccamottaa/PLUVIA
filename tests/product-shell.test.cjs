@@ -30,7 +30,7 @@ assert.match(app, /ponto de referência a cerca de/);
 assert.doesNotMatch(html, /id="rainNow"|id="rainNowLabel"|id="weatherDetails"/);
 assert.match(html, /id="hourlyPeek"[\s\S]*class="quick-metrics"[\s\S]*id="feelsLike"[\s\S]*id="todayHigh"[\s\S]*id="todayLow"[\s\S]*id="visibilityValue"/);
 assert.match(app, /Prioridade definida pelo aviso oficial do INMET/);
-assert.match(html, /MAPA DO TEMPO[\s\S]*Chuva e nuvens na região/i);
+assert.match(html, /MAPA DO TEMPO[\s\S]*Chuva na região/i);
 assert.match(html, /id="rainChart"[^>]*>[\s\S]*?<\/section>\s*<section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">/);
 assert.match(html, /id="weatherMap"[^>]*>[\s\S]*?id="weatherPlay"[\s\S]*?<\/article>\s*<\/section>\s*<section class="forecast-section/);
 assert.doesNotMatch(html, /id="riskSummary"|id="riskAnchor"|Riscos próximos/);
