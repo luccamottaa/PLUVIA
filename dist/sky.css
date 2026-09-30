@@ -3,6 +3,7 @@
   --sky-base:#07182f; --sky-color:linear-gradient(165deg,#142e54,#07182f 85%);
   --cloud-opacity:0; --cloud-filter:brightness(.62) sepia(.48) hue-rotate(170deg) saturate(1.35);
   --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; --sun-opacity:1;
+  --twilight-color:radial-gradient(ellipse at 78% 35%,#ffe8ad99,transparent 48%),linear-gradient(180deg,#6577b6,#be99b7 24%,#f1bb99 48%,#e8c89e 100%);
 }
 :root[data-phase="day"] {
   --sky-base:#a7d7ec; --sky-color:linear-gradient(165deg,#57b0e2,#bce7f5 70%,#a7d7ec);
@@ -23,6 +24,7 @@
 :root[data-weather="snow"] { --sky-base:#182b45; --sky-color:linear-gradient(165deg,#49617b,#182b45); --cloud-opacity:.65; }
 :root[data-weather="snow"][data-phase="day"] { --sky-base:#bed9e8; --sky-color:linear-gradient(165deg,#9ebfd5,#e5f0f5); }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#233656; --intro-muted:#f5e3de; }
+:root[data-solar="sunset"] { --twilight-color:radial-gradient(ellipse at 78% 35%,#ffd69899,transparent 48%),linear-gradient(180deg,#39446f,#9d789c 27%,#eaa286 52%,#cf9a84 100%); }
 html,body { background:var(--sky-base); }
 .pluvia-intro { background:var(--sky-color); color:var(--intro-ink); }
 .pluvia-intro::before { background:linear-gradient(180deg,transparent 25%,#03142924); }
@@ -33,15 +35,18 @@ html,body { background:var(--sky-base); }
 :root[data-phase="day"] .pluvia-intro .intro-drop { background:#216ec0; }
 .night-stage::before { content:""; position:absolute; inset:0 0 auto; z-index:-1; pointer-events:none; background-image:var(--sky-color); opacity:1; height:min(1450px,160vh); -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); }
 .night-stage::after { display:none; }
+/* Twilight belongs to the viewport, outside the masked weather effects.
+   The same sky remains behind every section while the page scrolls. */
+:root:is([data-solar="sunrise"],[data-solar="sunset"]) .night-stage::before { position:fixed; inset:0; height:auto; -webkit-mask-image:none; mask-image:none; }
 .sky-effects { position:absolute; inset:0 0 auto; height:min(1450px,160vh); overflow:hidden; pointer-events:none; z-index:-1; }
 .pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; overflow:hidden; pointer-events:none; }
 .sky-effects,.intro-sky { isolation:isolate; contain:layout paint; --orbit-top:clamp(38px,6vw,52px); --orbit-height:260px; }
 .intro-sky { --orbit-top:clamp(64px,10svh,120px); --orbit-height:clamp(180px,32svh,360px); }
 .sky-effects::after { content:""; position:absolute; inset:0; z-index:5; background:linear-gradient(90deg,#06183026,transparent 75%); pointer-events:none; }
 :root[data-phase="day"] .sky-effects::after { background:linear-gradient(90deg,#def2fa30,transparent 75%); }
-.sky-twilight { display:none; position:absolute; inset:0; z-index:0; opacity:var(--twilight-opacity,0); background:radial-gradient(ellipse at 78% 35%,#ffe8ad99,transparent 48%),linear-gradient(180deg,#6577b6,#be99b7 24%,#f1bb99 48%,#e8c89e 72%,transparent); }
+.sky-twilight { display:none; position:absolute; inset:0; z-index:0; opacity:var(--twilight-opacity,0); background:var(--twilight-color); pointer-events:none; }
+.sky-twilight-page { position:fixed; z-index:-1; }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) .sky-twilight { display:block; }
-:root[data-solar="sunset"] .sky-twilight { background:radial-gradient(ellipse at 78% 35%,#ffd69899,transparent 48%),linear-gradient(180deg,#39446f,#9d789c 27%,#eaa286 52%,#cf9a84 76%,transparent); }
 :root:is([data-weather="cloud"],[data-weather="rain"],[data-weather="fog"],[data-weather="snow"]) .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .6); }
 :root[data-weather="storm"] .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .3); }
 /* The disk, short round rays and bloom stay one sun in each scene. */
