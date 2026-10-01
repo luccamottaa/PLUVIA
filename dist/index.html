@@ -86,7 +86,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-31" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-15" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-16" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
@@ -188,6 +188,11 @@
         <div class="dialog-heading"><h2 id="accountTitle">Minha conta</h2><button id="accountClose" class="dialog-close" type="button" autofocus aria-label="Fechar conta">×</button></div><div class="dialog-scroll">
         <p id="accountIntro">Entre para sincronizar suas cidades e receber alertas. A previsão continua disponível sem cadastro.</p>
         <div id="accountTabs" class="account-tabs"><button type="button" id="accountLogin" aria-pressed="true">Entrar</button><button type="button" id="accountSignup" aria-pressed="false">Criar conta</button></div>
+        <div id="accountSocial" class="account-social" role="group" aria-label="Outras formas de entrar ou criar conta" hidden>
+          <button id="accountGoogle" class="account-provider" type="button" hidden disabled><svg class="account-provider-icon" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65Z"/><path fill="#FBBC05" d="M10.53 28.59A14.41 14.41 0 0 1 9.75 24c0-1.59.28-3.13.78-4.59l-7.98-6.19A23.89 23.89 0 0 0 0 24c0 3.87.93 7.53 2.56 10.78l7.97-6.19Z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"/></svg><span>Continuar com Google</span></button>
+          <button id="accountApple" class="account-provider" type="button" hidden disabled><svg class="account-provider-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.05 12.54c.03 3.3 2.89 4.4 2.92 4.42-.02.08-.46 1.58-1.51 3.13-.91 1.34-1.85 2.67-3.34 2.7-1.46.03-1.93-.87-3.6-.87-1.67 0-2.19.84-3.58.9-1.44.05-2.53-1.45-3.45-2.78C2.62 17.3 1.2 12.3 3.13 8.95c.96-1.67 2.67-2.73 4.52-2.76 1.41-.03 2.74.95 3.6.95.86 0 2.47-1.18 4.17-1.01.71.03 2.7.29 3.99 2.18-.1.06-2.38 1.39-2.36 4.23M14.3 4.33C15.06 3.4 15.58 2.1 15.44.8c-1.1.05-2.42.74-3.21 1.67-.71.82-1.33 2.14-1.16 3.4 1.22.1 2.47-.62 3.23-1.54"/></svg><span>Continuar com Apple</span></button>
+          <span class="account-email-separator">ou com e-mail</span>
+        </div>
         <form id="accountForm">
           <label id="accountNameField" hidden>Nome para exibição<input id="accountName" autocomplete="given-name" maxlength="60" /></label>
           <label>E-mail<input id="accountEmail" type="email" autocomplete="email" required maxlength="254" /></label>
@@ -391,7 +396,8 @@
     <script src="./modules/adapters.js?v=core-109" defer></script>
     <script src="./weather-map.js?v=map-1" defer></script>
     <script src="./modules/account-sync.js?v=sync-1" defer></script>
-    <script src="./account.js?v=account-1" defer></script>
+    <script src="./modules/social-auth.js?v=oauth-1" defer></script>
+    <script src="./account.js?v=account-2" defer></script>
     <script src="./favorite-cities.js?v=favorites-5" defer></script>
     <script src="./modules/share-weather.js?v=share-1" defer></script>
     <script src="./saved-places.js?v=places-1" defer></script>
