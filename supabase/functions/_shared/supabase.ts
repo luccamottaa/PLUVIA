@@ -15,12 +15,16 @@ export function adminClient(requestTimeout?: number) {
   });
 }
 
-export async function authenticatedUser(req: Request) {
+export async function authenticatedUser(req: Request, requestTimeout?: number) {
   const authorization = req.headers.get("authorization") || "";
   if (!authorization.startsWith("Bearer ")) return null;
   const client = createClient(env("SUPABASE_URL"), env("SUPABASE_ANON_KEY"), {
     auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { Authorization: authorization } },
+    global: { headers: { Authorization: authorization },
+      ...(requestTimeout ? { fetch: (input: RequestInfo | URL, init?: RequestInit) => fetch(input, {
+        ...init, signal: AbortSignal.any([AbortSignal.timeout(requestTimeout), ...(init?.signal ? [init.signal] : [])]),
+      }) } : {}),
+    },
   });
   const { data, error } = await client.auth.getUser();
   if (error || !data.user) return null;

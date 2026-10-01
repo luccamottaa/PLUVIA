@@ -1,0 +1,21 @@
+name: Conferir disponibilidade pública do Pluvia
+on:
+  schedule:
+    - cron: '17 5,17 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pluvia-public-health
+  cancel-in-progress: false
+jobs:
+  public-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Conferir shell, Auth e fontes públicas
+        run: node scripts/check-production.cjs

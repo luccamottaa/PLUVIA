@@ -129,3 +129,11 @@ PostgREST `return=minimal`: upsert confirmado pode responder 200/201/204 sem cor
 ## Login social
 
 Google/Apple usam Supabase Auth existente e modules/social-auth.js. Exibir botão somente se /auth/v1/settings confirmar o provider; chave publicável não habilita OAuth. Preservar fluxo browser e confirmação por e-mail; não criar segundo cliente Auth nem migrar flowType global por conveniência. Redirect social canônico ?auth_return=1, allowlist do servidor e authorize no domínio do projeto. Nunca aceitar next/URL arbitrária ou exibir error_description bruto. Limpar retorno após SDK consumir sessão; perfil existente pede nome ausente na Apple. Secrets OAuth e .p8 somente servidor/proprietário. Apple web exige rotação até 6 meses. Consulte docs/SOCIAL-AUTH.md antes de habilitar ou alterar a integração. Não vincular identidades por comparação de e-mail no cliente.
+
+## Evolução: e-mails, exclusão, avisos favoritos e QA
+
+Templates Auth vivem em `supabase/templates/`; config local não aplica templates hospedados. Ver `docs/ACCOUNT-EMAILS.md`. Não usar config push com arquivo incompleto nem adicionar rastreio/nome arbitrário no HTML. Recuperação deriva do evento PASSWORD_RECOVERY, nunca só da query. Exclusão usa `account-delete`, JWT/getUser, amr recente, confirmação e revogação global antes de hard delete; não criar endpoint que aceite ID de outro usuário, metadata de autorização ou iat de refresh como reautenticação.
+
+`inmetArea`/`selectInmetAlerts` aceitam cidade opcional; `modules.alerts.forCity` reaproveita a leitura nacional, com freshness/indisponibilidade. Não buscar INMET por favorito nem duplicar matcher. Região explícita conflitante impede fallback por nome único. O relógio central notifica cards abertos; não adicionar timer/fetch por card.
+
+`continuous.css` define pluvia-dialog-enter para todos os diálogos existentes, preservando top layer/foco/viewport e respeitando reduced motion. Animar somente opacity/transform, sem medir layout em frames ou adicionar blur. `visual.yml` executa Chromium/WebKit e guarda screenshots; ver `docs/OPERATIONS-AND-QA.md` para limites, hardware e monitoramento. Não confundir QA com fixtures com autenticação/exclusão/envio real. Nowcast: ler `docs/NOWCAST-EVALUATION.md`; timestamps de 15 minutos interpolados não sustentam precisão de 15 minutos.
