@@ -42,10 +42,10 @@ test('corpo JSON limita bytes recebidos mesmo sem Content-Length ou com cabeçal
 test('falha da previsão mantém processamento independente dos avisos oficiais',async()=>{
  let handler;const candidates=[],sent=[];
  const row={...location,id:'location',user_id:'owner'};
- const preferences={user_id:'owner',notifications_enabled:true,official_alerts:true};
- const admin={from(table){const chain={select(){return chain;},eq(){return chain;},in(){return chain;},limit(){return chain;},delete(){return chain;},lt(){return chain;},then(resolve){return Promise.resolve({data:table==='notification_locations'?[row]:table==='notification_preferences'?[preferences]:table==='push_subscriptions'?[{id:'subscription',user_id:'owner'}]:[]}).then(resolve);}};return chain;}};
+ const preferences={user_id:'owner',notifications_enabled:true,official_alerts:true,heavy_rain:true};
+ const admin={rpc:async(name,args)=>({data:name==='pluvia_push_claim'?[{cursor_id:null}]:true}),from(table){const chain={select(){return chain;},eq(){return chain;},in(){return chain;},limit(){return chain;},order(){return chain;},delete(){return chain;},lt(){return chain;},then(resolve){return Promise.resolve({data:table==='notification_locations'?[row]:table==='notification_preferences'?[preferences]:table==='push_subscriptions'?[{id:'subscription',user_id:'owner'}]:[]}).then(resolve);}};return chain;}};
  const current=new Date('2026-10-01T12:00-04:00');
- const ctx=vm.createContext({Deno:{serve:fn=>handler=fn},adminClient:()=>admin,pushSecrets:async()=>({cron_secret:'test'}),readJson:async()=>({action:'process'}),preflight(){},json:(req,body,status=200)=>({body,status}),selectCandidates:values=>values,TextEncoder,URL,URLSearchParams,Intl,Date:class extends Date{constructor(value){super(value??current);}static now(){return current.getTime();}},console:{warn(){},error(){}}});
+ const ctx=vm.createContext({Deno:{serve:fn=>handler=fn},adminClient:()=>admin,pushSecrets:async()=>({cron_secret:'test'}),readJson:async()=>({action:'process'}),preflight(){},json:(req,body,status=200)=>({body,status}),selectCandidates:values=>values,crypto:require("node:crypto").webcrypto,TextEncoder,URL,URLSearchParams,Intl,Date:class extends Date{constructor(value){super(value??current);}static now(){return current.getTime();}},console:{warn(){},error(){}}});
  vm.runInContext(purePush,ctx);
  ctx.fetchJson=async url=>{if(url.includes('inmet'))return [alert];throw Error('weather offline');};
  ctx.createEvent=async(admin,location,candidate)=>{candidates.push(candidate);return {...candidate,created:true};};

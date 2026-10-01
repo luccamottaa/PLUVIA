@@ -52,6 +52,8 @@ Para verificar o job, consultar `cron.job_run_details`, os logs de `push-process
 
 ## Operação
 
+O processamento agora mantém progresso, limita execução e impede sobreposição de cron. Consulte [a auditoria desta etapa](NOTIFICATION-RELIABILITY.md) para contratos, testes SQL e limites de escala. A migration do cursor deve preceder o deploy do worker.
+
 - `push-subscriptions`: cadastro, remoção, preferências, cidades, dispositivos e abertura.
 - `push-send`: teste Web Push autenticado, restrito à subscription do usuário.
 - `push-process`: worker privado protegido por segredo do cron.
