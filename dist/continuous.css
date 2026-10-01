@@ -301,8 +301,8 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 #hourlyDetailDialog .dialog-heading > div { min-width:0; }
 #hourlyDetailDialog #hourlyDetailCity { margin:6px 0 0; font-size:.875rem; }
 .hourly-detail-weather { display:grid; grid-template-columns:72px auto; align-items:center; justify-content:center; gap:8px 18px; text-align:center; }
-#hourlyDetailIcon { grid-row:1/3; }
-#hourlyDetailIcon [data-weather-icon-name] { width:72px; height:72px; }
+#hourlyDetailIcon { grid-row:1/3; width:72px; height:72px; display:grid; place-items:center; }
+#hourlyDetailIcon .weather-icon { display:block; width:72px; height:72px; }
 #hourlyDetailTemperature { font-size:3.75rem; font-weight:900; line-height:1.1; }
 #hourlyDetailDialog #hourlyDetailCondition { margin:0; font-size:1rem; }
 .hourly-detail-readings { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 20px; margin:24px 0 16px; }
