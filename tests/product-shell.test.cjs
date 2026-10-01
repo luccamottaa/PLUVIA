@@ -13,7 +13,8 @@ const weatherServices = read('modules/weather-services.js');
 const manifest = JSON.parse(read('manifest.webmanifest'));
 
 assert(!html.includes('municipalities.js'), 'municípios não podem bloquear o primeiro paint');
-assert(!html.includes('auth.js') && !html.includes('authDialog'), 'o painel público não deve carregar login');
+assert.doesNotMatch(html, /<script[^>]+src=["'](?:\.\/)?auth\.js(?:\?|["'])/, 'não reintroduzir o controlador legado que bloqueava o painel público');
+assert(!html.includes('authDialog'), 'não reintroduzir a abertura obrigatória de login');
 assert.match(html, /id="citySearch"[^>]+aria-autocomplete="list"/);
 assert.match(html, /id="openCitySearch"[^>]+aria-label="Buscar ou trocar cidade"[^>]*><svg[\s\S]*?<\/svg><\/button>/);
 assert.match(p0, /setTimeout\([\s\S]+1500\)/, 'Manaus precisa abrir em até 1,5 s');
