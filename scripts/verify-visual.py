@@ -83,10 +83,15 @@ with sync_playwright() as p:
   page.wait_for_timeout(450)
   rect=page.locator('#accountDialog').bounding_box();assert rect and rect['height']<=height and rect['width']<=width
   page.screenshot(path=str(output/(str(width)+'-account.png')))
-  page.locator('#accountClose').click()
-  assert page.locator('#accountDialog').evaluate("el=>el.open && el.classList.contains('pluvia-dialog-closing')")
-  assert page.locator('#accountDialog').evaluate("el=>getComputedStyle(el,'::backdrop').animationName")=='pluvia-backdrop-exit'
-  page.wait_for_function("document.getElementById('accountDialog').open && new DOMMatrixReadOnly(getComputedStyle(document.getElementById('accountDialog')).transform).m42>0",polling=16)
+  # Sample a defined CSS animation frame: slow headless renderers may miss a 280 ms exit.
+  exit_frame=page.evaluate("""(()=>{const d=document.getElementById('accountDialog');document.getElementById('accountClose').click();
+    const animation=d.getAnimations().find(a=>a.animationName==='pluvia-dialog-exit');
+    if(!animation)return {missing:true};animation.pause();animation.currentTime=140;
+    return {open:d.open,closing:d.classList.contains('pluvia-dialog-closing'),y:new DOMMatrixReadOnly(getComputedStyle(d).transform).m42,
+      backdrop:getComputedStyle(d,'::backdrop').animationName};})()""")
+  assert exit_frame.get('open') and exit_frame.get('closing') and exit_frame.get('y',0)>0,exit_frame
+  assert exit_frame['backdrop']=='pluvia-backdrop-exit',exit_frame
+  page.evaluate("document.getElementById('accountDialog').getAnimations().find(a=>a.animationName==='pluvia-dialog-exit').finish()")
   page.locator('#accountDialog').wait_for(state='hidden')
   assert page.locator('#accountButton').evaluate("el=>document.activeElement===el")
   page.locator('#accountButton').click();page.keyboard.press('Escape')
