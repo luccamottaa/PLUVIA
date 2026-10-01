@@ -13,7 +13,8 @@ const weatherServices = read('modules/weather-services.js');
 const manifest = JSON.parse(read('manifest.webmanifest'));
 
 assert(!html.includes('municipalities.js'), 'municípios não podem bloquear o primeiro paint');
-assert(!html.includes('auth.js') && !html.includes('authDialog'), 'o painel público não deve carregar login');
+assert.doesNotMatch(html, /<script[^>]+src=["'](?:\.\/)?auth\.js(?:\?|["'])/, 'não reintroduzir o controlador legado que bloqueava o painel público');
+assert(!html.includes('authDialog'), 'não reintroduzir a abertura obrigatória de login');
 assert.match(html, /id="citySearch"[^>]+aria-autocomplete="list"/);
 assert.match(html, /id="openCitySearch"[^>]+aria-label="Buscar ou trocar cidade"[^>]*><svg[\s\S]*?<\/svg><\/button>/);
 assert.match(p0, /setTimeout\([\s\S]+1500\)/, 'Manaus precisa abrir em até 1,5 s');
@@ -60,7 +61,7 @@ assert.match(styles, /footer \{ margin-top: 48px; padding-block: 28px/);
 assert.match(styles, /footer \{ margin-top: 28px; align-items:start;/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-panel-49/);
+assert.match(sw, /pluvia-panel-50/);
 assert.match(html, /redesign\.css\?v=panel-31/);
 assert.match(sw, /assets\/sky-cloud-bank\.webp/);
 assert.match(html, /id="weatherView" class="initial-loading" aria-busy="true"/);

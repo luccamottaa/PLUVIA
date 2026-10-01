@@ -347,3 +347,13 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
   .hourly-detail-readings dd { font-size:1.05rem; }
   .hourly-detail-navigation { padding:14px 20px; }
 }
+
+/* Social login belongs to the existing account dialog. */
+#accountDialog .account-social { display:grid; gap:10px; margin:0 0 18px; }
+#accountDialog .account-social[hidden],#accountDialog .account-provider[hidden] { display:none; }
+#accountDialog .account-provider { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; min-height:44px; }
+#accountDialog .account-provider-icon { flex:none; width:20px; height:20px; }
+#accountDialog #accountGoogle { background:#fff; color:#1f1f1f; border-color:#747775; font-family:Arial,sans-serif; font-weight:500; }
+#accountDialog #accountApple { background:#000; color:#fff; border-color:#747775; }
+#accountDialog .account-provider:focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
+#accountDialog .account-email-separator { text-align:center; font-size:.8rem; color:var(--dialog-muted,var(--muted)); }

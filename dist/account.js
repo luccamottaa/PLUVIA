@@ -3,6 +3,10 @@
   const el = id => document.getElementById(id);
   const dialog = el('accountDialog');
   let clientPromise, mode = 'login', currentUser = null, busy = false, preferenceTimer, syncingOwner = null, flushingOwner = null, accountRevision = 0;
+  const social = window.PLUVIA.socialAuth;
+  const providerDiscovery = social?.createDiscovery(window.PLUVIA.http?.createClient());
+  let availableProviders = {google:false,apple:false}, providersLoading = null, returning = null, oauthNavigationTimer = null, oauthNavigationPending = false;
+  try { returning=social?.callback(location.href); } catch {}
   const syncModel = window.PLUVIA.accountSync;
   let favoriteView = localFavoriteIds();
   const preferenceSync = syncModel.create({getClient,getUser:()=>currentUser,onSnapshot:receivePreferences});
@@ -30,12 +34,13 @@
     el('accountTabs').hidden = !!user;
     el('accountIdentity').textContent = user?.email || '';
     el('accountIntro').hidden = !!user;
+    paintProviders();
     window.dispatchEvent?.(new CustomEvent('pluvia:auth-changed',{detail:{user}}));
   }
   function paintIdentity(user,force=false){
     const metadata = user?.user_metadata || {};
     const synced=preferenceSync.getSnapshot()?.displayName;
-    const fullName = typeof synced==='string' ? synced : [metadata.name,metadata.full_name,metadata.display_name].find(value => typeof value === 'string' && value.trim()) || '';
+    const fullName = typeof synced==='string' && synced.trim() ? synced : [metadata.name,metadata.full_name,metadata.display_name].find(value => typeof value === 'string' && value.trim()) || '';
     const name = fullName.trim().split(/\s+/)[0].slice(0,40);
     el('accountButton').textContent = user ? (name ? `Olá, ${name}` : 'Minha conta') : 'Entrar / cadastrar';
     el('accountButton').title = el('accountButton').textContent;
@@ -164,8 +169,61 @@
     el('accountLogin').setAttribute('aria-pressed',String(!signup));
     message('');
   }
+
+  function paintProviders(){
+    const options=el('accountSocial');
+    if(!options)return;
+    options.hidden=!!currentUser || !social?.providers.some(provider=>availableProviders[provider]===true);
+    for(const provider of social?.providers || []){
+      const button=el(provider==='google' ? 'accountGoogle' : 'accountApple');
+      if(button){button.hidden=!availableProviders[provider];button.disabled=busy || !!currentUser;}
+    }
+  }
+  function setBusy(value){
+    busy=value;el('accountSubmit').disabled=value;
+    el('accountLogin').disabled=value;el('accountSignup').disabled=value;
+    paintProviders();
+  }
+  function loadProviders(){
+    if(!providerDiscovery)return Promise.resolve();
+    if(providersLoading)return providersLoading;
+    const task=providerDiscovery.load().then(providers=>{availableProviders=providers;paintProviders();}).finally(()=>{if(providersLoading===task)providersLoading=null;});
+    providersLoading=task;return task;
+  }
+  async function socialSignIn(provider){
+    if(busy || currentUser || !social?.providers.includes(provider) || !availableProviders[provider])return;
+    setBusy(true);message('Abrindo '+(provider==='google' ? 'Google' : 'Apple')+'…');
+    track('Auth Started',{mode});
+    let redirecting=false;
+    try{
+      const client=await getClient();
+      if(currentUser)return;
+      const result=await client.auth.signInWithOAuth({provider,options:{redirectTo:social.redirectTo(location),skipBrowserRedirect:true}});
+      if(result.error)throw result.error;
+      const target=social.authorizeUrl(result.data?.url,provider);
+      el('accountPassword').value='';
+      location.assign(target);redirecting=true;oauthNavigationPending=true;
+      oauthNavigationTimer=setTimeout(()=>{oauthNavigationPending=false;setBusy(false);message('Se a página de acesso não abriu, tente novamente ou entre com e-mail.');},10000);
+    }catch(error){message(authError(error));}
+    finally{if(!redirecting)setBusy(false);}
+  }
+  function finishSocialReturn(){
+    if(!returning?.returned)return;
+    const result=returning;returning=null;
+    try{history.replaceState(history.state,'',social.cleanCallback(location.href));}catch{}
+    if(currentUser && !result.error){
+      track('Auth Completed',{mode:'login'});
+      if(!el('profileName').value.trim()){dialog.showModal();message('Sua conta está conectada. Como você quer ser chamado?');el('profileName').focus();}
+      return;
+    }
+    dialog.showModal();el('accountClose').focus();
+    message(result.error==='cancelled' ? 'Você cancelou o acesso. Pode tentar novamente ou entrar com e-mail.' : 'Não foi possível concluir o acesso. Tente novamente ou entre com e-mail.');
+    loadProviders().catch(()=>{});
+  }
   function authError(error) {
     const code = error?.code;
+    if(['provider_disabled','unsupported_provider','oauth_provider_not_supported'].includes(code))return 'Essa opção de acesso está indisponível no momento. Use e-mail ou tente novamente mais tarde.';
+    if(['access_denied','user_cancelled_authorize','user_cancelled_login'].includes(code))return 'Você cancelou o acesso. Pode tentar novamente ou entrar com e-mail.';
     if (code === 'invalid_credentials') return 'E-mail ou senha incorretos. Confira os dados e tente novamente.';
     if (code === 'email_not_confirmed') return 'Confirme seu e-mail pelo link recebido e depois entre aqui.';
     if (code === 'user_already_exists') return 'Já existe uma conta com esse e-mail. Use Entrar.';
@@ -178,15 +236,19 @@
     if (clientPromise) return clientPromise;
     clientPromise = new Promise((resolve,reject) => {
       const script = document.createElement('script');
+      let completed=false;
+      const fail=()=>{if(completed)return;completed=true;clearTimeout(timeout);script.remove?.();reject(new Error('SDK indisponível'));};
+      const timeout=setTimeout(fail,12000);
       script.src = './vendor/supabase-2.116.0.js';
       script.onload = () => {
+        if(completed)return;completed=true;clearTimeout(timeout);
         try {
           const client = window.supabase.createClient('https://dszyyrcvwrpyiypwyvxe.supabase.co','sb_publishable_SdPTXhk3Q7aD-ra0S9dm_A_rnXSS4Jc', {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
           client.auth.onAuthStateChange((_event,session) => { const user=session?.user || null; paint(user); if(user) setTimeout(()=>mergeAccountPreferences(user),0); });
           resolve(client);
         } catch (error) { reject(error); }
       };
-      script.onerror = () => { script.remove(); reject(new Error('SDK indisponível')); };
+      script.onerror = fail;
       document.head.appendChild(script);
     }).catch(error => { clientPromise = null; throw error; });
     return clientPromise;
@@ -208,10 +270,14 @@
   el('accountButton').addEventListener('click', () => {
     dialog.showModal(); el('accountClose').focus();
     dialog.querySelector?.('.dialog-scroll')?.scrollTo?.(0, 0);
+    loadProviders().catch(()=>{});
     restoreAccount().catch(() => {});
   });
   el('accountClose').addEventListener('click', () => dialog.close());
   dialog.addEventListener('close', () => { el('accountPassword').value = ''; el('accountButton').focus(); });
+  el('accountGoogle')?.addEventListener('click',()=>socialSignIn('google'));
+  el('accountApple')?.addEventListener('click',()=>socialSignIn('apple'));
+  window.addEventListener?.('pageshow',()=>{if(oauthNavigationPending){clearTimeout(oauthNavigationTimer);oauthNavigationPending=false;setBusy(false);message('');}});
   el('accountLogin').addEventListener('click', () => setMode('login'));
   el('accountSignup').addEventListener('click', () => setMode('signup'));
   el('accountForm').addEventListener('submit', async event => {
@@ -222,7 +288,7 @@
     if(mode === 'signup' && (password.length < 12 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password))) {
       message('Crie uma senha com 12 ou mais caracteres, incluindo maiúscula, minúscula, número e símbolo.'); return;
     }
-    busy = true; el('accountSubmit').disabled = true; message('Só um instante…'); track('Auth Started',{mode});
+    setBusy(true); message('Só um instante…'); track('Auth Started',{mode});
     try {
       const client = await getClient();
       const result = mode === 'signup'
@@ -238,7 +304,7 @@
         message('Confira sua caixa de entrada e o spam. Se o cadastro estiver disponível, você receberá um link para confirmar o e-mail. Depois, volte aqui e toque em Entrar.');
       }
     } catch(error) { message(authError(error)); }
-    finally { busy = false; el('accountSubmit').disabled = false; }
+    finally { setBusy(false); }
   });
   el('profileForm').addEventListener('submit', async event => {
     event.preventDefault();
@@ -262,11 +328,11 @@
     finally { el('accountLogout').disabled = false; }
   });
   setMode('login');
-  window.pluviaAccount = {getClient,getUser:()=>currentUser,getPreferences:()=>preferenceSync.getSnapshot(),syncPreferences:()=>preferenceSync.load(true),applyPreferences:(operations,ownerId)=>preferenceSync.apply(operations,ownerId),open(){ if(!dialog.open) dialog.showModal(); dialog.querySelector?.('.dialog-scroll')?.scrollTo?.(0, 0); el('accountClose').focus(); restoreAccount().catch(()=>{}); }};
+  window.pluviaAccount = {getClient,getUser:()=>currentUser,getPreferences:()=>preferenceSync.getSnapshot(),syncPreferences:()=>preferenceSync.load(true),applyPreferences:(operations,ownerId)=>preferenceSync.apply(operations,ownerId),open(){ if(!dialog.open) dialog.showModal(); dialog.querySelector?.('.dialog-scroll')?.scrollTo?.(0, 0); el('accountClose').focus(); loadProviders().catch(()=>{}); restoreAccount().catch(()=>{}); }};
   const revalidatePreferences=()=>{if(currentUser)preferenceSync.load().then(()=>queueFlush()).catch(()=>{});};
   window.addEventListener?.('online',()=>{if(currentUser)preferenceSync.load(true).then(()=>queueFlush()).catch(()=>{});});
   document.addEventListener?.('visibilitychange',()=>{if(document.visibilityState==='visible')revalidatePreferences();});
   // Supabase owns session persistence. Restore it on every page load instead of
   // guessing the SDK's storage key, which may change between client versions.
-  restoreAccount();
+  restoreAccount().finally(()=>finishSocialReturn());
 })();
