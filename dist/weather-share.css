@@ -1,0 +1,19 @@
+/* Weather sharing uses the same viewport and safe areas as the city dialogs. */
+.weather-hero .weather-share-toolbar { display:flex; justify-content:flex-end; position:relative; z-index:1; margin:0 0 8px; }
+.weather-share-trigger { flex:none; display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:44px; padding:8px 12px; border:1px solid currentColor; border-radius:14px; background:transparent; color:inherit; font:700 .8rem var(--font-ui); cursor:pointer; }
+.weather-share-trigger svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; }
+.weather-share-trigger:disabled { opacity:.5; cursor:wait; }
+#weatherShareDialog .dialog-scroll { padding:18px 24px max(24px,env(safe-area-inset-bottom)); }
+#weatherSharePreview { display:block; width:100%; max-width:320px; height:auto; aspect-ratio:4/5; margin:0 auto 18px; border-radius:20px; }
+#weatherSharePreview[hidden], #weatherShareText[hidden], .weather-share-actions [hidden] { display:none; }
+.weather-share-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.weather-share-actions :is(button,a) { display:flex; align-items:center; justify-content:center; min-height:48px; padding:12px; border:1px solid var(--dialog-line); border-radius:14px; background:var(--dialog-surface); color:var(--dialog-text); font:700 .95rem var(--font-ui); text-decoration:none; text-align:center; cursor:pointer; }
+.weather-share-actions #weatherShareNative { grid-column:1/-1; background:#075dff; border-color:#075dff; color:#fff; }
+.weather-share-actions :disabled { opacity:.5; cursor:wait; }
+#weatherShareStatus { min-height:2.6em; margin:14px 0 0; color:var(--dialog-muted); font-size:.85rem; line-height:1.5; }
+#weatherShareText { display:block; width:100%; min-height:180px; margin:16px 0 0; padding:12px; border:1px solid var(--dialog-line); border-radius:14px; background:#071a2d; color:var(--dialog-text); font:inherit; font-size:16px; resize:vertical; }
+:is(.weather-share-trigger,.weather-share-actions button,.weather-share-actions a):focus-visible { outline:3px solid #84bdff; outline-offset:3px; }
+@media (max-width:360px) {
+  .weather-share-trigger { padding-inline:8px; font-size:.75rem; }
+  #weatherShareDialog .dialog-scroll { padding-inline:14px; }
+}

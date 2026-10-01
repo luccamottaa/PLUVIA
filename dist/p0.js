@@ -60,6 +60,8 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   if (btn) chooseCity(btn.dataset.id);
 });
 (function bootCity() {
+  // Shared cities are resolved by startInitialLocation; saved preferences must not supersede them.
+  if (globalThis.PLUVIA?.weatherShare?.cityIdFromURL(globalThis.location?.href)) { pinTop(); return; }
   const savedId = typeof readPreference === "function" ? readPreference("pluvia-city", null) : null;
   const fallback = cityById.get("1302603") || CITIES.find(city => city.uf === "AM");
   const saved = cityById.get(savedId);

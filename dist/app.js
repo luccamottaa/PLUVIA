@@ -653,6 +653,7 @@ function renderWeatherInsights(data, air, start) {
 
 function markWeatherUnavailable(hasSavedData) {
   setDataStatus(hasSavedData ? "Dados salvos · sem confirmação atual" : "Conexão indisponível", true);
+  globalThis.dispatchEvent?.(new CustomEvent("pluvia:weather-status-changed"));
   if (hasSavedData) {
     return;
   }
@@ -1103,6 +1104,24 @@ function requestLocation(source = 'automatic') {
   }, {enableHighAccuracy:false,timeout:4000,maximumAge:60000});
 }
 
+async function startInitialLocation() {
+  const id = globalThis.PLUVIA?.weatherShare?.cityIdFromURL(location.href);
+  if (!id) { requestLocation(); return; }
+  const choice = ++cityChoiceAttempt;
+  const attempt = locationAttempt;
+  $("locationWelcome").hidden = false;
+  locationMessage('Abrindo a cidade compartilhada.');
+  try {
+    const city = cityById.get(id) || await ensureCityDetails(id);
+    if (choice !== cityChoiceAttempt || attempt !== locationAttempt || activeCity) return;
+    if (!city) throw new Error('Cidade indisponível');
+    chooseCity(city.id, city);
+  } catch {
+    if (choice !== cityChoiceAttempt || attempt !== locationAttempt || activeCity) return;
+    locationMessage('Não foi possível abrir a cidade compartilhada. Escolha uma cidade ou use sua localização.');
+  }
+}
+
 setupCityPicker();
 document.querySelector(".hourly-modes")?.addEventListener("click", event => {
   const button = event.target.closest("button[data-hourly-mode]");
@@ -1116,7 +1135,15 @@ setupScrollAnimations();
 setupPullToRefresh();
 updateClock();
 setInterval(updateClock, 30000);
-requestLocation();
+globalThis.PLUVIA?.weatherShare?.mount(globalThis, () => {
+  if (!activeCity || !displayedWeather) return null;
+  const snapshot = weatherData?.get(activeCity.id);
+  return globalThis.PLUVIA.weatherShare.createModel(snapshot, {
+    icons:weatherIcons, dataAt:snapshot?.current?.time ? cityDate(snapshot.current.time).getTime() : null,
+    stale:$("dataStatus")?.dataset.freshness === "stale"
+  });
+});
+startInitialLocation();
 setInterval(() => { if (!document.hidden) refreshAll(); }, AUTO_REFRESH_MS);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) updateClock(); refreshIfStale(); });
 window.addEventListener("pageshow", () => { updateClock(); refreshIfStale(); });
