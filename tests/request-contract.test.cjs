@@ -85,3 +85,17 @@ test('serviços deduplicam consultas iguais e cancelam consultas ainda agendadas
   const cancelled=services.weather.getForecast(city);services.abortAll();
   await assert.rejects(cancelled,error=>error.code==='cancelled');assert.equal(calls,1);
 });
+
+test('observabilidade de falhas preserva erros e exclui URL, coordenadas e cancelamento',async()=>{
+ const events=[];global.pluviaAnalytics={reportFailure:props=>events.push(props)};
+ try {
+  const client=createClient({fetchImpl:async()=>({ok:false,status:503})});
+  await assert.rejects(client.getJson('https://api.open-meteo.com/v1/forecast?latitude=-3.1&longitude=-60.02'),error=>error.code==='provider_unavailable');
+  assert.deepEqual(events,[{component:'weather',error_code:'provider_unavailable',status:503,error_type:'RequestError'}]);
+  await assert.rejects(client.getJson('https://unknown.example/?secret=value'));assert.equal(events.length,1);
+  const cancellation=createClient({fetchImpl:abortedFetch}),controller=new AbortController();controller.abort();
+  await assert.rejects(cancellation.getJson('https://api.open-meteo.com/v1/forecast',{signal:controller.signal}),error=>error.code==='cancelled');assert.equal(events.length,1);
+  global.pluviaAnalytics.reportFailure=()=>{throw Error('telemetry unavailable');};
+  await assert.rejects(client.getJson('https://api.open-meteo.com/v1/forecast'),error=>error.code==='provider_unavailable');
+ } finally {delete global.pluviaAnalytics;}
+});

@@ -164,7 +164,7 @@
     const data = await fetchJson(url.href);
     if (revision !== layerRevision) return;
     if (data?.source !== 'Vaisala Xweather' || !Array.isArray(data.events) || !Number.isFinite(data.checkedAt) ||
-      Date.now()-data.checkedAt > 660_000 || data.events.length > 100) throw new Error('Leitura de raios indisponível ou antiga.');
+      Date.now()-data.checkedAt > 300_000 || data.checkedAt-Date.now() > 60_000 || data.windowMinutes !== 5 || data.radiusKm !== 40 || data.events.length > 100) throw new Error('Leitura de raios indisponível ou antiga.');
     const marks = data.events.map(event => {
       if (!Number.isFinite(event.lat) || !Number.isFinite(event.lon) || !Number.isFinite(event.time) || !['CG','IC'].includes(event.type)) throw new Error('Leitura de raios inválida.');
       return L.circleMarker([event.lat,event.lon],{radius:event.type === 'CG' ? 6 : 4,color:'#fff',weight:1.5,

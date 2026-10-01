@@ -1,60 +1,111 @@
 (() => {
   'use strict';
-  const API_KEY = 'AMPLITUDE_API_KEY';
-  const SDK_URL = 'https://cdn.amplitude.com/script/AMPLITUDE_API_KEY.js';
-  let readyPromise = null;
-  const queue = [];
-  const blockedProperty = /(?:e-?mail|password|senha|token|latitude|longitude|coordinates?|coords?)/i;
-  const enabled = () => API_KEY !== 'AMPLITUDE_API_KEY' && API_KEY.length > 10;
+  // Public, write-only project token; never use a personal/secret API key here.
+  const PROJECT_TOKEN = "phc_yxT3ZC8brv4uP5EngDqbsvr4uMi8NacXJTZXGcTiX3bk";
+  const ENDPOINT = 'https://us.i.posthog.com/batch/?ip=0';
+  const CHOICE_KEY = 'pluvia-analytics-consent-v1';
+  const release = 'integrations-1';
+  const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure']);
+  const values = {
+    mode:new Set(['login','signup']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker']),
+    reason:new Set(['unsupported','permission','timeout','position']),permission:new Set(['granted','denied','default']),
+    layer:new Set(['rain','clouds','lightning']),platform:new Set(['ios','android','desktop','other']),
+    component:new Set(['application','asset','weather','air-quality','alerts','met-norway','ensemble','account','radar','lightning']),
+    error_code:new Set(['timeout','network_error','invalid_response','rate_limited','provider_unavailable','http_error','client_unavailable','unexpected','resource_error']),
+    error_type:new Set(['Error','TypeError','ReferenceError','SyntaxError','RangeError','RequestError'])
+  };
+  let consent = false, timer = null, inFlight = null, controller = null, generation = 0, visitId = null, sent = 0;
+  const queue = [], failures = new Set();
+  try {consent=localStorage.getItem(CHOICE_KEY)==='1';} catch {}
+  const protectedBrowser = () => navigator.globalPrivacyControl===true || [navigator.doNotTrack,window.doNotTrack].some(value=>value==='1' || value==='yes');
+  const configured = () => PROJECT_TOKEN.startsWith('phc_') && ['pluviaweather.com.br','luccamottaa.github.io'].includes(location.hostname);
+  const enabled = () => configured() && consent && !protectedBrowser();
   function sanitize(properties) {
-    return Object.fromEntries(Object.entries(properties || {}).flatMap(([key,value]) => {
-      if (blockedProperty.test(key) || !['string','number','boolean'].includes(typeof value)) return [];
-      return [[key,typeof value === 'string' ? value.slice(0,80) : value]];
-    }));
+    const safe={};
+    for(const [key,value] of Object.entries(properties || {})) {
+      if(values[key]?.has(value))safe[key]=value;
+      else if(key==='standalone' && typeof value==='boolean')safe[key]=value;
+      else if(key==='query_length' && Number.isInteger(value) && value>=2 && value<=200)safe[key]=value;
+      else if(key==='status' && Number.isInteger(value) && value>=400 && value<=599)safe[key]=value;
+    }
+    return safe;
   }
-  function load() {
-    if (!enabled()) return Promise.resolve(false);
-    if (readyPromise) return readyPromise;
-    readyPromise = new Promise(resolve => {
-      const script = document.createElement('script'); script.async = true;
-      script.src = SDK_URL.replace('AMPLITUDE_API_KEY', encodeURIComponent(API_KEY));
-      script.onload = () => { try {
-        window.amplitude.init(API_KEY, undefined, {defaultTracking:{sessions:true,pageViews:true,formInteractions:false,fileDownloads:false},trackingOptions:{ipAddress:false}});
-        while(queue.length){ const [n,p]=queue.shift(); window.amplitude.track(n,p); }
-        resolve(true);
-      } catch(_){ resolve(false); } };
-      script.onerror = () => resolve(false); document.head.appendChild(script);
+  function id() {
+    if(!visitId) {
+      if(window.crypto?.randomUUID)visitId='pluvia-'+window.crypto.randomUUID();
+      else if(window.crypto?.getRandomValues)visitId='pluvia-'+Array.from(window.crypto.getRandomValues(new Uint8Array(16)),value=>value.toString(16).padStart(2,'0')).join('');
+    }
+    return visitId;
+  }
+  function clear() {
+    generation++;clearTimeout(timer);timer=null;queue.length=0;visitId=null;sent=0;failures.clear();controller?.abort();
+  }
+  function paintChoice() {
+    const input=document.getElementById('analyticsConsent'),status=document.getElementById('analyticsChoiceStatus');
+    if(input){input.checked=consent && !protectedBrowser();input.disabled=protectedBrowser();}
+    if(status)status.textContent=protectedBrowser() ? 'Seu navegador pede privacidade; a coleta está desativada.' : consent ? 'Participação ativada neste dispositivo. Você pode desativar a qualquer momento.' : 'Desativado. A previsão funciona sem compartilhar métricas.';
+  }
+  function setConsent(value) {
+    clear();consent=value===true && !protectedBrowser();
+    try{localStorage.setItem(CHOICE_KEY,consent ? '1' : '0');}catch{}
+    paintChoice();if(enabled())track('PLUVIA Opened');
+  }
+  function track(name,properties={}) {
+    if(!enabled() || !events.has(name) || sent>=100 || queue.length>=50 || !id())return;
+    sent++;
+    const agent=navigator.userAgent || '',browser=/Firefox/i.test(agent) ? 'firefox' : /Chrome|Chromium|CriOS|Edg/i.test(agent) ? 'chromium' : /Safari/i.test(agent) ? 'safari' : 'other';
+    queue.push({event:name,distinct_id:visitId,timestamp:new Date().toISOString(),properties:{...sanitize(properties),app:'PLUVIA',environment:'production',release,browser,$process_person_profile:false,$geoip_disable:true,$ip:null}});
+    if(timer===null)timer=setTimeout(()=>{timer=null;flush();},2000);
+  }
+  function flush() {
+    if(inFlight)return inFlight;
+    clearTimeout(timer);timer=null;
+    if(!enabled()){clear();return Promise.resolve(false);}
+    if(!queue.length || navigator.onLine===false)return Promise.resolve(false);
+    const batch=queue.splice(0,20),revision=generation,requestController=new AbortController();
+    controller=requestController;
+    const timeout=setTimeout(()=>requestController.abort(),5000);
+    // Delivery is best effort: no retry loop, storage of events, or blocking UI.
+    const task=Promise.resolve().then(()=>revision!==generation || !enabled() ? {ok:false} : window.fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({api_key:PROJECT_TOKEN,batch}),credentials:'omit',referrerPolicy:'no-referrer',keepalive:true,signal:requestController.signal})).then(response=>response.ok).catch(()=>false).finally(()=>{
+      clearTimeout(timeout);
+      if(inFlight===task){inFlight=null;controller=null;}
+      if(revision===generation && enabled() && queue.length && timer===null)timer=setTimeout(()=>{timer=null;flush();},2000);
     });
-    return readyPromise;
+    inFlight=task;return task;
   }
-  function track(name, properties={}) {
-    if (!enabled()) return;
-    const safe={...sanitize(properties),app:'PLUVIA',path:location.pathname};
-    if(window.amplitude?.track) window.amplitude.track(name,safe); else if(queue.length < 50) { queue.push([name,safe]); load(); }
+  function reportFailure(properties) {
+    if(properties?.error_code==='cancelled')return;
+    const safe=sanitize(properties);
+    if(!enabled() || failures.size>=10)return;
+    const key=JSON.stringify(safe);if(failures.has(key))return;failures.add(key);track('App Failure',safe);
   }
-  function identify(userId){ if(enabled()&&userId) load().then(ok=>{if(ok&&window.amplitude?.setUserId)window.amplitude.setUserId(userId);}); }
-  function resetUser(){ if(enabled()) load().then(ok=>{if(ok&&window.amplitude?.reset)window.amplitude.reset();}); }
-  window.pluviaAnalytics={track,identify,resetUser,enabled,sanitize};
-
+  // Existing account callers remain compatible without linking Auth identities.
+  window.pluviaAnalytics={track,identify(){},resetUser:clear,enabled,sanitize,setConsent,flush,reportFailure};
+  window.addEventListener('online',()=>flush());
+  window.addEventListener('pagehide',()=>flush());
+  window.addEventListener('storage',event=>{if(event.key===CHOICE_KEY){clear();consent=event.newValue==='1';paintChoice();}});
+  window.addEventListener('error',event=>{
+    if(event.target?.tagName==='SCRIPT' || event.target?.tagName==='LINK')reportFailure({component:'asset',error_code:'resource_error'});
+    else reportFailure({component:'application',error_code:'unexpected',error_type:event.error?.name});
+  },true);
+  window.addEventListener('unhandledrejection',event=>{if(event.reason?.code!=='cancelled')reportFailure({component:'application',error_code:values.error_code.has(event.reason?.code) ? event.reason.code : 'unexpected',error_type:event.reason?.name});});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush();});
   document.addEventListener('DOMContentLoaded',()=>{
     const on=(id,event,fn)=>document.getElementById(id)?.addEventListener(event,fn);
+    paintChoice();on('analyticsConsent','change',event=>setConsent(event.target.checked));
+    on('openPrivacy','click',()=>{document.getElementById('openSources')?.click();document.getElementById('analyticsConsent')?.focus();});
     track('PLUVIA Opened');
     on('welcomeSearch','click',()=>track('City Search Opened',{source:'welcome'}));
     on('openCitySearch','click',()=>track('City Search Opened',{source:'topbar'}));
-    on('favoriteCity','click',()=>track('Favorite City Toggled',{city:document.getElementById('cityName')?.textContent||null}));
+    on('favoriteCity','click',()=>track('Favorite City Toggled'));
     on('accountButton','click',()=>track('Account Dialog Opened'));
     on('accountLogin','click',()=>track('Auth Mode Selected',{mode:'login'}));
     on('accountSignup','click',()=>track('Auth Mode Selected',{mode:'signup'}));
-    document.querySelector('#inmetCard .source-link')?.addEventListener('click',()=>track('Official Alert Link Opened',{source:'INMET'}));
     let searchTimer;
-    on('citySearch','input',event=>{ clearTimeout(searchTimer); searchTimer=setTimeout(()=>{
-      const length=event.target.value.trim().length;
-      if(length >= 2) track('City Searched',{query_length:length});
-    },500); });
+    on('citySearch','input',event=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>track('City Searched',{query_length:event.target.value.trim().length}),500);});
     document.addEventListener('click',event=>{
-      if(event.target.closest?.('[data-notice]')) track('Alert Opened',{source:'INMET'});
-      if(event.target.closest?.('a[href*="avisos.inmet.gov.br"]')) track('Official Alert Link Opened',{source:'INMET'});
+      if(event.target.closest?.('[data-notice]'))track('Alert Opened',{source:'INMET'});
+      if(event.target.closest?.('a[href*="avisos.inmet.gov.br"]'))track('Official Alert Link Opened',{source:'INMET'});
     });
   });
-  load();
 })();

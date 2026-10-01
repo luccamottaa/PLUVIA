@@ -65,17 +65,31 @@
           throw new RequestError("A fonte enviou uma resposta inválida.", {status:response.status,retryable:true,code:"invalid_response"});
         }
       } catch (error) {
+        let failure;
         if (controller.signal.aborted || error?.name === "AbortError") {
-          throw new RequestError(timedOut ? "A fonte demorou para responder." : "Consulta cancelada.", {
+          failure = new RequestError(timedOut ? "A fonte demorou para responder." : "Consulta cancelada.", {
             retryable: timedOut,
             code: timedOut ? "timeout" : "cancelled"
           });
-        }
-        if (error instanceof RequestError) throw error;
-        throw new RequestError("Não foi possível consultar a fonte.", {
+        } else if (error instanceof RequestError) failure = error;
+        else failure = new RequestError("Não foi possível consultar a fonte.", {
           retryable: error instanceof TypeError,
           code: "network_error"
         });
+        if (failure.code !== 'cancelled') {
+          try {
+            const address = new URL(url), host = address.hostname;
+            const component = host === 'api.open-meteo.com' ? 'weather' :
+              host === 'air-quality-api.open-meteo.com' ? 'air-quality' :
+              host === 'ensemble-api.open-meteo.com' ? 'ensemble' :
+              host === 'apiprevmet3.inmet.gov.br' ? 'alerts' :
+              host === 'api.rainviewer.com' ? 'radar' :
+              host === 'dszyyrcvwrpyiypwyvxe.supabase.co' && address.pathname === '/functions/v1/met-forecast' ? 'met-norway' :
+              host === 'dszyyrcvwrpyiypwyvxe.supabase.co' && address.pathname === '/functions/v1/lightning' ? 'lightning' : null;
+            if (component) runtime.pluviaAnalytics?.reportFailure({component,error_code:failure.code,status:failure.status,error_type:failure.name});
+          } catch { /* Optional telemetry must never change request behavior. */ }
+        }
+        throw failure;
       } finally {
         if (timeout != null && typeof cancelSchedule === "function") cancelSchedule(timeout);
         requestOptions.signal?.removeEventListener?.("abort", abortFromSignal);
