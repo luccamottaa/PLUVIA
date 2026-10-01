@@ -56,8 +56,8 @@
         } else status(result==='copied' ? 'Previsão copiada.' : result==='shared' ? 'Previsão compartilhada.' : '');
       } finally {busy=false;button.disabled=!build(snapshot);}
     });
-    el('shareWeatherClose').addEventListener('click',()=>dialog.close());
-    dialog.addEventListener('click',event=>{if(event.target===dialog) dialog.close();});
+    el('shareWeatherClose').addEventListener('click',()=>globalThis.PLUVIA?.dialogs?.close(dialog) ?? dialog.close());
+    dialog.addEventListener('click',event=>{if(event.target===dialog) globalThis.PLUVIA?.dialogs?.close(dialog) ?? dialog.close();});
     dialog.addEventListener('close',()=>{if(!button.disabled) button.focus({preventScroll:true});});
   }
   return {build,deliver,mount};

@@ -358,13 +358,17 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 #accountDialog .account-provider:focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
 #accountDialog .account-email-separator { text-align:center; font-size:.8rem; color:var(--dialog-muted,var(--muted)); }
 
-/* Suave ao abrir, inclusive no botão de saudação; sem layout animado ou blur extra. */
+/* Painéis entram de cima e saem para baixo; somente transform/opacity. */
 @media (prefers-reduced-motion:no-preference) {
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open] { animation:pluvia-dialog-enter .32s cubic-bezier(.22,1,.36,1); transform-origin:50% 12%; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open] { animation:pluvia-dialog-enter .4s cubic-bezier(.22,1,.36,1); }
   html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing { animation:pluvia-dialog-exit .28s cubic-bezier(.4,0,1,1) forwards; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing::backdrop { animation:pluvia-backdrop-exit .28s ease-in forwards; }
   details[open] > :not(summary) { animation:pluvia-content-enter .24s ease-out; }
-  @keyframes pluvia-dialog-enter { from { opacity:0; transform:translateY(16px) scale(.985); } to { opacity:1; transform:translateY(0) scale(1); } }
+  @keyframes pluvia-dialog-enter { from { opacity:0; transform:translateY(-100dvh); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pluvia-dialog-exit { from { opacity:var(--pluvia-exit-opacity,1); transform:var(--pluvia-exit-from,none); } to { opacity:0; transform:translateY(var(--pluvia-exit-distance,100dvh)); } }
   @keyframes pluvia-backdrop-enter { from { opacity:0; } to { opacity:1; } }
+  @keyframes pluvia-backdrop-exit { from { opacity:1; } to { opacity:0; } }
   @keyframes pluvia-content-enter { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
 }
 @media (prefers-reduced-motion:reduce) { html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open],html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop,details[open] > :not(summary) { animation:none !important; } }

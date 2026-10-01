@@ -16,6 +16,12 @@ O PostHog existente continua opcional e sem identidade/GPS. Painel de falhas e e
 
 São contratos de layout/estado com screenshots para revisão; **não é comparação pixel a pixel com baseline aprovado**. Essa abordagem captura regressões graves sem confundir diferenças de sistema/fontes com bugs. Baselines de pixels devem ser acrescentadas em um ambiente de imagem/browser fixo, com atualização explícita e revisão visual. Não autoaprovar screenshot nova quando teste falhar.
 
+## Deslizamento dos painéis
+
+A abertura vem de cima para baixo em 400 ms. X, Escape e backdrop saem para baixo em 280 ms, conservando o diálogo nativo aberto e o foco até terminar. O controlador compartilhado lê posição/opacidade uma única vez, suporta fechar durante a entrada e evita saídas duplicadas. Fechamento programático por troca de cidade/dados continua imediato e cancela qualquer saída pendente; movimento reduzido fecha imediatamente. Entrada e saída usam animações CSS, incluindo no Safari. Há limite de 500 ms para não prender o modal se faltarem frames. Não há novo timer contínuo, blur, dependência ou alteração do layout.
+
+Os testes de `dialog-motion.test.cjs` cobrem esses contratos e `verify-visual.py` verifica o sentido real do movimento, backdrop, foco, fechamento/reabertura e reduced motion em mobile/desktop. A saída é amostrada num frame definido da animação CSS usando a API do navegador; isso valida o deslocamento renderizado sem depender de o renderer headless apresentar um frame intermediário durante apenas 280 ms. O término real da animação deve fechar o diálogo.
+
 ## iPhone físico: verificação ainda pendente
 
 WebKit automatizado não prova instalação/entrega Push em iOS real. Usar um iPhone disponível, sem precisar modelo específico:

@@ -292,7 +292,7 @@
     loadProviders().catch(()=>{});
     restoreAccount().catch(() => {});
   });
-  el('accountClose').addEventListener('click', () => dialog.close());
+  el('accountClose').addEventListener('click', () => globalThis.PLUVIA?.dialogs?.close(dialog) ?? dialog.close());
   dialog.addEventListener('close', () => { el('accountPassword').value = ''; el('accountNewPassword').value='';el('accountNewPasswordConfirm').value='';el('accountDeleteConfirm').value=''; el('accountButton').focus(); });
   el('accountGoogle')?.addEventListener('click',()=>socialSignIn('google'));
   el('accountApple')?.addEventListener('click',()=>socialSignIn('apple'));

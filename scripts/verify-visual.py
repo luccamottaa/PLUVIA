@@ -75,14 +75,35 @@ with sync_playwright() as p:
   page.locator('#openCitySearch').click();page.wait_for_function("document.querySelector('.favorite-alert').innerText.includes('INMET oficial')")
   assert 'Alerta vermelho' in page.locator('.favorite-alert').inner_text()
   page.keyboard.press('Escape')
-  # Verify actual CSS animation via native dialog on every opening, including reduced motion.
+  page.locator('#cityDialog').wait_for(state='hidden')
+  # Verify downward entrance and exit, native modality and immediate reduced-motion close.
   page.emulate_media(reduced_motion='no-preference');page.locator('#accountButton').click()
   assert page.locator('#accountDialog').evaluate("el=>getComputedStyle(el).animationName")=='pluvia-dialog-enter'
+  assert page.locator('#accountDialog').evaluate("el=>new DOMMatrixReadOnly(getComputedStyle(el).transform).m42")<0
+  page.wait_for_timeout(450)
   rect=page.locator('#accountDialog').bounding_box();assert rect and rect['height']<=height and rect['width']<=width
-  page.wait_for_timeout(350);page.screenshot(path=str(output/(str(width)+'-account.png')))
-  page.keyboard.press('Escape');page.emulate_media(reduced_motion='reduce');page.locator('#accountButton').click()
+  page.screenshot(path=str(output/(str(width)+'-account.png')))
+  # Sample a defined CSS animation frame: slow headless renderers may miss a 280 ms exit.
+  exit_frame=page.evaluate("""(()=>{const d=document.getElementById('accountDialog');document.getElementById('accountClose').click();
+    const animation=d.getAnimations().find(a=>a.animationName==='pluvia-dialog-exit');
+    if(!animation)return {missing:true};animation.pause();animation.currentTime=140;
+    return {open:d.open,closing:d.classList.contains('pluvia-dialog-closing'),y:new DOMMatrixReadOnly(getComputedStyle(d).transform).m42,
+      backdrop:getComputedStyle(d,'::backdrop').animationName};})()""")
+  assert exit_frame.get('open') and exit_frame.get('closing') and exit_frame.get('y',0)>0,exit_frame
+  assert exit_frame['backdrop']=='pluvia-backdrop-exit',exit_frame
+  page.evaluate("document.getElementById('accountDialog').getAnimations().find(a=>a.animationName==='pluvia-dialog-exit').finish()")
+  page.locator('#accountDialog').wait_for(state='hidden')
+  assert page.locator('#accountButton').evaluate("el=>document.activeElement===el")
+  page.locator('#accountButton').click();page.keyboard.press('Escape')
+  page.locator('#accountDialog').wait_for(state='hidden')
+  # A data-driven immediate close cancels the old exit even if reopened before its close event.
+  page.locator('#accountButton').click()
+  page.evaluate("(()=>{const d=document.getElementById('accountDialog');PLUVIA.dialogs.close(d);d.close();d.showModal();})()")
+  page.wait_for_timeout(600);assert page.locator('#accountDialog').evaluate('el=>el.open && !el.classList.contains("pluvia-dialog-closing")')
+  page.keyboard.press('Escape');page.locator('#accountDialog').wait_for(state='hidden')
+  page.emulate_media(reduced_motion='reduce');page.locator('#accountButton').click()
   assert page.locator('#accountDialog').evaluate("el=>getComputedStyle(el).animationName")=='none'
-  page.keyboard.press('Escape')
+  page.locator('#accountClose').click();assert not page.locator('#accountDialog').evaluate('el=>el.open')
   page.locator('#accountButton').click();page.locator('#accountForgot').click()
   assert page.locator('#accountPassword').is_hidden();assert page.locator('#accountEmail').is_visible();page.keyboard.press('Escape')
   mode.update(name='stale',offline=True,alert=False);page.evaluate('refreshAll()')

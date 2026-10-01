@@ -287,9 +287,9 @@
 
   promptButton.addEventListener("click", enable);
   toggle.addEventListener("click", toggleNotifications);
-  el("installPushClose")?.addEventListener("click", () => installDialog?.close());
+  el("installPushClose")?.addEventListener("click", () => globalThis.PLUVIA?.dialogs?.close(installDialog) ?? installDialog?.close());
   el("installPushReload")?.addEventListener("click", () => location.reload());
-  installDialog?.addEventListener("click", event => { if (event.target === installDialog) installDialog.close(); });
+  installDialog?.addEventListener("click", event => { if (event.target === installDialog) globalThis.PLUVIA?.dialogs?.close(installDialog) ?? installDialog.close(); });
   testButton.addEventListener("click", async () => {
     if (busy || !localSubscriptionId()) return;
     busy = true; testButton.disabled = true; message("Enviando um Web Push real…");

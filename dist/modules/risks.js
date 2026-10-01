@@ -35,7 +35,7 @@
   }
   app.modules.ui.refresh = () => {};
   document.addEventListener('click',event=>{ const button=event.target.closest('[data-notice]');if(button)showDetail(Number(button.dataset.notice)); });
-  $('alertDetailClose').addEventListener('click',()=>$('alertDetail').close());
+  $('alertDetailClose').addEventListener('click',()=>globalThis.PLUVIA?.dialogs?.close($('alertDetail')) ?? $('alertDetail').close());
   function tick() {
     if (activeCity && lastInmetResponse) {
       const stale = app.sources.get('alerts').status !== 'ready';
