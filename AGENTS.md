@@ -115,3 +115,11 @@ Preview: `node dist/dev-server.cjs --host 127.0.0.1 --port 4173`. Verifique a p�
 QA opcional com Python Playwright instalado: `python scripts/verify-browser.py`; `PLUVIA_BROWSER=webkit` seleciona WebKit instalado. O script bloqueia Auth/push e usa somente fixtures de clima; verifica sete viewports, favoritos, detalhes, compartilhamento, stale e troca de cidade, com dispositivo em Asia/Tokyo. Screenshots vão para a pasta temporária `pluvia-qa`, alterável por `PLUVIA_QA_OUTPUT`. Consulte `docs/PRODUCT-EVOLUTION.md` para o inventário dos 38 pedidos e decisões de evolução.
 
 QA da conta: `python scripts/verify-account-sync.py` (ou `PLUVIA_BROWSER=webkit`). Usa SDK real, duas sessões fictícias e serviço local, interceptando Auth/push; nunca modifica contas reais. `scripts/verify-account-preferences.sql` verifica CAS e grants dentro de rollback, sem imprimir dados pessoais.
+
+## Plugins e métricas opcionais
+
+Consultar `docs/PLUGIN-INTEGRATIONS.md` antes de adicionar integrações. Conexão ChatGPT não concede automaticamente credenciais de runtime, cobertura ou licença de redistribuição. Preserve Supabase/Pages e APIs estáveis; não criar backend/analytics duplicados por disponibilidade de plugin.
+
+`dist/analytics.js` usa apenas token público de ingestão PostHog. Coleta começa desligada, respeita DNT/GPC, usa ID criptográfico apenas em memória e não vincula Auth; `identify` mantém compatibilidade como no-op. Preservar allowlist de eventos/propriedades e exclusão de cidade/GPS/nome/texto/URL/stack. Telemetria jamais pode alterar exceções de HTTP ou bloquear UI. O painel conta eventos de participantes, não todos os visitantes ou pessoas únicas. Não ativar autocapture/replay nem flag remota sem justificar a necessidade e rever privacidade. Ver `docs/ANALYTICS.md`.
+
+Raios: preservar teto atômico 150 consultas/mês, cache 5min, raio 40km, atribuição Xweather e credenciais somente servidor. `/lightning` multiplica por 10 os acessos do provedor. Cache público deve ser reconstruído pela allowlist; não devolver JSON bruto de banco/API. Flights deduplicam por área apenas na instância, e cada chamada cria sua própria Response/CORS. Logs somente componente/código fixo, sem URL do provedor, credenciais, IP ou localização. Falha de autorização/limite/cache não é observação de ausência de raios.
