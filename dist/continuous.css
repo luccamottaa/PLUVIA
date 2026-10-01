@@ -25,8 +25,8 @@ html body .topbar {
 }
 body[data-phase="day"] .topbar { color:#082744; }
 .topbar::before,.topbar::after { display:none !important; }
-.topbar .brand { grid-column:1; grid-row:1; }
-.topbar .brand-mark { margin-left:0; }
+.topbar .brand { grid-column:1; grid-row:1; color:inherit; }
+.topbar .brand .brand-mark { margin-left:0; visibility:visible; }
 .topbar .brand span:last-child,.topbar .account-trigger,.topbar .search-trigger { color:inherit !important; }
 .topbar .account-trigger {
   grid-column:2;
