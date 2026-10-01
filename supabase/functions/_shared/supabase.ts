@@ -6,9 +6,12 @@ function env(name: string) {
   return value;
 }
 
-export function adminClient() {
+export function adminClient(requestTimeout?: number) {
   return createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
     auth: { persistSession: false, autoRefreshToken: false },
+    ...(requestTimeout ? { global: { fetch: (input: RequestInfo | URL, init?: RequestInit) => fetch(input, {
+      ...init, signal: AbortSignal.any([AbortSignal.timeout(requestTimeout), ...(init?.signal ? [init.signal] : [])]),
+    }) } } : {}),
   });
 }
 

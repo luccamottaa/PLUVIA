@@ -30,7 +30,11 @@ async function fetchJson(url: string, timeout = 12_000) {
   try {
     const response = await fetch(url, { signal: controller.signal, headers: { Accept: "application/json", "User-Agent": "PLUVIA weather alerts/1.0" } });
     if (!response.ok) throw new Error(`source_http_${response.status}`);
-    return await response.json();
+    try { return await response.json(); } catch { throw new Error("source_invalid_response"); }
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error("source_timeout");
+    if (error instanceof Error && /^source_(http_\d+|invalid_response)$/.test(error.message)) throw error;
+    throw new Error("source_network");
   } finally { clearTimeout(timer); }
 }
 
@@ -67,9 +71,22 @@ function airQualityUrl(location: Location) {
   return url.toString();
 }
 
+// Null, strings and booleans are missing observations, never numeric zero.
+function observed(value: unknown, min = -Infinity, max = Infinity): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max ? value : null;
+}
+function freshCurrent(data: any, now: Date) {
+  const at = observed(data?.current?.time, 1);
+  return at !== null && now.getTime() / 1000 - at >= -900 && now.getTime() / 1000 - at <= 5400;
+}
+function weatherCode(value: unknown) {
+  return [0, 1, 2, 3, 45, 48, 51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 71, 73, 75, 77, 80, 81, 82, 85, 86, 95, 96, 99].includes(value as number) ? value as number : null;
+}
 function detectAirQuality(data: any, location: Location, now = new Date()) {
-  const aqi = Math.round(Number(data?.current?.us_aqi));
-  if (!Number.isFinite(aqi) || aqi < 101) return null;
+  if (!freshCurrent(data, now)) return null;
+  const reading = observed(data?.current?.us_aqi, 0, 1000);
+  if (reading === null || reading < 101) return null;
+  const aqi = Math.round(reading);
   const severity = aqi >= 201 ? 4 : aqi >= 151 ? 3 : 2;
   const guidance = severity >= 3 ? "Reduza esforço prolongado ao ar livre, especialmente se você faz parte de um grupo sensível." : "Pessoas sensíveis podem preferir reduzir esforço prolongado ao ar livre.";
   return {
@@ -77,43 +94,51 @@ function detectAirQuality(data: any, location: Location, now = new Date()) {
     body: `O índice de qualidade do ar está em ${aqi} na região de ${location.city_name}. ${guidance}`,
     source: "Open-Meteo · modelo CAMS", start: now, expires: new Date(now.getTime() + 6 * 3_600_000), url: "./#qualidade-do-ar",
     fingerprintSeed: `air_quality|${location.city_id}|${Math.floor(now.getTime() / 21_600_000)}|${severity}`,
-    metadata: { us_aqi: aqi, pm2_5: Number(data?.current?.pm2_5), pm10: Number(data?.current?.pm10), confidence: "moderate" },
+    metadata: { us_aqi: aqi, pm2_5: observed(data?.current?.pm2_5, 0), pm10: observed(data?.current?.pm10, 0), confidence: "moderate" },
   } satisfies EventCandidate;
 }
 
 function detectWeather(data: any, location: Location, now = new Date()) {
   const events: EventCandidate[] = [];
-  const currentTime = Number(data?.current?.time || Math.floor(now.getTime() / 1000));
-  const times = asArray(data?.hourly?.time).map(Number);
-  const upcoming = times.map((time: number, index: number) => ({
-    time, probability: Number(data.hourly.precipitation_probability?.[index] || 0), precipitation: Number(data.hourly.precipitation?.[index] || 0),
-    code: Number(data.hourly.weather_code?.[index] || 0), gust: Number(data.hourly.wind_gusts_10m?.[index] || 0),
-    temperature: Number(data.hourly.temperature_2m?.[index]),
-  })).filter((row: any) => row.time >= currentTime - 1800).slice(0, 7);
-  const next3h = upcoming.slice(0, 4);
-  const futureRain = next3h.filter((row: any) => row.time > currentTime);
-  const peakRain = Math.max(0, ...futureRain.map((row: any) => row.precipitation));
-  const peakProbability = Math.max(0, ...futureRain.map((row: any) => row.probability));
-  const peakGust = Math.max(Number(data?.current?.wind_gusts_10m || 0), ...next3h.map((row: any) => row.gust));
-  const futurePeakGust = Math.max(Number(data?.current?.wind_gusts_10m || 0), ...upcoming.map((row: any) => row.gust));
-  const stormCode = Math.max(Number(data?.current?.weather_code || 0), ...next3h.map((row: any) => row.code));
-  const currentRain = Number(data?.current?.precipitation || 0);
-  const apparent = Number(data?.current?.apparent_temperature || 0), temperature = Number(data?.current?.temperature_2m || 0);
+  if (!freshCurrent(data, now)) return events;
+  const currentTime = now.getTime() / 1000;
+  const times = asArray(data?.hourly?.time);
+  // An unordered/duplicate series cannot establish real forecast intervals.
+  const ordered = times.every((time: unknown, index: number) => observed(time, 1) !== null && (!index || (time as number) > times[index - 1]));
+  const upcoming = (ordered ? times : []).map((time: number, index: number) => ({
+    time, probability: observed(data.hourly.precipitation_probability?.[index], 0, 100), precipitation: observed(data.hourly.precipitation?.[index], 0, 500),
+    code: weatherCode(data.hourly.weather_code?.[index]), gust: observed(data.hourly.wind_gusts_10m?.[index], 0, 500),
+    temperature: observed(data.hourly.temperature_2m?.[index], -100, 65),
+    // Accumulations describe the preceding hour; gaps are not longer intervals.
+    rainInterval: index > 0 && time - times[index - 1] === 3600,
+  })).filter((row: any) => row.time > currentTime && row.time <= currentTime + 6 * 3600);
+  const next3h = upcoming.filter((row: any) => row.time <= currentTime + 3 * 3600);
+  const futureRain = next3h.filter((row: any) => row.rainInterval && row.precipitation !== null && row.probability !== null);
+  // Probability and amount must describe the SAME interval.
+  const intenseRain = futureRain.filter((row: any) => row.precipitation >= 5 && row.probability >= 70);
+  const rainHours = futureRain.filter((row: any) => row.precipitation >= .5 && row.probability >= 60);
+  const peakRain = Math.max(0, ...rainHours.map((row: any) => row.precipitation));
+  const peakProbability = Math.max(0, ...rainHours.map((row: any) => row.probability));
+  const peakGust = Math.max(0, observed(data?.current?.wind_gusts_10m, 0, 500) ?? 0, ...next3h.map((row: any) => row.gust ?? 0));
+  const futurePeakGust = Math.max(0, ...upcoming.map((row: any) => row.gust ?? 0));
+  const stormCode = Math.max(0, weatherCode(data?.current?.weather_code) ?? 0, ...next3h.map((row: any) => row.code ?? 0));
+  const currentRain = observed(data?.current?.precipitation, 0, 500);
+  const apparent = observed(data?.current?.apparent_temperature, -100, 80), temperature = observed(data?.current?.temperature_2m, -100, 65);
   const bucket = Math.floor(now.getTime() / 21_600_000);
   const end2h = new Date(now.getTime() + 2 * 3_600_000), end3h = new Date(now.getTime() + 3 * 3_600_000);
-  const rainHours = futureRain.filter((row: any) => row.precipitation >= .5 && row.probability >= 60);
   const localHour = (unix: number) => new Intl.DateTimeFormat('pt-BR',{timeZone:location.timezone,hour:'2-digit',minute:'2-digit'}).format(new Date(unix*1000));
   const lastRainHour = rainHours.at(-1);
   const rainWindow = lastRainHour ? `entre ${localHour(rainHours[0].time - 3600)} e ${localHour(lastRainHour.time)}` : 'nas próximas horas';
 
-  if (currentRain < 0.2 && next3h.slice(1, 3).some((row: any) => row.precipitation >= 0.5 && row.probability >= 60)) events.push({
+  if (currentRain !== null && currentRain < 0.2 && rainHours.length > 0) events.push({
     type: "rain_approaching", severity: 2, title: "🌧️ Chuva nas próximas horas",
     body: `Previsão para ${location.city_name}: chuva ${rainWindow}, com até ${Math.round(peakProbability)}% de chance e pico de ${peakRain.toFixed(1).replace('.',',')} mm/h. Vale levar guarda-chuva. Fonte: modelo Open-Meteo; o horário pode mudar.`, source: "Open-Meteo · modelo",
     start: now, expires: end2h, url: "./#chuva", fingerprintSeed: `rain_approaching|${location.city_id}|${bucket}|2`, metadata: { peak_probability: peakProbability, peak_mm_h: peakRain, confidence: "moderate" },
   });
-  if (peakRain >= 5 && peakProbability >= 70) {
-    const severity = peakRain >= 15 ? 4 : 3;
-    events.push({ type: "heavy_rain", severity, title: "🌧️ Chuva forte prevista", body: `O modelo indica chuva forte em ${location.city_name} nas próximas horas. Acompanhe alertas oficiais e evite áreas alagáveis.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#chuva", fingerprintSeed: `heavy_rain|${location.city_id}|${bucket}|${severity}`, metadata: { peak_probability: peakProbability, peak_mm_h: peakRain, confidence: "moderate" } });
+  if (intenseRain.length) {
+    const intensity = Math.max(...intenseRain.map((row: any) => row.precipitation));
+    const severity = intensity >= 15 ? 4 : 3;
+    events.push({ type: "heavy_rain", severity, title: "🌧️ Chuva forte prevista", body: `O modelo indica chuva forte em ${location.city_name} nas próximas horas. Acompanhe alertas oficiais e evite áreas alagáveis.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#chuva", fingerprintSeed: `heavy_rain|${location.city_id}|${bucket}|${severity}`, metadata: { peak_probability: Math.max(...intenseRain.map((row: any) => row.probability)), peak_mm_h: intensity, confidence: "moderate" } });
   }
   if (stormCode >= 95) {
     const severity = stormCode >= 99 ? 4 : 3;
@@ -123,17 +148,20 @@ function detectWeather(data: any, location: Location, now = new Date()) {
     const severity = peakGust >= 90 ? 4 : 3;
     events.push({ type: "strong_wind", severity, title: "💨 Rajadas fortes possíveis", body: `Rajadas de até cerca de ${Math.round(peakGust)} km/h aparecem na previsão para ${location.city_name}. Proteja objetos soltos e acompanhe avisos oficiais.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#agora", fingerprintSeed: `strong_wind|${location.city_id}|${bucket}|${severity}`, metadata: { peak_gust_kmh: peakGust, confidence: "moderate" } });
   }
-  if (apparent >= 42 || temperature >= 40) {
-    const severity = apparent >= 48 || temperature >= 43 ? 4 : 3;
-    events.push({ type: "extreme_heat", severity, title: "🌡️ Calor intenso", body: `A sensação térmica está em torno de ${Math.round(apparent)} °C em ${location.city_name}. Hidrate-se e reduza esforço sob o sol.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#agora", fingerprintSeed: `extreme_heat|${location.city_id}|${bucket}|${severity}`, metadata: { temperature_c: temperature, apparent_c: apparent, confidence: "moderate" } });
+  if ((apparent !== null && apparent >= 42) || (temperature !== null && temperature >= 40)) {
+    const severity = (apparent !== null && apparent >= 48) || (temperature !== null && temperature >= 43) ? 4 : 3;
+    const heat = apparent !== null ? `A sensação térmica está em torno de ${Math.round(apparent)} °C` : `A temperatura está em torno de ${Math.round(temperature!)} °C`;
+    events.push({ type: "extreme_heat", severity, title: "🌡️ Calor intenso", body: `${heat} em ${location.city_name}. Hidrate-se e reduza esforço sob o sol.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#agora", fingerprintSeed: `extreme_heat|${location.city_id}|${bucket}|${severity}`, metadata: { temperature_c: temperature, apparent_c: apparent, confidence: "moderate" } });
   }
-  const futureTemperatures = upcoming.slice(1).map((row: any) => row.temperature).filter(Number.isFinite);
-  const temperatureDelta = futureTemperatures.length && Number.isFinite(temperature)
+  const futureTemperatures = upcoming.map((row: any) => row.temperature).filter(Number.isFinite);
+  const temperatureDelta = futureTemperatures.length && temperature !== null
     ? futureTemperatures.reduce((largest: number, value: number) => Math.abs(value - temperature) > Math.abs(largest) ? value - temperature : largest, 0)
     : 0;
-  const dryNow = currentRain < 0.2 && Number(data?.current?.weather_code || 0) < 51;
-  const rainTransition = dryNow && upcoming.slice(3).some((row: any) => row.precipitation >= 1 && row.probability >= 60);
-  const windTransition = Number(data?.current?.wind_gusts_10m || 0) < 35 && futurePeakGust >= 55;
+  const currentCode = weatherCode(data?.current?.weather_code);
+  const dryNow = currentRain !== null && currentRain < 0.2 && currentCode !== null && currentCode < 51;
+  const rainTransition = dryNow && upcoming.some((row: any) => row.time > currentTime + 3 * 3600 && row.rainInterval && row.precipitation !== null && row.probability !== null && row.precipitation >= 1 && row.probability >= 60);
+  const currentGust = observed(data?.current?.wind_gusts_10m, 0, 500);
+  const windTransition = currentGust !== null && currentGust < 35 && futurePeakGust >= 55;
   if (Math.abs(temperatureDelta) >= 6 || rainTransition || windTransition) {
     const reasons = [
       Math.abs(temperatureDelta) >= 6 ? `a temperatura pode ${temperatureDelta < 0 ? "cair" : "subir"} cerca de ${Math.round(Math.abs(temperatureDelta))} °C` : "",
@@ -197,9 +225,17 @@ function dailySummaryCandidate(data: any, location: Location, preference: Prefer
   const target = String(preference.daily_summary_time || "07:00").slice(0, 5);
   const [hour, minute] = target.split(":").map(Number), current = localMinutes(location.timezone, now);
   if (Math.abs(current - (hour * 60 + minute)) > 4) return null;
-  const max = Math.round(Number(data?.daily?.temperature_2m_max?.[0])), min = Math.round(Number(data?.daily?.temperature_2m_min?.[0])), rain = Math.round(Number(data?.daily?.precipitation_probability_max?.[0] || 0));
-  if (![max, min, rain].every(Number.isFinite)) return null;
+  if (!freshCurrent(data, now)) return null;
   const localDay = new Intl.DateTimeFormat("en-CA", { timeZone: location.timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+  const day = asArray(data?.daily?.time).findIndex((at: unknown) => {
+    const unix = observed(at, 1);
+    return unix !== null && new Intl.DateTimeFormat("en-CA", {timeZone:location.timezone,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(unix * 1000)) === localDay;
+  });
+  if (day < 0) return null;
+  const high = observed(data?.daily?.temperature_2m_max?.[day], -100, 65), low = observed(data?.daily?.temperature_2m_min?.[day], -100, 65);
+  const chance = observed(data?.daily?.precipitation_probability_max?.[day], 0, 100);
+  if (high === null || low === null || chance === null || low > high) return null;
+  const max = Math.round(high), min = Math.round(low), rain = Math.round(chance);
   return { type: "daily_summary", severity: 1, title: `☀️ ${location.city_name} hoje`, body: `Máxima de ${max} °C, mínima de ${min} °C e até ${rain}% de chance de chuva.`, source: "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 6 * 3_600_000), url: "./#previsao", fingerprintSeed: `daily_summary|${location.city_id}|${localDay}`, metadata: { max_c: max, min_c: min, rain_probability: rain, confidence: "moderate" } } satisfies EventCandidate;
 }
 
@@ -220,12 +256,13 @@ async function createEvent(admin: any, location: Location, candidate: EventCandi
   return { ...candidate, cityId:location.city_id, id: data.id, fingerprint, created: true };
 }
 
-async function deliver(admin: any, event: any, preference: Preference, subscriptions: any[], userId: string, vapid: any) {
+async function deliver(admin: any, event: any, preference: Preference, subscriptions: any[], userId: string, vapid: any, deadline = Infinity) {
   const flag = preferenceFor[event.type];
   const belowMinimum = event.type !== "daily_summary" && event.severity < Number(preference.minimum_severity || 1);
   if (!preference.notifications_enabled || (flag && !preference[flag]) || belowMinimum || inQuietHours(preference, event.severity)) return { accepted: 0, skipped: subscriptions.length };
   let accepted = 0, skipped = 0;
   for (const subscription of subscriptions) {
+    if (Date.now() >= deadline) return { accepted, skipped, deferred: true };
     // Fingerprints already deduplicate the same event. This also covers bucket
     // boundaries and related model signals, but lets severity increases through.
     if (!['official_alert','daily_summary'].includes(event.type)) {
@@ -264,36 +301,73 @@ function constantTimeEqual(left: string, right: string) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return preflight(req);
   if (req.method !== "POST") return json(req, { error: "Método não permitido." }, 405);
-  const admin = adminClient();
+  const admin = adminClient(8_000);
+  let token: string | null = null;
+  let cursor: string | null = null;
   try {
     const vapid = await pushSecrets(admin);
     if (!constantTimeEqual(req.headers.get("x-pluvia-cron-secret") || "", vapid.cron_secret)) return json(req, { error: "Não autorizado." }, 401);
     const body: any = await readJson(req);
     if (body?.action !== "process") return json(req, { error: "Ação inválida." }, 400);
 
-    const { data: locations, error: locationError } = await admin.from("notification_locations").select("id,user_id,city_id,city_name,uf,latitude,longitude,timezone").eq("enabled", true).limit(100);
-    if (locationError) throw locationError;
+    const deadline = Date.now() + 90_000;
+    const requestedToken = crypto.randomUUID();
+    const { data: lease, error: leaseError } = await admin.rpc("pluvia_push_claim", { p_token: requestedToken });
+    if (leaseError) throw new Error("worker_claim_failed");
+    if (!lease?.length) return json(req, { ok: true, busy: true, locations: 0, events: 0, accepted: 0 });
+    token = requestedToken;
+    cursor = lease[0].cursor_id;
+    const checkpoint = async (next: string | null) => {
+      const { data, error } = await admin.rpc("pluvia_push_checkpoint", { p_token: token, p_cursor: next });
+      if (error || data !== true) throw new Error("worker_checkpoint_failed");
+      cursor = next;
+    };
+    const page = async (after: string | null) => {
+      let query = admin.from("notification_locations").select("id,user_id,city_id,city_name,uf,latitude,longitude,timezone").eq("enabled", true).order("id").limit(100);
+      if (after) query = query.gt("id", after);
+      const { data, error } = await query;
+      if (error) throw new Error("worker_locations_failed");
+      return data || [];
+    };
+    let locations = await page(cursor);
+    if (!locations.length && cursor) {
+      await checkpoint(null);
+      locations = await page(null);
+    }
     const userIds = [...new Set((locations || []).map((location: Location) => location.user_id))];
     if (!userIds.length) return json(req, { ok: true, locations: 0, events: 0, accepted: 0 });
-    const [{ data: preferences }, { data: subscriptions }] = await Promise.all([
+    const [{ data: preferences, error: preferenceError }, { data: subscriptions, error: subscriptionError }] = await Promise.all([
       admin.from("notification_preferences").select("*").in("user_id", userIds),
       admin.from("push_subscriptions").select("id,user_id,endpoint,p256dh,auth").in("user_id", userIds).eq("enabled", true),
     ]);
+    if (preferenceError || subscriptionError) throw new Error("worker_accounts_failed");
     const preferencesByUser = new Map((preferences || []).map((row: Preference) => [row.user_id, row]));
     const subscriptionsByUser = new Map<string, any[]>();
     for (const subscription of subscriptions || []) subscriptionsByUser.set(subscription.user_id, [...(subscriptionsByUser.get(subscription.user_id) || []), subscription]);
     let inmetAlerts: any[] = [];
-    try { inmetAlerts = normalizeInmet(await fetchJson(INMET_URL)); } catch (error) { console.warn("INMET unavailable", { code: error instanceof Error ? error.message : "unknown" }); }
-    let created = 0, accepted = 0, sourceFailures = 0;
+    if ([...preferencesByUser.values()].some((preference: any) => preference.notifications_enabled && preference.official_alerts)) {
+      try { inmetAlerts = normalizeInmet(await fetchJson(INMET_URL)); } catch (error) { console.warn("INMET unavailable", { code: error instanceof Error ? error.message : "unknown" }); }
+    }
+    let created = 0, accepted = 0, sourceFailures = 0, processed = 0;
+    const sources = new Map<string, Promise<any>>();
+    const source = (url: string) => {
+      if (!sources.has(url)) sources.set(url, fetchJson(url));
+      return sources.get(url)!;
+    };
 
     for (const location of (locations || []) as Location[]) {
+      if (Date.now() >= deadline) break;
       const preference = preferencesByUser.get(location.user_id);
       const userSubscriptions = subscriptionsByUser.get(location.user_id) || [];
-      if (!preference || !userSubscriptions.length || !preference.notifications_enabled) continue;
+      if (!preference || !userSubscriptions.length || !preference.notifications_enabled) {
+        await checkpoint(location.id); processed++; continue;
+      }
       try {
         const candidates: EventCandidate[] = inmetForLocation(inmetAlerts, location);
-        try {
-          const weather = await fetchJson(weatherUrl(location));
+        const needsWeather = ["rain_approaching", "heavy_rain", "storms", "strong_wind", "extreme_heat", "weather_changes", "daily_summary"].some(key => preference[key]);
+        if (needsWeather) try {
+          const weather = await source(weatherUrl(location));
+          if (!freshCurrent(weather, new Date())) throw new Error("source_invalid_current");
           candidates.push(...detectWeather(weather, location));
           const summary = dailySummaryCandidate(weather, location, preference);
           if (summary) candidates.push(summary);
@@ -301,31 +375,44 @@ Deno.serve(async (req) => {
           sourceFailures++;
           console.warn("weather source unavailable", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" });
         }
+        if (Date.now() >= deadline) throw new Error("worker_budget");
         if (preference.air_quality) {
           try {
-            const airEvent = detectAirQuality(await fetchJson(airQualityUrl(location)), location);
+            const airEvent = detectAirQuality(await source(airQualityUrl(location)), location);
             if (airEvent) candidates.push(airEvent);
           } catch (error) { console.warn("air quality unavailable", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" }); }
         }
         const enabledCandidates = candidates.filter(candidate => !preferenceFor[candidate.type] || preference[preferenceFor[candidate.type]]);
         for (const candidate of selectCandidates(enabledCandidates)) {
+          if (Date.now() >= deadline) throw new Error("worker_budget");
           const event = await createEvent(admin, location, candidate);
           if (event.created) created++;
-          const result = await deliver(admin, event, preference, userSubscriptions, location.user_id, vapid);
+          const result = await deliver(admin, event, preference, userSubscriptions, location.user_id, vapid, deadline);
           accepted += result.accepted;
+          if (result.deferred) throw new Error("worker_budget");
         }
       } catch (error) {
+        if (error instanceof Error && error.message === "worker_budget") break;
         sourceFailures++;
-        console.warn("weather location failed", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" });
+        console.warn("weather location failed", { code: "location_processing_failed" });
       }
+      await checkpoint(location.id);
+      processed++;
     }
 
-    await admin.from("push_subscriptions").delete().eq("enabled", false).lt("updated_at", new Date(Date.now() - 30 * 86_400_000).toISOString());
-    await admin.from("notification_events").delete().lt("expires_at", new Date(Date.now() - 90 * 86_400_000).toISOString());
-    return json(req, { ok: true, locations: locations?.length || 0, events: created, accepted, sourceFailures });
+    if (Date.now() < deadline) await admin.from("push_subscriptions").delete().eq("enabled", false).lt("updated_at", new Date(Date.now() - 30 * 86_400_000).toISOString());
+    if (Date.now() < deadline) await admin.from("notification_events").delete().lt("expires_at", new Date(Date.now() - 90 * 86_400_000).toISOString());
+    return json(req, { ok: true, locations: processed, selected: locations.length, budgetExhausted: processed < locations.length, events: created, accepted, sourceFailures });
   } catch (error) {
     const code = error instanceof Error ? error.message : "worker_failed";
     console.error("push-process failed", { code });
     return json(req, { error: "Processamento temporariamente indisponível.", diagnostic_code: text(code, 80) }, 503);
+  } finally {
+    if (token) {
+      try {
+        const { data, error } = await admin.rpc("pluvia_push_checkpoint", { p_token: token, p_cursor: cursor, p_release: true });
+        if (error || data !== true) console.warn("push-process lease release failed", { code: "worker_release_failed" });
+      } catch { console.warn("push-process lease release failed", { code: "worker_release_failed" }); }
+    }
   }
 });
