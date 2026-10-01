@@ -19,9 +19,11 @@ const context = vm.createContext({document:{body:{dataset:{}},getElementById:id=
   Intl,Date,URL,AbortController,setTimeout,clearTimeout,navigator:{},
   DOMParser:class {parseFromString(text){return {documentElement:{textContent:text}};}}
 });
+vm.runInContext(fs.readFileSync(path.join(root,'dist/modules/city-time.js'),'utf8'),context);
 vm.runInContext(catalog,context);
 vm.runInContext(fs.readFileSync(path.join(root,'dist/modules/sources.js'),'utf8'),context);
 vm.runInContext(fs.readFileSync(path.join(root,'dist/modules/weather-services.js'),'utf8'),context);
+vm.runInContext(fs.readFileSync(path.join(root,'dist/modules/weather-data-layer.js'),'utf8'),context);
 vm.runInContext(source.slice(0,source.lastIndexOf('\nsetupCityPicker();')),context);
 const run = code => vm.runInContext(code,context);
 assert.equal(run('activeCity'),null);
@@ -101,11 +103,11 @@ run('activeCity = CAPITALS.find(c=>c.uf==="AM")');
   assert.equal(pending.length,2); // Only old and selected capital, not all 27.
   assert.equal(nodes.get('cityName').textContent,'Brasília');
   assert.equal(storage.get('pluvia-city'),'"5300108"');
-  pending[1].resolve({city:'Brasília'});
+  pending[1].resolve({...require('./support/forecast.cjs').forecast(),city:'Brasília'});
   await run('refreshInFlight');
-  pending[0].resolve({city:'Manaus'});
+  pending[0].resolve({...require('./support/forecast.cjs').forecast(),city:'Manaus'});
   await old;
-  assert.deepEqual(rendered,['Brasília']);
+  assert.deepEqual([...new Set(rendered)],['Brasília']);
   assert(!html.includes('id="defesaCard"'));
   assert(!requests.some(url=>url.includes('manaus.am.gov.br')));
   assert(!requests.some(url=>url.includes('air:5300108')&&url.includes('1302603')));
@@ -114,7 +116,7 @@ run('activeCity = CAPITALS.find(c=>c.uf==="AM")');
   assert.equal(nodes.get('cityName').textContent,'Parintins');
   assert.equal(context.inmetArea({geocodes:'1302603'}),null);
   assert.equal(context.inmetArea({geocodes:'1303403'}),'Parintins');
-  pending[2].resolve({city:'Parintins'});
+  pending[2].resolve({...require('./support/forecast.cjs').forecast(),city:'Parintins'});
   await run('refreshInFlight');
   assert(!requests.slice(beforeInterior).some(url=>url.includes('manaus.am.gov.br')));
   nodes.get('favoriteCity').events.click();

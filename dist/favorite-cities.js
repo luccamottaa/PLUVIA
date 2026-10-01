@@ -8,9 +8,10 @@
   function snapshot(data,at=Date.now()) {
     const current=data?.current;
     if (!Number.isFinite(current?.temperature_2m) || !Number.isFinite(current?.weather_code)) return null;
-    const times=data.hourly?.time || [], start=Math.max(0,times.findIndex(time=>time>=String(current.time || '')));
-    const probs=(data.hourly?.precipitation_probability || []).slice(start,start+3).filter(value=>Number.isFinite(value) && value>=0 && value<=100);
-    return {temperature:current.temperature_2m,code:current.weather_code,isDay:current.is_day!==0,rain:probs.length ? Math.max(...probs) : null,at};
+    const times=data.hourly?.time || [], next=times.findIndex(time=>time>String(current.time || ''));
+    const start=next < 0 ? times.length-1 : Math.max(0,next-1);
+    const probs=(data.hourly?.precipitation_probability || []).slice(start+1,start+4);
+    return {temperature:current.temperature_2m,code:current.weather_code,isDay:current.is_day!==0,rain:probs.length===3 && probs.every(value=>Number.isFinite(value) && value>=0 && value<=100) ? Math.max(...probs) : null,at};
   }
   function valid(value,now=Date.now()) {
     return Boolean(value && Number.isFinite(value.temperature) && Number.isFinite(value.code) && Number.isFinite(value.at) && now>=value.at && now-value.at<=MAX_AGE_MS);
@@ -90,7 +91,7 @@
     root.addEventListener('pluvia:weather-updated',event=>{
       const id=event.detail?.cityId;
       if(id && ids().includes(id) && typeof displayedWeather!=='undefined') {
-        const value=snapshot(displayedWeather?.forecast);if(value) snapshots.set(id,value);
+        const value=snapshot(displayedWeather?.forecast,displayedWeather?.weatherAt);if(value) snapshots.set(id,value);
       }
       paint();
     });

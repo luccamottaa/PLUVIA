@@ -4,7 +4,7 @@ const path = require('node:path');
 
 const root = __dirname;
 const args = process.argv.slice(2);
-const arg = flag => args[args.indexOf(flag) + 1];
+const arg = flag => { const index = args.indexOf(flag); return index < 0 ? undefined : args[index + 1]; };
 const port = Number(arg('--port')) || 4173;
 const host = arg('--host') || '0.0.0.0';
 const types = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript', '.json':'application/json', '.webmanifest':'application/manifest+json', '.svg':'image/svg+xml', '.png':'image/png', '.webp':'image/webp', '.woff2':'font/woff2' };

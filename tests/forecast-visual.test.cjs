@@ -10,6 +10,8 @@ assert.ok(renderForecastSource.startsWith('function renderForecast('));
 const list = {innerHTML: ''};
 const renderForecast = vm.runInNewContext(`${renderForecastSource}\nrenderForecast`, {
   $: () => list,
+  PLUVIA:{time:require('../dist/modules/city-time.js')},
+  activeCity:{timezone:'America/Manaus'},
   weather: () => ['Céu limpo'],
   weatherIcons: {markup: () => '', markupName: () => ''},
   fmt: number => Number.isFinite(number) ? String(number) : '--'
@@ -25,13 +27,13 @@ const daily = {
   weather_code: Array(7).fill(0)
 };
 
-renderForecast(daily, 27);
+renderForecast(daily, 27, Date.parse('2026-09-23T12:00:00-04:00'));
 assert.match(list.innerHTML, /class="temp-fill" style="left:0\.0%;width:71\.4%"/);
 assert.match(list.innerHTML, /class="temp-now" style="left:50\.0%"/);
 assert.match(list.innerHTML, /class="temp-fill" style="left:35\.7%;width:64\.3%"/);
 assert.equal((list.innerHTML.match(/class="temp-now"/g) || []).length, 1);
 
-renderForecast(daily, 38);
+renderForecast(daily, 38, Date.parse('2026-09-23T12:00:00-04:00'));
 assert.doesNotMatch(list.innerHTML, /class="temp-now"/, 'sem ponto atual se a leitura estiver fora da faixa prevista');
 
 console.log('PASS: faixas de temperatura usam escala compartilhada e o ponto atual só aparece quando há dados compatíveis.');

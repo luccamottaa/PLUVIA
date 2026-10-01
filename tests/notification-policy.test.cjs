@@ -27,5 +27,6 @@ test('mensagem de chuva indica previsão, horário no fuso local e números do m
  const detect=vm.runInNewContext(code+';detectWeather',{Date,Intl,URL,URLSearchParams,Math,Number});
  const now=new Date('2026-10-01T00:00Z'),t=now.getTime()/1000;
  const events=detect({current:{time:t,precipitation:0,temperature_2m:30},hourly:{time:[t,t+3600,t+7200,t+10800],precipitation:[0,1,2,0],precipitation_probability:[20,70,80,10],weather_code:[0,61,61,0]}},{city_id:'1302603',city_name:'Manaus',timezone:'America/Manaus'},now);
- const rain=events.find(e=>e.type==='rain_approaching');assert.match(rain.body,/21:00.*23:00/);assert.match(rain.body,/80%/);assert.match(rain.body,/2,0 mm\/h/);assert.match(rain.body,/modelo Open-Meteo/);
+ // 21h and 22h are interval endings: rain covers 20h through 22h locally.
+ const rain=events.find(e=>e.type==='rain_approaching');assert.match(rain.body,/20:00.*22:00/);assert.match(rain.body,/80%/);assert.match(rain.body,/2,0 mm\/h/);assert.match(rain.body,/modelo Open-Meteo/);
 });

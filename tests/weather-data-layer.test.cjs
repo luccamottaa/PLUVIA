@@ -132,3 +132,21 @@ test('zero medido e noite são preservados', () => {
   assert.equal(snapshot.airQuality.aqiUs, 0);
   assert.equal(snapshot.airQuality.pm25, 0);
 });
+
+test('cache de AQI tem idade própria que não é renovada pelo sucesso da previsão',()=>{
+  const now=200000000,airAt=now-37*3600000;
+  assert.equal(layer.cachedAir({at:now,airAt,data:{air}},now).air,null);
+  assert.equal(layer.cachedAir({at:now,airAt:null,data:{air}},now).air,null);
+  assert.equal(layer.cachedAir({at:now,airAt:now+1,data:{air}},now).air,null);
+  const validAt=now-3600000;
+  assert.deepEqual(layer.cachedAir({at:now,airAt:validAt,data:{air}},now),{air,at:validAt});
+  assert.deepEqual(layer.cachedAir({at:validAt,data:{air}},now),{air,at:validAt},'migra cache legado sem perder a idade original');
+  const snapshot=layer.normalizeOpenMeteo(forecast,air,city,{checkedAt:now,airCheckedAt:validAt,airFreshness:'stale'});
+  assert.equal(snapshot.source.freshness,'current');assert.equal(snapshot.airSource.freshness,'stale');assert.equal(snapshot.airSource.checkedAt,validAt);
+});
+
+test('contrato rejeita calendário impossível e séries fora de ordem',()=>{
+  for(const change of [data=>data.current.time='2026-02-30T12:00',data=>data.hourly.time.reverse(),data=>data.daily.time[0]='2026-02-30']) {
+    const data=structuredClone(forecast);change(data);assert.equal(layer.validateForecast(data).valid,false);
+  }
+});

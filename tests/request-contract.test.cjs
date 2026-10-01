@@ -52,3 +52,35 @@ test('tendência de pressão exige três horas reais de histórico', () => {
   assert.match(app, /const pressurePast = start >= 3 \? data\.hourly\.pressure_msl\?\.\[start - 3\] : null/);
   assert.doesNotMatch(app, /pressure_msl\?\.\[Math\.max\(0,start - 3\)\]/);
 });
+
+test('cancelamento e timeout durante leitura do corpo não viram JSON inválido', async () => {
+  for (const timedOut of [false,true]) {
+    const client = createClient({fetchImpl:async (_url,{signal}) => ({ok:true,status:200,json:() => new Promise((_resolve,reject) => {
+      signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true});
+    })})});
+    const request = client.getJson('https://example.test/weather',{timeoutMs:timedOut ? 5 : 1000});
+    await Promise.resolve();
+    if (!timedOut) client.abortAll();
+    await assert.rejects(request,error=>error.code === (timedOut ? 'timeout' : 'cancelled') && error.retryable === timedOut);
+    assert.equal(client.pendingCount(),0);
+  }
+});
+
+test('sinal previamente cancelado não inicia fetch',async()=>{
+  let calls=0;const signal=new AbortController();signal.abort();
+  const client=createClient({fetchImpl:async()=>{calls++;}});
+  await assert.rejects(client.getJson('https://example.test/weather',{signal:signal.signal}),error=>error.code==='cancelled');
+  assert.equal(calls,0);
+});
+
+test('serviços deduplicam consultas iguais e cancelam consultas ainda agendadas',async()=>{
+  const {createServices}=require('../dist/modules/weather-services.js');
+  let calls=0,resolve;
+  const services=createServices({client:{getJson:()=>{calls++;return new Promise(done=>resolve=done);},abortAll(){}}});
+  const city={lat:-3,lon:-60,timezone:'America/Manaus'};
+  const a=services.weather.getForecast(city),b=services.weather.getForecast(city);
+  assert.equal(a,b);await Promise.resolve();assert.equal(calls,1);
+  resolve({ok:true});assert.deepEqual(await a,await b);
+  const cancelled=services.weather.getForecast(city);services.abortAll();
+  await assert.rejects(cancelled,error=>error.code==='cancelled');assert.equal(calls,1);
+});

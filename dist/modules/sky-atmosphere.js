@@ -1,9 +1,9 @@
 (function (root, factory) {
-  const api = factory();
+  const api = factory(typeof module === 'object' && module.exports ? require('./city-time.js') : root.PLUVIA?.time);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else {
     root.PLUVIA = root.PLUVIA || {};
-    root.PLUVIA.sky = api.create({document:root.document, sun:root.PLUVIA.sun, moonView:root.PLUVIA.moonView});
+    root.PLUVIA.sky = api.create({document:root.document, sun:root.PLUVIA.sun, moon:root.PLUVIA.moon, moonView:root.PLUVIA.moonView});
     let storage;
     try { storage = root.localStorage; } catch (_) {}
     root.PLUVIA.sky.bootstrap(storage);
@@ -11,7 +11,7 @@
     if (root.document?.readyState === 'loading') root.document.addEventListener?.('DOMContentLoaded',startMotion,{once:true});
     else startMotion();
   }
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (time) {
   'use strict';
   const WINDOW_MS = 30 * 60000;
   const CELESTIAL_FADE_MS = 15 * 60000;
@@ -32,18 +32,12 @@
     return 'unknown';
   }
   function localDate(now, timezone) {
-    const parts = new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(now));
-    const value = key => parts.find(part => part.type === key).value;
-    return `${value('year')}-${value('month')}-${value('day')}`;
+    return time?.dayKey(now,timezone);
   }
   function cityTime(value, city) {
-    if (typeof value !== 'string') return NaN;
-    if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)) return Date.parse(value);
-    if (!city?.timezone || !Number.isFinite(Date.parse(value + 'Z'))) return NaN;
-    const offset = new Intl.DateTimeFormat('en',{timeZone:city.timezone,timeZoneName:'longOffset'}).formatToParts(new Date(value + 'Z')).find(part => part.type === 'timeZoneName').value;
-    return Date.parse(value + (offset === 'GMT' ? 'Z' : offset.replace('GMT','')));
+    return time?.parse(value,city) ?? NaN;
   }
-  function create({document, sun = null, moonView = null, now = () => Date.now()} = {}) {
+  function create({document, sun = null, moon = null, moonView = null, now = () => Date.now()} = {}) {
     let city = null, rows = [], weather = 'unknown', providerPhase = 'unknown', code = null;
     let lastUpdate = null;
     const calculatedDays = new Map();
@@ -114,13 +108,21 @@
         const nightEnd = at < today.rise ? today.rise : dayAt(today.end)?.rise ?? today.rise + DAY_MS;
         nightProgress = clamp((at - nightStart) / (nightEnd - nightStart));
       }
-      // A full-width decorative arc: sunrise on the left, noon at the top,
-      // sunset on the right. The Moon follows the sunset-to-sunrise interval;
-      // this is a night illustration, not an astronomical moonrise plot.
+      // Keep the illustrated solar arc; derive the Moon from its horizon.
+      let moonX = ORBIT_MARGIN + nightProgress * (1 - 2 * ORBIT_MARGIN);
+      let moonY = 1 - Math.sin(Math.PI * nightProgress);
+      if (moon?.getMoonPosition && Number.isFinite(city?.lat) && Number.isFinite(city?.lon)) {
+        const position = moon.getMoonPosition(new Date(at),city.lat,city.lon);
+        if (Number.isFinite(position.altitude) && Number.isFinite(position.azimuth)) {
+          moonVisibility *= clamp(position.altitude / 3);
+          moonX = .5 - Math.sin(position.azimuth * Math.PI / 180) * (.5 - ORBIT_MARGIN);
+          moonY = 1 - clamp(position.altitude / 90);
+        } else moonVisibility = 0;
+      }
       moonView?.update(at);
       return write({phase,solar,weather,strength,sunVisibility,moonVisibility,
         sunX:ORBIT_MARGIN + dayProgress * (1 - 2 * ORBIT_MARGIN),sunY:1 - Math.sin(Math.PI * dayProgress),
-        moonX:ORBIT_MARGIN + nightProgress * (1 - 2 * ORBIT_MARGIN),moonY:1 - Math.sin(Math.PI * nightProgress)},animate);
+        moonX,moonY},animate);
     }
     function apply(nextCode, isDay, daily = null, nextCity = city, at = now()) {
       city = nextCity; code = nextCode; weather = weatherType(code);
@@ -128,7 +130,8 @@
       calculatedDays.clear();
       rows = (Array.isArray(daily?.sunrise) ? daily.sunrise : []).map((rise,i) => {
         if (typeof rise !== 'string') return {};
-        const suffix = rise.match(/(?:Z|[+-]\d{2}:?\d{2})$/i)?.[0] || '';
+        // Offsets can differ between local midnights across DST.
+        const suffix = city?.timezone ? '' : rise.match(/(?:Z|[+-]\d{2}:?\d{2})$/i)?.[0] || '';
         const next = new Date(rise.slice(0,10) + 'T12:00:00Z');
         if (!Number.isFinite(next.getTime())) return {};
         next.setUTCDate(next.getUTCDate() + 1);
@@ -144,14 +147,14 @@
         const id = JSON.parse(storage?.getItem('pluvia-city') || 'null');
         const record = JSON.parse(storage?.getItem('pluvia-city-record') || 'null');
         if (record?.id === id && Number.isFinite(record.lat) && Number.isFinite(record.lon) && Math.abs(record.lat) <= 90 && Math.abs(record.lon) <= 180 && record.timezone) {
-          localDate(at,record.timezone); selected = record;
+          if (localDate(at,record.timezone)) selected = record;
         }
         const cached = JSON.parse(storage?.getItem(`pluvia-weather-${selected.id}`) || 'null');
         if (cached && at - cached.at >= 0 && at - cached.at <= CACHE_AGE_MS) saved = cached.data?.forecast;
       } catch (_) { /* Storage may be blocked; the reference city still has a solar clock. */ }
       return apply(saved?.current?.weather_code,saved?.current?.is_day,saved?.daily,selected,at);
     }
-    return {apply,update,bootstrap};
+    return {apply,update,bootstrap,dayAt};
   }
   function observeMotion(document, Observer) {
     const scene = document?.querySelector?.('.sky-effects');

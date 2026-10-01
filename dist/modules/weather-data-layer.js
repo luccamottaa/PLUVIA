@@ -1,12 +1,13 @@
 (function (root, factory) {
-  const api = factory();
+  const api = factory(typeof module === 'object' && module.exports ? require('./city-time.js') : root.PLUVIA?.time);
   if (typeof module === "object" && module.exports) module.exports = api;
   root.PLUVIA = root.PLUVIA || {};
   root.PLUVIA.weatherData = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (time) {
   "use strict";
 
   const snapshots = new Map();
+  const MAX_AIR_AGE_MS = 36 * 60 * 60 * 1000;
   const number = value => typeof value === "number" && Number.isFinite(value) ? value : null;
   const at = (list, index) => Array.isArray(list) ? list[index] : undefined;
   const freeze = value => Object.freeze(value);
@@ -36,21 +37,21 @@
   ]);
 
   function timestamp(value) {
-    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value) && Number.isFinite(Date.parse(value));
+    return Number.isFinite(time?.wallTime(value));
   }
 
   function date(value) {
-    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(`${value}T12:00:00Z`));
+    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && timestamp(`${value}T12:00:00`);
   }
 
   const finiteOrNull = value => value === null || Number.isFinite(value);
 
   function closestHourIndex(times, currentTime) {
-    const target = Date.parse(currentTime);
+    const target = time.wallTime(currentTime);
     if (!Number.isFinite(target) || !Array.isArray(times) || !times.length) return 0;
-    return times.reduce((best, time, index) => {
-      const distance = Math.abs(Date.parse(time) - target);
-      const bestDistance = Math.abs(Date.parse(times[best]) - target);
+    return times.reduce((best, value, index) => {
+      const distance = Math.abs(time.wallTime(value) - target);
+      const bestDistance = Math.abs(time.wallTime(times[best]) - target);
       return distance < bestDistance ? index : best;
     }, 0);
   }
@@ -78,6 +79,7 @@
 
     const hourlyLength = Array.isArray(hourly?.time) ? hourly.time.length : 0;
     if (hourlyLength < 3 || !hourly.time.every(timestamp)) errors.push("hourly.time inválido");
+    if (hourlyLength && hourly.time.some((value,i) => i > 0 && time.wallTime(value) <= time.wallTime(hourly.time[i-1]))) errors.push("hourly.time fora de ordem");
     const hourlyStart = closestHourIndex(hourly?.time, current?.time);
     const hourlyEnd = Math.min(hourlyLength, hourlyStart + 36);
     for (const field of HOURLY_NUMERIC_FIELDS) {
@@ -103,6 +105,7 @@
 
     const dailyLength = Array.isArray(daily?.time) ? daily.time.length : 0;
     if (dailyLength < 1 || !daily.time.every(date)) errors.push("daily.time inválido");
+    if (dailyLength && daily.time.some((value,i) => i > 0 && value <= daily.time[i-1])) errors.push("daily.time fora de ordem");
     const visibleDays = Math.min(7, dailyLength);
     for (const field of DAILY_NUMERIC_FIELDS) {
       const values = daily?.[field];
@@ -141,6 +144,12 @@
       if (current?.[field] != null && (!Number.isFinite(current[field]) || current[field] < 0)) errors.push(`current.${field} inválido`);
     }
     return freeze({valid: errors.length === 0, errors: freeze(errors)});
+  }
+
+  function cachedAir(saved, now = Date.now()) {
+    const at = saved && Object.hasOwn(saved,'airAt') ? saved.airAt : saved?.at;
+    return Number.isFinite(at) && now >= at && now - at <= MAX_AIR_AGE_MS && validateAirQuality(saved?.data?.air).valid
+      ? {air:saved.data.air,at} : {air:null,at:null};
   }
 
   function normalizeLocation(city = {}) {
@@ -243,6 +252,10 @@
         dataTime: forecast.current.time || null,
         freshness: metadata.freshness === "stale" ? "stale" : "current"
       }),
+      airSource: freeze({
+        checkedAt: air ? number(metadata.airCheckedAt) : null,
+        freshness: !air ? 'unavailable' : metadata.airFreshness === 'current' ? 'current' : 'stale'
+      }),
       units: freeze({
         temperature: "celsius",
         precipitation: "millimeter",
@@ -261,12 +274,15 @@
 
   function ingestOpenMeteo(forecast, air, city, metadata) {
     const snapshot = normalizeOpenMeteo(forecast, air, city, metadata);
-    if (snapshot.location.id) snapshots.set(snapshot.location.id, snapshot);
+    if (snapshot.location.id) {
+      snapshots.set(snapshot.location.id, snapshot);
+      if (snapshots.size > 30) snapshots.delete(snapshots.keys().next().value);
+    }
     return snapshot;
   }
 
   function get(cityId) { return snapshots.get(String(cityId || "")) || null; }
   function clear(cityId) { cityId == null ? snapshots.clear() : snapshots.delete(String(cityId)); }
 
-  return { validateForecast, validateAirQuality, normalizeOpenMeteo, ingestOpenMeteo, get, clear };
+  return { validateForecast, validateAirQuality, cachedAir, normalizeOpenMeteo, ingestOpenMeteo, get, clear };
 });

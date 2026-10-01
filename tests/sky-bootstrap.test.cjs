@@ -74,7 +74,7 @@ test('retomar à noite atualiza o céu de uma previsão diurna salva',()=>{
     document:{body},$:el,renderMoon(){},updateSolarAtmosphere:sky.update,weatherIconSvg:(code,day)=>day?'sun':'moon',
     Date:class extends Date{constructor(value){super(value ?? at);}}};
   const app=fs.readFileSync('dist/app.js','utf8');
-  vm.runInNewContext(app.slice(app.indexOf('function updateClock()'),app.indexOf('const dateOffsets')),context);
+  vm.runInNewContext(app.slice(app.indexOf('function updateClock()'),app.indexOf('function cityDate(')),context);
   context.updateClock();
   assert.equal(body.dataset.phase,'night');
   assert.equal(fields.has('weatherGlyph'),false);

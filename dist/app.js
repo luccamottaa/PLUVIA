@@ -170,11 +170,13 @@ function inmetSeverity(alert) {
 function inmetArea(alert) {
   const codes = JSON.stringify(alert.geocodes || alert.geocode || "").match(/\b\d{7}\b/g) || [];
   if (codes.length) return codes.includes(activeCity.id) ? activeCity.name : null;
-  const contains = (value, name) => new RegExp('(^|[^a-z])' + normalizeName(name) + '([^a-z]|$)').test(normalizeName(JSON.stringify(value || "")));
+  const entries = value => normalizeName(JSON.stringify(value || "")).split(/[,;|/"\[\]{}:]/)
+    .map(value=>value.trim().replace(/\s*(?:-\s*[a-z]{2}|\([a-z]{2}\))$/, '').trim());
+  const contains = (value, name) => entries(value).includes(normalizeName(name));
   const towns = alert.municipios || alert.municipio;
   if (towns && contains(towns, activeCity.name)) {
-    const region = normalizeName(JSON.stringify([alert.estados, alert.uf, alert.sigla, alert.area, alert.areaDesc]));
-    const ufConfirmed = region.includes(normalizeName(activeCity.uf)) || region.includes(normalizeName(activeCity.state || ""));
+    const region = entries([alert.estados, alert.uf, alert.sigla, alert.area, alert.areaDesc]);
+    const ufConfirmed = region.includes(normalizeName(activeCity.uf)) || Boolean(activeCity.state && region.includes(normalizeName(activeCity.state)));
     const uniqueConfirmed = municipalitiesReady && CITIES.filter(city => normalizeName(city.name) === normalizeName(activeCity.name)).length === 1;
     return ufConfirmed || uniqueConfirmed ? activeCity.name : null;
   }
@@ -295,37 +297,36 @@ function updateClock() {
   const now = new Date();
   $("localClock").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
   $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
-  updateSolarAtmosphere(now.getTime());
+  const atmosphere = updateSolarAtmosphere(now.getTime());
+  if (displayedWeather?.forecast?.daily) {
+    const saved = displayedWeather;
+    const hour = selectCurrentHour(saved.forecast.hourly.time);
+    const day = globalThis.PLUVIA.time.dayKey(now.getTime(),activeCity);
+    const air = weatherData.cachedAir({data:{air:saved.air},airAt:saved.airAt},now.getTime()).air;
+    if (hour !== saved.hour || day !== saved.day || air !== saved.air || atmosphere?.phase && atmosphere.phase !== saved.phase) render(saved.forecast,air,saved.fromCache,saved.cacheAt,{weatherAt:saved.weatherAt,airAt:saved.airAt,freshAir:saved.freshAir});
+    else renderSun(saved.forecast.daily,now.getTime());
+  }
 }
 
-const dateOffsets = new Map();
 function cityDate(value, city = activeCity) {
-  if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)) return new Date(value);
-  const base = Date.parse(value + "Z");
-  if (!Number.isFinite(base)) return new Date(NaN);
-  const key = city.id + ":" + value.slice(0,10);
-  if (!dateOffsets.has(key)) dateOffsets.set(key, new Intl.DateTimeFormat("en", {timeZone:city.timezone, timeZoneName:"longOffset"}).formatToParts(new Date(base)).find(part => part.type === "timeZoneName").value);
-  const offset = dateOffsets.get(key);
-  return new Date(value + (offset === "GMT" ? "Z" : offset.replace("GMT", "")));
+  return new Date(globalThis.PLUVIA.time.parse(value,city));
 }
 
 function selectCurrentHour(times) {
-  const now = Date.now();
-  const next = times.findIndex(t => cityDate(t).getTime() > now);
-  return next < 0 ? times.length - 1 : Math.max(0, next - 1);
+  return globalThis.PLUVIA.time.hourIndex(times,activeCity);
 }
 
 const SUMMARY_CACHE_MAX_AGE = 45 * 60 * 1000;
 
 function summaryCache(context) {
   try {
-    const value = JSON.parse(localStorage.getItem(`pluvia-summary-copy-2-${activeCity.id}`) || "null");
-    return value?.hash === smartSummary.contextHash(context) && Date.now() - value.savedAt <= SUMMARY_CACHE_MAX_AGE ? value.summary : null;
+    const value = JSON.parse(localStorage.getItem(`pluvia-summary-copy-3-${activeCity.id}`) || "null");
+    return value?.hash === smartSummary.contextHash(context) && Number.isFinite(value.savedAt) && Date.now() >= value.savedAt && Date.now() - value.savedAt <= SUMMARY_CACHE_MAX_AGE ? value.summary : null;
   } catch { return null; }
 }
 
 function saveSummary(summary) {
-  try { localStorage.setItem(`pluvia-summary-copy-2-${activeCity.id}`, JSON.stringify({hash:summary.contextHash,savedAt:Date.now(),summary})); } catch {}
+  try { localStorage.setItem(`pluvia-summary-copy-3-${activeCity.id}`, JSON.stringify({hash:summary.contextHash,savedAt:Date.now(),summary})); } catch {}
 }
 
 function paintSummary(summary, data) {
@@ -336,7 +337,7 @@ function paintSummary(summary, data) {
   $("attentionSignal").textContent = summary.status === "calm" ? "TRANQUILO" : summary.status === "danger" ? "CONDIÇÃO RELEVANTE" : summary.status === "warning" ? "ATENÇÃO" : "INFORMAÇÃO";
   $("attentionTitle").textContent = summary.title;
   $("attentionText").textContent = summary.summary;
-  $("attentionIcon").innerHTML = weatherIcons.markup(summary.iconCode, data.current.is_day !== 0, {className:"summary-weather-icon"});
+  $("attentionIcon").innerHTML = weatherIcons.markup(summary.iconCode, document.body.dataset.phase === "day", {className:"summary-weather-icon"});
   $("attentionIcon").setAttribute("aria-label", weatherIcons.condition(summary.iconCode).label);
   $("summaryHighlights").innerHTML = summary.highlights.map(item => `<li class="${item.tone}">${escapeHtml(item.label)}</li>`).join("");
   $("attentionBasis").textContent = `${summary.source === "rules" ? "Motor meteorológico verificável" : "Interpretação validada"} · atualizado ${dataAge(Date.parse(summary.generatedAt))}`;
@@ -344,48 +345,59 @@ function paintSummary(summary, data) {
   $("summaryLink").textContent = summary.status === "danger" ? "Ver alertas e detalhes →" : "Ver previsão detalhada →";
 }
 
+function cancelSummaryRequest() {
+  summaryAiInFlight?.controller.abort();
+  summaryAiInFlight = null;
+}
+
 async function enhanceSummary(context, data) {
-  const setStatus = status => {
-    const card = $("attentionCard");
-    const current = card?.getAttribute("data-ai-status");
-    if (status === "cooldown" && current && !["loading", "cooldown"].includes(current)) return;
-    card?.setAttribute("data-ai-status", status);
-  };
-  if (!smartSummary) { setStatus("engine_unavailable"); return; }
-  if (Date.now() < summaryAiUnavailableUntil) { setStatus("cooldown"); return; }
-  if (summaryAiInFlight === context.contextHash) return;
+  if (!smartSummary) return;
   const account = globalThis.pluviaAccount;
-  if (!account?.getUser?.()) { setStatus("authentication_required"); return; }
+  const userId = account?.getUser?.()?.id;
+  const revision = cityRevision, hash = smartSummary.contextHash(context);
+  const currentContext = () => displayedWeather?.forecast && smartSummary.buildContext(displayedWeather.forecast,displayedWeather.air,selectCurrentHour(displayedWeather.forecast.hourly.time),activeCity);
+  const relevant = () => {
+    const current = currentContext();
+    return revision === cityRevision && account?.getUser?.()?.id === userId && current && hash === smartSummary.contextHash(current);
+  };
+  const setStatus = status => { if (relevant()) $("attentionCard")?.setAttribute("data-ai-status",status); };
+  if (!relevant()) return;
+  if (!userId) { setStatus("authentication_required"); return; }
+  if (context.complete === false) { setStatus("incomplete_context"); return; }
+  if (Date.now() < summaryAiUnavailableUntil) { setStatus("cooldown"); return; }
+  if (summaryAiInFlight?.hash === hash && summaryAiInFlight?.userId === userId) return;
+  cancelSummaryRequest();
+  const controller = new AbortController(), task = {hash,userId,controller};
+  summaryAiInFlight = task;
   setStatus("loading");
-  summaryAiInFlight = context.contextHash;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 9000);
+  const timeout = setTimeout(() => controller.abort(),9000);
   try {
     const client = await account.getClient();
-    const {data: response, error} = await client.functions.invoke("smart-summary", {body:{context}, signal:controller.signal});
+    if (controller.signal.aborted || !relevant()) return;
+    const {data:response,error} = await client.functions.invoke("smart-summary",{body:{context},signal:controller.signal});
+    if (controller.signal.aborted || !relevant()) return;
     if (error || !response?.available) {
       setStatus(response?.reason || "request_failed");
       summaryAiUnavailableUntil = Date.now() + (response?.reason === "rate_limited" ? 60 : 10) * 60_000;
       return;
     }
-    const summary = response.summary;
-    const currentContext = smartSummary.buildContext(data, displayedWeather?.air, selectCurrentHour(data.hourly.time), activeCity);
-    if (context.contextHash !== currentContext.contextHash) { setStatus("stale_context"); return; }
-    if (!smartSummary.validate(summary, currentContext)) { setStatus("validation_failed"); return; }
+    const summary = response.summary, current = currentContext();
+    if (!smartSummary.validate(summary,current)) { setStatus("validation_failed"); return; }
     saveSummary(summary);
-    paintSummary(summary, data);
+    paintSummary(summary,displayedWeather.forecast);
     applyOfficialAlertPriority();
     setStatus("ready");
   } catch {
+    if (!relevant() || summaryAiInFlight !== task) return;
     setStatus("request_failed");
     summaryAiUnavailableUntil = Date.now() + 10 * 60_000;
   } finally {
     clearTimeout(timeout);
-    if (summaryAiInFlight === context.contextHash) summaryAiInFlight = null;
+    if (summaryAiInFlight === task) summaryAiInFlight = null;
   }
 }
 
-function renderAttention(data, start, air = displayedWeather?.air) {
+function renderAttention(data, start, air = displayedWeather?.air, deferAi = false) {
   if (!smartSummary || !weatherIcons) return;
   const context = smartSummary.buildContext(data, air, start, activeCity);
   let summary = summaryCache(context);
@@ -395,10 +407,12 @@ function renderAttention(data, start, air = displayedWeather?.air) {
   }
   paintSummary(summary, data);
   applyOfficialAlertPriority();
-  if (summary.source !== "ai") setTimeout(() => enhanceSummary(context, data), 0);
+  if (!deferAi && summary.source !== "ai") setTimeout(() => enhanceSummary(context, data), 0);
 }
 
 globalThis.addEventListener?.("pluvia:auth-changed", event => {
+  cancelSummaryRequest();
+  summaryAiUnavailableUntil = 0;
   if (event.detail?.user && displayedWeather?.forecast) {
     const data = displayedWeather.forecast;
     renderAttention(data, selectCurrentHour(data.hourly.time), displayedWeather.air);
@@ -424,7 +438,8 @@ function forecastIsDay(time, daily) {
   const date = String(time || "").slice(0, 10);
   const dayIndex = daily?.time?.indexOf(date) ?? -1;
   if (dayIndex < 0) return true;
-  return weatherIcons.isDayAt(time, daily.sunrise?.[dayIndex], daily.sunset?.[dayIndex]);
+  const at = cityDate(time).getTime(), rise = cityDate(daily.sunrise?.[dayIndex]).getTime(), set = cityDate(daily.sunset?.[dayIndex]).getTime();
+  return Number.isFinite(at) && Number.isFinite(rise) && Number.isFinite(set) ? at >= rise && at < set : true;
 }
 
 let hourlyMode = "conditions";
@@ -506,33 +521,41 @@ function renderHourly(hourly, start, daily) {
   $("dryWindow").textContent = findDryWindow(hourly, start);
 }
 
-function renderForecast(daily, currentTemperature) {
-  const days = daily.time.slice(0, 7);
-  const bestIndex = days.reduce((best, _, i) => {
+function renderForecast(daily, currentTemperature, at = Date.now()) {
+  const today = globalThis.PLUVIA.time.dayKey(at,activeCity);
+  const start = daily.time.findIndex(day => day >= today);
+  if (start < 0) { $("forecastList").innerHTML = '<p class="forecast-loading">Previsão diária salva sem próximos dias disponíveis.</p>'; return; }
+  const indices = Array.from({length:Math.min(7,daily.time.length-start)},(_,i)=>start+i)
+    .filter(i=>Number.isFinite(daily.temperature_2m_min[i]) && Number.isFinite(daily.temperature_2m_max[i]));
+  if (!indices.length) { $("forecastList").innerHTML = '<p class="forecast-loading">Previsão diária incompleta para os próximos dias.</p>'; return; }
+  const days = indices.map(i=>daily.time[i]);
+  const bestIndex = indices.reduce((best, i) => {
     const score = (daily.precipitation_probability_max[i] || 0) + (daily.precipitation_sum[i] || 0) * 4;
     const bestScore = (daily.precipitation_probability_max[best] || 0) + (daily.precipitation_sum[best] || 0) * 4;
     return score < bestScore ? i : best;
-  }, 0);
-  const minAll = Math.min(...daily.temperature_2m_min.slice(0, days.length));
-  const maxAll = Math.max(...daily.temperature_2m_max.slice(0, days.length));
+  }, start);
+  const minAll = Math.min(...indices.map(i=>daily.temperature_2m_min[i]).filter(Number.isFinite));
+  const maxAll = Math.max(...indices.map(i=>daily.temperature_2m_max[i]).filter(Number.isFinite));
   const spread = Math.max(1, maxAll - minAll);
-  $("forecastList").innerHTML = days.map((date, i) => {
-    const d = new Date(`${date}T12:00:00`);
-    const day = i === 0 ? "Hoje" : new Intl.DateTimeFormat("pt-BR", {weekday: "long"}).format(d).replace(/^./, c => c.toUpperCase());
-    const label = new Intl.DateTimeFormat("pt-BR", {day: "2-digit", month: "short"}).format(d).replace(".", "");
+  $("forecastList").innerHTML = days.map((date, offset) => {
+    const i = indices[offset];
+    const d = new Date(`${date}T12:00:00Z`);
+    const day = date === today ? "Hoje" : new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC",weekday: "long"}).format(d).replace(/^./, c => c.toUpperCase());
+    const label = new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC",day: "2-digit", month: "short"}).format(d).replace(".", "");
     const [cond] = weather(daily.weather_code[i]); const min = daily.temperature_2m_min[i]; const max = daily.temperature_2m_max[i];
     const left = Math.max(0, Math.min(98, (min - minAll) / spread * 100));
     const width = Math.max(2, (max - min) / spread * 100);
-    const currentPosition = i === 0 && Number.isFinite(currentTemperature) && currentTemperature >= min && currentTemperature <= max
+    const currentPosition = date === today && Number.isFinite(currentTemperature) && currentTemperature >= min && currentTemperature <= max
       ? Math.max(0, Math.min(100, (currentTemperature - minAll) / spread * 100)) : null;
-    const rainProb = Math.round(daily.precipitation_probability_max[i] || 0); const rainMm = daily.precipitation_sum[i] || 0;
-    const weekend = [0,6].includes(d.getDay());
-    const reading = rainMm >= 20 ? "Acumulado de chuva elevado" : rainMm >= 8 ? "Chuva ao longo do dia" : rainProb >= 55 ? "Chuva provável, com baixo acumulado" : rainProb >= 30 ? "Chuva isolada" : "Baixa probabilidade de chuva";
+    const rainProb = Number.isFinite(daily.precipitation_probability_max[i]) ? Math.round(daily.precipitation_probability_max[i]) : null;
+    const rainMm = daily.precipitation_sum[i];
+    const weekend = [0,6].includes(d.getUTCDay());
+    const reading = !Number.isFinite(rainProb) || !Number.isFinite(rainMm) ? "Previsão de chuva indisponível" : rainMm >= 20 ? "Acumulado de chuva elevado" : rainMm >= 8 ? "Chuva ao longo do dia" : rainProb >= 55 ? "Chuva provável, com baixo acumulado" : rainProb >= 30 ? "Chuva isolada" : "Baixa probabilidade de chuva";
     return `<div class="forecast-row ${i === bestIndex ? "best-day" : ""}">
       <div class="forecast-day"><strong>${day}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label}</span></div>
       <div class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></div>
       <div class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><div class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</div><strong aria-hidden="true">${fmt(max)}°</strong></div>
-      <div class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span>${rainProb}% · ${fmt(rainMm, 1)} mm</span></div>
+      <div class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span>${rainProb ?? '—'}% · ${fmt(rainMm, 1)} mm</span></div>
       <div class="forecast-uv">${reading} · UV ${fmt(daily.uv_index_max[i], 0)}</div>
     </div>`;
   }).join("");
@@ -544,20 +567,32 @@ function solarArcPoint(progress) {
   return { left: 9 + 82 * t, top: 115 - 360 * t * (1 - t) };
 }
 
-function renderSun(daily) {
-  const rise = cityDate(daily.sunrise[0]); const set = cityDate(daily.sunset[0]); const minutes = Math.round((set - rise) / 60000);
-  $("sunrise").textContent = shortTime(daily.sunrise[0]); $("sunset").textContent = shortTime(daily.sunset[0]);
+function renderSun(daily, at = Date.now()) {
+  const today = globalThis.PLUVIA.time.dayKey(at,activeCity);
+  const index = daily.time?.indexOf(today) ?? -1;
+  const solar = globalThis.PLUVIA?.sky?.dayAt(at);
+  const rise = solar?.rise ?? cityDate(daily.sunrise?.[index]).getTime();
+  const set = solar?.set ?? cityDate(daily.sunset?.[index]).getTime();
+  const available = Number.isFinite(rise) && Number.isFinite(set) && set > rise;
+  const isNight = !available || at < rise || at >= set;
+  document.querySelector(".sun-section")?.classList.toggle("is-night",isNight);
+  $("sunDot").hidden = isNight;
+  if (!available) {
+    $("sunrise").textContent = "--:--"; $("sunset").textContent = "--:--";
+    $("daylight").textContent = "Ciclo solar indisponível";
+    $("sunPhrase").textContent = "Horários solares indisponíveis para hoje.";
+    $("sunshineNote").textContent = "Duração prevista de sol indisponível.";
+    return;
+  }
+  const minutes = Math.round((set - rise) / 60000);
+  $("sunrise").textContent = formatUpdateTime(rise); $("sunset").textContent = formatUpdateTime(set);
   $("daylight").textContent = `${Math.floor(minutes / 60)}h ${minutes % 60}min de luz`;
-  const now = new Date(); const progress = Math.min(1, Math.max(0, (now - rise) / (set - rise)));
-  document.querySelector(".sun-section")?.classList.toggle("is-night", now < rise || now > set);
-  const point = solarArcPoint(progress);
+  const point = solarArcPoint((at - rise) / (set - rise));
   $("sunDot").style.left = `${point.left}%`; $("sunDot").style.top = `${point.top}px`;
-  $("sunDot").hidden = false;
-  const remainingMinutes = Math.max(1, Math.ceil((set - now) / 60000));
+  const remainingMinutes = Math.max(1, Math.ceil((set - at) / 60000));
   const remainingTime = remainingMinutes < 60 ? `${remainingMinutes} min` : `${Math.floor(remainingMinutes / 60)} h ${remainingMinutes % 60} min`;
-  $("sunPhrase").textContent = now < rise ? "O sol ainda não nasceu." : now >= set ? `O sol já se pôs em ${activeCity.name}.` : `Restam cerca de ${remainingTime} de luz natural.`;
-  const sunshine = daily.sunshine_duration?.[0];
-  const daylight = daily.daylight_duration?.[0];
+  $("sunPhrase").textContent = at < rise ? "O sol ainda não nasceu." : at >= set ? `O sol já se pôs em ${activeCity.name}.` : `Restam cerca de ${remainingTime} de luz natural.`;
+  const sunshine = daily.sunshine_duration?.[index], daylight = daily.daylight_duration?.[index];
   const sunshineMinutes = Math.round(sunshine / 60), daylightMinutes = Math.round(daylight / 60);
   $("sunshineNote").textContent = Number.isFinite(sunshine) && Number.isFinite(daylight)
     ? `Sol previsto hoje: ${Math.floor(sunshineMinutes / 60)}h ${sunshineMinutes % 60}min · Luz do dia: ${Math.floor(daylightMinutes / 60)}h ${daylightMinutes % 60}min. A previsão de sol considera as nuvens.`
@@ -680,10 +715,11 @@ function dataAge(at) {
   return `há ${hours}h`;
 }
 
-function render(data, air, fromCache = false, cacheAt = 0) {
+function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   try {
     weatherData?.ingestOpenMeteo(data, air, activeCity, {
-      checkedAt: cacheAt || Date.now(), freshness: fromCache ? "stale" : "current"
+      checkedAt: metadata.weatherAt || cacheAt || Date.now(), freshness: fromCache ? "stale" : "current",
+      airCheckedAt:metadata.airAt,airFreshness:metadata.freshAir ? "current" : "stale"
     });
   } catch {
     // A camada de interpretação nunca pode impedir a previsão principal.
@@ -695,8 +731,9 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   const isDay = atmosphere?.phase === "night" ? false : atmosphere?.phase === "day" ? true : current.is_day !== 0;
   const localCondition = !isDay && current.weather_code === 1 ? "Céu quase limpo" : condition;
   $("condition").textContent = heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition;
-  $("todayHigh").textContent = `${fmt(day.temperature_2m_max[0])}°`;
-  $("todayLow").textContent = `${fmt(day.temperature_2m_min[0])}°`;
+  const dayIndex = day.time.indexOf(globalThis.PLUVIA.time.dayKey(Date.now(),activeCity));
+  $("todayHigh").textContent = `${fmt(day.temperature_2m_max[dayIndex])}°`;
+  $("todayLow").textContent = `${fmt(day.temperature_2m_min[dayIndex])}°`;
   $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `De ${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
   $("windCompass").style.setProperty("--wind-deg", `${Number.isFinite(current.wind_direction_10m) ? current.wind_direction_10m : 0}deg`);
@@ -711,14 +748,15 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   $("uvScale").hidden = !Number.isFinite(uvNow);
   if (Number.isFinite(uvNow)) $("uvScale").style.setProperty("--uv-position", `${Math.max(0, Math.min(100, uvNow / 11 * 100))}%`);
   renderAirQuality(air?.current?.us_aqi);
+  if (air && !metadata.freshAir) $("airNote").textContent += ' · leitura anterior';
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
   setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache);
   renderVisibility(data.hourly.visibility?.[start], fromCache);
-  renderAttention(data, start, air); renderHourly(data.hourly, start, day);
+  renderAttention(data, start, air, metadata.deferSummaryAi); renderHourly(data.hourly, start, day);
   globalThis.PLUVIA?.hourlyDetail?.update?.({hourly:data.hourly,daily:day,start,city:activeCity,fromCache,cacheAt,isDayAt:time=>forecastIsDay(time,day)});
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
   renderForecast(day, current.temperature_2m); renderSun(day);
-  displayedWeather = {forecast:data,air};
+  displayedWeather = {forecast:data,air,fromCache,cacheAt,weatherAt:metadata.weatherAt || cacheAt || Date.now(),hour:start,phase:atmosphere?.phase,day:globalThis.PLUVIA.time.dayKey(Date.now(),activeCity),airAt:metadata.airAt,freshAir:metadata.freshAir === true};
   globalThis.dispatchEvent?.(new CustomEvent("pluvia:weather-updated",{detail:{cityId:activeCity.id}}));
 }
 
@@ -726,32 +764,44 @@ async function loadWeather(revision = cityRevision) {
   const city = activeCity;
   $("weatherView")?.setAttribute('aria-busy','true');
   try {
-    const [forecastResult, airResult, metResult] = await Promise.allSettled([fetchForecast(city, revision), services.airQuality.getCurrent(city), Promise.resolve().then(() => services.metNorway.getForecast(city))]);
+    const optional = Promise.allSettled([
+      Promise.resolve().then(() => services.airQuality.getCurrent(city)),
+      Promise.resolve().then(() => services.metNorway.getForecast(city))
+    ]);
+    const original = await fetchForecast(city,revision);
     if (revision !== cityRevision) return false;
-    if (forecastResult.status !== "fulfilled") throw forecastResult.reason;
-    const original = forecastResult.value;
+    // Optional sources must not hold the first usable forecast behind their timeout.
+    if (!displayedWeather || displayedWeather.fromCache) {
+      const savedAir = weatherData.cachedAir(cached());
+      render(original,savedAir.air,false,0,{airAt:savedAir.at,deferSummaryAi:true});
+      cache({forecast:original,air:savedAir.air},{weatherAt:Date.now(),airAt:savedAir.at});
+      globalThis.PLUVIA?.sources.set('weather',{status:'ready',checkedAt:Date.now(),dataAt:cityDate(original.current.time,city).getTime()});
+      $("weatherView")?.classList.remove('initial-loading');
+      $("weatherView")?.setAttribute('aria-busy','false');
+    }
+    const [airResult,metResult] = await optional;
+    if (revision !== cityRevision) return false;
     let merged = null;
     try { if (metResult.status === 'fulfilled') merged = globalThis.PLUVIA?.metMerge?.merge(original,metResult.value,city.timezone); } catch { /* Uma fonte não deve ocultar a outra. */ }
     const data = merged?.used && validForecast(merged.forecast) ? merged.forecast : original;
     const usingMet = data !== original;
     const previous = cached();
     const freshAir = airResult.status === "fulfilled" && weatherData?.validateAirQuality?.(airResult.value).valid === true;
-    const air = freshAir ? airResult.value : previous?.data?.air || null;
-    render(data, air); displayedWeather = {forecast: data, air};
-    cache(displayedWeather,{weatherAt:Date.now(),airAt:freshAir ? Date.now() : previous?.airAt || null});
+    const savedAir = weatherData?.cachedAir(previous) || {air:null,at:null};
+    const air = freshAir ? airResult.value : savedAir.air;
+    const airAt = freshAir ? Date.now() : savedAir.at;
+    render(data,air,false,0,{airAt,freshAir});
+    cache({forecast:data,air},{weatherAt:Date.now(),airAt});
     globalThis.PLUVIA?.sources.set("weather",{status:"ready",checkedAt:Date.now(),dataAt:cityDate(data.current.time,city).getTime()});
     globalThis.PLUVIA?.sources.set('met-norway',{status:usingMet ? 'ready' : 'error',checkedAt:usingMet ? Date.now() : null,dataAt:usingMet ? Date.parse(merged.time) : null});
-    globalThis.PLUVIA?.sources.set("air-quality",{status:freshAir ? "ready" : air ? "stale" : "error",checkedAt:freshAir ? Date.now() : previous?.airAt || null,dataAt:air?.current?.time ? cityDate(air.current.time,city).getTime() : null});
-    if (!freshAir && air) {
-      $("airNote").textContent += ' · leitura anterior';
-    }
+    globalThis.PLUVIA?.sources.set("air-quality",{status:freshAir ? "ready" : air ? "stale" : "error",checkedAt:freshAir ? Date.now() : airAt,dataAt:air?.current?.time ? cityDate(air.current.time,city).getTime() : null});
     clearTimeout(errorTimer); $("errorToast").classList.remove("show"); $("errorToast").setAttribute("aria-hidden", "true");
     globalThis.PLUVIA?.radar?.probe?.(city);
     return true;
   } catch (error) {
     if (revision !== cityRevision) return false;
     const saved = cached();
-    if (saved) { render(saved.data.forecast, saved.data.air, true, saved.at); displayedWeather = saved.data; }
+    if (saved) { render(saved.data.forecast, weatherData?.cachedAir(saved)?.air, true, saved.weatherAt || saved.at,{airAt:weatherData?.cachedAir(saved)?.at}); }
     markWeatherUnavailable(Boolean(displayedWeather));
     globalThis.PLUVIA?.sources.set("weather",{status:displayedWeather ? "stale" : "error"});
     globalThis.PLUVIA?.sources.set("air-quality",{status:displayedWeather?.air ? "stale" : "error"});
@@ -931,28 +981,35 @@ function chooseCity(id, locatedCity = null) {
   const city = locatedCity || cityById.get(id);
   if (!city) return;
   if (city.needsDetails) {
+    locationAttempt++; locationPending = false; locationButtons(false);
     const choice = ++cityChoiceAttempt;
     $("cityPickerStatus").textContent = `Abrindo ${city.name}/${city.uf}…`;
     ensureCityDetails(city.id).then(fullCity => {
       if (choice === cityChoiceAttempt && fullCity) chooseCity(fullCity.id, fullCity);
-    }).catch(() => { $("cityPickerStatus").textContent = "Não foi possível abrir esta cidade. Tente novamente."; });
+    }).catch(() => { if (choice === cityChoiceAttempt) $("cityPickerStatus").textContent = "Não foi possível abrir esta cidade. Tente novamente."; });
     return;
   }
   cityChoiceAttempt++;
   // A successful explicit selection supersedes the bootstrap fallback notice.
   const notice = $("locationNotice");
   if (notice) { notice.hidden = true; notice.textContent = ""; }
-  if (city.id === activeCity?.id && !Number.isFinite(locatedCity?.distanceKm)) { closeCitySearch(); return; }
+  if (city.id === activeCity?.id && !Number.isFinite(locatedCity?.distanceKm)) {
+    locationAttempt++; locationPending = false; locationButtons(false);
+    closeCitySearch(); return;
+  }
   locationAttempt++;
   locationPending = false;
   locationButtons(false);
   $("locationWelcome").hidden = true;
   $("weatherView").hidden = false;
   closeCitySearch();
+  $("alertDetail")?.close?.();
   cityRevision++;
   services?.abortAll();
   refreshInFlight = null;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
+  lastInmetResponse = null; lastInmetReadAt = 0;
+  cancelSummaryRequest();
   applyWeatherAtmosphere(null, null);
   globalThis.pluviaAnalytics?.track('City Selected',{city:city.name,uf:city.uf,source:Number.isFinite(locatedCity?.distanceKm) ? 'location' : 'picker_or_saved'});
   globalThis.PLUVIA?.sources.reset(city.id);
@@ -971,8 +1028,11 @@ function chooseCity(id, locatedCity = null) {
     renderAirQuality(null);
     $("uvScale").hidden = true;
     $("visibilityBadge").hidden = true;
-    $("attentionCard").classList.remove("ok","warning","danger","unavailable");
+    $("attentionCard").classList.remove("ok","info","warning","danger","unavailable","official-orange","official-red");
     $("summaryHighlights").innerHTML = "";
+    $("attentionBasis").textContent = "";
+    $("attentionCard").setAttribute("data-ai-status","idle");
+    $("windCompass").style.setProperty?.("--wind-visible","0");
     clearWeatherInsights();
     $("sunDot").hidden = true;
     $("condition").textContent = "Consultando as condições em " + city.name + "…";
@@ -988,8 +1048,8 @@ function chooseCity(id, locatedCity = null) {
   renderCityOptions(); updateCityLabels();
   $("weatherView")?.classList.toggle('initial-loading', !saved);
   if (saved) {
-    render(saved.data.forecast,saved.data.air,true,saved.at);
-    displayedWeather = saved.data;
+    const savedAir = weatherData?.cachedAir(saved);
+    render(saved.data.forecast,savedAir?.air,true,saved.weatherAt || saved.at,{airAt:savedAir?.at});
     setDataStatus(`Atualizando… · leitura salva de ${dataAge(saved.at)}`, true);
   } else {
     setDataStatus("Consultando o tempo em " + city.name);
@@ -1041,6 +1101,7 @@ function locationButtons(disabled) {
   $("locateCity").disabled = disabled;
 }
 function openCitySearch() {
+  cityChoiceAttempt++;
   // Choosing manually takes precedence over a late location callback.
   locationAttempt++;
   locationPending = false;
@@ -1068,6 +1129,7 @@ function closeCitySearch() {
 }
 function requestLocation(source = 'automatic') {
   if (locationPending) return;
+  cityChoiceAttempt++;
   globalThis.pluviaAnalytics?.track('Location Requested',{source});
   if (!navigator.geolocation) {
     globalThis.pluviaAnalytics?.track('Location Unavailable',{reason:'unsupported'});

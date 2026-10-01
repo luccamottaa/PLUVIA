@@ -45,6 +45,7 @@
         }, timeoutMs);
       }
       try {
+        if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError');
         const response = await fetchImpl(url, {
           cache: requestOptions.cache || "default",
           headers: requestOptions.headers,
@@ -56,18 +57,21 @@
           throw new RequestError("Fonte temporariamente indisponível.", {status:response.status,retryable,code});
         }
         try {
-          return await (requestOptions.responseType === 'text' ? response.text() : response.json());
-        } catch {
+          const body = await (requestOptions.responseType === 'text' ? response.text() : response.json());
+          if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError');
+          return body;
+        } catch (error) {
+          if (controller.signal.aborted || error?.name === 'AbortError') throw error;
           throw new RequestError("A fonte enviou uma resposta inválida.", {status:response.status,retryable:true,code:"invalid_response"});
         }
       } catch (error) {
-        if (error instanceof RequestError) throw error;
-        if (error?.name === "AbortError") {
+        if (controller.signal.aborted || error?.name === "AbortError") {
           throw new RequestError(timedOut ? "A fonte demorou para responder." : "Consulta cancelada.", {
             retryable: timedOut,
             code: timedOut ? "timeout" : "cancelled"
           });
         }
+        if (error instanceof RequestError) throw error;
         throw new RequestError("Não foi possível consultar a fonte.", {
           retryable: error instanceof TypeError,
           code: "network_error"

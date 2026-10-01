@@ -52,12 +52,25 @@
   }
 
   function createServices({client = runtime.PLUVIA?.http?.client} = {}) {
+    const pending = new Map();
     const getJson = (url, options = {}) => {
       if (!client?.getJson) throw new Error("Cliente HTTP dos serviços meteorológicos não carregado.");
-      return client.getJson(url, {timeoutMs:options.timeoutMs ?? 12000, cache:options.cache || "default", signal:options.signal});
+      const request = {timeoutMs:options.timeoutMs ?? 12000, cache:options.cache || "default", signal:options.signal};
+      // Callers with an external signal own their cancellation independently.
+      if (request.signal) return client.getJson(url,request);
+      const key = `${url}|${request.timeoutMs}|${request.cache}`;
+      if (pending.has(key)) return pending.get(key);
+      const task = Promise.resolve().then(() => {
+        if (pending.get(key) !== task) throw Object.assign(new Error('Consulta cancelada.'),{code:'cancelled',retryable:false});
+        return client.getJson(url,request);
+      }).finally(() => {
+        if (pending.get(key) === task) pending.delete(key);
+      });
+      pending.set(key,task);
+      return task;
     };
     return {
-      abortAll: () => client?.abortAll?.(),
+      abortAll: () => { pending.clear(); client?.abortAll?.(); },
       weather: {
         source:"open-meteo",
         forecastUrl: city => buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS),

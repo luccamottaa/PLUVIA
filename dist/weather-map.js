@@ -14,6 +14,7 @@
   let previousOverflow = '';
   let leafletPromise;
   let layerRevision = 0;
+  const fading = new Map();
 
   function source(id, patch) { globalThis.PLUVIA?.sources?.set(id, {...patch, checkedAt:Date.now()}); }
   function setError(message) { $('weatherMapError').hidden = !message; $('weatherMapError').textContent = message || ''; }
@@ -47,6 +48,8 @@
     $('weatherPlay').setAttribute('aria-pressed','false'); $('weatherPlay').setAttribute('aria-label','Reproduzir animação');
   }
   function removeOverlay() {
+    for (const [layer,timer] of fading) { clearTimeout(timer); state.map?.removeLayer(layer); }
+    fading.clear();
     if (state.nextOverlay && state.map) state.map.removeLayer(state.nextOverlay);
     state.nextOverlay = null;
     if (state.overlay && state.map) state.map.removeLayer(state.overlay);
@@ -70,7 +73,7 @@
         layer.setOpacity?.(opacity);
         previous?.setOpacity?.(0);
       });
-      if (previous) setTimeout(() => state.map.removeLayer(previous),450);
+      if (previous) fading.set(previous,setTimeout(() => { state.map.removeLayer(previous); fading.delete(previous); },450));
     });
     layer.addTo(state.map);
   }
@@ -221,15 +224,17 @@
   let mapVisible = false;
   async function showMap() {
     if (initializing || !city()) return;
+    let initialized = false;
     initializing = true; setError('');
     try {
       await initMap();
+      initialized = true;
       await selectLayer(state.layer);
       globalThis.pluviaAnalytics?.track('Weather Map Viewed',{layer:state.layer,city:city()?.name,uf:city()?.uf});
     } catch (error) { setError(error?.message || 'Não foi possível carregar o mapa agora.'); }
     finally {
       initializing = false;
-      if (state.map && city()?.id !== state.cityId) showMap();
+      if (initialized && state.map && city()?.id !== state.cityId && (mapVisible || radarDialog?.open)) showMap();
     }
   }
   function step(amount) { if (!state.frames.length || state.nextOverlay) return; state.index = (state.index + amount + state.frames.length) % state.frames.length; renderFrame(); }
@@ -239,7 +244,7 @@
     previousOverflow = document.body.style.overflow;
     $('radarDialogContent').appendChild(radarContent);
     radarDialog.showModal(); document.body.style.overflow='hidden';
-    mapVisible=true; if (!state.map) showMap();
+    mapVisible=true; if (!state.map || state.cityId !== city()?.id) showMap();
     resizeMap(); $('closeRadar').focus();
   });
   $('closeRadar')?.addEventListener('click',() => radarDialog.close());
@@ -253,7 +258,9 @@
   document.addEventListener?.('visibilitychange',() => { if (document.hidden) stop(); });
   if ('IntersectionObserver' in globalThis) {
     const observer = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) { mapVisible = true; observer.disconnect(); showMap(); }
+      mapVisible = entries.some(entry => entry.isIntersecting);
+      if (!mapVisible && !radarDialog?.open) stop();
+      if (mapVisible && (!state.map || city()?.id !== state.cityId)) showMap();
     },{rootMargin:'240px'});
     observer.observe(mapCard);
   } else { mapVisible = true; showMap(); }
@@ -301,6 +308,8 @@
   $('closeSources')?.addEventListener('click',() => $('sourcesDialog').close());
   $('sourcesDialog')?.addEventListener('click',event => { if(event.target === $('sourcesDialog')) $('sourcesDialog').close(); });
   globalThis.PLUVIA.modules['weather-layers'].cityChanged = () => {
-    if (mapVisible && !initializing) showMap();
+    if (state.cityId === city()?.id) return;
+    ++layerRevision; httpClient?.abortAll(); stop(); removeOverlay(); setFrames([],0);
+    if (mapVisible || radarDialog?.open) showMap();
   };
 })();

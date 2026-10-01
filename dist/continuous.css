@@ -93,6 +93,7 @@ body[data-phase="day"] #weatherView {
 #weatherView .intro { padding-block:10px 0; }
 /* Freshness remains announced without taking space in the visual header. */
 #weatherView #dataStatus { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+#weatherView #dataStatus.stale { position:static; width:auto; height:auto; margin:0 0 12px; overflow:visible; clip-path:none; white-space:normal; }
 #weatherView .clock-wrap { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 8px; margin:0; padding:0; text-align:left; font-size:.875rem; line-height:1.5; color:var(--reading-muted); animation:none; }
 #weatherView .clock-wrap :is(strong,small) { display:inline; margin:0; font-size:inherit; font-weight:600; line-height:inherit; letter-spacing:normal; text-transform:none; color:inherit; }
 #weatherView .clock-wrap .clock-separator { display:inline; color:inherit; }
