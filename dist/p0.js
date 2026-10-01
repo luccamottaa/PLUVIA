@@ -138,8 +138,9 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
   let scheduled = false;
   const sync = () => {
     scheduled = false;
-    const height = viewport?.height ?? window.innerHeight;
-    const offsetTop = viewport?.offsetTop ?? 0;
+    const usableViewport = Number.isFinite(viewport?.height) && viewport.height > 0;
+    const height = usableViewport ? viewport.height : window.innerHeight;
+    const offsetTop = usableViewport ? viewport.offsetTop : 0;
     if (!Number.isFinite(height) || height <= 0) return;
     const style = document.documentElement.style;
     style.setProperty('--dialog-height', height + 'px');
@@ -153,6 +154,8 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
   viewport?.addEventListener('resize', schedule, {passive:true});
   viewport?.addEventListener('scroll', schedule, {passive:true});
   window.addEventListener('resize', schedule, {passive:true});
+  window.addEventListener('orientationchange', schedule, {passive:true});
   window.addEventListener('pageshow', schedule);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) schedule(); });
   sync();
 })();

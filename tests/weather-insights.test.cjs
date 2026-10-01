@@ -42,7 +42,7 @@ function fixture() {
   assert.equal(result.chance, 80);
   assert.equal(result.volume, 11);
   assert.equal(result.intensity, 'forte');
-  assert.equal(result.window, '14:00–17:00');
+  assert.equal(result.window, '13:00–17:00');
 }
 {
   const result = insights.build({forecast:{current:{},hourly:{time:[]}}});

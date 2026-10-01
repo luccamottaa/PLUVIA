@@ -11,7 +11,7 @@ test('os scripts de inicialização carregam sem a antiga seção da Defesa Civi
     return nodes.get(id);
   };
   const context = vm.createContext({
-    document:{getElementById:element,documentElement:{scrollTop:0},body:{scrollTop:0}},
+    document:{getElementById:element,addEventListener(){},documentElement:{scrollTop:0},body:{scrollTop:0}},
     window:{scrollTo(){},addEventListener(){},isSecureContext:false},
     navigator:{},setTimeout(){return 1;},clearTimeout(){},
     activeCity:city,cityById:new Map([[city.id,city],['1302603',{id:'1302603',name:'Manaus',uf:'AM'}]]),
