@@ -12,3 +12,5 @@ Workflow de validação em pull_request adicionado para sintaxe e suíte existen
 Validação visual/mobile não realizada nesta rodada: ambiente de navegador indisponível.
 Proteção contra senhas vazadas ainda requer configuração no painel do Supabase;
 o conector disponível não oferece alteração dessa configuração.
+
+A evolução posterior usa operações por item e CAS no servidor, sem substituir a fonte de dados. Consulte [Sincronização da conta](ACCOUNT-SYNCHRONIZATION.md) para o contrato atual e limites de compatibilidade; os resultados acima descrevem a etapa original.

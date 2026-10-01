@@ -13,13 +13,17 @@ sob demanda antes da troca de previsão.
 Visitantes não são importados automaticamente e dados de conta não são copiados
 para o armazenamento de visitante. Nomes usam textContent.
 
-Cada registro leva `updatedAt`. Ao salvar numa conta, o PLUVIA lê a lista remota,
-une por id (o apelido mais recente prevalece) e só então grava. Remoções viram
-túmulos por 30 dias para não ressuscitar num segundo aparelho. Não há sync ao vivo.
+Cada registro leva `updatedAt`. Contas enviam operações por ID para
+`account-preferences`, que verifica a identidade e grava com compare-and-swap.
+Uma edição conserva a versão vista ao começar; se outro dispositivo alterou o
+mesmo local, o usuário recebe a lista atual e precisa revisar a alteração.
+Exclusões deixam até 20 tombstones no servidor. Edições antigas não recriam um
+ID excluído enquanto o tombstone existe; versões antigas também não correspondem
+a um ID ausente. Não há sincronização em tempo real.
 
 ## Limitações
-Sem alertas por apelido e sem resolução de conflito campo a campo além de
-`updatedAt`. Nenhuma migration e nenhuma consulta meteorológica adicional.
-Teste visual em iPhone e autenticação real em dois dispositivos ainda recomendados.
-Os testes automatizados verificam normalização, limite, merge e contratos,
-não substituem validação end-to-end ou visual.
+Sem alertas por apelido nem previsão hiperlocal. Locais exigem confirmação do
+servidor, sem fila offline própria. Clientes antigos do PWA ainda podem gravar
+arrays completos. Veja [Sincronização da conta](ACCOUNT-SYNCHRONIZATION.md) para
+contrato, migration, testes e compatibilidade. Teste com autenticação real em dois
+dispositivos e Safari em iPhone físico continua recomendado.

@@ -35,12 +35,16 @@ test('gera identificador compatível mesmo sem randomUUID',()=>{
  assert.match(id,/^local-[a-f0-9]{32}$/);
  assert.match(places.makeId({}),/^local-[a-z0-9]+-[a-z0-9]+$/);
 });
+test('remoção vence empate de timestamps em qualquer ordem de merge',()=>{
+ const deleted={...entry,deleted:true};
+ assert.equal(places.visible(places.merge([entry],[deleted])).length,0);
+ assert.equal(places.visible(places.merge([deleted],[entry])).length,0);
+});
 test('integra formulário acessível, cache e escrita segura',()=>{
  const html=fs.readFileSync('dist/index.html','utf8'),sw=fs.readFileSync('dist/sw.js','utf8'),source=fs.readFileSync('dist/saved-places.js','utf8');
  assert.match(html,/id="savedPlacesForm"/);assert.match(html,/for="savedPlaceName"/);
- assert.ok(html.includes('saved-places.js?v=panel-21'));assert.ok(sw.includes('saved-places.js?v=panel-21'));
+ assert.ok(html.includes('saved-places.js?v=places-1'));assert.ok(sw.includes('saved-places.js?v=places-1'));
  assert.doesNotMatch(source,/innerHTML/);assert.match(source,/owner !== requestedOwner/);
  assert.match(source,/await ensureCityDetails\(item\.cityId\)/);
- assert.match(source,/client\.auth\.getUser/);
+ assert.match(source,/applyPreferences/);
 });
-

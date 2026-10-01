@@ -50,7 +50,7 @@
     const map = new Map();
     for (const item of [...normalize(remote, {keepDeleted:true}), ...normalize(local, {keepDeleted:true})]) {
       const prev = map.get(item.id);
-      if (!prev || item.updatedAt > prev.updatedAt || (item.updatedAt === prev.updatedAt && !item.deleted && prev.deleted)) map.set(item.id, item);
+      if (!prev || item.updatedAt > prev.updatedAt || (item.updatedAt === prev.updatedAt && item.deleted && !prev.deleted)) map.set(item.id, item);
     }
     const merged = [...map.values()].sort((a, b) => b.updatedAt - a.updatedAt || a.name.localeCompare(b.name, "pt-BR"));
     const living = merged.filter(item => !item.deleted).slice(0, MAX);
@@ -86,9 +86,9 @@
     const readGuest = () => { try {return normalize(JSON.parse(root.localStorage.getItem(guestKey) || "[]"), {keepDeleted:true});} catch {return [];} };
     let owner = account()?.id || null;
     let records = owner ? normalize(account()?.user_metadata?.named_places_v1, {keepDeleted:true}) : readGuest();
-    let busy = false, editing = null;
+    let busy = false, editing = null, editingBase = null, generation = 0, canonical = false;
     const status = value => {el("savedPlacesStatus").textContent = value;};
-    const reset = () => {editing=null;el("savedPlaceName").value="";el("savedPlaceSave").textContent="Salvar cidade atual";el("savedPlaceCancel").hidden=true;};
+    const reset = () => {editing=null;editingBase=null;el("savedPlaceName").value="";el("savedPlaceSave").textContent="Salvar cidade atual";el("savedPlaceCancel").hidden=true;};
     function paint() {
       const list = el("savedPlacesList"); list.textContent = "";
       el("savedPlacesMode").textContent = owner
@@ -109,49 +109,52 @@
       el("savedPlaceSave").disabled=busy;
       list.querySelectorAll("button").forEach(button=>{button.disabled=busy;});
     }
-    async function save(next) {
+    async function save(next, operation) {
       if (busy) return;
       busy=true;paint();
-      const requestedOwner=owner;
+      const requestedOwner=owner,requestedGeneration=generation;
       try {
         if (requestedOwner) {
-          const client=await root.pluviaAccount.getClient();
           if (account()?.id !== requestedOwner) throw new Error("account");
-          const {data: latest} = await client.auth.getUser();
-          next = merge(latest?.user?.user_metadata?.named_places_v1, next);
-          const {error}=await client.auth.updateUser({data:{named_places_v1:persistable(next)}});
-          if (error) throw error;
+          const result=await root.pluviaAccount.applyPreferences({placeChanges:[operation]},requestedOwner);
+          next=normalize(result.namedPlaces,{keepDeleted:true});
         } else root.localStorage.setItem(guestKey,JSON.stringify(persistable(next)));
-        if (owner !== requestedOwner) return;
+        if (owner !== requestedOwner || generation !== requestedGeneration) return;
         records=next;reset();status(requestedOwner ? "Locais salvos na conta." : "Locais salvos neste navegador.");
-      } catch {
-        if (owner===requestedOwner) status("Não foi possível salvar. Seus locais anteriores foram mantidos; tente novamente.");
-      } finally {busy=false;paint();}
+      } catch (error) {
+        if (owner===requestedOwner && generation===requestedGeneration) {
+          if (error.code==='preference_conflict') {reset();status("Este local foi alterado em outro dispositivo. Confira a lista antes de salvar novamente.");}
+          else status(error.code==='place_limit' ? "Você pode salvar até 20 locais." : "Não foi possível confirmar o salvamento. Confira a lista e tente novamente.");
+        }
+      } finally {if(generation===requestedGeneration){busy=false;paint();}}
     }
     async function openPlace(item) {
       if (busy || typeof chooseCity !== "function") return;
+      const requestedGeneration=generation;
       busy=true;status("Abrindo "+item.cityName+"…");paint();
       try {
         const city = typeof ensureCityDetails === "function" ? await ensureCityDetails(item.cityId) : null;
+        if(generation!==requestedGeneration)return;
         if (city) chooseCity(city.id,city);
         else chooseCity(item.cityId);
         if (typeof activeCity === "undefined" || activeCity?.id !== item.cityId) throw new Error("city");
         status("");
       } catch {
-        status("Não foi possível abrir esta cidade. Confira a conexão e tente novamente.");
-      } finally {busy=false;paint();}
+        if(generation===requestedGeneration)status("Não foi possível abrir esta cidade. Confira a conexão e tente novamente.");
+      } finally {if(generation===requestedGeneration){busy=false;paint();}}
     }
     el("savedPlacesForm").addEventListener("submit",event=>{
       event.preventDefault();if(busy)return;
       const name=clean(el("savedPlaceName").value,40);
       const city=typeof activeCity !== "undefined" ? activeCity : null;
-      const previous=visible(records).find(item=>item.id===editing);
+      // Keep the version the user started editing, even after a background read.
+      const previous=editing ? editingBase : null;
       if (!name) {status("Digite um nome para o local.");return;}
       if (!previous && !city) {status("Escolha uma cidade antes de salvar o local.");return;}
       const entry=previous ? {...previous,name} : {
         id:makeId(root),name,cityId:String(city.id),cityName:city.name,uf:city.uf
       };
-      try {save(upsert(records,entry));} catch {status("Você pode salvar até 20 locais. Remova um para continuar.");}
+      try {save(upsert(records,entry),{id:entry.id,expectedUpdatedAt:previous?.updatedAt ?? null,deleted:false,place:{name:entry.name,cityId:entry.cityId,cityName:entry.cityName,uf:entry.uf}});} catch {status("Você pode salvar até 20 locais. Remova um para continuar.");}
     });
     el("savedPlaceCancel").addEventListener("click",()=>{reset();status("");});
     el("savedPlacesList").addEventListener("click",event=>{
@@ -161,23 +164,28 @@
       const item=visible(records).find(place=>place.id===id);if(!item)return;
       if(button.dataset.placeOpen) openPlace(item);
       else if(button.dataset.placeEdit) {
-        editing=id;el("savedPlaceName").value=item.name;el("savedPlaceSave").textContent="Salvar nome";
+        editing=id;editingBase={...item};el("savedPlaceName").value=item.name;el("savedPlaceSave").textContent="Salvar nome";
         el("savedPlaceCancel").hidden=false;el("savedPlaceName").focus();
-      } else save(remove(records,id));
+      } else save(remove(records,id),{id,expectedUpdatedAt:item.updatedAt,deleted:true});
     });
     root.addEventListener("pluvia:auth-changed",event=>{
       const user=event.detail?.user;
       const nextOwner=user?.id || null;
       const switched = owner !== nextOwner;
-      if (switched) { reset(); status(""); }
+      if (switched) {generation++;canonical=false;busy=false;reset();status("");}
       owner = nextOwner;
       if (!owner) records = readGuest();
       else if (switched) records = normalize(user.user_metadata?.named_places_v1, {keepDeleted:true});
-      else records = merge(records, user.user_metadata?.named_places_v1);
+      else if(!canonical) records = merge(records, user.user_metadata?.named_places_v1);
       paint();
     });
+    root.addEventListener("pluvia:preferences-loaded",event=>{
+      if(!owner || event.detail?.ownerId!==owner)return;
+      records=normalize(event.detail.snapshot?.namedPlaces,{keepDeleted:true});canonical=true;paint();
+    });
+    const initial=root.pluviaAccount?.getPreferences?.();
+    if(owner && initial){records=normalize(initial.namedPlaces,{keepDeleted:true});canonical=true;}
     paint();
   }
   return {MAX,normalize,upsert,remove,merge,visible,persistable,makeId,mount};
 });
-
