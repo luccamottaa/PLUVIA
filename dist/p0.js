@@ -48,12 +48,12 @@ document.getElementById("citySearch")?.addEventListener("keydown", event => {
   else if (event.key === "Enter") {
     const first = document.querySelector(".city-result");
     if (first) { event.preventDefault(); chooseCity(first.dataset.id); }
-  } else if (event.key === "Escape") closeCitySearch();
+  } else if (event.key === "Escape") closeCitySearch(true);
 });
 document.getElementById("cityResults")?.addEventListener("keydown", event => {
   if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); moveCityResult(event.key === "ArrowDown" ? 1 : -1); }
   else if (event.key === "Enter") { event.preventDefault(); chooseCity(event.target.closest("[data-id]")?.dataset.id); }
-  else if (event.key === "Escape") closeCitySearch();
+  else if (event.key === "Escape") closeCitySearch(true);
 });
 document.getElementById("cityResults")?.addEventListener("click", event => {
   const btn = event.target.closest("[data-id]");

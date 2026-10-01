@@ -87,8 +87,8 @@
       const button=event.target.closest?.('[data-hour-index]');
       if(button && !button.disabled && (button.closest('#weatherView') || button.id==='heroRainOpen')) open(Number(button.dataset.hourIndex),button);
     });
-    el('hourlyDetailClose').addEventListener('click',()=>dialog.close());
-    dialog.addEventListener('click',event=>{if(event.target===dialog) dialog.close();});
+    el('hourlyDetailClose').addEventListener('click',()=>globalThis.PLUVIA?.dialogs?.close(dialog) ?? dialog.close());
+    dialog.addEventListener('click',event=>{if(event.target===dialog) globalThis.PLUVIA?.dialogs?.close(dialog) ?? dialog.close();});
     dialog.addEventListener('close',()=>{if(opener?.isConnected) opener.focus({preventScroll:true});});
     function move(delta) {
       const index=(state?.hourly.time.indexOf(selectedTime) ?? -1)+delta,range=bounds();

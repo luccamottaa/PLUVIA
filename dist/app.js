@@ -1137,12 +1137,12 @@ function setupCityPicker() {
   $("welcomeLocate").addEventListener("click", () => requestLocation('welcome'));
   $("openCitySearch").addEventListener("click", openCitySearch);
   $("welcomeSearch").addEventListener("click", openCitySearch);
-  $("closeCitySearch").addEventListener("click", closeCitySearch);
+  $("closeCitySearch").addEventListener("click", () => closeCitySearch(true));
   $("cityDialog").addEventListener("close", () => $("openCitySearch").focus());
   $("cityDialog").addEventListener("click", event => {
     if (event.target !== $("cityDialog")) return;
     const box = $("cityDialog").getBoundingClientRect();
-    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) closeCitySearch();
+    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) closeCitySearch(true);
   });
 }
 
@@ -1180,9 +1180,12 @@ function openCitySearch() {
     ensureCityIndex().then(() => renderCityOptions()).catch(() => { $("cityPickerStatus").textContent = "O índice não carregou. Capitais continuam disponíveis."; });
   }
 }
-function closeCitySearch() {
+function closeCitySearch(animate = false) {
   const dialog = $("cityDialog");
-  if (dialog.open) dialog.close();
+  if (dialog.open) {
+    if (animate && globalThis.PLUVIA?.dialogs) { globalThis.PLUVIA.dialogs.close(dialog); return; }
+    dialog.close();
+  }
   $("openCitySearch").focus();
 }
 function requestLocation(source = 'automatic') {

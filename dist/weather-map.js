@@ -247,12 +247,12 @@
     mapVisible=true; if (!state.map || state.cityId !== city()?.id) showMap();
     resizeMap(); $('closeRadar').focus();
   });
-  $('closeRadar')?.addEventListener('click',() => radarDialog.close());
+  $('closeRadar')?.addEventListener('click',() => globalThis.PLUVIA?.dialogs?.close(radarDialog) ?? radarDialog.close());
   radarDialog?.addEventListener('close',() => {
     stop(); radarHome?.appendChild(radarContent); document.body.style.overflow=previousOverflow;
     resizeMap(); $('expandRadar')?.focus();
   });
-  radarDialog?.addEventListener('click',event => { if (event.target === radarDialog) radarDialog.close(); });
+  radarDialog?.addEventListener('click',event => { if (event.target === radarDialog) globalThis.PLUVIA?.dialogs?.close(radarDialog) ?? radarDialog.close(); });
   if ('ResizeObserver' in globalThis && radarContent) new ResizeObserver(resizeMap).observe(radarContent);
   globalThis.addEventListener?.('resize',resizeMap,{passive:true});
   document.addEventListener?.('visibilitychange',() => { if (document.hidden) stop(); });
@@ -305,8 +305,8 @@
     body.appendChild(official);
   }
   $('openSources')?.addEventListener('click',() => { renderSources(); $('sourcesDialog').showModal(); $('sourcesDialog').querySelector?.('.dialog-scroll')?.scrollTo?.(0,0); $('closeSources').focus(); });
-  $('closeSources')?.addEventListener('click',() => $('sourcesDialog').close());
-  $('sourcesDialog')?.addEventListener('click',event => { if(event.target === $('sourcesDialog')) $('sourcesDialog').close(); });
+  $('closeSources')?.addEventListener('click',() => globalThis.PLUVIA?.dialogs?.close($('sourcesDialog')) ?? $('sourcesDialog').close());
+  $('sourcesDialog')?.addEventListener('click',event => { if(event.target === $('sourcesDialog')) globalThis.PLUVIA?.dialogs?.close($('sourcesDialog')) ?? $('sourcesDialog').close(); });
   globalThis.PLUVIA.modules['weather-layers'].cityChanged = () => {
     if (state.cityId === city()?.id) return;
     ++layerRevision; httpClient?.abortAll(); stop(); removeOverlay(); setFrames([],0);
