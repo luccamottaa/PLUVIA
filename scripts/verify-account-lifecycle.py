@@ -7,13 +7,15 @@ owner='00000000-0000-4000-8000-000000000001'
 user={'id':owner,'email':'fixture@example.test','app_metadata':{'provider':'email','providers':['email']},'user_metadata':{'name':'Teste'},'aud':'authenticated','role':'authenticated'}
 def encoded(value):return base64.urlsafe_b64encode(json.dumps(value).encode()).decode().rstrip('=')
 token=encoded({'alg':'HS256','typ':'JWT'})+'.'+encoded({'sub':owner,'exp':int(time.time())+3600,'role':'authenticated','amr':[{'method':'otp','timestamp':int(time.time())}]})+'.fixture'
-writes=[];recover=[];deletes=[];state={'reauth':True};errors=[]
+writes=[];recover=[];deletes=[];state={'reauth':True,'recoverError':True};errors=[]
 with sync_playwright() as p:
  browser=p.webkit.launch() if os.environ.get('PLUVIA_BROWSER')=='webkit' else p.chromium.launch(args=['--no-sandbox'],**({'executable_path':shutil.which('chromium')} if shutil.which('chromium') else {}))
  context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,service_workers='block')
  def route(r):
   url=r.request.url
-  if '/auth/v1/recover' in url:recover.append(r.request.post_data_json);r.fulfill(json={});return
+  if '/auth/v1/recover' in url:
+   recover.append(r.request.post_data_json)
+   r.fulfill(status=500 if state['recoverError'] else 200,json={'code':'unexpected_failure','msg':'Error sending recovery email'} if state['recoverError'] else {});return
   if '/auth/v1/user' in url:
    if r.request.method=='PUT':writes.append(r.request.post_data_json)
    r.fulfill(json=user);return
@@ -29,10 +31,14 @@ with sync_playwright() as p:
  context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});")
  page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
  page.goto(preview,wait_until='domcontentloaded');page.locator('#accountButton').click();page.locator('#accountForgot').click();page.locator('#accountEmail').fill('fixture@example.test');page.locator('#accountSubmit').click()
+ page.wait_for_function("document.getElementById('accountStatus').textContent.includes('serviço do Pluvia')")
+ assert 'conexão' not in page.locator('#accountStatus').inner_text()
+ assert page.locator('#accountSubmit').is_enabled()
+ state['recoverError']=False;page.locator('#accountSubmit').click()
  page.wait_for_function("document.getElementById('accountStatus').textContent.includes('Se houver')")
- assert len(recover)==1 and recover[0]['email']=='fixture@example.test'
+ assert len(recover)==2 and recover[0]['email']=='fixture@example.test'
  assert 'password' not in recover[0]
- page.locator('#accountSubmit').click();assert len(recover)==1
+ page.locator('#accountSubmit').click();assert len(recover)==2
  page.goto(preview+'/?auth_recovery=1#access_token='+token+'&refresh_token=fixture&expires_in=3600&token_type=bearer&type=recovery',wait_until='domcontentloaded')
  page.locator('#accountNewPassword').wait_for(state='visible',timeout=20000)
  assert page.locator('#accountProfile').is_hidden()
