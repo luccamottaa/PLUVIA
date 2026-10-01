@@ -6,15 +6,30 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const finite = value => Number.isFinite(Number(value)) ? Number(value) : null;
-  const max = values => Math.max(0, ...values.map(finite).filter(Number.isFinite));
-  const sum = values => values.map(finite).filter(Number.isFinite).reduce((total, value) => total + value, 0);
+  const finite = value => typeof value === 'number' && Number.isFinite(value) ? value : null;
+  const max = values => values.length && values.every(Number.isFinite) ? Math.max(...values) : null;
+  const sum = values => values.length && values.every(Number.isFinite) ? values.reduce((total,value)=>total+value,0) : null;
   const round = (value, digits = 0) => Number.isFinite(value) ? Number(value.toFixed(digits)) : null;
 
   function buildContext(data, air, start, city) {
     const hourly = data?.hourly || {};
     const current = data?.current || {};
     const slice = (name, hours) => Array.isArray(hourly[name]) ? hourly[name].slice(start, start + hours) : [];
+    const rainSlice = (name,hours) => {
+      const values = Array.isArray(hourly[name]) ? hourly[name].slice(start+1,start+1+hours) : [];
+      if (values.length !== hours || !values.every(value=>Number.isFinite(value) && value >= 0 && (name !== 'precipitation_probability' || value <= 100))) return [];
+      for (let i=start;i<start+hours;i++) {
+        if (Date.parse(hourly.time?.[i]?.slice(0,16)+'Z')+3600000 !== Date.parse(hourly.time?.[i+1]?.slice(0,16)+'Z')) return [];
+      }
+      return values;
+    };
+    const period = hours => ({
+      probability:max(rainSlice('precipitation_probability',hours)),
+      precipitation:sum(rainSlice('precipitation',hours)),
+      gust:slice('wind_gusts_10m',hours).length === hours ? max(slice('wind_gusts_10m',hours)) : null,
+      codes:slice('weather_code',hours).filter(value=>Number.isInteger(value) && value >= 0 && value <= 99)
+    });
+    const next3h = period(3), next6h = period(6);
     return {
       schemaVersion: 1,
       city: { id: String(city?.id || ""), name: String(city?.name || ""), timezone: String(city?.timezone || "UTC") },
@@ -23,8 +38,8 @@
         code: finite(current.weather_code), temperature: finite(current.temperature_2m), apparent: finite(current.apparent_temperature),
         humidity: finite(current.relative_humidity_2m), precipitation: finite(current.precipitation), gust: finite(current.wind_gusts_10m)
       },
-      next3h: { probability: max(slice("precipitation_probability", 3)), precipitation: sum(slice("precipitation", 3)), gust: max(slice("wind_gusts_10m", 3)), codes: slice("weather_code", 3).map(Number) },
-      next6h: { probability: max(slice("precipitation_probability", 6)), precipitation: sum(slice("precipitation", 6)), gust: max(slice("wind_gusts_10m", 6)), codes: slice("weather_code", 6).map(Number) },
+      next3h, next6h,
+      complete: [next3h,next6h].every((period,i)=>[period.probability,period.precipitation,period.gust].every(Number.isFinite) && period.codes.length === (i ? 6 : 3)),
       uv: max(slice("uv_index", 3)),
       airQuality: finite(air?.current?.us_aqi)
     };
@@ -34,12 +49,14 @@
     const stable = JSON.stringify({
       city: context.city.id, period: context.observedAt.slice(0, 13), code: context.current.code,
       temperature: round(context.current.temperature), apparent: round(context.current.apparent), humidity: round(context.current.humidity),
+      precipitation:round(context.current.precipitation,1),currentGust:round(context.current.gust),
       p3: round(context.next3h.probability, -0), mm3: round(context.next3h.precipitation, 1), mm6: round(context.next6h.precipitation, 1),
-      gust: round(context.next3h.gust), uv: round(context.uv), aqi: round(context.airQuality)
+      gust: round(context.next3h.gust), uv: round(context.uv), aqi: round(context.airQuality),
+      p6:round(context.next6h.probability),gust6:round(context.next6h.gust),codes3:context.next3h.codes,codes6:context.next6h.codes
     });
     let hash = 2166136261;
     for (let index = 0; index < stable.length; index += 1) hash = Math.imul(hash ^ stable.charCodeAt(index), 16777619);
-    return `v1-${(hash >>> 0).toString(36)}`;
+    return `v2-${(hash >>> 0).toString(36)}`;
   }
 
   function highlight(label, tone, evidence) { return { label, tone, evidence }; }
@@ -54,6 +71,12 @@
       summary: `Não há sinal de chuva forte ou rajadas relevantes em ${context.city.name} nas próximas três horas.`,
       highlights: [highlight("Baixa chance de chuva", "calm", "next3h.probability")],
       iconCode: c.code ?? 0, evidence: ["next3h.probability", "next3h.precipitation", "next3h.gust"]
+    };
+    if (context.complete === false) result = {
+      status:'info',title:'Previsão parcial nas próximas horas',
+      summary:'Não há dados suficientes para confirmar a chuva e o vento nas próximas horas.',
+      highlights:[highlight('Dados horários incompletos','info','next3h.probability')],
+      iconCode:c.code ?? 3,evidence:['next3h.probability']
     };
     if (storm && h3.probability >= 60) result = {
       status:"danger", title:"Trovoada merece atenção", summary:"Há sinal de trovoada nas próximas três horas. Evite áreas abertas se a condição se confirmar.",
@@ -85,6 +108,9 @@
     if (typeof summary.title !== "string" || !summary.title.trim() || summary.title.length > 90) return false;
     if (typeof summary.summary !== "string" || !summary.summary.trim() || summary.summary.length > 360) return false;
     if (!Array.isArray(summary.highlights) || summary.highlights.length > 4) return false;
+    if (!Number.isInteger(summary.iconCode) || summary.iconCode < 0 || summary.iconCode > 99 ||
+      !['rules','ai'].includes(summary.source) || !Number.isFinite(Date.parse(summary.generatedAt)) ||
+      !Array.isArray(summary.evidence) || !summary.highlights.every(item=>item && typeof item.label === 'string' && item.label.length <= 80 && ['calm','info','warning','danger'].includes(item.tone))) return false;
     const allowed = new Set(["current.code","current.temperature","current.apparent","current.humidity","current.precipitation","current.gust","next3h.probability","next3h.precipitation","next3h.gust","next3h.codes","next6h.probability","next6h.precipitation","next6h.gust","next6h.codes","uv","airQuality"]);
     const evidence = [...(summary.evidence || []), ...summary.highlights.map(item => item.evidence)];
     return evidence.every(item => allowed.has(item)) && summary.contextHash === contextHash(context);

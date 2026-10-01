@@ -1,8 +1,8 @@
-const CACHE = "pluvia-panel-45";
+const CACHE = "pluvia-panel-47";
 const SHELL = "./index.html";
 const PRECACHE = [
-    "./", SHELL, "./sky.css?v=sky-7", "./modules/sky-atmosphere.js?v=sky-5", "./modules/moon-view.js?v=moon-1", "./assets/sky-sun.svg?v=sun-2", "./assets/moon-surface.webp", "./assets/sky-cloud-bank.webp", "./analytics.js?v=analytics-3", "./styles.css?v=core-120", "./redesign.css?v=panel-31", "./continuous.css?v=layout-13", "./capitals.js?v=core-47", "./app.js?v=panel-30", "./p0.js?v=panel-35", "./account.js?v=panel-22", "./saved-places.js?v=panel-21", "./notifications.js?v=panel-22", "./weather-map.js?v=panel-29",
-    "./favorite-cities.js?v=favorites-3", "./modules/hourly-outlook.js?v=outlook-3", "./modules/hourly-detail.js?v=detail-1", "./modules/notification-preferences.js?v=preferences-1", "./modules/sources.js?v=panel-21", "./modules/http-client.js?v=panel-21", "./modules/weather-services.js?v=core-110", "./modules/weather-data-layer.js?v=core-109", "./modules/met-merge.js?v=core-109", "./modules/weather-extras.js?v=core-109", "./modules/weather-insights.js?v=core-65", "./modules/radar-probe.js?v=core-70", "./modules/smart-summary.js?v=core-109", "./modules/weather-icons.js?v=core-49", "./modules/weather-icon-system.js?v=modern-1", "./modules/risks.js?v=core-116", "./modules/adapters.js?v=core-109", "./vendor/suncalc.js?v=sky-1", "./vendor/suncalc-LICENSE",
+    "./", SHELL, "./modules/city-time.js?v=time-1", "./sky.css?v=sky-7", "./modules/sky-atmosphere.js?v=sky-6", "./modules/moon-view.js?v=moon-2", "./assets/sky-sun.svg?v=sun-2", "./assets/moon-surface.webp", "./assets/sky-cloud-bank.webp", "./analytics.js?v=analytics-3", "./styles.css?v=core-120", "./redesign.css?v=panel-31", "./continuous.css?v=layout-15", "./capitals.js?v=core-47", "./app.js?v=panel-32", "./p0.js?v=panel-35", "./account.js?v=panel-22", "./saved-places.js?v=panel-21", "./notifications.js?v=panel-22", "./weather-map.js?v=panel-30",
+    "./favorite-cities.js?v=favorites-5", "./modules/share-weather.js?v=share-1", "./modules/hourly-outlook.js?v=outlook-3", "./modules/hourly-detail.js?v=detail-2", "./modules/notification-preferences.js?v=preferences-1", "./modules/sources.js?v=panel-21", "./modules/http-client.js?v=panel-22", "./modules/weather-services.js?v=core-112", "./modules/weather-data-layer.js?v=core-111", "./modules/met-merge.js?v=core-110", "./modules/weather-extras.js?v=core-109", "./modules/weather-insights.js?v=core-66", "./modules/radar-probe.js?v=core-70", "./modules/smart-summary.js?v=core-110", "./modules/weather-icons.js?v=core-49", "./modules/weather-icon-system.js?v=modern-1", "./modules/risks.js?v=core-116", "./modules/adapters.js?v=core-109", "./vendor/suncalc.js?v=sky-2", "./vendor/suncalc-LICENSE",
     "./assets/rain-drops.svg", "./manifest.webmanifest", "./logo-mark.png", "./logo-pluvia.png", "./favicon-32.png", "./favicon-96.png", "./apple-touch-icon-180.png", "./icon-192.png", "./icon-512.png", "./icon-splash-192.png", "./icon-splash-512.png", "./icon-maskable-192.png", "./icon-maskable-512.png",
     "./vendor/weathericons/Sun.svg", "./vendor/weathericons/Moon.svg", "./vendor/weathericons/PartlySunny.svg", "./vendor/weathericons/PartlyMoon.svg", "./vendor/weathericons/Cloud.svg", "./vendor/weathericons/Haze.svg", "./vendor/weathericons/Rain.svg", "./vendor/weathericons/Snow.svg", "./vendor/weathericons/Storm.svg", "./vendor/weathericons/Hail.svg",
     "./assets/weather-icons/conditions/clear-day.svg?v=modern-1", "./assets/weather-icons/conditions/clear-night.svg?v=modern-1", "./assets/weather-icons/conditions/few-clouds-day.svg?v=modern-1", "./assets/weather-icons/conditions/few-clouds-night.svg?v=modern-1", "./assets/weather-icons/conditions/partly-cloudy-day.svg?v=modern-1", "./assets/weather-icons/conditions/partly-cloudy-night.svg?v=modern-1", "./assets/weather-icons/conditions/cloudy.svg?v=modern-1", "./assets/weather-icons/conditions/overcast.svg?v=modern-1", "./assets/weather-icons/conditions/drizzle.svg?v=modern-1", "./assets/weather-icons/conditions/light-rain.svg?v=modern-1", "./assets/weather-icons/conditions/moderate-rain.svg?v=modern-1", "./assets/weather-icons/conditions/heavy-rain.svg?v=modern-1", "./assets/weather-icons/conditions/showers.svg?v=modern-1", "./assets/weather-icons/conditions/showers-night.svg?v=modern-1", "./assets/weather-icons/conditions/thunderstorm.svg?v=modern-1", "./assets/weather-icons/conditions/thunderstorm-rain.svg?v=modern-1", "./assets/weather-icons/conditions/thunderstorm-hail.svg?v=modern-1", "./assets/weather-icons/conditions/snow.svg?v=modern-1", "./assets/weather-icons/conditions/sleet.svg?v=modern-1", "./assets/weather-icons/conditions/fog.svg?v=modern-1", "./assets/weather-icons/conditions/haze.svg?v=modern-1", "./assets/weather-icons/conditions/windy.svg?v=modern-1", "./assets/weather-icons/metrics/temperature.svg?v=modern-1", "./assets/weather-icons/metrics/feels-like.svg?v=modern-1", "./assets/weather-icons/metrics/temperature-high.svg?v=modern-1", "./assets/weather-icons/metrics/temperature-low.svg?v=modern-1", "./assets/weather-icons/metrics/humidity.svg?v=modern-1", "./assets/weather-icons/metrics/dew-point.svg?v=modern-1", "./assets/weather-icons/metrics/pressure.svg?v=modern-1", "./assets/weather-icons/metrics/visibility.svg?v=modern-1", "./assets/weather-icons/metrics/wind-speed.svg?v=modern-1", "./assets/weather-icons/metrics/wind-gust.svg?v=modern-1", "./assets/weather-icons/metrics/wind-direction.svg?v=modern-1", "./assets/weather-icons/metrics/cloud-cover.svg?v=modern-1", "./assets/weather-icons/metrics/uv-index.svg?v=modern-1", "./assets/weather-icons/metrics/air-quality.svg?v=modern-1", "./assets/weather-icons/metrics/rain-probability.svg?v=modern-1", "./assets/weather-icons/metrics/rain-volume.svg?v=modern-1", "./assets/weather-icons/astronomy/sunrise.svg?v=modern-1", "./assets/weather-icons/astronomy/sunset.svg?v=modern-1", "./assets/weather-icons/astronomy/daylight.svg?v=modern-1", "./assets/weather-icons/maps/radar.svg?v=modern-1", "./assets/weather-icons/maps/satellite.svg?v=modern-1", "./assets/weather-icons/maps/lightning.svg?v=modern-1", "./assets/weather-icons/fallback/weather-unknown.svg?v=modern-1"
@@ -27,42 +27,35 @@ self.addEventListener("fetch", event => {
   const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  if (url.origin !== location.origin) {
-    return; // Auth e APIs externas nunca entram no cache do SW.
+  if (url.origin !== location.origin) return; // Never cache external APIs or Auth.
+  const writes = [];
+  function remember(key, response) {
+    if (response.ok) {
+      const copy = response.clone();
+      writes.push(caches.open(CACHE).then(cache => cache.put(key,copy)).catch(() => {}));
+    }
+    return response;
   }
+  function respond(response) {
+    event.respondWith(response);
+    // Register synchronously. Keep the worker alive through the network read
+    // and every cache write, even when the page closes immediately afterward.
+    event.waitUntil(response.then(() => Promise.allSettled(writes)).catch(() => {}));
+  }
+  const fallback = key => caches.match(key).then(hit => hit || Response.error());
   if (req.mode === "navigate") {
-    event.respondWith(fetch(req, { cache: "no-cache" }).then(res => {
-      if (!res.ok) return res;
-      const copy = res.clone();
-      caches.open(CACHE).then(cache => cache.put(SHELL, copy)).catch(() => {});
-      return res;
-    }).catch(() => caches.match(SHELL)));
+    respond(fetch(req,{cache:"no-cache"}).then(res => remember(SHELL,res)).catch(() => fallback(SHELL)));
     return;
   }
   if (url.pathname.endsWith("/municipalities.js") || url.pathname.endsWith("/municipality-index.js") || /\/cities\/[a-z]{2}\.js$/.test(url.pathname)) {
-    event.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
-      if (!res.ok) return res;
-      const copy = res.clone();
-      caches.open(CACHE).then(cache => cache.put(req, copy)).catch(() => {});
-      return res;
-    })));
+    respond(caches.match(req).then(hit => hit || fetch(req).then(res => remember(req,res))));
     return;
   }
-  if (/\.(js|css)(\?|$)/.test(url.pathname + url.search) || url.pathname.endsWith(".js") || url.pathname.endsWith(".css")) {
-    event.respondWith(fetch(req, { cache: "no-cache" }).then(res => {
-      if (!res.ok) return res;
-      const copy = res.clone();
-      caches.open(CACHE).then(cache => cache.put(req, copy)).catch(() => {});
-      return res;
-    }).catch(() => caches.match(req)));
+  if (/\.(js|css)$/.test(url.pathname)) {
+    respond(fetch(req,{cache:"no-cache"}).then(res => remember(req,res)).catch(() => fallback(req)));
     return;
   }
-  event.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
-    if (!res.ok) return res;
-    const copy = res.clone();
-    caches.open(CACHE).then(cache => cache.put(req, copy)).catch(() => {});
-    return res;
-  }).catch(() => Response.error())));
+  respond(caches.match(req).then(hit => hit || fetch(req).then(res => remember(req,res))).catch(() => Response.error()));
 });
 
 self.addEventListener("push", event => {

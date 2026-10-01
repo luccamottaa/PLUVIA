@@ -7,6 +7,7 @@ const node = id => {
   return nodes.get(id);
 };
 let requests = [];
+let observeVisibility;const removed=[];
 const layers = [];
 const context = {
   document:{getElementById:node,querySelector:()=>({}),querySelectorAll:()=>[],createElement:()=>({getContext:()=>({createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}),putImageData(pixels){cloudPixels=pixels.data;}}),toDataURL:()=> 'data:image/png;base64,test'})},
@@ -15,14 +16,14 @@ const context = {
   fetch:()=>new Promise((resolve,reject)=>requests.push({resolve,reject})),
   AbortController, URLSearchParams, setTimeout, clearTimeout, clearInterval,
   requestAnimationFrame:fn=>fn(),
-  IntersectionObserver:class { observe(){} disconnect(){} },
+  IntersectionObserver:class { constructor(callback){observeVisibility=callback;} observe(){} disconnect(){} },
   L:{tileLayer:(url,options)=>{const layer={url,options,opacity:null,events:{},on(name,fn){this.events[name]=fn;return this;},addTo(){return this;},setOpacity(value){this.opacity=value;}};layers.push(layer);return layer;},layerGroup:()=>({addTo(){return this}})}
 };
 let code = fs.readFileSync('dist/weather-map.js','utf8');
 code = code.replace('  let leafletPromise;', '  globalThis.testMap = {selectLayer, state, satelliteFrames, fadeTileLayer};\n  let leafletPromise;');
 vm.runInNewContext(fs.readFileSync('dist/modules/http-client.js','utf8'),context);
 vm.runInNewContext(code,context);
-context.testMap.state.map = {removeLayer(){},setMaxZoom(value){this.maxZoom=value;},getZoom(){return 7;},setZoom(value){this.zoom=value;}};
+context.testMap.state.map = {removeLayer(layer){removed.push(layer);},setMaxZoom(value){this.maxZoom=value;},getZoom(){return 7;},setZoom(value){this.zoom=value;}};
 const response = body => ({ok:true,json:async()=>body,text:async()=>body});
 const latest = Math.floor(Date.now()/600000)*600000;
 const clouds = `<Domains><Domain>${new Date(latest-3600000).toISOString()}/${new Date(latest).toISOString()}/PT10M</Domain></Domains>`;
@@ -59,6 +60,17 @@ const clouds = `<Domains><Domain>${new Date(latest-3600000).toISOString()}/${new
   assert.equal(node('weatherFrameTime').textContent,'Indisponível');
   assert.equal(context.testMap.state.frames.length,0);
   assert.match(node('weatherMapError').textContent,/temporariamente indisponível/);
+  const pendingCity=context.testMap.selectLayer('rain');
+  context.testMap.state.cityId=context.activeCity.id;
+  context.activeCity={id:'4106902',lat:-25,lon:-49,timezone:'America/Sao_Paulo'};
+  context.PLUVIA.modules['weather-layers'].cityChanged();
+  requests[3].resolve(response({host:'https://radar.test',radar:{past:[{path:'/old',time:latest/1000}]}}));
+  await pendingCity;
+  assert.equal(context.testMap.state.frames.length,0,'resposta da cidade anterior é invalidada mesmo fora da tela');
+  assert.equal(context.testMap.state.overlay,null);
+  context.testMap.state.timer=123;observeVisibility([{isIntersecting:false}]);
+  assert.equal(context.testMap.state.timer,null,'fora da tela interrompe a reprodução');
+  assert.ok(removed.includes(first),'overlays antigos são removidos');
   console.log('PASS map requests: cancelled layer cannot overwrite satellite; missing or stale frames fail honestly.');
 })().catch(error=>{console.error(error);process.exitCode=1});
 

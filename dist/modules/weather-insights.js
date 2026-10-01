@@ -1,9 +1,9 @@
 (function (root, factory) {
-  const api = factory();
+  const api = factory(typeof module === 'object' && module.exports ? require('./city-time.js') : root.PLUVIA?.time);
   root.PLUVIA = root.PLUVIA || {};
   root.PLUVIA.weatherInsights = api;
   if (typeof module === "object" && module.exports) module.exports = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (time) {
   "use strict";
 
   const finite = value => typeof value === "number" && Number.isFinite(value);
@@ -76,13 +76,14 @@
     const humidity = number(current?.relative_humidity_2m);
     const wind = number(current?.wind_speed_10m);
     const gap = apparent - temperature;
-    if (gap >= 3 && humidity !== null && humidity >= 65) {
+    if (gap >= 3 && temperature >= 26 && humidity !== null && humidity >= 65) {
       return {label:"Elevada pelo calor e pela umidade.", reason:"A umidade reduz a eficiência do suor e eleva a sensação térmica."};
     }
-    if (gap >= 2) return {label:"Acima da temperatura medida.", reason:"A combinação de calor, umidade e pouco vento aumenta a sensação."};
+    if (gap >= 2) return {label:"Acima da temperatura medida.", reason:"A sensação prevista está acima da temperatura; ela considera umidade, vento e radiação."};
     if (gap <= -2 && wind !== null && wind >= 15) {
       return {label:"Mais baixa por causa do vento.", reason:"O vento favorece a perda de calor e reduz a sensação térmica."};
     }
+    if (gap <= -2) return {label:"Abaixo da temperatura medida.", reason:"A sensação prevista está abaixo da temperatura; os dados não isolam uma única causa."};
     return {label:"Próxima da temperatura medida.", reason:"Temperatura e sensação térmica estão próximas neste momento."};
   }
 
@@ -90,23 +91,34 @@
     const times = hourly?.time || [];
     if (start < 0 || !times[start]) return null;
     const localDay = day(times[start]);
-    let peak = -1;
-    let peakIndex = -1;
-    for (let index = start; index < times.length && day(times[index]) === localDay; index += 1) {
-      const value = number(hourly.uv_index?.[index]);
-      if (value !== null && value > peak) {
-        peak = value;
-        peakIndex = index;
-      }
-    }
-    if (peakIndex < 0) return null;
+    const points = times.flatMap((stamp, index) => {
+      if (day(stamp) !== localDay) return [];
+      const raw = number(hourly.uv_index?.[index]);
+      const value = raw !== null && raw >= 0 ? raw : null;
+      return [{time:clock(stamp),value,index}];
+    });
+    const known = points.filter(point => point.value !== null);
+    if (!known.length) return null;
+    const peak = Math.max(...known.map(point => point.value));
+    const peaks = known.filter(point => point.value === peak);
+    const first = peaks[0], last = peaks[peaks.length - 1];
+    const complete = points.length === 24 && points.every((point,i) => point.value !== null && point.time === String(i).padStart(2,'0')+':00');
+    const past = last.index < start;
     const level = peak >= 11 ? "extremo" : peak >= 8 ? "muito alto" : peak >= 6 ? "alto" : peak >= 3 ? "moderado" : "baixo";
     return {
       peak:round(peak, 1),
-      time:clock(times[peakIndex]),
-      level,
-      label: peak >= 3 ? `Pico ${level} previsto às ${clock(times[peakIndex])}.` : "UV baixo no restante do dia."
+      time:first.time, points, complete, past, level,
+      label: peak===0 ? `${complete ? 'UV baixo ao longo do dia' : 'UV baixo nos horários disponíveis'}.` : `${complete ? '' : 'Dados parciais · '}Pico ${level} ${past ? 'do dia estimado' : 'previsto'} por volta de ${first.time}${first.time !== last.time ? '–'+last.time : ''}${past ? ' (horário já passou)' : ''}.`
     };
+  }
+
+  function pressure(hourly, start, city) {
+    if (!Number.isInteger(start) || start < 3) return null;
+    const now = number(hourly?.pressure_msl?.[start]), past = number(hourly?.pressure_msl?.[start-3]);
+    const parse = value => city ? time?.parse(value,city) : time?.wallTime(value);
+    if (now === null || past === null || parse(hourly.time?.[start])-parse(hourly.time?.[start-3]) !== 3*3600000) return null;
+    const delta = round(now-past,1);
+    return {delta,trend:Math.abs(delta)<.8 ? 'stable' : delta>0 ? 'rising' : 'falling'};
   }
 
   function rain(hourly, start) {
@@ -157,11 +169,11 @@
     if (precipitation?.chance >= 60) highlights.push(`Chuva: ${precipitation.chance}% · ${precipitation.intensity}`);
     else if (precipitation?.chance >= 35) highlights.push(`Possibilidade de chuva: ${precipitation.chance}%`);
     else if (precipitation) highlights.push("Baixa chance de chuva");
-    if (ultraviolet?.peak >= 6) highlights.push(`UV ${ultraviolet.level} às ${ultraviolet.time}`);
+    if (ultraviolet?.peak >= 6 && !ultraviolet.past) highlights.push(`UV ${ultraviolet.level} por volta de ${ultraviolet.time}`);
     const reasons = [];
     if (thermal?.reason) reasons.push(thermal.reason);
     if (precipitation?.chance >= 35) reasons.push(`A previsão indica ${precipitation.chance}% de chance e cerca de ${precipitation.volume.toLocaleString("pt-BR")} mm nas próximas 12 horas.`);
-    if (ultraviolet?.peak >= 3) reasons.push(`O índice UV deve atingir nível ${ultraviolet.level} por volta de ${ultraviolet.time}.`);
+    if (ultraviolet?.peak >= 3) reasons.push(ultraviolet.label);
     return {
       comparison:comparison?.text || "",
       feelsLike:thermal?.label || "",
@@ -172,5 +184,5 @@
     };
   }
 
-  return {currentIndex, yesterday, feelsLike, uv, rain, build, uniqueHighlights};
+  return {currentIndex, yesterday, feelsLike, uv, pressure, rain, build, uniqueHighlights};
 });

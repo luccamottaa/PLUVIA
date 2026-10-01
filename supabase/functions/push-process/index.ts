@@ -50,7 +50,7 @@ function inQuietHours(preference: Preference, severity: number, date = new Date(
 function weatherUrl(location: Location) {
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.search = new URLSearchParams({
-    latitude: String(location.latitude), longitude: String(location.longitude), timezone: "GMT", timeformat: "unixtime", forecast_days: "2",
+    latitude: String(location.latitude), longitude: String(location.longitude), timezone: location.timezone, timeformat: "unixtime", forecast_days: "2",
     current: "temperature_2m,apparent_temperature,precipitation,weather_code,wind_gusts_10m",
     hourly: "temperature_2m,precipitation_probability,precipitation,weather_code,wind_gusts_10m",
     daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max",
@@ -61,7 +61,7 @@ function weatherUrl(location: Location) {
 function airQualityUrl(location: Location) {
   const url = new URL("https://air-quality-api.open-meteo.com/v1/air-quality");
   url.search = new URLSearchParams({
-    latitude: String(location.latitude), longitude: String(location.longitude), timezone: "GMT", forecast_days: "1",
+    latitude: String(location.latitude), longitude: String(location.longitude), timezone: location.timezone, forecast_days: "1",
     current: "us_aqi,pm2_5,pm10",
   }).toString();
   return url.toString();
@@ -91,8 +91,9 @@ function detectWeather(data: any, location: Location, now = new Date()) {
     temperature: Number(data.hourly.temperature_2m?.[index]),
   })).filter((row: any) => row.time >= currentTime - 1800).slice(0, 7);
   const next3h = upcoming.slice(0, 4);
-  const peakRain = Math.max(0, ...next3h.map((row: any) => row.precipitation));
-  const peakProbability = Math.max(0, ...next3h.map((row: any) => row.probability));
+  const futureRain = next3h.filter((row: any) => row.time > currentTime);
+  const peakRain = Math.max(0, ...futureRain.map((row: any) => row.precipitation));
+  const peakProbability = Math.max(0, ...futureRain.map((row: any) => row.probability));
   const peakGust = Math.max(Number(data?.current?.wind_gusts_10m || 0), ...next3h.map((row: any) => row.gust));
   const futurePeakGust = Math.max(Number(data?.current?.wind_gusts_10m || 0), ...upcoming.map((row: any) => row.gust));
   const stormCode = Math.max(Number(data?.current?.weather_code || 0), ...next3h.map((row: any) => row.code));
@@ -100,9 +101,10 @@ function detectWeather(data: any, location: Location, now = new Date()) {
   const apparent = Number(data?.current?.apparent_temperature || 0), temperature = Number(data?.current?.temperature_2m || 0);
   const bucket = Math.floor(now.getTime() / 21_600_000);
   const end2h = new Date(now.getTime() + 2 * 3_600_000), end3h = new Date(now.getTime() + 3 * 3_600_000);
-  const rainHours = next3h.filter((row: any) => row.precipitation >= .5 && row.probability >= 60);
+  const rainHours = futureRain.filter((row: any) => row.precipitation >= .5 && row.probability >= 60);
   const localHour = (unix: number) => new Intl.DateTimeFormat('pt-BR',{timeZone:location.timezone,hour:'2-digit',minute:'2-digit'}).format(new Date(unix*1000));
-  const rainWindow = rainHours.length ? `entre ${localHour(rainHours[0].time)} e ${localHour(rainHours.at(-1).time + 3600)}` : 'nas próximas horas';
+  const lastRainHour = rainHours.at(-1);
+  const rainWindow = lastRainHour ? `entre ${localHour(rainHours[0].time - 3600)} e ${localHour(lastRainHour.time)}` : 'nas próximas horas';
 
   if (currentRain < 0.2 && next3h.slice(1, 3).some((row: any) => row.precipitation >= 0.5 && row.probability >= 60)) events.push({
     type: "rain_approaching", severity: 2, title: "🌧️ Chuva nas próximas horas",
@@ -168,15 +170,16 @@ function parseInmetDate(alert: any, type: "inicio" | "fim") {
 function inmetForLocation(alerts: any[], location: Location, now = new Date()) {
   return alerts.flatMap((alert: any) => {
     if ([true, 1, "1", "true"].includes(alert.encerrado) || /cancel/i.test(String(alert.msgType || ""))) return [];
-    const codes = JSON.stringify(alert.geocodes || alert.geocode || "").match(/\b\d{7}\b/g) || [];
-    const towns = normalize(JSON.stringify(alert.municipios || alert.municipio || ""));
+    const codes: string[] = JSON.stringify(alert.geocodes || alert.geocode || "").match(/\b\d{7}\b/g) || [];
+    const towns = normalize(JSON.stringify(alert.municipios || alert.municipio || "")).split(/[,;|/"\[\]{}:]/)
+      .map(value => value.trim().replace(/\s*(?:-\s*[a-z]{2}|\([a-z]{2}\))$/, '').trim());
     const region = normalize(JSON.stringify([alert.estados, alert.uf, alert.sigla, alert.area, alert.areaDesc]));
     const tokens = region.split(/[^a-z0-9]+/).filter(Boolean);
     const normalizedCity = normalize(location.city_name), normalizedUf = normalize(location.uf);
-    const cityMatch = codes.includes(location.city_id) || (towns.includes(normalizedCity) && (tokens.includes(normalizedUf) || region.includes(normalizedCity)));
+    const cityMatch = codes.length ? codes.includes(location.city_id) : towns.includes(normalizedCity) && tokens.includes(normalizedUf);
     if (!cityMatch) return [];
-    const end = parseInmetDate(alert, "fim") || new Date(now.getTime() + 6 * 3_600_000), start = parseInmetDate(alert, "inicio") || now;
-    if (end <= now || start > new Date(now.getTime() + 24 * 3_600_000)) return [];
+    const end = parseInmetDate(alert, "fim"), start = parseInmetDate(alert, "inicio");
+    if (!end || !start || !Number.isFinite(end.getTime()) || !Number.isFinite(start.getTime()) || end <= start || end <= now || start > new Date(now.getTime() + 24 * 3_600_000)) return [];
     const severityText = normalize(first(alert, ["severidade", "severity", "nivel"]));
     const color = normalize(first(alert, ["aviso_cor", "cor"]));
     const severity = severityText.includes("grande perigo") || color.includes("ff0000") ? 4 : severityText === "perigo" || color.includes("f96602") || color.includes("ffa500") ? 3 : 2;
@@ -288,16 +291,22 @@ Deno.serve(async (req) => {
       const userSubscriptions = subscriptionsByUser.get(location.user_id) || [];
       if (!preference || !userSubscriptions.length || !preference.notifications_enabled) continue;
       try {
-        const weather = await fetchJson(weatherUrl(location));
-        const candidates = [...detectWeather(weather, location), ...inmetForLocation(inmetAlerts, location)];
+        const candidates: EventCandidate[] = inmetForLocation(inmetAlerts, location);
+        try {
+          const weather = await fetchJson(weatherUrl(location));
+          candidates.push(...detectWeather(weather, location));
+          const summary = dailySummaryCandidate(weather, location, preference);
+          if (summary) candidates.push(summary);
+        } catch (error) {
+          sourceFailures++;
+          console.warn("weather source unavailable", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" });
+        }
         if (preference.air_quality) {
           try {
             const airEvent = detectAirQuality(await fetchJson(airQualityUrl(location)), location);
             if (airEvent) candidates.push(airEvent);
           } catch (error) { console.warn("air quality unavailable", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" }); }
         }
-        const summary = dailySummaryCandidate(weather, location, preference);
-        if (summary) candidates.push(summary);
         const enabledCandidates = candidates.filter(candidate => !preferenceFor[candidate.type] || preference[preferenceFor[candidate.type]]);
         for (const candidate of selectCandidates(enabledCandidates)) {
           const event = await createEvent(admin, location, candidate);

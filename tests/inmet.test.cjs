@@ -111,3 +111,10 @@ async function test(label, fn) {await fn(); checks++; console.log(`PASS ${label}
   });
   console.log(`${checks} INMET regression checks passed.`);
 })().catch(error => {console.error(error);process.exitCode=1;});
+
+vm.runInContext('activeCity = cityById.get("1302603")', context);
+assert.equal(context.inmetArea({municipios:'Manaus do Sul',uf:'AM'}),null);
+vm.runInContext('activeCity = cityById.get("5103403"); municipalitiesReady = false', context);
+assert.equal(context.inmetArea({municipios:['Cuiabá'],estados:'Mato Grosso do Sul'}),null);
+vm.runInContext('activeCity = cityById.get("1302603")', context);
+assert.equal(context.inmetArea({municipios:['Manaus'],uf:'AM'}),'Manaus');

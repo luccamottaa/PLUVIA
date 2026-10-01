@@ -59,6 +59,9 @@ O Resumo Inteligente cruza previsão, vento, calor, UV, qualidade do ar e avisos
 
 ## Documentação
 
+- [Evolução: inventário, recursos e limites de dados](docs/PRODUCT-EVOLUTION.md)
+- [Auditoria de estabilidade e validação](docs/STABILITY-AUDIT.md)
+- [Guia para agentes](AGENTS.md)
 - [Fundação técnica](docs/FOUNDATION.md)
 - [Auditoria de produto](docs/PRODUCT-AUDIT.md)
 - [Design System PLUVIA](docs/DESIGN-SYSTEM.md)

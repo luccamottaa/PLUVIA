@@ -16,6 +16,12 @@ test('fim da série, lacuna e valores ausentes não viram chuva zero',()=>{
  assert.equal(missing.feelsLike,null);assert.equal(missing.wind,null);assert.equal(missing.probability,null);
  for(const index of [-1,0.5,3,null]) assert.equal(detail(hourly,index),null);
 });
+test('detalhe inclui UV, pressão e direção meteorológica sem coercão de ausências',()=>{
+ const reading=detail({...hourly,uv_index:[8],pressure_msl:[1010],wind_direction_10m:[90]},0);
+ assert.equal(reading.uv,8);assert.equal(reading.pressure,1010);assert.equal(reading.direction,90);
+ const absent=detail({...hourly,uv_index:[null],pressure_msl:['1010'],wind_direction_10m:[361]},0);
+ assert.equal(absent.uv,null);assert.equal(absent.pressure,null);assert.equal(absent.direction,null);
+});
 test('texto da janela cruza meia-noite sem esconder os dados parciais',()=>{
  const copy=rainCopy(hourlyOutlook.build(hourly,1),hourly.time[0]);
  assert.match(copy.title,/23:00 às 00:00 de amanhã/);assert.match(copy.text,/Dados parciais/);assert.match(copy.text,/2,0 mm nessa faixa/);

@@ -22,7 +22,7 @@ assert.match(map,/Esta camada está temporariamente indisponível\. As outras co
 assert.match(html, /class="weather-map-card panel"[\s\S]*?id="weatherMap"[\s\S]*?id="weatherPlay"/);
 assert.doesNotMatch(html, /id="openWeatherMap"|id="weatherMapDialog"/);
 assert.match(map, /IntersectionObserver[\s\S]*?observer\.observe\(mapCard\)/);
-assert.match(map, /mapVisible && !initializing/);
+assert.match(map, /mapVisible \|\| radarDialog\?\.open/);
 assert.match(map, /mapainterativo\.cemaden\.gov\.br/);
 assert.match(map, /terrabrasilis\.dpi\.inpe\.br\/queimadas\/bdqueimadas/);
 assert.match(map, /star\.nesdis\.noaa\.gov\/goes/);

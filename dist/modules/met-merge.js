@@ -1,10 +1,10 @@
 /* MET Norway fornece o que existe na sua série; Open-Meteo completa as lacunas. */
 (function (root, factory) {
-  const api = factory();
+  const api = factory(typeof module === 'object' && module.exports ? require('./city-time.js') : root.PLUVIA?.time);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.PLUVIA = root.PLUVIA || {};
   root.PLUVIA.metMerge = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (time) {
   'use strict';
   const finite = (value, min, max) => typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
   const symbols = {
@@ -19,9 +19,7 @@
   };
   const weatherCode = symbol => symbols[typeof symbol === 'string' ? symbol.replace(/_(day|night|polartwilight)$/, '') : ''];
   function localParts(date, timezone) {
-    const parts = new Intl.DateTimeFormat('en-GB', {timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(date);
-    const value = name => parts.find(part => part.type === name)?.value;
-    return {day:`${value('year')}-${value('month')}-${value('day')}`,hour:Number(value('hour'))};
+    return time.localParts(date.getTime(),timezone);
   }
   function merge(forecast, met, timezone, now = Date.now()) {
     if (!forecast?.current || !forecast?.hourly || !forecast?.daily || met?.source !== 'MET Norway' || !Array.isArray(met.hourly) || !met.hourly.length) {
@@ -36,13 +34,13 @@
     function write(target, key, value, min, max) {
       if (finite(value,min,max)) { target[key] = value; touched.add(key); }
     }
-    const utcOffset = Number.isFinite(forecast.utc_offset_seconds) ? forecast.utc_offset_seconds : null;
+    const partsByPoint = new Map(points.map(point => [point,localParts(new Date(point.time),timezone)]));
     const localKey = point => {
-      const parts = localParts(new Date(point.time),timezone);
+      const parts = partsByPoint.get(point);
       return `${parts.day}T${String(parts.hour).padStart(2,'0')}:00`;
     };
     const byHour = new Map(points.map(point => [localKey(point),point]));
-    const currentMillis = utcOffset === null ? now : Date.parse(`${current.time}Z`) - utcOffset * 1000;
+    const currentMillis = time.parse(current.time,timezone);
     const currentPoint = points.reduce((best,point) => Math.abs(Date.parse(point.time) - currentMillis) < Math.abs(Date.parse(best.time) - currentMillis) ? point : best,points[0]);
     const currentDistance = Date.parse(currentPoint.time) - now;
     // Não mostrar um valor futuro distante como se fosse a condição atual.
@@ -85,8 +83,8 @@
       }
     });
     (daily.time || []).forEach((day,index) => {
-      const values = points.filter(point => localParts(new Date(point.time),timezone).day === day);
-      const hours = new Set(values.map(point => localParts(new Date(point.time),timezone).hour));
+      const values = points.filter(point => partsByPoint.get(point).day === day);
+      const hours = new Set(values.map(point => partsByPoint.get(point).hour));
       if (hours.size < 22 || !hours.has(0) || !hours.has(23)) return;
       const temps = values.map(point => point.temperatureC);
       if (temps.every(value => finite(value,-90,70))) {

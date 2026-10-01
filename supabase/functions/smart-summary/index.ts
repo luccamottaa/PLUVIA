@@ -20,7 +20,7 @@ const evidenceKeys = new Set([
 ]);
 const statuses = new Set(["calm", "info", "warning", "danger"]);
 const tones = new Set(["calm", "info", "warning", "danger"]);
-const finite = (value: unknown) => Number.isFinite(Number(value)) ? Number(value) : null;
+const finite = (value: unknown) => typeof value === "number" && Number.isFinite(value) ? value : null;
 const bounded = (value: unknown, min: number, max: number) => {
   const number = finite(value);
   if (number === null || number < min || number > max) throw new Error("invalid_context");
@@ -33,8 +33,8 @@ function cleanContext(raw: any): WeatherContext {
   const timezone = String(raw?.city?.timezone || "").trim().slice(0, 64);
   if (raw?.schemaVersion !== 1 || !/^\d{7}$/.test(cityId) || !cityName || !raw?.observedAt || raw.observedAt.length > 40) throw new Error("invalid_context");
   try { new Intl.DateTimeFormat("pt-BR", { timeZone: timezone }).format(); } catch { throw new Error("invalid_context"); }
-  const cleanCodes = (values: unknown) => {
-    if (!Array.isArray(values) || values.length > 6) throw new Error("invalid_context");
+  const cleanCodes = (values: unknown, count: number) => {
+    if (!Array.isArray(values) || values.length !== count) throw new Error("invalid_context");
     return values.map(value => bounded(value, 0, 99));
   };
   const current = raw.current || {};
@@ -48,14 +48,14 @@ function cleanContext(raw: any): WeatherContext {
       precipitation: bounded(current.precipitation ?? 0, 0, 500), gust: bounded(current.gust ?? 0, 0, 400),
     },
     next3h: {
-      probability: bounded(raw.next3h?.probability ?? 0, 0, 100), precipitation: bounded(raw.next3h?.precipitation ?? 0, 0, 500),
-      gust: bounded(raw.next3h?.gust ?? 0, 0, 400), codes: cleanCodes(raw.next3h?.codes),
+      probability: bounded(raw.next3h?.probability, 0, 100), precipitation: bounded(raw.next3h?.precipitation, 0, 500),
+      gust: bounded(raw.next3h?.gust, 0, 400), codes: cleanCodes(raw.next3h?.codes, 3),
     },
     next6h: {
-      probability: bounded(raw.next6h?.probability ?? 0, 0, 100), precipitation: bounded(raw.next6h?.precipitation ?? 0, 0, 1000),
-      gust: bounded(raw.next6h?.gust ?? 0, 0, 400), codes: cleanCodes(raw.next6h?.codes),
+      probability: bounded(raw.next6h?.probability, 0, 100), precipitation: bounded(raw.next6h?.precipitation, 0, 1000),
+      gust: bounded(raw.next6h?.gust, 0, 400), codes: cleanCodes(raw.next6h?.codes, 6),
     },
-    uv: bounded(raw.uv ?? 0, 0, 30),
+    uv: bounded(raw.uv, 0, 30),
     airQuality: raw.airQuality === null || raw.airQuality === undefined ? null : bounded(raw.airQuality, 0, 500),
   };
 }
@@ -65,16 +65,18 @@ function clientHash(context: WeatherContext) {
   const stable = JSON.stringify({
     city: context.city.id, period: context.observedAt.slice(0, 13), code: context.current.code,
     temperature: round(context.current.temperature), apparent: round(context.current.apparent), humidity: round(context.current.humidity),
+    precipitation:round(context.current.precipitation,1),currentGust:round(context.current.gust),
     p3: round(context.next3h.probability), mm3: round(context.next3h.precipitation, 1), mm6: round(context.next6h.precipitation, 1),
     gust: round(context.next3h.gust), uv: round(context.uv), aqi: round(context.airQuality),
+    p6:round(context.next6h.probability),gust6:round(context.next6h.gust),codes3:context.next3h.codes,codes6:context.next6h.codes,
   });
   let hash = 2166136261;
   for (let index = 0; index < stable.length; index += 1) hash = Math.imul(hash ^ stable.charCodeAt(index), 16777619);
-  return `v1-${(hash >>> 0).toString(36)}`;
+  return `v2-${(hash >>> 0).toString(36)}`;
 }
 
 async function serverHash(context: WeatherContext) {
-  const bytes = new TextEncoder().encode(JSON.stringify({ copyVersion: 2, context }));
+  const bytes = new TextEncoder().encode(JSON.stringify({ copyVersion: 3, context }));
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map(value => value.toString(16).padStart(2, "0")).join("");
 }

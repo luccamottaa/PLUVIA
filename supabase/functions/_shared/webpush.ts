@@ -1,5 +1,6 @@
 // web-push implements RFC 8291 payload encryption and VAPID signing.
 import webpush from "npm:web-push@3.6.7";
+import { allowedPushEndpoint } from "./push-endpoint.ts";
 
 export type StoredSubscription = {
   id: string;
@@ -15,6 +16,9 @@ export type VapidConfig = {
 };
 
 export async function sendWebPush(subscription: StoredSubscription, payload: Record<string, unknown>, vapid: VapidConfig, severity = 2) {
+  if (!allowedPushEndpoint(subscription.endpoint)) {
+    throw Object.assign(new Error('invalid_push_endpoint'),{statusCode:410});
+  }
   const topicSource = String(payload.tag || payload.type || "pluvia");
   const topic = topicSource.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 32) || "pluvia";
   return await webpush.sendNotification(
@@ -37,4 +41,3 @@ export function pushErrorCode(error: unknown) {
   if (status >= 500) return { code: "push_service_unavailable", invalid: false };
   return { code: status ? `push_http_${status}` : "push_transport_failed", invalid: false };
 }
-

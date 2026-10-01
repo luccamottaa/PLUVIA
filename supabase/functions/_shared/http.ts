@@ -32,6 +32,18 @@ export function preflight(req: Request) {
 export async function readJson(req: Request) {
   const size = Number(req.headers.get("content-length") || 0);
   if (size > 24_000) throw new Error("payload_too_large");
-  return await req.json();
+  const reader = req.body?.getReader();
+  if (!reader) throw new Error("empty_payload");
+  const decoder = new TextDecoder();
+  let bytes = 0, body = "";
+  try {
+    while (true) {
+      const {value,done} = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > 24_000) { await reader.cancel(); throw new Error("payload_too_large"); }
+      body += decoder.decode(value,{stream:true});
+    }
+    return JSON.parse(body + decoder.decode());
+  } finally { reader.releaseLock(); }
 }
-
