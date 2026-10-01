@@ -214,3 +214,23 @@ footer.shell .footer-brand-copy { align-items:center; text-align:center; }
 footer.shell .footer-brand-copy span { color:var(--intro-ink); }
 footer.shell .footer-details { justify-items:center; text-align:center; }
 footer.shell .footer-details .footer-link { justify-self:center; min-height:44px; color:var(--intro-ink); }
+
+.hourly-decision { margin:0 0 18px; font-size:.95rem; font-weight:700; line-height:1.55; color:var(--reading-ink); }
+#weatherView .hourly-peek-item .peek-volume { font-size:.75rem; color:var(--reading-muted); white-space:nowrap; }
+#weatherView .hourly-peek-item { min-height:170px; }
+.favorite-cities { min-width:0; }
+#weatherView .favorite-cities { margin:0; padding:16px 0 24px; }
+.favorites-heading { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+.favorites-heading h2 { margin:0; font-size:1rem; }
+#favoriteCityQuick { min-height:44px; padding:8px 12px; border:1px solid var(--reading-line); border-radius:12px; background:transparent; color:var(--reading-link); font:700 .875rem var(--font-ui); cursor:pointer; }
+.favorite-city-list { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity; padding-block:4px; }
+.favorite-city-card { flex:0 0 180px; min-height:112px; display:grid; justify-items:start; gap:5px; padding:14px; border:1px solid var(--reading-line,var(--dialog-line)); border-radius:16px; background:transparent; color:inherit; font:inherit; text-align:left; scroll-snap-align:start; cursor:pointer; }
+.favorite-city-card[aria-current=true] { border-color:var(--reading-link,#6ba4ff); }
+.favorite-city-card strong { font-size:1rem; }
+.favorite-city-card small { color:var(--reading-muted,var(--dialog-muted)); font-size:.75rem; }
+.favorite-city-card .favorite-reading { font-weight:800; font-size:1.2rem; }
+.favorite-city-card .favorite-summary { font-size:.8rem; line-height:1.4; }
+#favoriteCityStatus { margin:8px 0 0; font-size:.8rem; color:var(--reading-muted); }
+#cityDialog .favorite-cities { margin-bottom:6px; }
+#cityDialog .favorite-city-card { min-height:112px; border:1px solid var(--dialog-line); background:var(--dialog-surface); color:var(--dialog-text); padding:12px; }
+#cityDialog .favorite-city-card small { color:var(--dialog-muted); }

@@ -35,6 +35,7 @@
     if (typeof favorites === 'undefined') return;
     favorites.clear(); ids.forEach(id=>favorites.add(id));
     try { writePreference('pluvia-favorites',ids); renderCityOptions(); updateCityLabels(); } catch {}
+    window.dispatchEvent?.(new CustomEvent('pluvia:favorites-loaded'));
   }
   async function mergeAccountPreferences(user) {
     if (!user || syncing) return;

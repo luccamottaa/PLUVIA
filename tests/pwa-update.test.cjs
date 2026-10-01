@@ -56,6 +56,8 @@ test('primeira instalação não recarrega; offline e falhas de atualização pe
   await settle();
   app.workerEvents.controllerchange();
   assert.equal(app.reloads(), 0);
+  app.workerEvents.controllerchange();
+  assert.equal(app.reloads(), 1, 'uma atualização posterior à primeira instalação recarrega a versão');
   app.advance(31000);
   app.context.navigator.onLine = false;
   app.events.interval();
@@ -70,6 +72,15 @@ test('primeira instalação não recarrega; offline e falhas de atualização pe
   app.events.focus();
   await settle();
   assert.equal(retried, true);
+});
+
+test('versão nova aguarda a busca ou formulário fechar para não apagar a digitação',async()=>{
+  const app=boot();await settle();
+  let interacting=true;
+  app.context.document.querySelector=()=>interacting ? {} : null;
+  app.workerEvents.controllerchange();assert.equal(app.reloads(),0);
+  interacting=false;app.documentEvents.close();assert.equal(app.reloads(),1);
+  app.workerEvents.controllerchange();assert.equal(app.reloads(),1);
 });
 
 function worker(failCritical = false) {

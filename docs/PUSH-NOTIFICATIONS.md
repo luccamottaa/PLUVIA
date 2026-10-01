@@ -68,3 +68,9 @@ Novos cadastros pela interface exigem no mínimo 12 caracteres, incluindo maiús
 - Subscriptions desativadas são removidas após 30 dias.
 - Eventos expirados e suas entregas são retidos por até 90 dias para deduplicação e diagnóstico, depois removidos em cascata.
 - Alertas de severidade crítica podem atravessar o horário silencioso; permissões do sistema operacional sempre prevalecem.
+
+## Clareza e repetição dos avisos
+
+As notificações distinguem aviso oficial do INMET de previsão meteorológica. A previsão de chuva inclui intervalo no fuso da cidade, probabilidade e pico previsto em mm/h.
+
+Sinais de chuva próxima, chuva forte e tempestade gerados no mesmo processamento são reunidos no sinal mais forte. Para cada dispositivo e cidade, uma condição prevista de igual ou menor severidade não se repete durante seis horas após um envio aceito. Um aumento de severidade permite novo envio. Avisos oficiais distintos não entram nesse intervalo; continuam com deduplicação por identificador oficial. Envios pendentes por até dois minutos também são considerados para reduzir concorrência, e envios que falharam não contam como recebidos.

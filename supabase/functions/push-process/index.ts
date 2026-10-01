@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { adminClient, pushSecrets } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 import { pushErrorCode, sendWebPush } from "../_shared/webpush.ts";
+import { selectCandidates, isRepeat } from "../_shared/notification-policy.js";
 
 type Location = { id: string; user_id: string; city_id: string; city_name: string; uf: string; latitude: number; longitude: number; timezone: string };
 type Preference = Record<string, any> & { user_id: string };
@@ -99,10 +100,13 @@ function detectWeather(data: any, location: Location, now = new Date()) {
   const apparent = Number(data?.current?.apparent_temperature || 0), temperature = Number(data?.current?.temperature_2m || 0);
   const bucket = Math.floor(now.getTime() / 21_600_000);
   const end2h = new Date(now.getTime() + 2 * 3_600_000), end3h = new Date(now.getTime() + 3 * 3_600_000);
+  const rainHours = next3h.filter((row: any) => row.precipitation >= .5 && row.probability >= 60);
+  const localHour = (unix: number) => new Intl.DateTimeFormat('pt-BR',{timeZone:location.timezone,hour:'2-digit',minute:'2-digit'}).format(new Date(unix*1000));
+  const rainWindow = rainHours.length ? `entre ${localHour(rainHours[0].time)} e ${localHour(rainHours.at(-1).time + 3600)}` : 'nas próximas horas';
 
   if (currentRain < 0.2 && next3h.slice(1, 3).some((row: any) => row.precipitation >= 0.5 && row.probability >= 60)) events.push({
     type: "rain_approaching", severity: 2, title: "🌧️ Chuva nas próximas horas",
-    body: `O modelo indica chuva na região de ${location.city_name} nas próximas horas — não é radar nem minuto exato. Vale levar guarda-chuva.`, source: "Open-Meteo · modelo",
+    body: `Previsão para ${location.city_name}: chuva ${rainWindow}, com até ${Math.round(peakProbability)}% de chance e pico de ${peakRain.toFixed(1).replace('.',',')} mm/h. Vale levar guarda-chuva. Fonte: modelo Open-Meteo; o horário pode mudar.`, source: "Open-Meteo · modelo",
     start: now, expires: end2h, url: "./#chuva", fingerprintSeed: `rain_approaching|${location.city_id}|${bucket}|2`, metadata: { peak_probability: peakProbability, peak_mm_h: peakRain, confidence: "moderate" },
   });
   if (peakRain >= 5 && peakProbability >= 70) {
@@ -207,10 +211,10 @@ async function createEvent(admin: any, location: Location, candidate: EventCandi
   if (error?.code === "23505") {
     const { data: existing, error: existingError } = await admin.from("notification_events").select("id").eq("fingerprint", fingerprint).single();
     if (existingError || !existing) throw existingError || new Error("event_lookup_failed");
-    return { ...candidate, id: existing.id, fingerprint, created: false };
+    return { ...candidate, cityId:location.city_id, id: existing.id, fingerprint, created: false };
   }
   if (error) throw error;
-  return { ...candidate, id: data.id, fingerprint, created: true };
+  return { ...candidate, cityId:location.city_id, id: data.id, fingerprint, created: true };
 }
 
 async function deliver(admin: any, event: any, preference: Preference, subscriptions: any[], userId: string, vapid: any) {
@@ -219,6 +223,16 @@ async function deliver(admin: any, event: any, preference: Preference, subscript
   if (!preference.notifications_enabled || (flag && !preference[flag]) || belowMinimum || inQuietHours(preference, event.severity)) return { accepted: 0, skipped: subscriptions.length };
   let accepted = 0, skipped = 0;
   for (const subscription of subscriptions) {
+    // Fingerprints already deduplicate the same event. This also covers bucket
+    // boundaries and related model signals, but lets severity increases through.
+    if (!['official_alert','daily_summary'].includes(event.type)) {
+      const {data:recent,error:recentError} = await admin.from('notification_deliveries')
+        .select('status,sent_at,created_at,notification_events!inner(event_type,severity,city_id,metadata)')
+        .eq('subscription_id',subscription.id).eq('notification_events.city_id',event.cityId)
+        .in('status',['accepted','pending']).gte('created_at',new Date(Date.now()-6*3600000).toISOString());
+      if (recentError) throw new Error("dedup_lookup_failed");
+      if (isRepeat(event,recent || [])) { skipped++; continue; }
+    }
     const { data: delivery, error } = await admin.from("notification_deliveries").insert({ event_id: event.id, user_id: userId, subscription_id: subscription.id }).select("id").single();
     if (error?.code === "23505") { skipped++; continue; }
     if (error || !delivery) { skipped++; continue; }
@@ -284,7 +298,8 @@ Deno.serve(async (req) => {
         }
         const summary = dailySummaryCandidate(weather, location, preference);
         if (summary) candidates.push(summary);
-        for (const candidate of candidates) {
+        const enabledCandidates = candidates.filter(candidate => !preferenceFor[candidate.type] || preference[preferenceFor[candidate.type]]);
+        for (const candidate of selectCandidates(enabledCandidates)) {
           const event = await createEvent(admin, location, candidate);
           if (event.created) created++;
           const result = await deliver(admin, event, preference, userSubscriptions, location.user_id, vapid);

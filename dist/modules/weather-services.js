@@ -61,7 +61,10 @@
       weather: {
         source:"open-meteo",
         forecastUrl: city => buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS),
-        getForecast: (city, options) => getJson(buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS), options)
+        getForecast: (city, options) => getJson(buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS), options),
+        getBrief: (city, options) => getJson(buildUrl(FORECAST_ENDPOINT, city, {
+          current:"temperature_2m,weather_code,is_day",hourly:"precipitation_probability",forecast_days:"2"
+        }),options)
       },
       metNorway: {
         source:"met-norway",
