@@ -59,6 +59,7 @@ O Resumo Inteligente cruza previsão, vento, calor, UV, qualidade do ar e avisos
 
 ## Documentação
 
+- [Compartilhar clima](docs/WEATHER-SHARING.md)
 - [Fundação técnica](docs/FOUNDATION.md)
 - [Auditoria de produto](docs/PRODUCT-AUDIT.md)
 - [Design System PLUVIA](docs/DESIGN-SYSTEM.md)

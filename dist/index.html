@@ -84,9 +84,10 @@
     <link rel="stylesheet" href="./sky.css?v=sky-7" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-31" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-32" />
     <link rel="stylesheet" href="./continuous.css?v=layout-13" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="./weather-share.css?v=share-1" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
   <body>
@@ -245,7 +246,7 @@
       </section>
       <section class="dashboard-grid" aria-label="Condições atuais">
         <article class="current-card weather-hero panel card-primary">
-          <div class="card-topline"><span>CONDIÇÃO ATUAL</span></div>
+          <div class="card-topline"><span>CONDIÇÃO ATUAL</span></div><div class="weather-share-toolbar"><button id="openWeatherShare" class="weather-share-trigger" type="button" disabled aria-haspopup="dialog" aria-controls="weatherShareDialog" aria-label="Compartilhar clima"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4m-6.8 7 6.8 4"/></svg>Compartilhar</button></div>
           <div class="weather-main">
             <div class="wx-copy">
               <div class="temperature"><span id="temperature">--</span><span class="deg">°</span></div>
@@ -365,6 +366,20 @@
       <p>O sistema envia avisos oficiais do INMET e previsões de chuva para o município selecionado. A previsão não representa as condições exatas de um endereço.</p>
       <button id="installPushReload" type="button">Recarregar após a instalação</button>
     </dialog>
+    <dialog id="weatherShareDialog" class="city-dialog" aria-labelledby="weatherShareTitle">
+      <div class="dialog-heading"><h2 id="weatherShareTitle">Compartilhar clima</h2><button id="weatherShareClose" class="dialog-close" type="button" autofocus aria-label="Fechar compartilhamento">×</button></div>
+      <div class="dialog-scroll">
+        <img id="weatherSharePreview" width="1080" height="1350" alt="" hidden>
+        <div class="weather-share-actions">
+          <button id="weatherShareNative" type="button" hidden>Compartilhar cartão</button>
+          <a id="weatherShareWhatsApp" href="https://wa.me/" target="_blank" rel="noopener noreferrer">WhatsApp · texto</a>
+          <button id="weatherShareSave" type="button" disabled>Salvar imagem</button>
+          <button id="weatherShareCopy" type="button">Copiar texto</button>
+        </div>
+        <p id="weatherShareStatus" role="status" aria-live="polite"></p>
+        <textarea id="weatherShareText" readonly hidden aria-label="Texto do clima para copiar"></textarea>
+      </div>
+    </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
     <script src="./analytics.js?v=analytics-3" defer></script>
     <script src="./modules/sources.js?v=panel-21" defer></script>
@@ -381,8 +396,9 @@
     <script src="./capitals.js?v=core-47" defer></script>
     <script src="./modules/hourly-outlook.js?v=outlook-3" defer></script>
     <script src="./modules/hourly-detail.js?v=detail-1" defer></script>
-    <script src="./app.js?v=panel-30" defer></script>
-    <script src="./p0.js?v=panel-35" defer></script>
+    <script src="./modules/weather-share.js?v=share-1" defer></script>
+    <script src="./app.js?v=panel-31" defer></script>
+    <script src="./p0.js?v=panel-36" defer></script>
     <script src="./modules/risks.js?v=core-116" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
     <script src="./weather-map.js?v=panel-29" defer></script>
