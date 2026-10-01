@@ -113,14 +113,15 @@
     const times = hourly?.time || [];
     if (start < 0 || !times[start]) return null;
     // A 12-hour aggregate requires every sample; missing is not dry weather.
-    const end = start + 12;
+    const end = start + 13;
     if (end > times.length) return null;
     let chance = 0;
     let volume = 0;
     let peak = 0;
     let first = -1;
     let last = -1;
-    for (let index = start; index < end; index += 1) {
+    for (let index = start + 1; index < end; index += 1) {
+      if (Date.parse(times[index-1]?.slice(0,16)+'Z')+3600000 !== Date.parse(times[index]?.slice(0,16)+'Z')) return null;
       const probability = number(hourly.precipitation_probability?.[index]);
       const amount = number(hourly.precipitation?.[index]);
       if (probability === null || probability < 0 || probability > 100 || amount === null || amount < 0) return null;
@@ -133,7 +134,7 @@
       }
     }
     const intensity = peak >= 7.5 ? "forte" : peak >= 2.5 ? "moderada" : peak > 0 ? "fraca" : "sem volume relevante";
-    const window = first >= 0 ? (first === last ? clock(times[first]) : `${clock(times[first])}–${clock(times[last])}`) : null;
+    const window = first >= 0 ? `${clock(times[first-1])}–${clock(times[last])}` : null;
     const volumeRounded = round(volume, 1);
     const meta = [
       `${Math.round(chance)}% de chance`,

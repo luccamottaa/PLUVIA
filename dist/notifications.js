@@ -9,6 +9,7 @@
 
   const boolFields = ["official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary"];
   let config = null, busy = false, pendingEnable = false;
+  const preferencesModel=window.PLUVIA.notificationPreferences;
   try { pendingEnable = sessionStorage.getItem("pluvia-push-pending-enable") === "1"; } catch {}
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
@@ -101,7 +102,7 @@
   }
 
   function paintPreferences(preferences) {
-    if (!preferences) return;
+    preferences=allAlertPreferences(preferences);
     for (const field of boolFields) {
       const input = form.elements.namedItem(field);
       if (input) input.checked = Boolean(preferences[field]);
@@ -109,6 +110,27 @@
     for (const field of ["minimum_severity", "quiet_start", "quiet_end", "daily_summary_time"]) {
       const input = form.elements.namedItem(field);
       if (input && preferences[field] != null) input.value = field === "minimum_severity" ? String(preferences[field]) : String(preferences[field]).slice(0, 5);
+    }
+    el('notificationSummaryTimeField').hidden=!form.elements.namedItem('daily_summary')?.checked;
+  }
+
+  function paintCityChoices() {
+    const choices=el('notificationFavoriteChoices');if(!choices) return;
+    const current=currentLocation(),locations=config?.locations || [];
+    const monitored=new Set(locations.filter(location=>location.enabled).map(location=>location.city_id));
+    const currentInput=form.elements.namedItem('monitor_current_city');
+    currentInput.disabled=!current || monitored.has(current.cityId);
+    if(currentInput.disabled) currentInput.checked=false;
+    el('notificationCurrentCityLabel').textContent=current ? `${current.cityName}/${current.uf}${monitored.has(current.cityId) ? ' · já recebe avisos' : ' · cidade aberta'}` : 'Abra uma cidade para adicioná-la aos avisos';
+    const selected=new Set([...choices.querySelectorAll('input:checked')].map(input=>input.dataset.notificationCity));
+    choices.replaceChildren();
+    const ids=typeof favorites!=='undefined' ? [...favorites] : [];
+    for(const id of ids.filter(id=>/^\d{7}$/.test(id) && id!==current?.cityId && !monitored.has(id)).slice(0,30)) {
+      const city=typeof cityById!=='undefined' ? cityById.get(id) : null;
+      const label=document.createElement('label'),input=document.createElement('input'),name=document.createElement('span');
+      label.className='notification-location';input.type='checkbox';input.dataset.notificationCity=id;input.checked=selected.has(id);
+      name.textContent=city ? `${city.name}/${city.uf} · favorita` : 'Cidade favorita';label.append(input,name);choices.append(label);
+      if(!city && typeof ensureCityDetails==='function') ensureCityDetails(id).then(city=>{if(city && name.isConnected) name.textContent=`${city.name}/${city.uf} · favorita`;}).catch(()=>{});
     }
   }
 
@@ -135,7 +157,7 @@
       const copy = document.createElement("div"), name = document.createElement("strong"), detail = document.createElement("small"), remove = document.createElement("button");
       name.textContent = `${location.city_name}, ${location.uf}`;
       detail.textContent = location.source === "gps_city" ? "Escolhida a partir da localização" : "Cidade salva";
-      remove.type = "button"; remove.dataset.removeLocation = location.id; remove.textContent = "Remover"; remove.setAttribute("aria-label", `Parar de monitorar ${location.city_name}`);
+      remove.type = "button"; remove.dataset.removeLocation = location.id; remove.textContent = "Parar avisos"; remove.setAttribute("aria-label", `Parar avisos para ${location.city_name}`);
       copy.append(name, detail); row.append(copy, remove); locationsNode.appendChild(row);
     }
   }
@@ -143,7 +165,7 @@
   async function paintState() {
     prompt.hidden = false;
     await paintDiagnostics();
-    if (continueNote) continueNote.hidden = !(currentUser() && pendingEnable && Notification.permission !== "granted");
+    if (continueNote) continueNote.hidden = !(supported && currentUser() && pendingEnable && Notification.permission !== "granted");
     const city = cityLabel();
     if (!supported) {
       status("blocked", "Navegador incompatível"); toggle.disabled = true; testButton.hidden = true;
@@ -177,18 +199,17 @@
   }
 
   async function loadConfig() {
-    if (!currentUser()) return null;
-    config = await invoke("push-subscriptions", { action: "config" });
-    if (config.preferences?.notifications_enabled) {
-      const desired = allAlertPreferences();
-      if (Object.entries(desired).some(([key, value]) => config.preferences[key] !== value)) {
-        await invoke("push-subscriptions", { action: "preferences", preferences: desired });
-        Object.assign(config.preferences, desired);
-      }
-    }
+    const user = currentUser();
+    if (!user) return null;
+    el('notificationPreferencesSave').disabled = true;
+    const loaded = await invoke("push-subscriptions", { action: "config" });
+    if (currentUser()?.id !== user.id) return null;
+    config = loaded;
     paintPreferences(config.preferences);
     paintDevices(config.devices);
     paintLocations(config.locations);
+    paintCityChoices();
+    el('notificationPreferencesSave').disabled = false;
     return config;
   }
 
@@ -200,19 +221,14 @@
     await loadConfig();
   }
 
-  function allAlertPreferences() {
-    return {
-      notifications_enabled:true, official_alerts:true, rain_approaching:true,
-      heavy_rain:true, storms:true, lightning:false, strong_wind:true,
-      extreme_heat:true, air_quality:true, weather_changes:true,
-      daily_summary:false, minimum_severity:1, quiet_start:null, quiet_end:null
-    };
+  function allAlertPreferences(saved) {
+    return preferencesModel.defaults(saved);
   }
 
   async function saveAlertSetup(location) {
     const existing = config?.preferences;
     const preferences = {
-      ...allAlertPreferences(),
+      ...allAlertPreferences(existing),notifications_enabled:true,
       timezone: location?.timezone || existing?.timezone || "America/Manaus"
     };
     await invoke("push-subscriptions", { action: "preferences", preferences, location });
@@ -286,13 +302,25 @@
   form.addEventListener("submit", async event => {
     event.preventDefault(); if (busy || !currentUser()) return;
     busy = true; const button = el("notificationPreferencesSave"); button.disabled = true;
-    const preferences = allAlertPreferences();
+    const preferences = preferencesModel.collect(form,config?.preferences);
     const location = form.elements.namedItem("monitor_current_city")?.checked ? currentLocation() : null;
     if (location) preferences.timezone = location.timezone;
-    try { await invoke("push-subscriptions", { action: "preferences", preferences, location }); await loadConfig(); message(location ? `${location.cityName} está sendo monitorada. Preferências salvas.` : "Preferências salvas. Nenhuma nova cidade foi adicionada."); track("Push Preferences Saved"); }
+    try {
+      const ids=preferencesModel.selectedCities(el('notificationFavoriteChoices').querySelectorAll('input'));
+      if(ids.length+(location ? 1 : 0)>30) throw Error('Escolha até 30 cidades por vez.');
+      const locations=[];
+      for(const id of ids) {const city=await ensureCityDetails(id);if(!city) throw Error('Não foi possível abrir uma das cidades. Tente novamente.');locations.push({cityId:city.id,cityName:city.name,uf:city.uf,latitude:city.lat,longitude:city.lon,timezone:city.timezone,source:'saved_city'});}
+      await invoke("push-subscriptions", { action: "preferences", preferences, location, locations });
+      form.elements.namedItem('monitor_current_city').checked=false;
+      await loadConfig();
+      const selectedTypes=preferencesModel.fields.filter(field=>preferences[field]);
+      message(!selectedTypes.length ? 'Preferências salvas. Nenhum tipo de aviso está selecionado.' : location || locations.length ? 'Preferências e cidades salvas. Somente os avisos escolhidos serão enviados.' : 'Preferências salvas. As cidades monitoradas foram mantidas.');
+      track("Push Preferences Saved");
+    }
     catch (error) { message(error.message || "Não foi possível salvar as preferências."); }
     finally { busy = false; button.disabled = false; }
   });
+  form.elements.namedItem('daily_summary')?.addEventListener('change',()=>{el('notificationSummaryTimeField').hidden=!form.elements.namedItem('daily_summary').checked;});
   devicesNode.addEventListener("click", async event => {
     const button = event.target.closest("[data-remove-subscription]"); if (!button || busy) return;
     busy = true; button.disabled = true;
@@ -309,10 +337,10 @@
   });
 
   window.addEventListener("pluvia:auth-changed", async event => {
-    if (!event.detail?.user) { config = null; setPendingEnable(false); paintDevices([]); paintLocations([]); await paintState(); return; }
+    if (!event.detail?.user) { config = null; setPendingEnable(false); paintPreferences(null); paintDevices([]); paintLocations([]); paintCityChoices(); el('notificationPreferencesSave').disabled=true; await paintState(); return; }
     try {
       await loadConfig();
-      const subscription = Notification.permission === "granted" ? await browserSubscription() : null;
+      const subscription = supported && Notification.permission === "granted" ? await browserSubscription() : null;
       if (subscription) await register(subscription);
       if (pendingEnable) {
         message("Conta conectada. Toque em “Ativar alertas” para o sistema pedir permissão.");
@@ -325,7 +353,9 @@
     await paintState();
   });
   navigator.serviceWorker?.addEventListener("message", event => { if (event.data?.type === "push-subscription-changed" && currentUser()) loadConfig().then(async () => { const subscription = await browserSubscription(); if (subscription) await register(subscription); }).catch(() => {}); });
-  window.addEventListener("pluvia:city-changed", () => { const checkbox = form.elements.namedItem("monitor_current_city"); if (checkbox) checkbox.checked = false; paintState().catch(() => {}); });
+  window.addEventListener("pluvia:city-changed", () => { const checkbox = form.elements.namedItem("monitor_current_city"); if (checkbox) checkbox.checked = false; paintCityChoices();paintState().catch(() => {}); });
+  window.addEventListener('pluvia:favorites-changed',paintCityChoices);
+  window.addEventListener('pluvia:favorites-loaded',paintCityChoices);
   window.pluviaPush = { beforeLogout, enable, disable };
   paintState().catch(() => {});
 })();

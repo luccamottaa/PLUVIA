@@ -406,13 +406,18 @@ globalThis.addEventListener?.("pluvia:auth-changed", event => {
 });
 
 function findDryWindow(hourly, start) {
-  for (let i = start; i < Math.min(hourly.time.length - 2, start + 36); i++) {
-    if (hourly.precipitation_probability[i] < 30 && hourly.precipitation_probability[i + 1] < 30) {
-      const day = i === start ? "Agora" : hourly.time[i].slice(0, 10) === hourly.time[start].slice(0, 10) ? "Hoje" : "Amanhã";
-      return `${day === "Agora" ? "A partir de agora" : day}, das ${shortTime(hourly.time[i])} às ${shortTime(hourly.time[i + 2])}: menor probabilidade de chuva`;
+  const consecutive = (a,b) => Date.parse(a?.slice(0,16)+'Z') + 3600000 === Date.parse(b?.slice(0,16)+'Z');
+  let knownPairs = 0;
+  for (let i = start + 1; i < Math.min(hourly.time.length - 1, start + 37); i++) {
+    const pair = [hourly.precipitation_probability?.[i],hourly.precipitation_probability?.[i+1]];
+    if (!consecutive(hourly.time[i-1],hourly.time[i]) || !consecutive(hourly.time[i],hourly.time[i+1]) || !pair.every(value => Number.isFinite(value) && value >= 0 && value <= 100)) continue;
+    knownPairs++;
+    if (pair.every(value => value < 30)) {
+      const day = i === start + 1 ? "Agora" : hourly.time[i - 1].slice(0, 10) === hourly.time[start].slice(0, 10) ? "Hoje" : "Amanhã";
+      return `${day === "Agora" ? "A partir de agora" : day}, das ${shortTime(hourly.time[i - 1])} às ${shortTime(hourly.time[i + 1])}: menor probabilidade de chuva`;
     }
   }
-  return "Sem período com baixa probabilidade de chuva nas próximas 36h";
+  return knownPairs ? "Sem período com baixa probabilidade de chuva nos horários disponíveis" : "Janela de baixa chance de chuva indisponível";
 }
 
 function forecastIsDay(time, daily) {
@@ -427,28 +432,22 @@ function renderHourly(hourly, start, daily) {
   const chart = $("rainChart");
   const scrollLeft = chart.scrollLeft;
   const indices = Array.from({length: 24}, (_, i) => start + i).filter(i => i < hourly.time.length);
+  const rainIndex = i => Date.parse(hourly.time[i]?.slice(0,16)+'Z') + 3600000 === Date.parse(hourly.time[i+1]?.slice(0,16)+'Z') ? i+1 : -1;
   const peek = $("hourlyPeek");
   if (peek) {
     peek.innerHTML = indices.slice(0, 5).map((i, p) => {
       const time = p === 0 ? "Agora" : shortTime(hourly.time[i]);
       const temperature = hourly.temperature_2m?.[i];
-      const probability = hourly.precipitation_probability?.[i];
+      const probability = hourly.precipitation_probability?.[rainIndex(i)];
       const icon = weatherIcons.markup(hourly.weather_code?.[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:true});
-      const mm = hourly.precipitation?.[i];
+      const mm = hourly.precipitation?.[rainIndex(i)];
       const volume = Number.isFinite(mm) && mm >= 0 ? `${fmt(mm, 1)} mm` : "Volume indisponível";
       const rain = Number.isFinite(probability) ? `${Math.round(probability)}%` : "—";
-      return `<a class="hourly-peek-item ${p === 0 ? "is-now" : ""}" href="#chuva" aria-label="${time}: ${fmt(temperature)} graus, ${rain} de chance de chuva, ${volume}. Ver previsão completa"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain">${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}${rain}</span><strong>${fmt(temperature)}°</strong><small class="peek-volume">${volume}</small></a>`;
+      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="${time}: ${fmt(temperature)} graus, ${rain} de chance de chuva, ${volume}. Ver detalhes"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain">${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}${rain}</span><strong>${fmt(temperature)}°</strong><small class="peek-volume">${volume}</small></button>`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
   }
-  const outlook = globalThis.PLUVIA?.hourlyOutlook?.build(hourly,start);
   const decision = $("hourlyDecision");
-  if (decision && outlook) {
-    const nextDay = outlook.start?.slice(0,10) !== hourly.time[start]?.slice(0,10) ? "Amanhã: " : "";
-    const headline = outlook.kind === 'unavailable' ? 'Chance de chuva indisponível nas próximas 12 horas.'
-      : outlook.kind === 'low' ? `${outlook.complete ? 'Baixa chance' : 'Nos horários disponíveis, baixa chance'} de chuva nas próximas 12 horas (até ${Math.round(outlook.probability)}%).`
-      : `${nextDay}${outlook.complete ? 'Maior' : 'Nos horários disponíveis, maior'} chance de chuva das ${shortTime(outlook.start)} às ${shortTime(outlook.end)}${outlook.end?.slice(0,10) !== outlook.start?.slice(0,10) ? " do dia seguinte" : ""} (${Math.round(outlook.probability)}%).`;
-    decision.textContent = headline + (outlook.volume === null ? '' : ` Volume previsto em 12h: ${fmt(outlook.volume,1)} mm.`);
-  }
+  if (decision) decision.textContent=indices.length ? 'Toque em um horário para ver sensação, chuva e rajadas.' : 'Previsão por hora indisponível.';
   const temperatures = indices.map(i => hourly.temperature_2m[i]).filter(Number.isFinite);
   const minTemp = temperatures.length ? Math.min(...temperatures) : 0;
   const tempSpread = temperatures.length ? Math.max(1, Math.max(...temperatures) - minTemp) : 1;
@@ -467,10 +466,10 @@ function renderHourly(hourly, start, daily) {
     const icon = weatherIcons.markup(hourly.weather_code[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:false});
     if (hourlyMode === "conditions") {
       const height = Number.isFinite(temperature) ? 24 + (temperature - minTemp) / tempSpread * 111 : 0;
-      return `<div class="hour-column ${p === 0 ? "now" : ""}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${weather(hourly.weather_code[i])[0]}">
+      return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${weather(hourly.weather_code[i])[0]}">
         <span class="hour-time">${time}</span><span class="hour-temp">${fmt(temperature)}°</span>
         <div class="bar-area"><div class="temp-bar" style="height:${height.toFixed(0)}px"></div></div>
-        <span class="hour-detail">${Number.isFinite(hourly.precipitation_probability?.[i]) ? Math.round(hourly.precipitation_probability[i]) + "%" : "—"} de chuva<small>${fmt(hourly.precipitation?.[i],1)} mm</small></span><span class="hour-icon">${icon}</span></div>`;
+        <span class="hour-detail">${Number.isFinite(hourly.precipitation_probability?.[rainIndex(i)]) ? Math.round(hourly.precipitation_probability[rainIndex(i)]) + "%" : "—"} de chuva<small>${fmt(hourly.precipitation?.[rainIndex(i)],1)} mm</small></span><span class="hour-icon">${icon}</span></button>`;
     }
     if (hourlyMode === "wind") {
       const speed = hourly.wind_speed_10m?.[i];
@@ -479,23 +478,23 @@ function renderHourly(hourly, start, daily) {
       const validDirection = Number.isFinite(speed) && speed > 0 && Number.isFinite(direction) && direction >= 0 && direction <= 360;
       const arrow = validDirection ? `<span style="transform:rotate(${direction}deg)">↑</span>` : "—";
       const bar = Number.isFinite(speed) ? `<div class="wind-bar" style="height:${(16 + Math.max(0, speed) / maxWind * 125).toFixed(0)}px"></div>` : "";
-      return `<div class="hour-column ${p === 0 ? "now" : ""}" title="${shortTime(hourly.time[i])}: vento ${fmt(speed)} km/h, rajadas ${fmt(gust)} km/h${validDirection ? `, vindo de ${windDirection(direction)}` : ""}">
+      return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: vento ${fmt(speed)} km/h, rajadas ${fmt(gust)} km/h${validDirection ? `, vindo de ${windDirection(direction)}` : ""}">
         <span class="hour-time">${time}</span><span class="hour-temp">${fmt(speed)}</span>
         <div class="bar-area">${bar}</div><span class="hour-detail">km/h<small>Raj. ${fmt(gust)}</small></span>
-        <span class="wind-direction" aria-hidden="true">${arrow}</span></div>`;
+        <span class="wind-direction" aria-hidden="true">${arrow}</span></button>`;
     }
-    const probability = hourly.precipitation_probability?.[i];
+    const probability = hourly.precipitation_probability?.[rainIndex(i)];
     const prob = Number.isFinite(probability) ? Math.round(probability) : null;
-    const precipitation = hourly.precipitation?.[i];
+    const precipitation = hourly.precipitation?.[rainIndex(i)];
     const mm = Number.isFinite(precipitation) ? precipitation : null;
     const barHeight = mm > 0 ? Math.min(150, 8 + Math.sqrt(mm) * 42) : Math.max(3, prob * .2);
     const gust = hourly.wind_gusts_10m?.[i];
-    return `<div class="hour-column ${p === 0 ? "now" : ""}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${prob ?? "—"}% de chuva, ${fmt(mm, 1)} milímetro${gust >= 45 ? `, rajadas de ${fmt(gust)} quilômetros por hora` : ""}">
+    return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${prob ?? "—"}% de chuva, ${fmt(mm, 1)} milímetro${gust >= 45 ? `, rajadas de ${fmt(gust)} quilômetros por hora` : ""}">
       <span class="hour-time">${time}</span>
       <span class="hour-temp">${fmt(temperature)}°</span>
       <div class="bar-area"><div class="rain-bar" data-prob="${prob ?? "—"}" style="height:${barHeight}px"></div></div>
       <span class="rain-mm">${fmt(mm, 1)} mm</span><span class="hour-icon">${icon}</span>
-    </div>`;
+    </button>`;
   }).join("") || '<p class="chart-loading">Previsão por hora indisponível.</p>';
   const descriptions = {
     conditions:"barras mostram a temperatura e os ícones mostram as condições previstas",
@@ -716,6 +715,7 @@ function render(data, air, fromCache = false, cacheAt = 0) {
   setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache);
   renderVisibility(data.hourly.visibility?.[start], fromCache);
   renderAttention(data, start, air); renderHourly(data.hourly, start, day);
+  globalThis.PLUVIA?.hourlyDetail?.update?.({hourly:data.hourly,daily:day,start,city:activeCity,fromCache,cacheAt,isDayAt:time=>forecastIsDay(time,day)});
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
   renderForecast(day, current.temperature_2m); renderSun(day);
   displayedWeather = {forecast:data,air};

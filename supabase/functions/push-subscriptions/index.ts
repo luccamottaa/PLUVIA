@@ -19,8 +19,10 @@ function subscriptionInput(raw: any) {
 
 function locationInput(raw: any) {
   if (!raw) return null;
-  const city_id = clean(raw.cityId, 7), city_name = clean(raw.cityName, 100), uf = clean(raw.uf, 2).toUpperCase();
-  const latitude = Number(raw.latitude), longitude = Number(raw.longitude), timezone = clean(raw.timezone, 64);
+  const city_id = clean(raw.cityId, 80), city_name = clean(raw.cityName, 100), uf = clean(raw.uf, 2).toUpperCase();
+  const latitude = typeof raw.latitude === "number" ? raw.latitude : NaN;
+  const longitude = typeof raw.longitude === "number" ? raw.longitude : NaN;
+  const timezone = clean(raw.timezone, 64);
   const source = ["saved_city", "searched_city", "gps_city"].includes(raw.source) ? raw.source : "saved_city";
   if (!/^\d{7}$/.test(city_id) || !city_name || !/^[A-Z]{2}$/.test(uf) || !Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180 || !validTimezone(timezone)) throw new Error("invalid_location");
   return { city_id, city_name, uf, latitude, longitude, timezone, source, enabled: true };
@@ -54,12 +56,14 @@ Deno.serve(async (req) => {
     const action = clean(body?.action, 32);
 
     if (action === "config") {
-      const [{ data: preferences }, { data: devices }, { data: locations }, secrets] = await Promise.all([
+      const [preferenceResult, deviceResult, locationResult, secrets] = await Promise.all([
         admin.from("notification_preferences").select("*").eq("user_id", user.id).maybeSingle(),
         admin.from("push_subscriptions").select("id,device_name,platform,browser,last_seen_at,enabled").eq("user_id", user.id).order("last_seen_at", { ascending: false }),
         admin.from("notification_locations").select("id,city_id,city_name,uf,timezone,source,enabled").eq("user_id", user.id).order("updated_at", { ascending: false }),
         pushSecrets(admin),
       ]);
+      if (preferenceResult.error || deviceResult.error || locationResult.error) throw new Error("config_lookup_failed");
+      const preferences=preferenceResult.data,devices=deviceResult.data,locations=locationResult.data;
       return json(req, { publicKey: secrets.vapid_public_key, preferences, devices: devices || [], locations: locations || [] });
     }
 
@@ -81,10 +85,17 @@ Deno.serve(async (req) => {
     if (action === "preferences") {
       const preferences = preferencesInput(body.preferences);
       const location = locationInput(body.location);
+      if (body.locations !== undefined && (!Array.isArray(body.locations) || body.locations.length>30)) throw new Error("invalid_location");
+      const requested=(body.locations || []).map((value: any) => {
+        const parsed=locationInput(value);if(!parsed) throw new Error("invalid_location");return parsed;
+      });
+      if (location) requested.push(location);
+      const locations=[...new Map(requested.map((item: any)=>[item.city_id,item])).values()] as any[];
+      if (locations.length>30) throw new Error("invalid_location");
       const { error } = await admin.from("notification_preferences").upsert({ user_id: user.id, ...preferences }, { onConflict: "user_id" });
       if (error) throw error;
-      if (location) {
-        const { error: locationError } = await admin.from("notification_locations").upsert({ user_id: user.id, ...location }, { onConflict: "user_id,city_id" });
+      if (locations.length) {
+        const { error: locationError } = await admin.from("notification_locations").upsert(locations.map(location=>({user_id:user.id,...location})), { onConflict: "user_id,city_id" });
         if (locationError) throw locationError;
       }
       return json(req, { ok: true });

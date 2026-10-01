@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Verificar sintaxe
         run: |
           for file in dist/*.js dist/modules/*.js; do node --check "$file"; done

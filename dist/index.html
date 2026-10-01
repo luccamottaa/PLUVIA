@@ -84,8 +84,8 @@
     <link rel="stylesheet" href="./sky.css?v=sky-7" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-30" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-11" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-31" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-12" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
@@ -204,14 +204,29 @@
             <p id="notificationContinueNote" class="notification-continue" hidden>Conta conectada. Toque em <strong>Ativar alertas</strong> para solicitar permissão no iPhone.</p>
             <div class="notification-actions"><button id="notificationToggle" type="button">Ativar alertas</button><button id="notificationTest" type="button" hidden>Enviar notificação de teste</button></div>
             <form id="notificationPreferencesForm" class="alert-preferences">
-              <p class="notification-all-note">Receba avisos oficiais e alertas de chuva, tempestades, vento, calor e qualidade do ar, em qualquer horário.</p>
-              <small>Previsões e avisos oficiais do INMET são identificados na mensagem. Evitamos repetir a mesma condição prevista por 6 horas; um aumento de severidade gera novo aviso. Raios e resumo diário continuam desativados.</small>
-              <label class="notification-location"><input name="monitor_current_city" type="checkbox"> Receber alertas para a cidade aberta</label>
-              <p class="notification-help">Escolha abaixo as cidades para receber alertas. Buscar ou favoritar uma cidade não ativa notificações.</p>
+              <fieldset class="notification-types"><legend>Quais avisos você quer receber?</legend>
+                <label><input name="official_alerts" type="checkbox" checked><span><strong>Avisos oficiais do INMET</strong><small>Inclui os avisos amarelos, laranjas e vermelhos.</small></span></label>
+                <label><input name="rain_approaching" type="checkbox" checked><span><strong>Chuva se aproximando</strong><small>Maior chance de chuva nas próximas horas.</small></span></label>
+                <label><input name="heavy_rain" type="checkbox" checked><span><strong>Chuva forte</strong></span></label>
+                <label><input name="storms" type="checkbox" checked><span><strong>Tempestades e trovoadas</strong></span></label>
+                <label><input name="strong_wind" type="checkbox" checked><span><strong>Rajadas fortes</strong></span></label>
+                <label><input name="extreme_heat" type="checkbox" checked><span><strong>Calor intenso</strong></span></label>
+                <label><input name="air_quality" type="checkbox" checked><span><strong>Qualidade do ar ruim</strong></span></label>
+                <label><input name="weather_changes" type="checkbox" checked><span><strong>Mudanças importantes no tempo</strong></span></label>
+                <label><input name="daily_summary" type="checkbox"><span><strong>Resumo diário</strong><small>Uma previsão por cidade no horário escolhido.</small></span></label>
+                <label id="notificationSummaryTimeField" class="notification-summary-time" hidden>Horário do resumo<input name="daily_summary_time" type="time" value="07:00"></label>
+              </fieldset>
+              <small>Previsões e avisos oficiais são identificados na mensagem. A mesma condição prevista não se repete por 6 horas; um aumento de severidade gera novo aviso. Os avisos podem chegar em qualquer horário.</small>
+              <fieldset class="notification-city-choices"><legend>Adicionar cidades aos avisos</legend>
+                <label class="notification-location"><input name="monitor_current_city" type="checkbox"><span id="notificationCurrentCityLabel">Receber alertas para a cidade aberta</span></label>
+                <div id="notificationFavoriteChoices"></div>
+                <small>Cidade aberta e favoritas disponíveis para adicionar. As opções só são aplicadas ao salvar.</small>
+              </fieldset>
+              <p class="notification-help">Os tipos escolhidos valem para todas as cidades monitoradas. Buscar ou favoritar uma cidade não ativa notificações.</p>
               <small id="notificationPrivacy">Usamos somente as cidades que você escolher para enviar alertas meteorológicos relevantes. Não monitoramos GPS em segundo plano.</small>
-              <button id="notificationPreferencesSave" type="submit">Salvar notificações</button>
+              <button id="notificationPreferencesSave" type="submit" disabled>Salvar notificações</button>
             </form>
-            <div class="notification-locations"><h4>Locais monitorados</h4><div id="notificationLocations"><p>Nenhuma cidade monitorada.</p></div><small>Para acrescentar uma cidade, abra-a no PLUVIA e marque a opção acima ao salvar.</small></div>
+            <div class="notification-locations"><h4>Cidades que recebem avisos</h4><div id="notificationLocations"><p>Nenhuma cidade monitorada.</p></div><small>Use “Parar avisos” para retirar uma cidade do monitoramento.</small></div>
             <div class="notification-devices"><h4>Dispositivos</h4><div id="notificationDevices"><p>Nenhum dispositivo registrado.</p></div></div>
           </section>
           <button id="accountLogout" type="button">Sair da conta</button>
@@ -236,12 +251,15 @@
               <div class="temperature"><span id="temperature">--</span><span class="deg">°</span></div>
             </div>
             <p class="condition" id="condition">Consultando o tempo…</p>
+            <button id="heroRainOpen" class="hero-rain-outlook" type="button" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" disabled>
+              <span class="hero-rain-kicker">Quando pode chover?</span><strong id="heroRainTitle">Consultando a chuva…</strong><span id="heroRainText"></span><small id="heroRainStatus"></small><span class="hero-rain-link">Ver por hora <span aria-hidden="true">›</span></span>
+            </button>
           </div>
         </article>
       </section>
       <section class="hourly-peek panel" aria-labelledby="hourlyPeekTitle">
         <div class="hourly-peek-heading"><h2 id="hourlyPeekTitle">Próximas horas</h2><a href="#chuva" aria-label="Ver previsão completa por hora">Ver previsão <span aria-hidden="true">›</span></a></div>
-        <p id="hourlyDecision" class="hourly-decision">Consultando a previsão das próximas 12 horas…</p>
+        <p id="hourlyDecision" class="hourly-decision">Toque em um horário para ver sensação, chuva e rajadas.</p>
         <div class="hourly-peek-list" id="hourlyPeek" role="group" aria-label="Condições nas próximas horas"><p>Consultando as próximas horas…</p></div>
       </section>
       <section class="quick-metrics" aria-label="Sensação térmica e visibilidade">
@@ -327,6 +345,15 @@
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Sem confirmação atual.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
     <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody"></div></dialog>
+    <dialog id="hourlyDetailDialog" class="city-dialog hourly-detail-dialog" aria-labelledby="hourlyDetailTitle" aria-describedby="hourlyDetailCity">
+      <div class="dialog-heading"><div><h2 id="hourlyDetailTitle">Previsão por hora</h2><p id="hourlyDetailCity"></p></div><button id="hourlyDetailClose" class="dialog-close" type="button" autofocus aria-label="Fechar previsão por hora">×</button></div>
+      <div class="dialog-scroll">
+        <div class="hourly-detail-weather"><div id="hourlyDetailIcon" aria-hidden="true"></div><strong id="hourlyDetailTemperature">—</strong><p id="hourlyDetailCondition"></p></div>
+        <dl class="hourly-detail-readings"><div><dt>Sensação térmica</dt><dd id="hourlyDetailFeelsLike">—</dd></div><div><dt>Chance de chuva</dt><dd id="hourlyDetailRain">—</dd></div><div><dt>Chuva prevista</dt><dd id="hourlyDetailVolume">—</dd></div><div><dt>Vento</dt><dd id="hourlyDetailWind">—</dd></div><div><dt>Rajadas</dt><dd id="hourlyDetailGust">—</dd></div><div><dt>Umidade</dt><dd id="hourlyDetailHumidity">—</dd></div></dl>
+        <p id="hourlyDetailRainInterval" class="hourly-detail-note"></p><p class="hourly-detail-note">Temperatura e vento no horário selecionado; chuva no intervalo que começa nesse horário.</p><small id="hourlyDetailSource"></small>
+      </div>
+      <div class="hourly-detail-navigation"><button id="hourlyDetailPrev" type="button" aria-label="Horário anterior">‹ Anterior</button><button id="hourlyDetailNext" type="button" aria-label="Próximo horário">Próximo ›</button></div>
+    </dialog>
     <dialog id="installPushDialog" class="city-dialog" aria-labelledby="installPushTitle">
       <div class="dialog-heading"><h2 id="installPushTitle">Alertas no iPhone</h2><button id="installPushClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
       <p>Safari no iPhone só entrega Web Push se o PLUVIA estiver na Tela de Início e aberto pelo ícone.</p>
@@ -346,21 +373,23 @@
     <script src="./modules/weather-data-layer.js?v=core-109" defer></script>
     <script src="./modules/met-merge.js?v=core-109" defer></script>
     <script src="./modules/weather-extras.js?v=core-109" defer></script>
-    <script src="./modules/weather-insights.js?v=core-64" defer></script>
+    <script src="./modules/weather-insights.js?v=core-65" defer></script>
     <script src="./modules/radar-probe.js?v=core-70" defer></script>
     <script src="./modules/weather-icons.js?v=core-49" defer></script>
     <script src="./modules/weather-icon-system.js?v=modern-1" defer></script>
     <script src="./modules/smart-summary.js?v=core-109" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
-    <script src="./modules/hourly-outlook.js?v=outlook-2" defer></script>
-    <script src="./app.js?v=panel-29" defer></script>
-    <script src="./p0.js?v=panel-34" defer></script>
+    <script src="./modules/hourly-outlook.js?v=outlook-3" defer></script>
+    <script src="./modules/hourly-detail.js?v=detail-1" defer></script>
+    <script src="./app.js?v=panel-30" defer></script>
+    <script src="./p0.js?v=panel-35" defer></script>
     <script src="./modules/risks.js?v=core-116" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
     <script src="./weather-map.js?v=panel-29" defer></script>
     <script src="./account.js?v=panel-22" defer></script>
     <script src="./favorite-cities.js?v=favorites-3" defer></script>
     <script src="./saved-places.js?v=panel-21" defer></script>
-    <script src="./notifications.js?v=panel-21" defer></script>
+    <script src="./modules/notification-preferences.js?v=preferences-1" defer></script>
+    <script src="./notifications.js?v=panel-22" defer></script>
   </body>
 </html>

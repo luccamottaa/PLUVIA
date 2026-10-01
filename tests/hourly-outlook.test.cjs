@@ -3,7 +3,7 @@ const {build}=require('../dist/modules/hourly-outlook.js');
 const times=['2026-09-30T21:00','2026-09-30T22:00','2026-09-30T23:00','2026-10-01T00:00','2026-10-01T01:00'];
 test('janela de maior chance agrupa horários próximos do pico e soma volume conhecido',()=>{
  const result=build({time:times,precipitation_probability:[20,70,80,75,10],precipitation:[0,1,2,1,0]},0,times.length);
- assert.equal(result.kind,'peak');assert.equal(result.start,times[1]);assert.equal(result.end,times[4]);assert.equal(result.probability,80);assert.equal(result.volume,4);
+ assert.equal(result.kind,'peak');assert.equal(result.start,times[0]);assert.equal(result.end,times[3]);assert.equal(result.probability,80);assert.equal(result.volume,4);assert.equal(result.windowVolume,4);assert.equal(result.detailIndex,1);
 });
 test('dados ausentes não viram zero nem promessa de tempo seco',()=>{
  const result=build({time:times,precipitation_probability:[null,null,null],precipitation:[null]});
@@ -18,4 +18,17 @@ test('resumo respeita a hora selecionada e dados de chuva zerados válidos',()=>
 test('previsão truncada não apresenta duas horas como volume completo de 12h',()=>{
  const result=build({time:times.slice(0,2),precipitation_probability:[70,80],precipitation:[1,2]});
  assert.equal(result.kind,'peak');assert.equal(result.complete,false);assert.equal(result.volume,null);
+});
+
+test('volume da faixa de maior chance não inclui chuva de outro horário',()=>{
+ const result=build({time:times,precipitation_probability:[20,70,80,75,10],precipitation:[8,1,2,1,5]},0,times.length);
+ assert.equal(result.windowVolume,4);assert.equal(result.volume,17);
+});
+test('lacuna temporal interrompe a faixa e não se apresenta como previsão completa',()=>{
+ const result=build({time:[times[0],times[1],times[3]],precipitation_probability:[70,80,75],precipitation:[1,2,4]},0,3);
+ assert.equal(result.start,'2026-09-30T20:00');assert.equal(result.end,times[1]);assert.equal(result.windowVolume,3);
+ assert.equal(result.complete,false);assert.equal(result.volume,null);
+});
+test('horários inválidos não oferecem janela de chuva fabricada',()=>{
+ assert.equal(build({time:['sem data'],precipitation_probability:[80],precipitation:[1]}).kind,'unavailable');
 });
