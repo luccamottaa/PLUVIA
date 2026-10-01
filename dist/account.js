@@ -2,8 +2,11 @@
   'use strict';
   const el = id => document.getElementById(id);
   const dialog = el('accountDialog');
-  let clientPromise, mode = 'login', currentUser = null, busy = false, preferenceTimer, syncing = false;
-  let pendingPreferences = {};
+  let clientPromise, mode = 'login', currentUser = null, busy = false, preferenceTimer, syncingOwner = null, flushingOwner = null, accountRevision = 0;
+  const syncModel = window.PLUVIA.accountSync;
+  let favoriteView = localFavoriteIds();
+  const preferenceSync = syncModel.create({getClient,getUser:()=>currentUser,onSnapshot:receivePreferences});
+  let pendingPreferences = {}, inFlightPreferences = null;
   const message = text => { el('accountStatus').textContent = text; };
   const track = (name,properties) => window.pluviaAnalytics?.track(name,properties);
   function paint(user) {
@@ -11,22 +14,35 @@
       clearTimeout(preferenceTimer);
       pendingPreferences = {};
     }
+    const switched = currentUser?.id !== user?.id;
     currentUser = user;
-    const metadata = user?.user_metadata || {};
-    const fullName = [metadata.name,metadata.full_name,metadata.display_name].find(value => typeof value === 'string' && value.trim()) || '';
-    const name = fullName.trim().split(/\s+/)[0].slice(0,40);
-    el('accountButton').textContent = user ? (name ? `Olá, ${name}` : 'Minha conta') : 'Entrar / cadastrar';
-    el('accountButton').title = el('accountButton').textContent;
+    if(switched){accountRevision++;syncingOwner=null;flushingOwner=null;inFlightPreferences=null;}
+    preferenceSync.setUser(user);
+    if(switched && user) {
+      restorePending(user.id);
+      const marker=storedOwner();
+      if(marker && marker!==user.id) refreshFavoriteUI(syncModel.ids(user.user_metadata?.favorite_city_ids));
+      favoriteView=localFavoriteIds();
+    }
+    paintIdentity(user,switched);
     el('accountProfile').hidden = !user;
     el('accountForm').hidden = !!user;
     el('accountTabs').hidden = !!user;
     el('accountIdentity').textContent = user?.email || '';
+    el('accountIntro').hidden = !!user;
+    window.dispatchEvent?.(new CustomEvent('pluvia:auth-changed',{detail:{user}}));
+  }
+  function paintIdentity(user,force=false){
+    const metadata = user?.user_metadata || {};
+    const synced=preferenceSync.getSnapshot()?.displayName;
+    const fullName = typeof synced==='string' ? synced : [metadata.name,metadata.full_name,metadata.display_name].find(value => typeof value === 'string' && value.trim()) || '';
+    const name = fullName.trim().split(/\s+/)[0].slice(0,40);
+    el('accountButton').textContent = user ? (name ? `Olá, ${name}` : 'Minha conta') : 'Entrar / cadastrar';
+    el('accountButton').title = el('accountButton').textContent;
     el('profileAvatar').textContent = (name || 'P').slice(0,1).toUpperCase();
     el('profileDisplayName').textContent = fullName || 'Sua conta';
-    el('accountIntro').hidden = !!user;
-    el('profileName').value = fullName;
+    if(force || document.activeElement!==el('profileName'))el('profileName').value = fullName;
     el('profileNameHint').textContent = name ? 'Esse nome aparece na saudação do topo.' : 'Falta seu nome. Salve abaixo para aparecer “Olá, seu nome” no topo.';
-    window.dispatchEvent?.(new CustomEvent('pluvia:auth-changed',{detail:{user}}));
   }
   function localFavoriteIds() {
     try { return JSON.parse(localStorage.getItem('pluvia-favorites') || '[]').filter(id=>/^\d{7}$/.test(String(id))); } catch { return []; }
@@ -37,37 +53,101 @@
     try { writePreference('pluvia-favorites',ids); renderCityOptions(); updateCityLabels(); } catch {}
     window.dispatchEvent?.(new CustomEvent('pluvia:favorites-loaded'));
   }
-  async function mergeAccountPreferences(user) {
-    if (!user || syncing) return;
-    syncing = true;
-    try {
-      const client = await getClient(), metadata=user.user_metadata || {};
-      const remote = Array.isArray(metadata.favorite_city_ids) ? metadata.favorite_city_ids.filter(id=>/^\d{7}$/.test(String(id))) : [];
-      const merged = [...new Set([...remote,...localFavoriteIds()])].slice(0,30);
-      refreshFavoriteUI(merged);
-      const patch = {};
-      if (JSON.stringify(remote) !== JSON.stringify(merged)) patch.favorite_city_ids=merged;
-      const localCity = typeof readPreference === 'function' ? readPreference('pluvia-city',null) : null;
-      if (!localCity && /^\d{7}$/.test(String(metadata.primary_city_id || '')) && typeof chooseCity === 'function') chooseCity(metadata.primary_city_id);
-      if (Object.keys(patch).length) await client.auth.updateUser({data:patch});
-    } catch {} finally { syncing=false; }
+  function storedOwner(){try{return localStorage.getItem('pluvia-favorites-owner');}catch{return null;}}
+  function persistPending(){
+    if(!currentUser)return;
+    try{
+      const flight=inFlightPreferences?.ownerId===currentUser.id ? inFlightPreferences.operations : {};
+      const value={...pendingPreferences,favoriteChanges:{...Object.fromEntries((flight.favoriteChanges || []).map(item=>[item.cityId,item.enabled])),...pendingPreferences.favoriteChanges}};
+      if(!value.primaryCityId && flight.primaryCityId)value.primaryCityId=flight.primaryCityId;
+      localStorage.setItem('pluvia-account-pending-'+currentUser.id,JSON.stringify(value));
+    }catch{}
   }
-  function scheduleMetadata(patch) {
-    if (!currentUser || syncing) return;
-    pendingPreferences = {...pendingPreferences, ...patch};
-    const ownerId = currentUser.id;
-    clearTimeout(preferenceTimer);
-    preferenceTimer=setTimeout(async()=>{
-      const data = pendingPreferences;
-      pendingPreferences = {};
-      try {
-        const client=await getClient();
-        if (!currentUser || currentUser.id !== ownerId) return;
-        const {error}=await client.auth.updateUser({data});
-        if(error) throw error;
+  function restorePending(ownerId){
+    try{
+      const raw=localStorage.getItem('pluvia-account-pending-'+ownerId);
+      if(!raw || raw.length>50000)return;
+      const value=JSON.parse(raw),changes=value.favoriteChanges || {};
+      if(typeof changes!=='object' || Array.isArray(changes) || Object.keys(changes).length>600)return;
+      pendingPreferences={favoriteChanges:Object.fromEntries(Object.entries(changes).filter(([id,value])=>/^\d{7}$/.test(id) && typeof value==='boolean'))};
+      if(/^\d{7}$/.test(value.primaryCityId || ''))pendingPreferences.primaryCityId=value.primaryCityId;
+    }catch{}
+  }
+  function receivePreferences({ownerId,snapshot,failed}){
+    if(currentUser?.id!==ownerId)return;
+    const combined=new Set(snapshot.favoriteCityIds);
+    const flight=!failed && inFlightPreferences?.ownerId===ownerId ? Object.fromEntries((inFlightPreferences.operations.favoriteChanges || []).map(item=>[item.cityId,item.enabled])) : {};
+    for(const [id,enabled] of Object.entries({...flight,...pendingPreferences.favoriteChanges}))enabled ? combined.add(id) : combined.delete(id);
+    favoriteView=[...combined].slice(0,30);
+    refreshFavoriteUI(favoriteView);paintIdentity(currentUser);
+    try{localStorage.setItem('pluvia-favorites-owner',ownerId);}catch{}
+    window.dispatchEvent?.(new CustomEvent('pluvia:preferences-loaded',{detail:{ownerId,snapshot}}));
+  }
+  async function mergeAccountPreferences(user){
+    if(!user || currentUser?.id!==user.id || syncingOwner===user.id)return;
+    const ownerId=user.id,revision=accountRevision,guest=!storedOwner() ? favoriteView.slice() : [];
+    const active=()=>currentUser?.id===ownerId && revision===accountRevision;
+    syncingOwner=ownerId;
+    if(guest.length){
+      pendingPreferences.favoriteChanges={...Object.fromEntries(guest.map(id=>[id,true])),...pendingPreferences.favoriteChanges};
+      persistPending();
+    }
+    try{
+      const snapshot=await preferenceSync.load();
+      if(!active() || !snapshot)return;
+      if(guest.length){
+        const merged=[...new Set([...snapshot.favoriteCityIds,...guest])].slice(0,30);
+        for(const id of guest)if(!merged.includes(id) && pendingPreferences.favoriteChanges?.[id]===true)delete pendingPreferences.favoriteChanges[id];
+        for(const change of syncModel.difference(snapshot.favoriteCityIds,merged)){
+          pendingPreferences.favoriteChanges={...pendingPreferences.favoriteChanges,[change.cityId]:change.enabled};
+        }
       }
-      catch { message('Preferência salva neste dispositivo. Não foi possível sincronizá-la com a conta.'); }
-    },450);
+      const localCity=typeof readPreference==='function' ? readPreference('pluvia-city',null) : null;
+      if(!localCity && snapshot.primaryCityId && typeof chooseCity==='function')chooseCity(snapshot.primaryCityId);
+      persistPending();queueFlush();
+    }catch{if(active())message('Preferências disponíveis neste dispositivo. A sincronização será tentada ao reconectar.');}
+    finally{if(active())syncingOwner=null;}
+  }
+  function queueFlush(){
+    if(!currentUser)return;
+    clearTimeout(preferenceTimer);
+    preferenceTimer=setTimeout(flushPreferences,450);
+  }
+  async function flushPreferences(){
+    if(!currentUser || flushingOwner===currentUser.id)return;
+    const ownerId=currentUser.id,revision=accountRevision;
+    const active=()=>currentUser?.id===ownerId && revision===accountRevision;
+    const entries=Object.entries(pendingPreferences.favoriteChanges || {}).slice(0,60);
+    const operations={};
+    if(entries.length)operations.favoriteChanges=entries.map(([cityId,enabled])=>({cityId,enabled}));
+    if(pendingPreferences.primaryCityId)operations.primaryCityId=pendingPreferences.primaryCityId;
+    if(!Object.keys(operations).length)return;
+    for(const [id] of entries)delete pendingPreferences.favoriteChanges[id];
+    delete pendingPreferences.primaryCityId;
+    flushingOwner=ownerId;inFlightPreferences={ownerId,operations};
+    try{
+      await preferenceSync.apply(operations,ownerId);
+      if(active()){inFlightPreferences=null;persistPending();if(Object.keys(pendingPreferences.favoriteChanges || {}).length || pendingPreferences.primaryCityId)queueFlush();}
+    }catch(error){
+      if(!active())return;
+      if(!['favorite_limit','place_limit','preference_conflict','invalid_operations','account_changed'].includes(error.code)){
+        pendingPreferences.favoriteChanges={...Object.fromEntries(entries),...pendingPreferences.favoriteChanges};
+        if(operations.primaryCityId && !pendingPreferences.primaryCityId)pendingPreferences.primaryCityId=operations.primaryCityId;
+        message('Preferência salva neste dispositivo. A sincronização será tentada ao reconectar.');
+      }else message(error.message);
+      inFlightPreferences=null;persistPending();
+    }finally{if(active() && flushingOwner===ownerId)flushingOwner=null;}
+  }
+  function schedulePreferences(patch){
+    if(!currentUser)return;
+    if(patch.favoriteCityIds){
+      const next=syncModel.ids(patch.favoriteCityIds),changes={...pendingPreferences.favoriteChanges};
+      for(const change of syncModel.difference(favoriteView,next))changes[change.cityId]=change.enabled;
+      if(Object.keys(changes).length>600){refreshFavoriteUI(favoriteView);message('Conecte-se para sincronizar antes de alterar mais favoritos.');return;}
+      pendingPreferences.favoriteChanges=changes;favoriteView=next;
+    }
+    if(patch.primaryCityId)pendingPreferences.primaryCityId=patch.primaryCityId;
+    persistPending();queueFlush();
   }
   function setMode(next) {
     if (busy) return;
@@ -102,7 +182,7 @@
       script.onload = () => {
         try {
           const client = window.supabase.createClient('https://dszyyrcvwrpyiypwyvxe.supabase.co','sb_publishable_SdPTXhk3Q7aD-ra0S9dm_A_rnXSS4Jc', {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-          client.auth.onAuthStateChange((_event,session) => { const user=session?.user || null; paint(user); if(user) Promise.resolve().then(()=>mergeAccountPreferences(user)); });
+          client.auth.onAuthStateChange((_event,session) => { const user=session?.user || null; paint(user); if(user) setTimeout(()=>mergeAccountPreferences(user),0); });
           resolve(client);
         } catch (error) { reject(error); }
       };
@@ -112,14 +192,17 @@
     return clientPromise;
   }
   async function restoreAccount() {
+    const revision=accountRevision;
     try {
       const client = await getClient();
+      if(revision!==accountRevision)return;
       const {data,error} = await client.auth.getSession();
+      if(revision!==accountRevision)return;
       if (error) throw error;
       paint(data?.session?.user || null);
       if(data?.session?.user) await mergeAccountPreferences(data.session.user);
     } catch (_) {
-      paint(null);
+      if(revision===accountRevision)paint(null);
     }
   }
   el('accountButton').addEventListener('click', () => {
@@ -161,17 +244,17 @@
     event.preventDefault();
     const name = el('profileName').value.trim();
     if (!name || !currentUser) { message('Preencha seu nome para continuar.'); return; }
+    const ownerId=currentUser.id,revision=accountRevision;
     el('profileSave').disabled = true;
     try {
-      const client = await getClient();
-      const {data,error} = await client.auth.updateUser({data:{name}});
-      if(error) throw error;
-      paint(data.user); track('Profile Name Saved'); message('Nome salvo!'); dialog.close();
-    } catch(error) { message(authError(error)); }
+      await preferenceSync.apply({displayName:name},ownerId);
+      if(currentUser?.id!==ownerId || revision!==accountRevision)return;
+      paintIdentity(currentUser);track('Profile Name Saved'); message('Nome salvo!'); dialog.close();
+    } catch(error) { if(currentUser?.id===ownerId && revision===accountRevision)message(error.message || 'Não foi possível salvar seu nome. Confira a conexão e tente novamente.'); }
     finally { el('profileSave').disabled = false; }
   });
-  window.addEventListener?.('pluvia:favorites-changed',event => scheduleMetadata({favorite_city_ids:(event.detail?.ids || []).filter(id=>/^\d{7}$/.test(String(id))).slice(0,30)}));
-  window.addEventListener?.('pluvia:city-changed',event => { if(/^\d{7}$/.test(String(event.detail?.id || ''))) scheduleMetadata({primary_city_id:event.detail.id}); });
+  window.addEventListener?.('pluvia:favorites-changed',event => schedulePreferences({favoriteCityIds:event.detail?.ids || (typeof favorites!=='undefined' ? [...favorites] : localFavoriteIds())}));
+  window.addEventListener?.('pluvia:city-changed',event => { if(/^\d{7}$/.test(String(event.detail?.id || ''))) schedulePreferences({primaryCityId:event.detail.id}); });
   el('accountLogout').addEventListener('click', async () => {
     el('accountLogout').disabled = true;
     try { await window.pluviaPush?.beforeLogout?.(); const client = await getClient(); const {error} = await client.auth.signOut({scope:'local'}); if(error) throw error; paint(null); window.pluviaAnalytics?.resetUser(); setMode('login'); message('Você saiu da conta.'); }
@@ -179,7 +262,10 @@
     finally { el('accountLogout').disabled = false; }
   });
   setMode('login');
-  window.pluviaAccount = {getClient,getUser:()=>currentUser,open(){ if(!dialog.open) dialog.showModal(); dialog.querySelector?.('.dialog-scroll')?.scrollTo?.(0, 0); el('accountClose').focus(); restoreAccount().catch(()=>{}); }};
+  window.pluviaAccount = {getClient,getUser:()=>currentUser,getPreferences:()=>preferenceSync.getSnapshot(),syncPreferences:()=>preferenceSync.load(true),applyPreferences:(operations,ownerId)=>preferenceSync.apply(operations,ownerId),open(){ if(!dialog.open) dialog.showModal(); dialog.querySelector?.('.dialog-scroll')?.scrollTo?.(0, 0); el('accountClose').focus(); restoreAccount().catch(()=>{}); }};
+  const revalidatePreferences=()=>{if(currentUser)preferenceSync.load().then(()=>queueFlush()).catch(()=>{});};
+  window.addEventListener?.('online',()=>{if(currentUser)preferenceSync.load(true).then(()=>queueFlush()).catch(()=>{});});
+  document.addEventListener?.('visibilitychange',()=>{if(document.visibilityState==='visible')revalidatePreferences();});
   // Supabase owns session persistence. Restore it on every page load instead of
   // guessing the SDK's storage key, which may change between client versions.
   restoreAccount();

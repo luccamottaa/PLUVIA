@@ -19,3 +19,5 @@ entrypoint = "./functions/met-forecast/index.js"
 [functions.lightning]
 verify_jwt = false
 entrypoint = "./functions/lightning/index.js"
+[functions.account-preferences]
+verify_jwt = true

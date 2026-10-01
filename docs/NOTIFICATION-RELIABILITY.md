@@ -39,7 +39,7 @@ Lotes justos eliminam a exclusão permanente após o centésimo local, mas não 
 
 Falhas finais de entrega ainda não têm uma fila de retry dedicada. Fingerprints e constraints existentes evitam duplicação, mas uma tentativa que falha não é garantia de entrega futura. Esta etapa não altera silenciosamente a política de reenvio.
 
-A sincronização de favoritos/locais continua em `user_metadata`, com merge e tombstones já existentes. Uma escrita simultânea entre dispositivos pode sobrescrever dados; migrar para operações atômicas com RLS, versionamento e compatibilidade de clientes é uma etapa própria. Não alegar que read-merge-write oferece atomicidade.
+Na etapa seguinte, favoritos/locais/nome passaram a operações autenticadas e CAS restrito, mantendo `user_metadata` como fonte existente. Veja [Sincronização da conta](ACCOUNT-SYNCHRONIZATION.md). Writers legados ainda exigem atualização do PWA; read-merge-write antigo não oferece atomicidade. Esta mudança não altera o processamento de notificações descrito aqui.
 
 Após aplicar a migration, o Security Advisor mantém o aviso de proteção contra senhas vazadas desativada e três informações sobre tabelas internas sem policies: as duas tabelas de raios existentes e o novo estado privado do worker. O estado do worker é acessado somente pelos RPCs restritos; ausência de policy pública é intencional. A documentação atual limita a proteção nativa de senhas ao plano Pro ou superior; nenhum upgrade/custo foi contratado. Não liberar tabelas internas para remover avisos.
 
