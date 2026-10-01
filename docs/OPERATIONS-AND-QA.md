@@ -18,7 +18,7 @@ São contratos de layout/estado com screenshots para revisão; **não é compara
 
 ## Deslizamento dos painéis
 
-A abertura vem de cima para baixo em 400 ms. X, Escape e backdrop saem para baixo em 280 ms, conservando o diálogo nativo aberto e o foco até terminar. O controlador compartilhado lê posição/opacidade uma única vez, suporta fechar durante a entrada e evita saídas duplicadas. Fechamento programático por troca de cidade/dados continua imediato e cancela qualquer saída pendente; movimento reduzido ou ausência de Web Animations fecha imediatamente. Há limite de 500 ms para não prender o modal se faltarem frames. Não há novo timer contínuo, blur, dependência ou alteração do layout.
+A abertura vem de cima para baixo em 400 ms. X, Escape e backdrop saem para baixo em 280 ms, conservando o diálogo nativo aberto e o foco até terminar. O controlador compartilhado lê posição/opacidade uma única vez, suporta fechar durante a entrada e evita saídas duplicadas. Fechamento programático por troca de cidade/dados continua imediato e cancela qualquer saída pendente; movimento reduzido fecha imediatamente. Entrada e saída usam animações CSS, incluindo no Safari. Há limite de 500 ms para não prender o modal se faltarem frames. Não há novo timer contínuo, blur, dependência ou alteração do layout.
 
 Os testes de `dialog-motion.test.cjs` cobrem esses contratos e `verify-visual.py` verifica o sentido real do movimento, backdrop, foco, fechamento/reabertura e reduced motion em mobile/desktop. Amostragem do movimento usa o frame do navegador; atraso de um renderer em CI não deve ser interpretado como inversão da animação.
 
