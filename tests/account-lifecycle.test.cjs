@@ -46,6 +46,29 @@ test('somente PASSWORD_RECOVERY habilita troca; valida confirmação e limpa sen
  app.context.document.getElementById('accountNewPasswordConfirm').value='Safe-password1!';await app.nodes.get('accountRecoveryForm').events.submit({preventDefault(){}});
  assert.equal(args.password,'Safe-password1!');assert.equal(app.context.document.getElementById('accountNewPassword').value,'');assert.equal(app.nodes.get('accountRecoveryForm').hidden,true);
 });
+test('falha real de envio não culpa conexão nem expõe erro SMTP; permite tentar após correção',async()=>{
+ const app=boot({user:null});await settle();let calls=0;
+ app.context.location={origin:'https://pluviaweather.com.br',pathname:'/'};
+ app.client.auth.resetPasswordForEmail=async()=>{calls++;return {error:{code:'unexpected_failure',status:500,message:'gomail: domain auth.private.test is not verified; private@example.test'}};};
+ app.nodes.get('accountForgot').events.click();app.nodes.get('accountEmail').value='fixture@example.test';
+ await app.nodes.get('accountForm').events.submit({preventDefault(){}});
+ const status=app.nodes.get('accountStatus').textContent;
+ assert.match(status,/e-mail de recuperação/);assert.match(status,/serviço do Pluvia/);assert.doesNotMatch(status,/conexão|gomail|private|SMTP/);
+ assert.equal(app.nodes.get('accountSubmit').disabled,false);
+ app.client.auth.resetPasswordForEmail=async()=>{calls++;return {error:null};};
+ await app.nodes.get('accountForm').events.submit({preventDefault(){}});
+ assert.equal(calls,2);assert.match(app.nodes.get('accountStatus').textContent,/Se houver/);
+});
+test('erros do servidor, limite e rede preservam mensagens distintas',async()=>{
+ const app=boot({user:null});await settle();app.context.location={origin:'https://pluviaweather.com.br',pathname:'/'};
+ app.nodes.get('accountForgot').events.click();app.nodes.get('accountEmail').value='fixture@example.test';
+ for(const [error,expected] of [[{status:503},/serviço do Pluvia/],[{code:'over_email_send_rate_limit',status:429},/Muitas tentativas/],[{code:'email_address_not_authorized',status:400},/liberado/],[{name:'AuthRetryableFetchError',status:0},/conexão/]]){
+   app.client.auth.resetPasswordForEmail=async()=>({error});await app.nodes.get('accountForm').events.submit({preventDefault(){}});assert.match(app.nodes.get('accountStatus').textContent,expected);
+ }
+ app.nodes.get('accountSignup').events.click();app.nodes.get('accountName').value='Fixture';app.nodes.get('accountPassword').value='Fixture-password1!';
+ app.client.auth.signUp=async()=>({error:{code:'unexpected_failure',status:500}});await app.nodes.get('accountForm').events.submit({preventDefault(){}});
+ assert.match(app.nodes.get('accountStatus').textContent,/concluir o cadastro/);assert.doesNotMatch(app.nodes.get('accountStatus').textContent,/conexão/);
+});
 test('templates usam URL oficial de confirmação, botão e link textual sem rastreio ou nome não escapado',()=>{
  for(const name of ['confirmation','recovery']){const html=fs.readFileSync('supabase/templates/'+name+'.html','utf8');assert.match(html,/lang="pt-BR"/);assert.equal((html.match(/href="{{ \.ConfirmationURL }}"/g)||[]).length,2);assert.match(html,/PLUVIA/);assert.doesNotMatch(html,/<script|{{ \.Data|https?:\/\/[^" ]+\.(png|webp)|tracking/i);}
 });

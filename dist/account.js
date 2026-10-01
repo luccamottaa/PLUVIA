@@ -233,7 +233,7 @@
     message(result.error==='cancelled' ? 'Você cancelou o acesso. Pode tentar novamente ou entrar com e-mail.' : 'Não foi possível concluir o acesso. Tente novamente ou entre com e-mail.');
     loadProviders().catch(()=>{});
   }
-  function authError(error) {
+  function authError(error, action = 'account') {
     const code = error?.code;
     if(['provider_disabled','unsupported_provider','oauth_provider_not_supported'].includes(code))return 'Essa opção de acesso está indisponível no momento. Use e-mail ou tente novamente mais tarde.';
     if(['access_denied','user_cancelled_authorize','user_cancelled_login'].includes(code))return 'Você cancelou o acesso. Pode tentar novamente ou entrar com e-mail.';
@@ -243,6 +243,11 @@
     if (code === 'weak_password') return 'Use uma senha mais forte, com letras, números e símbolos.';
     if (/rate_limit/.test(code || '')) return 'Muitas tentativas. Espere um pouco e tente novamente.';
     if (code === 'email_address_not_authorized') return 'O envio de e-mails ainda precisa ser liberado pelo PLUVIA. Tente novamente mais tarde.';
+    if (code === 'unexpected_failure' || error?.status >= 500) {
+      if (action === 'reset') return 'Não foi possível enviar o e-mail de recuperação. O serviço do Pluvia está indisponível no momento. Tente novamente mais tarde.';
+      if (action === 'signup') return 'Não foi possível concluir o cadastro. O serviço do Pluvia está indisponível no momento. Tente novamente mais tarde.';
+      return 'O serviço de contas do Pluvia está indisponível no momento. Tente novamente mais tarde.';
+    }
     return 'Não foi possível acessar a conta. Confira a conexão e tente novamente.';
   }
   function getClient() {
@@ -311,7 +316,7 @@
         const result=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'?auth_recovery=1'});
         if(result.error)throw result.error;
         recoverySentAt=Date.now();message('Se houver uma conta disponível para esse e-mail, você receberá um link. Confira também o spam.');
-      } catch(error){message(authError(error));}
+      } catch(error){message(authError(error,'reset'));}
       finally{setBusy(false);}
       return;
     }
@@ -336,7 +341,7 @@
         track('Signup Confirmation Requested');
         message('Confira sua caixa de entrada e o spam. Se o cadastro estiver disponível, você receberá um link para confirmar o e-mail. Depois, volte aqui e toque em Entrar.');
       }
-    } catch(error) { message(authError(error)); }
+    } catch(error) { message(authError(error,mode)); }
     finally { setBusy(false); }
   });
   el('accountRecoveryForm').addEventListener('submit',async event=>{

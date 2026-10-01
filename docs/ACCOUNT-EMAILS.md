@@ -16,6 +16,14 @@ Em [URL Configuration](https://supabase.com/dashboard/project/dszyyrcvwrpyiypwyv
 
 Remetente/domínio próprios exigem SMTP configurado e DNS do serviço (SPF/DKIM/DMARC). Não foram alterados remetente, SMTP, limites ou entregabilidade. Um template bonito não comprova recebimento. No provedor SMTP, desativar rastreamento de links de Auth. Teste final de entrega deve usar caixa controlada pelo proprietário; não enviamos mensagens a usuários reais como teste.
 
+## Falha de envio identificada em 01/10/2026
+
+Os logs Auth confirmaram `/recover` e `/signup` retornando HTTP 500 / `unexpected_failure`: o Resend rejeitou o remetente porque **auth.pluviaweather.com.br não está verificado**. O DNS público no Registro.br não contém os registros desse subdomínio; o domínio principal **pluviaweather.com.br** já contém registros DKIM e de envio. Isso não confirma o status de verificação no painel do Resend.
+
+Se o domínio principal estiver Verified no Resend, ajustar **Sender email** em [Supabase SMTP](https://supabase.com/dashboard/project/dszyyrcvwrpyiypwyvxe/auth/smtp) para um endereço no domínio verificado, por exemplo `no-reply@pluviaweather.com.br`, preservando host/porta/usuário/credencial, confirmação obrigatória e nome Pluvia. Alternativa: adicionar e verificar o subdomínio `auth.pluviaweather.com.br` com os valores gerados pelo Resend, dentro da zona DNS existente do Registro.br. Não inventar valores DKIM/SPF, não alterar os registros do site e não desativar confirmações para contornar o erro.
+
+O conector disponível não modifica a configuração SMTP e não há credencial da Management API neste ambiente. A correção do frontend diferencia falha do serviço, limite e rede, sem exibir domínio, destinatário ou erro SMTP bruto; não afirma que um envio recusado funcionou. Ela não corrige o remetente hospedado. Após o ajuste administrativo, validar entrega e link numa caixa controlada pelo proprietário mediante pedido explícito; não registrar tokens/senhas em logs ou relatório.
+
 ## Recuperação e exclusão
 
 `account.js` mantém o cliente Auth único. Recuperação usa `resetPasswordForEmail`, mensagem sem enumeração de contas e cooldown de um minuto após sucesso. Nova senha passa pela regra existente e confirmação; `updateUser({password})` só ocorre na sessão de recuperação. Senhas são apagadas após salvar/fechar. Não migrar o fluxo global implicit para PKCE sem rever cadastro/retorno entre dispositivos.
