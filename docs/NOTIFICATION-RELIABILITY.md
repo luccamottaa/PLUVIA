@@ -41,6 +41,6 @@ Falhas finais de entrega ainda não têm uma fila de retry dedicada. Fingerprint
 
 A sincronização de favoritos/locais continua em `user_metadata`, com merge e tombstones já existentes. Uma escrita simultânea entre dispositivos pode sobrescrever dados; migrar para operações atômicas com RLS, versionamento e compatibilidade de clientes é uma etapa própria. Não alegar que read-merge-write oferece atomicidade.
 
-O Security Advisor mantém o aviso de proteção contra senhas vazadas desativada e duas informações sobre tabelas internas de raios sem policies públicas. A documentação atual limita a proteção nativa de senhas ao plano Pro ou superior; nenhum upgrade/custo foi contratado. Não liberar tabelas internas para remover avisos.
+Após aplicar a migration, o Security Advisor mantém o aviso de proteção contra senhas vazadas desativada e três informações sobre tabelas internas sem policies: as duas tabelas de raios existentes e o novo estado privado do worker. O estado do worker é acessado somente pelos RPCs restritos; ausência de policy pública é intencional. A documentação atual limita a proteção nativa de senhas ao plano Pro ou superior; nenhum upgrade/custo foi contratado. Não liberar tabelas internas para remover avisos.
 
 Nowcast com ETA em minutos e raios observados continuam dependentes de cobertura/fonte/licença apropriadas; previsão horária e animação estética não fornecem essa precisão.
