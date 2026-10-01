@@ -86,7 +86,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-31" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-16" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-17" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
@@ -196,9 +196,17 @@
         <form id="accountForm">
           <label id="accountNameField" hidden>Nome para exibição<input id="accountName" autocomplete="given-name" maxlength="60" /></label>
           <label>E-mail<input id="accountEmail" type="email" autocomplete="email" required maxlength="254" /></label>
-          <label>Senha<input id="accountPassword" type="password" autocomplete="current-password" required maxlength="128" /></label>
+          <label id="accountPasswordField">Senha<input id="accountPassword" type="password" autocomplete="current-password" required maxlength="128" /></label>
           <small id="accountPasswordHint" hidden>Use 12 ou mais caracteres, com maiúscula, minúscula, número e símbolo.</small>
           <button id="accountSubmit" type="submit">Entrar</button>
+          <button id="accountForgot" class="account-text-action" type="button">Esqueci minha senha</button>
+        </form>
+        <form id="accountRecoveryForm" hidden>
+          <p>Escolha uma nova senha para sua conta.</p>
+          <label>Nova senha<input id="accountNewPassword" type="password" autocomplete="new-password" required minlength="12" maxlength="128" aria-describedby="accountNewPasswordHint" /></label>
+          <small id="accountNewPasswordHint">Use 12 ou mais caracteres, com maiúscula, minúscula, número e símbolo.</small>
+          <label>Repita a nova senha<input id="accountNewPasswordConfirm" type="password" autocomplete="new-password" required minlength="12" maxlength="128" /></label>
+          <button id="accountRecoverySave" type="submit">Salvar nova senha</button>
         </form>
         <div id="accountProfile" hidden>
           <div class="profile-identity"><span id="profileAvatar" class="profile-avatar" aria-hidden="true">P</span><div><strong id="profileDisplayName">Sua conta</strong><p id="accountIdentity"></p></div></div>
@@ -236,6 +244,11 @@
             <div class="notification-devices"><h4>Dispositivos</h4><div id="notificationDevices"><p>Nenhum dispositivo registrado.</p></div></div>
           </section>
           <button id="accountLogout" type="button">Sair da conta</button>
+          <details class="account-delete"><summary>Excluir minha conta</summary>
+            <p>A exclusão é permanente. Remove seu perfil, preferências sincronizadas e inscrições de notificações. A previsão pública continua disponível. Cópias de segurança seguem a retenção do provedor.</p>
+            <p>Por segurança, entre novamente se seu acesso não for recente.</p>
+            <form id="accountDeleteForm"><label>Digite EXCLUIR para confirmar<input id="accountDeleteConfirm" autocomplete="off" spellcheck="false" required pattern="EXCLUIR" maxlength="7" /></label><button id="accountDelete" type="submit">Excluir conta permanentemente</button></form>
+          </details>
         </div>
         <p id="accountStatus" role="status" aria-live="polite"></p>
       </div></dialog>
@@ -390,15 +403,15 @@
     <script src="./capitals.js?v=core-47" defer></script>
     <script src="./modules/hourly-outlook.js?v=outlook-3" defer></script>
     <script src="./modules/hourly-detail.js?v=detail-2" defer></script>
-    <script src="./app.js?v=panel-32" defer></script>
+    <script src="./app.js?v=panel-33" defer></script>
     <script src="./p0.js?v=panel-35" defer></script>
     <script src="./modules/risks.js?v=core-116" defer></script>
-    <script src="./modules/adapters.js?v=core-109" defer></script>
+    <script src="./modules/adapters.js?v=core-110" defer></script>
     <script src="./weather-map.js?v=map-1" defer></script>
     <script src="./modules/account-sync.js?v=sync-1" defer></script>
     <script src="./modules/social-auth.js?v=oauth-1" defer></script>
-    <script src="./account.js?v=account-2" defer></script>
-    <script src="./favorite-cities.js?v=favorites-5" defer></script>
+    <script src="./account.js?v=account-3" defer></script>
+    <script src="./favorite-cities.js?v=favorites-6" defer></script>
     <script src="./modules/share-weather.js?v=share-1" defer></script>
     <script src="./saved-places.js?v=places-1" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-1" defer></script>

@@ -20,7 +20,7 @@ test('os scripts de inicialização carregam sem a antiga seção da Defesa Civi
     searchCities:()=>[city],normalizeName:value=>value.toLowerCase(),escapeHtml:value=>value,
     readPreference:()=>null,prefetchForecast(){},
     PLUVIA:{modules:Object.fromEntries(['weather','alerts','location','air-quality','auth','weather-layers'].map(key=>[key,{}]))},
-    loadWeather(){},validForecast(){},loadInmetAlerts(){},selectInmetAlerts(){},requestLocation(){},
+    loadWeather(){},validForecast(){},loadInmetAlerts(){},selectInmetAlerts(){},favoriteCityAlerts(){},requestLocation(){},
     aqiLabel:()=>['Boa','AQI 10'],
   });
   assert.doesNotThrow(() => vm.runInContext(fs.readFileSync('dist/p0.js','utf8'),context));

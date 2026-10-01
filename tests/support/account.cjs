@@ -13,7 +13,7 @@ function boot({user={id:'owner-a',email:'user@example.test',user_metadata:{}},st
     if(options.body.action==='apply')current.user_metadata={...current.user_metadata,...model.applyOperations(current.user_metadata,model.operationsInput(options.body.operations))};
     return {data:{snapshot:model.snapshot(current.user_metadata)}};
   }}};
-  const context=vm.createContext({AbortController,Date,Intl,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},
+  const context=vm.createContext({AbortController,AbortSignal,Date,Intl,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},
     setTimeout(fn,ms){const id=++timerId;timers.set(id,{fn,ms});return id;},clearTimeout(id){timers.delete(id);},
     document:{getElementById:element,createElement:()=>({}),head:{appendChild(script){script.onload();}},addEventListener:(type,fn)=>documentEvents.set(type,fn),visibilityState:'visible'},
     supabase:{createClient:()=>client},localStorage:{getItem:key=>storage.get(key) || null,setItem:(key,value)=>storage.set(key,value)},
@@ -25,7 +25,7 @@ function boot({user={id:'owner-a',email:'user@example.test',user_metadata:{}},st
   vm.runInContext(fs.readFileSync('dist/account.js','utf8'),context);
   return {context,nodes,events,timers,writes,storage,user,client,settle,
     async flush(){const pending=[...timers.entries()];timers.clear();for(const [,timer]of pending)await timer.fn();await settle();},
-    switchUser(next){current=next;listener(next?'SIGNED_IN':'SIGNED_OUT',next?{user:next}:null);},
+    switchUser(next,event){current=next;listener(event || (next?'SIGNED_IN':'SIGNED_OUT'),next?{user:next}:null);},
     fire(type,detail){context.dispatchEvent({type,detail});},
     favorites(ids){context.favorites.clear();ids.forEach(id=>context.favorites.add(id));storage.set('pluvia-favorites',JSON.stringify(ids));context.dispatchEvent({type:'pluvia:favorites-changed',detail:{ids}});}};
 }

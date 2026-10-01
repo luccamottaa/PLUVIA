@@ -8,6 +8,9 @@
   let availableProviders = {google:false,apple:false}, providersLoading = null, returning = null, oauthNavigationTimer = null, oauthNavigationPending = false;
   try { returning=social?.callback(location.href); } catch {}
   const syncModel = window.PLUVIA.accountSync;
+  let recoveryActive = false, recoveryReturn = false, recoveryAttempt = false, recoverySentAt = 0;
+  try { const url=new URL(location.href); recoveryReturn=url.searchParams.get('auth_recovery')==='1'; } catch {}
+  const strongPassword=value=>value.length>=12 && /[a-z]/.test(value) && /[A-Z]/.test(value) && /\d/.test(value) && /[^A-Za-z0-9]/.test(value);
   let favoriteView = localFavoriteIds();
   const preferenceSync = syncModel.create({getClient,getUser:()=>currentUser,onSnapshot:receivePreferences});
   let pendingPreferences = {}, inFlightPreferences = null;
@@ -29,8 +32,10 @@
       favoriteView=localFavoriteIds();
     }
     paintIdentity(user,switched);
-    el('accountProfile').hidden = !user;
+    if(!user)recoveryActive=false;
+    el('accountProfile').hidden = !user || recoveryActive;
     el('accountForm').hidden = !!user;
+    el('accountRecoveryForm').hidden = !user || !recoveryActive;
     el('accountTabs').hidden = !!user;
     el('accountIdentity').textContent = user?.email || '';
     el('accountIntro').hidden = !!user;
@@ -157,23 +162,27 @@
   function setMode(next) {
     if (busy) return;
     mode = next;
-    const signup = mode === 'signup';
+    const signup = mode === 'signup', reset = mode === 'reset';
+    el('accountPasswordField').hidden=reset;
+    el('accountPassword').required=!reset;
+    el('accountForgot').hidden=signup || reset;
     el('accountNameField').hidden = !signup;
     el('accountName').required = signup;
     el('accountPassword').minLength = signup ? 12 : 1;
     el('accountPassword').autocomplete = signup ? 'new-password' : 'current-password';
     el('accountPassword').value = '';
     el('accountPasswordHint').hidden = !signup;
-    el('accountSubmit').textContent = signup ? 'Criar minha conta' : 'Entrar';
+    el('accountSubmit').textContent = reset ? 'Enviar link de recuperação' : signup ? 'Criar minha conta' : 'Entrar';
     el('accountSignup').setAttribute('aria-pressed',String(signup));
-    el('accountLogin').setAttribute('aria-pressed',String(!signup));
+    el('accountLogin').setAttribute('aria-pressed',String(mode==='login'));
+    paintProviders();
     message('');
   }
 
   function paintProviders(){
     const options=el('accountSocial');
     if(!options)return;
-    options.hidden=!!currentUser || !social?.providers.some(provider=>availableProviders[provider]===true);
+    options.hidden=!!currentUser || mode==='reset' || !social?.providers.some(provider=>availableProviders[provider]===true);
     for(const provider of social?.providers || []){
       const button=el(provider==='google' ? 'accountGoogle' : 'accountApple');
       if(button){button.hidden=!availableProviders[provider];button.disabled=busy || !!currentUser;}
@@ -182,6 +191,10 @@
   function setBusy(value){
     busy=value;el('accountSubmit').disabled=value;
     el('accountLogin').disabled=value;el('accountSignup').disabled=value;
+    el('accountForgot').disabled=value;
+    el('accountRecoverySave').disabled=value;
+    el('accountDelete').disabled=value;
+    el('accountLogout').disabled=value;
     paintProviders();
   }
   function loadProviders(){
@@ -191,7 +204,7 @@
     providersLoading=task;return task;
   }
   async function socialSignIn(provider){
-    if(busy || currentUser || !social?.providers.includes(provider) || !availableProviders[provider])return;
+    if(busy || recoveryActive || currentUser || !social?.providers.includes(provider) || !availableProviders[provider])return;
     setBusy(true);message('Abrindo '+(provider==='google' ? 'Google' : 'Apple')+'…');
     track('Auth Started',{mode});
     let redirecting=false;
@@ -244,7 +257,13 @@
         if(completed)return;completed=true;clearTimeout(timeout);
         try {
           const client = window.supabase.createClient('https://dszyyrcvwrpyiypwyvxe.supabase.co','sb_publishable_SdPTXhk3Q7aD-ra0S9dm_A_rnXSS4Jc', {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-          client.auth.onAuthStateChange((_event,session) => { const user=session?.user || null; paint(user); if(user) setTimeout(()=>mergeAccountPreferences(user),0); });
+          client.auth.onAuthStateChange((event,session) => {
+            const user=session?.user || null;
+            if(event==='PASSWORD_RECOVERY' && user) {recoveryActive=true;recoveryAttempt=true;}
+            paint(user);
+            if(event==='PASSWORD_RECOVERY' && user)setTimeout(()=>{if(recoveryActive && currentUser?.id===user.id){if(!dialog.open)dialog.showModal();message('Defina sua nova senha abaixo.');el('accountNewPassword').focus();}},0);
+            if(user && !recoveryActive) setTimeout(()=>mergeAccountPreferences(user),0);
+          });
           resolve(client);
         } catch (error) { reject(error); }
       };
@@ -262,7 +281,7 @@
       if(revision!==accountRevision)return;
       if (error) throw error;
       paint(data?.session?.user || null);
-      if(data?.session?.user) await mergeAccountPreferences(data.session.user);
+      if(data?.session?.user && !recoveryActive) await mergeAccountPreferences(data.session.user);
     } catch (_) {
       if(revision===accountRevision)paint(null);
     }
@@ -274,18 +293,32 @@
     restoreAccount().catch(() => {});
   });
   el('accountClose').addEventListener('click', () => dialog.close());
-  dialog.addEventListener('close', () => { el('accountPassword').value = ''; el('accountButton').focus(); });
+  dialog.addEventListener('close', () => { el('accountPassword').value = ''; el('accountNewPassword').value='';el('accountNewPasswordConfirm').value='';el('accountDeleteConfirm').value=''; el('accountButton').focus(); });
   el('accountGoogle')?.addEventListener('click',()=>socialSignIn('google'));
   el('accountApple')?.addEventListener('click',()=>socialSignIn('apple'));
   window.addEventListener?.('pageshow',()=>{if(oauthNavigationPending){clearTimeout(oauthNavigationTimer);oauthNavigationPending=false;setBusy(false);message('');}});
   el('accountLogin').addEventListener('click', () => setMode('login'));
   el('accountSignup').addEventListener('click', () => setMode('signup'));
+  el('accountForgot').addEventListener('click',()=>{setMode('reset');message('Informe seu e-mail para receber um link de recuperação.');el('accountEmail').focus();});
   el('accountForm').addEventListener('submit', async event => {
     event.preventDefault(); if(busy) return;
+    if(mode==='reset') {
+      if(Date.now()-recoverySentAt<60000){message('Espere um minuto antes de solicitar outro link.');return;}
+      const email=el('accountEmail').value.trim();
+      setBusy(true);message('Solicitando link…');
+      try {
+        const client=await getClient();
+        const result=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'?auth_recovery=1'});
+        if(result.error)throw result.error;
+        recoverySentAt=Date.now();message('Se houver uma conta disponível para esse e-mail, você receberá um link. Confira também o spam.');
+      } catch(error){message(authError(error));}
+      finally{setBusy(false);}
+      return;
+    }
     const name = el('accountName').value.trim();
     if(mode === 'signup' && !name) { message('Informe um nome para exibição.'); return; }
     const email = el('accountEmail').value.trim(), password = el('accountPassword').value;
-    if(mode === 'signup' && (password.length < 12 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password))) {
+    if(mode === 'signup' && !strongPassword(password)) {
       message('Crie uma senha com 12 ou mais caracteres, incluindo maiúscula, minúscula, número e símbolo.'); return;
     }
     setBusy(true); message('Só um instante…'); track('Auth Started',{mode});
@@ -306,8 +339,49 @@
     } catch(error) { message(authError(error)); }
     finally { setBusy(false); }
   });
+  el('accountRecoveryForm').addEventListener('submit',async event=>{
+    event.preventDefault();if(busy || !recoveryActive || !currentUser)return;
+    const password=el('accountNewPassword').value,confirm=el('accountNewPasswordConfirm').value;
+    if(!strongPassword(password)){message('Use 12 ou mais caracteres, incluindo maiúscula, minúscula, número e símbolo.');return;}
+    if(password!==confirm){message('As duas senhas precisam ser iguais.');return;}
+    const owner=currentUser.id,revision=accountRevision;
+    setBusy(true);message('Salvando nova senha…');
+    try {
+      const client=await getClient();if(owner!==currentUser?.id || revision!==accountRevision)return;
+      const result=await client.auth.updateUser({password});if(result.error)throw result.error;
+      if(owner!==currentUser?.id || revision!==accountRevision)return;
+      recoveryActive=false;el('accountNewPassword').value='';el('accountNewPasswordConfirm').value='';paint(currentUser);
+      message('Senha atualizada. Sua conta está conectada.');mergeAccountPreferences(currentUser).catch(()=>{});
+    } catch(error){if(owner===currentUser?.id && revision===accountRevision)message(authError(error));}
+    finally{setBusy(false);}
+  });
+  el('accountDeleteForm').addEventListener('submit',async event=>{
+    event.preventDefault();if(busy || !currentUser)return;
+    if(el('accountDeleteConfirm').value!=='EXCLUIR'){message('Digite EXCLUIR para confirmar a exclusão permanente.');return;}
+    const owner=currentUser.id,revision=accountRevision;
+    setBusy(true);message('Excluindo conta…');
+    try {
+      const client=await getClient();if(owner!==currentUser?.id || revision!==accountRevision)return;
+      const result=await client.functions.invoke('account-delete',{body:{ownerId:owner,confirmation:'EXCLUIR'},signal:AbortSignal.timeout(15000)});
+      if(owner!==currentUser?.id || revision!==accountRevision)return;
+      if(result.error){
+        let code;try{code=(await result.error.context?.json()).code;}catch{}
+        if(code==='reauth_required'){message('Por segurança, saia da conta e entre novamente. Depois confirme a exclusão.');return;}
+        throw result.error;
+      }
+      if(result.data?.deleted!==true)throw Error('delete_failed');
+      if(owner!==currentUser?.id || revision!==accountRevision)return;
+      clearTimeout(preferenceTimer);pendingPreferences={};inFlightPreferences=null;
+      try {localStorage.removeItem('pluvia-account-pending-'+owner);localStorage.removeItem('pluvia-favorites-owner');}catch{}
+      refreshFavoriteUI([]);favoriteView=[];paint(null);window.pluviaAnalytics?.resetUser();
+      // Remove the SDK's local session even though the user no longer exists.
+      try{await client.auth.signOut({scope:'local'});}catch{}
+      setBusy(false);setMode('login');el('accountDeleteConfirm').value='';message('Sua conta foi excluída. Você pode continuar usando a previsão.');
+    } catch {if(owner===currentUser?.id && revision===accountRevision)message('Não foi possível confirmar a exclusão. Confira a conexão e tente novamente.');}
+    finally{setBusy(false);}
+  });
   el('profileForm').addEventListener('submit', async event => {
-    event.preventDefault();
+    event.preventDefault();if(busy)return;
     const name = el('profileName').value.trim();
     if (!name || !currentUser) { message('Preencha seu nome para continuar.'); return; }
     const ownerId=currentUser.id,revision=accountRevision;
@@ -322,10 +396,11 @@
   window.addEventListener?.('pluvia:favorites-changed',event => schedulePreferences({favoriteCityIds:event.detail?.ids || (typeof favorites!=='undefined' ? [...favorites] : localFavoriteIds())}));
   window.addEventListener?.('pluvia:city-changed',event => { if(/^\d{7}$/.test(String(event.detail?.id || ''))) schedulePreferences({primaryCityId:event.detail.id}); });
   el('accountLogout').addEventListener('click', async () => {
-    el('accountLogout').disabled = true;
-    try { await window.pluviaPush?.beforeLogout?.(); const client = await getClient(); const {error} = await client.auth.signOut({scope:'local'}); if(error) throw error; paint(null); window.pluviaAnalytics?.resetUser(); setMode('login'); message('Você saiu da conta.'); }
+    if(busy)return;
+    setBusy(true);
+    try { await window.pluviaPush?.beforeLogout?.(); const client = await getClient(); const {error} = await client.auth.signOut({scope:'local'}); if(error) throw error; paint(null); window.pluviaAnalytics?.resetUser(); setBusy(false); setMode('login'); message('Você saiu da conta.'); }
     catch(error) { message(authError(error)); }
-    finally { el('accountLogout').disabled = false; }
+    finally { setBusy(false); }
   });
   setMode('login');
   window.pluviaAccount = {getClient,getUser:()=>currentUser,getPreferences:()=>preferenceSync.getSnapshot(),syncPreferences:()=>preferenceSync.load(true),applyPreferences:(operations,ownerId)=>preferenceSync.apply(operations,ownerId),open(){ if(!dialog.open) dialog.showModal(); dialog.querySelector?.('.dialog-scroll')?.scrollTo?.(0, 0); el('accountClose').focus(); loadProviders().catch(()=>{}); restoreAccount().catch(()=>{}); }};
@@ -334,5 +409,12 @@
   document.addEventListener?.('visibilitychange',()=>{if(document.visibilityState==='visible')revalidatePreferences();});
   // Supabase owns session persistence. Restore it on every page load instead of
   // guessing the SDK's storage key, which may change between client versions.
-  restoreAccount().finally(()=>finishSocialReturn());
+  restoreAccount().finally(()=>{
+    finishSocialReturn();
+    if(recoveryReturn || recoveryAttempt){
+      try {const url=new URL(location.href);url.searchParams.delete('auth_recovery');for(const key of ['error','error_code','error_description'])url.searchParams.delete(key);url.hash='';history.replaceState(history.state,'',url.href);}catch{}
+      if(!dialog.open)dialog.showModal();
+      if(!recoveryActive)message('O link de recuperação não pôde ser validado. Solicite um novo link em “Esqueci minha senha”.');
+    }
+  });
 })();

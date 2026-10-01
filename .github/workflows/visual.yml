@@ -1,0 +1,46 @@
+name: Validar interface e movimento
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar ferramentas de teste isoladas
+        run: |
+          python -m pip install playwright==1.62.0
+          python -m playwright install --with-deps ${{ matrix.browser }}
+      - name: Abrir preview local
+        run: |
+          node dist/dev-server.cjs --host 127.0.0.1 --port 4173 > /tmp/pluvia-preview.log 2>&1 &
+          for i in 1 2 3 4 5; do curl -fsS http://127.0.0.1:4173/ > /dev/null && break || sleep 1; done
+      - name: Verificar layout, dados, conta e estados visuais
+        env:
+          PLUVIA_BROWSER: ${{ matrix.browser }}
+          PLUVIA_QA_OUTPUT: /tmp/pluvia-qa
+        run: |
+          python scripts/verify-browser.py
+          python scripts/verify-account-sync.py
+          python scripts/verify-account-lifecycle.py
+          python scripts/verify-visual.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pluvia-visual-${{ matrix.browser }}
+          path: /tmp/pluvia-qa
+          retention-days: 7

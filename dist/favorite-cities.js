@@ -64,16 +64,29 @@
         if(!city?.timezone) local.textContent='Horário local indisponível';
         button.append(thermal,range,local);
       }
+      const notice=root.PLUVIA?.modules?.alerts?.forCity?.(city);
+      const alert=doc.createElement('small');alert.className='favorite-alert';
+      if(notice?.status!=='ready') alert.textContent='Avisos INMET indisponíveis';
+      else if(notice.alerts.length) {
+        const top=notice.alerts[0];alert.dataset.severity=top.severity.className;
+        const until=new Intl.DateTimeFormat('pt-BR',{timeZone:city.timezone || 'America/Sao_Paulo',hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}).format(new Date(top.end));
+        alert.textContent=`INMET oficial · ${top.severity.label} · até ${until}${city.timezone ? '' : ' (Brasília)'}`;
+      }
+      if(alert.textContent)button.append(alert);
       button.append(stamp);return button;
     }
     const observer='IntersectionObserver' in root ? new root.IntersectionObserver(entries=>{
       for(const entry of entries) if(entry.isIntersecting) {observer.unobserve(entry.target);enqueue(entry.target.dataset.favoriteId);}
     },{rootMargin:'80px'}) : null;
     function paint() {
+      const focused=doc.activeElement?.closest?.('[data-favorite-id]')?.dataset.favoriteId;
       const values=ids();observer?.disconnect();
       el('dialogFavorites').hidden=!values.length;
       const list=el('dialogFavoriteList');list.replaceChildren(...values.map(card));
-      for(const button of list.children) observer ? observer.observe(button) : enqueue(button.dataset.favoriteId);
+      for(const button of list.children) {
+        if(button.dataset.favoriteId===focused)button.focus({preventScroll:true});
+        observer ? observer.observe(button) : enqueue(button.dataset.favoriteId);
+      }
     }
     function enqueue(id) {
       const cached=read(id);
@@ -104,6 +117,8 @@
     el('dialogFavoriteList').addEventListener('click',open);
     root.addEventListener('pluvia:favorites-changed',()=>{status('');paint();});
     root.addEventListener('pluvia:city-changed',paint);
+    root.addEventListener('pluvia:alerts-updated',paint);
+    root.addEventListener('pluvia:clock-updated',()=>{if(el('cityDialog')?.open) paint();});
     root.addEventListener('pluvia:favorites-loaded',paint);
     root.addEventListener('pluvia:auth-changed',()=>root.setTimeout(paint,0));
     root.addEventListener('pluvia:weather-updated',event=>{

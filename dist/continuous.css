@@ -357,3 +357,24 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 #accountDialog #accountApple { background:#000; color:#fff; border-color:#747775; }
 #accountDialog .account-provider:focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
 #accountDialog .account-email-separator { text-align:center; font-size:.8rem; color:var(--dialog-muted,var(--muted)); }
+
+/* Suave ao abrir, inclusive no botão de saudação; sem layout animado ou blur extra. */
+@media (prefers-reduced-motion:no-preference) {
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open] { animation:pluvia-dialog-enter .32s cubic-bezier(.22,1,.36,1); transform-origin:50% 12%; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
+  details[open] > :not(summary) { animation:pluvia-content-enter .24s ease-out; }
+  @keyframes pluvia-dialog-enter { from { opacity:0; transform:translateY(16px) scale(.985); } to { opacity:1; transform:translateY(0) scale(1); } }
+  @keyframes pluvia-backdrop-enter { from { opacity:0; } to { opacity:1; } }
+  @keyframes pluvia-content-enter { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+}
+@media (prefers-reduced-motion:reduce) { html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open],html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop,details[open] > :not(summary) { animation:none !important; } }
+#accountDialog :is(#accountRecoveryForm,#accountDeleteForm) { display:grid; gap:14px; }
+#accountDialog :is(#accountRecoveryForm,#accountDeleteForm)[hidden] { display:none; }
+#accountDialog .account-text-action { background:transparent; color:var(--dialog-muted); text-decoration:underline; text-underline-offset:3px; }
+.account-delete { margin-top:24px; padding-top:16px; border-top:1px solid var(--dialog-line); }
+.account-delete summary { cursor:pointer; min-height:44px; display:flex; align-items:center; }
+#accountDialog #accountDelete { border:1px solid #fa948e88; background:#8d322b33; color:#ffd0cc; }
+#cityDialog .favorite-alert { color:var(--dialog-muted); line-height:1.5; }
+#cityDialog .favorite-alert[data-severity="yellow"] { color:#f5d885; }
+#cityDialog .favorite-alert[data-severity="orange"] { color:#ffb87b; }
+#cityDialog .favorite-alert[data-severity="red"] { color:#ffada5; }

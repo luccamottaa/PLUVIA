@@ -8,6 +8,7 @@ let displayedWeather = null;
 let errorTimer;
 let lastInmetResponse = null;
 let lastInmetReadAt = 0;
+let lastInmetAvailable = false;
 let summaryAiInFlight = null;
 let summaryAiUnavailableUntil = 0;
 const CACHE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
@@ -168,25 +169,26 @@ function inmetSeverity(alert) {
   return {className:"unknown", rank:0, label:"Aviso meteorológico", description:"Severidade a confirmar no INMET"};
 }
 
-function inmetArea(alert) {
+function inmetArea(alert, city = activeCity) {
   const codes = JSON.stringify(alert.geocodes || alert.geocode || "").match(/\b\d{7}\b/g) || [];
-  if (codes.length) return codes.includes(activeCity.id) ? activeCity.name : null;
+  if (codes.length) return codes.includes(city.id) ? city.name : null;
   const entries = value => normalizeName(JSON.stringify(value || "")).split(/[,;|/"\[\]{}:]/)
     .map(value=>value.trim().replace(/\s*(?:-\s*[a-z]{2}|\([a-z]{2}\))$/, '').trim());
   const contains = (value, name) => entries(value).includes(normalizeName(name));
   const towns = alert.municipios || alert.municipio;
-  if (towns && contains(towns, activeCity.name)) {
+  if (towns && contains(towns, city.name)) {
     const region = entries([alert.estados, alert.uf, alert.sigla, alert.area, alert.areaDesc]);
-    const ufConfirmed = region.includes(normalizeName(activeCity.uf)) || Boolean(activeCity.state && region.includes(normalizeName(activeCity.state)));
-    const uniqueConfirmed = municipalitiesReady && CITIES.filter(city => normalizeName(city.name) === normalizeName(activeCity.name)).length === 1;
-    return ufConfirmed || uniqueConfirmed ? activeCity.name : null;
+    const ufConfirmed = region.includes(normalizeName(city.uf)) || Boolean(city.state && region.includes(normalizeName(city.state)));
+    const regionProvided = [alert.estados,alert.uf,alert.sigla,alert.area,alert.areaDesc].some(value=>value != null && String(value).trim()!=='');
+    const uniqueConfirmed = !regionProvided && municipalitiesReady && CITIES.filter(candidate => normalizeName(candidate.name) === normalizeName(city.name)).length === 1;
+    return ufConfirmed || uniqueConfirmed ? city.name : null;
   }
   if (towns) return null;
   // State names can equal a capital name (São Paulo/Rio de Janeiro).
   // Only a municipality field or IBGE code confirms a city-level match.
   const region = [alert.estados, alert.uf, alert.sigla, alert.area, alert.areaDesc];
   const stateNames = normalizeName(JSON.stringify(region)).split(/[,;|/"\[\]{}:]/).map(value => value.trim());
-  if (stateNames.includes(normalizeName(activeCity.state)) || stateNames.includes(normalizeName(activeCity.uf))) return activeCity.state + " · confirme a área no mapa";
+  if (stateNames.includes(normalizeName(city.state)) || stateNames.includes(normalizeName(city.uf))) return city.state + " · confirme a área no mapa";
   return null;
 }
 
@@ -202,10 +204,10 @@ function inmetTime(alert, type) {
   return Date.parse(value);
 }
 
-function selectInmetAlerts(raw, now = Date.now()) {
+function selectInmetAlerts(raw, now = Date.now(), city = activeCity) {
   return normalizeAlerts(raw).flatMap(alert => {
     if ([true, 1, "1", "true"].includes(alert.encerrado) || /cancel/i.test(alert.msgType || "")) return [];
-    const area = inmetArea(alert);
+    const area = inmetArea(alert, city);
     const start = inmetTime(alert, "inicio"); const end = inmetTime(alert, "fim");
     if (!area || (Number.isFinite(end) && end <= now)) return [];
     const stage = start > now ? "future" : Number.isFinite(start) && Number.isFinite(end) ? "active" : "unconfirmed";
@@ -271,18 +273,27 @@ function applyOfficialAlertPriority() {
   $("summaryLink").textContent = "Ver aviso oficial e orientações →";
 }
 
+function favoriteCityAlerts(city, now = Date.now()) {
+  if (!city || !lastInmetAvailable || !lastInmetResponse || now < lastInmetReadAt || now-lastInmetReadAt > 600000) return {status:"unavailable",alerts:[]};
+  return {status:"ready",alerts:selectInmetAlerts(lastInmetResponse,now,city).filter(item=>item.stage==="active" && item.area===city.name)};
+}
+
 async function loadInmetAlerts(revision = cityRevision) {
   try {
     const raw = await services.alerts.getActive();
     if (revision !== cityRevision) return;
     lastInmetResponse = raw;
     lastInmetReadAt = Date.now();
+    lastInmetAvailable = true;
+    globalThis.dispatchEvent?.(new CustomEvent("pluvia:alerts-updated"));
     globalThis.PLUVIA?.sources.set("alerts",{status:"ready",checkedAt:lastInmetReadAt,dataAt:null});
     renderInmetAlerts(raw);
     updateInmetTimestamp();
   } catch {
     if (revision !== cityRevision) return;
     globalThis.PLUVIA?.sources.set("alerts",{status:lastInmetResponse ? "stale" : "error"});
+    lastInmetAvailable = false;
+    globalThis.dispatchEvent?.(new CustomEvent("pluvia:alerts-updated"));
     if (lastInmetResponse) { renderInmetAlerts(lastInmetResponse, true); updateInmetTimestamp(true); return; }
     const state = $("inmetState"); const content = $("inmetContent");
     $("inmetCard").dataset.severity = "unknown";
@@ -296,6 +307,7 @@ async function loadInmetAlerts(revision = cityRevision) {
 function updateClock() {
   if (!activeCity || document.hidden) return;
   const now = new Date();
+  globalThis.dispatchEvent?.(new CustomEvent("pluvia:clock-updated"));
   $("localClock").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
   $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
   const atmosphere = updateSolarAtmosphere(now.getTime());
