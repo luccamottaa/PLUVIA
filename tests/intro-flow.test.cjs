@@ -20,8 +20,8 @@ test('a intro recebe estilo e cor do tema antes dos recursos externos', () => {
 function runIntro({ saved = false, storageBlocked = false, reduced = false } = {}) {
   const timers = [];
   const intro = { hidden: false, dataset: {}, classList: { classes: [], add(name) { this.classes.push(name); } } };
-  const view = { hidden: true }, nav = { hidden: true }, welcome = { hidden: false };
-  const nodes = { pluviaIntro: intro, locationWelcome: welcome, weatherView: view, siteNav: nav };
+  const view = { hidden: true }, welcome = { hidden: false };
+  const nodes = { pluviaIntro: intro, locationWelcome: welcome, weatherView: view };
   const context = {
     document: { getElementById: id => nodes[id] },
     window: { matchMedia: () => ({ matches: reduced }) },
@@ -32,15 +32,14 @@ function runIntro({ saved = false, storageBlocked = false, reduced = false } = {
     setTimeout: (callback, delay) => { timers.push({ callback, delay }); },
   };
   vm.runInNewContext(script, context);
-  return { intro, view, nav, welcome, timers };
+  return { intro, view, welcome, timers };
 }
 
 test('a abertura sai sozinha mesmo sem executar o código da previsão', () => {
-  const { intro, view, nav, welcome, timers } = runIntro({ storageBlocked: true });
+  const { intro, view, welcome, timers } = runIntro({ storageBlocked: true });
   assert.equal(timers[0].delay, 2600);
   timers[0].callback();
   assert.equal(view.hidden, false);
-  assert.equal(nav.hidden, false);
   assert.equal(welcome.hidden, true);
   assert.deepEqual(intro.classList.classes, ['is-leaving']);
   timers.find(timer => timer.delay === 450).callback();

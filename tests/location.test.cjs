@@ -46,7 +46,7 @@ requests[2].success({coords:{latitude:-23.551,longitude:-46.633}});
 assert.equal(run('activeCity.name'),'Parintins'); // Late GPS cannot replace a manual choice.
 context.requestLocation();requests[3].success({coords:{latitude:-3.119,longitude:-60.022}});
 assert.equal(run('activeCity.name'),'Manaus');assert.equal(nodes.get('weatherView').hidden,false);
-assert.equal(nodes.get('locationWelcome').hidden,true);assert.equal(nodes.get('siteNav').hidden,false);
+assert.equal(nodes.get('locationWelcome').hidden,true);
 assert.equal(nodes.get('welcomeLocate').disabled,false);
 assert.equal(refreshes,2);
 const fallbackNotice=nodes.get('locationNotice');

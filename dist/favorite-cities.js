@@ -17,13 +17,13 @@
   }
   function mount(root) {
     const doc=root.document,el=id=>doc.getElementById(id);
-    if(!el('favoriteCityList')) return;
+    if(!el('dialogFavoriteList')) return;
     const snapshots=new Map(), errors=new Set(), pending=new Set(), queue=[];
     let running=0, opening=false;
     const service=root.PLUVIA?.services?.createServices({client:root.PLUVIA?.http?.createClient?.({defaultTimeoutMs:9000})});
     const ids=()=>typeof favorites!=='undefined' ? [...favorites].filter(id=>/^\d{7}$/.test(id)).slice(0,30) : [];
     const current=()=>typeof activeCity!=='undefined' ? activeCity : null;
-    const status=text=>{el('favoriteCityStatus').textContent=text;};
+    const status=text=>{el('dialogFavoriteStatus').textContent=text;};
     function read(id) {
       if(valid(snapshots.get(id))) return snapshots.get(id);
       try {
@@ -52,16 +52,9 @@
     },{rootMargin:'80px'}) : null;
     function paint() {
       const values=ids();observer?.disconnect();
-      const chosen=current(),starred=chosen && values.includes(chosen.id);
-      el('favoriteCityQuick').disabled=!chosen;el('favoriteCityQuick').setAttribute('aria-pressed',String(Boolean(starred)));
-      el('favoriteCityQuick').textContent=starred ? '★ Cidade favorita' : '☆ Favoritar '+(chosen?.name || 'cidade');
-      el('favoriteCityQuick').setAttribute('aria-label',(starred ? 'Remover dos favoritos: ' : 'Favoritar: ')+(chosen?.name || 'cidade'));
       el('dialogFavorites').hidden=!values.length;
-      for(const name of ['favoriteCityList','dialogFavoriteList']) {
-        const list=el(name);list.replaceChildren(...values.map(card));
-        for(const button of list.children) observer ? observer.observe(button) : enqueue(button.dataset.favoriteId);
-      }
-      if(!values.length && !opening) status('Favorite cidades para ver o tempo e alternar com um toque.');
+      const list=el('dialogFavoriteList');list.replaceChildren(...values.map(card));
+      for(const button of list.children) observer ? observer.observe(button) : enqueue(button.dataset.favoriteId);
     }
     function enqueue(id) {
       const cached=read(id);
@@ -89,8 +82,7 @@
       catch {status('Não foi possível abrir. Confira a conexão e tente novamente.');}
       finally {opening=false;paint();}
     }
-    for(const name of ['favoriteCityList','dialogFavoriteList']) el(name).addEventListener('click',open);
-    el('favoriteCityQuick').addEventListener('click',()=>{status(toggleFavoriteCity() ? '' : 'Você pode favoritar até 30 cidades.');paint();});
+    el('dialogFavoriteList').addEventListener('click',open);
     root.addEventListener('pluvia:favorites-changed',()=>{status('');paint();});
     root.addEventListener('pluvia:city-changed',paint);
     root.addEventListener('pluvia:favorites-loaded',paint);
