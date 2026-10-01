@@ -446,7 +446,7 @@ function renderHourly(hourly, start, daily) {
     const nextDay = outlook.start?.slice(0,10) !== hourly.time[start]?.slice(0,10) ? "Amanhã: " : "";
     const headline = outlook.kind === 'unavailable' ? 'Chance de chuva indisponível nas próximas 12 horas.'
       : outlook.kind === 'low' ? `${outlook.complete ? 'Baixa chance' : 'Nos horários disponíveis, baixa chance'} de chuva nas próximas 12 horas (até ${Math.round(outlook.probability)}%).`
-      : `${nextDay}Maior chance de chuva das ${shortTime(outlook.start)} às ${shortTime(outlook.end)}${outlook.end?.slice(0,10) !== outlook.start?.slice(0,10) ? " do dia seguinte" : ""} (${Math.round(outlook.probability)}%).`;
+      : `${nextDay}${outlook.complete ? 'Maior' : 'Nos horários disponíveis, maior'} chance de chuva das ${shortTime(outlook.start)} às ${shortTime(outlook.end)}${outlook.end?.slice(0,10) !== outlook.start?.slice(0,10) ? " do dia seguinte" : ""} (${Math.round(outlook.probability)}%).`;
     decision.textContent = headline + (outlook.volume === null ? '' : ` Volume previsto em 12h: ${fmt(outlook.volume,1)} mm.`);
   }
   const temperatures = indices.map(i => hourly.temperature_2m[i]).filter(Number.isFinite);
@@ -999,12 +999,13 @@ function chooseCity(id, locatedCity = null) {
   refreshAll();
 }
 function toggleFavoriteCity() {
-  if (!activeCity) return;
+  if (!activeCity) return false;
   if (favorites.has(activeCity.id)) favorites.delete(activeCity.id);
-  else { if (favorites.size >= 30) { $("cityPickerStatus").textContent = "Você pode favoritar até 30 cidades."; return; } favorites.add(activeCity.id); }
+  else { if (favorites.size >= 30) { $("cityPickerStatus").textContent = "Você pode favoritar até 30 cidades."; return false; } favorites.add(activeCity.id); }
   writePreference("pluvia-favorites", [...favorites]);
   renderCityOptions(); updateCityLabels();
   globalThis.dispatchEvent?.(new CustomEvent('pluvia:favorites-changed',{detail:{ids:[...favorites]}}));
+  return true;
 }
 function setupCityPicker() {
   emptyCityContent = new Map(cityResetIds.map(id => [id,$(id).innerHTML]));

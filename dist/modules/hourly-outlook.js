@@ -21,8 +21,8 @@
       for (let i=at+1;i<rows.length && rows[i].probability !== null && rows[i].probability >= threshold;i++) last=rows[i];
     }
     return {kind:peak.probability < 30 ? 'low' : 'peak', probability:peak.probability,
-      complete:known.length === rows.length, start:first.time, end:times[last.index + 1] || last.time,
-      volume:rows.every(row => row.mm !== null) ? rows.reduce((sum,row) => sum + row.mm,0) : null, rows};
+      complete:known.length === count, start:first.time, end:times[last.index + 1] || last.time,
+      volume:rows.length === count && rows.every(row => row.mm !== null) ? rows.reduce((sum,row) => sum + row.mm,0) : null, rows};
   }
   return {build,available};
 });

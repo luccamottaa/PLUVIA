@@ -90,7 +90,7 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   setTimeout(() => { clearTimeout(fallbackTimer); if (!activeCity && fallback) chooseCity(fallback.id); }, 1650);
 })();
 if ("serviceWorker" in navigator && window.isSecureContext) {
-  const hadController = Boolean(navigator.serviceWorker.controller);
+  let hadController = Boolean(navigator.serviceWorker.controller);
   let reloadingForUpdate = false;
   let pendingReload = false;
   const reloadWhenIdle = () => {
@@ -100,6 +100,7 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
     location.reload();
   };
   navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController) { hadController = true; return; }
     if (hadController && !reloadingForUpdate) {
       pendingReload = true;
       reloadWhenIdle();

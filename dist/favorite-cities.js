@@ -90,7 +90,7 @@
       finally {opening=false;paint();}
     }
     for(const name of ['favoriteCityList','dialogFavoriteList']) el(name).addEventListener('click',open);
-    el('favoriteCityQuick').addEventListener('click',()=>{toggleFavoriteCity();status('');paint();});
+    el('favoriteCityQuick').addEventListener('click',()=>{status(toggleFavoriteCity() ? '' : 'Você pode favoritar até 30 cidades.');paint();});
     root.addEventListener('pluvia:favorites-changed',()=>{status('');paint();});
     root.addEventListener('pluvia:city-changed',paint);
     root.addEventListener('pluvia:favorites-loaded',paint);

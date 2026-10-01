@@ -56,6 +56,8 @@ test('primeira instalação não recarrega; offline e falhas de atualização pe
   await settle();
   app.workerEvents.controllerchange();
   assert.equal(app.reloads(), 0);
+  app.workerEvents.controllerchange();
+  assert.equal(app.reloads(), 1, 'uma atualização posterior à primeira instalação recarrega a versão');
   app.advance(31000);
   app.context.navigator.onLine = false;
   app.events.interval();
