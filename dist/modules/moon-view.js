@@ -34,6 +34,8 @@
       document?.getElementById?.('moonDisc')?.setAttribute('visibility',available ? 'visible' : 'hidden');
       const text = document?.getElementById?.('moonPhase');
       if (text) text.textContent = label;
+      const illumination = document?.getElementById?.('moonIllumination');
+      if (illumination) illumination.textContent = available ? Math.round(fraction*100)+'% iluminada · estimativa astronômica' : 'Iluminação indisponível';
       document?.documentElement?.style?.setProperty('--moon-light',fraction.toFixed(3));
       return {available,phase,label,fraction};
     }

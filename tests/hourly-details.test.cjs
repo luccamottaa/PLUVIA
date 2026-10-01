@@ -27,6 +27,7 @@ function screen() {
   };
   const ctx = {
     $:id => elements[id], activeCity:{name:'Manaus'},
+    cityDate:value=>new Date(value+'Z'),formatUpdateTime:at=>new Date(at).toISOString().slice(11,16),
     fmt:(value,digits=0) => Number.isFinite(value) ? value.toFixed(digits).replace('.',',') : '--',
     shortTime:time => time.slice(11,16), windDirection:deg => ({0:'N',90:'L'})[deg],
     weather:() => ['Céu variável'], forecastIsDay:() => true,
@@ -71,6 +72,14 @@ test('visibilidade baixa aparece no resumo, dado ausente fica indisponível', ()
   details.renderVisibility(null);
   assert.equal(elements.visibilityValue.textContent,'--');
   assert.match(elements.visibilityNote.textContent,/indisponível/);
+});
+test('eventos da timeline reutilizam a fonte solar, respeitam intervalo e mostram sensação',()=>{
+ const {hourly,elements,ctx}=screen();
+ ctx.PLUVIA.sky={dayAt:()=>({rise:Date.parse('2026-09-24T06:00Z'),set:Date.parse('2026-09-24T17:45Z')})};
+ hourly.renderHourly({...data,apparent_temperature:[32,33,31]},0,{time:['2026-09-24']});
+ const chart=elements.rainChart.innerHTML;
+ assert.match(chart,/Sens\. 32°/);assert.match(chart,/Pôr do sol 17:45/);assert.equal((chart.match(/Pôr do sol/g)||[]).length,1);
+ ctx.PLUVIA.sky.dayAt=()=>null;hourly.renderHourly(data,0,{});assert.doesNotMatch(elements.rainChart.innerHTML,/Pôr do sol/);
 });
 
 test('a fase da Lua segue as efemérides de setembro de 2026', () => {

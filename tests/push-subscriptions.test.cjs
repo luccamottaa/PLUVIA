@@ -5,7 +5,7 @@ const city={cityId:'1302603',cityName:'Manaus',uf:'AM',latitude:-3.1,longitude:-
 function server({user={id:'owner'},errors={}}={}) {
  let handler;const writes=[],reads=[];
  const admin={from(table){const chain={select(){return chain;},eq(field,value){reads.push({table,field,value});return chain;},order(){return chain;},maybeSingle(){return chain;},single(){return chain;},upsert(values,options){writes.push({table,values,options});return chain;},then(resolve,reject){return Promise.resolve({data:table==='notification_preferences'?{official_alerts:false}:[],error:errors[table]||null}).then(resolve,reject);}};return chain;}};
- vm.runInNewContext(source,{Deno:{serve:fn=>handler=fn},adminClient:()=>admin,authenticatedUser:async()=>user,pushSecrets:async()=>({vapid_public_key:'public'}),readJson:async req=>req.body,preflight:()=>({status:204}),json:(req,body,status=200)=>({body,status}),console:{error(){}}});
+ vm.runInNewContext(source,{Deno:{serve:fn=>handler=fn},adminClient:()=>admin,authenticatedUser:async()=>user,pushSecrets:async()=>({vapid_public_key:'public'}),readJson:async req=>req.body,preflight:()=>({status:204}),json:(req,body,status=200)=>({body,status}),console:{error(){}},allowedPushEndpoint:require('../supabase/functions/_shared/push-endpoint.ts').allowedPushEndpoint});
  return {writes,reads,request:body=>handler({method:'POST',body})};
 }
 test('salvar vários municípios preserva falsos e atribui todas as linhas ao usuário autenticado',async()=>{
@@ -31,4 +31,8 @@ test('config é leitura do usuário e falha visivelmente quando uma consulta fal
 });
 test('sem autenticação, preferências não podem ser lidas ou alteradas',async()=>{
  const s=server({user:null});assert.equal((await s.request({action:'preferences',locations:[city]})).status,401);assert.equal(s.writes.length,0);assert.equal(s.reads.length,0);
+});
+test('cadastro rejeita endpoint arbitrário antes de qualquer escrita',async()=>{
+ const s=server();const response=await s.request({action:'register',subscription:{endpoint:'https://127.0.0.1/private',keys:{p256dh:'A'.repeat(60),auth:'B'.repeat(24)}}});
+ assert.equal(response.status,400);assert.equal(s.writes.length,0);
 });

@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { adminClient, authenticatedUser, pushSecrets } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
+import { allowedPushEndpoint } from "../_shared/push-endpoint.ts";
 
 const clean = (value: unknown, max = 80) => String(value || "").trim().slice(0, max);
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -13,7 +14,7 @@ function subscriptionInput(raw: any) {
   const endpoint = clean(raw?.endpoint, 2048);
   const p256dh = clean(raw?.keys?.p256dh, 180);
   const auth = clean(raw?.keys?.auth, 100);
-  if (!endpoint.startsWith("https://") || !/^[A-Za-z0-9_-]{40,180}$/.test(p256dh) || !/^[A-Za-z0-9_-]{10,100}$/.test(auth)) throw new Error("invalid_subscription");
+  if (!allowedPushEndpoint(endpoint) || !/^[A-Za-z0-9_-]{40,180}$/.test(p256dh) || !/^[A-Za-z0-9_-]{10,100}$/.test(auth)) throw new Error("invalid_subscription");
   return { endpoint, p256dh, auth };
 }
 

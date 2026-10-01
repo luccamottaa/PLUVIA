@@ -299,6 +299,23 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 #weatherView :is(.hourly-peek-item,.hour-column) { color:var(--reading-ink); font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 #weatherView .hour-column { padding:0; border:0; border-radius:0; background:transparent; }
 
+#weatherView .hour-temp small { display:block; margin-top:4px; font-size:.75rem; font-weight:500; color:var(--reading-muted); }
+#weatherView .hour-solar-event { display:block; max-width:100%; font-size:.7rem; line-height:1.4; color:var(--reading-link); white-space:normal; }
+#weatherView .uv-day-chart { grid-column:1/-1; margin:8px 0 0; width:100%; }
+#weatherView .uv-day-chart svg { display:block; width:100%; height:64px; overflow:visible; }
+#weatherView .uv-day-chart path { fill:none; stroke:var(--reading-link); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+#weatherView .uv-day-chart figcaption { display:flex; justify-content:space-between; font-size:.7rem; color:var(--reading-muted); }
+#weatherView .air-details { grid-column:1/-1; margin-top:12px; font-size:.8rem; line-height:1.5; color:var(--reading-muted); }
+#weatherView .air-details summary { min-height:44px; display:list-item; align-content:center; cursor:pointer; font-weight:700; color:var(--reading-ink); }
+#weatherView .air-details p { margin:10px 0; }
+#weatherView .air-details dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+#weatherView .air-details dd { margin:4px 0 0; font-weight:700; color:var(--reading-ink); }
+#weatherView #shareWeather { min-height:44px; padding:6px 12px; border:0; background:transparent; font-size:.8rem; color:var(--reading-link); }
+.share-weather-status { margin:0; font-size:.8rem; }
+.share-weather-status:empty { display:none; }
+#shareWeatherText { box-sizing:border-box; width:100%; margin-top:8px; min-height:160px; padding:12px; border:1px solid var(--dialog-line); border-radius:12px; background:var(--dialog-surface); color:var(--dialog-text); font:inherit; font-size:16px; }
+.moon-inline #moonIllumination { display:block; margin-top:6px; font-size:.75rem; }
+
 #hourlyDetailDialog .dialog-heading > div { min-width:0; }
 #hourlyDetailDialog #hourlyDetailCity { margin:6px 0 0; font-size:.875rem; }
 .hourly-detail-weather { display:grid; grid-template-columns:72px auto; align-items:center; justify-content:center; gap:8px 18px; text-align:center; }

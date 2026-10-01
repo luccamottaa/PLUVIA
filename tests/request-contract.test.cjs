@@ -49,7 +49,8 @@ test('sucesso limpa o registro e preserva zero e falso recebidos no JSON', async
 });
 
 test('tendência de pressão exige três horas reais de histórico', () => {
-  assert.match(app, /const pressurePast = start >= 3 \? data\.hourly\.pressure_msl\?\.\[start - 3\] : null/);
+  const insights=require('../dist/modules/weather-insights.js');
+  assert.equal(insights.pressure({time:['2026-10-01T09:00','2026-10-01T10:00','2026-10-01T11:00','2026-10-01T12:00'],pressure_msl:[null,1000,1000,1002]},3),null);
   assert.doesNotMatch(app, /pressure_msl\?\.\[Math\.max\(0,start - 3\)\]/);
 });
 

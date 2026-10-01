@@ -198,6 +198,7 @@
       visibility: number(at(hourly.visibility, index)),
       pressureMsl: number(at(hourly.pressure_msl, index)),
       windSpeed: number(at(hourly.wind_speed_10m, index)),
+      windDirection: number(at(hourly.wind_direction_10m, index)),
       windGust: number(at(hourly.wind_gusts_10m, index)),
       uvIndex: number(at(hourly.uv_index, index))
     })));
@@ -282,7 +283,14 @@
   }
 
   function get(cityId) { return snapshots.get(String(cityId || "")) || null; }
+  function markStale(cityId) {
+    const previous = get(cityId);
+    if (!previous) return null;
+    const snapshot = freeze({...previous,source:freeze({...previous.source,freshness:'stale'})});
+    snapshots.set(String(cityId),snapshot);
+    return snapshot;
+  }
   function clear(cityId) { cityId == null ? snapshots.clear() : snapshots.delete(String(cityId)); }
 
-  return { validateForecast, validateAirQuality, cachedAir, normalizeOpenMeteo, ingestOpenMeteo, get, clear };
+  return { validateForecast, validateAirQuality, cachedAir, normalizeOpenMeteo, ingestOpenMeteo, get, markStale, clear };
 });

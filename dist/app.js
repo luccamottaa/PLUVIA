@@ -107,6 +107,7 @@ function aqiLabel(value) {
 function renderAirQuality(value) {
   const [label, note] = aqiLabel(value);
   const card = $("airQualityCard");
+  if (!Number.isFinite(value) && $("airDetails")) $("airDetails").hidden = true;
   const level = !Number.isFinite(value) || value < 0 ? null
     : value <= 50 ? "good" : value <= 100 ? "moderate" : value <= 150 ? "sensitive"
     : value <= 200 ? "poor" : value <= 300 ? "very-poor" : "hazardous";
@@ -443,6 +444,14 @@ function forecastIsDay(time, daily) {
 }
 
 let hourlyMode = "conditions";
+function hourlySolarEvents(value, next) {
+  const at = cityDate(value).getTime(), end = cityDate(next).getTime();
+  if (!Number.isFinite(at) || !Number.isFinite(end) || end-at !== 3600000) return '';
+  const solar = globalThis.PLUVIA?.sky?.dayAt(at);
+  return [['Nascer do sol',solar?.rise],['Pôr do sol',solar?.set]]
+    .filter(([,stamp]) => Number.isFinite(stamp) && stamp >= at && stamp < end)
+    .map(([label,stamp]) => `<small class="hour-solar-event">${label} ${formatUpdateTime(stamp)}</small>`).join('');
+}
 function renderHourly(hourly, start, daily) {
   const chart = $("rainChart");
   const scrollLeft = chart.scrollLeft;
@@ -458,7 +467,7 @@ function renderHourly(hourly, start, daily) {
       const mm = hourly.precipitation?.[rainIndex(i)];
       const volume = Number.isFinite(mm) && mm >= 0 ? `${fmt(mm, 1)} mm` : "Volume indisponível";
       const rain = Number.isFinite(probability) ? `${Math.round(probability)}%` : "—";
-      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="${time}: ${fmt(temperature)} graus, ${rain} de chance de chuva, ${volume}. Ver detalhes"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain">${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}${rain}</span><strong>${fmt(temperature)}°</strong><small class="peek-volume">${volume}</small></button>`;
+      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="${time}: ${fmt(temperature)} graus, sensação ${fmt(hourly.apparent_temperature?.[i])} graus, ${rain} de chance de chuva, ${volume}. Ver detalhes"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain">${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}${rain}</span><strong>${fmt(temperature)}°</strong><small class="peek-volume">Sens. ${fmt(hourly.apparent_temperature?.[i])}°</small><small class="peek-volume">${volume}</small>${hourlySolarEvents(hourly.time[i],hourly.time[i+1])}</button>`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
   }
   const decision = $("hourlyDecision");
@@ -478,13 +487,14 @@ function renderHourly(hourly, start, daily) {
   chart.innerHTML = indices.map((i, p) => {
     const time = p === 0 ? "AGORA" : shortTime(hourly.time[i]);
     const temperature = hourly.temperature_2m?.[i];
+    const solarEvent = hourlySolarEvents(hourly.time[i],hourly.time[i+1]);
     const icon = weatherIcons.markup(hourly.weather_code[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:false});
     if (hourlyMode === "conditions") {
       const height = Number.isFinite(temperature) ? 24 + (temperature - minTemp) / tempSpread * 111 : 0;
       return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${weather(hourly.weather_code[i])[0]}">
-        <span class="hour-time">${time}</span><span class="hour-temp">${fmt(temperature)}°</span>
+        <span class="hour-time">${time}</span><span class="hour-temp">${fmt(temperature)}°<small>Sens. ${fmt(hourly.apparent_temperature?.[i])}°</small></span>
         <div class="bar-area"><div class="temp-bar" style="height:${height.toFixed(0)}px"></div></div>
-        <span class="hour-detail">${Number.isFinite(hourly.precipitation_probability?.[rainIndex(i)]) ? Math.round(hourly.precipitation_probability[rainIndex(i)]) + "%" : "—"} de chuva<small>${fmt(hourly.precipitation?.[rainIndex(i)],1)} mm</small></span><span class="hour-icon">${icon}</span></button>`;
+        <span class="hour-detail">${Number.isFinite(hourly.precipitation_probability?.[rainIndex(i)]) ? Math.round(hourly.precipitation_probability[rainIndex(i)]) + "%" : "—"} de chuva<small>${fmt(hourly.precipitation?.[rainIndex(i)],1)} mm</small></span><span class="hour-icon">${icon}</span>${solarEvent}</button>`;
     }
     if (hourlyMode === "wind") {
       const speed = hourly.wind_speed_10m?.[i];
@@ -496,7 +506,7 @@ function renderHourly(hourly, start, daily) {
       return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: vento ${fmt(speed)} km/h, rajadas ${fmt(gust)} km/h${validDirection ? `, vindo de ${windDirection(direction)}` : ""}">
         <span class="hour-time">${time}</span><span class="hour-temp">${fmt(speed)}</span>
         <div class="bar-area">${bar}</div><span class="hour-detail">km/h<small>Raj. ${fmt(gust)}</small></span>
-        <span class="wind-direction" aria-hidden="true">${arrow}</span></button>`;
+        <span class="wind-direction" aria-hidden="true">${arrow}</span>${solarEvent}</button>`;
     }
     const probability = hourly.precipitation_probability?.[rainIndex(i)];
     const prob = Number.isFinite(probability) ? Math.round(probability) : null;
@@ -508,7 +518,7 @@ function renderHourly(hourly, start, daily) {
       <span class="hour-time">${time}</span>
       <span class="hour-temp">${fmt(temperature)}°</span>
       <div class="bar-area"><div class="rain-bar" data-prob="${prob ?? "—"}" style="height:${barHeight}px"></div></div>
-      <span class="rain-mm">${fmt(mm, 1)} mm</span><span class="hour-icon">${icon}</span>
+      <span class="rain-mm">${fmt(mm, 1)} mm</span><span class="hour-icon">${icon}</span>${solarEvent}
     </button>`;
   }).join("") || '<p class="chart-loading">Previsão por hora indisponível.</p>';
   const descriptions = {
@@ -647,13 +657,48 @@ function clearWeatherInsights() {
   const reasons = $("weatherExplanationList");
   if (reasons) reasons.textContent = "";
   if ($("rainPhrase")) $("rainPhrase").textContent = "Previsão de chuva indisponível.";
+  if ($("uvDayChart")) $("uvDayChart").hidden = true;
+}
+
+function renderUvDay(uv) {
+  const chart = $("uvDayChart");
+  if (!chart) return;
+  chart.hidden = !uv;
+  if (!uv) return;
+  const maximum = Math.max(11,uv.peak);
+  let path = '', previous = null;
+  for (const point of uv.points) {
+    const [hour,minute] = point.time.split(':').map(Number), minutes = hour*60+minute;
+    if (point.value === null || !Number.isFinite(minutes)) { previous = null; continue; }
+    path += `${previous !== null && minutes-previous===60 ? 'L' : 'M'}${(minutes/1440*240).toFixed(1)},${(52-point.value/maximum*48).toFixed(1)} `;
+    previous = minutes;
+  }
+  chart.innerHTML = `<svg viewBox="0 0 240 60" role="img" aria-label="Evolução horária estimada do UV. ${escapeHtml(uv.label)}"><path d="${path}"/></svg><figcaption><span>00h</span><span>12h</span><span>24h</span></figcaption>`;
+}
+
+function renderAirDetails(snapshot) {
+  const details = $("airDetails");
+  if (!details) return;
+  const air = snapshot?.airQuality;
+  details.hidden = !air;
+  if (!air) return;
+  const fields = [['pm25','PM2,5'],['pm10','PM10'],['ozone','Ozônio'],['nitrogenDioxide','NO₂'],['carbonMonoxide','CO']];
+  const readings = fields.filter(([key]) => Number.isFinite(air[key]) && air[key]>=0).map(([key,label]) => {
+    const row = document.createElement('div'), name = document.createElement('dt'), value = document.createElement('dd');
+    name.textContent = label; value.textContent = fmt(air[key],1)+' µg/m³'; row.append(name,value); return row;
+  });
+  $("airPollutants").replaceChildren(...readings);
+  const at = globalThis.PLUVIA.time.parse(air.time,activeCity);
+  const stamp = Number.isFinite(at) ? new Intl.DateTimeFormat('pt-BR',{timeZone:activeCity.timezone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(at) : 'horário indisponível';
+  $("airDetailsTime").textContent = `${snapshot.airSource.freshness==='current' ? 'Estimativa de' : 'Leitura anterior de'} ${stamp} · horário de ${activeCity.name}.`;
 }
 
 function renderWeatherInsights(data, air, start) {
   if (!weatherInsights?.build) return;
   const insight = weatherInsights.build({forecast:data, air, start, timezone:activeCity?.timezone});
   if ($("feelsLikeNote") && insight.feelsLike) $("feelsLikeNote").textContent = insight.feelsLike;
-  if ($("uvNote") && insight.uv?.label) $("uvNote").textContent = insight.uv.label;
+  if ($("uvNote") && insight.uv?.label) $("uvNote").textContent = `${Number.isFinite(data.hourly.uv_index?.[start]) ? uvLabel(data.hourly.uv_index[start]) : 'UV atual indisponível'} · ${insight.uv.label}`;
+  renderUvDay(insight.uv);
   const highlights = $("contextHighlights");
   if (highlights) {
     highlights.textContent = "";
@@ -689,6 +734,8 @@ function renderWeatherInsights(data, air, start) {
 function markWeatherUnavailable(hasSavedData) {
   setDataStatus(hasSavedData ? "Dados salvos · sem confirmação atual" : "Conexão indisponível", true);
   if (hasSavedData) {
+    weatherData?.markStale?.(activeCity.id);
+    globalThis.dispatchEvent?.(new CustomEvent('pluvia:weather-updated',{detail:{cityId:activeCity.id}}));
     return;
   }
   $("attentionCard").classList.remove("ok", "warning", "danger");
@@ -740,14 +787,13 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   $("windCompass").style.setProperty("--wind-visible", Number.isFinite(current.wind_direction_10m) ? "1" : "0");
   $("windCompass").setAttribute("aria-label", `Vento de ${windDirection(current.wind_direction_10m)}, ${fmt(current.wind_speed_10m)} quilômetros por hora, rajadas de ${fmt(current.wind_gusts_10m)} quilômetros por hora`);
   $("pressure").innerHTML = `${fmt(current.pressure_msl ?? current.surface_pressure)}<sup> hPa</sup>`;
-  const pressureNow = data.hourly.pressure_msl?.[start];
-  const pressurePast = start >= 3 ? data.hourly.pressure_msl?.[start - 3] : null;
-  const pressureDelta = Number.isFinite(pressureNow) && Number.isFinite(pressurePast) ? pressureNow - pressurePast : null;
-  $("pressureNote").textContent = Number.isFinite(pressureDelta) ? Math.abs(pressureDelta) < .8 ? "Estável nas últimas 3h" : pressureDelta > 0 ? `Subindo ${fmt(pressureDelta,1)} hPa em 3h` : `Caindo ${fmt(Math.abs(pressureDelta),1)} hPa em 3h` : "Tendência indisponível";
+  const pressureTrend = weatherInsights.pressure?.(data.hourly,start,activeCity);
+  $("pressureNote").textContent = pressureTrend ? (pressureTrend.trend==='stable' ? 'Estável nas últimas 3h' : `${pressureTrend.trend==='rising' ? 'Subindo' : 'Caindo'} ${fmt(Math.abs(pressureTrend.delta),1)} hPa em 3h`)+' · estimativa' : 'Tendência indisponível';
   const uvNow = data.hourly.uv_index[start]; $("uv").textContent = fmt(uvNow, 1); $("uvNote").textContent = uvLabel(uvNow);
   $("uvScale").hidden = !Number.isFinite(uvNow);
   if (Number.isFinite(uvNow)) $("uvScale").style.setProperty("--uv-position", `${Math.max(0, Math.min(100, uvNow / 11 * 100))}%`);
   renderAirQuality(air?.current?.us_aqi);
+  renderAirDetails(weatherData?.get(activeCity.id));
   if (air && !metadata.freshAir) $("airNote").textContent += ' · leitura anterior';
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
   setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache);

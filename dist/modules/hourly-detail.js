@@ -19,6 +19,8 @@
       probability:continuous ? number(hourly.precipitation_probability?.[index+1],0,100) : null,
       mm:continuous ? number(hourly.precipitation?.[index+1],0,1000) : null,
       wind:number(hourly.wind_speed_10m?.[index],0,500),gust:number(hourly.wind_gusts_10m?.[index],0,500),
+      direction:number(hourly.wind_direction_10m?.[index],0,360),uv:number(hourly.uv_index?.[index],0),
+      pressure:number(hourly.pressure_msl?.[index],100,1200),
       humidity:number(hourly.relative_humidity_2m?.[index],0,100)};
   }
   function rainCopy(outlook,reference) {
@@ -55,6 +57,10 @@
       el('hourlyDetailWind').textContent=unit(reading.wind,' km/h');
       el('hourlyDetailGust').textContent=unit(reading.gust,' km/h');
       el('hourlyDetailHumidity').textContent=unit(reading.humidity,'%');
+      const direction = reading.wind === null || reading.wind === 0 || reading.direction === null ? 'Indisponível ou vento calmo' : 'Vindo de '+['N','NE','L','SE','S','SO','O','NO'][Math.round(reading.direction/45)%8];
+      if(el('hourlyDetailDirection')) el('hourlyDetailDirection').textContent=direction;
+      if(el('hourlyDetailUv')) el('hourlyDetailUv').textContent=unit(reading.uv,'',1);
+      if(el('hourlyDetailPressure')) el('hourlyDetailPressure').textContent=unit(reading.pressure,' hPa');
       el('hourlyDetailRainInterval').textContent=reading.rainEnd ? `Chuva prevista entre ${clock(reading.time)} e ${clock(reading.rainEnd)}${reading.rainEnd.slice(0,10)!==reading.time.slice(0,10) ? ' do dia seguinte' : ''}.` : 'Intervalo de chuva indisponível.';
       el('hourlyDetailSource').textContent=(state.fromCache ? 'Leitura salva · ' : 'Previsão por modelos · ')+`horário de ${state.city.name}.`;
       const range=bounds();el('hourlyDetailPrev').disabled=index<=range.first;el('hourlyDetailNext').disabled=index>=range.last;

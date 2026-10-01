@@ -10,6 +10,12 @@ test('favoritos não inventam chuva nem temperatura quando o serviço omite dado
  const value=snapshot({current:{temperature_2m:0,weather_code:0}});
  assert.equal(value.temperature,0);assert.equal(value.rain,null);
 });
+test('comparação inclui sensação e extremos do dia correto sem confiar em lacunas horárias',()=>{
+ const input={current:{temperature_2m:30,apparent_temperature:36,weather_code:2,time:'2026-10-02T00:00'},daily:{time:['2026-10-01','2026-10-02'],temperature_2m_max:[35,32],temperature_2m_min:[23,24]},hourly:{time:['2026-10-02T00:00','2026-10-02T01:00','2026-10-02T02:00','2026-10-02T03:00'],precipitation_probability:[0,20,30,50]}};
+ const value=snapshot(input,1234);assert.equal(value.feelsLike,36);assert.equal(value.high,32);assert.equal(value.low,24);assert.equal(value.rain,50);assert.equal(value.at,1234);
+ input.hourly.time[2]='2026-10-02T04:00';assert.equal(snapshot(input).rain,null);
+ input.current.apparent_temperature=null;assert.equal(snapshot(input).feelsLike,null);
+});
 test('favoritos continuam disponíveis na busca sem elementos na página principal',async()=>{
  const fs=require('node:fs'),vm=require('node:vm');
  function element() {

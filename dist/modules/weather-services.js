@@ -76,7 +76,8 @@
         forecastUrl: city => buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS),
         getForecast: (city, options) => getJson(buildUrl(FORECAST_ENDPOINT, city, FORECAST_PARAMS), options),
         getBrief: (city, options) => getJson(buildUrl(FORECAST_ENDPOINT, city, {
-          current:"temperature_2m,weather_code,is_day",hourly:"precipitation_probability",forecast_days:"2"
+          current:"temperature_2m,apparent_temperature,weather_code,is_day",hourly:"precipitation_probability",
+          daily:"temperature_2m_max,temperature_2m_min",forecast_days:"2"
         }),options)
       },
       metNorway: {
