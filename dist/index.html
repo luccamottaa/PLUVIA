@@ -84,8 +84,8 @@
     <link rel="stylesheet" href="./sky.css?v=sky-7" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-29" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-8" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-30" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-9" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
@@ -172,6 +172,7 @@
         <div class="city-actions">        <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
         <button id="locateCity" class="city-button" type="button">Usar localização</button>
 </div>
+        <section id="dialogFavorites" class="favorite-cities" hidden aria-labelledby="dialogFavoritesTitle"><h3 id="dialogFavoritesTitle">Favoritos</h3><div id="dialogFavoriteList" class="favorite-city-list"></div></section>
         <ul id="cityResults" class="city-results" role="listbox" aria-label="Cidades encontradas"></ul>
         <p id="cityPickerStatus" role="status" aria-live="polite"></p>
       </section>
@@ -209,7 +210,7 @@
             <div class="notification-actions"><button id="notificationToggle" type="button">Ativar alertas</button><button id="notificationTest" type="button" hidden>Enviar notificação de teste</button></div>
             <form id="notificationPreferencesForm" class="alert-preferences">
               <p class="notification-all-note">Receba avisos oficiais e alertas de chuva, tempestades, vento, calor e qualidade do ar, em qualquer horário.</p>
-              <small>Alertas de raios ainda não estão disponíveis. O resumo diário programado está desativado.</small>
+              <small>Previsões e avisos oficiais do INMET são identificados na mensagem. Evitamos repetir a mesma condição prevista por 6 horas; um aumento de severidade gera novo aviso. Raios e resumo diário continuam desativados.</small>
               <label class="notification-location"><input name="monitor_current_city" type="checkbox"> Receber alertas para a cidade aberta</label>
               <p class="notification-help">Escolha abaixo as cidades para receber alertas. Buscar ou favoritar uma cidade não ativa notificações.</p>
               <small id="notificationPrivacy">Usamos somente as cidades que você escolher para enviar alertas meteorológicos relevantes. Não monitoramos GPS em segundo plano.</small>
@@ -243,8 +244,13 @@
           </div>
         </article>
       </section>
+      <section id="favoriteCities" class="favorite-cities" aria-labelledby="favoriteCitiesTitle">
+        <div class="favorites-heading"><h2 id="favoriteCitiesTitle">Suas cidades</h2><button id="favoriteCityQuick" type="button" aria-pressed="false">Favoritar cidade</button></div>
+        <div id="favoriteCityList" class="favorite-city-list"></div><p id="favoriteCityStatus" role="status"></p>
+      </section>
       <section class="hourly-peek panel" aria-labelledby="hourlyPeekTitle">
         <div class="hourly-peek-heading"><h2 id="hourlyPeekTitle">Próximas horas</h2><a href="#chuva" aria-label="Ver previsão completa por hora">Ver previsão <span aria-hidden="true">›</span></a></div>
+        <p id="hourlyDecision" class="hourly-decision">Consultando a previsão das próximas 12 horas…</p>
         <div class="hourly-peek-list" id="hourlyPeek" role="group" aria-label="Condições nas próximas horas"><p>Consultando as próximas horas…</p></div>
       </section>
       <section class="quick-metrics" aria-label="Sensação térmica e visibilidade">
@@ -274,7 +280,7 @@
         <a id="summaryLink" class="summary-link" href="#previsao">Ver previsão detalhada →</a>
       </aside>
       <section id="notificationPrompt" class="notification-prompt panel" aria-labelledby="notificationPromptTitle" hidden>
-        <div class="notification-prompt-icon" aria-hidden="true">🔔</div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Avisos de chuva e do INMET no celular</h2><p id="notificationPromptText">Receba avisos oficiais e previsões de chuva para o município selecionado. O horário exato pode variar conforme a localização.</p></div><button id="notificationPromptButton" type="button">Ativar alertas</button>
+        <div class="notification-prompt-icon" aria-hidden="true">🔔</div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Avisos de chuva e do INMET no celular</h2><p id="notificationPromptText">Receba avisos oficiais e previsões de chuva para o município selecionado. O horário pode variar. Previsões e avisos oficiais são identificados na mensagem.</p></div><button id="notificationPromptButton" type="button">Ativar alertas</button>
       </section>
       <section class="alerts-section section-block" id="alertas">
         <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg></span><h2>Alertas e saúde</h2></div><p id="alertsCityLabel">Fontes oficiais</p></div>
@@ -289,9 +295,11 @@
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region" aria-label="Previsão por hora"><div class="chart-loading">Montando a previsão horária…</div></div>
       </section>
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
+        <dialog id="radarDialog" class="radar-dialog" aria-labelledby="radarDialogTitle"><div class="radar-dialog-heading"><h2 id="radarDialogTitle">Radar de chuva</h2><button id="closeRadar" type="button" aria-label="Fechar radar ampliado">Fechar <span aria-hidden="true">×</span></button></div><div id="radarDialogContent"></div></dialog>
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
           <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapCardTitle">Chuva na região</h2><p id="weatherMapCity">Referência do município</p></div>
-          <div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Radar de chuva interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
+          <button id="expandRadar" class="expand-radar" type="button" aria-haspopup="dialog" aria-controls="radarDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg>Ampliar radar</button>
+          <div id="radarMapContent"><div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Radar de chuva interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
           <div class="weather-timebar">
             <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
             <div class="weather-player">
@@ -302,7 +310,7 @@
             </div>
             <small id="weatherSourceNote">Radar observado · RainViewer · cobertura depende dos radares disponíveis; não é previsão.</small>
             <a id="weatherLightningAttribution" href="https://www.xweather.com/" target="_blank" rel="noopener noreferrer" hidden>Powered by Vaisala Xweather</a>
-          </div>
+          </div></div>
         </article>
       </section>
       <section class="forecast-section section-block" id="previsao">
@@ -343,7 +351,7 @@
     <script src="./analytics.js?v=analytics-3" defer></script>
     <script src="./modules/sources.js?v=panel-21" defer></script>
     <script src="./modules/http-client.js?v=panel-21" defer></script>
-    <script src="./modules/weather-services.js?v=core-109" defer></script>
+    <script src="./modules/weather-services.js?v=core-110" defer></script>
     <script src="./modules/weather-data-layer.js?v=core-109" defer></script>
     <script src="./modules/met-merge.js?v=core-109" defer></script>
     <script src="./modules/weather-extras.js?v=core-109" defer></script>
@@ -353,12 +361,14 @@
     <script src="./modules/weather-icon-system.js?v=modern-1" defer></script>
     <script src="./modules/smart-summary.js?v=core-109" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
-    <script src="./app.js?v=panel-26" defer></script>
-    <script src="./p0.js?v=panel-31" defer></script>
+    <script src="./modules/hourly-outlook.js?v=outlook-1" defer></script>
+    <script src="./app.js?v=panel-27" defer></script>
+    <script src="./p0.js?v=panel-32" defer></script>
     <script src="./modules/risks.js?v=core-116" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
-    <script src="./weather-map.js?v=panel-28" defer></script>
-    <script src="./account.js?v=panel-21" defer></script>
+    <script src="./weather-map.js?v=panel-29" defer></script>
+    <script src="./account.js?v=panel-22" defer></script>
+    <script src="./favorite-cities.js?v=favorites-1" defer></script>
     <script src="./saved-places.js?v=panel-21" defer></script>
     <script src="./notifications.js?v=panel-21" defer></script>
   </body>

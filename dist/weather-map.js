@@ -9,6 +9,9 @@
   const LIGHTNING_ENDPOINT = 'https://dszyyrcvwrpyiypwyvxe.supabase.co/functions/v1/lightning';
   const httpClient = globalThis.PLUVIA?.http?.createClient?.({defaultTimeoutMs:10000});
   const state = { map:null, base:null, overlay:null, marker:null, layer:'rain', frames:[], index:0, timer:null, cityId:null };
+  const radarDialog = $('radarDialog'), radarContent = $('radarMapContent');
+  const radarHome = radarContent?.parentElement;
+  let previousOverflow = '';
   let leafletPromise;
   let layerRevision = 0;
 
@@ -27,9 +30,9 @@
         const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = LEAFLET_CSS; document.head.appendChild(link);
       }
       const script = document.createElement('script'); script.src = LEAFLET_JS; script.async = true;
-      const timeout = setTimeout(() => reject(new Error('Tempo esgotado ao abrir o mapa.')),12000);
+      const timeout = setTimeout(() => { leafletPromise=null; script.remove(); reject(new Error('Tempo esgotado ao abrir o mapa.')); },12000);
       script.onload = () => { clearTimeout(timeout); globalThis.L ? resolve(globalThis.L) : reject(new Error('Biblioteca do mapa indisponível.')); };
-      script.onerror = () => { clearTimeout(timeout); reject(new Error('Biblioteca do mapa indisponível.')); };
+      script.onerror = () => { clearTimeout(timeout); leafletPromise=null; script.remove(); reject(new Error('Biblioteca do mapa indisponível.')); };
       document.head.appendChild(script);
     });
     return leafletPromise;
@@ -230,6 +233,24 @@
     }
   }
   function step(amount) { if (!state.frames.length || state.nextOverlay) return; state.index = (state.index + amount + state.frames.length) % state.frames.length; renderFrame(); }
+  function resizeMap() { requestAnimationFrame(() => state.map?.invalidateSize?.({pan:false})); }
+  $('expandRadar')?.addEventListener('click',() => {
+    if (!radarDialog || radarDialog.open || !radarContent) return;
+    previousOverflow = document.body.style.overflow;
+    $('radarDialogContent').appendChild(radarContent);
+    radarDialog.showModal(); document.body.style.overflow='hidden';
+    mapVisible=true; if (!state.map) showMap();
+    resizeMap(); $('closeRadar').focus();
+  });
+  $('closeRadar')?.addEventListener('click',() => radarDialog.close());
+  radarDialog?.addEventListener('close',() => {
+    stop(); radarHome?.appendChild(radarContent); document.body.style.overflow=previousOverflow;
+    resizeMap(); $('expandRadar')?.focus();
+  });
+  radarDialog?.addEventListener('click',event => { if (event.target === radarDialog) radarDialog.close(); });
+  if ('ResizeObserver' in globalThis && radarContent) new ResizeObserver(resizeMap).observe(radarContent);
+  globalThis.addEventListener?.('resize',resizeMap,{passive:true});
+  document.addEventListener?.('visibilitychange',() => { if (document.hidden) stop(); });
   if ('IntersectionObserver' in globalThis) {
     const observer = new IntersectionObserver(entries => {
       if (entries.some(entry => entry.isIntersecting)) { mapVisible = true; observer.disconnect(); showMap(); }

@@ -92,12 +92,22 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
 if ("serviceWorker" in navigator && window.isSecureContext) {
   const hadController = Boolean(navigator.serviceWorker.controller);
   let reloadingForUpdate = false;
+  let pendingReload = false;
+  const reloadWhenIdle = () => {
+    if (!pendingReload || reloadingForUpdate || document.visibilityState === 'hidden' ||
+      document.querySelector?.('dialog[open], input:focus, textarea:focus, [contenteditable]:focus')) return;
+    reloadingForUpdate = true;
+    location.reload();
+  };
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (hadController && !reloadingForUpdate) {
-      reloadingForUpdate = true;
-      location.reload();
+      pendingReload = true;
+      reloadWhenIdle();
     }
   });
+  document.addEventListener('close', reloadWhenIdle, true);
+  document.addEventListener('focusout', () => setTimeout(reloadWhenIdle,0));
+  document.addEventListener('visibilitychange',reloadWhenIdle);
   let registration;
   let checking;
   let lastCheck = -Infinity;

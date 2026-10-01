@@ -548,3 +548,22 @@ html body .wind-compass { --wind-visible:0; display:block; width:76px; height:76
   .wind-metric .wind-reading > strong { display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
   .wind-metric .wind-reading > strong sup { margin-left:0; font-size:.65rem; }
 }
+
+/* Expanded radar uses the same map and controls, including on iOS. */
+.radar-dialog { position:fixed; inset:0; width:100%; max-width:none; height:100dvh; max-height:none; margin:0; padding:0; border:0; border-radius:0; background:var(--map-background); color:var(--map-ink); overflow:hidden; }
+.radar-dialog[open] { display:flex; flex-direction:column; }
+.radar-dialog::backdrop { background:#07182fe8; }
+.radar-dialog-heading { flex:none; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:calc(12px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 12px max(16px,env(safe-area-inset-left)); }
+.radar-dialog-heading h2 { margin:0; font-size:1.2rem; }
+.radar-dialog-heading button { min-height:44px; padding:8px 16px; border:1px solid var(--map-line); border-radius:12px; background:var(--map-surface); color:var(--map-ink); font:inherit; cursor:pointer; }
+#radarDialogContent { flex:1; min-height:0; }
+.radar-dialog #radarMapContent { height:100%; display:flex; flex-direction:column; }
+.radar-dialog .weather-map-stage { flex:1; min-height:120px; border-radius:0 !important; }
+.radar-dialog #weatherMap { height:100% !important; min-height:0 !important; }
+.radar-dialog .weather-timebar { flex:none; padding:12px max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left)); background:var(--map-surface); color:var(--map-ink); }
+.radar-dialog .weather-player { grid-template-columns:44px 48px 44px minmax(60px,1fr); }
+.radar-dialog .weather-player button { min-height:44px; }
+.radar-dialog #weatherSourceNote { font-size:.78rem; }
+.expand-radar { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; margin:0 0 14px; padding:10px 16px; border:1px solid var(--map-line); border-radius:12px; background:var(--map-surface); color:var(--map-link); font:700 .9rem var(--font-ui); cursor:pointer; }
+.expand-radar svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+@media(max-height:480px) { .radar-dialog #weatherSourceNote { display:none; } .radar-dialog .weather-timebar { padding-block:6px; } .radar-dialog-heading { padding-block:6px; } }
