@@ -85,7 +85,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-30" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-9" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-10" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
@@ -123,10 +123,8 @@
         function reveal() {
           var welcome = document.getElementById("locationWelcome");
           var view = document.getElementById("weatherView");
-          var nav = document.getElementById("siteNav");
           if (welcome) welcome.hidden = true;
           if (view) view.hidden = false;
-          if (nav) nav.hidden = false;
         }
         function dismiss() {
           if (!intro || intro.hidden || intro.dataset.done) return;
@@ -147,11 +145,8 @@
     <header class="topbar shell" id="top">
       <a class="brand" href="#top" aria-label="PLUVIA, início"><span class="brand-mark" aria-hidden="true"></span><span>PLUVIA</span></a>
       <button id="accountButton" class="account-trigger" type="button" aria-haspopup="dialog" aria-controls="accountDialog">Entrar / cadastrar</button>
-      <nav id="siteNav" aria-label="Seções" hidden>
-        <a class="active" href="#agora">Agora</a><a href="#alertas">Alertas</a><a href="#chuva">Chuva</a><a href="#previsao">Previsão</a>
-      </nav>
       <div class="top-actions">
-        <button id="openCitySearch" class="search-trigger" type="button" aria-label="Buscar ou trocar cidade" aria-haspopup="dialog" aria-controls="cityDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.4-3.4" /></svg><span class="search-trigger-label" id="selectedCityLabel">Cidade</span></button>
+        <button id="openCitySearch" class="search-trigger" type="button" aria-label="Buscar ou trocar cidade" aria-haspopup="dialog" aria-controls="cityDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.4-3.4" /></svg></button>
       </div>
     </header>
     <main class="shell">
@@ -172,7 +167,7 @@
         <div class="city-actions">        <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
         <button id="locateCity" class="city-button" type="button">Usar localização</button>
 </div>
-        <section id="dialogFavorites" class="favorite-cities" hidden aria-labelledby="dialogFavoritesTitle"><h3 id="dialogFavoritesTitle">Favoritos</h3><div id="dialogFavoriteList" class="favorite-city-list"></div></section>
+        <section id="dialogFavorites" class="favorite-cities" hidden aria-labelledby="dialogFavoritesTitle"><h3 id="dialogFavoritesTitle">Favoritos</h3><div id="dialogFavoriteList" class="favorite-city-list"></div><p id="dialogFavoriteStatus" role="status" aria-live="polite"></p></section>
         <ul id="cityResults" class="city-results" role="listbox" aria-label="Cidades encontradas"></ul>
         <p id="cityPickerStatus" role="status" aria-live="polite"></p>
       </section>
@@ -243,10 +238,6 @@
             <p class="condition" id="condition">Consultando o tempo…</p>
           </div>
         </article>
-      </section>
-      <section id="favoriteCities" class="favorite-cities" aria-labelledby="favoriteCitiesTitle">
-        <div class="favorites-heading"><h2 id="favoriteCitiesTitle">Suas cidades</h2><button id="favoriteCityQuick" type="button" aria-pressed="false">Favoritar cidade</button></div>
-        <div id="favoriteCityList" class="favorite-city-list"></div><p id="favoriteCityStatus" role="status"></p>
       </section>
       <section class="hourly-peek panel" aria-labelledby="hourlyPeekTitle">
         <div class="hourly-peek-heading"><h2 id="hourlyPeekTitle">Próximas horas</h2><a href="#chuva" aria-label="Ver previsão completa por hora">Ver previsão <span aria-hidden="true">›</span></a></div>
@@ -362,13 +353,13 @@
     <script src="./modules/smart-summary.js?v=core-109" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
     <script src="./modules/hourly-outlook.js?v=outlook-2" defer></script>
-    <script src="./app.js?v=panel-28" defer></script>
-    <script src="./p0.js?v=panel-33" defer></script>
+    <script src="./app.js?v=panel-29" defer></script>
+    <script src="./p0.js?v=panel-34" defer></script>
     <script src="./modules/risks.js?v=core-116" defer></script>
     <script src="./modules/adapters.js?v=core-109" defer></script>
     <script src="./weather-map.js?v=panel-29" defer></script>
     <script src="./account.js?v=panel-22" defer></script>
-    <script src="./favorite-cities.js?v=favorites-2" defer></script>
+    <script src="./favorite-cities.js?v=favorites-3" defer></script>
     <script src="./saved-places.js?v=panel-21" defer></script>
     <script src="./notifications.js?v=panel-21" defer></script>
   </body>

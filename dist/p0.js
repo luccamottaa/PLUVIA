@@ -7,8 +7,6 @@ const _updateCityLabels = updateCityLabels;
 updateCityLabels = function () {
   _updateCityLabels();
   if (!activeCity) return;
-  const label = document.getElementById("selectedCityLabel");
-  if (label) label.textContent = activeCity.name;
   const dist = document.getElementById("cityDistance");
   if (dist) {
     dist.hidden = !(activeCity.distanceKm >= 2);

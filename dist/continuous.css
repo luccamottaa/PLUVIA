@@ -1,5 +1,59 @@
 /* The forecast is one reading surface over the city sky. Dialogs and map
    controls keep their own surfaces; these rules only apply to the home. */
+/* The header shares the sky and has just the brand, account and search. */
+html body .topbar {
+  position:relative;
+  top:auto;
+  max-width:860px;
+  height:auto;
+  min-height:64px;
+  margin-top:calc(env(safe-area-inset-top) + 10px);
+  padding:10px 0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto 44px;
+  grid-template-rows:auto;
+  gap:0 10px;
+  align-items:center;
+  border:0;
+  border-radius:0;
+  background:transparent !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  animation:none;
+  color:#f2f7ff;
+}
+body[data-phase="day"] .topbar { color:#082744; }
+.topbar::before,.topbar::after { display:none !important; }
+.topbar .brand { grid-column:1; grid-row:1; }
+.topbar .brand-mark { margin-left:0; }
+.topbar .brand span:last-child,.topbar .account-trigger,.topbar .search-trigger { color:inherit !important; }
+.topbar .account-trigger {
+  grid-column:2;
+  grid-row:1;
+  min-height:44px;
+  max-width:min(32vw,180px);
+  margin:0;
+  padding:0;
+  background:transparent;
+}
+.topbar .top-actions { grid-column:3; grid-row:1; width:44px; }
+.topbar .search-trigger {
+  width:44px;
+  height:44px;
+  min-height:44px;
+  padding:10px;
+  justify-content:center;
+  border:0;
+  border-radius:0;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.topbar .search-trigger svg { width:24px; height:24px; stroke-linecap:round; stroke-linejoin:round; }
+.topbar :is(a,button):focus-visible { outline:2px solid currentColor; outline-offset:4px; }
+@media(max-width:720px) {
+  .topbar .brand span:last-child { font-size:clamp(1.2rem,5.9vw,1.48rem); }
+}
 #weatherView {
   --reading-ink:#f2f7ff;
   --reading-muted:#cbdceb;
@@ -219,10 +273,6 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 #weatherView .hourly-peek-item .peek-volume { font-size:.75rem; color:var(--reading-muted); white-space:nowrap; }
 #weatherView .hourly-peek-item { min-height:170px; }
 .favorite-cities { min-width:0; }
-#weatherView .favorite-cities { margin:0; padding:16px 0 24px; }
-.favorites-heading { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
-.favorites-heading h2 { margin:0; font-size:1rem; }
-#favoriteCityQuick { min-height:44px; padding:8px 12px; border:1px solid var(--reading-line); border-radius:12px; background:transparent; color:var(--reading-link); font:700 .875rem var(--font-ui); cursor:pointer; }
 .favorite-city-list { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity; padding-block:4px; }
 .favorite-city-card { flex:0 0 180px; min-height:112px; display:grid; justify-items:start; gap:5px; padding:14px; border:1px solid var(--reading-line,var(--dialog-line)); border-radius:16px; background:transparent; color:inherit; font:inherit; text-align:left; scroll-snap-align:start; cursor:pointer; }
 .favorite-city-card[aria-current=true] { border-color:var(--reading-link,#6ba4ff); }
@@ -230,7 +280,8 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 .favorite-city-card small { color:var(--reading-muted,var(--dialog-muted)); font-size:.75rem; }
 .favorite-city-card .favorite-reading { font-weight:800; font-size:1.2rem; }
 .favorite-city-card .favorite-summary { font-size:.8rem; line-height:1.4; }
-#favoriteCityStatus { margin:8px 0 0; font-size:.8rem; color:var(--reading-muted); }
+#dialogFavoriteStatus { margin:8px 0 0; font-size:.8rem; color:var(--dialog-muted); }
+#dialogFavoriteStatus:empty { display:none; }
 #cityDialog .favorite-cities { margin-bottom:6px; }
 #cityDialog .favorite-city-card { min-height:112px; border:1px solid var(--dialog-line); background:var(--dialog-surface); color:var(--dialog-text); padding:12px; }
 #cityDialog .favorite-city-card small { color:var(--dialog-muted); }

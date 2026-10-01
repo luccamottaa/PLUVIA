@@ -907,7 +907,6 @@ let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;
   if (!activeCity) return;
-  $("selectedCityLabel").textContent = activeCity.name + " · " + activeCity.uf;
   $("cityName").textContent = activeCity.name;
   $("alertsCityLabel").textContent = "Fontes oficiais e leitura ambiental para " + activeCity.name;
   $("forecastCityLabel").textContent = "Previsão diária para a área urbana de " + activeCity.name;
@@ -949,7 +948,6 @@ function chooseCity(id, locatedCity = null) {
   locationButtons(false);
   $("locationWelcome").hidden = true;
   $("weatherView").hidden = false;
-  $("siteNav").hidden = false;
   closeCitySearch();
   cityRevision++;
   services?.abortAll();
