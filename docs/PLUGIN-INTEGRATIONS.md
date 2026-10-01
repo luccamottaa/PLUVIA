@@ -20,16 +20,16 @@ Plugins do ChatGPT fornecem ferramentas ao agente. Isso não disponibiliza autom
 
 A camada Raios utiliza dados observados CG/IC e continua distinta da animação estética de tempestade. Nunca converter falha do provedor em “zero raios”. Exige cobertura, entitlement e credenciais Xweather válidos no servidor; conexão ChatGPT não os substitui. Cache de cinco minutos conserva horário original e rejeita registros malformados, futuros/antigos. Consultas iguais compartilham trabalho apenas na mesma instância; contador mensal no Postgres continua protegendo todas as instâncias. Não alegar deduplicação global.
 
-Durante a análise, a função publicada respondeu 503 `temporarily_unavailable`, embora tenha passado pela verificação de presença das variáveis. Tabelas de cache/cota e RPC existentes foram confirmados por consulta de catálogo. Não foi comprovada observação real de raios; o diagnóstico novo permite distinguir a dependência responsável. A configuração global de privacy/retenção e limites de consumo PostHog deve acompanhar a evolução do produto; esta implementação tem limites por visita, mas não um orçamento global de ingestão.
+Durante a análise, a função publicada respondeu 503 `temporarily_unavailable`, embora tenha passado pela verificação de presença das variáveis. Tabelas de cache/cota e RPC existentes foram confirmados por consulta de catálogo. O diagnóstico ao vivo isolou um bug de contrato: PostgREST confirmava upsert `return=minimal` com HTTP 200 e corpo vazio, enquanto a função tentava parsear JSON salvo status 204. Cache/cota tinham grants corretos e o payload estava persistido. A correção aceita confirmação vazia em 200/201/204; teste contra regressão cobre os três casos. A confirmação da entrega ao cliente após publicação consta no PR. A configuração global de privacy/retenção e limites de consumo PostHog deve acompanhar a evolução do produto; esta implementação tem limites por visita, mas não um orçamento global de ingestão.
 
 Não foram adicionadas bibliotecas, infraestrutura alternativa ou fontes meteorológicas. PostHog e Xweather devem ter seus limites e custos acompanhados nas respectivas contas. Nowcast de minutos, novos mapas e GLM processado continuam exigindo dados/entitlements/licenças confirmados. Não ativar recursos apenas porque há uma skill com o nome do fornecedor.
 
 ## Validação reproduzível
 
-- `node --test --test-isolation=none tests/*.test.cjs`: 258 entradas passaram nesta etapa (mistura de casos node:test e arquivos com assertions diretas).
+- `node --test --test-isolation=none tests/*.test.cjs`: 259 entradas passaram nesta etapa (mistura de casos node:test e arquivos com assertions diretas).
 - Verificação sintática JS e `deno check` de todas as funções: passaram.
 - `python scripts/verify-browser.py`: Chromium e WebKit com fixtures, sete viewports, sete estados visuais, privacidade, favoritos, troca de cidade, detalhes, compartilhamento e offline. Hardware Safari/iOS não foi testado.
 - Não há lint, typecheck frontend ou build bundler configurados. Pages publica `dist/`; Deno verifica tipos das funções e CI valida o artefato estático.
 - Publicação e diagnóstico ao vivo são registrados no PR desta etapa após execução; não confundir teste sintético com tráfego real ou cobertura de raios confirmada.
 
-Próxima prioridade: resolver entitlement/credenciais/rota do provedor conforme diagnóstico ao vivo, acompanhar limites das duas integrações e usar as contagens de participantes para selecionar melhorias de produto. Não interpretar falhas amostradas como taxa total de indisponibilidade.
+Próxima prioridade: acompanhar disponibilidade/cobertura do provedor e limites das duas integrações e usar as contagens de participantes para selecionar melhorias de produto. Não interpretar falhas amostradas como taxa total de indisponibilidade.

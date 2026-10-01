@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 const code = fs.readFileSync('supabase/functions/lightning/index.js','utf8');
 
-function setup({configured=true, providerResult, providerStatus=200, cachedRow, databaseFails=false}={}) {
+function setup({configured=true, providerResult, providerStatus=200, cachedRow, databaseFails=false, writeStatus=204}={}) {
   let handler, providerCalls=0, reservations=0, cacheWrites=0;
   const secrets = configured ? {
     SUPABASE_URL:'https://database.example', SUPABASE_SERVICE_ROLE_KEY:'private-db-key',
@@ -33,7 +33,7 @@ function setup({configured=true, providerResult, providerStatus=200, cachedRow, 
     if (address.includes('lightning_cache?on_conflict=')) {
       cacheWrites++;
       const row=JSON.parse(options.body); cached.set(row.location_key,row);
-      return new Response(null,{status:204});
+      return new Response(null,{status:writeStatus});
     }
     if (address.includes('lightning_cache?')) {
       const key=decodeURIComponent(address.match(/location_key=eq\.([^&]+)/)[1]);
@@ -103,5 +103,11 @@ test('cache válido é reconstruído pela allowlist sem renovar checkedAt',async
 test('falhas distinguem banco, autorização, limite e provedor sem expor segredos',async()=>{
  for(const [options,code] of [[{databaseFails:true},'database_unavailable'],[{providerStatus:401},'provider_not_authorized'],[{providerStatus:429},'provider_rate_limited'],[{providerStatus:500},'provider_unavailable'],[{providerResult:{success:true,response:[{loc:{lat:0,long:0},ob:{timestamp:0,pulse:{type:'CG'}},relativeTo:{distanceKM:1}}]}},'invalid_provider_data']]) {
  const app=setup(options),response=await app.request();assert.equal(response.status,503);assert.deepEqual(await response.json(),{error:code});assert.equal(app.stats().cacheWrites,0);
+ }
+});
+
+test('upsert return=minimal aceita corpo vazio em HTTP 200 e 201 sem invalidar consulta bem-sucedida',async()=>{
+ for(const writeStatus of [200,201,204]) {
+ const app=setup({writeStatus}),response=await app.request();assert.equal(response.status,200);assert.equal((await response.json()).source,'Vaisala Xweather');assert.equal((await app.request()).status,200);assert.equal(app.stats().providerCalls,1);
  }
 });

@@ -37,8 +37,19 @@ function dbHeaders() {
 async function database(path, options = {}) {
   try {
     const response = await fetch(`${DB}/rest/v1/${path}`,{...options,headers:{...dbHeaders(),...options.headers},signal:AbortSignal.timeout(5000)});
-    if (!response.ok) throw new Error('database_unavailable');
-    return response.status === 204 ? null : await response.json();
+    if (!response.ok) {
+      const stage=path.startsWith('rpc/') ? 'budget_reserve' : options.method === 'POST' ? 'cache_write' : 'cache_read';
+      let databaseCode;
+      try {
+        const raw=await response.json();
+        if(['42501','42P01','PGRST002','PGRST003','PGRST106','PGRST202','PGRST205','PGRST301','PGRST302'].includes(raw?.code)) databaseCode=raw.code;
+      } catch {}
+      console.warn(JSON.stringify({component:'lightning',code:'database_unavailable',stage,status:response.status,...(databaseCode ? {database_code:databaseCode} : {})}));
+      throw new Error('database_unavailable');
+    }
+    // PostgREST upsert with return=minimal can be 200, 201 or 204 with an empty body.
+    const minimal = options.headers?.Prefer?.split(',').includes('return=minimal');
+    return response.status === 204 || minimal ? null : await response.json();
   } catch { throw new Error('database_unavailable'); }
 }
 function normalize(raw, checkedAt) {
