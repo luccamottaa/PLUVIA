@@ -76,3 +76,13 @@ test('Apple sem nome usa formulário existente; Google reaproveita full_name sem
  const apple=boot({href:'https://pluviaweather.com.br/?auth_return=1',user:{id:'apple',email:'relay@example.test',user_metadata:{}}});await settle();assert.equal(apple.node('accountDialog').open,true);assert.equal(apple.node('profileName').focused,true);assert.equal(apple.node('profileName').value,'');assert.equal(apple.node('accountProfile').hidden,false);
  const google=boot({href:'https://pluviaweather.com.br/?auth_return=1',user:{id:'google',email:'user@example.test',user_metadata:{full_name:'Maria Silva'}}});await settle();assert.equal(google.node('accountButton').textContent,'Olá, Maria');assert.equal(google.node('accountDialog').open,undefined);assert.equal(google.node('accountSocial').hidden,true);
 });
+
+test('mensagens de notificações não apagam cancelamento ou erro de autenticação',()=>{
+ const source=fs.readFileSync('dist/notifications.js','utf8');
+ const supportNote={textContent:''},accountStatus={textContent:'Você cancelou o acesso.'};
+ const context={supportNote,el:()=>accountStatus};
+ vm.runInNewContext(source.slice(source.indexOf('  function message(value)'),source.indexOf('  function status(kind')),context);
+ context.message('Permissão ainda não solicitada.');
+ assert.equal(accountStatus.textContent,'Você cancelou o acesso.');
+ assert.equal(supportNote.textContent,'Permissão ainda não solicitada.');
+});

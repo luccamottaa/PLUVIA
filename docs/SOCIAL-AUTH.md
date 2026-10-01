@@ -54,3 +54,5 @@ Referências oficiais:
 - https://supabase.com/docs/guides/auth/social-login/auth-apple
 - https://supabase.com/docs/guides/auth/redirect-urls
 - https://supabase.com/docs/guides/auth/sessions/implicit-flow
+
+Durante QA remoto, foi identificada uma interferência existente: notifications.message escrevia em accountStatus e podia substituir erro/cancelamento de Auth. Notificações agora usam somente seu próprio status com aria-live; teste executa a função real e verifica preservação do erro de conta. Isso também protege mensagens de e-mail/senha.

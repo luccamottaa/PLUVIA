@@ -205,7 +205,7 @@
           <form id="profileForm"><label>Seu nome<input id="profileName" autocomplete="given-name" required maxlength="60" aria-describedby="profileNameHint" /></label><small id="profileNameHint"></small><button id="profileSave" type="submit">Salvar nome</button></form>
           <section id="notificationSettings" class="notification-settings" aria-labelledby="notificationSettingsTitle">
             <div class="notification-settings-head"><div><span class="eyebrow">CONFIGURAÇÕES</span><h3 id="notificationSettingsTitle">Notificações</h3></div><span id="notificationStatusBadge" class="notification-status is-off">Alertas desativados</span></div>
-            <p id="notificationSupportNote">Verificando compatibilidade deste dispositivo…</p>
+            <p id="notificationSupportNote" role="status" aria-live="polite">Verificando compatibilidade deste dispositivo…</p>
             <details class="notification-checks"><summary>Compatibilidade deste dispositivo</summary><ul id="notificationDiagnostics" class="notification-diagnostics" aria-label="Diagnóstico de notificações"></ul></details>
             <p id="notificationContinueNote" class="notification-continue" hidden>Conta conectada. Toque em <strong>Ativar alertas</strong> para solicitar permissão no iPhone.</p>
             <div class="notification-actions"><button id="notificationToggle" type="button">Ativar alertas</button><button id="notificationTest" type="button" hidden>Enviar notificação de teste</button></div>
@@ -402,6 +402,6 @@
     <script src="./modules/share-weather.js?v=share-1" defer></script>
     <script src="./saved-places.js?v=places-1" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-1" defer></script>
-    <script src="./notifications.js?v=panel-22" defer></script>
+    <script src="./notifications.js?v=panel-23" defer></script>
   </body>
 </html>

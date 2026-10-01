@@ -21,8 +21,6 @@
 
   function message(value) {
     supportNote.textContent = value;
-    const accountStatus = el("accountStatus");
-    if (accountStatus) accountStatus.textContent = value;
   }
 
   function status(kind, label) {
