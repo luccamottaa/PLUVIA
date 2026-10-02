@@ -86,7 +86,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-31" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-19" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-20" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
@@ -147,8 +147,10 @@
       <a class="brand" href="#top" aria-label="PLUVIA, início"><span class="brand-mark" aria-hidden="true"></span><span>PLUVIA</span></a>
       <button id="accountButton" class="account-trigger" type="button" aria-haspopup="dialog" aria-controls="accountDialog">Entrar / cadastrar</button>
       <div class="top-actions">
+        <button id="shareWeather" class="share-trigger search-trigger" type="button" aria-label="Compartilhar previsão" title="Compartilhar previsão" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8" /></svg></button>
         <button id="openCitySearch" class="search-trigger" type="button" aria-label="Buscar ou trocar cidade" aria-haspopup="dialog" aria-controls="cityDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.4-3.4" /></svg></button>
       </div>
+      <p id="shareWeatherStatus" class="share-weather-status" role="status" aria-live="polite"></p>
     </header>
     <main class="shell">
       <section class="location-welcome panel" id="locationWelcome" hidden aria-labelledby="locationTitle">
@@ -270,7 +272,6 @@
               <div class="temperature"><span id="temperature">--</span><span class="deg">°</span></div>
             </div>
             <p class="condition" id="condition">Consultando o tempo…</p>
-            <div class="weather-share"><button id="shareWeather" class="city-button" type="button" disabled>Compartilhar</button><p id="shareWeatherStatus" class="share-weather-status" role="status" aria-live="polite"></p></div>
             <button id="heroRainOpen" class="hero-rain-outlook" type="button" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" disabled>
               <span class="hero-rain-kicker">Quando pode chover?</span><strong id="heroRainTitle">Consultando a chuva…</strong><span id="heroRainText"></span><small id="heroRainStatus"></small><span class="hero-rain-link">Ver por hora <span aria-hidden="true">›</span></span>
             </button>
