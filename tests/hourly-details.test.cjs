@@ -20,7 +20,7 @@ const data = {
 function screen() {
   const chart = {innerHTML:'',scrollLeft:12,dataset:{},setAttribute(name,value){this[name]=value;}};
   const elements = {
-    rainChart:chart, dryWindow:{textContent:''}, visibilityValue:{textContent:''},
+    rainChart:chart, dryWindow:{textContent:''}, hourlyChartLegend:{textContent:''}, visibilityValue:{textContent:''},
     visibilityNote:{textContent:''}, visibilityBadge:{hidden:true,textContent:'',dataset:{}},
     moonIcon:{d:'',setAttribute(name,value){this[name]=value;}},
     moonDisc:{visibility:'hidden',setAttribute(name,value){this[name]=value;}}, moonPhase:{textContent:''}
@@ -32,7 +32,7 @@ function screen() {
     shortTime:time => time.slice(11,16), windDirection:deg => ({0:'N',90:'L'})[deg],
     weather:() => ['Céu variável'], forecastIsDay:() => true,
     weatherIcons:{markup:() => '<img alt="Tempo">'},
-    findDryWindow:() => 'Sem chuva nas próximas horas', PLUVIA:{moon}
+    findDryWindow:() => 'Sem chuva nas próximas horas', PLUVIA:{moon,hourlyDetail:require('../dist/modules/hourly-detail.js')}
   };
   const hourly = vm.runInNewContext(`${hourlySource}\n({renderHourly,setMode:mode=>hourlyMode=mode})`,ctx);
   ctx.PLUVIA.moonView = moonView.create({document:{getElementById:id=>elements[id]},
@@ -48,7 +48,7 @@ test('o mesmo gráfico alterna tempo, chuva e vento sem inventar leituras ausent
   assert.match(elements.rainChart.innerHTML,/class="temp-bar"/);
   assert.match(elements.rainChart.innerHTML,/27°/);
   hourly.setMode('rain'); hourly.renderHourly(data,0,{time:['2026-09-24']});
-  assert.match(elements.rainChart.innerHTML,/data-prob="80"/);
+  assert.match(elements.rainChart.innerHTML,/80% de chance/);
   assert.match(elements.rainChart.innerHTML,/2,0 mm/);
   hourly.setMode('wind'); hourly.renderHourly(data,0,{time:['2026-09-24']});
   assert.match(elements.rainChart.innerHTML,/Raj\. 25/);
@@ -146,4 +146,38 @@ test('a iluminação varia dentro da mesma fase e respeita os quartos e extremos
   phase = .5; details.renderMoon();
   assert.equal(elements.moonDisc.visibility,'visible');
   assert.equal(elements.moonPhase.textContent,'Lua cheia');
+});
+
+
+test('probabilidade alta não fabrica volume; lacunas e valores inválidos não desenham barras',()=>{
+ const {hourly,elements}=screen();hourly.setMode('rain');
+ hourly.renderHourly({...data,precipitation_probability:[0,95,80],precipitation:[0,0,null]},0,{});
+ assert.match(elements.rainChart.innerHTML,/95% de chance/);
+ assert.match(elements.rainChart.innerHTML,/0,0 mm/);
+ assert.doesNotMatch(elements.rainChart.innerHTML,/class="rain-bar"/);
+ assert.match(elements.hourlyChartLegend.textContent,/volume previsto em mm por hora/);
+ hourly.renderHourly({...data,time:[hours[0],hours[2]],precipitation:[0,5]},0,{});
+ assert.doesNotMatch(elements.rainChart.innerHTML,/class="rain-bar"/);
+ hourly.renderHourly({...data,precipitation:[0,-3,'5'],precipitation_probability:[0,101,'90']},0,{});
+ assert.doesNotMatch(elements.rainChart.innerHTML,/class="rain-bar"|101%|90%/);
+});
+test('sensação tem escala própria, temperatura de referência e lacunas honestas',()=>{
+ const {hourly,elements}=screen();hourly.setMode('feels');
+ hourly.renderHourly({...data,apparent_temperature:[33,null,37]},0,{});
+ assert.match(elements.rainChart.innerHTML,/33°<small>Temp. 27°/);
+ assert.match(elements.rainChart.innerHTML,/37°<small>Temp. 28°/);
+ assert.equal((elements.rainChart.innerHTML.match(/class="temp-bar"/g)||[]).length,2);
+ assert.match(elements.rainChart['aria-label'],/sensação térmica/);
+ hourly.renderHourly(data,0,{});
+ assert.match(elements.rainChart.innerHTML,/Sensação térmica por hora indisponível/);
+});
+
+test('volume usa escala proporcional compartilhada, independente da chance e do fuso do dispositivo',()=>{
+ const {hourly,elements}=screen();hourly.setMode('rain');
+ hourly.renderHourly({...data,time:['2026-09-24T23:00','2026-09-25T00:00','2026-09-25T01:00'],precipitation:[0,1,2],precipitation_probability:[0,99,10]},0,{});
+ assert.match(elements.rainChart.innerHTML,/height:75.0px/);
+ assert.match(elements.rainChart.innerHTML,/height:150.0px/);
+ assert.match(elements.rainChart.innerHTML,/99% de chance/);
+ hourly.renderHourly({...data,time:['invalid',hours[1],hours[2]]},0,{});
+ assert.equal((elements.rainChart.innerHTML.match(/data-hour-index=/g)||[]).length,2);
 });

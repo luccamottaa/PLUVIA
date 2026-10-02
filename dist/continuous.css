@@ -382,3 +382,10 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 #cityDialog .favorite-alert[data-severity="yellow"] { color:#f5d885; }
 #cityDialog .favorite-alert[data-severity="orange"] { color:#ffb87b; }
 #cityDialog .favorite-alert[data-severity="red"] { color:#ffada5; }
+
+/* Chance e volume são grandezas separadas, inclusive quando o volume falta. */
+#weatherView .hourly-modes { flex-wrap:wrap; }
+#weatherView .hourly-chart-legend { color:var(--reading-muted); font-size:.8125rem; line-height:1.5; margin:12px 0 0; }
+#weatherView .rain-chart .rain-bar { min-height:0; }
+#weatherView .rain-chart .rain-bar::after { content:none; }
+#weatherView .rain-chart .rain-chance { display:block; color:var(--reading-muted); font-size:.75rem; line-height:1.2; }

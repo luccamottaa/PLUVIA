@@ -35,7 +35,7 @@ O relógio de 30 segundos atualiza a atmosfera e o card solar, e redesenha os da
 
 Eventos solares da timeline devem usar `sky.dayAt`, assim como o card. Iluminação da Lua usa a leitura de `moon-view`; não criar outra efeméride. UV mostra classificação atual e pico aproximado do dia municipal, inclusive quando o pico já passou; lacunas não viram zero nem linhas contínuas no gráfico. Pressão exige amostras separadas por três horas reais e deve identificar a série modelada.
 
-Precipitação e probabilidade horárias Open-Meteo correspondem ao intervalo que **termina** no timestamp. Para representar a chuva a partir da hora `i`, usar `i+1`. MET `next_1_hours` começa no ponto informado e deve ser colocado no intervalo seguinte. Preserve esse alinhamento no resumo, favoritos, gráfico, detalhe e push. Valores ausentes não são zero nem evidência de tempo tranquilo.
+Precipitação e probabilidade horárias Open-Meteo correspondem ao intervalo que **termina** no timestamp. Para representar a chuva a partir da hora `i`, usar `i+1`. MET `next_1_hours` começa no ponto informado e deve ser colocado no intervalo seguinte. Preserve esse alinhamento no resumo, favoritos, gráfico, detalhe e push. Valores ausentes não são zero nem evidência de tempo tranquilo. A timeline reutiliza `hourlyDetail.detail` para validar leituras. Barras de chuva são proporcionais apenas ao volume; probabilidade tem label separado e nunca aumenta uma barra de volume. O modo Sensação usa a série aparente, sem fabricar fallback a partir da temperatura.
 
 ## Estado, erros e cache
 
