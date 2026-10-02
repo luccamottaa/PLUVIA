@@ -296,8 +296,8 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 #cityDialog .favorite-city-card { min-height:112px; border:1px solid var(--dialog-line); background:var(--dialog-surface); color:var(--dialog-text); padding:12px; }
 #cityDialog .favorite-city-card small { color:var(--dialog-muted); }
 
-/* The rain window sits beside the current reading, on the same sky. */
-#weatherView .hero-rain-outlook { display:grid; justify-items:center; gap:6px; width:min(100%,540px); min-height:44px; margin:4px 0 0; padding:10px 8px; border:0; border-radius:0; background:transparent; color:var(--reading-ink); font:inherit; text-align:center; cursor:pointer; }
+/* Rain timing belongs to the hourly forecast, below its chart. */
+#weatherView .hero-rain-outlook { display:grid; justify-items:start; gap:6px; width:100%; min-height:44px; margin:20px 0 0; padding:20px 0 0; border:0; border-top:1px solid var(--reading-line); border-radius:0; background:transparent; color:var(--reading-ink); font:inherit; text-align:left; cursor:pointer; }
 #weatherView .hero-rain-kicker { color:var(--reading-muted); font-size:.875rem; }
 #weatherView #heroRainTitle { font-size:clamp(1.05rem,4vw,1.3rem); line-height:1.4; }
 #weatherView #heroRainText { font-size:.9rem; line-height:1.5; color:var(--reading-muted); }

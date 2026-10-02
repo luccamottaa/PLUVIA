@@ -86,7 +86,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-31" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-20" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-21" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
@@ -272,9 +272,6 @@
               <div class="temperature"><span id="temperature">--</span><span class="deg">°</span></div>
             </div>
             <p class="condition" id="condition">Consultando o tempo…</p>
-            <button id="heroRainOpen" class="hero-rain-outlook" type="button" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" disabled>
-              <span class="hero-rain-kicker">Quando pode chover?</span><strong id="heroRainTitle">Consultando a chuva…</strong><span id="heroRainText"></span><small id="heroRainStatus"></small><span class="hero-rain-link">Ver por hora <span aria-hidden="true">›</span></span>
-            </button>
           </div>
         </article>
       </section>
@@ -324,6 +321,9 @@
         <div class="hourly-modes" role="group" aria-label="Dado da previsão por hora"><button type="button" data-hourly-mode="conditions" aria-pressed="true">Tempo</button><button type="button" data-hourly-mode="feels" aria-pressed="false">Sensação</button><button type="button" data-hourly-mode="rain" aria-pressed="false">Chuva</button><button type="button" data-hourly-mode="wind" aria-pressed="false">Vento</button></div>
         <p id="hourlyChartLegend" class="hourly-chart-legend">Barras mostram a temperatura; a sensação aparece abaixo. Horários locais da cidade.</p>
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region" aria-label="Previsão por hora"><div class="chart-loading">Montando a previsão horária…</div></div>
+        <button id="heroRainOpen" class="hero-rain-outlook" type="button" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" disabled>
+          <span class="hero-rain-kicker">Quando pode chover?</span><strong id="heroRainTitle">Consultando a chuva…</strong><span id="heroRainText"></span><small id="heroRainStatus"></small><span class="hero-rain-link">Ver por hora <span aria-hidden="true">›</span></span>
+        </button>
       </section>
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
         <dialog id="radarDialog" class="radar-dialog" aria-labelledby="radarDialogTitle"><div class="radar-dialog-heading"><h2 id="radarDialogTitle">Radar de chuva</h2><button id="closeRadar" type="button" aria-label="Fechar radar ampliado">Fechar <span aria-hidden="true">×</span></button></div><div id="radarDialogContent"></div></dialog>
