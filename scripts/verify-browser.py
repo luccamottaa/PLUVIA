@@ -69,6 +69,21 @@ with sync_playwright() as p:
  for width,height in [(320,568),(390,844),(430,932),(844,390),(768,1024),(1366,768),(2560,1440)]:
   page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(150)
   overflow=page.evaluate('document.documentElement.scrollWidth > innerWidth');assert not overflow,(width,height)
+  for chart_mode in ['conditions','feels','rain','wind']:
+   page.locator('button[data-hourly-mode="'+chart_mode+'"]').click()
+   assert page.locator('#rainChart').get_attribute('data-hourly-mode')==chart_mode
+   assert page.locator('button[data-hourly-mode="'+chart_mode+'"]').get_attribute('aria-pressed')=='true'
+   assert page.locator('#hourlyChartLegend').is_visible()
+   assert not page.evaluate('document.documentElement.scrollWidth > innerWidth'),(width,chart_mode)
+   if chart_mode=='feels':
+    assert '34°' in page.locator('#rainChart').inner_text()
+    assert 'Temp. 30°' in page.locator('#rainChart').inner_text()
+   if width==390 and chart_mode in ['feels','rain']:
+    page.locator('#chuva').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-hourly-'+chart_mode+'.png')))
+   if chart_mode=='rain':
+    assert '10% de chance' in page.locator('#rainChart').inner_text()
+    assert page.locator('#rainChart .rain-bar').count()==0
+  page.locator('button[data-hourly-mode="conditions"]').click()
   page.locator('#openCitySearch').click()
   assert page.locator('#cityDialog').evaluate('(el)=>el.open')
   page.locator('#citySearch').fill('Curitiba');page.wait_for_timeout(200)

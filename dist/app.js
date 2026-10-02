@@ -467,51 +467,64 @@ function hourlySolarEvents(value, next) {
 function renderHourly(hourly, start, daily) {
   const chart = $("rainChart");
   const scrollLeft = chart.scrollLeft;
-  const indices = Array.from({length: 24}, (_, i) => start + i).filter(i => i < hourly.time.length);
-  const rainIndex = i => Date.parse(hourly.time[i]?.slice(0,16)+'Z') + 3600000 === Date.parse(hourly.time[i+1]?.slice(0,16)+'Z') ? i+1 : -1;
+  const readings = new Map(Array.from({length:24}, (_, i) => start + i).filter(i => i < hourly.time.length)
+    .map(i => [i, PLUVIA.hourlyDetail.detail(hourly, i)]).filter(([, reading]) => reading));
+  const indices = [...readings.keys()];
   const peek = $("hourlyPeek");
   if (peek) {
     peek.innerHTML = indices.slice(0, 5).map((i, p) => {
       const time = p === 0 ? "Agora" : shortTime(hourly.time[i]);
-      const temperature = hourly.temperature_2m?.[i];
-      const probability = hourly.precipitation_probability?.[rainIndex(i)];
+      const temperature = readings.get(i).temperature;
+      const probability = readings.get(i).probability;
       const icon = weatherIcons.markup(hourly.weather_code?.[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:true});
-      const mm = hourly.precipitation?.[rainIndex(i)];
+      const mm = readings.get(i).mm;
       const volume = Number.isFinite(mm) && mm >= 0 ? `${fmt(mm, 1)} mm` : "Volume indisponível";
       const rain = Number.isFinite(probability) ? `${Math.round(probability)}%` : "—";
-      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="${time}: ${fmt(temperature)} graus, sensação ${fmt(hourly.apparent_temperature?.[i])} graus, ${rain} de chance de chuva, ${volume}. Ver detalhes"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain">${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}${rain}</span><strong>${fmt(temperature)}°</strong><small class="peek-volume">Sens. ${fmt(hourly.apparent_temperature?.[i])}°</small><small class="peek-volume">${volume}</small>${hourlySolarEvents(hourly.time[i],hourly.time[i+1])}</button>`;
+      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="${time}: ${fmt(temperature)} graus, sensação ${fmt(readings.get(i).feelsLike)} graus, ${rain} de chance de chuva, ${volume}. Ver detalhes"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain">${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}${rain}</span><strong>${fmt(temperature)}°</strong><small class="peek-volume">Sens. ${fmt(readings.get(i).feelsLike)}°</small><small class="peek-volume">${volume}</small>${hourlySolarEvents(hourly.time[i],hourly.time[i+1])}</button>`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
   }
   const decision = $("hourlyDecision");
   if (decision) decision.textContent=indices.length ? 'Toque em um horário para ver sensação, chuva e rajadas.' : 'Previsão por hora indisponível.';
-  const temperatures = indices.map(i => hourly.temperature_2m[i]).filter(Number.isFinite);
+  const descriptions = {
+    conditions:"barras mostram a temperatura; a sensação aparece abaixo",
+    feels:"barras mostram a sensação térmica; a temperatura aparece abaixo",
+    rain:"barras mostram o volume previsto em mm por hora; a chance aparece separadamente em %",
+    wind:"barras mostram a velocidade em km/h, com rajadas e direção quando disponíveis"
+  };
+  const legend = $("hourlyChartLegend");
+  if (legend) legend.textContent = descriptions[hourlyMode] + '. Horários locais da cidade; toque para ver detalhes.';
+  const temperatures = indices.map(i => hourlyMode === "feels" ? readings.get(i).feelsLike : readings.get(i).temperature).filter(Number.isFinite);
   const minTemp = temperatures.length ? Math.min(...temperatures) : 0;
   const tempSpread = temperatures.length ? Math.max(1, Math.max(...temperatures) - minTemp) : 1;
-  const windValues = indices.map(i => hourly.wind_speed_10m?.[i]).filter(Number.isFinite);
+  const windValues = indices.map(i => readings.get(i).wind).filter(Number.isFinite);
   const maxWind = Math.max(10, ...windValues);
+  const maxRain = Math.max(1, ...indices.map(i => readings.get(i).mm).filter(Number.isFinite));
   chart.dataset.hourlyMode = hourlyMode;
-  if (hourlyMode === "wind" && !windValues.length) {
-    chart.innerHTML = '<p class="chart-loading">Vento por hora indisponível.</p>';
-    chart.setAttribute("aria-label", `Vento por hora indisponível em ${activeCity.name}.`);
+  if ((hourlyMode === "wind" && !windValues.length) || (hourlyMode === "feels" && !temperatures.length)) {
+    const unavailable = hourlyMode === "feels" ? "Sensação térmica por hora indisponível" : "Vento por hora indisponível";
+    chart.innerHTML = `<p class="chart-loading">${unavailable}.</p>`;
+    chart.setAttribute("aria-label", `${unavailable} em ${activeCity.name}.`);
     $("dryWindow").textContent = findDryWindow(hourly, start);
     return;
   }
   chart.innerHTML = indices.map((i, p) => {
     const time = p === 0 ? "AGORA" : shortTime(hourly.time[i]);
-    const temperature = hourly.temperature_2m?.[i];
+    const temperature = readings.get(i).temperature;
     const solarEvent = hourlySolarEvents(hourly.time[i],hourly.time[i+1]);
     const icon = weatherIcons.markup(hourly.weather_code[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:false});
-    if (hourlyMode === "conditions") {
-      const height = Number.isFinite(temperature) ? 24 + (temperature - minTemp) / tempSpread * 111 : 0;
+    if (hourlyMode === "conditions" || hourlyMode === "feels") {
+      const plotted = hourlyMode === "feels" ? readings.get(i).feelsLike : temperature;
+      const secondary = hourlyMode === "feels" ? `Temp. ${fmt(temperature)}°` : `Sens. ${fmt(readings.get(i).feelsLike)}°`;
+      const bar = Number.isFinite(plotted) ? `<div class="temp-bar" style="height:${(24 + (plotted - minTemp) / tempSpread * 111).toFixed(0)}px"></div>` : '';
       return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${weather(hourly.weather_code[i])[0]}">
-        <span class="hour-time">${time}</span><span class="hour-temp">${fmt(temperature)}°<small>Sens. ${fmt(hourly.apparent_temperature?.[i])}°</small></span>
-        <div class="bar-area"><div class="temp-bar" style="height:${height.toFixed(0)}px"></div></div>
-        <span class="hour-detail">${Number.isFinite(hourly.precipitation_probability?.[rainIndex(i)]) ? Math.round(hourly.precipitation_probability[rainIndex(i)]) + "%" : "—"} de chuva<small>${fmt(hourly.precipitation?.[rainIndex(i)],1)} mm</small></span><span class="hour-icon">${icon}</span>${solarEvent}</button>`;
+        <span class="hour-time">${time}</span><span class="hour-temp">${fmt(plotted)}°<small>${secondary}</small></span>
+        <div class="bar-area">${bar}</div>
+        <span class="hour-detail">${Number.isFinite(readings.get(i).probability) ? Math.round(readings.get(i).probability) + "%" : "—"} de chuva<small>${fmt(readings.get(i).mm,1)} mm</small></span><span class="hour-icon">${icon}</span>${solarEvent}</button>`;
     }
     if (hourlyMode === "wind") {
-      const speed = hourly.wind_speed_10m?.[i];
-      const gust = hourly.wind_gusts_10m?.[i];
-      const direction = hourly.wind_direction_10m?.[i];
+      const speed = readings.get(i).wind;
+      const gust = readings.get(i).gust;
+      const direction = readings.get(i).direction;
       const validDirection = Number.isFinite(speed) && speed > 0 && Number.isFinite(direction) && direction >= 0 && direction <= 360;
       const arrow = validDirection ? `<span style="transform:rotate(${direction}deg)">↑</span>` : "—";
       const bar = Number.isFinite(speed) ? `<div class="wind-bar" style="height:${(16 + Math.max(0, speed) / maxWind * 125).toFixed(0)}px"></div>` : "";
@@ -520,24 +533,18 @@ function renderHourly(hourly, start, daily) {
         <div class="bar-area">${bar}</div><span class="hour-detail">km/h<small>Raj. ${fmt(gust)}</small></span>
         <span class="wind-direction" aria-hidden="true">${arrow}</span>${solarEvent}</button>`;
     }
-    const probability = hourly.precipitation_probability?.[rainIndex(i)];
+    const probability = readings.get(i).probability;
     const prob = Number.isFinite(probability) ? Math.round(probability) : null;
-    const precipitation = hourly.precipitation?.[rainIndex(i)];
-    const mm = Number.isFinite(precipitation) ? precipitation : null;
-    const barHeight = mm > 0 ? Math.min(150, 8 + Math.sqrt(mm) * 42) : Math.max(3, prob * .2);
-    const gust = hourly.wind_gusts_10m?.[i];
+    const mm = readings.get(i).mm;
+    const bar = mm > 0 ? `<div class="rain-bar" style="height:${(mm / maxRain * 150).toFixed(1)}px"></div>` : '';
+    const gust = readings.get(i).gust;
     return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${prob ?? "—"}% de chuva, ${fmt(mm, 1)} milímetro${gust >= 45 ? `, rajadas de ${fmt(gust)} quilômetros por hora` : ""}">
       <span class="hour-time">${time}</span>
-      <span class="hour-temp">${fmt(temperature)}°</span>
-      <div class="bar-area"><div class="rain-bar" data-prob="${prob ?? "—"}" style="height:${barHeight}px"></div></div>
+      <span class="hour-temp"><span class="rain-chance">${prob === null ? "Chance —" : `${prob}% de chance`}</span></span>
+      <div class="bar-area">${bar}</div>
       <span class="rain-mm">${fmt(mm, 1)} mm</span><span class="hour-icon">${icon}</span>${solarEvent}
     </button>`;
   }).join("") || '<p class="chart-loading">Previsão por hora indisponível.</p>';
-  const descriptions = {
-    conditions:"barras mostram a temperatura e os ícones mostram as condições previstas",
-    rain:"barras mostram milímetros e os números mostram probabilidade",
-    wind:"barras mostram a velocidade em km/h, com rajadas e direção quando disponíveis"
-  };
   chart.setAttribute("aria-label", `Previsão por hora em ${activeCity.name}: ${descriptions[hourlyMode]}.`);
   chart.scrollLeft = scrollLeft;
   $("dryWindow").textContent = findDryWindow(hourly, start);
