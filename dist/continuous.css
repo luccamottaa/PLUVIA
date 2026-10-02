@@ -1,6 +1,6 @@
 /* The forecast is one reading surface over the city sky. Dialogs and map
    controls keep their own surfaces; these rules only apply to the home. */
-/* The header shares the sky and has just the brand, account and search. */
+/* Header actions share the sky, with native 44px touch targets. */
 html body .topbar {
   position:relative;
   top:auto;
@@ -10,7 +10,7 @@ html body .topbar {
   margin-top:calc(env(safe-area-inset-top) + 10px);
   padding:10px 0;
   display:grid;
-  grid-template-columns:minmax(0,1fr) auto 44px;
+  grid-template-columns:minmax(0,1fr) auto 96px;
   grid-template-rows:auto;
   gap:0 10px;
   align-items:center;
@@ -37,7 +37,7 @@ body[data-phase="day"] .topbar { color:#082744; }
   padding:0;
   background:transparent;
 }
-.topbar .top-actions { grid-column:3; grid-row:1; width:44px; }
+.topbar .top-actions { grid-column:3; grid-row:1; width:96px; }
 .topbar .search-trigger {
   width:44px;
   height:44px;
@@ -49,7 +49,16 @@ body[data-phase="day"] .topbar { color:#082744; }
   background:transparent !important;
   box-shadow:none !important;
 }
-.topbar .search-trigger svg { width:24px; height:24px; stroke-linecap:round; stroke-linejoin:round; }
+.topbar .search-trigger svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.topbar .share-trigger { color:inherit; flex:none; }
+.topbar .share-trigger:disabled { opacity:.4; cursor:default; }
+.topbar .share-weather-status { grid-column:1/-1; grid-row:2; color:inherit; }
+@media(max-width:520px) {
+  html body .topbar { grid-template-columns:minmax(0,1fr) 96px; }
+  .topbar .account-trigger { grid-column:1; grid-row:2; justify-self:start; max-width:100%; }
+  .topbar .top-actions { grid-column:2; }
+  .topbar .share-weather-status { grid-row:3; }
+}
 .topbar :is(a,button):focus-visible { outline:2px solid currentColor; outline-offset:4px; }
 @media(max-width:720px) {
   .topbar .brand span:last-child { font-size:clamp(1.2rem,5.9vw,1.48rem); }
@@ -310,7 +319,6 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 #weatherView .air-details p { margin:10px 0; }
 #weatherView .air-details dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
 #weatherView .air-details dd { margin:4px 0 0; font-weight:700; color:var(--reading-ink); }
-#weatherView #shareWeather { min-height:44px; padding:6px 12px; border:0; background:transparent; font-size:.8rem; color:var(--reading-link); }
 .share-weather-status { margin:0; font-size:.8rem; }
 .share-weather-status:empty { display:none; }
 #shareWeatherText { box-sizing:border-box; width:100%; margin-top:8px; min-height:160px; padding:12px; border:1px solid var(--dialog-line); border-radius:12px; background:var(--dialog-surface); color:var(--dialog-text); font:inherit; font-size:16px; }

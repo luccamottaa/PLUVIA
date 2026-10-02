@@ -69,6 +69,16 @@ with sync_playwright() as p:
  for width,height in [(320,568),(390,844),(430,932),(844,390),(768,1024),(1366,768),(2560,1440)]:
   page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(150)
   overflow=page.evaluate('document.documentElement.scrollWidth > innerWidth');assert not overflow,(width,height)
+  page.locator('#top').scroll_into_view_if_needed()
+  assert page.locator('#top #shareWeather svg').is_visible()
+  assert page.locator('#shareWeather').inner_text()==''
+  share_rect=page.locator('#shareWeather').bounding_box()
+  assert share_rect['width']>=44 and share_rect['height']>=44,share_rect
+  for control in ['.brand','#accountButton','#openCitySearch']:
+   other=page.locator(control).bounding_box()
+   assert share_rect['x']+share_rect['width']<=other['x']+1 or other['x']+other['width']<=share_rect['x']+1 or share_rect['y']+share_rect['height']<=other['y']+1 or other['y']+other['height']<=share_rect['y']+1,(width,control)
+
+  if width==390: page.locator('#top').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-header-share.png')))
   for chart_mode in ['conditions','feels','rain','wind']:
    page.locator('button[data-hourly-mode="'+chart_mode+'"]').click()
    assert page.locator('#rainChart').get_attribute('data-hourly-mode')==chart_mode
