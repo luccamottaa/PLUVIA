@@ -87,7 +87,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-31" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-27" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-28" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
@@ -95,13 +95,13 @@
     <svg class="moon-definitions" width="0" height="0" aria-hidden="true" focusable="false">
       <defs>
         <clipPath id="pluviaMoonDisc"><circle cx="40" cy="40" r="34"/></clipPath>
-        <filter id="pluviaMoonSoftEdge" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation=".3"/></filter>
+        <filter id="pluviaMoonSoftEdge" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation=".6"/></filter>
         <mask id="pluviaMoonPhase" maskUnits="userSpaceOnUse" x="0" y="0" width="80" height="80"><path id="moonIcon" fill="white" filter="url(#pluviaMoonSoftEdge)" d=""/></mask>
-        <radialGradient id="pluviaMoonRim"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset=".88" stop-color="#000" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></radialGradient>
+        <radialGradient id="pluviaMoonRim"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset=".88" stop-color="#000" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></radialGradient>
         <image id="pluviaMoonSurface" href="./assets/moon-surface.webp" x="6" y="6" width="68" height="68"/>
         <g id="moonDisc" visibility="hidden" clip-path="url(#pluviaMoonDisc)">
-          <circle cx="40" cy="40" r="34" fill="#080b12"/>
-          <use href="#pluviaMoonSurface" opacity=".12"/>
+          <circle cx="40" cy="40" r="34" fill="#60758e" opacity=".08"/>
+          <use href="#pluviaMoonSurface" opacity=".14"/>
           <use href="#pluviaMoonSurface" mask="url(#pluviaMoonPhase)"/>
           <circle cx="40" cy="40" r="34" fill="url(#pluviaMoonRim)"/>
         </g>
@@ -145,8 +145,8 @@
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
     <header class="topbar shell" id="top">
-      <a class="brand" href="#top" aria-label="PLUVIA, início"><span class="brand-mark" aria-hidden="true"></span><span>PLUVIA</span></a>
       <button id="accountButton" class="account-trigger" type="button" aria-haspopup="dialog" aria-controls="accountDialog">Entrar / cadastrar</button>
+      <a class="brand" href="#top" aria-label="PLUVIA, início"><span class="brand-mark" aria-hidden="true"></span><span>PLUVIA</span></a>
       <div class="top-actions">
         <button id="shareWeather" class="share-trigger search-trigger" type="button" aria-label="Compartilhar previsão" title="Compartilhar previsão" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8" /></svg></button>
         <button id="openCitySearch" class="search-trigger" type="button" aria-label="Buscar ou trocar cidade" aria-haspopup="dialog" aria-controls="cityDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.4-3.4" /></svg></button>

@@ -14,7 +14,7 @@ html body .topbar {
   margin-top:calc(env(safe-area-inset-top) + 10px);
   padding:10px 0;
   display:grid;
-  grid-template-columns:minmax(0,1fr) auto 96px;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
   grid-template-rows:auto;
   gap:0 10px;
   align-items:center;
@@ -29,19 +29,22 @@ html body .topbar {
 }
 body[data-phase="day"] .topbar { color:#082744; }
 .topbar::before,.topbar::after { display:none !important; }
-.topbar .brand { grid-column:1; grid-row:1; gap:2px; color:#2f6bff; }
+.topbar .brand { grid-column:2; grid-row:1; justify-self:center; min-height:44px; gap:2px; color:#2f6bff; }
 .topbar .brand .brand-mark { margin-left:0; visibility:visible; }
 .topbar .brand span:last-child,.topbar .account-trigger,.topbar .search-trigger { color:inherit !important; }
 .topbar .account-trigger {
-  grid-column:2;
+  grid-column:1;
   grid-row:1;
+  justify-self:start;
+  min-width:44px;
   min-height:44px;
-  max-width:min(32vw,180px);
+  max-width:100%;
   margin:0;
   padding:0;
   background:transparent;
+  text-align:left;
 }
-.topbar .top-actions { grid-column:3; grid-row:1; width:96px; }
+.topbar .top-actions { grid-column:3; grid-row:1; justify-self:end; width:96px; }
 .topbar .search-trigger {
   width:44px;
   height:44px;
@@ -58,14 +61,14 @@ body[data-phase="day"] .topbar { color:#082744; }
 .topbar .share-trigger:disabled { opacity:.4; cursor:default; }
 .topbar .share-weather-status { grid-column:1/-1; grid-row:2; color:inherit; }
 @media(max-width:520px) {
-  html body .topbar { grid-template-columns:minmax(0,1fr) 96px; }
-  .topbar .account-trigger { grid-column:1; grid-row:2; justify-self:start; max-width:100%; }
-  .topbar .top-actions { grid-column:2; }
-  .topbar .share-weather-status { grid-row:3; }
+  html body .topbar { column-gap:6px; }
+  .topbar .brand .brand-mark { width:26px; height:32px; flex-basis:26px; }
+  .topbar .brand span:last-child { font-size:1.1rem; }
 }
 .topbar :is(a,button):focus-visible { outline:2px solid currentColor; outline-offset:4px; }
-@media(max-width:720px) {
-  .topbar .brand span:last-child { font-size:clamp(1.2rem,5.9vw,1.48rem); }
+@media(max-width:380px) {
+  .topbar .brand .brand-mark { width:22px; height:28px; flex-basis:22px; }
+  .topbar .brand span:last-child { font-size:.95rem; }
 }
 #weatherView {
   --reading-ink:#f2f7ff;
@@ -300,9 +303,13 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 .hourly-decision { margin:0 0 18px; font-size:.95rem; font-weight:700; line-height:1.55; color:var(--reading-ink); }
 #weatherView .hourly-peek-item .peek-volume { font-size:.75rem; color:var(--reading-muted); white-space:nowrap; }
 #weatherView .hourly-peek-item { min-height:170px; }
+/* The picker is one vertical column. Inherited flex wrapping sizes its entire
+   column to the favorites' intrinsic width and clips buttons/results on phones. */
+#cityDialog .city-picker { flex-wrap:nowrap; }
+#cityDialog .city-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .favorite-cities { min-width:0; }
-.favorite-city-list { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity; padding-block:4px; }
-.favorite-city-card { flex:0 0 180px; min-height:112px; display:grid; justify-items:start; gap:5px; padding:14px; border:1px solid var(--reading-line,var(--dialog-line)); border-radius:16px; background:transparent; color:inherit; font:inherit; text-align:left; scroll-snap-align:start; cursor:pointer; }
+.favorite-city-list { --favorite-card-width:clamp(150px,calc(50% - 5px),180px); display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity; padding-block:4px; }
+.favorite-city-card { flex:0 0 var(--favorite-card-width); min-height:112px; display:grid; justify-items:start; gap:5px; padding:14px; border:1px solid var(--reading-line,var(--dialog-line)); border-radius:16px; background:transparent; color:inherit; font:inherit; text-align:left; scroll-snap-align:start; cursor:pointer; }
 .favorite-city-card[aria-current=true] { border-color:var(--reading-link,#6ba4ff); }
 .favorite-city-card strong { font-size:1rem; }
 .favorite-city-card small { color:var(--reading-muted,var(--dialog-muted)); font-size:.75rem; }
@@ -311,7 +318,7 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 /* Shared content rows align readings even when a city name wraps. Older
    browsers retain the existing scrollable cards without clipping content. */
 @supports(grid-template-rows:subgrid) {
-  .favorite-city-list { display:grid; grid-auto-flow:column; grid-auto-columns:180px; grid-template-rows:repeat(8,auto); gap:5px 10px; }
+  .favorite-city-list { display:grid; grid-auto-flow:column; grid-auto-columns:var(--favorite-card-width); grid-template-rows:repeat(8,auto); gap:5px 10px; }
   .favorite-city-card { grid-row:1/span 8; grid-template-rows:subgrid; align-items:start; }
   .favorite-city-card > strong { grid-row:1; }
   .favorite-reading { grid-row:2; }
