@@ -1,5 +1,7 @@
 # PLUVIA Nowcast: piloto de Manaus
 
+Status da interface: **pausado a pedido do usuário** até completar as fontes observacionais necessárias. O card permanece oculto com `data-enabled="false"`; o frontend não consulta capacidades ou observações enquanto pausado. Providers, motor, backend e QA são preservados. A suíte browser habilita apenas HTML de fixtures, depois de verificar a pausa padrão. Reativação exige uma mudança explícita de código e validação das fontes; não há opt-in por URL ou storage em produção.
+
 Pesquisa e implementação em 03/10/2026. **Não há radar quantitativo SIPAM integrado nem estimativa operacional de chegada da chuva em produção.** O primeiro adaptador real consulta boletins METAR do aeroporto Eduardo Gomes. A infraestrutura, o motor experimental e o modo de desenvolvimento permitem evoluir sem renomear uma probabilidade de modelo como observação.
 
 ## Estado encontrado e decisões

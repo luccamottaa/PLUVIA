@@ -10,9 +10,8 @@ const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 test('mantém a ordem mobile no fluxo normal da Home', () => {
   const current = html.indexOf('current-card weather-hero');
   const metrics = html.indexOf('class="metrics"');
-  const summary = html.indexOf('id="attentionCard"');
   const hourly = html.indexOf('id="rainChart"');
-  assert.ok(current >= 0 && current < metrics && metrics < summary && summary < hourly);
+  assert.ok(current >= 0 && current < metrics && metrics < hourly);
   assert.match(html, /id="airQuality"/);
   assert.doesNotMatch(html, /class="air-card|id="airScore"/);
   assert.doesNotMatch(css, /\.(?:dashboard-grid|current-card|insight-card)\s*\{[^}]*position\s*:\s*absolute/i);
@@ -39,13 +38,11 @@ test('todos os breakpoints de aceitação preservam largura positiva e contida',
   }
 });
 
-test('Resumo Inteligente tem altura por conteúdo e timeline tem scroll interno', () => {
+test('timeline conserva scroll interno sem trazer o resumo removido', () => {
   const finalContract = css.slice(css.indexOf('/* Home responsive contract'));
-  assert.match(finalContract, /\.insight-card\s*\{[^}]*min-height:0\s*!important;[^}]*height:auto/);
   assert.match(finalContract, /\.rain-chart\s*\{[^}]*overflow-x:auto/);
+  assert.doesNotMatch(html, /id="attentionCard"|RESUMO INTELIGENTE/);
   assert.doesNotMatch(html, /MODELO DE PRECIPITAÇÃO|rainPulse|rainMapGrid/);
-  assert.match(finalContract, /\.summary-highlights li[^}]*white-space:normal/);
-  assert.match(finalContract, /\.summary-link\s*\{\s*white-space:normal/);
 });
 
 test('não usa 100vw nos cards da Home nem mascara overflow global', () => {

@@ -172,17 +172,10 @@
         }
       }
       if (weather === 'partly') starVisibility *= .48;
-      // Keep the illustrated solar arc; derive the Moon from its horizon.
-      let moonX = ORBIT_MARGIN + nightProgress * (1 - 2 * ORBIT_MARGIN);
-      let moonY = 1 - Math.sin(Math.PI * nightProgress);
-      if (moon?.getMoonPosition && Number.isFinite(city?.lat) && Number.isFinite(city?.lon)) {
-        const position = moon.getMoonPosition(new Date(at),city.lat,city.lon);
-        if (Number.isFinite(position.altitude) && Number.isFinite(position.azimuth)) {
-          moonVisibility *= clamp(position.altitude / 3);
-          moonX = .5 - Math.sin(position.azimuth * Math.PI / 180) * (.5 - ORBIT_MARGIN);
-          moonY = 1 - clamp(position.altitude / 90);
-        } else moonVisibility = 0;
-      }
+      // The background Moon illustrates the municipal night, as the Sun does
+      // the day. Real moonrise/set remain in astronomyAt; phase stays shared.
+      const moonX = ORBIT_MARGIN + nightProgress * (1 - 2 * ORBIT_MARGIN);
+      const moonY = 1 - Math.sin(Math.PI * nightProgress);
       moonView?.update(at);
       return write({phase,solar,weather,strength,sunVisibility,moonVisibility,starVisibility,
         sunX:ORBIT_MARGIN + dayProgress * (1 - 2 * ORBIT_MARGIN),sunY:1 - Math.sin(Math.PI * dayProgress),

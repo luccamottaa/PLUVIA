@@ -1,5 +1,7 @@
 # Planejamento diário e observações — outubro de 2026
 
+Status da Home: **Planejar ao ar livre retirado a pedido do usuário**. O módulo não é carregado/precacheado pelo shell atual. Algoritmo e testes puros permanecem para compatibilidade; astronomia, detalhe horário e preferências de notificação continuam ativos. A suíte verify-daily-planning.py valida esses consumidores existentes, sem reintroduzir a recomendação removida.
+
 ## Inventário e decisões
 
 Já existiam previsão horária completa (incluindo sensação, chuva, vento, rajadas e UV), card solar/fase lunar, METAR de SBEG, preferências Push com campos de silêncio/severidade no banco e login Google/Apple no frontend. Esta etapa reutiliza essas fontes e a infraestrutura estática; não adiciona biblioteca, tabela, API meteorológica ou cliente Auth.

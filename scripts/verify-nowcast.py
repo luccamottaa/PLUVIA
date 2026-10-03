@@ -16,7 +16,7 @@ const rows=Object.fromEntries(scenarios.map(name=>[name,evaluate({...fixture(nam
 rows.mock=evaluate({...fixture('approaching',now),location:{lat:-3.12,lon:-60.02,reference:'municipality'}},{now,allowMock:true});
 process.stdout.write(JSON.stringify({manifest:{schemaVersion:1,regions:[region]},rows,forecast:require('./tests/support/forecast.cjs').forecast()}));"""
 fixtures=json.loads(subprocess.check_output(['node','-e',js],cwd=repo,text=True))
-mode={'scenario':'approaching','pending':False,'fail':False};blocked=[];requests=[]
+mode={'scenario':'approaching','pending':False,'fail':False,'enabled':False};blocked=[];requests=[]
 # Pin the existing map SDK; only its download is external, never weather/Auth.
 leaflet={extension:urlopen('https://unpkg.com/leaflet@1.9.4/dist/leaflet.'+extension,timeout=20).read() for extension in ['js','css']}
 with sync_playwright() as p:
@@ -45,14 +45,24 @@ with sync_playwright() as p:
    extension='css' if url.endswith('.css') else 'js';r.fulfill(content_type='text/css' if extension=='css' else 'text/javascript',body=leaflet[extension]);return
   if 'tile.openstreetmap.org' in url:r.fulfill(content_type='image/png',body=base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jX1sAAAAASUVORK5CYII='));return
   if '/auth/v1/settings' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'external':{'email':True}});return
-  if urlparse(url).hostname in ['localhost','127.0.0.1']:r.continue_();return
+  if urlparse(url).hostname in ['localhost','127.0.0.1']:
+   if r.request.resource_type=='document' and mode['enabled']:
+    response=r.fetch();html=response.text();assert html.count('data-enabled="false"')==1
+    r.fulfill(response=response,body=html.replace('data-enabled="false"','data-enabled="true"'));return
+   r.continue_();return
   r.abort()
  context.route('**/*',route)
  context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
  page.clock.set_fixed_time(fixed)
+ # Production stays paused. Only fixture HTML opts in below to retain engine/UI QA.
+ page.goto(preview,wait_until='domcontentloaded')
+ page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
+ assert page.locator('#nowcastCard').is_hidden() and not requests,requests
+ mode['enabled']=True
  def open_scenario(name):
   mode.update(scenario=name,pending=False,fail=False);page.goto(preview,wait_until='domcontentloaded')
   page.locator('#nowcastCard').wait_for(state='visible');page.wait_for_function("!document.getElementById('nowcastRetry').disabled")
+  page.wait_for_function("!document.documentElement.classList.contains('awaiting-styles') && document.getElementById('pluviaIntro').hidden && !document.getElementById('weatherView').classList.contains('initial-loading')")
   assert 'referência do município' in page.locator('#nowcastReference').inner_text()
   assert not errors,errors
  for name in fixtures['rows']:

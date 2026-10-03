@@ -31,7 +31,7 @@ test('texto da janela cruza meia-noite sem esconder os dados parciais',()=>{
 });
 function screen() {
  const nodes=new Map(),events={},clicks={};
- const el=id=>{if(!nodes.has(id)) nodes.set(id,{id,textContent:'',innerHTML:'',dataset:{},disabled:false,open:false,addEventListener(type,fn){clicks[id+':'+type]=fn;}});return nodes.get(id);};
+ const el=id=>{if(id.startsWith('heroRain'))return null;if(!nodes.has(id)) nodes.set(id,{id,textContent:'',innerHTML:'',dataset:{},disabled:false,open:false,addEventListener(type,fn){clicks[id+':'+type]=fn;}});return nodes.get(id);};
  const dialog=el('hourlyDetailDialog');
  dialog.showModal=()=>{dialog.open=true;};dialog.close=()=>{dialog.open=false;clicks['hourlyDetailDialog:close']?.();};
  const root={PLUVIA:{hourlyDetail:{},hourlyOutlook},document:{getElementById:el,addEventListener(type,fn){events['document:'+type]=fn;}},addEventListener(type,fn){events[type]=fn;}};
@@ -49,9 +49,9 @@ test('navegação por hora tem limites, muda a data e devolve o foco ao fechar',
  assert.match(s.el('hourlyDetailSource').textContent,/Leitura salva/);
  s.clicks['hourlyDetailClose:click']();assert.equal(s.dialog.open,false);assert.equal(s.focused(),1);
 });
-test('trocar de cidade fecha o detalhe antigo e limpa a janela enquanto carrega',()=>{
+test('trocar de cidade fecha o detalhe antigo sem depender do painel de chuva removido',()=>{
  const s=screen();s.open();s.events['pluvia:city-changed']();
- assert.equal(s.dialog.open,false);assert.equal(s.el('heroRainOpen').disabled,true);assert.match(s.el('heroRainTitle').textContent,/Consultando/);
+ assert.equal(s.dialog.open,false);
  s.open();assert.equal(s.dialog.open,false);
  s.update({id:'2611606',name:'Recife',uf:'PE'});s.open();assert.match(s.el('hourlyDetailCity').textContent,/Recife\/PE/);
 });

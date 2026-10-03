@@ -107,7 +107,12 @@
   }
   function mount(root) {
     const document=root.document,$=id=>document.getElementById(id),card=$('nowcastCard');
-    if(!card || !root.PLUVIA?.http) return {refresh:()=>Promise.resolve(null),get:()=>null};
+    // Paused until observational coverage is ready. Hidden alone is insufficient:
+    // mounting would still query providers and later reveal the card.
+    if(!card || card.dataset.enabled!=='true' || !root.PLUVIA?.http) {
+      if(card) card.hidden=true;
+      return {refresh:()=>Promise.resolve(null),get:()=>null,regionFor:()=>null};
+    }
     const client=root.PLUVIA.http.createClient({defaultTimeoutMs:10000});
     const endpoint=localOrigin(root.location)?new URL('/api/nowcast',root.location.href).href:ENDPOINT;
     const city=()=>typeof activeCity!=='undefined'?activeCity:null;

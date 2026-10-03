@@ -42,8 +42,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" href="./vendor/suncalc.js?v=sky-3" as="script" />
     <link rel="preload" href="./modules/moon-view.js?v=moon-3" as="script" />
-    <link rel="preload" href="./modules/sky-atmosphere.js?v=sky-9" as="script" />
-    <link rel="preload" href="./sky.css?v=sky-11" as="style" />
+    <link rel="preload" href="./modules/sky-atmosphere.js?v=sky-10" as="script" />
+    <link rel="preload" href="./sky.css?v=sky-12" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       html { background:#041936; font-family:"Nunito",ui-rounded,system-ui,sans-serif; }
@@ -82,8 +82,8 @@
     <script src="./modules/city-time.js?v=time-1"></script>
     <script src="./vendor/suncalc.js?v=sky-3"></script>
     <script src="./modules/moon-view.js?v=moon-3"></script>
-    <script src="./modules/sky-atmosphere.js?v=sky-9"></script>
-    <link rel="stylesheet" href="./sky.css?v=sky-11" />
+    <script src="./modules/sky-atmosphere.js?v=sky-10"></script>
+    <link rel="stylesheet" href="./sky.css?v=sky-12" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-31" />
@@ -301,20 +301,9 @@
         <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>UMIDADE</span><span data-weather-icon-name="humidity"></span></div><strong id="humidity">--<sup>%</sup></strong><small id="humidityNote">—</small></article>
         <article class="metric metric-sky wind-metric panel card-detail"><div class="metric-head"><span>VENTO</span><span data-weather-icon-name="wind-speed"></span></div><div class="wind-reading"><strong id="wind">--<sup> km/h</sup></strong><span class="wind-compass" id="windCompass" role="img" aria-label="Direção do vento indisponível"><svg viewBox="0 0 80 80" aria-hidden="true" focusable="false"><circle class="compass-ring" cx="40" cy="40" r="23"/><g class="compass-labels"><text x="40" y="8">N</text><text x="65" y="16">NE</text><text x="74" y="40">L</text><text x="65" y="65">SE</text><text x="40" y="74">S</text><text x="15" y="65">SO</text><text x="6" y="40">O</text><text x="15" y="16">NO</text></g><g class="compass-needle"><path class="compass-tail" d="M36 40 40 57 44 40Z"/><path class="compass-tip" d="M40 20 34 43 40 40 46 43Z"/></g><circle class="compass-center" cx="40" cy="40" r="3"/></svg></span></div><small id="windNote">—</small></article>
         <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>PRESSÃO</span><span data-weather-icon-name="pressure"></span></div><strong id="pressure">----<sup> hPa</sup></strong><small id="pressureNote">—</small></article>
-        <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>ÍNDICE UV</span><span data-weather-icon-name="uv-index"></span></div><strong id="uv">--</strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote">—</small><figure id="uvDayChart" class="uv-day-chart" hidden></figure></article>
+        <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>ÍNDICE UV</span><span data-weather-icon-name="uv-index"></span></div><strong id="uv">--</strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote">—</small></article>
         <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>QUALIDADE DO AR</span><span data-weather-icon-name="air-quality"></span></div><div class="air-reading"><div class="air-index"><b id="airValue">--</b><span>US AQI</span></div><div class="air-description"><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div><small class="air-source">Estimativa regional · Open-Meteo / CAMS</small><details id="airDetails" class="air-details" hidden><summary>Poluentes e origem</summary><p id="airDetailsTime"></p><dl id="airPollutants"></dl><p>PM2,5 e PM10 são partículas; ozônio, NO₂ e CO são gases. Concentrações em microgramas por metro cúbico. O US AQI é um índice próprio, não a soma desses valores.</p><p>Estimativa regional do CAMS via Open-Meteo; não é medição no seu endereço nem confirma a origem da poluição.</p></details></article>
       </section>
-      <aside class="attention-card insight-card panel card-secondary" id="attentionCard" aria-labelledby="attentionTitle" aria-live="polite">
-        <div class="card-topline"><span>RESUMO INTELIGENTE</span><span class="signal" id="attentionSignal">LEITURA LOCAL</span></div>
-        <div class="attention-icon" id="attentionIcon"></div>
-        <h2 id="attentionTitle">Analisando o tempo</h2>
-        <p id="attentionText">Cruzando chuva das próximas horas.</p>
-        <ul id="summaryHighlights" class="summary-highlights" aria-label="Destaques meteorológicos"></ul>
-        <ul id="contextHighlights" class="context-highlights" aria-label="Contexto das próximas horas"></ul>
-        <details id="weatherExplanation" class="weather-explanation" hidden><summary>Como este resumo foi elaborado?</summary><ul id="weatherExplanationList"></ul></details>
-        <small id="attentionBasis">Leitura baseada nas próximas horas e nos avisos oficiais.</small>
-        <a id="summaryLink" class="summary-link" href="#previsao">Ver previsão detalhada →</a>
-      </aside>
       <section id="notificationPrompt" class="notification-prompt panel" aria-labelledby="notificationPromptTitle" hidden>
         <div class="notification-prompt-icon" aria-hidden="true">🔔</div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Avisos de chuva e do INMET no celular</h2><p id="notificationPromptText">Receba avisos oficiais e previsões de chuva para o município selecionado. O horário pode variar. Previsões e avisos oficiais são identificados na mensagem.</p></div><button id="notificationPromptButton" type="button">Ativar alertas</button>
       </section>
@@ -330,16 +319,8 @@
         <div class="hourly-modes" role="group" aria-label="Dado da previsão por hora"><button type="button" data-hourly-mode="conditions" aria-pressed="true">Tempo</button><button type="button" data-hourly-mode="feels" aria-pressed="false">Sensação</button><button type="button" data-hourly-mode="rain" aria-pressed="false">Chuva</button><button type="button" data-hourly-mode="wind" aria-pressed="false">Vento</button></div>
         <p id="hourlyChartLegend" class="hourly-chart-legend">Barras mostram a temperatura; a sensação aparece abaixo. Horários locais da cidade.</p>
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region" aria-label="Previsão por hora"><div class="chart-loading">Montando a previsão horária…</div></div>
-        <button id="heroRainOpen" class="hero-rain-outlook" type="button" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" disabled>
-          <span class="hero-rain-kicker">Quando pode chover?</span><strong id="heroRainTitle">Consultando a chuva…</strong><span id="heroRainText"></span><small id="heroRainStatus"></small><span class="hero-rain-link">Ver por hora <span aria-hidden="true">›</span></span>
-        </button>
-        <aside id="outdoorPlan" class="outdoor-plan" aria-labelledby="outdoorPlanHeading">
-          <span id="outdoorPlanHeading" class="eyebrow">PARA PLANEJAR AO AR LIVRE</span>
-          <strong id="outdoorPlanTitle">Comparando os próximos horários…</strong><p id="outdoorPlanText"></p><small id="outdoorPlanNote">Previsão por modelos · horários da cidade</small>
-          <button id="outdoorPlanOpen" type="button" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" disabled>Ver essa faixa por hora <span aria-hidden="true">›</span></button>
-        </aside>
       </section>
-      <section id="nowcastCard" class="nowcast-card panel section-block" aria-labelledby="nowcastTitle" hidden>
+      <section id="nowcastCard" data-enabled="false" class="nowcast-card panel section-block" aria-labelledby="nowcastTitle" hidden>
         <div class="nowcast-heading"><div><span class="eyebrow">PLUVIA NOWCAST · PILOTO</span><h2 id="nowcastTitle">Observações em Manaus</h2></div><span id="nowcastMock" class="nowcast-dev" hidden>DEV / MOCK DATA</span></div>
         <p id="nowcastReference" class="nowcast-reference"></p>
         <p id="nowcastStatus" class="nowcast-status" role="status" aria-live="polite"></p>
@@ -427,16 +408,13 @@
     <script src="./modules/radar-probe.js?v=core-70" defer></script>
     <script src="./modules/weather-icons.js?v=core-49" defer></script>
     <script src="./modules/weather-icon-system.js?v=modern-1" defer></script>
-    <script src="./modules/smart-summary.js?v=core-110" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
-    <script src="./modules/hourly-outlook.js?v=outlook-3" defer></script>
-    <script src="./modules/hourly-detail.js?v=detail-3" defer></script>
-    <script src="./modules/outdoor-planner.js?v=planner-1" defer></script>
-    <script src="./app.js?v=panel-37" defer></script>
+    <script src="./modules/hourly-detail.js?v=detail-4" defer></script>
+    <script src="./app.js?v=panel-38" defer></script>
     <script src="./p0.js?v=panel-36" defer></script>
     <script src="./modules/risks.js?v=core-117" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
-    <script src="./modules/nowcast.js?v=nowcast-2" defer></script>
+    <script src="./modules/nowcast.js?v=nowcast-3" defer></script>
     <script src="./weather-map.js?v=map-3" defer></script>
     <script src="./modules/account-sync.js?v=sync-1" defer></script>
     <script src="./modules/social-auth.js?v=oauth-3" defer></script>
