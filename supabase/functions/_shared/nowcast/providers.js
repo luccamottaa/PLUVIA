@@ -17,11 +17,13 @@ export function normalizeMetar(rows,region,ingestedAt=Date.now()) {
   const observations=[];
   for(const raw of rows) {
     if(!region.stations.includes(raw?.icaoId) || raw?.metarType!=='METAR' && raw?.metarType!=='SPECI' ||
-      !finite(raw?.obsTime) || !Number.isInteger(raw.obsTime) || raw.obsTime<=0 || raw.obsTime*1000>ingestedAt+MINUTE ||
+      !finite(raw?.obsTime) || !Number.isInteger(raw.obsTime) || raw.obsTime<=0 ||
       number(raw.lat,-90,90)===null || number(raw.lon,-180,180)===null) throw new Error('invalid_response');
     const observedAt=raw.obsTime*1000;
-    // No fallback to receiptTime/ingestion for an invalid or old observation.
-    if(ingestedAt-observedAt>90*MINUTE) continue;
+    // AWC can publish a nominal hourly METAR ahead of that observation time.
+    // Withhold future reports and retain the last valid report in the bounded window.
+    // Never substitute receiptTime/ingestion for the original observation time.
+    if(observedAt>ingestedAt+MINUTE || ingestedAt-observedAt>90*MINUTE) continue;
     observations.push({kind:'observation',stationId:raw.icaoId,name:raw.icaoId==='SBEG'?'Aeroporto Eduardo Gomes':raw.icaoId,
       source:'NOAA Aviation Weather Center · METAR',lat:raw.lat,lon:raw.lon,observedAt,ingestedAt,validUntil:observedAt+90*MINUTE,
       temperatureC:number(raw.temp,-90,70),dewPointC:number(raw.dewp,-100,70),
@@ -36,7 +38,7 @@ export function normalizeMetar(rows,region,ingestedAt=Date.now()) {
 export class WeatherStationProvider {
   constructor({fetchImpl=fetch,clock=Date.now}={}) {this.fetchImpl=fetchImpl;this.clock=clock;}
   async read(region,{signal}={}) {
-    const url=new URL(AWC_URL);url.searchParams.set('ids',region.stations.join(','));url.searchParams.set('format','json');
+    const url=new URL(AWC_URL);url.searchParams.set('ids',region.stations.join(','));url.searchParams.set('format','json');url.searchParams.set('hours','2');
     const response=await this.fetchImpl(url.href,{signal,headers:{'User-Agent':'PLUVIA/1.0 (+https://pluviaweather.com.br; Manaus observations)','Accept':'application/json'}});
     if(!response.ok) throw new Error(response.status===429?'rate_limited':'provider_unavailable');
     let rows=[];

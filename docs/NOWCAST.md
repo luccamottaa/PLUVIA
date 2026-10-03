@@ -46,15 +46,17 @@ Não foi validado um contrato autorizado para WMS, WMTS, tiles, GeoJSON, grades 
 
 - [Documentação da API oficial](https://aviationweather.gov/data/api/).
 - [OpenAPI oficial](https://aviationweather.gov/data/schema/openapi.yaml), HTTP 200.
-- **Endpoint realmente consultado:** `https://aviationweather.gov/api/data/metar?ids=SBEG&format=json`, HTTP 200 com boletim de Manaus. A estação SBEG é o aeroporto Eduardo Gomes.
+- **Endpoints realmente consultados:** `https://aviationweather.gov/api/data/metar?ids=SBEG&format=json` e a consulta limitada `https://aviationweather.gov/api/data/metar?ids=SBEG&format=json&hours=2`, ambos HTTP 200. A estação SBEG é o aeroporto Eduardo Gomes. `hours` está documentado no OpenAPI oficial.
 
 `obsTime` é Unix em segundos, `temp/dewp` Celsius, `wspd/wgst` nós, `wdir` graus ou `VRB`, `altim` ajuste do altímetro em hPa. O provider converte nós para km/h e mantém vento variável sem inventar direção. `altim` **não** é pressão ao nível do mar. `wxString` descreve o tempo presente reportado; não calculamos volume de chuva a partir dele.
 
-METAR costuma ser horário; SPECI pode trazer um boletim especial, sem periodicidade garantida. A documentação oferece até 30 dias e informa limites de 100 requests/minuto e 400 registros. Esta implementação pede somente o boletim mais recente de uma estação, com cache de cinco minutos; não faz backfill. CORS não é permitido na API AWC, justificando o proxy no backend. Envia User-Agent identificando PLUVIA.
+METAR costuma ser horário; SPECI pode trazer um boletim especial, sem periodicidade garantida. A documentação oferece até 30 dias e informa limites de 100 requests/minuto e 400 registros. Esta implementação consulta uma janela de duas horas de uma estação e seleciona apenas seu boletim válido mais recente, com cache de cinco minutos; não faz backfill nem expõe uma série histórica. CORS não é permitido na API AWC, justificando o proxy no backend. Envia User-Agent identificando PLUVIA.
 
 Consulta real local em 03/10/2026: boletim `obsTime=1790996400` (03:00 UTC), `wxString=-TSRA`, temperatura 25 °C, vento variável de 2 nós. O normalizador conservou o instante original, reportou chuva fraca/trovoada **na estação** e o motor retornou `INSUFFICIENT`, `mock:false`, `inference:null`. Esta consulta confirma acesso ao serviço, não habilidade de prever chuva por bairro nem disponibilidade futura.
 
-Um único aeroporto não representa toda Manaus/RMM. `RA/DZ`, intensidade e `TS` são relatos qualitativos; `VC` significa proximidades, sem distância fixa. Ausência de token de chuva é `not_reported`, **não confirmação de tempo seco**. `TS` não é uma detecção geolocalizada de descarga elétrica. Qualidade é `unverified_station_report`; não validamos independentemente o sensor. Campos opcionais inválidos ficam nulos. Um boletim com identidade/tempo/coordenadas inválidos falha; observações acima de 90 minutos são descartadas, nunca renovadas pelo horário da consulta.
+Um único aeroporto não representa toda Manaus/RMM. `RA/DZ`, intensidade e `TS` são relatos qualitativos; `VC` significa proximidades, sem distância fixa. Ausência de token de chuva é `not_reported`, **não confirmação de tempo seco**. `TS` não é uma detecção geolocalizada de descarga elétrica. Qualidade é `unverified_station_report`; não validamos independentemente o sensor. Campos opcionais inválidos ficam nulos. Um boletim com identidade/tempo/coordenadas inválidos falha; observações futuras além da tolerância de um minuto e acima de 90 minutos são descartadas, nunca renovadas pelo horário da consulta.
+
+Durante a validação hospedada às 04:56 UTC, o endpoint do boletim mais recente já retornava um METAR nominal das 05:00 UTC. O provider original recusava esse timestamp futuro e perdia a leitura anterior. A consulta limitada `hours=2` e a seleção de timestamps válidos preservam o boletim anterior sem antecipar a nova observação. Teste de regressão cobre publicação adiantada, retenção da idade original e seleção do novo boletim apenas quando seu horário se torna válido.
 
 API pública oficial usada conforme documentação de acesso automatizado, com atribuição NOAA AWC. Não presumimos que todos os feeds de radar ou redes de terceiros tenham a mesma licença.
 
@@ -187,12 +189,24 @@ O projeto não possui lint, tsconfig frontend ou comando de build: artefato de p
 
 ### Entrega e resultados verificados (03/10/2026)
 
-- **329 testes Node passaram**, contra baseline de 291; 38 novos testes específicos do Nowcast. Sintaxe de todos os JS publicados/vendor e código novo verificada. Deno 2.5.0 verificou todas as funções Supabase, incluindo `nowcast`, sem erros.
+- **330 testes Node passaram**, contra baseline de 291; 39 novos testes específicos do Nowcast, incluindo a publicação antecipada de um METAR nominal encontrada durante a validação hospedada. Sintaxe de todos os JS publicados/vendor e código novo verificada. Deno 2.5.0 verificou todas as funções Supabase, incluindo `nowcast`, sem erros.
 - **Chromium e WebKit**: QA do Nowcast passou em sete viewports (320×568, 375×667, 390×844, 430×932, 844×390, 768×1024 e 1440×900); cenários de radar/station fixtures, DEV label, expiração, refresh e estação no mapa. Detectamos e corrigimos overflow de 29 px no WebKit a 320 px: track implícito do grid expandia ao tamanho mínimo dos controles; track `minmax(0,1fr)`, limites de conteúdo e input range corrigem a causa.
 - Os quatro QA existentes também passaram em **Chromium e WebKit**: painel/responsividade, sincronização de conta, ciclo de recuperação/exclusão com fixtures, estados visuais/reduced motion/diálogos. Sem alterações de contas reais nem envios de notificações.
 - Consulta AWC real também percorreu **backend local → cliente → card**: novo boletim SBEG das 04:00 UTC de 03/10 retornou `rain:not_reported`, `thunderstorm:vicinity`; card manteve `mock:false`, `INSUFFICIENT` e nenhuma inferência. Não chamou isso de chuva ausente ou radar detectado.
 - Não há lint/build frontend configurado; `dist/` é o artefato de produção estático. Validação backend executada pelo Deno. Diff revisado e sem erros de whitespace. Não há métricas de acurácia de radar real, entrega de Push nem teste em iPhone físico.
-- **Sem deploy/merge em produção nesta etapa.** Acesso SIPAM, redistribuição e validação com frames reais continuam pendentes. Código fica em branch/PR de revisão. Antes de uma futura publicação, publicar a função e verificar capacidades/observações no ambiente hospedado, então coordenar frontend/SW. Habilitar ETA requer os critérios regionais acima.
+- A implementação inicial ficou no PR #110, sem publicação até a validação hospedada. Acesso SIPAM, redistribuição e validação com frames reais continuam pendentes. Habilitar ETA requer os critérios regionais acima.
+
+### Publicação do piloto observacional
+
+Em 03/10/2026, a função `nowcast` foi publicada no projeto Supabase existente, antes do frontend, mantendo a configuração pública já definida em `supabase/config.toml`. A versão 2 corrige a seleção do boletim na troca de hora descrita acima. Não lê/escreve contas, banco ou inscrições Push; retorna capacidades e observações públicas de uma estação fixa. Não foram adicionadas credenciais, tabelas ou consultas Xweather.
+
+Verificação HTTP no ambiente hospedado passou: capacidades e observação SBEG reais; CORS do domínio canônico e preflight; origem não permitida recusada; método POST recusado; parâmetros mock e coordenadas excessivamente precisas recusados; fora do piloto sem observações; cache preservando o horário original. O boletim das 04:00 UTC retornou `rain:not_reported`, `thunderstorm:vicinity`, `mock:false`, `INSUFFICIENT`, nenhuma inferência e nenhum alerta elegível. Isso valida o acesso hospedado naquele momento, sem transformar o relato de aeroporto em informação de todos os bairros.
+
+`node scripts/verify-nowcast-hosted.cjs` repete nove verificações HTTP com dados públicos reais; é manual e não integra os testes com fixtures/CI. Requer a estação recente disponível. Em rede com proxy, executar com `NODE_USE_ENV_PROXY=1`; não desabilitar TLS. Não consulta usuários, envia notificações ou consome quota de raios.
+
+O cliente também passou em Chromium/WebKit contra a função hospedada v2, com frontend local apresentado no domínio canônico, dados reais, quatro viewports (320, 390, 844 e 1440 px), timezone do dispositivo Asia/Tokyo e troca Manaus → São Paulo → Manaus. Não mostrou mock ou ETA. Outros provedores e conta foram bloqueados nesse smoke check, que não comprova todas as APIs de produção. Chromium utilizou o transporte HTTPS validado do Playwright para a API, pois seu perfil de teste não confia no CA do proxy local; WebKit acessou diretamente a API. TLS não foi desabilitado.
+
+A publicação coordenada do frontend/SW pelo PR #110 oferece somente observações METAR, após os checks de validação; não habilita radar quantitativo/ETA ou notificações Nowcast. Após publicar, conferir os bytes do shell/SW/assets no domínio canônico e repetir o smoke check. O [rascunho de solicitação ao Censipam](SIPAM-ACCESS-REQUEST.md) contém um contato institucional confirmado e perguntas sobre feed, qualidade, histórico e autorização. O pedido não foi enviado automaticamente.
 
 ### Arquivos
 

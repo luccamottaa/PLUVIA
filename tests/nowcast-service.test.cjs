@@ -14,15 +14,24 @@ test('vicinity and missing report are distinct from rain at a station and observ
   assert.equal(metarWeather('VCTS VCSH').thunderstorm,'vicinity');assert.equal(metarWeather('VCRA').rain,'vicinity');
   assert.equal(metarWeather(null).rain,'not_reported');assert.equal(metarWeather('+RA').intensity,'strong');
 });
-test('METAR invalid payloads, future times and unrequested stations fail; stale is discarded',()=>{
-  for(const changed of [{obsTime:'100'},{icaoId:'WRONG'},{lat:null},{obsTime:NOW/1000+120},{wxString:'<script>'}])
+test('METAR invalid payloads and unrequested stations fail; future and stale reports are withheld',()=>{
+  for(const changed of [{obsTime:'100'},{icaoId:'WRONG'},{lat:null},{wxString:'<script>'}])
     assert.throws(()=>normalizeMetar([{...row,...changed}],region,NOW),/invalid_response/);
   assert.deepEqual(normalizeMetar([{...row,obsTime:NOW/1000-91*60}],region,NOW),[]);
+  assert.deepEqual(normalizeMetar([{...row,obsTime:NOW/1000+120}],region,NOW),[]);
   assert.equal(normalizeMetar([row,{...row,obsTime:row.obsTime-600}],region,NOW).length,1);
+});
+test('an early nominal hourly METAR cannot hide the last valid observation or renew its age',()=>{
+  const previous={...row,obsTime:NOW/1000-56*60},future={...row,obsTime:NOW/1000+4*60,wxString:null};
+  const [selected]=normalizeMetar([future,previous],region,NOW);
+  assert.equal(selected.observedAt,previous.obsTime*1000);assert.equal(selected.weather.rain,'reported');
+  assert.equal(selected.validUntil,previous.obsTime*1000+90*M);
+  assert.equal(normalizeMetar([future,previous],region,NOW+5*M)[0].observedAt,future.obsTime*1000);
 });
 test('provider calls fixed AWC endpoint, not model data, with bounded station IDs',async()=>{
   let url;const p=new WeatherStationProvider({clock:()=>NOW,fetchImpl:async u=>{url=new URL(u);return new Response(JSON.stringify([row]));}});
   const r=await p.read(region);assert.equal(url.origin,'https://aviationweather.gov');assert.equal(url.searchParams.get('ids'),'SBEG');
+  assert.equal(url.searchParams.get('hours'),'2');
   assert.equal(r.kind,'observation');assert.equal(r.status,'ready');
 });
 test('HTTP 204, 429 and malformed JSON have distinct outcomes',async()=>{
