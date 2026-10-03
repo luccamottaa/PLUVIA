@@ -84,3 +84,18 @@ Evidência: `/tmp/pluvia-stars-chromium/clouds/` e `/tmp/pluvia-stars-webkit/clo
 - Assets originais totalizam 12.983 bytes, limitados a 16KB pelo contrato de cache e disponíveis offline.
 
 Nenhuma pendência visual P0/P1/P2 identificada nas capturas revisadas. O campo é decorativo, sem promessa de constelações/posições observadas. Os limites de hardware iPhone, FPS, bateria e contraste numérico continuam os mesmos.
+
+## Correção posterior — astros atrás das nuvens e toque duplo
+
+Result: **passed** para cobertura dos astros e política de toque em Chromium e WebKit.
+
+O empilhamento já estava correto; a opacidade global baixa das nuvens parcialmente nubladas fazia os discos atravessarem seus corpos densos. Ambas as camadas agora conservam o alpha da textura com opacidade global 1. Espaços transparentes e bordas continuam suaves; o filtro noturno parcial estático usa brightness .34. Posição, horário, fase lunar, animações e assets existentes foram preservados.
+
+Evidência: `/tmp/pluvia-occlusion-final-chromium/clouds/` e `/tmp/pluvia-occlusion-final-webkit/clouds/`. Quatorze estados em cinco viewports geraram 70 capturas estáticas por navegador; somam-se duas capturas de estrelas em movimento normal e 12 quadros de clarão, totalizando 84 por navegador. Foram inspecionados céu parcial diurno/noturno e Lua acima do horizonte, em celular e desktop.
+
+- Regressão de pixels para Sol e Lua, separadamente atrás de cada camada. Uma textura controlada existe somente no teste; o deslocamento usa os keyframes de produção. Nos quatro casos por navegador, a diferença normalizada foi 0 na faixa opaca e 1 no espaço transparente. Isso verifica composição visual, não observações meteorológicas.
+- Movimento existente preservado em atualizações, pausa fora da tela/background, reduced-motion e gates de chuva/estrelas passaram; nenhum erro JavaScript capturado.
+- `touch-action: manipulation` no body remove o zoom de página por toque duplo e permite pan/pinch. A meta viewport continua sem bloqueio de escala; não há interceptação global de eventos ou alteração dos handlers Leaflet. O QA geral passou nos dois navegadores, com dois toques simulados sem mudança de `visualViewport.scale`, sete viewports, diálogos, cidades e fallback offline.
+- Sintaxe JavaScript, 356 casos `node:test` e 13 arquivos de assertions diretas passaram. Contratos de cache acompanham `pluvia-panel-63`, `sky.css?v=sky-11` e `continuous.css?v=layout-24`. Nenhuma dependência ou asset novo foi adicionado.
+
+Nenhuma pendência visual P0/P1/P2 identificada nas capturas revisadas. O gesto nativo em PWA instalado e o zoom por pinça ainda precisam de confirmação em iPhone físico; a automação verifica a política CSS e toques simulados. Os demais limites de medição descritos acima permanecem.

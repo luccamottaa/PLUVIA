@@ -1,5 +1,5 @@
 """Sky textures, stars, rain depth, lightning and motion using weather fixtures only."""
-import datetime,json,os,shutil,subprocess
+import base64,datetime,json,os,shutil,subprocess
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright
@@ -32,7 +32,7 @@ with sync_playwright() as p:
  report=[]
  for width,height in [(320,740),(390,844),(844,390),(1366,768),(2560,1080)]:
   page.set_viewport_size({'width':width,'height':height})
-  for name,hour,code in [('clear',13,0),('clear-night',22,0),('partly',13,2),('partly-night',22,2),('cloudy',13,3),('drizzle',14,51),('light-rain',14,61),('rain',14,65),('storm',15,95),('storm-night',22,95),('cloudy-night',22,3),('sunrise',6,2),('sunset',18,2)]:
+  for name,hour,code in [('clear',13,0),('clear-night',22,0),('partly',13,2),('partly-night',22,2),('moon-partly',3,2),('cloudy',13,3),('drizzle',14,51),('light-rain',14,61),('rain',14,65),('storm',15,95),('storm-night',22,95),('cloudy-night',22,3),('sunrise',6,2),('sunset',18,2)]:
    mode.update(code=code,hour=hour);page.clock.set_fixed_time(datetime.datetime(2026,10,1,hour,tzinfo=datetime.timezone.utc)+datetime.timedelta(hours=4))
    page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
    page.wait_for_function("!document.documentElement.classList.contains('awaiting-styles')")
@@ -50,8 +50,10 @@ with sync_playwright() as p:
    assert stars.count()==1 and page.locator('.intro-sky > .sky-stars').count()==1
    star=stars.evaluate("el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,repeat:s.backgroundRepeat,animation:getComputedStyle(el,'::after').animationName,height:el.offsetHeight,width:el.offsetWidth};}")
    assert star['repeat']=='no-repeat' and star['animation']=='none' and star['height']<=760 and star['width']==width,star
-   visible=name in ['clear-night','partly-night']
+   visible=name in ['clear-night','partly-night','moon-partly']
    assert (star['opacity']>0)==visible,(width,name,star)
+   if name=='moon-partly':
+    assert page.locator('.sky-effects > .sky-moon').evaluate("el=>getComputedStyle(el).display==='block' && +getComputedStyle(el).opacity>0")
    rain=page.locator('.sky-effects > .sky-rain').evaluate_all("els=>els.map(el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,animation:s.animationName,size:s.backgroundSize};})")
    assert len(rain)==2 and all(d['animation']=='none' and d['size'].endswith('480px') for d in rain)
    wet=code in [51,61,65,95]
@@ -62,11 +64,53 @@ with sync_playwright() as p:
     assert page.locator(selector).is_visible(),(width,height,name,selector)
    page.screenshot(path=str(output/(str(width)+'-'+name+'.png')))
    report.append({'viewport':[width,height],'state':name})
+ # Pixel regression: a moving opaque band with a clear gap substitutes only the
+ # test texture. Real CSS, both cloud animations and both celestial disks remain.
+ # This catches translucency/z-order failures without relying on an asset's crop.
+ page.set_viewport_size({'width':390,'height':844})
+ mode.update(code=2,hour=23);page.clock.set_fixed_time(datetime.datetime(2026,10,2,3,tzinfo=datetime.timezone.utc));page.goto(preview)
+ page.wait_for_function("document.body.dataset.weather==='partly' && document.getElementById('pluviaIntro').hidden && !document.documentElement.classList.contains('awaiting-styles')")
+ page.wait_for_function("(()=>{for(let el=document.getElementById('temperature');el;el=el.parentElement)if(+getComputedStyle(el).opacity<.99)return false;return true;})()")
+ page.evaluate("async()=>{const i=new Image();i.src='./assets/sky-sun.svg?v=sun-2';await i.decode();}")
+ page.emulate_media(reduced_motion='no-preference')
+ page.add_style_tag(content=".night-stage > :not(.sky-effects):not(.sky-twilight-page){visibility:hidden!important}.sky-stars{display:none!important}.sky-effects > :is(.sky-sun,.sky-moon){display:block!important;opacity:1!important;transition:none!important}.sky-effects > .sky-clouds{top:-60px!important;transition:none!important}")
+ page.evaluate("""()=>{
+   const clouds=[...document.querySelectorAll('.sky-effects > .sky-clouds')];
+   const width=clouds[0].offsetWidth,height=clouds[0].offsetHeight;
+   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><path fill="#aac4d6" d="M0 0H${width/2-12}V${height}H0Z M${width/2+12} 0H${width}V${height}H${width/2+12}Z"/></svg>`;
+   for(const el of clouds){el.style.backgroundImage=`url("data:image/svg+xml,${encodeURIComponent(svg)}")`;el.style.setProperty('opacity','0','important');}
+   for(const el of document.querySelectorAll('.sky-effects > .sky-sun,.sky-effects > .sky-moon')){
+     const width=el.offsetWidth;el.style.setProperty('transform',`translate3d(${195-width/2}px,${150-width/2}px,0)`,'important');el.style.setProperty('display','none','important');
+   }
+ }""")
+ clip={'x':191,'y':146,'width':8,'height':8}
+ def pixels():
+  encoded=base64.b64encode(page.screenshot(clip=clip)).decode()
+  return page.evaluate("""async data=>{const im=new Image();im.src='data:image/png;base64,'+data;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d');ctx.drawImage(im,0,0);return [...ctx.getImageData(0,0,c.width,c.height).data];}""",encoded)
+ def difference(a,b):return sum(abs(x-y) for i,(x,y) in enumerate(zip(a,b)) if i%4!=3)
+ occlusion=[]
+ for body in ['sun','moon']:
+  disk=page.locator('.sky-effects > .sky-'+body)
+  for layer in ['back','front']:
+   page.locator('.sky-effects > .sky-clouds').evaluate_all("els=>els.forEach(el=>el.style.setProperty('opacity','0','important'))")
+   disk.evaluate("el=>el.style.setProperty('display','none','important')");base_pixels=pixels()
+   disk.evaluate("el=>el.style.setProperty('display','block','important')");clear_energy=difference(pixels(),base_pixels)
+   assert clear_energy>100,(body,clear_energy)
+   cloud=page.locator('.sky-effects > .sky-clouds-'+layer)
+   cloud.evaluate("el=>el.style.removeProperty('opacity')")
+   ratios={}
+   for state,progress in [('covered',0),('gap',.5)]:
+    cloud.evaluate("""(el,p)=>{const a=el.getAnimations().find(a=>a.animationName?.startsWith('clouds-'));const t=a.effect.getTiming();a.pause();a.currentTime=t.delay+t.duration*(2+p);}""",progress)
+    disk.evaluate("el=>el.style.setProperty('display','none','important')");without=pixels()
+    disk.evaluate("el=>el.style.setProperty('display','block','important')");ratios[state]=difference(pixels(),without)/clear_energy
+   assert ratios['covered']<.02 and ratios['gap']>.9,(body,layer,ratios)
+   occlusion.append({'body':body,'layer':layer,'visibility':ratios})
+  disk.evaluate("el=>el.style.setProperty('display','none','important')")
  # Native CSS animations remain the same objects across condition updates.
  mode.update(code=3,hour=13);page.clock.set_fixed_time(datetime.datetime(2026,10,1,17,tzinfo=datetime.timezone.utc));page.goto(preview)
  page.wait_for_function("document.body.dataset.weather==='cloud' && document.getElementById('pluviaIntro').hidden")
  page.emulate_media(reduced_motion='no-preference');page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='running'")
- page.evaluate("window.cloudAnimations=[...document.querySelectorAll('.sky-effects > .sky-clouds')].map(el=>el.getAnimations().find(a=>a.animationName.startsWith('clouds-')))")
+ page.evaluate("window.cloudAnimations=[...document.querySelectorAll('.sky-effects > .sky-clouds')].map(el=>el.getAnimations().find(a=>a.animationName?.startsWith('clouds-')))")
  page.evaluate("PLUVIA.sky.apply(2,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert page.evaluate("[...document.querySelectorAll('.sky-effects > .sky-clouds')].every((el,i)=>el.getAnimations().includes(cloudAnimations[i]))")
  assert page.locator('.sky-effects > .sky-clouds-front').evaluate("el=>getComputedStyle(el).transitionDuration")=='4s'
@@ -152,5 +196,5 @@ with sync_playwright() as p:
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>getComputedStyle(el).display")=='none'
  assert page.evaluate("document.querySelector('.sky-effects').getAnimations({subtree:true}).length===0")
  assert not errors,errors
- print(json.dumps({'screenshots':report,'lightning':lightning,'normalStars':normal_stars,'seamlessBoundedLayers':True,'preservedAnimationObjects':True,'nightStars':True,'starWeatherGate':True,'rainDepth':True,'offscreenPause':True,'backgroundPseudoPause':True,'clearSkyPause':True,'reducedMotion':True,'errors':errors}))
+ print(json.dumps({'screenshots':report,'celestialOcclusion':occlusion,'lightning':lightning,'normalStars':normal_stars,'seamlessBoundedLayers':True,'preservedAnimationObjects':True,'nightStars':True,'starWeatherGate':True,'rainDepth':True,'offscreenPause':True,'backgroundPseudoPause':True,'clearSkyPause':True,'reducedMotion':True,'errors':errors}))
  context.close();browser.close()
