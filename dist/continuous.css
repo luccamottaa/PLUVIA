@@ -397,3 +397,36 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 #weatherView .rain-chart .rain-bar { min-height:0; }
 #weatherView .rain-chart .rain-bar::after { content:none; }
 #weatherView .rain-chart .rain-chance { display:block; color:var(--reading-muted); font-size:.75rem; line-height:1.2; }
+
+/* Nowcast stays next to hourly forecast/map, with no extra animation or glass. */
+#nowcastCard { padding:24px; border-top:1px solid #aecbf333; }
+.nowcast-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.nowcast-heading h2 { margin:6px 0 0; font-size:1.25rem; }
+.nowcast-reference,.nowcast-note,#nowcastObserved small,.nowcast-inference small { font-size:.8rem; line-height:1.6; opacity:.85; overflow-wrap:anywhere; }
+.nowcast-status { font-size:.94rem; line-height:1.6; margin:14px 0; }
+.nowcast-status:empty { display:none; }
+.nowcast-observations { margin-top:18px; }
+#nowcastObserved p { margin:8px 0 4px; line-height:1.5; }
+#nowcastObserved small { display:block; }
+.nowcast-inference { margin:18px 0; padding:16px 0; border-block:1px solid #aecbf333; }
+.nowcast-inference p { margin:8px 0; }
+#nowcastArrival { display:block; font-size:1.9rem; letter-spacing:-.03em; }
+.nowcast-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.nowcast-actions button { min-height:44px; padding:10px 14px; border-radius:12px; color:inherit; border:1px solid #8caedc70; background:transparent; font:700 .85rem var(--font-ui); cursor:pointer; }
+.nowcast-actions button:disabled { opacity:.55; cursor:wait; }
+.nowcast-actions button:focus-visible,.weather-layer-chips button:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
+.nowcast-dev { padding:6px 8px; font:800 .7rem var(--font-ui); background:#ffc247; color:#152238; border-radius:6px; }
+#radarMapContent .weather-layer-chips { margin:0 0 12px; gap:6px; }
+#radarMapContent .weather-layer-chips button { min-height:44px; flex-shrink:0; }
+#radarMapContent .weather-layer-chips button[hidden] { display:none; }
+@media(max-width:520px) { #nowcastCard { padding:20px; } .nowcast-heading { align-items:flex-start; flex-direction:column; } }
+.nowcast-details { font-size:.8rem; line-height:1.6; margin-top:14px; }
+.nowcast-details summary { cursor:pointer; min-height:44px; display:flex; align-items:center; gap:8px; }
+.nowcast-details summary::before { content:'+'; }
+.nowcast-details[open] summary::before { content:'−'; }
+.nowcast-details summary:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
+#nowcastSourceDetails p { margin:8px 0; opacity:.85; overflow-wrap:anywhere; }
+/* Explicit grid shrinkage keeps map controls inside narrow Safari viewports. */
+#weatherView .weather-map-card { grid-template-columns:minmax(0,1fr); }
+#radarMapContent,#radarMapContent .weather-layer-chips { min-width:0; max-width:100%; }
+#radarMapContent .weather-player input { min-width:0; box-sizing:border-box; margin:0; }

@@ -86,7 +86,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-31" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-21" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-22" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
@@ -325,12 +325,22 @@
           <span class="hero-rain-kicker">Quando pode chover?</span><strong id="heroRainTitle">Consultando a chuva…</strong><span id="heroRainText"></span><small id="heroRainStatus"></small><span class="hero-rain-link">Ver por hora <span aria-hidden="true">›</span></span>
         </button>
       </section>
+      <section id="nowcastCard" class="nowcast-card panel section-block" aria-labelledby="nowcastTitle" hidden>
+        <div class="nowcast-heading"><div><span class="eyebrow">PLUVIA NOWCAST · PILOTO</span><h2 id="nowcastTitle">Observações em Manaus</h2></div><span id="nowcastMock" class="nowcast-dev" hidden>DEV / MOCK DATA</span></div>
+        <p id="nowcastReference" class="nowcast-reference"></p>
+        <p id="nowcastStatus" class="nowcast-status" role="status" aria-live="polite"></p>
+        <div class="nowcast-observations"><span class="eyebrow">OBSERVADO</span><div id="nowcastObserved"></div></div>
+        <div id="nowcastInference" class="nowcast-inference" hidden><span class="eyebrow">INFERÊNCIA · PODE MUDAR</span><p><span id="nowcastArrivalLabel">Possível chegada</span><strong id="nowcastArrival"></strong></p><p id="nowcastMotion"></p></div>
+        <p id="nowcastConfidence" class="nowcast-reference"></p>
+        <details class="nowcast-details"><summary>Fontes e limites</summary><div id="nowcastSourceDetails"></div><p id="nowcastAssumptions" class="nowcast-note"></p><p class="nowcast-note">Boletins de estação descrevem aquele ponto e horário, sem confirmar chuva nos demais bairros. Usamos a referência do município, sem a posição exata do aparelho. A previsão dos modelos continua em “Previsão por hora”. O radar SIPAM ainda não está integrado.</p></details>
+        <div class="nowcast-actions"><button id="nowcastMap" type="button" hidden>Ver observações no mapa</button><button id="nowcastRetry" type="button">Atualizar</button></div>
+      </section>
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
         <dialog id="radarDialog" class="radar-dialog" aria-labelledby="radarDialogTitle"><div class="radar-dialog-heading"><h2 id="radarDialogTitle">Radar de chuva</h2><button id="closeRadar" type="button" aria-label="Fechar radar ampliado">Fechar <span aria-hidden="true">×</span></button></div><div id="radarDialogContent"></div></dialog>
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
           <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapCardTitle">Chuva na região</h2><p id="weatherMapCity">Referência do município</p></div>
           <button id="expandRadar" class="expand-radar" type="button" aria-haspopup="dialog" aria-controls="radarDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg>Ampliar radar</button>
-          <div id="radarMapContent"><div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Radar de chuva interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
+          <div id="radarMapContent"><div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button type="button" data-weather-layer="clouds" aria-pressed="false">Satélite</button><button type="button" data-weather-layer="lightning" aria-pressed="false">Raios</button><button id="weatherStationsLayer" type="button" data-weather-layer="stations" aria-pressed="false" hidden>Estação</button></div><div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Mapa meteorológico interativo"></div><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
           <div class="weather-timebar">
             <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
             <div class="weather-player">
@@ -391,7 +401,7 @@
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="privacyTitle"><h3 id="privacyTitle">Privacidade</h3><label for="analyticsConsent"><input id="analyticsConsent" type="checkbox"> Ajudar a melhorar o Pluvia</label><p>Compartilhe contagens de uso e tipos de falha com o PostHog. Não enviamos nomes, e-mail, cidade, coordenadas ou texto pesquisado. Não gravamos sua tela nem vinculamos métricas à sua conta.</p><p id="analyticsChoiceStatus" role="status">Desativado. A previsão funciona sem compartilhar métricas.</p><p>O servidor recebe a conexão de rede; solicitamos que o IP não seja usado para geolocalização. <a href="https://posthog.com/privacy" target="_blank" rel="noreferrer">Política de privacidade do PostHog</a>.</p></section><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
     <script src="./analytics.js?v=analytics-4" defer></script>
-    <script src="./modules/sources.js?v=panel-21" defer></script>
+    <script src="./modules/sources.js?v=panel-22" defer></script>
     <script src="./modules/dialog-motion.js?v=motion-1" defer></script>
     <script src="./modules/http-client.js?v=http-1" defer></script>
     <script src="./modules/weather-services.js?v=core-112" defer></script>
@@ -406,11 +416,12 @@
     <script src="./capitals.js?v=core-47" defer></script>
     <script src="./modules/hourly-outlook.js?v=outlook-3" defer></script>
     <script src="./modules/hourly-detail.js?v=detail-3" defer></script>
-    <script src="./app.js?v=panel-35" defer></script>
+    <script src="./app.js?v=panel-36" defer></script>
     <script src="./p0.js?v=panel-36" defer></script>
     <script src="./modules/risks.js?v=core-117" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
-    <script src="./weather-map.js?v=map-2" defer></script>
+    <script src="./modules/nowcast.js?v=nowcast-1" defer></script>
+    <script src="./weather-map.js?v=map-3" defer></script>
     <script src="./modules/account-sync.js?v=sync-1" defer></script>
     <script src="./modules/social-auth.js?v=oauth-1" defer></script>
     <script src="./account.js?v=account-5" defer></script>
