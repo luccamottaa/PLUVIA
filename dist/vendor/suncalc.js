@@ -528,7 +528,7 @@ function getMoonTimes(date, lat, lng) {
     return result;
 }
 
-const api = {getMoonIllumination, getMoonPosition};
+const api = {getMoonIllumination, getMoonPosition, getMoonTimes};
 if (typeof module === "object" && module.exports) module.exports = api;
 root.PLUVIA = root.PLUVIA || {};
 root.PLUVIA.moon = api;

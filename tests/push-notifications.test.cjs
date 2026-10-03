@@ -19,7 +19,7 @@ assert.match(html, /id="notificationPreferencesForm"/);
 assert.match(html, /id="notificationTest"/);
 assert.match(html, /id="notificationLocations"[\s\S]+id="notificationDevices"/);
 assert.match(html, /id="notificationDiagnostics"/);
-assert.doesNotMatch(html, /name="(?:minimum_severity|quiet_start|quiet_end)"/);
+assert.match(html, /name="minimum_severity"/);assert.match(html, /name="quiet_start"/);assert.match(html, /name="quiet_end"/);
 assert.match(client, /allAlertPreferences/);
 assert.match(client, /promptButton\.addEventListener\("click", enable\)/, 'permissão precisa partir de gesto explícito');
 assert.match(client, /Notification\.requestPermission\(\)/);

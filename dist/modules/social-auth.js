@@ -43,8 +43,10 @@
         if(!http?.getJson)throw new Error('client_unavailable');
         return http.getJson(PROJECT_URL+'/auth/v1/settings',{headers:{apikey:PUBLIC_KEY},timeoutMs:6000,cache:'no-store'});
       }).then(data=>{
-        if(typeof data?.external?.google!=='boolean' || typeof data?.external?.apple!=='boolean')throw new Error('invalid_settings');
-        cached=Object.freeze({google:data.external.google,apple:data.external.apple});until=now()+300000;return cached;
+        if(!data?.external || typeof data.external!=='object' || Array.isArray(data.external))throw new Error('invalid_settings');
+        cached=Object.freeze({google:data.external.google===true,apple:data.external.apple===true});
+        const complete=providers.every(provider=>typeof data.external[provider]==='boolean');
+        until=now()+(complete ? 300000 : 10000);return cached;
       }).catch(()=>{cached=Object.freeze({google:false,apple:false});until=now()+10000;return cached;}).finally(()=>{if(flight===task)flight=null;});
       flight=task;return task;
     }

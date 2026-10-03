@@ -8,7 +8,7 @@ test('descoberta deduplica, usa chave publicável e revalida após freshness',as
  await discovery.load();assert.equal(calls,1);now=300001;await discovery.load();assert.equal(calls,2);
 });
 test('falha ou resposta inválida não expõe opção quebrada nem habilita por truthiness',async()=>{
- for(const raw of [null,{external:{google:'true',apple:false}},{external:{google:1,apple:true}}]){
+ for(const raw of [null,{external:{google:'true',apple:false}}]){
   assert.deepEqual(await social.createDiscovery({getJson:async()=>raw}).load(),{google:false,apple:false});
  }
  let now=0,calls=0;const discovery=social.createDiscovery({getJson:async()=>{calls++;throw Error('timeout');}},{now:()=>now});
@@ -21,6 +21,12 @@ test('retorno usa destino local sem herdar URL, tokens ou redirect externo',()=>
  assert.throws(()=>social.authorizeUrl('https://hostile.example/auth/v1/authorize?provider=google','google'));
  assert.throws(()=>social.authorizeUrl('https://dszyyrcvwrpyiypwyvxe.supabase.co/auth/v1/authorize?provider=apple','google'));
  assert.throws(()=>social.authorizeUrl('https://dszyyrcvwrpyiypwyvxe.supabase.co/auth/v1/authorize?provider=github','github'));
+});
+test('cada provider é confirmado independentemente e resposta parcial revalida cedo',async()=>{
+ let now=0,calls=0;
+ const discovery=social.createDiscovery({getJson:async()=>{calls++;return calls===1 ? {external:{google:true}} : {external:{google:1,apple:true}};}},{now:()=>now});
+ assert.deepEqual(await discovery.load(),{google:true,apple:false});assert.equal(calls,1);
+ now=10001;assert.deepEqual(await discovery.load(),{google:false,apple:true});assert.equal(calls,2);
 });
 test('callback reconhece cancelamento e remove dados transitórios sem tocar em navegação comum',()=>{
  const denied='https://pluviaweather.com.br/?auth_return=1&error_description=%3Cscript%3E#'+'error=access_denied&access_token=secret';

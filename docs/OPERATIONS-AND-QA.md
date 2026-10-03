@@ -22,7 +22,9 @@ A abertura vem de cima para baixo em 400 ms. X, Escape e backdrop saem para baix
 
 Os testes de `dialog-motion.test.cjs` cobrem esses contratos e `verify-visual.py` verifica o sentido real do movimento, backdrop, foco, fechamento/reabertura e reduced motion em mobile/desktop. A saída é amostrada num frame definido da animação CSS usando a API do navegador; isso valida o deslocamento renderizado sem depender de o renderer headless apresentar um frame intermediário durante apenas 280 ms. O término real da animação deve fechar o diálogo.
 
-## iPhone físico: verificação ainda pendente
+## iPhone físico: relato do usuário e verificações restantes
+
+Em 03/10/2026, o proprietário relatou que o teste no iPhone estava funcionando bem, após o roteiro de Safari/PWA e navegação. Não foram informados modelo, versão iOS ou evidências individuais para cada caso. Isso registra o relato de uso naquele aparelho; não confirma OAuth ainda desativado, entrega Push, todos os dispositivos ou as melhorias publicadas posteriormente. A lista abaixo continua sendo a referência para verificações detalhadas.
 
 WebKit automatizado não prova instalação/entrega Push em iOS real. Usar um iPhone disponível, sem precisar modelo específico:
 

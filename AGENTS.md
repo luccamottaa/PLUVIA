@@ -35,6 +35,10 @@ O relógio de 30 segundos atualiza a atmosfera e o card solar, e redesenha os da
 
 Eventos solares da timeline devem usar `sky.dayAt`, assim como o card. Iluminação da Lua usa a leitura de `moon-view`; não criar outra efeméride. UV mostra classificação atual e pico aproximado do dia municipal, inclusive quando o pico já passou; lacunas não viram zero nem linhas contínuas no gráfico. Pressão exige amostras separadas por três horas reais e deve identificar a série modelada.
 
+`sky.astronomyAt` concentra crepúsculo civil e nascer/pôr da Lua. SunCalc lunar varre dias UTC: reunir os dias que intersectam o calendário municipal e filtrar pelos limites locais reais, inclusive DST. Ausência de evento não é falha. Não recalcular esses eventos no card ou criar timer independente. A fração iluminada vem da mesma leitura de `moon-view`.
+
+`outdoor-planner.js` compara duas horas futuras com luz do dia nas próximas 24h; reutiliza `hourlyDetail`, `city-time` e `sky.dayAt`. Não recomendar com cache salvo, leitura antiga ou aviso oficial vigente confirmado. Dados ausentes não são zero; UV/rajadas parciais são identificados e extremos conhecidos vetam a janela. É comparação de modelos, sem garantia de segurança. Ver `docs/DAILY-PLANNING.md` para critérios e limites.
+
 Precipitação e probabilidade horárias Open-Meteo correspondem ao intervalo que **termina** no timestamp. Para representar a chuva a partir da hora `i`, usar `i+1`. MET `next_1_hours` começa no ponto informado e deve ser colocado no intervalo seguinte. Preserve esse alinhamento no resumo, favoritos, gráfico, detalhe e push. Valores ausentes não são zero nem evidência de tempo tranquilo. A timeline reutiliza `hourlyDetail.detail` para validar leituras. Barras de chuva são proporcionais apenas ao volume; probabilidade tem label separado e nunca aumenta uma barra de volume. O modo Sensação usa a série aparente, sem fabricar fallback a partir da temperatura.
 
 ## Estado, erros e cache
@@ -56,6 +60,8 @@ Destinos Web Push são validados por `_shared/push-endpoint.ts` no cadastro e **
 `push-process` pagina locais por UUID com cursor persistido em `private.push_worker_state`. `pluvia_push_claim` e `pluvia_push_checkpoint` são RPCs exclusivamente de `service_role`; a lease expira em três minutos. Publicar a migration antes do worker. Não voltar à seleção fixa dos primeiros 100 locais nem liberar esses RPCs para clientes. Cada execução seleciona até 100 locais, começa trabalho por até 90 segundos e preserva o local incompleto para a próxima rodada. O cursor avança após tentativa concluída, inclusive falhas de fonte, para um provedor indisponível não travar a fila. Inscrições/eventos/entregas conservam suas restrições de deduplicação.
 
 Push aceita somente números finitos nas faixas válidas e leitura atual com timestamp de até 90 minutos (tolerância futura de 15 minutos); null/string/boolean não viram zero. Horizonte usa o relógio real, chuva exige intervalo de uma hora e quantidade/probabilidade da mesma amostra. Resumo diário procura o dia municipal, sem assumir índice zero. URLs idênticas, inclusive falhas, compartilham Promise só durante a execução; não guardar esses dados em cache duradouro. `adminClient(8000)` limita requests do worker; chamadas sem argumento preservam o comportamento dos demais serviços. Veja `docs/NOTIFICATION-RELIABILITY.md` e `scripts/verify-push-scheduler.sql` (verificação com rollback, sem envios).
+
+Preservar `minimum_severity`, `quiet_start/end` e `timezone` ao salvar ou reativar notificações; adicionar cidade não muda o fuso silenciosamente. `notificationPreferences` normaliza horários SQL e valida a coleta. Silêncio global usa o fuso escolhido, resumo usa o da cidade e severidade 4 pode interromper silêncio. A UI precisa refletir essas exceções. Leituras de configuração usam revisão, inclusive A → B → A. QA `verify-daily-planning.py` usa somente fixtures, nunca Push real.
 
 ## Conta e preferências concorrentes
 
