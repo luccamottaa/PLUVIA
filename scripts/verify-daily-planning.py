@@ -72,6 +72,8 @@ try:
    assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(width,height)
    for selector in ['[name=minimum_severity]','[name=quiet_start]','[name=quiet_end]','[name=timezone]']:
     page.locator(selector).scroll_into_view_if_needed();box=page.locator(selector).bounding_box();assert box and box['width']>50 and box['x']>=0 and box['x']+box['width']<=width+1,(selector,box)
+   quiet=page.locator('.notification-time-pair input').evaluate_all("els=>els.map(el=>{const r=el.getBoundingClientRect();return {y:r.y,width:r.width}})")
+   assert len(quiet)==2 and abs(quiet[0]['y']-quiet[1]['y'])<=1 and abs(quiet[0]['width']-quiet[1]['width'])<=1,(width,quiet)
    if width==390:page.locator('.notification-timing').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-notification-settings.png')))
   page.locator('#accountClose').click();page.set_viewport_size({'width':390,'height':844})
   page.locator('#chuva').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-planning.png')))
