@@ -74,7 +74,7 @@ html,body { background:var(--sky-base); }
 :root[data-sky-transition="live"] :is(.sky-sun,.sky-moon) { transition:transform 28s linear,opacity 28s linear; }
 .sky-moon > svg { display:block; position:relative; width:100%; height:100%; }
 .sky-moon::before { content:""; position:absolute; inset:-65%; border-radius:50%; background:radial-gradient(circle,#c3dfff1f,transparent 64%); opacity:var(--moon-light,0); }
-:root[data-phase="night"]:is([data-weather="sun"],[data-weather="partly"],[data-weather="unknown"]) .sky-moon { display:block; }
+:root[data-phase="night"] .sky-moon { display:block; }
 .intro-sky .sky-moon { width:64px; }
 /* Two photographic layers: a distant veil and a softer volumetric foreground.
    Only bounded transforms move; no turbulence, canvas loop or animated blur.
@@ -85,6 +85,10 @@ html,body { background:var(--sky-base); }
    makes the celestial disks bleed through even its dense, opaque interiors. */
 :root[data-weather="partly"] .sky-clouds-front { opacity:var(--cloud-opacity); }
 :root[data-weather="partly"][data-phase="night"] { --cloud-filter:brightness(.34) saturate(.65); }
+/* Night clouds cover the illustrated Moon with their texture alpha instead of
+   removing its element or letting it bleed through translucent cloud bodies. */
+:root[data-phase="night"]:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"],[data-weather="snow"]) { --cloud-opacity:1; --cloud-filter:brightness(.34) saturate(.65); }
+:root[data-phase="night"]:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"],[data-weather="snow"]) .sky-clouds-front { opacity:var(--cloud-opacity); }
 :root:is([data-weather="sun"],[data-weather="unknown"]) .sky-clouds { animation-play-state:paused; }
 .intro-sky .sky-clouds { top:-30px; }
 .intro-sky .sky-clouds-front { top:36%; }

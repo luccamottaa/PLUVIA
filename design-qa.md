@@ -107,3 +107,17 @@ O usuário pediu remover todo zoom da página no app instalado. `modules/pwa-ges
 Sintaxe JavaScript e suíte Node passaram: 361 casos node:test e 13 arquivos de assertions diretas, incluindo cinco casos novos para browser, standalone, sinal Apple, mapa e saída/retorno do modo instalado. QA geral passou em Chromium/WebKit, incluindo os sete viewports existentes e duas sessões adicionais por navegador que emulam os sinais de instalação. Foram verificadas a política CSS, a prevenção de gestos sintéticos na página, a exceção do mapa, a busca utilizável, inputs com pelo menos 16px, escala 1 e ausência de overflow/erros JavaScript.
 
 Não foi testado um PWA físico: os sinais de instalação e eventos de gesto são emulados. O teste nativo em iPhone continua pendente. Layout e efeitos meteorológicos não foram alterados.
+
+## Simplificação da Home e Lua noturna
+
+Resultado: aprovado nos testes locais de Chromium e WebKit. A Lua do fundo agora ilustra a noite da cidade selecionada, usando o arco noturno existente e a fase lunar calculada. Ela não representa a altitude real; nascer/pôr reais permanecem no card astronômico. Nuvens cobrem o disco pela textura, inclusive em condições fechadas, sem remover seu elemento. Não há outro astro, timer ou efeméride.
+
+Resumo Inteligente, pico/gráfico diário de UV, Quando pode chover e Planejar ao ar livre foram retirados da Home a pedido. UV mantém leitura atual, classificação e barra. O resumo também deixa de consultar IA; seus contratos de segurança no backend continuam testados. Nowcast fica pausado por uma flag explícita no HTML, sem cliente HTTP, listeners ou consultas. Seu QA verifica primeiro essa pausa e só então habilita HTML de fixtures para preservar os cenários experimentais.
+
+- 361 casos node:test e 13 arquivos de assertions diretas passaram, assim como sintaxe JavaScript e deno check. Não existem comandos separados de lint/typecheck frontend ou build: dist é a aplicação estática publicada.
+- Evidência atmosférica em /tmp/pluvia-simplify-clouds-chromium/clouds/ e /tmp/pluvia-simplify-clouds-webkit/clouds/: quinze estados em cinco viewports, duas capturas de estrelas e doze de clarão, totalizando 89 por navegador. Inspecionadas noites limpa, parcial e nublada em celular e desktop.
+- A regressão de composição passou nos quatro pares astro/camada por navegador: diferença normalizada zero sob a faixa opaca e um no espaço transparente. Movimento preservado, pausa offscreen/background e reduced-motion passaram sem erros JavaScript.
+- Testes de meia-noite, fusos diferentes, troca de cidade e reabertura verificam continuidade da Lua decorativa. Uma regressão específica comprova que Nowcast pausado não cria transporte nem registra listeners.
+- QA geral de responsividade, cidades, offline, diálogos e política de zoom PWA passou nos dois navegadores. Detalhes horários, astronomia, preferências de notificações e os dez cenários experimentais do Nowcast também passaram; nenhuma observação simulada é habilitada na página publicada.
+
+Os testes usam fixtures meteorológicas identificadas, não comprovam disponibilidade dos sensores nem medem FPS/bateria. WebKit automatizado não substitui Safari em iPhone físico; permanece o limite de hardware registrado acima.

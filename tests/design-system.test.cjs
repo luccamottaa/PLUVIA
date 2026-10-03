@@ -13,11 +13,11 @@ for (const token of [
   '--space-1', '--space-16', '--radius-sm', '--radius-lg'
 ]) assert(css.includes(token), `token ausente: ${token}`);
 
-assert(html.indexOf('weather-hero') < html.indexOf('id="notificationPrompt"'), 'o hero e o Resumo Inteligente devem abrir a hierarquia da Home');
+assert(html.indexOf('weather-hero') < html.indexOf('id="notificationPrompt"'), 'o hero deve abrir a hierarquia da Home antes dos controles de notificação');
 assert.match(html, /card-primary/);
 assert.match(html, /card-secondary/);
 assert.match(html, /card-detail/);
-assert.match(html, /RESUMO INTELIGENTE/);
+assert.doesNotMatch(html, /RESUMO INTELIGENTE/);
 assert.doesNotMatch(html, /PLUVIA SINAL|goOutCard/);
 assert.match(html, /class="metric-head"/);
 assert.match(html, /data-weather-icon-name="humidity"/);
@@ -31,7 +31,7 @@ assert.match(app, /classList\.toggle\("is-night"/);
 assert.match(app, /class="hour-temp"/);
 assert.match(app, /Sem alertas meteorológicos ativos/);
 assert.doesNotMatch(html, /id="yesterdayComparison"/, 'a comparação com ontem pertence apenas ao resumo');
-assert.match(html, /id="weatherExplanation"/);
+assert.doesNotMatch(html, /id="weatherExplanation"/);
 assert.match(css, /\.context-highlights \{[\s\S]*display:flex;[\s\S]*max-width:100%/);
 assert.match(css, /@media \(max-width:380px\)/);
 assert.match(css, /@media \(max-width:720px\)/);

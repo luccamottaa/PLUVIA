@@ -22,11 +22,12 @@ def payload(tz):
 with sync_playwright() as p:
  browser=p.webkit.launch(headless=True) if os.environ.get('PLUVIA_BROWSER')=='webkit' else p.chromium.launch(headless=True,args=['--no-sandbox'],**({'executable_path':shutil.which('chromium')} if shutil.which('chromium') else {}))
  context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,timezone_id='Asia/Tokyo',service_workers='block')
- page=context.new_page();errors=[];mode={'offline':False}
+ page=context.new_page();errors=[];disabled_requests=[];mode={'offline':False}
  page.on('pageerror',lambda err: errors.append(str(err)))
  def route(r):
   from urllib.parse import urlparse,parse_qs
   url=r.request.url
+  if any(path in url for path in ['/functions/v1/smart-summary','/functions/v1/nowcast','/api/nowcast']):disabled_requests.append(urlparse(url).path);r.abort();return
   if 'api.open-meteo.com/v1/forecast' in url:
    if mode['offline']:r.abort();return
    r.fulfill(json=payload(parse_qs(urlparse(url).query).get('timezone',['America/Manaus'])[0]));return
@@ -61,7 +62,12 @@ with sync_playwright() as p:
  assert 'Desativado' in page.locator('#analyticsChoiceStatus').inner_text()
  page.keyboard.press('Escape')
  assert page.locator('#shareWeather').is_visible()
- assert page.locator('#uvDayChart svg').is_visible()
+ assert page.locator('#uvScale').is_visible()
+ assert page.locator('#uvDayChart').count()==0
+ for selector in ['#attentionCard','#heroRainOpen','#outdoorPlan']:
+  assert page.locator(selector).count()==0
+ assert page.locator('#nowcastCard').is_hidden()
+ assert 'pico' not in page.locator('#uvNote').inner_text().lower()
  assert 'Moderado' in page.locator('#uvNote').inner_text()
  page.locator('#airDetails summary').click()
  assert '8,0 µg/m³' in page.locator('#airPollutants').inner_text()
@@ -150,7 +156,7 @@ with sync_playwright() as p:
  assert page.locator('#temperature').inner_text()=='--'
  assert page.locator('#shareWeather').is_disabled()
  assert page.locator('#airDetails').is_hidden()
- assert page.locator('#uvDayChart').is_hidden()
+ assert page.locator('#uvDayChart').count()==0
  assert page.locator('#cityName').inner_text()=='Recife'
  assert not errors,errors
  print(json.dumps({'responsive':checks,'doubleTapPageZoom':False,'pinchAllowedByPolicy':True,'cityChange':'Curitiba/Recife','hourlyDialog':True,'savedDataStatusVisible':True,'newCityOfflineDoesNotShowOldTemperature':True,'errors':errors}))
@@ -180,5 +186,6 @@ with sync_playwright() as p:
   installed.append({'signal':signal,'pagePinchBlockedByPolicy':True,'mapGesturesPreserved':True,'searchUsable':True})
   app_context.close()
  assert not errors,errors
- print(json.dumps({'installedApp':installed,'errors':errors}))
+ assert not disabled_requests,disabled_requests
+ print(json.dumps({'removedPanelsAbsent':True,'pausedProvidersNotQueried':True,'installedApp':installed,'errors':errors}))
  browser.close()

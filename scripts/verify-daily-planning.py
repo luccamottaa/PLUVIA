@@ -1,4 +1,4 @@
-"""Deterministic QA for planning, astronomy and alert settings.
+"""Deterministic QA for hourly details, astronomy and alert settings.
 Uses the real bundled SDK with fake sessions; never registers or sends Push.
 All weather, METAR and Auth requests are intercepted inside this process.
 """
@@ -24,6 +24,7 @@ def service(body):
  fixture.stdin.write(json.dumps(body)+'\n');fixture.stdin.flush();return json.loads(fixture.stdout.readline())
 def route(r):
  url=r.request.url
+ if 'functions/v1/smart-summary' in url:forbidden.append('removed-smart-summary');r.abort();return
  if '/auth/v1/user' in url:r.fulfill(json=user);return
  if 'functions/v1/account-preferences' in url:
   result=service(r.request.post_data_json);status=result.pop('status');r.fulfill(status=status,json=result);return
@@ -51,10 +52,9 @@ try:
   context.route('**/*',route)
   context.add_init_script("if(!sessionStorage.getItem('daily-fixture')){localStorage.setItem('sb-dszyyrcvwrpyiypwyvxe-auth-token',"+json.dumps(json.dumps(session))+" );sessionStorage.setItem('daily-fixture','1');}sessionStorage.setItem('pluvia-intro-seen','1');Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
   page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.clock.set_fixed_time(fixed)
-  page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("!document.getElementById('outdoorPlanOpen').disabled && document.getElementById('pluviaIntro').hidden",timeout=20000)
-  assert page.locator('#outdoorPlanTitle').inner_text()=='Hoje, 11:00–13:00'
-  assert 'Sensação 26°' in page.locator('#outdoorPlanText').inner_text()
-  page.locator('#outdoorPlanOpen').click();assert page.locator('#hourlyDetailTitle').inner_text()=='Previsão para 11:00';page.keyboard.press('Escape')
+  page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden",timeout=20000)
+  assert page.locator('#outdoorPlan').count()==0
+  page.locator('#hourlyPeek [data-hour-index]').first.click();assert 'Previsão para' in page.locator('#hourlyDetailTitle').inner_text();page.keyboard.press('Escape')
   page.locator('.astronomy-details summary').click()
   for selector in ['#civilDawn','#civilDusk','#moonrise','#moonset']:assert ':' in page.locator(selector).inner_text(),selector
   assert '4 de outubro' in page.locator('#astronomyDate').inner_text()
@@ -77,11 +77,11 @@ try:
   page.locator('#chuva').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-planning.png')))
   page.locator('.sun-section').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-astronomy.png')))
   page.evaluate("render(displayedWeather.forecast,displayedWeather.air,true,Date.now()-3600000,{weatherAt:Date.now()-3600000})")
-  assert not page.locator('#outdoorPlanOpen').is_visible();assert 'Atualize' in page.locator('#outdoorPlanText').inner_text()
-  mode['forecast']='storm';page.evaluate('refreshAll()');page.wait_for_function("document.getElementById('outdoorPlanText').textContent.includes('Nenhuma faixa')")
+  assert page.locator('#outdoorPlan').count()==0
+  mode['forecast']='storm';page.evaluate('refreshAll()');page.wait_for_function("displayedWeather.forecast.hourly.weather_code[0]===95")
   page.evaluate("chooseCity('3550308')");page.wait_for_function("document.getElementById('cityName').textContent.includes('São Paulo') && !document.getElementById('weatherView').classList.contains('initial-loading')")
-  assert 'São Paulo' in page.locator('#astronomyDate').inner_text();assert not page.locator('#outdoorPlanOpen').is_visible()
+  assert 'São Paulo' in page.locator('#astronomyDate').inner_text();assert page.locator('#outdoorPlan').count()==0
   assert not errors,errors;assert not forbidden,forbidden
-  print(json.dumps({'browser':os.environ.get('PLUVIA_BROWSER','chromium'),'modelWindow':True,'astronomyCityDay':True,'quietSaveAndClear':True,'severity':True,'staleAndStorm':True,'cityChange':True,'noRealPush':True,'errors':errors}))
+  print(json.dumps({'browser':os.environ.get('PLUVIA_BROWSER','chromium'),'hourlyDetailWithoutPlanner':True,'astronomyCityDay':True,'quietSaveAndClear':True,'severity':True,'staleAndStorm':True,'cityChange':True,'noRealPush':True,'errors':errors}))
   browser.close()
 finally:fixture.terminate();fixture.wait()

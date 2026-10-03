@@ -32,7 +32,7 @@ with sync_playwright() as p:
  report=[]
  for width,height in [(320,740),(390,844),(844,390),(1366,768),(2560,1080)]:
   page.set_viewport_size({'width':width,'height':height})
-  for name,hour,code in [('clear',13,0),('clear-night',22,0),('partly',13,2),('partly-night',22,2),('moon-partly',3,2),('cloudy',13,3),('drizzle',14,51),('light-rain',14,61),('rain',14,65),('storm',15,95),('storm-night',22,95),('cloudy-night',22,3),('sunrise',6,2),('sunset',18,2)]:
+  for name,hour,code in [('clear',13,0),('clear-night',22,0),('partly',13,2),('partly-night',22,2),('moon-partly',3,2),('moon-cloudy',3,3),('cloudy',13,3),('drizzle',14,51),('light-rain',14,61),('rain',14,65),('storm',15,95),('storm-night',22,95),('cloudy-night',22,3),('sunrise',6,2),('sunset',18,2)]:
    mode.update(code=code,hour=hour);page.clock.set_fixed_time(datetime.datetime(2026,10,1,hour,tzinfo=datetime.timezone.utc)+datetime.timedelta(hours=4))
    page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
    page.wait_for_function("!document.documentElement.classList.contains('awaiting-styles')")
@@ -52,7 +52,7 @@ with sync_playwright() as p:
    assert star['repeat']=='no-repeat' and star['animation']=='none' and star['height']<=760 and star['width']==width,star
    visible=name in ['clear-night','partly-night','moon-partly']
    assert (star['opacity']>0)==visible,(width,name,star)
-   if name=='moon-partly':
+   if name in ['moon-partly','moon-cloudy']:
     assert page.locator('.sky-effects > .sky-moon').evaluate("el=>getComputedStyle(el).display==='block' && +getComputedStyle(el).opacity>0")
    rain=page.locator('.sky-effects > .sky-rain').evaluate_all("els=>els.map(el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,animation:s.animationName,size:s.backgroundSize};})")
    assert len(rain)==2 and all(d['animation']=='none' and d['size'].endswith('480px') for d in rain)

@@ -69,12 +69,6 @@
       if(!next?.hourly || !next.city) return;
       if(state && state.city.id!==next.city.id && dialog.open) dialog.close();
       state=next;
-      const outlook=root.PLUVIA?.hourlyOutlook?.build(next.hourly,next.start+1);
-      const copy=rainCopy(outlook,next.hourly.time[next.start]);
-      el('heroRainTitle').textContent=copy.title;el('heroRainText').textContent=copy.text;
-      el('heroRainStatus').textContent=next.fromCache ? 'Leitura salva · previsão estimada' : 'Previsão estimada';
-      el('heroRainOpen').disabled=outlook?.kind==='unavailable' || !outlook;
-      el('heroRainOpen').dataset.hourIndex=String(outlook?.kind==='peak' && outlook.detailIndex>=next.start ? outlook.detailIndex : next.start);
       if(dialog.open) paint();
     }
     function open(index,button) {
@@ -85,7 +79,7 @@
     }
     doc.addEventListener('click',event=>{
       const button=event.target.closest?.('[data-hour-index]');
-      if(button && !button.disabled && (button.closest('#weatherView') || button.id==='heroRainOpen')) open(Number(button.dataset.hourIndex),button);
+      if(button && !button.disabled && button.closest('#weatherView')) open(Number(button.dataset.hourIndex),button);
     });
     el('hourlyDetailClose').addEventListener('click',()=>globalThis.PLUVIA?.dialogs?.close(dialog) ?? dialog.close());
     dialog.addEventListener('click',event=>{if(event.target===dialog) globalThis.PLUVIA?.dialogs?.close(dialog) ?? dialog.close();});
@@ -99,7 +93,6 @@
     dialog.addEventListener('keydown',event=>{if(event.key==='ArrowLeft' || event.key==='ArrowRight') {event.preventDefault();move(event.key==='ArrowLeft' ? -1 : 1);}});
     root.addEventListener('pluvia:city-changed',()=>{
       if(dialog.open) dialog.close();state=null;selectedTime=null;
-      el('heroRainTitle').textContent='Consultando a chuva…';el('heroRainText').textContent='';el('heroRainStatus').textContent='';el('heroRainOpen').disabled=true;
     });
     root.PLUVIA.hourlyDetail.update=update;
   }

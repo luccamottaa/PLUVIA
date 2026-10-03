@@ -9,7 +9,7 @@ function setup() {
 }
 test('primeira previsão aparece antes de AQI/MET terminarem e continua recebendo os complementos',async()=>{
  const s=setup(),loading=s.context.loadWeather();await new Promise(resolve=>setImmediate(resolve));
- assert.equal(s.paints.length,1);assert.equal(s.paints[0][0],s.data);assert.equal(s.paints[0][4].deferSummaryAi,true);
+ assert.equal(s.paints.length,1);assert.equal(s.paints[0][0],s.data);
  assert.equal(s.writes.length,1);s.finish();assert.equal(await loading,true);assert.equal(s.paints.length,2);
 });
 test('complementos de uma cidade antiga não sobrescrevem a nova cidade',async()=>{

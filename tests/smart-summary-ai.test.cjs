@@ -12,7 +12,6 @@ test('protege o provedor e exige usuário autenticado', () => {
   assert.match(edge, /Deno\.env\.get\("OPENAI_API_KEY"\)/);
   assert.match(edge, /Deno\.env\.get\("OPENAI_MODEL"\) \|\| "gpt-4o-mini"/);
   assert.doesNotMatch(app, /OPENAI_API_KEY|api\.openai\.com/);
-  assert.match(app, /account\?\.getUser\?\.\(\)/);
 });
 
 test('usa cache SHA-256, cota atômica e RLS sem acesso do cliente', () => {
@@ -24,10 +23,7 @@ test('usa cache SHA-256, cota atômica e RLS sem acesso do cliente', () => {
   assert.match(advisorFix, /to anon, authenticated[\s\S]*using \(false\)[\s\S]*with check \(false\)/);
 });
 
-test('mantém fallback imediato e só aplica IA validada ao contexto atual', () => {
-  assert.match(app, /summary = smartSummary\.deterministic\(context\)/);
-  assert.match(app, /smartSummary\.validate\(summary,\s*current\)/);
-  assert.match(app, /data-ai-status/);
+test('valida o contexto no servidor e identifica falhas do provedor', () => {
   assert.match(edge, /validSummary\(generated, context\)/);
   assert.match(edge, /provider_not_configured/);
   assert.match(edge, /provider_auth_failed/);
