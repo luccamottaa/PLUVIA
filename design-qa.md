@@ -99,3 +99,11 @@ Evidência: `/tmp/pluvia-occlusion-final-chromium/clouds/` e `/tmp/pluvia-occlus
 - Sintaxe JavaScript, 356 casos `node:test` e 13 arquivos de assertions diretas passaram. Contratos de cache acompanham `pluvia-panel-63`, `sky.css?v=sky-11` e `continuous.css?v=layout-24`. Nenhuma dependência ou asset novo foi adicionado.
 
 Nenhuma pendência visual P0/P1/P2 identificada nas capturas revisadas. O gesto nativo em PWA instalado e o zoom por pinça ainda precisam de confirmação em iPhone físico; a automação verifica a política CSS e toques simulados. Os demais limites de medição descritos acima permanecem.
+
+## Ajuste solicitado — bloquear também pinça no PWA
+
+O usuário pediu remover todo zoom da página no app instalado. `modules/pwa-gestures.js` detecta o modo standalone padrão e o sinal Apple, aplica pan-x pan-y no html/body e cancela gesturestart/change do Safari fora do mapa. A aba do browser mantém pinch; os handlers Leaflet continuam disponíveis. Não há interceptação de touchstart/move/end, alteração da meta viewport ou novo timer. O módulo tem 1.122 bytes, carrega com defer e entra no precache `pluvia-panel-64`, junto de `continuous.css?v=layout-25`.
+
+Sintaxe JavaScript e suíte Node passaram: 361 casos node:test e 13 arquivos de assertions diretas, incluindo cinco casos novos para browser, standalone, sinal Apple, mapa e saída/retorno do modo instalado. QA geral passou em Chromium/WebKit, incluindo os sete viewports existentes e duas sessões adicionais por navegador que emulam os sinais de instalação. Foram verificadas a política CSS, a prevenção de gestos sintéticos na página, a exceção do mapa, a busca utilizável, inputs com pelo menos 16px, escala 1 e ausência de overflow/erros JavaScript.
+
+Não foi testado um PWA físico: os sinais de instalação e eventos de gesto são emulados. O teste nativo em iPhone continua pendente. Layout e efeitos meteorológicos não foram alterados.
