@@ -367,6 +367,9 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 .hourly-detail-readings > div { min-width:0; padding:16px 0; border-top:1px solid var(--dialog-line); }
 .hourly-detail-readings dt { color:var(--dialog-muted); font-size:.875rem; line-height:1.4; }
 .hourly-detail-readings dd { margin:6px 0 0; font-size:1.15rem; font-weight:800; overflow-wrap:anywhere; }
+@supports(grid-template-rows:subgrid) {
+  .hourly-detail-readings > div { display:grid; grid-row:span 2; grid-template-rows:subgrid; align-items:start; }
+}
 #hourlyDetailDialog .hourly-detail-note { margin:0 0 12px; font-size:.875rem; }
 #hourlyDetailSource { color:var(--dialog-muted); font-size:.8rem; line-height:1.5; }
 .hourly-detail-navigation { flex:none; display:flex; justify-content:space-between; gap:12px; padding:16px 24px; border-top:1px solid var(--dialog-line); }

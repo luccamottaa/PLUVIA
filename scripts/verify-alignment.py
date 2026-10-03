@@ -135,6 +135,10 @@ with sync_playwright() as p:
   # Values in each pair must stay aligned when their labels wrap on small screens.
   readings=boxes('.hourly-detail-readings > div dd')
   for i in range(0,len(readings)-1,2):assert abs(readings[i]['y']-readings[i+1]['y'])<=1,(width,readings[i:i+2])
+  # Exercise a longer label even when this machine's fallback font is narrow.
+  page.locator('.hourly-detail-readings > div dt').nth(6).evaluate("el=>el.textContent='Direção de origem do vento'")
+  readings=boxes('.hourly-detail-readings > div dd')
+  for i in range(0,len(readings)-1,2):assert abs(readings[i]['y']-readings[i+1]['y'])<=1,(width,readings[i:i+2])
   aligned('.hourly-detail-navigation button','centerY',2)
   if width in [320,390,1366]:screenshot(str(width)+'-hour-detail','#hourlyDetailDialog')
   close()
