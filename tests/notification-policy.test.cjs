@@ -1,5 +1,20 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const {selectCandidates,isRepeat}=require('../supabase/functions/_shared/notification-policy.js');
+const processor=fs.readFileSync('supabase/functions/push-process/index.ts','utf8');
+const worker=require('node:module').stripTypeScriptTypes(processor.replace(/^import .*$/gm,''));
+const quiet=vm.runInNewContext(worker.slice(0,worker.indexOf('Deno.serve'))+';inQuietHours',{Date,Intl,URL,URLSearchParams,Math,Number});
+test('silêncio cruza meia-noite, inclui início e exclui fim no fuso configurado',()=>{
+ const pref={quiet_start:'22:00:00',quiet_end:'07:00:00',timezone:'America/Manaus'};
+ for(const [stamp,expected] of [['2026-10-03T21:59-04:00',false],['2026-10-03T22:00-04:00',true],['2026-10-04T00:00-04:00',true],['2026-10-04T06:59-04:00',true],['2026-10-04T07:00-04:00',false]]) assert.equal(quiet(pref,3,new Date(stamp)),expected,stamp);
+ assert.equal(quiet(pref,4,new Date('2026-10-04T02:00-04:00')),false);
+ assert.equal(quiet({...pref,quiet_start:null,quiet_end:null},3,new Date('2026-10-04T02:00-04:00')),false);
+});
+test('silêncio diurno e DST usam horas municipais, não o fuso do dispositivo',()=>{
+ const pref={quiet_start:'12:00',quiet_end:'15:00',timezone:'America/Manaus'};
+ assert.equal(quiet(pref,2,new Date('2026-10-03T16:00Z')),true);assert.equal(quiet(pref,2,new Date('2026-10-03T19:00Z')),false);
+ const ny={quiet_start:'01:00',quiet_end:'02:00',timezone:'America/New_York'};
+ assert.equal(quiet(ny,3,new Date('2026-11-01T05:30Z')),true);assert.equal(quiet(ny,3,new Date('2026-11-01T06:30Z')),true);assert.equal(quiet(ny,3,new Date('2026-11-01T07:00Z')),false);
+});
 test('um sinal mais forte reúne avisos de chuva relacionados, preservando avisos oficiais',()=>{
  const events=selectCandidates([{type:'rain_approaching',severity:2},{type:'heavy_rain',severity:3},{type:'storm',severity:3},{type:'official_alert',severity:2},{type:'official_alert',severity:3},{type:'extreme_heat',severity:3}]);
  assert.equal(events.length,4);assert.equal(events.filter(e=>['storm','heavy_rain','rain_approaching'].includes(e.type)).length,1);assert.ok(events.some(e=>e.type==='storm'));

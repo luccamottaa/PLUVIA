@@ -317,7 +317,7 @@ function updateClock() {
     const day = globalThis.PLUVIA.time.dayKey(now.getTime(),activeCity);
     const air = weatherData.cachedAir({data:{air:saved.air},airAt:saved.airAt},now.getTime()).air;
     if (hour !== saved.hour || day !== saved.day || air !== saved.air || atmosphere?.phase && atmosphere.phase !== saved.phase) render(saved.forecast,air,saved.fromCache,saved.cacheAt,{weatherAt:saved.weatherAt,airAt:saved.airAt,freshAir:saved.freshAir});
-    else renderSun(saved.forecast.daily,now.getTime());
+    else {renderSun(saved.forecast.daily,now.getTime());if(globalThis.PLUVIA?.outdoorPlanner) renderOutdoorPlan(saved.forecast,saved.fromCache,saved.weatherAt,now.getTime());}
   }
 }
 
@@ -597,6 +597,12 @@ function solarArcPoint(progress) {
 }
 
 function renderSun(daily, at = Date.now()) {
+  const astronomy=globalThis.PLUVIA?.sky?.astronomyAt?.(at);
+  const astronomyFields={civilDawn:astronomy?.dawn,civilDusk:astronomy?.dusk,moonrise:astronomy?.moonRise,moonset:astronomy?.moonSet};
+  for(const [id,stamp] of Object.entries(astronomyFields)) {
+    const field=$(id);if(field) field.textContent=Number.isFinite(stamp) ? formatUpdateTime(stamp) : id.startsWith('moon') && astronomy?.moonAvailable ? 'Sem evento hoje' : 'Indisponível';
+  }
+  if($('astronomyDate')) $('astronomyDate').textContent='Dia '+new Intl.DateTimeFormat('pt-BR',{timeZone:activeCity.timezone,day:'numeric',month:'long'}).format(at)+' · horário de '+activeCity.name+' · estimativa astronômica';
   const today = globalThis.PLUVIA.time.dayKey(at,activeCity);
   const index = daily.time?.indexOf(today) ?? -1;
   const solar = globalThis.PLUVIA?.sky?.dayAt(at);
@@ -626,6 +632,16 @@ function renderSun(daily, at = Date.now()) {
   $("sunshineNote").textContent = Number.isFinite(sunshine) && Number.isFinite(daylight)
     ? `Sol previsto hoje: ${Math.floor(sunshineMinutes / 60)}h ${sunshineMinutes % 60}min · Luz do dia: ${Math.floor(daylightMinutes / 60)}h ${daylightMinutes % 60}min. A previsão de sol considera as nuvens.`
     : "Duração prevista de sol indisponível.";
+}
+
+function renderOutdoorPlan(data, fromCache, weatherAt, at = Date.now()) {
+  const planner=globalThis.PLUVIA?.outdoorPlanner;if(!planner || !$('outdoorPlan')) return;
+  const officialWarning=favoriteCityAlerts(activeCity,at).alerts.length>0;
+  const result=planner.build({hourly:data.hourly,city:activeCity,dayAt:stamp=>globalThis.PLUVIA?.sky?.dayAt(stamp),now:at,weatherAt,fromCache,officialWarning});
+  const copy=planner.copy(result,activeCity,at);
+  $('outdoorPlanTitle').textContent=copy.title;$('outdoorPlanText').textContent=copy.text;$('outdoorPlanNote').textContent=copy.note;
+  const button=$('outdoorPlanOpen');button.disabled=result.kind!=='window';button.hidden=button.disabled;
+  if(result.kind==='window') button.dataset.hourIndex=String(result.index);else delete button.dataset.hourIndex;
 }
 
 function renderVisibility(value, fromCache = false) {
@@ -821,6 +837,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   globalThis.PLUVIA?.hourlyDetail?.update?.({hourly:data.hourly,daily:day,start,city:activeCity,fromCache,cacheAt,isDayAt:time=>forecastIsDay(time,day)});
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
   renderForecast(day, current.temperature_2m); renderSun(day);
+  renderOutdoorPlan(data,fromCache,metadata.weatherAt || cacheAt || Date.now());
   displayedWeather = {forecast:data,air,fromCache,cacheAt,weatherAt:metadata.weatherAt || cacheAt || Date.now(),hour:start,phase:atmosphere?.phase,day:globalThis.PLUVIA.time.dayKey(Date.now(),activeCity),airAt:metadata.airAt,freshAir:metadata.freshAir === true};
   globalThis.dispatchEvent?.(new CustomEvent("pluvia:weather-updated",{detail:{cityId:activeCity.id}}));
 }
@@ -1018,7 +1035,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","attentionSignal","attentionTitle","attentionText","attentionIcon","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote"];
+const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","attentionSignal","attentionTitle","attentionText","attentionIcon","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","moonrise","moonset","astronomyDate","outdoorPlanTitle","outdoorPlanText","outdoorPlanNote"].filter(id=>$(id));
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;
@@ -1090,6 +1107,7 @@ function chooseCity(id, locatedCity = null) {
   const saved = cached();
   if (!saved) {
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
+    const plannerButton=$('outdoorPlanOpen');if(plannerButton) {plannerButton.disabled=true;plannerButton.hidden=true;delete plannerButton.dataset.hourIndex;}
     delete $("airQualityCard").dataset.aqiLevel;
     renderAirQuality(null);
     $("uvScale").hidden = true;
@@ -1252,4 +1270,5 @@ setInterval(() => { if (!document.hidden) refreshAll(); }, AUTO_REFRESH_MS);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) updateClock(); refreshIfStale(); });
 window.addEventListener("pageshow", () => { updateClock(); refreshIfStale(); });
 window.addEventListener("online", () => refreshAll());
+window.addEventListener('pluvia:alerts-updated',()=>{if(displayedWeather) renderOutdoorPlan(displayedWeather.forecast,displayedWeather.fromCache,displayedWeather.weatherAt);});
 document.addEventListener("visibilitychange", () => document.body.classList.toggle("page-hidden", document.hidden));

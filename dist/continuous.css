@@ -430,3 +430,24 @@ footer.shell .footer-details .footer-link { justify-self:center; min-height:44px
 #weatherView .weather-map-card { grid-template-columns:minmax(0,1fr); }
 #radarMapContent,#radarMapContent .weather-layer-chips { min-width:0; max-width:100%; }
 #radarMapContent .weather-player input { min-width:0; box-sizing:border-box; margin:0; }
+
+/* Compact planning and astronomy use the existing reading palette. */
+#weatherView .outdoor-plan { display:grid; gap:8px; margin-top:24px; padding-top:24px; border-top:1px solid var(--reading-line); min-width:0; }
+#weatherView .outdoor-plan strong { font-size:1.25rem; color:var(--reading-ink); }
+#weatherView .outdoor-plan :is(p,small) { margin:0; color:var(--reading-muted); line-height:1.6; }
+#weatherView .outdoor-plan button { justify-self:start; min-height:44px; padding:8px 0; border:0; background:none; color:var(--reading-link); font:inherit; font-weight:700; text-align:left; }
+#weatherView .astronomy-details { grid-column:1/-1; min-width:0; width:100%; padding-top:16px; border-top:1px solid var(--reading-line); color:var(--reading-muted); }
+#weatherView .astronomy-details summary { min-height:44px; padding:8px 0; cursor:pointer; color:var(--reading-ink); font-weight:700; }
+#weatherView .astronomy-details dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin:18px 0; }
+#weatherView .astronomy-details :is(p,small,dt) { font-size:.8125rem; line-height:1.6; }
+#weatherView .astronomy-details dd { margin:5px 0 0; font-size:1.1rem; color:var(--reading-ink); }
+#accountDialog .notification-timing { display:block; min-width:0; margin:18px 0; padding:18px 0; border:0; border-block:1px solid var(--dialog-line); }
+#accountDialog .notification-timing legend { color:var(--dialog-text); font-size:1rem; font-weight:800; }
+#accountDialog .notification-timing > label { margin:16px 0 8px; }
+#accountDialog form .notification-quiet-toggle { display:flex; align-items:center; gap:12px; min-height:48px; color:var(--dialog-text); cursor:pointer; }
+#accountDialog .notification-quiet-toggle input { flex:none; width:20px; height:20px; accent-color:#6ba4ff; }
+#accountDialog .notification-time-pair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+#accountDialog .notification-time-pair[hidden] { display:none; }
+#accountDialog .notification-timing label:not(.notification-quiet-toggle) { display:grid!important; grid-template-columns:minmax(0,1fr); gap:8px; }
+#accountDialog .notification-time-pair input { width:100%!important; min-width:0; }
+#accountDialog select:focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }

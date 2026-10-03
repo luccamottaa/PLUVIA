@@ -39,3 +39,7 @@ test('abertura antes de montar o DOM e falha da efeméride não quebram o céu',
   const state=skyView.create({moonView:moon}).apply(0,0);
   assert.equal(state.phase,'night');
 });
+test('percentual e brilho usam a fração iluminada devolvida pela efeméride compartilhada',()=>{
+ const result=moonView.create({getIllumination:()=>({phase:.25,fraction:.47})}).update(Date.parse('2026-10-03T12:00Z'));
+ assert.equal(result.fraction,.47);assert.equal(result.label,'Quarto crescente');
+});

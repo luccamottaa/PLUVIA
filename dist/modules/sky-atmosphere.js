@@ -40,28 +40,56 @@
   function create({document, sun = null, moon = null, moonView = null, now = () => Date.now()} = {}) {
     let city = null, rows = [], weather = 'unknown', providerPhase = 'unknown', code = null;
     let lastUpdate = null;
-    const calculatedDays = new Map();
+    const calculatedDays = new Map(), moonDays = new Map();
+    function calculatedDay(at) {
+      if(!Number.isFinite(at) || !city?.timezone || !Number.isFinite(city.lat) || !Number.isFinite(city.lon) || Math.abs(city.lat)>90 || Math.abs(city.lon)>180) return null;
+      try {
+        const date=localDate(at,city.timezone);
+        if(!calculatedDays.has(date)) {
+          const next=new Date(date+'T12:00:00Z');next.setUTCDate(next.getUTCDate()+1);
+          const start=cityTime(date+'T00:00:00',city),end=cityTime(next.toISOString().slice(0,10)+'T00:00:00',city);
+          if(!Number.isFinite(start) || !Number.isFinite(end) || end<=start) return null;
+          const result=sun?.getTimes(new Date(cityTime(date+'T12:00:00',city)),city.lat,city.lon) || {};
+          const stamp=value=>Number.isFinite(value?.getTime?.()) ? value.getTime() : null;
+          calculatedDays.set(date,{date,start,end,rise:stamp(result.sunrise),set:stamp(result.sunset),dawn:stamp(result.dawn),dusk:stamp(result.dusk)});
+          if(calculatedDays.size>3) calculatedDays.delete(calculatedDays.keys().next().value);
+        }
+        return calculatedDays.get(date);
+      } catch (_) {return null;}
+    }
     function dayAt(at) {
       // Forecast first; before it arrives or after an offline date change,
       // use the selected city's coordinates instead of yesterday's is_day.
       const forecast = rows.find(row => at >= row.start && at < row.end);
       if (forecast) return forecast;
-      if (!Number.isFinite(at) || !city?.timezone || !sun || !Number.isFinite(city.lat) || !Number.isFinite(city.lon)) return null;
-      // Cache a few adjacent local days so the night crosses midnight (and
-      // daylight-saving changes) using the actual next sunrise.
-      try {
-        const date = localDate(at,city.timezone);
-        if (!calculatedDays.has(date)) {
-          const next = new Date(date + 'T12:00:00Z');
-          next.setUTCDate(next.getUTCDate() + 1);
-          const result = sun.getTimes(new Date(cityTime(date + 'T12:00:00',city)),city.lat,city.lon);
-          const times = {rise:result.sunrise?.getTime(),set:result.sunset?.getTime(),
-            start:cityTime(date + 'T00:00:00',city),end:cityTime(next.toISOString().slice(0,10) + 'T00:00:00',city)};
-          calculatedDays.set(date,Object.values(times).every(Number.isFinite) && times.set > times.rise ? times : null);
-          if (calculatedDays.size > 3) calculatedDays.delete(calculatedDays.keys().next().value);
-        }
-        return calculatedDays.get(date);
-      } catch (_) { return null; }
+      const calculated=calculatedDay(at);
+      return calculated && Number.isFinite(calculated.rise) && Number.isFinite(calculated.set) && calculated.set>calculated.rise ?
+        {rise:calculated.rise,set:calculated.set,start:calculated.start,end:calculated.end} : null;
+    }
+    function astronomyAt(at = now()) {
+      const day=calculatedDay(at);
+      if(!day) return null;
+      if(!moonDays.has(day.date)) {
+        let rise=null,set=null,available=Boolean(moon?.getMoonTimes);
+        try {
+          // SunCalc scans UTC days. Assemble every UTC day intersecting the municipal
+          // calendar day, then filter events by local bounds (including 23/25-hour DST days).
+          if(available) for(let stamp=Math.floor(day.start/DAY_MS)*DAY_MS;stamp<day.end;stamp+=DAY_MS) {
+            const events=moon.getMoonTimes(new Date(stamp),city.lat,city.lon);
+            if(!events || !['rise','set'].some(key=>Number.isFinite(events[key]?.getTime?.())) && typeof events.alwaysUp!=='boolean' && typeof events.alwaysDown!=='boolean') available=false;
+            for(const key of ['rise','set']) {
+              const value=events?.[key]?.getTime?.();
+              if(Number.isFinite(value) && value>=day.start && value<day.end) {
+                if(key==='rise') rise=rise===null ? value : Math.min(rise,value);
+                else set=set===null ? value : Math.min(set,value);
+              }
+            }
+          }
+        } catch (_) {available=false;}
+        moonDays.set(day.date,{moonRise:available ? rise : null,moonSet:available ? set : null,moonAvailable:available});
+        if(moonDays.size>3) moonDays.delete(moonDays.keys().next().value);
+      }
+      return {...dayAt(at),date:day.date,dawn:day.dawn,dusk:day.dusk,...moonDays.get(day.date)};
     }
     function write(state, animate) {
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
@@ -128,6 +156,7 @@
       city = nextCity; code = nextCode; weather = weatherType(code);
       providerPhase = isDay === 1 ? 'day' : isDay === 0 ? 'night' : 'unknown';
       calculatedDays.clear();
+      moonDays.clear();
       rows = (Array.isArray(daily?.sunrise) ? daily.sunrise : []).map((rise,i) => {
         if (typeof rise !== 'string') return {};
         // Offsets can differ between local midnights across DST.
@@ -154,7 +183,7 @@
       } catch (_) { /* Storage may be blocked; the reference city still has a solar clock. */ }
       return apply(saved?.current?.weather_code,saved?.current?.is_day,saved?.daily,selected,at);
     }
-    return {apply,update,bootstrap,dayAt};
+    return {apply,update,bootstrap,dayAt,astronomyAt};
   }
   function observeMotion(document, Observer) {
     const scene = document?.querySelector?.('.sky-effects');

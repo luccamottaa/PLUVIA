@@ -25,11 +25,11 @@
   }
   function create({document, getIllumination} = {}) {
     function update(at = Date.now()) {
-      let phase;
-      try { phase = getIllumination?.(new Date(at))?.phase; } catch (_) {}
+      let phase,reading;
+      try {reading=getIllumination?.(new Date(at));phase=reading?.phase;} catch (_) {}
       const available = Number.isFinite(phase) && phase >= 0 && phase <= 1;
       const label = available ? NAMES[Math.round(phase * 8) % 8] : 'Fase indisponível';
-      const fraction = available ? (1 - Math.cos(phase * Math.PI * 2)) / 2 : 0;
+      const fraction = available ? Number.isFinite(reading?.fraction) && reading.fraction>=0 && reading.fraction<=1 ? reading.fraction : (1 - Math.cos(phase * Math.PI * 2)) / 2 : 0;
       document?.getElementById?.('moonIcon')?.setAttribute('d',available ? phasePath(phase) : '');
       document?.getElementById?.('moonDisc')?.setAttribute('visibility',available ? 'visible' : 'hidden');
       const text = document?.getElementById?.('moonPhase');

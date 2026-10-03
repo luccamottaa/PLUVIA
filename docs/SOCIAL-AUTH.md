@@ -2,11 +2,11 @@
 
 ## Estado verificado e arquitetura
 
-Em 01/10/2026, GET público /auth/v1/settings do projeto dszyyrcvwrpyiypwyvxe respondeu HTTP 200: Google false, Apple false, e-mail true. Integração do frontend pronta; não confundir botões implementados com provedores habilitados. Não há ferramenta de configuração Auth nem credenciais Google/Apple disponíveis nesta sessão.
+Em 03/10/2026, GET público /auth/v1/settings do projeto dszyyrcvwrpyiypwyvxe respondeu HTTP 200: Google false, Apple false, e-mail true. Integração do frontend pronta; não confundir botões implementados com provedores habilitados. Não há ferramenta de configuração Auth nem credenciais Google/Apple disponíveis nesta sessão.
 
 O app reutiliza Supabase Auth e o SDK local 2.116.0. Primeiro login social cria a conta automaticamente; seguintes acessam a mesma identidade conforme vinculação do Supabase. Não há cadastro paralelo, nova tabela ou senha local para conta social. Não vincular contas manualmente pelo texto do e-mail; Apple pode entregar e-mail privado relay.
 
-modules/social-auth.js concentra descoberta, allowlist Google/Apple, destino de retorno, validação do endpoint authorize e limpeza de callback. Descoberta usa cliente HTTP próprio, timeout 6s, deduplicação e freshness 5min. Falha/esquema inválido mantém opções ocultas e tenta de novo em nova abertura após 10s, sem polling. Não autentica por flags locais.
+modules/social-auth.js concentra descoberta, allowlist Google/Apple, destino de retorno, validação do endpoint authorize e limpeza de callback. Descoberta usa cliente HTTP próprio, timeout 6s, deduplicação e freshness 5min. Cada provider é confirmado independentemente por booleano true; um campo ausente/inválido não oculta o outro provider confirmado. Resposta parcial/falha revalida em nova abertura após 10s, sem polling. Não autentica por flags locais.
 
 account.js mantém cliente único, fluxo browser existente (implicit, documentado pelo Supabase para apps sem SSR), detectSessionInUrl e sincronização existente. Não foi alterado para PKCE global: isso mudaria o contrato de confirmação de e-mail existente. Não há segundo cliente, popup, SDK Google/Apple, coleta adicional de tokens ou execução manual do exchange. Supabase valida OAuth/state e autentica; o frontend só usa a sessão devolvida pelo SDK. Analytics não recebe tokens, URL, nome ou e-mail.
 
@@ -36,7 +36,7 @@ Não confundir URI Supabase callback (Google → Supabase) com auth_return (Supa
 
 Requer conta Apple Developer e configuração Sign in with Apple:
 - App ID principal com capacidade Sign in with Apple.
-- Services ID para Web ligado ao App ID; domínio pluviaweather.com.br.
+- Services ID para Web ligado ao App ID. Em Website URLs do fluxo OAuth Supabase, usar o domínio **dszyyrcvwrpyiypwyvxe.supabase.co**, onde o callback é hospedado. O domínio do site é configurado separadamente nos destinos de retorno do Supabase.
 - Return URL: https://dszyyrcvwrpyiypwyvxe.supabase.co/auth/v1/callback
 - Team ID, Key ID e chave .p8 no ambiente seguro do proprietário para gerar client secret JWT.
 - Services ID e secret entram no provedor Apple do Supabase; habilitar Apple após configuração.
@@ -45,7 +45,7 @@ O secret do fluxo web expira em até seis meses e precisa ser renovado antes do 
 
 ## Validação e limites
 
-Testes novos cobrem descoberta/timeout/freshness, provedores false/invalid, allowlist/destinos, cancelamento/limpeza do callback, botão social, erros, exclusão de concorrência, fallback e Apple sem nome/Google full_name. CI executa testes existentes, sintaxe e Deno. Ambiente local não disponível nesta sessão; resultados CI e QA remoto registrados no PR após execução.
+Testes cobrem descoberta/timeout/freshness, providers false/invalid/parciais, allowlist/destinos, cancelamento/limpeza do callback, botão social, erros, exclusão de concorrência, fallback e Apple sem nome/Google full_name. A etapa de outubro também dispõe de QA local Chromium/WebKit, com Auth interceptado. CI executa testes existentes, sintaxe e Deno.
 
 OAuth real ponta a ponta permanece pendente enquanto provedores estiverem desativados. Não alegar criação de conta real, consentimento, vinculação ou funcionamento em iPhone físico a partir de testes com mocks.
 

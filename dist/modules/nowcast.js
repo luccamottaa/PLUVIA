@@ -45,6 +45,14 @@
     const rain=weather.rain==='reported' ? 'Chuva'+(amount?' '+amount:'')+' reportada na estação' : weather.rain==='vicinity' ? 'Chuva reportada nas proximidades da estação' : 'O boletim não informa chuva na estação';
     return rain+(weather.thunderstorm==='reported' ? '; trovoada reportada' : weather.thunderstorm==='vicinity' ? '; trovoada nas proximidades' : '')+'.';
   }
+  function stationWind(station) {
+    const valid=(value,max)=>finite(value) && value>=0 && value<=max;
+    if(!valid(station?.windKmh,500)) return 'Vento observado indisponível.';
+    const speed=Math.round(station.windKmh);
+    const direction=valid(station.windFromDegrees,360) ? ['N','NE','L','SE','S','SO','O','NO'][Math.round(station.windFromDegrees/45)%8] : null;
+    const wind=station.windKmh===0 ? 'Vento calmo' : `Vento ${speed} km/h${direction ? ', vindo de '+direction : ' · direção variável ou indisponível'}`;
+    return wind+(valid(station.gustKmh,500) && station.gustKmh>=station.windKmh ? ` · rajadas ${Math.round(station.gustKmh)} km/h` : ' · rajadas não informadas')+'.';
+  }
   function createController({getJson,endpoint=ENDPOINT,clock=Date.now,allowMock=false,onChange=()=>{}}) {
     let regions=[],configuration=null,revision=0,currentKey=null,currentCity=null,data=null,error=null,pending=null,lastCheck=0,aborter=null;
     const cache=new Map();
@@ -136,7 +144,8 @@
         stamp.textContent=`${finite(station.temperatureC)?station.temperatureC+' °C · ':''}${time} · há ${age(station.observedAt)} min · METAR / NOAA`;
         detail.textContent=`${station.source} · ${station.stationId} · ${station.distanceKm} km da referência municipal · ${time}.`;
         $('nowcastSourceDetails').appendChild(detail);
-        $('nowcastObserved').append(paragraph,stamp);
+        const wind=document.createElement('p');wind.className='nowcast-station-wind';wind.textContent=stationWind(station);
+        $('nowcastObserved').append(paragraph,wind,stamp);
       }
       $('nowcastObserved').hidden=!$('nowcastObserved').childNodes.length;
       $('nowcastObserved').parentElement.hidden=$('nowcastObserved').hidden;
@@ -160,5 +169,5 @@
     controller.stationText=stationText;
     controller.refresh(city());return controller;
   }
-  return {createController,capabilities,validateResult,stationText,localOrigin,mount};
+  return {createController,capabilities,validateResult,stationText,stationWind,localOrigin,mount};
 });

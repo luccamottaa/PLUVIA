@@ -8,7 +8,7 @@
   if (!prompt || !toggle || !form) return;
 
   const boolFields = ["official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary"];
-  let config = null, busy = false, pendingEnable = false;
+  let config = null, busy = false, pendingEnable = false, configRevision = 0, configOwner = null;
   const preferencesModel=window.PLUVIA.notificationPreferences;
   try { pendingEnable = sessionStorage.getItem("pluvia-push-pending-enable") === "1"; } catch {}
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -85,8 +85,12 @@
   }
 
   async function invoke(name, body) {
+    const owner=currentUser()?.id;
+    if(!owner) throw Error('Entre na sua conta para configurar alertas.');
     const client = await window.pluviaAccount.getClient();
+    if(currentUser()?.id!==owner) throw Error('A conta mudou. Abra as notificações novamente.');
     const { data, error } = await client.functions.invoke(name, { body });
+    if(currentUser()?.id!==owner) throw Error('A conta mudou. Abra as notificações novamente.');
     if (!error) return data;
     let userMessage = "O serviço de notificações não respondeu agora.";
     try { const details = await error.context?.json?.(); if (details?.error) userMessage = details.error; } catch {}
@@ -107,9 +111,30 @@
     }
     for (const field of ["minimum_severity", "quiet_start", "quiet_end", "daily_summary_time"]) {
       const input = form.elements.namedItem(field);
-      if (input && preferences[field] != null) input.value = field === "minimum_severity" ? String(preferences[field]) : String(preferences[field]).slice(0, 5);
+      if (input) input.value = preferences[field] == null ? field==='quiet_start' ? '22:00' : field==='quiet_end' ? '07:00' : '' : field === "minimum_severity" ? String(preferences[field]) : String(preferences[field]).slice(0, 5);
     }
+    const quiet=form.elements.namedItem('quiet_enabled');
+    if(quiet) quiet.checked=Boolean(preferences.quiet_start && preferences.quiet_end && preferences.quiet_start!==preferences.quiet_end);
+    paintTimezones(preferences.timezone || currentLocation()?.timezone || 'America/Manaus');
+    paintQuietFields();
     el('notificationSummaryTimeField').hidden=!form.elements.namedItem('daily_summary')?.checked;
+  }
+
+  function paintTimezones(selected=form.elements.namedItem('timezone')?.value) {
+    const input=form.elements.namedItem('timezone');if(!input) return;
+    const zones=new Set([selected,config?.preferences?.timezone,currentLocation()?.timezone,...(config?.locations || []).map(item=>item.timezone)].filter(zone=>preferencesModel.defaults({timezone:zone}).timezone));
+    input.replaceChildren(...[...zones].map(zone=>{
+      const option=document.createElement('option');option.value=zone;
+      const name=zone.split('/').pop().replaceAll('_',' '),offset=new Intl.DateTimeFormat('pt-BR',{timeZone:zone,timeZoneName:'shortOffset'}).formatToParts(new Date()).find(part=>part.type==='timeZoneName')?.value;
+      option.textContent=name+(offset ? ' · '+offset : '');return option;
+    }));
+    input.value=selected || currentLocation()?.timezone || 'America/Manaus';
+  }
+
+  function paintQuietFields() {
+    const enabled=Boolean(form.elements.namedItem('quiet_enabled')?.checked);
+    const group=el('notificationQuietTimes');if(group) group.hidden=!enabled;
+    for(const field of ['quiet_start','quiet_end']) {const input=form.elements.namedItem(field);if(input) {input.required=enabled;input.disabled=!enabled;}}
   }
 
   function paintCityChoices() {
@@ -199,10 +224,12 @@
   async function loadConfig() {
     const user = currentUser();
     if (!user) return null;
+    const revision=++configRevision;
     el('notificationPreferencesSave').disabled = true;
     const loaded = await invoke("push-subscriptions", { action: "config" });
-    if (currentUser()?.id !== user.id) return null;
+    if (currentUser()?.id !== user.id || revision!==configRevision) return null;
     config = loaded;
+    configOwner=user.id;
     paintPreferences(config.preferences);
     paintDevices(config.devices);
     paintLocations(config.locations);
@@ -227,7 +254,7 @@
     const existing = config?.preferences;
     const preferences = {
       ...allAlertPreferences(existing),notifications_enabled:true,
-      timezone: location?.timezone || existing?.timezone || "America/Manaus"
+      timezone: existing?.timezone || location?.timezone || "America/Manaus"
     };
     await invoke("push-subscriptions", { action: "preferences", preferences, location });
   }
@@ -300,14 +327,15 @@
   form.addEventListener("submit", async event => {
     event.preventDefault(); if (busy || !currentUser()) return;
     busy = true; const button = el("notificationPreferencesSave"); button.disabled = true;
-    const preferences = preferencesModel.collect(form,config?.preferences);
-    const location = form.elements.namedItem("monitor_current_city")?.checked ? currentLocation() : null;
-    if (location) preferences.timezone = location.timezone;
+    const owner=currentUser().id,revision=configRevision;
     try {
+      const preferences = preferencesModel.collect(form,config?.preferences);
+      const location = form.elements.namedItem("monitor_current_city")?.checked ? currentLocation() : null;
       const ids=preferencesModel.selectedCities(el('notificationFavoriteChoices').querySelectorAll('input'));
       if(ids.length+(location ? 1 : 0)>30) throw Error('Escolha até 30 cidades por vez.');
       const locations=[];
       for(const id of ids) {const city=await ensureCityDetails(id);if(!city) throw Error('Não foi possível abrir uma das cidades. Tente novamente.');locations.push({cityId:city.id,cityName:city.name,uf:city.uf,latitude:city.lat,longitude:city.lon,timezone:city.timezone,source:'saved_city'});}
+      if(currentUser()?.id!==owner || revision!==configRevision) throw Error('A conta mudou. Abra as notificações novamente.');
       await invoke("push-subscriptions", { action: "preferences", preferences, location, locations });
       form.elements.namedItem('monitor_current_city').checked=false;
       await loadConfig();
@@ -316,9 +344,10 @@
       track("Push Preferences Saved");
     }
     catch (error) { message(error.message || "Não foi possível salvar as preferências."); }
-    finally { busy = false; button.disabled = false; }
+    finally { busy = false; button.disabled = !currentUser() || !config; }
   });
   form.elements.namedItem('daily_summary')?.addEventListener('change',()=>{el('notificationSummaryTimeField').hidden=!form.elements.namedItem('daily_summary').checked;});
+  form.elements.namedItem('quiet_enabled')?.addEventListener('change',paintQuietFields);
   devicesNode.addEventListener("click", async event => {
     const button = event.target.closest("[data-remove-subscription]"); if (!button || busy) return;
     busy = true; button.disabled = true;
@@ -335,9 +364,14 @@
   });
 
   window.addEventListener("pluvia:auth-changed", async event => {
-    if (!event.detail?.user) { config = null; setPendingEnable(false); paintPreferences(null); paintDevices([]); paintLocations([]); paintCityChoices(); el('notificationPreferencesSave').disabled=true; await paintState(); return; }
+    configRevision++;
+    const owner=event.detail?.user?.id || null;
+    if(owner!==configOwner || !owner) {
+      config=null;configOwner=owner;paintPreferences(null);paintDevices([]);paintLocations([]);paintCityChoices();el('notificationPreferencesSave').disabled=true;
+    }
+    if (!owner) { setPendingEnable(false); await paintState(); return; }
     try {
-      await loadConfig();
+      const loaded=await loadConfig();if(!loaded) return;
       const subscription = supported && Notification.permission === "granted" ? await browserSubscription() : null;
       if (subscription) await register(subscription);
       if (pendingEnable) {
@@ -351,7 +385,7 @@
     await paintState();
   });
   navigator.serviceWorker?.addEventListener("message", event => { if (event.data?.type === "push-subscription-changed" && currentUser()) loadConfig().then(async () => { const subscription = await browserSubscription(); if (subscription) await register(subscription); }).catch(() => {}); });
-  window.addEventListener("pluvia:city-changed", () => { const checkbox = form.elements.namedItem("monitor_current_city"); if (checkbox) checkbox.checked = false; paintCityChoices();paintState().catch(() => {}); });
+  window.addEventListener("pluvia:city-changed", () => { const checkbox = form.elements.namedItem("monitor_current_city"); if (checkbox) checkbox.checked = false; paintCityChoices();paintTimezones();paintState().catch(() => {}); });
   window.addEventListener('pluvia:favorites-changed',paintCityChoices);
   window.addEventListener('pluvia:favorites-loaded',paintCityChoices);
   window.pluviaPush = { beforeLogout, enable, disable };

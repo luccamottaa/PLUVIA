@@ -39,9 +39,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" href="./vendor/suncalc.js?v=sky-2" as="script" />
-    <link rel="preload" href="./modules/moon-view.js?v=moon-2" as="script" />
-    <link rel="preload" href="./modules/sky-atmosphere.js?v=sky-6" as="script" />
+    <link rel="preload" href="./vendor/suncalc.js?v=sky-3" as="script" />
+    <link rel="preload" href="./modules/moon-view.js?v=moon-3" as="script" />
+    <link rel="preload" href="./modules/sky-atmosphere.js?v=sky-7" as="script" />
     <link rel="preload" href="./sky.css?v=sky-7" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
@@ -79,14 +79,14 @@
 @media(prefers-reduced-motion:reduce) { .pluvia-intro *,.pluvia-intro::before { animation:none !important; } }
     </style>
     <script src="./modules/city-time.js?v=time-1"></script>
-    <script src="./vendor/suncalc.js?v=sky-2"></script>
-    <script src="./modules/moon-view.js?v=moon-2"></script>
-    <script src="./modules/sky-atmosphere.js?v=sky-6"></script>
+    <script src="./vendor/suncalc.js?v=sky-3"></script>
+    <script src="./modules/moon-view.js?v=moon-3"></script>
+    <script src="./modules/sky-atmosphere.js?v=sky-7"></script>
     <link rel="stylesheet" href="./sky.css?v=sky-7" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-31" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-22" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-23" />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
   </head>
@@ -232,7 +232,15 @@
                 <label><input name="daily_summary" type="checkbox"><span><strong>Resumo diário</strong><small>Uma previsão por cidade no horário escolhido.</small></span></label>
                 <label id="notificationSummaryTimeField" class="notification-summary-time" hidden>Horário do resumo<input name="daily_summary_time" type="time" value="07:00"></label>
               </fieldset>
-              <small>Previsões e avisos oficiais são identificados na mensagem. A mesma condição prevista não se repete por 6 horas; um aumento de severidade gera novo aviso. Os avisos podem chegar em qualquer horário.</small>
+              <small>Previsões e avisos oficiais são identificados na mensagem. A mesma condição prevista não se repete por 6 horas; um aumento de severidade gera novo aviso.</small>
+              <fieldset class="notification-timing"><legend>Intensidade e horários</legend>
+                <label>Nível mínimo dos avisos<select name="minimum_severity"><option value="1">Todos os níveis</option><option value="2">A partir de atenção</option><option value="3">A partir de perigo</option><option value="4">Somente severidade máxima</option></select></label>
+                <small>O filtro vale para os tipos escolhidos, inclusive INMET. O resumo diário segue sua própria opção.</small>
+                <label class="notification-quiet-toggle"><input name="quiet_enabled" type="checkbox"><span>Silenciar em um horário</span></label>
+                <div id="notificationQuietTimes" class="notification-time-pair" hidden><label>Início<input name="quiet_start" type="time" value="22:00" disabled></label><label>Fim<input name="quiet_end" type="time" value="07:00" disabled></label></div>
+                <label>Fuso do horário de silêncio<select name="timezone"><option value="America/Manaus">America/Manaus</option></select></label>
+                <small>Avisos de severidade máxima podem interromper o silêncio. O resumo diário usa o horário local de cada cidade; se cair no silêncio, não será enviado.</small>
+              </fieldset>
               <fieldset class="notification-city-choices"><legend>Adicionar cidades aos avisos</legend>
                 <label class="notification-location"><input name="monitor_current_city" type="checkbox"><span id="notificationCurrentCityLabel">Receber alertas para a cidade aberta</span></label>
                 <div id="notificationFavoriteChoices"></div>
@@ -324,6 +332,11 @@
         <button id="heroRainOpen" class="hero-rain-outlook" type="button" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" disabled>
           <span class="hero-rain-kicker">Quando pode chover?</span><strong id="heroRainTitle">Consultando a chuva…</strong><span id="heroRainText"></span><small id="heroRainStatus"></small><span class="hero-rain-link">Ver por hora <span aria-hidden="true">›</span></span>
         </button>
+        <aside id="outdoorPlan" class="outdoor-plan" aria-labelledby="outdoorPlanHeading">
+          <span id="outdoorPlanHeading" class="eyebrow">PARA PLANEJAR AO AR LIVRE</span>
+          <strong id="outdoorPlanTitle">Comparando os próximos horários…</strong><p id="outdoorPlanText"></p><small id="outdoorPlanNote">Previsão por modelos · horários da cidade</small>
+          <button id="outdoorPlanOpen" type="button" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" disabled>Ver essa faixa por hora <span aria-hidden="true">›</span></button>
+        </aside>
       </section>
       <section id="nowcastCard" class="nowcast-card panel section-block" aria-labelledby="nowcastTitle" hidden>
         <div class="nowcast-heading"><div><span class="eyebrow">PLUVIA NOWCAST · PILOTO</span><h2 id="nowcastTitle">Observações em Manaus</h2></div><span id="nowcastMock" class="nowcast-dev" hidden>DEV / MOCK DATA</span></div>
@@ -369,6 +382,7 @@
           </svg>
           <span>FASE DA LUA <strong id="moonPhase">Consultando…</strong><small id="moonIllumination">Iluminação indisponível</small></span>
         </div>
+        <details class="astronomy-details"><summary>Crepúsculo e horários da Lua</summary><p id="astronomyDate"></p><dl><div><dt>Amanhecer civil</dt><dd id="civilDawn">—</dd></div><div><dt>Fim do crepúsculo civil</dt><dd id="civilDusk">—</dd></div><div><dt>Nascer da Lua</dt><dd id="moonrise">—</dd></div><div><dt>Pôr da Lua</dt><dd id="moonset">—</dd></div></dl><small>Horários aproximados por coordenadas. Amanhecer e crepúsculo civil correspondem ao Sol a 6° abaixo do horizonte. Relevo e condições locais podem alterar a visibilidade dos astros.</small></details>
       </section>
       </div>
     </main>
@@ -416,19 +430,20 @@
     <script src="./capitals.js?v=core-47" defer></script>
     <script src="./modules/hourly-outlook.js?v=outlook-3" defer></script>
     <script src="./modules/hourly-detail.js?v=detail-3" defer></script>
-    <script src="./app.js?v=panel-36" defer></script>
+    <script src="./modules/outdoor-planner.js?v=planner-1" defer></script>
+    <script src="./app.js?v=panel-37" defer></script>
     <script src="./p0.js?v=panel-36" defer></script>
     <script src="./modules/risks.js?v=core-117" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
-    <script src="./modules/nowcast.js?v=nowcast-1" defer></script>
+    <script src="./modules/nowcast.js?v=nowcast-2" defer></script>
     <script src="./weather-map.js?v=map-3" defer></script>
     <script src="./modules/account-sync.js?v=sync-1" defer></script>
-    <script src="./modules/social-auth.js?v=oauth-1" defer></script>
+    <script src="./modules/social-auth.js?v=oauth-2" defer></script>
     <script src="./account.js?v=account-5" defer></script>
     <script src="./favorite-cities.js?v=favorites-6" defer></script>
     <script src="./modules/share-weather.js?v=share-2" defer></script>
     <script src="./saved-places.js?v=places-1" defer></script>
-    <script src="./modules/notification-preferences.js?v=preferences-1" defer></script>
-    <script src="./notifications.js?v=panel-24" defer></script>
+    <script src="./modules/notification-preferences.js?v=preferences-2" defer></script>
+    <script src="./notifications.js?v=panel-25" defer></script>
   </body>
 </html>

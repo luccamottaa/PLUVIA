@@ -85,6 +85,8 @@ with sync_playwright() as p:
  page.clock.set_fixed_time(fixed+datetime.timedelta(minutes=6));page.evaluate("dispatchEvent(new CustomEvent('pluvia:clock-updated'))")
  assert not page.locator('#nowcastInference').is_visible();assert 'expirou' in page.locator('#nowcastStatus').inner_text() or 'atualizar' in page.locator('#nowcastStatus').inner_text()
  page.clock.set_fixed_time(fixed);open_scenario('radar-down')
+ assert 'Vento 8 km/h, vindo de L' in page.locator('#nowcastObserved').inner_text()
+ assert 'rajadas não informadas' in page.locator('#nowcastObserved').inner_text()
  page.locator('#nowcastMap').click();page.wait_for_function("document.getElementById('weatherLayerName').textContent==='Estação' && document.getElementById('weatherFrameTime').textContent!=='Carregando…'",timeout=20000)
  assert 'NOAA Aviation Weather Center' in page.locator('#weatherSourceNote').inner_text()
  assert page.locator('#weatherPlay').is_disabled();assert page.locator('#weatherStationsLayer').get_attribute('aria-pressed')=='true'
