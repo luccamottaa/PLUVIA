@@ -1,46 +1,52 @@
-# Painel Noturno — verificação visual
+# Design QA — nuvens do Pluvia
 
-- Source visual truth: `/workspace/scratch/8e855cf86be8/generated_images/exec-bfb2d3fd-044a-418a-8f99-65336c739470.png` (853 × 1850 px, mock @2x).
-- Implementação: `http://terminal.local:4173/`, capturada e comparada lado a lado em `http://terminal.local:4173/design-review.html` (aba 5 do navegador cloud). A captura renderizada está nessa vista de comparação; a API do navegador não fornece um caminho de arquivo local.
-- Viewport de comparação: 426 CSS px de conteúdo, screenshot de implementação no iframe escuro (`color-scheme: dark`); mock exibido a 426 px, aproximadamente metade da resolução original. O iframe tem 441 px externos para compensar sua barra vertical de 15 px. `scrollWidth = clientWidth = 426`, sem corte horizontal.
-- Estado: Manaus, sábado à noite, sem diálogo. O mock tem dados ilustrativos de 20:11, 30° e parcialmente nublado; a implementação lê dados atuais (20:33, 28°, céu encoberto). Essas diferenças de conteúdo e de ícone são intencionais.
+Result: **passed**
 
-## Comparação
+Escopo: trocar a aparência das nuvens existentes, seguindo a direção visual do céu da referência Apple Weather enviada pelo usuário. A referência não solicita copiar os cards, a tipografia ou a navegação da Apple. Não há mudança de arquitetura meteorológica.
 
-- Tipografia: Nunito arredondada, título da cidade, temperatura, descrição e labels preservam a hierarquia do mock. A temperatura foi ampliada após a primeira captura.
-- Espaçamento: logo e busca separados, cidade/condição em área livre, cinco horas visíveis na largura de 426 px e métricas em faixa de três colunas. O scroll horizontal da faixa não aparece visualmente; permanece funcional em larguras menores.
-- Cores: céu azul-escuro gerado como asset, painéis azul translúcido, borda fria e texto claro. O modo claro continua off-white por preferência anterior do produto.
-- Imagem: asset atmosférico específico em WebP (863 × 1823 px, 28 KB); a condição é representada pelo ícone meteorológico real do PLUVIA, sem fixar a lua do mock quando o céu muda.
-- Conteúdo: a linha de status e o link da previsão são informações reais do produto; sensação, máximas e mínimas respondem à cidade escolhida.
+## Referências e evidência
 
-## Histórico de correções
+- Referência do usuário: screenshot Apple Weather/Manaus, 590 × 1280, disponível na conversa; céu azul acinzentado, nuvens suaves com textura e profundidade.
+- Fontes visuais desta implementação: texturas originais geradas, `dist/assets/sky-cloud-veil.webp` e `dist/assets/sky-cloud-volume.webp`, 1120 × 560, com alpha. Não são assets da Apple nem observações do céu de Manaus.
+- Capturas do aplicativo real: preview estático do repositório, Chromium e WebKit, escala CSS 1, com fixtures e relógio municipal fixo. Fontes externas são bloqueadas pelo QA; os fallbacks declarados continuam disponíveis.
+- Comparação conjunta inspecionada: `/tmp/pluvia-clouds-source-final.png`, com as duas texturas compostas sobre a cor do céu à esquerda e o aplicativo a 390 × 844 à direita. A composição das referências serve apenas à revisão, não é um asset publicado.
+- Capturas finais: `/tmp/pluvia-clouds-final-chromium/clouds/` e `/tmp/pluvia-clouds-final-webkit/clouds/`. O workflow de interface conserva suas próprias capturas como artifacts por sete dias.
 
-1. Primeira comparação: busca mostrava só a lupa, cinco horas estouravam a largura e a faixa térmica ficava em cards separados. Corrigidos o rótulo da cidade, grade de cinco colunas, scrollbar visual e faixa unificada.
-2. Segunda comparação: título/temperatura menores que o mock. A temperatura e a descrição foram ampliadas. Nova captura em 426 px confirmou composição e ausência de overflow.
-3. Troca Manaus → Recife → Manaus verificada; o resumo por hora acompanha os novos dados. O estado transitório que mostrava dados horários da cidade anterior foi limpo.
+As capturas mostram dados meteorológicos fictícios para verificação visual. Não representam condições atuais ou detecções observacionais.
 
-## Interações e regressões
+## Revisão
 
-- Busca, seleção de Recife e Manaus, atualização da previsão e atalho para a previsão detalhada testados no navegador.
-- Console da página sem erro da aplicação; erros observados vieram da extensão do navegador cloud.
-- `node --test tests/*.test.cjs`: 86 testes aprovados, zero falhas.
-- Captura renderizada em navegador e comparação lado a lado na aba 5. Também conferidas duas capturas em `http://terminal.local:4173/qa-mobile.html` (aba 6): 320 CSS px escuro e 390 CSS px claro. Em ambas, `scrollWidth = clientWidth`; no claro o fundo computado é `rgb(246, 243, 237)`.
-- Console: apenas falha de metadados da extensão do navegador cloud, sem erro da aplicação. A versão integrada à base atual passou novamente em 86 testes.
+| Área | Resultado |
+| --- | --- |
+| Nuvens | Duas texturas diferentes, detalhe fotográfico, volume suave e bordas transparentes. Sem a repetição do recorte antigo. |
+| Movimento | Transformações pequenas, velocidades diferentes e reversão suave. Atualizar a condição preserva os objetos de animação existentes. |
+| Cores e leitura | Céu nublado azul acinzentado, nuvens escuras à noite, efeitos próprios de chuva e tempestade preservados. Atenuação do crepúsculo noturno evita trechos excessivamente claros atrás da leitura branca. Revisão visual, sem alegação de contraste numérico medido. |
+| Tipografia, layout e copy | Declarações e estrutura existentes preservadas. Cidade, temperatura, condição, conta, pesquisa e compartilhamento continuam legíveis e visíveis. |
+| Assets e limites | WebP com alpha, 121.206 bytes no total; superfícies limitadas à largura da viewport mais 128px e altura até 640px. Sem tile, canvas ou blur animado. |
+| Responsividade | Sem overflow horizontal nos cinco tamanhos verificados, incluindo celular pequeno, paisagem e desktop largo. |
+| Acessibilidade | Reduced-motion mantém nuvens estáticas e remove transições; informações meteorológicas permanecem disponíveis. |
 
-**Findings**
+## Iterações corrigidas
 
-- Nenhum P0/P1/P2 visual remanescente observado na comparação de 426 px. O conteúdo meteorológico difere por ser dinâmico.
+1. **P1 — emenda de repetição:** a primeira integração das novas texturas com `repeat-x` produzia uma borda vertical perceptível no celular. A versão final usa `no-repeat`, `cover` e movimento limitado dentro da margem lateral.
+2. **P2 — leitura no pôr do sol:** a luz clara do crepúsculo atrás do texto branco reduzia a legibilidade. A camada existente recebe atenuação estática somente no período noturno da home, mantendo os horários e o cálculo astronômico compartilhado.
+3. **Sincronização do QA:** esperar a temperatura receber um valor não garantia que seu contêiner já estivesse visível. O teste agora aguarda a visibilidade da leitura, como o QA geral existente, antes de verificar e capturar a tela.
 
-**Open Questions**
+Após essas correções, nenhuma pendência visual P0, P1 ou P2 foi identificada nas capturas revisadas.
 
-- A verificação em aparelho físico continua útil para avaliar o reflexo ao toque e as áreas seguras específicas do iPhone; não foi possível reproduzir o hardware neste navegador.
+## Verificação automatizada
 
-**Implementation Checklist**
+`scripts/verify-clouds.py` passou em Chromium e WebKit:
 
-- Checagem visual e funcional concluída; publicar a versão integrada e confirmar a página no domínio.
+- Oito estados: céu limpo, parcialmente nublado, nublado, chuva, tempestade, nublado à noite, nascer do sol e pôr do sol.
+- Cinco viewports: 320 × 740, 390 × 844, 844 × 390, 1366 × 768 e 2560 × 1080; 40 capturas por navegador.
+- Decode dos dois assets, duas camadas limitadas, ausência de overflow, visibilidade dos controles principais e reduced-motion.
+- Objetos de animação preservados ao mudar a condição; pausa fora da tela e no céu limpo; sem erros JavaScript capturados.
 
-**Follow-up Polish**
+Os 358 testes Node passaram, incluindo os contratos de cache e o orçamento dos assets. O workflow também executa os testes gerais de layout, conta, estados visuais, Nowcast e planejamento, além de sintaxe e tipos das funções.
 
-- P3: reavaliar a linha de status acima do horário se o topo parecer carregado no iPhone.
+## Diferenças intencionais e limites
 
-final result: passed
+O Pluvia mantém sua identidade, os dados, os cards e a navegação. A iluminação segue o seu relógio municipal existente; as nuvens são uma representação decorativa da condição, não uma leitura espacial da nebulosidade. A referência Apple orienta textura, profundidade e suavidade.
+
+WebKit automatizado não substitui um teste no iPhone físico. FPS, consumo de bateria e contraste numérico não foram medidos. Não há lint ou build frontend configurados; `dist/` contém os arquivos publicados.
