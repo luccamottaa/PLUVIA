@@ -33,8 +33,16 @@ test('same-city refresh keeps valid observations, but expiry immediately suppres
  let now=NOW,failed=false;const client=createController({clock:()=>now,getJson:async url=>{
    if(!new URL(url).search)return manifest;if(failed)throw Object.assign(new Error(),{code:'timeout'});return result();}});
  await client.refresh(city);failed=true;now+=M;await client.refresh(city,{force:true});assert.ok(client.get().inference.arrival);
- now+=5*M;client.tick();assert.equal(client.get().stale,true);assert.equal(client.get().inference,null);assert.equal(client.get().stations.length,1);
+ now+=5*M;client.tick();assert.equal(client.get().stale,true);assert.equal(client.get().inference,null);assert.equal(client.get().stations.length,1);assert.equal(client.get().confidence.level,'LOW');
  now+=90*M;assert.equal(client.get().stations.length,0);
+});
+test('arrival counts down from evaluation time without modifying cached evidence',async()=>{
+ let now=NOW;const original=result(),client=createController({clock:()=>now,getJson:async url=>!new URL(url).search?manifest:original});
+ await client.refresh(city);const saved={...original.inference.arrival};now+=4*M;
+ const remaining=client.get().inference.arrival;
+ assert.ok(remaining.earliestMinutes<saved.earliestMinutes);assert.ok(remaining.latestMinutes<=saved.latestMinutes);
+ assert.equal(remaining.earliestMinutes%5,0);assert.equal(remaining.latestMinutes%5,0);
+ assert.deepEqual(original.inference.arrival,saved);
 });
 test('production rejects simulated results even if a server incorrectly emits them',()=>{
  assert.throws(()=>validateResult(result(NOW,true),{region,point,now:NOW}),/invalid_response/);

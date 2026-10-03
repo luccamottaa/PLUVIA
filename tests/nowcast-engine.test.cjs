@@ -81,6 +81,14 @@ test('age reduces confidence and ETA measures from now, not the last frame',()=>
   assert.ok(older.inference.arrival.latestMinutes<=fresh.inference.arrival.latestMinutes);
   const late=evaluate(d,{now:NOW+10*M});assert.equal(late.confidence.level,'LOW');assert.equal(late.inference.arrival,null);
 });
+test('validity expires at age-based confidence boundaries',()=>{
+ const d=fixture('approaching',NOW,{mock:false}),older=evaluate(d,{now:NOW+6*M});
+ assert.equal(older.confidence.level,'MEDIUM');assert.equal(older.validUntil,d.radar.frames.at(-1).observedAt+10*M);
+ const dry=run('dry');assert.equal(dry.validUntil,NOW+3*M);
+ d.radar.quality.calibrated=true;d.radar.frames.unshift(frame(NOW,32,52));
+ const high=evaluate(d,{now:d.radar.frames.at(-1).observedAt+1000});
+ assert.equal(high.confidence.level,'HIGH');assert.equal(high.validUntil,d.radar.frames.at(-1).observedAt+.25*M);
+});
 test('forecast probability never participates in observation or confidence',()=>{
   const a=run('radar-down');const b=run('radar-down',d=>d.forecast={type:'forecast',kind:'model',status:'ready',rainProbability:100});
   assert.equal(a.status,b.status);assert.deepEqual(a.observation,b.observation);assert.deepEqual(a.confidence,b.confidence);

@@ -152,6 +152,7 @@ export function evaluate({location,region,radar,stations,satellite,lightning,for
     result.status='NO_SIGNIFICANT_RAIN';result.message='Nenhuma área significativa de chuva foi detectada na cobertura analisada no horário do radar.';
     result.observation={kind:'observation',source:radar.source,observedAt:last.observedAt,significantRain:false};
     result.confidence={level:ageMinutes<=5?'MEDIUM':'LOW',score:ageMinutes<=5?55:30,calibrated:false,reasons:['no_future_dry_guarantee']};
+    if(result.confidence.level==='MEDIUM') result.validUntil=Math.min(result.validUntil,last.observedAt+5*MINUTE);
     return result;
   }
   // Prefer an intersecting approach; nearest alone can overlook a more distant incoming cell.
@@ -178,6 +179,9 @@ export function evaluate({location,region,radar,stations,satellite,lightning,for
   const calibrated=radar.quality?.calibrated===true;
   const level=disagreement || ageMinutes>10 || cell.pixelRadius>3 || score<55 ? 'LOW' : calibrated && score>=85?'HIGH':'MEDIUM';
   result.confidence={level,score,calibrated,reasons:[...(!calibrated?['regional_validation_pending']:[]),...(disagreement?['sources_disagree']:[])]};
+  // End validity at the next age-based confidence boundary, not after it.
+  // Current HIGH score (max 85) becomes MEDIUM once rounded age penalty reaches 1.
+  if(level!=='LOW') result.validUntil=Math.min(result.validUntil,last.observedAt+(level==='HIGH'?.25:10)*MINUTE);
   const bearing=track.stationary?null:(Math.atan2(track.vector.x,track.vector.y)*180/Math.PI+360)%360;
   result.inference={kind:'inference',algorithm:'linear-advection-v1',trend:track.trend,
     speedKmh:Math.round(track.speedKmh),bearingDegrees:bearing,

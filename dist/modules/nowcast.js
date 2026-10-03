@@ -51,8 +51,15 @@
     function snapshot() {
       if(!data) return null;
       const now=clock(),stale=now>=data.validUntil;
+      let inference=stale?null:data.inference;
+      if(inference?.arrival) {
+        const elapsed=Math.max(0,Math.floor((now-data.evaluatedAt)/MINUTE)),arrival=inference.arrival;
+        const latestMinutes=Math.max(0,Math.ceil((arrival.latestMinutes-elapsed)/5)*5);
+        inference={...inference,arrival:latestMinutes>0?{
+          earliestMinutes:Math.max(0,Math.floor((arrival.earliestMinutes-elapsed)/5)*5),latestMinutes}:null};
+      }
       return {...data,stale,stations:data.stations.filter(s=>now<s.validUntil && now-s.observedAt<=90*MINUTE),
-        inference:stale?null:data.inference};
+        confidence:stale?{...data.confidence,level:'LOW',score:0,reasons:['expired_analysis']}:data.confidence,inference};
     }
     function emit(){onChange({data:snapshot(),city:currentCity,error,loading:!!pending,regions});}
     function invalidate(city) {
