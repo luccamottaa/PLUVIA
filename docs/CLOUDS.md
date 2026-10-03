@@ -27,12 +27,12 @@ Medidas dos arquivos desta implementação:
 
 As novas texturas somam aproximadamente 53% menos bytes que a imagem antiga. Isso descreve os assets, não uma medição de FPS, bateria ou velocidade total do aplicativo. O teste de cache limita a soma a 160KiB.
 
-O SW `pluvia-panel-60` guarda ambas e `sky.css?v=sky-8`. O antigo `sky-cloud-bank.webp` continua servido por compatibilidade com shells antigos, mas sai do precache atual; só deve ser removido numa limpeza que considere instalações legadas.
+O SW atual `pluvia-panel-61` guarda ambas e `sky.css?v=sky-9`. O antigo `sky-cloud-bank.webp` continua servido por compatibilidade com shells antigos, mas sai do precache atual; só deve ser removido numa limpeza que considere instalações legadas. A evolução posterior de chuva e raios está em [RAIN-AND-LIGHTNING.md](RAIN-AND-LIGHTNING.md).
 
 ## Verificação
 
 - `node --test --test-isolation=none tests/*.test.cjs`: contratos meteorológicos, astronomia, cache e regressões existentes.
-- `python scripts/verify-clouds.py`: oito condições em cinco viewports (320 × 740, 390 × 844, 844 × 390, 1366 × 768 e 2560 × 1080), decode das imagens, duas superfícies limitadas, leitura principal, ausência de overflow, animações preservadas, pausa fora da tela/tempo limpo e reduced-motion.
+- `python scripts/verify-clouds.py`: onze condições em cinco viewports (320 × 740, 390 × 844, 844 × 390, 1366 × 768 e 2560 × 1080), decode das imagens, duas superfícies limitadas, leitura principal, ausência de overflow, animações preservadas, pausa fora da tela/tempo limpo e reduced-motion. Também amostra chuva e raios.
 - `PLUVIA_BROWSER=webkit python scripts/verify-clouds.py`: mesma verificação em WebKit instalado.
 - `python scripts/verify-visual.py`: estados gerais e diálogos; integra-se ao workflow de interface junto do novo QA.
 

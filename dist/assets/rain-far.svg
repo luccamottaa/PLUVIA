@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+  <defs>
+    <linearGradient id="fine" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#d9ecf8" stop-opacity="0"/>
+      <stop offset=".8" stop-color="#e3f1fb" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#e3f1fb" stop-opacity=".12"/>
+    </linearGradient>
+    <path id="a" d="M3 0 .5 16" stroke-width=".6"/>
+    <path id="b" d="M4 0 .5 24" stroke-width=".45"/>
+  </defs>
+  <g fill="none" stroke="url(#fine)" stroke-linecap="round">
+    <use href="#a" x="43" y="14"/><use href="#b" x="287" y="33" opacity=".65"/>
+    <use href="#a" x="159" y="59" opacity=".7"/><use href="#a" x="415" y="72"/>
+    <use href="#b" x="88" y="101"/><use href="#a" x="348" y="116" opacity=".5"/>
+    <use href="#a" x="230" y="145" opacity=".6"/><use href="#b" x="14" y="162"/>
+    <use href="#a" x="461" y="181" opacity=".7"/><use href="#b" x="136" y="204" opacity=".55"/>
+    <use href="#a" x="309" y="218"/><use href="#a" x="65" y="239" opacity=".5"/>
+    <use href="#b" x="387" y="258"/><use href="#a" x="190" y="283" opacity=".65"/>
+    <use href="#a" x="25" y="311"/><use href="#b" x="278" y="327" opacity=".7"/>
+    <use href="#a" x="441" y="346" opacity=".6"/><use href="#a" x="109" y="368"/>
+    <use href="#b" x="352" y="382" opacity=".6"/><use href="#a" x="217" y="402"/>
+    <use href="#a" x="55" y="423" opacity=".7"/><use href="#b" x="403" y="440" opacity=".6"/>
+    <use href="#a" x="162" y="459"/><use href="#a" x="299" y="452" opacity=".5"/>
+  </g>
+</svg>

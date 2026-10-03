@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="270" height="400" viewBox="0 0 270 400">
+  <defs>
+    <g id="fork" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m104 13 15 20-6 14 21 17-3 13 18 17-8 16 19 21-3 15 19 23-6 16 15 22-7 12 20 22-5 16 13 25-9 15 16 20-4 17 10 21-8 15 16 26"/>
+      <path d="m134 64 24-5 14 16 20 4 4 18 19 14m-74-1-26 8-8 18-22 10-1 15-17 13m90-28 22-8 21 12 4 17 20 13m-65 15-25 15-3 21-15 9 3 20m63-7 23-2 14 15 22 8-1 16m-54 19-21 7-3 16-15 13" stroke-width=".5"/>
+      <path d="m192 79 17-4 11 10m-113 51-18-5-13 12m-12 32-16 6-3 13m140 20-15-3-8 12m48 51 14-2 12 13" stroke-width=".3"/>
+    </g>
+  </defs>
+  <use href="#fork" stroke="#88b8ed" stroke-width="12" opacity=".025"/>
+  <use href="#fork" stroke="#9ecafa" stroke-width="5" opacity=".1"/>
+  <use href="#fork" stroke="#cde5ff" stroke-width="2.5" opacity=".35"/>
+  <use href="#fork" stroke="#eef8ff" stroke-width=".9"/>
+</svg>

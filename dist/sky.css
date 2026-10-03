@@ -3,11 +3,13 @@
   --sky-base:#07182f; --sky-color:linear-gradient(165deg,#142e54,#07182f 85%);
   --cloud-opacity:0; --cloud-filter:brightness(.48) saturate(.65);
   --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; --sun-opacity:1;
+  --rain-opacity:0; --rain-back-opacity:0; --lightning-opacity:.52;
   --twilight-color:radial-gradient(ellipse at 78% 35%,#ffe8ad99,transparent 48%),linear-gradient(180deg,#6577b6,#be99b7 24%,#f1bb99 48%,#e8c89e 100%);
 }
 :root[data-phase="day"] {
   --sky-base:#a7d7ec; --sky-color:linear-gradient(165deg,#57b0e2,#bce7f5 70%,#a7d7ec);
   --cloud-filter:none; --intro-ink:#143654; --intro-muted:#2e5575;
+  --lightning-opacity:.38;
 }
 :root[data-phase="night"] { --sky-base:#07182f; --sky-color:radial-gradient(ellipse at 80% 8%,#29476d66,transparent 42%),linear-gradient(165deg,#102d54,#07182f 85%); }
 :root[data-weather="sun"][data-phase="day"] { --sky-color:radial-gradient(ellipse at 84% 10%,#ffebad66,transparent 42%),linear-gradient(165deg,#59b6e9,#bce7f5 70%,#a7d7ec); }
@@ -75,24 +77,35 @@ html,body { background:var(--sky-base); }
 :root:is([data-weather="sun"],[data-weather="unknown"]) .sky-clouds { animation-play-state:paused; }
 .intro-sky .sky-clouds { top:-30px; }
 .intro-sky .sky-clouds-front { top:36%; }
-.sky-rain { display:none; position:absolute; z-index:3; inset:-420px 0 0; background:url("./assets/rain-drops.svg") 17px 0 / 270px 420px repeat; opacity:var(--rain-opacity,.6); animation:sky-rain-fall var(--rain-speed,1.6s) linear infinite; }
-.sky-rain-back { z-index:1; background-size:390px 420px; background-position:80px 0; opacity:calc(var(--rain-opacity,.6) * .5); animation-duration:2.3s; animation-delay:-1s; }
-:root:is([data-weather="rain"],[data-weather="storm"]) .sky-rain { display:block; }
-/* A slow, irregular flash belongs only to the thunderstorm weather codes. */
-.sky-lightning { display:none; position:absolute; inset:0; z-index:4; opacity:0; background:radial-gradient(ellipse at 76% 18%,#d8e8ff65,transparent 60%); animation:storm-flash 14s linear infinite; }
-.sky-lightning::after { content:""; position:absolute; top:9%; right:13%; width:90px; height:230px; background:#e2edff; clip-path:polygon(62% 0,27% 39%,50% 39%,13% 100%,84% 31%,59% 31%,89% 0); filter:drop-shadow(0 0 10px #afceff); }
+/* Independent fine/distant and longer/near streaks. A whole 480px tile moves
+   vertically, so looping has no seam; intensity never comes from probability. */
+.sky-rain { display:block; position:absolute; z-index:4; inset:-480px 0 0; background:url("./assets/rain-near.svg") 17px 0 / var(--rain-width,380px) 480px repeat; opacity:var(--rain-opacity); animation:sky-rain-fall var(--rain-speed,2.2s) linear infinite; animation-delay:-.7s; transition:opacity 2s ease; }
+.sky-rain-back { z-index:3; background-image:url("./assets/rain-far.svg"); background-size:var(--rain-back-width,640px) 480px; background-position:83px 37px; opacity:var(--rain-back-opacity); animation-duration:var(--rain-back-speed,4.3s); animation-delay:-2.1s; }
+:root:not([data-weather="rain"]):not([data-weather="storm"]) .sky-rain { opacity:0; animation-play-state:paused; }
+/* Branched filaments and local cloud illumination, with sparse single pulses.
+   This is storm decoration, independent of real lightning detections on the map. */
+.sky-lightning { display:none; position:absolute; inset:0; z-index:3; }
+.sky-lightning::before,.sky-lightning::after { content:""; position:absolute; top:-30px; width:clamp(280px,54vw,720px); height:clamp(340px,48vw,540px); opacity:0; background-repeat:no-repeat; animation:storm-flash-near 23s linear infinite; animation-delay:-2s; }
+.sky-lightning::before { right:-12%; background-image:url("./assets/lightning-near.svg"),radial-gradient(ellipse at 56% 22%,#dceaff75,transparent 62%); background-position:60% 30px,center; background-size:auto 82%,100% 100%; }
+.sky-lightning::after { left:-14%; top:8%; background-image:url("./assets/lightning-far.svg"),radial-gradient(ellipse at 46% 24%,#c5ddff55,transparent 58%); background-position:42% 20px,center; background-size:auto 68%,100% 100%; animation-name:storm-flash-far; animation-duration:37s; animation-delay:-14s; }
 :root[data-weather="storm"] .sky-lightning { display:block; }
 .sky-effects { -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); }
 @keyframes clouds-back { from { transform:translate3d(-32px,-4px,0); } to { transform:translate3d(32px,4px,0); } }
 @keyframes clouds-front { from { transform:translate3d(28px,6px,0); } to { transform:translate3d(-28px,-6px,0); } }
-@keyframes sky-rain-fall { to { transform:translateY(420px); } }
-@keyframes storm-flash { 0%,8%,11%,14%,100% { opacity:0; } 9% { opacity:.65; } 10% { opacity:.1; } 12% { opacity:.35; } 13% { opacity:.08; } }
+@keyframes sky-rain-fall { to { transform:translate3d(0,480px,0); } }
+@keyframes storm-flash-near { 0%,29.5%,34%,100% { opacity:0; } 30% { opacity:var(--lightning-opacity); } 30.8% { opacity:calc(var(--lightning-opacity) * .55); } 32% { opacity:calc(var(--lightning-opacity) * .1); } }
+@keyframes storm-flash-far { 0%,66.5%,69.5%,100% { opacity:0; } 67% { opacity:calc(var(--lightning-opacity) * .65); } 67.8% { opacity:calc(var(--lightning-opacity) * .24); } }
 body.page-hidden :is(.sky-effects,.intro-sky) *,
+body.page-hidden :is(.sky-effects,.intro-sky) *::before,
+body.page-hidden :is(.sky-effects,.intro-sky) *::after,
 :is(.sky-effects,.intro-sky)[data-motion="paused"] *,
-:is(.sky-effects,.intro-sky)[data-motion="paused"] *::before { animation-play-state:paused !important; }
+:is(.sky-effects,.intro-sky)[data-motion="paused"] *::before,
+:is(.sky-effects,.intro-sky)[data-motion="paused"] *::after { animation-play-state:paused !important; }
 @media(max-width:720px) { .sky-effects .sky-sun { width:84px; } .sky-effects .sky-moon { width:46px; } }
 @media(prefers-reduced-motion:reduce) {
-  :is(.sky-effects,.intro-sky) * { animation:none !important; transition:none !important; }
+  :is(.sky-effects,.intro-sky) *,
+  :is(.sky-effects,.intro-sky) *::before,
+  :is(.sky-effects,.intro-sky) *::after { animation:none !important; transition:none !important; }
   .sky-clouds { transform:translate3d(-10px,0,0); }
   .sky-clouds-front { transform:translate3d(12px,0,0); }
   .sky-lightning { display:none !important; }
