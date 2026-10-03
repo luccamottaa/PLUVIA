@@ -91,7 +91,7 @@ Estrelas usam uma `.sky-stars` por cena existente, atrás das nuvens/Lua. Campo 
 
 Preserve safe areas, `svh`/`dvh`, viewport dinâmico e integração `visualViewport` dos diálogos. Teste teclado, orientação horizontal, toque e áreas pequenas, além de Android/desktop. Não usar hacks por modelo de iPhone. Preserve `prefers-reduced-motion`, foco, labels e controles nativos. O status de dados antigos deve ser visível, mesmo que o status normal permaneça discreto.
 
-`continuous.css` usa touch-action:manipulation no body para remover zoom acidental por toque duplo no browser/PWA. Pan e pinch continuam permitidos; o Leaflet conserva seus handlers. Não substituir por user-scalable=no/maximum-scale=1 ou preventDefault global em touchend/dblclick: isso bloqueia acessibilidade e pode quebrar mapa, rolagem e inputs. `verify-browser.py` confere a política e toques simulados; isso não substitui o gesto em um PWA instalado no iPhone físico.
+Por solicitação explícita do usuário, o PWA instalado bloqueia zoom da página, inclusive por pinça. `modules/pwa-gestures.js` detecta display-mode:standalone/navigator.standalone, acompanha mudança de modo e aplica data-pwa-no-zoom. `continuous.css` usa pan-x pan-y nesse modo; o browser conserva manipulation e pinch. Gesturestart/change do Safari são cancelados somente no modo instalado e fora de #weatherMap; Leaflet mantém zoom próprio. Não cancelar touchstart/move/end ou dblclick globalmente, nem bloquear escala da meta viewport: isso interfere em rolagem, seleção, inputs e acessibilidade no browser. `pwa-gestures.test.cjs` e `verify-browser.py` verificam transições, políticas e exceção do mapa; os modos instalados são emulados, não um teste de gesto no iPhone físico.
 
 ## PWA e publicação
 

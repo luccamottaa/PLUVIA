@@ -42,8 +42,7 @@ with sync_playwright() as p:
  page.wait_for_function("document.getElementById('temperature').textContent==='30'",timeout=20000)
  page.wait_for_function("document.getElementById('pluviaIntro').hidden")
  page.wait_for_function("!document.getElementById('airDetails').hidden && !document.getElementById('shareWeather').disabled")
- # Native double taps must not enlarge the reading surface. The viewport still
- # permits pinch zoom; the CSS policy applies equally to browser and standalone.
+ # Browser page double taps do not zoom; pinch remains permitted in this mode.
  page.locator('#temperature').wait_for(state='visible')
  assert page.evaluate("getComputedStyle(document.body).touchAction==='manipulation'")
  viewport_policy=page.locator('meta[name="viewport"]').get_attribute('content')
@@ -155,4 +154,31 @@ with sync_playwright() as p:
  assert page.locator('#cityName').inner_text()=='Recife'
  assert not errors,errors
  print(json.dumps({'responsive':checks,'doubleTapPageZoom':False,'pinchAllowedByPolicy':True,'cityChange':'Curitiba/Recife','hourlyDialog':True,'savedDataStatusVisible':True,'newCityOfflineDoesNotShowOldTemperature':True,'errors':errors}))
+ # Installed modes are emulated only here; this is not a physical iOS gesture.
+ installed=[]
+ for signal in ['display-mode','apple-standalone']:
+  app_context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,service_workers='block')
+  app_context.route('**/*',route)
+  app_context.add_init_script("Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(success,error){error({code:1});}}});sessionStorage.setItem('pluvia-intro-seen','1');")
+  if signal=='apple-standalone':app_context.add_init_script("Object.defineProperty(navigator,'standalone',{value:true});")
+  else:app_context.add_init_script("const nativeMatchMedia=window.matchMedia.bind(window);window.matchMedia=q=>{if(q!=='(display-mode: standalone)')return nativeMatchMedia(q);const mode=new EventTarget();mode.matches=true;return mode;};")
+  app_page=app_context.new_page();app_page.on('pageerror',lambda err: errors.append(str(err)))
+  mode['offline']=False
+  app_page.goto(preview,wait_until='domcontentloaded')
+  app_page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden && !document.documentElement.classList.contains('awaiting-styles')")
+  assert app_page.evaluate("document.documentElement.hasAttribute('data-pwa-no-zoom') && [document.documentElement,document.body].every(el=>getComputedStyle(el).touchAction==='pan-x pan-y')")
+  gestures=app_page.evaluate("""()=>{
+    const send=(el,name)=>{const e=new Event(name,{bubbles:true,cancelable:true});el.dispatchEvent(e);return e.defaultPrevented;};
+    return ['gesturestart','gesturechange'].map(name=>({page:send(document.body,name),map:send(document.getElementById('weatherMap'),name)}));
+  }""")
+  assert all(g['page'] and not g['map'] for g in gestures),gestures
+  app_page.locator('#openCitySearch').click()
+  assert app_page.locator('#cityDialog').evaluate('(el)=>el.open')
+  assert float(app_page.locator('#citySearch').evaluate('el=>parseFloat(getComputedStyle(el).fontSize)'))>=16
+  assert app_page.evaluate('visualViewport.scale')==1
+  assert not app_page.evaluate('document.documentElement.scrollWidth > innerWidth')
+  installed.append({'signal':signal,'pagePinchBlockedByPolicy':True,'mapGesturesPreserved':True,'searchUsable':True})
+  app_context.close()
+ assert not errors,errors
+ print(json.dumps({'installedApp':installed,'errors':errors}))
  browser.close()
