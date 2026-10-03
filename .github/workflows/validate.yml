@@ -14,7 +14,7 @@ jobs:
           node-version: '24'
       - name: Verificar sintaxe
         run: |
-          for file in dist/*.js dist/modules/*.js; do node --check "$file"; done
+          for file in dist/*.js dist/modules/*.js supabase/functions/_shared/nowcast/*.js scripts/nowcast-dev-server.cjs; do node --check "$file" || exit; done
       - name: Testar regras e regressões
         run: node --test tests/*.test.cjs
       - uses: denoland/setup-deno@v2

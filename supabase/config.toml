@@ -25,6 +25,9 @@ verify_jwt = true
 [functions.account-delete]
 verify_jwt = true
 
+[functions.nowcast]
+verify_jwt = false
+
 [auth.email.template.confirmation]
 subject = "Confirme seu e-mail e entre no Pluvia"
 content_path = "./supabase/templates/confirmation.html"

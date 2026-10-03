@@ -36,3 +36,7 @@ Configuração inicial de raios: aplicar `supabase/migrations/20260925190919_xwe
 Em 01/10/2026, tabelas/RPC existentes foram confirmados em produção; uma consulta retornou indisponibilidade, não ausência de segredos nem ausência de raios. A função desta etapa delimita `from=-5minutes&to=now`, valida cache e separa falhas de banco/autorização/cota/provedor. Skills Xweather não ativam um plano. Consulte `PLUGIN-INTEGRATIONS.md` e o PR para o diagnóstico após publicação.
 
 O diagnóstico posterior confirmou um bug de leitura da resposta do cache, não falta de grants: upsert `return=minimal` pode retornar HTTP 200/201 sem JSON. A função foi corrigida para aceitar essa confirmação, mantendo falha fechada se a gravação realmente falhar.
+
+## Observações locais / PLUVIA Nowcast (piloto Manaus)
+
+NOAA Aviation Weather Center METAR SBEG é consultado pelo backend `nowcast`, com cache regional e hora original da observação. O card/camada de estação descreve somente o aeroporto Eduardo Gomes; não confirma chuva em toda a cidade e não produz ETA. Radar SIPAM quantitativo não foi integrado/autorizado. GOES/raios existentes permanecem visuais/sob demanda, sem novos acessos Xweather. Contratos, pesquisa oficial, limitações/licenças e critérios de habilitação estão em [NOWCAST.md](NOWCAST.md).

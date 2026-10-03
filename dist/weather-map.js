@@ -15,6 +15,7 @@
   let leafletPromise;
   let layerRevision = 0;
   const fading = new Map();
+  let stationSignature='';
 
   function source(id, patch) { globalThis.PLUVIA?.sources?.set(id, {...patch, checkedAt:Date.now()}); }
   function setError(message) { $('weatherMapError').hidden = !message; $('weatherMapError').textContent = message || ''; }
@@ -180,8 +181,22 @@
     $('weatherMapLegend').innerHTML = '<span><i class="legend-strike"></i> Solo</span><span><i class="legend-cloud-strike"></i> Nuvem</span>';
     source('lightning',{status:'ready',dataAt:data.checkedAt});
   }
+  function loadStations() {
+    const data=globalThis.PLUVIA?.nowcast?.get();
+    stationSignature=JSON.stringify(data?.stations || []);
+    if (!data?.stations?.length) throw new Error('Sem boletim recente da estação. Atualize o card Nowcast.');
+    const marks=data.stations.map(station=>{
+      const tooltip=document.createElement('span');
+      tooltip.textContent=`${station.name} · ${zoneTime(station.observedAt/1000)} · ${globalThis.PLUVIA.nowcast.stationText?.(station) || station.source}`;
+      return L.circleMarker([station.lat,station.lon],{radius:8,color:'#fff',weight:2,fillColor:'#25a38d',fillOpacity:.9}).bindTooltip(tooltip);
+    });
+    state.overlay=L.layerGroup(marks).addTo(state.map);setFrames([],0);
+    $('weatherFrameTime').textContent=zoneTime(data.stations[0].observedAt/1000);
+    $('weatherSourceNote').textContent=`${data.stations[0].source} · observação pontual, sem estimativa de chegada da chuva. A marca azul é a referência do município.`;
+    $('weatherMapLegend').textContent='Estação observada · '+data.stations.map(station=>station.name).join(', ');
+  }
   async function selectLayer(name) {
-    if (!['rain','clouds','lightning'].includes(name)) return;
+    if (!['rain','clouds','lightning','stations'].includes(name)) return;
     if (!state.map) {
       state.layer = name;
       if (!initializing) showMap();
@@ -195,10 +210,10 @@
     $('weatherLightningAttribution').hidden = name !== 'lightning';
     setFrames([],0);
     document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
-    $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : name === 'clouds' ? 'Nuvens' : 'Raios';
+    $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : name === 'clouds' ? 'Nuvens' : name === 'stations' ? 'Estação' : 'Raios';
     $('weatherFrameTime').textContent = 'Carregando…'; $('weatherSourceNote').textContent = 'Consultando a fonte escolhida…';
     try {
-      if (name === 'rain') await loadRain(revision); else if (name === 'clouds') await loadClouds(revision); else await loadLightning(revision);
+      if (name === 'rain') await loadRain(revision); else if (name === 'clouds') await loadClouds(revision); else if (name === 'stations') loadStations(); else await loadLightning(revision);
     } catch (error) {
       if (revision !== layerRevision) return;
       const id = name === 'rain' ? 'radar' : name;
@@ -273,6 +288,7 @@
     state.timer=setInterval(() => step(1),1400);
   });
   const sourceEntries = [
+    ['NOAA Aviation Weather Center','Observação METAR','Boletim do aeroporto Eduardo Gomes (SBEG), com horário da observação. Descreve a estação, sem confirmar chuva nos demais bairros.'],
     ['INMET','Dado oficial','Avisos meteorológicos vigentes e previstos para o município.'],
     ['Open-Meteo','Estimativa meteorológica','Tempo, chuva e qualidade do ar no ponto do município.'],
     ['NOAA / NASA GIBS','Nuvens observadas por satélite','Imagens GOES-East GeoColor, com horário da captura e atraso de processamento.'],
@@ -310,6 +326,12 @@
   globalThis.PLUVIA.modules['weather-layers'].cityChanged = () => {
     if (state.cityId === city()?.id) return;
     ++layerRevision; httpClient?.abortAll(); stop(); removeOverlay(); setFrames([],0);
+    if (state.layer==='stations' && !globalThis.PLUVIA?.nowcast?.regionFor?.(city())) state.layer='rain';
     if (mapVisible || radarDialog?.open) showMap();
   };
+  globalThis.PLUVIA.modules['weather-layers'].selectLayer=selectLayer;
+  globalThis.addEventListener?.('pluvia:nowcast-updated',()=>{
+    if ($('weatherStationsLayer')) $('weatherStationsLayer').hidden=!globalThis.PLUVIA?.nowcast?.regionFor?.(city());
+    if (state.map && state.layer==='stations' && JSON.stringify(globalThis.PLUVIA?.nowcast?.get()?.stations || [])!==stationSignature) selectLayer('stations');
+  });
 })();

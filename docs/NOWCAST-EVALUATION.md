@@ -27,3 +27,7 @@ Custo-base do endpoint: **×1 acesso**. A documentação informa cobrança por h
 5. Implementar cache por área, deduplicação, timeout, orçamento atômico e atualização centralizada; sem polling em cada card/favorito.
 
 A experiência atual “Quando pode chover?” continua utilizando intervalos horários honestos. Esta avaliação evita adicionar consultas interpoladas sem benefício demonstrado.
+
+## Evolução observacional em 03/10/2026
+
+O novo [PLUVIA Nowcast](NOWCAST.md) mantém esta decisão sobre previsões interpoladas. Integra METAR observado do SBEG e prepara um motor quantitativo, sem usar PoP como radar. SIPAM ainda depende de autorização/feed validado; estimativa de minutos permanece somente no harness de desenvolvimento/testes. O orçamento Xweather não foi consumido nem reaproveitado para um novo endpoint.
