@@ -50,6 +50,20 @@ with sync_playwright() as p:
   assert style['text']==style['mark']=='rgb(47, 107, 255)' and style['gap']==2,style
   mark=brand.locator('.brand-mark').bounding_box();name=brand.locator('span').last.bounding_box()
   assert mark and name and 0<=name['x']-mark['x']-mark['width']<=2.1,(mark,name)
+  # Equal side tracks keep the brand centered for guests and long greetings.
+  account=page.locator('#accountButton');original=account.inner_text()
+  try:
+   for label in [original,'Olá, Lucca','Olá, '+('Alexandre'*5)[:40]]:
+    account.evaluate('(el,text)=>el.textContent=text',label)
+    geometry=page.evaluate("['#top','.topbar .brand','#accountButton','.topbar .top-actions'].map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {x:r.x,right:r.right,width:r.width,height:r.height,centerX:r.x+r.width/2,centerY:r.y+r.height/2}})")
+    top,logo,greeting,actions=geometry
+    assert abs(logo['centerX']-top['centerX'])<=1,(label,geometry)
+    assert abs(greeting['x']-top['x'])<=1,(label,geometry)
+    assert greeting['right']<=logo['x'] and logo['right']<=actions['x'],(label,geometry)
+    assert actions['right']<=top['right']+1,(label,geometry)
+    assert greeting['width']>=44 and greeting['height']>=44,(label,geometry)
+    assert max(el['centerY'] for el in [logo,greeting,actions])-min(el['centerY'] for el in [logo,greeting,actions])<=1,(label,geometry)
+  finally:account.evaluate('(el,text)=>el.textContent=text',original)
  verify_brand()
  # Browser page double taps do not zoom; pinch remains permitted in this mode.
  page.locator('#temperature').wait_for(state='visible')

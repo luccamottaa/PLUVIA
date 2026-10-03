@@ -66,6 +66,26 @@ with sync_playwright() as p:
   aligned(selector+' input:visible,'+selector+' button:visible','right')
  def screenshot(name,selector):
   page.locator(selector).screenshot(path=str(output/(name+'.png')))
+ def city_bounds(width):
+  scroll=page.locator('#cityDialog .dialog-scroll')
+  limits=scroll.evaluate("el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {left:r.x+el.clientLeft+parseFloat(s.paddingLeft),right:r.x+el.clientLeft+el.clientWidth-parseFloat(s.paddingRight),clientWidth:el.clientWidth,scrollWidth:el.scrollWidth}}")
+  assert limits['scrollWidth']<=limits['clientWidth']+1,(width,limits)
+  for item in boxes('#cityDialog .city-actions > button,#dialogFavorites,#dialogFavoriteList,#cityResults .city-result'):
+   assert item['x']>=limits['left']-1 and item['right']<=limits['right']+1,(width,limits,item)
+  # Favorites scroll within their own viewport; every card remains reachable.
+  carousel=page.locator('#dialogFavoriteList')
+  if width>=390:assert carousel.evaluate('el=>el.scrollWidth<=el.clientWidth+1'),(width,'Two favorites fit fully')
+  last=carousel.locator('.favorite-city-card').last
+  last.scroll_into_view_if_needed()
+  card=last.bounding_box();viewport=carousel.bounding_box()
+  assert card['x']>=viewport['x']-1 and card['x']+card['width']<=viewport['x']+viewport['width']+1,(width,card,viewport)
+  # A partially visible row during scrolling is normal; the last row must be
+  # fully accessible without escaping the dialog's scrolling area.
+  result=page.locator('#cityResults .city-result').last
+  result.evaluate("el=>el.scrollIntoView({block:'end',inline:'nearest',behavior:'instant'})")
+  row=result.bounding_box();area=scroll.bounding_box()
+  assert row['y']>=area['y']-1 and row['y']+row['height']<=area['y']+area['height']+1,(width,row,area)
+  carousel.evaluate('el=>el.scrollLeft=0');scroll.evaluate('el=>el.scrollTop=0')
  def home(width,label):
   assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(width,label)
   report={'width':width,'period':label}
@@ -123,9 +143,10 @@ with sync_playwright() as p:
   if width in [320,390,1366]:screenshot(str(width)+'-account','#accountDialog')
   close()
   page.locator('#openCitySearch').click();page.locator('#citySearch').fill('São')
-  page.wait_for_function("document.querySelectorAll('#cityResults .city-result').length>1")
+  page.wait_for_function("cityIndexReady && document.getElementById('cityPickerStatus').textContent.includes('resultado') && document.querySelectorAll('#cityResults .city-result').length>1")
   page.wait_for_function("document.querySelectorAll('#dialogFavoriteList .favorite-reading').length===2 && [...document.querySelectorAll('#dialogFavoriteList .favorite-reading')].every(el=>el.textContent==='30°')")
   header('#cityDialog .dialog-heading');aligned('#cityDialog .city-actions > *','centerY',2)
+  city_bounds(width)
   for field in ['> strong','.favorite-reading','.favorite-summary:not(.favorite-feels-like)','.favorite-feels-like','.favorite-range','.favorite-local-time','.favorite-updated']:
    aligned('.favorite-city-card '+field,count=2)
   if width in [320,390,1366]:
