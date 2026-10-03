@@ -121,3 +121,9 @@ Resumo Inteligente, pico/gráfico diário de UV, Quando pode chover e Planejar a
 - QA geral de responsividade, cidades, offline, diálogos e política de zoom PWA passou nos dois navegadores. Detalhes horários, astronomia, preferências de notificações e os dez cenários experimentais do Nowcast também passaram; nenhuma observação simulada é habilitada na página publicada.
 
 Os testes usam fixtures meteorológicas identificadas, não comprovam disponibilidade dos sensores nem medem FPS/bateria. WebKit automatizado não substitui Safari em iPhone físico; permanece o limite de hardware registrado acima.
+
+## Ajuste do cabeçalho — marca azul e sem horário/data
+
+Símbolo e nome PLUVIA usam o mesmo azul #2f6bff, com gap de 2px. A alteração fica na cascata final e foi conferida em sete viewports e sete condições diurnas/noturnas nos dois navegadores. A linha de horário/data saiu do DOM junto de suas três escritas de texto; o relógio central e as atualizações astronômicas continuam ativos. O status de dados salvos permanece visível quando necessário.
+
+Sintaxe JavaScript e 361 casos node:test, mais 13 arquivos de assertions diretas, passaram. QA geral em Chromium/WebKit passou sem erros JavaScript ou overflow, incluindo troca de cidade, offline, detalhes horários, diálogos e políticas de toque PWA. Capturas inspecionadas em /tmp/pluvia-brand-chromium/ e /tmp/pluvia-brand-webkit/, com cabeçalho compacto e azul. Cache atualizado para pluvia-panel-66, continuous.css?v=layout-26 e app.js?v=panel-39. Não há dependência, asset ou build novo; os limites de hardware anteriores continuam válidos.
