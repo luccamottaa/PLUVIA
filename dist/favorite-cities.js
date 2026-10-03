@@ -47,6 +47,7 @@
       const button=doc.createElement('button');button.type='button';button.className='favorite-city-card';button.dataset.favoriteId=id;
       button.setAttribute('aria-current',String(current()?.id===id));button.disabled=opening;
       const name=doc.createElement('strong'),reading=doc.createElement('span'),summary=doc.createElement('span'),stamp=doc.createElement('small');
+      stamp.className='favorite-updated';
       name.textContent=city ? city.name+'/'+city.uf : 'Cidade favorita';
       const value=read(id); reading.className='favorite-reading';summary.className='favorite-summary';
       reading.textContent=value ? Math.round(value.temperature)+'°' : errors.has(id) ? 'Indisponível' : 'Consultando…';
@@ -54,12 +55,14 @@
       stamp.textContent=value ? `${value.rain===null ? 'Chuva indisponível' : Math.round(value.rain)+'% de chuva em 3h'} · ${Date.now()-value.at>FRESH_MS ? 'leitura salva' : 'atualizado há '+Math.max(0,Math.floor((Date.now()-value.at)/60000))+' min'}` : '';
       button.append(name,reading,summary);
       if(value) {
-        const thermal=doc.createElement('span');thermal.className='favorite-summary';
+        const thermal=doc.createElement('span');thermal.className='favorite-summary favorite-feels-like';
         thermal.textContent=Number.isFinite(value.feelsLike) ? 'Sensação '+Math.round(value.feelsLike)+'°' : 'Sensação indisponível';
         const range=doc.createElement('small');
+        range.className='favorite-range';
         const today=city?.timezone ? time?.dayKey(Date.now(),city) : null;
         range.textContent=Number.isFinite(value.high) && Number.isFinite(value.low) ? `Máx. ${Math.round(value.high)}° · Mín. ${Math.round(value.low)}°${value.day && today!==value.day ? ' · '+value.day.slice(8,10)+'/'+value.day.slice(5,7) : ''}` : 'Máxima/mínima indisponíveis';
         const local=doc.createElement('small');
+        local.className='favorite-local-time';
         try {local.textContent=new Intl.DateTimeFormat('pt-BR',{timeZone:city?.timezone,hour:'2-digit',minute:'2-digit'}).format(new Date())+' · horário local';} catch {local.textContent='Horário local indisponível';}
         if(!city?.timezone) local.textContent='Horário local indisponível';
         button.append(thermal,range,local);
