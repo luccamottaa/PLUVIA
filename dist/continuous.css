@@ -1,5 +1,8 @@
 /* The forecast is one reading surface over the city sky. Dialogs and map
    controls keep their own surfaces; these rules only apply to the home. */
+/* Native pan and pinch remain available; accidental double taps do not zoom
+   the page in the browser or installed PWA. Maps keep their own touch handler. */
+body { touch-action:manipulation; }
 /* Header actions share the sky, with native 44px touch targets. */
 html body .topbar {
   position:relative;

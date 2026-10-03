@@ -42,6 +42,16 @@ with sync_playwright() as p:
  page.wait_for_function("document.getElementById('temperature').textContent==='30'",timeout=20000)
  page.wait_for_function("document.getElementById('pluviaIntro').hidden")
  page.wait_for_function("!document.getElementById('airDetails').hidden && !document.getElementById('shareWeather').disabled")
+ # Native double taps must not enlarge the reading surface. The viewport still
+ # permits pinch zoom; the CSS policy applies equally to browser and standalone.
+ page.locator('#temperature').wait_for(state='visible')
+ assert page.evaluate("getComputedStyle(document.body).touchAction==='manipulation'")
+ viewport_policy=page.locator('meta[name="viewport"]').get_attribute('content')
+ assert 'user-scalable=no' not in viewport_policy and 'maximum-scale' not in viewport_policy
+ scale=page.evaluate('visualViewport.scale')
+ point=page.locator('#temperature').bounding_box()
+ for _ in range(2):page.touchscreen.tap(point['x']+point['width']/2,point['y']+point['height']/2)
+ assert abs(page.evaluate('visualViewport.scale')-scale)<.01
  page.locator('#openPrivacy').click()
  assert page.locator('#sourcesDialog').evaluate('(el)=>el.open')
  assert not page.locator('#analyticsConsent').is_checked()
@@ -144,5 +154,5 @@ with sync_playwright() as p:
  assert page.locator('#uvDayChart').is_hidden()
  assert page.locator('#cityName').inner_text()=='Recife'
  assert not errors,errors
- print(json.dumps({'responsive':checks,'cityChange':'Curitiba/Recife','hourlyDialog':True,'savedDataStatusVisible':True,'newCityOfflineDoesNotShowOldTemperature':True,'errors':errors}))
+ print(json.dumps({'responsive':checks,'doubleTapPageZoom':False,'pinchAllowedByPolicy':True,'cityChange':'Curitiba/Recife','hourlyDialog':True,'savedDataStatusVisible':True,'newCityOfflineDoesNotShowOldTemperature':True,'errors':errors}))
  browser.close()
