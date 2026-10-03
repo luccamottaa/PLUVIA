@@ -12,7 +12,25 @@ O `config.toml` referencia os arquivos para desenvolvimento local. Isso **não a
 
 No [Dashboard de templates](https://supabase.com/dashboard/project/dszyyrcvwrpyiypwyvxe/auth/templates), aplicar assunto e HTML em **Confirm sign up** e **Reset password**, preservando confirmação obrigatória. Alternativa em ambiente confiável do proprietário: `python scripts/apply-auth-emails.py --apply`, com `SUPABASE_ACCESS_TOKEN` configurado fora do código/chat. O script altera somente quatro campos e verifica a leitura posterior; sem `--apply` imprime apenas o payload público. Não usar `supabase config push` com configuração incompleta, pois isso pode sobrescrever outros ajustes.
 
-Em [URL Configuration](https://supabase.com/dashboard/project/dszyyrcvwrpyiypwyvxe/auth/url-configuration), preservar os retornos existentes e permitir **https://pluviaweather.com.br/?auth_recovery=1**. O formulário de recuperação só se abre após o evento `PASSWORD_RECOVERY` do SDK com sessão; o parâmetro sozinho nunca autoriza troca. Caso a allowlist use fallback para Site URL, o evento continua sendo a referência. Links expirados recebem mensagem segura, sem `error_description` bruto.
+Em [URL Configuration](https://supabase.com/dashboard/project/dszyyrcvwrpyiypwyvxe/auth/url-configuration), configurar **Site URL: https://pluviaweather.com.br/** e adicionar estes destinos exatos em **Redirect URLs**:
+
+- `https://pluviaweather.com.br/` — confirmação de cadastro;
+- `https://pluviaweather.com.br/?auth_recovery=1` — recuperação de senha;
+- `https://pluviaweather.com.br/?auth_return=1` — retorno de login social.
+
+O formulário de recuperação só se abre após o evento `PASSWORD_RECOVERY` do SDK com sessão; o parâmetro sozinho nunca autoriza troca. Links expirados recebem mensagem segura, sem `error_description` bruto.
+
+### Redirecionamento indevido à Vercel identificado em 03/10/2026
+
+GET `/auth/v1/verify` com token deliberadamente inválido e `redirect: manual` retornou HTTP 303 para **https://pluvia-lucca-49c6.vercel.app/**, tanto sem destino quanto solicitando os três destinos públicos acima. O endereço antigo respondeu HTTP 302 para `vercel.com/sso-api`; o domínio público do Pluvia respondeu HTTP 200. Isso confirma o fallback hospedado errado e a recusa dos destinos públicos naquele momento, sem cadastrar pessoas ou enviar e-mails.
+
+`social-auth.redirectTo(location, flow)` agora concentra os destinos de confirmação, recuperação e OAuth. Em produção, sempre usa o domínio público e a raiz; não herda previews, caminhos, query ou tokens da página onde o cadastro começou. Somente `localhost` e `127.0.0.1` mantêm o retorno de desenvolvimento. Um retorno local real também exige allowlist local no Supabase; os testes usam interceptação.
+
+**A alteração do frontend não modifica Site URL nem a allowlist hospedada.** O proprietário precisa salvar os valores acima no Dashboard. Remover o endereço Vercel antigo da allowlist se estiver cadastrado, incluindo padrões obsoletos que o aceitem: links já enviados podem conter `redirect_to` antigo e continuar usando-o quando permitido. Não desativar confirmação de e-mail nem liberar a proteção dos previews para contornar o problema. Manter `{{ .ConfirmationURL }}` nos templates hospedados; não colocar um link direto para o site no botão, pois isso não valida o token.
+
+Depois de salvar, executar `node scripts/verify-auth-redirects.cjs`. O script confirma o fallback e os três destinos com token inválido, recusa destino externo e não segue redirects, imprime fragmentos/tokens ou envia e-mails. No ambiente gerenciado com proxy, usar `NODE_USE_ENV_PROXY=1`. Sucesso desse diagnóstico confirma somente os retornos; entrega e confirmação de um e-mail real ainda devem ser verificadas numa caixa controlada pelo proprietário.
+
+`python scripts/verify-auth-redirects.py` verifica cadastro e recuperação com SDK real, origens pública/preview/local e retorno de confirmação em outra sessão; somente fixtures e requests interceptados. Chromium e WebKit executam esse teste no workflow de interface. Isso não altera a configuração hospedada nem comprova entrega SMTP.
 
 Remetente/domínio próprios exigem SMTP configurado e DNS do serviço (SPF/DKIM/DMARC). Não foram alterados remetente, SMTP, limites ou entregabilidade. Um template bonito não comprova recebimento. No provedor SMTP, desativar rastreamento de links de Auth. Teste final de entrega deve usar caixa controlada pelo proprietário; não enviamos mensagens a usuários reais como teste.
 

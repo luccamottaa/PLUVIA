@@ -6,11 +6,18 @@
   'use strict';
   const PROJECT_URL='https://dszyyrcvwrpyiypwyvxe.supabase.co';
   const PUBLIC_KEY='sb_publishable_SdPTXhk3Q7aD-ra0S9dm_A_rnXSS4Jc';
+  const SITE_URL='https://pluviaweather.com.br/';
   const providers=Object.freeze(['google','apple']);
-  function redirectTo(location){
-    const base=new URL(location.origin+location.pathname);
-    if(base.protocol!=='https:' && !(base.protocol==='http:' && ['localhost','127.0.0.1'].includes(base.hostname)))throw new Error('invalid_auth_origin');
-    base.search='?auth_return=1';base.hash='';
+  function redirectTo(location,flow='social'){
+    if(!['social','confirmation','recovery'].includes(flow))throw new Error('invalid_auth_flow');
+    const current=new URL(location.origin+location.pathname);
+    const local=['localhost','127.0.0.1'].includes(current.hostname);
+    if(current.username || current.password || (current.protocol!=='https:' && !(current.protocol==='http:' && local)))throw new Error('invalid_auth_origin');
+    // Email links may be opened on another device. Production always returns to
+    // the public site, even when signup started in a protected deployment preview.
+    const base=local ? current : new URL(SITE_URL);
+    base.search=flow==='recovery' ? '?auth_recovery=1' : flow==='social' ? '?auth_return=1' : '';
+    base.hash='';
     return base.href;
   }
   function callback(href){

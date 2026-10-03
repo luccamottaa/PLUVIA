@@ -5,7 +5,7 @@ let listener,signupArgs,logout=false;
 const user={id:'owner',email:'test@example.com',user_metadata:{name:'Lucca Motta'}};
 let session=null;
 const auth={onAuthStateChange(fn){listener=fn},async getSession(){return {data:{session}}},async signUp(args){signupArgs=args;return {data:{session:null}}},async signInWithPassword(){session={user};listener('SIGNED_IN',session);return {data:{session}}},async updateUser({data}){user.user_metadata=data;return {data:{user}}},async signOut(){logout=true;session=null;listener('SIGNED_OUT',null);return {error:null}}};
-const context={setTimeout,clearTimeout,document:{getElementById:get,createElement(){return {}},head:{appendChild(s){s.onload()}}},window:{PLUVIA:{accountSync:require('../dist/modules/account-sync.js')},supabase:{createClient(){return {auth,functions:{invoke:async(name,{body})=>{if(body.operations?.displayName)user.user_metadata.name=body.operations.displayName;return {data:{snapshot:{displayName:user.user_metadata.name || '',favoriteCityIds:[],primaryCityId:null,namedPlaces:[]}}};}}}}}},location:{origin:'https://pluviaweather.com.br',pathname:'/',hash:''},localStorage:{getItem(){return null}}};
+const context={setTimeout,clearTimeout,document:{getElementById:get,createElement(){return {}},head:{appendChild(s){s.onload()}}},window:{PLUVIA:{accountSync:require('../dist/modules/account-sync.js'),socialAuth:require('../dist/modules/social-auth.js')},supabase:{createClient(){return {auth,functions:{invoke:async(name,{body})=>{if(body.operations?.displayName)user.user_metadata.name=body.operations.displayName;return {data:{snapshot:{displayName:user.user_metadata.name || '',favoriteCityIds:[],primaryCityId:null,namedPlaces:[]}}};}}}}}},location:{origin:'https://pluviaweather.com.br',pathname:'/',hash:''},localStorage:{getItem(){return null}}};
 vm.runInNewContext(fs.readFileSync('dist/account.js','utf8'),context);
 (async()=>{
 get('accountSignup').events.click();get('accountName').value='Lucca Motta';get('accountEmail').value='test@example.com';get('accountPassword').value='fraca';
@@ -14,6 +14,7 @@ assert.equal(signupArgs,undefined);assert.match(get('accountStatus').textContent
 get('accountPassword').value='Example-password1!';
 await get('accountForm').events.submit({preventDefault(){}});
 assert.equal(signupArgs.options.data.name,'Lucca Motta');assert.match(get('accountStatus').textContent,/confirmar/);assert.doesNotMatch(get('accountButton').textContent,/Olá/);
+assert.equal(signupArgs.options.emailRedirectTo,'https://pluviaweather.com.br/');
 get('accountLogin').events.click();get('accountPassword').value='example-password';await get('accountForm').events.submit({preventDefault(){}});
 assert.equal(get('accountButton').textContent,'Olá, Lucca');assert.equal(get('accountPassword').value,'');
 user.user_metadata={};listener('SIGNED_IN',{user});assert.match(get('profileNameHint').textContent,/Falta seu nome/);get('profileName').value='Lucca';await get('profileForm').events.submit({preventDefault(){}});assert.equal(get('accountButton').textContent,'Olá, Lucca');

@@ -14,13 +14,28 @@ test('falha ou resposta inválida não expõe opção quebrada nem habilita por 
  let now=0,calls=0;const discovery=social.createDiscovery({getJson:async()=>{calls++;throw Error('timeout');}},{now:()=>now});
  await discovery.load();await discovery.load();assert.equal(calls,1);now=10001;await discovery.load();assert.equal(calls,2);
 });
-test('retorno usa destino local sem herdar URL, tokens ou redirect externo',()=>{
+test('retorno público não herda preview protegido, caminho, query ou tokens',()=>{
  assert.equal(social.redirectTo({origin:'https://pluviaweather.com.br',pathname:'/'}),'https://pluviaweather.com.br/?auth_return=1');
+ for(const origin of ['https://pluvia-lucca-49c6.vercel.app','https://www.pluviaweather.com.br','https://luccamottaa.github.io']){
+  const location={origin,pathname:'/index.html',search:'?redirect_to=https://hostile.example/',hash:'#access_token=fixture'};
+  assert.equal(social.redirectTo(location),'https://pluviaweather.com.br/?auth_return=1');
+  assert.equal(social.redirectTo(location,'confirmation'),'https://pluviaweather.com.br/');
+  assert.equal(social.redirectTo(location,'recovery'),'https://pluviaweather.com.br/?auth_recovery=1');
+ }
  assert.equal(social.redirectTo({origin:'http://localhost:4173',pathname:'/'}),'http://localhost:4173/?auth_return=1');
+ assert.equal(social.redirectTo({origin:'http://127.0.0.1:4173',pathname:'/index.html'},'confirmation'),'http://127.0.0.1:4173/index.html');
+ assert.equal(social.redirectTo({origin:'http://127.0.0.1:4173',pathname:'/'},'recovery'),'http://127.0.0.1:4173/?auth_recovery=1');
  assert.throws(()=>social.redirectTo({origin:'http://hostile.example',pathname:'/'}));
+ assert.throws(()=>social.redirectTo({origin:'https://localhost.example',pathname:'/'},'invalid'));
+ assert.throws(()=>social.redirectTo({origin:'https://user:password@example.test',pathname:'/'}));
  assert.throws(()=>social.authorizeUrl('https://hostile.example/auth/v1/authorize?provider=google','google'));
  assert.throws(()=>social.authorizeUrl('https://dszyyrcvwrpyiypwyvxe.supabase.co/auth/v1/authorize?provider=apple','google'));
  assert.throws(()=>social.authorizeUrl('https://dszyyrcvwrpyiypwyvxe.supabase.co/auth/v1/authorize?provider=github','github'));
+});
+test('OAuth iniciado no preview volta ao Pluvia público',async()=>{
+ const app=boot({href:'https://pluvia-lucca-49c6.vercel.app/index.html?other=1#agora'});await settle();
+ app.node('accountButton').events.click();await settle();await app.node('accountGoogle').events.click();
+ assert.equal(app.calls[0].options.redirectTo,'https://pluviaweather.com.br/?auth_return=1');
 });
 test('cada provider é confirmado independentemente e resposta parcial revalida cedo',async()=>{
  let now=0,calls=0;

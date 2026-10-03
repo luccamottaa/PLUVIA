@@ -313,7 +313,7 @@
       setBusy(true);message('Solicitando link…');
       try {
         const client=await getClient();
-        const result=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'?auth_recovery=1'});
+        const result=await client.auth.resetPasswordForEmail(email,{redirectTo:social.redirectTo(location,'recovery')});
         if(result.error)throw result.error;
         recoverySentAt=Date.now();message('Se houver uma conta disponível para esse e-mail, você receberá um link. Confira também o spam.');
       } catch(error){message(authError(error,'reset'));}
@@ -330,7 +330,7 @@
     try {
       const client = await getClient();
       const result = mode === 'signup'
-        ? await client.auth.signUp({email,password,options:{data:{name},emailRedirectTo:location.origin + location.pathname}})
+        ? await client.auth.signUp({email,password,options:{data:{name},emailRedirectTo:social.redirectTo(location,'confirmation')}})
         : await client.auth.signInWithPassword({email,password});
       if(result.error) throw result.error;
       el('accountPassword').value = '';

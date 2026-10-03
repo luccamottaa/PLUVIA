@@ -37,6 +37,7 @@ jobs:
           python scripts/verify-browser.py
           python scripts/verify-account-sync.py
           python scripts/verify-account-lifecycle.py
+          python scripts/verify-auth-redirects.py
           python scripts/verify-visual.py
           python scripts/verify-nowcast.py
           python scripts/verify-daily-planning.py
