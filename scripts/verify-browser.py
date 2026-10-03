@@ -43,6 +43,14 @@ with sync_playwright() as p:
  page.wait_for_function("document.getElementById('temperature').textContent==='30'",timeout=20000)
  page.wait_for_function("document.getElementById('pluviaIntro').hidden")
  page.wait_for_function("!document.getElementById('airDetails').hidden && !document.getElementById('shareWeather').disabled")
+ assert page.locator('#localClock,#localDate,#cityTimezone,#weatherView .clock-wrap').count()==0
+ def verify_brand():
+  brand=page.locator('.topbar .brand')
+  style=brand.evaluate("el=>({text:getComputedStyle(el.lastElementChild).color,mark:getComputedStyle(el.firstElementChild).backgroundColor,gap:parseFloat(getComputedStyle(el).columnGap)})")
+  assert style['text']==style['mark']=='rgb(47, 107, 255)' and style['gap']==2,style
+  mark=brand.locator('.brand-mark').bounding_box();name=brand.locator('span').last.bounding_box()
+  assert mark and name and 0<=name['x']-mark['x']-mark['width']<=2.1,(mark,name)
+ verify_brand()
  # Browser page double taps do not zoom; pinch remains permitted in this mode.
  page.locator('#temperature').wait_for(state='visible')
  assert page.evaluate("getComputedStyle(document.body).touchAction==='manipulation'")
@@ -83,6 +91,7 @@ with sync_playwright() as p:
  checks=[]
  for width,height in [(320,568),(390,844),(430,932),(844,390),(768,1024),(1366,768),(2560,1440)]:
   page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(150)
+  verify_brand()
   overflow=page.evaluate('document.documentElement.scrollWidth > innerWidth');assert not overflow,(width,height)
   page.locator('#top').scroll_into_view_if_needed()
   assert page.locator('#top #shareWeather svg').is_visible()
@@ -136,6 +145,7 @@ with sync_playwright() as p:
   page.evaluate('refreshAll()')
   page.evaluate('code=>{const data=structuredClone(displayedWeather.forecast);data.current.weather_code=code;render(data,displayedWeather.air,false,0,{weatherAt:Date.now(),airAt:Date.now(),freshAir:true});}',code)
   assert page.evaluate("document.body.dataset.weather!=='unknown'")
+  verify_brand()
   assert not page.evaluate('document.documentElement.scrollWidth > innerWidth')
   assert not errors,errors
   page.screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-'+name+'.png')),full_page=True)
@@ -187,5 +197,5 @@ with sync_playwright() as p:
   app_context.close()
  assert not errors,errors
  assert not disabled_requests,disabled_requests
- print(json.dumps({'removedPanelsAbsent':True,'pausedProvidersNotQueried':True,'installedApp':installed,'errors':errors}))
+ print(json.dumps({'brandBlueAndCompact':True,'headerDateRemoved':True,'removedPanelsAbsent':True,'pausedProvidersNotQueried':True,'installedApp':installed,'errors':errors}))
  browser.close()

@@ -280,8 +280,6 @@ function updateClock() {
   if (!activeCity || document.hidden) return;
   const now = new Date();
   globalThis.dispatchEvent?.(new CustomEvent("pluvia:clock-updated"));
-  $("localClock").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
-  $("localDate").textContent = new Intl.DateTimeFormat("pt-BR", { timeZone: activeCity.timezone, weekday: "long", day: "numeric", month: "long" }).format(now).replace(/^./, c => c.toUpperCase());
   const atmosphere = updateSolarAtmosphere(now.getTime());
   if (displayedWeather?.forecast?.daily) {
     const saved = displayedWeather;
@@ -844,7 +842,6 @@ function updateCityLabels() {
   $("cityName").textContent = activeCity.name;
   $("alertsCityLabel").textContent = "Fontes oficiais e leitura ambiental para " + activeCity.name;
   $("forecastCityLabel").textContent = "Previsão diária para a área urbana de " + activeCity.name;
-  $("cityTimezone").textContent = activeCity.uf + " · " + new Intl.DateTimeFormat("pt-BR", {timeZone:activeCity.timezone,timeZoneName:"longOffset"}).formatToParts(new Date()).find(part => part.type === "timeZoneName").value.replace("GMT","UTC");
   const starred = favorites.has(activeCity.id);
   $("favoriteCity").textContent = starred ? "★ Favorita" : "☆ Favoritar";
   $("favoriteCity").setAttribute("aria-pressed", String(starred));
