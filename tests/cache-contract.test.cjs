@@ -13,13 +13,15 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-59"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-60"/);
   assert.match(html, /styles\.css\?v=core-120/);
   assert.match(html, /redesign\.css\?v=panel-31/);
   assert.doesNotMatch(sw, /glass\.js/);
   assert.match(html, /app\.js\?v=panel-37/);
   assert.ok(!sw.includes('"./assets/panel-night-sky.webp"'), 'não baixa a antiga foto sem uso no cache inicial');
-  for (const asset of ['sky-sun.svg','sky-cloud-bank.webp']) assert.ok(sw.includes(`./assets/${asset}`));
+  for (const asset of ['sky-sun.svg','sky-cloud-veil.webp','sky-cloud-volume.webp']) assert.ok(sw.includes(`./assets/${asset}`));
+  assert.ok(['sky-cloud-veil.webp','sky-cloud-volume.webp'].reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<160*1024,'texturas das nuvens mantêm orçamento leve para o shell mobile');
+  assert.ok(!sw.includes('"./assets/sky-cloud-bank.webp"'),'textura antiga não é baixada pelo novo shell');
   assert.ok(sw.includes('./assets/moon-surface.webp'),'textura lunar disponível no modo offline');
   assert.ok(fs.statSync(path.join(root,'assets/moon-surface.webp')).size < 30000,'textura leve para mobile');
 });

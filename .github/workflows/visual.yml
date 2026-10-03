@@ -39,6 +39,7 @@ jobs:
           python scripts/verify-account-lifecycle.py
           python scripts/verify-auth-redirects.py
           python scripts/verify-visual.py
+          python scripts/verify-clouds.py
           python scripts/verify-nowcast.py
           python scripts/verify-daily-planning.py
       - uses: actions/upload-artifact@v4
