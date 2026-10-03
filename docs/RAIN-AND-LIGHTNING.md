@@ -8,6 +8,8 @@ Evolução visual das duas camadas de chuva e do elemento de relâmpago já pres
 
 A altura de repetição é sempre 480px e a animação percorre exatamente 480px. Isso conserva o encaixe no reinício do loop. Alterar densidade modifica somente a largura da repetição, sem criar um loop por gota. Opacidade muda suavemente em dois segundos; ausência de chuva pausa imediatamente o deslocamento e deixa a camada desaparecer.
 
+O CSS também exige a condição de chuva/trovoada para manter as gotas visíveis, mesmo se um writer legado ainda conservar variáveis de opacidade de chuva. Essa proteção evita gotas estáticas num céu seco durante uma atualização parcial do shell.
+
 `sky-atmosphere.js` escreve o mesmo perfil na raiz e no body, junto do estado atmosférico existente. A classificação é uma escolha visual a partir dos códigos WMO já fornecidos pela previsão:
 
 | Representação | Códigos |

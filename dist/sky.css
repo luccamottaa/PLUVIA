@@ -81,7 +81,7 @@ html,body { background:var(--sky-base); }
    vertically, so looping has no seam; intensity never comes from probability. */
 .sky-rain { display:block; position:absolute; z-index:4; inset:-480px 0 0; background:url("./assets/rain-near.svg") 17px 0 / var(--rain-width,380px) 480px repeat; opacity:var(--rain-opacity); animation:sky-rain-fall var(--rain-speed,2.2s) linear infinite; animation-delay:-.7s; transition:opacity 2s ease; }
 .sky-rain-back { z-index:3; background-image:url("./assets/rain-far.svg"); background-size:var(--rain-back-width,640px) 480px; background-position:83px 37px; opacity:var(--rain-back-opacity); animation-duration:var(--rain-back-speed,4.3s); animation-delay:-2.1s; }
-:root:not([data-weather="rain"]):not([data-weather="storm"]) .sky-rain { animation-play-state:paused; }
+:root:not([data-weather="rain"]):not([data-weather="storm"]) .sky-rain { opacity:0; animation-play-state:paused; }
 /* Branched filaments and local cloud illumination, with sparse single pulses.
    This is storm decoration, independent of real lightning detections on the map. */
 .sky-lightning { display:none; position:absolute; inset:0; z-index:3; }

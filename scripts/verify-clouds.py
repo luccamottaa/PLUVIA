@@ -111,6 +111,8 @@ with sync_playwright() as p:
  page.evaluate("PLUVIA.sky.apply(null,null,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert all(s=='paused' for s in page.locator('.sky-effects > .sky-rain').evaluate_all("els=>els.map(el=>getComputedStyle(el).animationPlayState)"))
  page.emulate_media(reduced_motion='reduce')
+ # A legacy writer can retain wet opacity variables; the weather gate still wins.
+ page.evaluate("[document.documentElement,document.body].forEach(el=>{el.style.setProperty('--rain-opacity','.8');el.style.setProperty('--rain-back-opacity','.8');})")
  assert all(s==0 for s in page.locator('.sky-effects > .sky-rain').evaluate_all("els=>els.map(el=>+getComputedStyle(el).opacity)"))
  page.evaluate("PLUVIA.sky.apply(95,0,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>getComputedStyle(el).display")=='none'
