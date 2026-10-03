@@ -68,3 +68,19 @@ Evidência final: `/tmp/pluvia-rain-final-chromium/clouds/` e `/tmp/pluvia-rain-
 A amostragem evita tempos negativos nas animações com delay e aguarda a animação existente de entrada do conteúdo terminar. A verificação de pausa usa animações novas, sem os overrides de play-state usados apenas para congelar os quadros de revisão.
 
 Nenhuma pendência visual P0/P1/P2 identificada nas capturas finais revisadas. Os efeitos são decorativos, separados das detecções reais de raios do mapa. Os limites de hardware e medição descritos acima permanecem. Funcionamento e códigos estão em `docs/RAIN-AND-LIGHTNING.md`.
+
+## Evolução posterior — estrelas noturnas
+
+Result: **passed** para revisão visual e contratos de brilho/movimento em Chromium e WebKit.
+
+Campo irregular de pontos pequenos, com brilho, tamanho e tonalidade variados. Só oito pontos destacados cintilam; os demais ficam estáticos. Nuvens e Lua permanecem à frente. Uma máscara estática dissipa as estrelas na parte inferior sem interferir no layout ou na leitura.
+
+Evidência: `/tmp/pluvia-stars-chromium/clouds/` e `/tmp/pluvia-stars-webkit/clouds/` para treze estados em cinco viewports (65 capturas), além dos 12 quadros de relâmpago preservados. A revisão final de cintilação, máscara e movimento está em `/tmp/pluvia-stars-final-chromium/clouds/` e `/tmp/pluvia-stars-final-webkit/clouds/`, incluindo capturas normais em 390 e 1366px. Inspecionados céu limpo/parcial à noite, desktop, celular e paisagem.
+
+- Brilho segue o horário municipal e o crepúsculo náutico da fonte solar compartilhada; desaparece de dia e com tempo fechado. O teste da borda do pôr do sol foi ajustado para esperar brilho zero no instante exato, conforme o motor.
+- Sem drift, repetição de textura, canvas, filtro ou loop por ponto. Pausa em background/offscreen, animação preservada em atualizações e reduced-motion estático foram verificados nos dois navegadores. Não foram capturados erros JavaScript.
+- Suite Node: 356 casos `node:test` e 13 arquivos de assertions diretas aprovados. Sete casos novos verificam horário, crepúsculo, clima, meia-noite, troca de cidade, fallback e cache solar.
+- Sintaxe JavaScript e `deno check` passaram; QA visual geral em Chromium/WebKit passou. Não há lint ou build frontend configurado.
+- Assets originais totalizam 12.983 bytes, limitados a 16KB pelo contrato de cache e disponíveis offline.
+
+Nenhuma pendência visual P0/P1/P2 identificada nas capturas revisadas. O campo é decorativo, sem promessa de constelações/posições observadas. Os limites de hardware iPhone, FPS, bateria e contraste numérico continuam os mesmos.

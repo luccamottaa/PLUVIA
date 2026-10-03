@@ -13,7 +13,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-61"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-62"/);
   assert.match(html, /styles\.css\?v=core-120/);
   assert.match(html, /redesign\.css\?v=panel-31/);
   assert.doesNotMatch(sw, /glass\.js/);
@@ -22,6 +22,9 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const asset of ['sky-sun.svg','sky-cloud-veil.webp','sky-cloud-volume.webp']) assert.ok(sw.includes(`./assets/${asset}`));
   assert.ok(['sky-cloud-veil.webp','sky-cloud-volume.webp'].reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<160*1024,'texturas das nuvens mantêm orçamento leve para o shell mobile');
   assert.ok(!sw.includes('"./assets/sky-cloud-bank.webp"'),'textura antiga não é baixada pelo novo shell');
+  const starAssets=['sky-stars.svg','sky-stars-shimmer.svg'];
+  for(const asset of starAssets) assert.ok(sw.includes(`./assets/${asset}`),'céu noturno disponível offline: '+asset);
+  assert.ok(starAssets.reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<16000,'campo estelar mantém orçamento leve');
   const stormAssets=['rain-near.svg','rain-far.svg','lightning-near.svg','lightning-far.svg'];
   for(const asset of stormAssets) assert.ok(sw.includes(`./assets/${asset}`),'efeito disponível offline: '+asset);
   assert.ok(stormAssets.reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<15000,'efeitos vetoriais mantêm orçamento pequeno');

@@ -41,8 +41,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" href="./vendor/suncalc.js?v=sky-3" as="script" />
     <link rel="preload" href="./modules/moon-view.js?v=moon-3" as="script" />
-    <link rel="preload" href="./modules/sky-atmosphere.js?v=sky-8" as="script" />
-    <link rel="preload" href="./sky.css?v=sky-9" as="style" />
+    <link rel="preload" href="./modules/sky-atmosphere.js?v=sky-9" as="script" />
+    <link rel="preload" href="./sky.css?v=sky-10" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       html { background:#041936; font-family:"Nunito",ui-rounded,system-ui,sans-serif; }
@@ -81,8 +81,8 @@
     <script src="./modules/city-time.js?v=time-1"></script>
     <script src="./vendor/suncalc.js?v=sky-3"></script>
     <script src="./modules/moon-view.js?v=moon-3"></script>
-    <script src="./modules/sky-atmosphere.js?v=sky-8"></script>
-    <link rel="stylesheet" href="./sky.css?v=sky-9" />
+    <script src="./modules/sky-atmosphere.js?v=sky-9"></script>
+    <link rel="stylesheet" href="./sky.css?v=sky-10" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-31" />
@@ -109,7 +109,7 @@
     <a class="skip-link" href="#agora">Ir para o clima</a>
     <div id="pluviaIntro" class="pluvia-intro">
       <p class="intro-kicker">Feito no Norte</p>
-      <div class="intro-sky" aria-hidden="true"><span class="sky-twilight"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
+      <div class="intro-sky" aria-hidden="true"><span class="sky-twilight"></span><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
       <div class="intro-wordmark"><span class="intro-drop" aria-hidden="true"></span><strong>PLUVIA</strong></div>
       <p class="intro-tagline">O céu de cada cidade</p>
       <p class="intro-copy">Consulte o tempo antes de sair.</p>
@@ -142,7 +142,7 @@
     </script>
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
-    <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
+    <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
     <header class="topbar shell" id="top">
       <a class="brand" href="#top" aria-label="PLUVIA, início"><span class="brand-mark" aria-hidden="true"></span><span>PLUVIA</span></a>
       <button id="accountButton" class="account-trigger" type="button" aria-haspopup="dialog" aria-controls="accountDialog">Entrar / cadastrar</button>

@@ -4,6 +4,7 @@
   --cloud-opacity:0; --cloud-filter:brightness(.48) saturate(.65);
   --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; --sun-opacity:1;
   --rain-opacity:0; --rain-back-opacity:0; --lightning-opacity:.52;
+  --stars-visibility:0;
   --twilight-color:radial-gradient(ellipse at 78% 35%,#ffe8ad99,transparent 48%),linear-gradient(180deg,#6577b6,#be99b7 24%,#f1bb99 48%,#e8c89e 100%);
 }
 :root[data-phase="day"] {
@@ -52,6 +53,14 @@ html,body { background:var(--sky-base); }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) .sky-twilight { display:block; }
 :root:is([data-weather="cloud"],[data-weather="rain"],[data-weather="fog"],[data-weather="snow"]) .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .6); }
 :root[data-weather="storm"] .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .3); }
+/* A fixed, irregular point field stays behind the clouds and celestial disks.
+   Only a few brighter points shimmer; the sky never rotates or restarts on open. */
+.sky-stars { position:absolute; inset:0 0 auto; height:clamp(500px,64vw,760px); z-index:0; pointer-events:none; background:url("./assets/sky-stars.svg") center top / cover no-repeat; opacity:calc(var(--stars-visibility,0) * .72); -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); transition:opacity 4s ease; }
+.sky-stars::after { content:""; position:absolute; inset:0; background:url("./assets/sky-stars-shimmer.svg") center top / cover no-repeat; opacity:.8; animation:sky-star-shimmer 9s ease-in-out infinite alternate; animation-delay:-5s; animation-play-state:paused; }
+:root[data-phase="night"]:is([data-weather="sun"],[data-weather="partly"]) .sky-stars::after { animation-play-state:running; }
+:root[data-sky-transition="live"] .sky-stars { transition:opacity 28s linear; }
+:root:not([data-phase="night"]) .sky-stars,
+:root:not([data-weather="sun"]):not([data-weather="partly"]) .sky-stars { opacity:0; }
 /* A luminous photosphere and atmospheric glow travel as one object.
    Static gradients keep the light steady and avoid animated blur on mobile. */
 .sky-sun { display:none; position:absolute; z-index:1; top:0; left:0; width:108px; aspect-ratio:1; opacity:calc(var(--sun-opacity) * var(--sun-visibility,0)); transform:translate3d(calc(var(--sun-orbit-x,.5) * 100vw - 50%),calc(env(safe-area-inset-top,0px) + var(--orbit-top) + var(--sun-orbit-y,0) * var(--orbit-height) - 50%),0); background:url("./assets/sky-sun.svg?v=sun-2") center / contain no-repeat; }
@@ -92,6 +101,7 @@ html,body { background:var(--sky-base); }
 .sky-effects { -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); }
 @keyframes clouds-back { from { transform:translate3d(-32px,-4px,0); } to { transform:translate3d(32px,4px,0); } }
 @keyframes clouds-front { from { transform:translate3d(28px,6px,0); } to { transform:translate3d(-28px,-6px,0); } }
+@keyframes sky-star-shimmer { 0% { opacity:.55; } 40% { opacity:.82; } 70% { opacity:.65; } 100% { opacity:.95; } }
 @keyframes sky-rain-fall { to { transform:translate3d(0,480px,0); } }
 @keyframes storm-flash-near { 0%,29.5%,34%,100% { opacity:0; } 30% { opacity:var(--lightning-opacity); } 30.8% { opacity:calc(var(--lightning-opacity) * .55); } 32% { opacity:calc(var(--lightning-opacity) * .1); } }
 @keyframes storm-flash-far { 0%,66.5%,69.5%,100% { opacity:0; } 67% { opacity:calc(var(--lightning-opacity) * .65); } 67.8% { opacity:calc(var(--lightning-opacity) * .24); } }
