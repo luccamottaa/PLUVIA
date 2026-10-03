@@ -43,10 +43,28 @@ Após essas correções, nenhuma pendência visual P0, P1 ou P2 foi identificada
 - Decode dos dois assets, duas camadas limitadas, ausência de overflow, visibilidade dos controles principais e reduced-motion.
 - Objetos de animação preservados ao mudar a condição; pausa fora da tela e no céu limpo; sem erros JavaScript capturados.
 
-Os 358 testes Node passaram, incluindo os contratos de cache e o orçamento dos assets. O workflow também executa os testes gerais de layout, conta, estados visuais, Nowcast e planejamento, além de sintaxe e tipos das funções.
+Na etapa de nuvens, os 358 testes Node passaram, incluindo os contratos de cache e o orçamento dos assets. O workflow também executa os testes gerais de layout, conta, estados visuais, Nowcast e planejamento, além de sintaxe e tipos das funções.
 
 ## Diferenças intencionais e limites
 
 O Pluvia mantém sua identidade, os dados, os cards e a navegação. A iluminação segue o seu relógio municipal existente; as nuvens são uma representação decorativa da condição, não uma leitura espacial da nebulosidade. A referência Apple orienta textura, profundidade e suavidade.
 
 WebKit automatizado não substitui um teste no iPhone físico. FPS, consumo de bateria e contraste numérico não foram medidos. Não há lint ou build frontend configurados; `dist/` contém os arquivos publicados.
+
+## Evolução posterior — chuva e raios
+
+Result: **passed** para a revisão visual e os contratos atmosféricos em Chromium e WebKit.
+
+Reutiliza as duas camadas de chuva e o único elemento de relâmpago, sem alterar layout, copy ou dados meteorológicos. Os SVGs `rain-far` e `rain-near` têm rastros com tamanhos/transparências diferentes. `lightning-near` e `lightning-far` têm canais finos com ramificações e halo estático; os pseudo-elementos combinam esses canais com iluminação localizada nas nuvens.
+
+Evidência final: `/tmp/pluvia-rain-final-chromium/clouds/` e `/tmp/pluvia-rain-final-webkit/clouds/`. Inspecionadas capturas de chuva forte, tempestade noturna e clarões próximos/distantes de dia e à noite, em celular e desktop. Quadros de clarão são amostrados e pausados no pico; não há vídeo acelerado ou nova sequência de flashes no relatório.
+
+- Onze estados atmosféricos em cinco viewports: 55 capturas por navegador, acrescidas de 12 quadros de clarão em 320, 390 e 1366px, para 67 capturas atmosféricas por navegador.
+- Raios com brilho local e ramificações mais naturais, sem o ícone antigo ou flashes brancos de tela inteira; controles e leitura principal continuam visíveis.
+- Movimento da chuva amostrado no mesmo ponto do tile de 480px; profundidade, velocidades diferentes e continuidade do loop preservadas.
+- Pausa em background/offscreen inclui `::before` e `::after`; reduced-motion conserva gotas estáticas e remove raios. Mudanças de chuva preservam suas animações, e sair de tempestade remove os relâmpagos.
+- 362 testes Node aprovados, incluindo categorias WMO, ausência de volume inventado em trovoadas, remoção de gotas com dados inválidos/condição seca e contratos de cache. Os quatro SVGs somam 4.943 bytes.
+
+A amostragem evita tempos negativos nas animações com delay e aguarda a animação existente de entrada do conteúdo terminar. A verificação de pausa usa animações novas, sem os overrides de play-state usados apenas para congelar os quadros de revisão.
+
+Nenhuma pendência visual P0/P1/P2 identificada nas capturas finais revisadas. Os efeitos são decorativos, separados das detecções reais de raios do mapa. Os limites de hardware e medição descritos acima permanecem. Funcionamento e códigos estão em `docs/RAIN-AND-LIGHTNING.md`.

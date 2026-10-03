@@ -22,6 +22,56 @@ test('dados ausentes limpam a condição anterior sem inventar céu limpo',()=>{
  assert.equal(context.document.body.dataset.phase,'unknown');
 });
 
+function rainScene() {
+ const node=()=>({dataset:{},values:{},style:{setProperty(key,value){this.owner.values[key]=value;}}});
+ const root=node(),body=node();root.style.owner=root;body.style.owner=body;
+ return {root,body,sky:create({document:{documentElement:root,body}})};
+}
+test('garoa, chuva leve, moderada e forte usam os códigos WMO em ambas as cenas',()=>{
+ const {root,body,sky}=rainScene();
+ for(const [kind,codes] of [['drizzle',[51,53,55,56,57]],['light',[61,66,80]],['moderate',[63,81]],['heavy',[65,67,82]]]) {
+  for(const code of codes) {
+   sky.apply(code,1);
+   assert.equal(root.dataset.rain,kind);assert.equal(body.dataset.rain,kind);
+   assert.equal(root.dataset.weather,'rain');assert.deepEqual(root.values,body.values);
+   assert.ok(+root.values['--rain-opacity']>0 && +root.values['--rain-back-opacity']>0);
+  }
+ }
+});
+test('a representação de chuva aumenta gradualmente, com camadas em velocidades diferentes',()=>{
+ const {root,sky}=rainScene();let previous={opacity:0,speed:Infinity,width:Infinity};
+ for(const code of [51,61,63,65]) {
+  sky.apply(code,1);
+  const opacity=+root.values['--rain-opacity'],speed=parseFloat(root.values['--rain-speed']),width=parseFloat(root.values['--rain-width']);
+  assert.ok(opacity>previous.opacity && opacity<=.8);
+  assert.ok(speed<previous.speed && speed>=1);
+  assert.ok(width<previous.width && width>=200);
+  assert.ok(parseFloat(root.values['--rain-back-speed'])>speed,'camada distante cai mais lentamente');
+  previous={opacity,speed,width};
+ }
+});
+test('trovoada não implica automaticamente chuva forte nem representa um raio observado',()=>{
+ const {root,sky}=rainScene();sky.apply(63,0);const moderate={...root.values};
+ for(const code of [95,96,99]) {
+  sky.apply(code,0);
+  assert.equal(root.dataset.weather,'storm');assert.equal(root.dataset.rain,'moderate');
+  assert.equal(root.values['--rain-opacity'],moderate['--rain-opacity']);
+  assert.equal(root.values['--rain-speed'],moderate['--rain-speed']);
+ }
+});
+test('condições secas, neve, neblina e dados inválidos removem a chuva anterior',()=>{
+ const {root,body,sky}=rainScene();
+ for(const code of [0,2,3,45,48,71,73,75,77,85,86,null,undefined,NaN,Infinity,'65']) {
+  sky.apply(65,1);sky.apply(code,0);
+  for(const node of [root,body]) {
+   assert.equal(node.dataset.rain,'none');
+   assert.equal(node.values['--rain-opacity'],'0');assert.equal(node.values['--rain-back-opacity'],'0');
+  }
+  const before={...root.values};sky.update(Date.now()+30000);
+  assert.deepEqual(root.values,before,'o relógio não restaura gotas de outra condição');
+ }
+});
+
 test('amanhecer e entardecer usam os horários da cidade, com retorno ao céu normal',()=>{
  context.activeCity = null;
  context.applyWeatherAtmosphere(2,1,{sunrise:['2026-09-28T05:46:00-04:00'],sunset:['2026-09-28T17:54:00-04:00']});

@@ -83,6 +83,8 @@ CSS final é uma cascata intencional: `sky.css`, `styles.css`, `redesign.css`, `
 
 Nuvens usam somente as duas camadas existentes: `sky-cloud-veil.webp` ao fundo e `sky-cloud-volume.webp` à frente, em `sky.css`. Não repetir a imagem horizontalmente: isso cria emendas. O movimento alterna poucos pixels dentro de uma margem de 64px, com transform/opacity; não adicionar canvas, WebGL, turbulence ou blur animado. Pausar céu limpo, cenas fora da tela e página oculta; reduced-motion remove movimento/transição. As duas texturas do shell somam menos de 160KiB. O antigo sky-cloud-bank permanece disponível para shells legados, mas não entra no novo precache. Ver `docs/CLOUDS.md` e `scripts/verify-clouds.py`.
 
+Chuva reutiliza as duas camadas existentes com `rain-far.svg`/`rain-near.svg` e perfis WMO em `sky-atmosphere.js`. O tile e o deslocamento vertical têm 480px; não alterar um sem o outro. Probabilidade não controla densidade/volume; trovoada não implica chuva forte. Raios são dois pseudo-elementos do único `.sky-lightning`, com canais ramificados e pulsos locais espaçados. Pausa/reduced-motion devem cobrir também `::before` e `::after`; reduced-motion esconde raios. Efeitos são decorativos, sem ligação com detecções Xweather e sem consultas próprias. Os quatro SVGs somam menos de 15KB. Ver `docs/RAIN-AND-LIGHTNING.md`.
+
 Preserve safe areas, `svh`/`dvh`, viewport dinâmico e integração `visualViewport` dos diálogos. Teste teclado, orientação horizontal, toque e áreas pequenas, além de Android/desktop. Não usar hacks por modelo de iPhone. Preserve `prefers-reduced-motion`, foco, labels e controles nativos. O status de dados antigos deve ser visível, mesmo que o status normal permaneça discreto.
 
 ## PWA e publicação

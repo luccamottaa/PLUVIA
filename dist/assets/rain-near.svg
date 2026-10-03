@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="480" viewBox="0 0 320 480">
+  <defs>
+    <linearGradient id="streak" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#e5f5ff" stop-opacity="0"/>
+      <stop offset=".65" stop-color="#e5f5ff" stop-opacity=".18"/>
+      <stop offset=".9" stop-color="#f1faff" stop-opacity=".72"/>
+      <stop offset="1" stop-color="#e5f5ff" stop-opacity=".08"/>
+    </linearGradient>
+    <path id="long" d="M9 0 1 48" stroke-width="1.15"/>
+    <path id="short" d="M5 0 1 27" stroke-width=".7"/>
+    <path id="middle" d="M7 0 1 38" stroke-width=".9"/>
+  </defs>
+  <g fill="none" stroke="url(#streak)" stroke-linecap="round">
+    <use href="#middle" x="29" y="11" opacity=".7"/>
+    <use href="#short" x="204" y="37" opacity=".6"/>
+    <use href="#long" x="112" y="65"/>
+    <use href="#short" x="274" y="91" opacity=".75"/>
+    <use href="#middle" x="59" y="139" opacity=".55"/>
+    <use href="#long" x="230" y="165" opacity=".8"/>
+    <use href="#short" x="146" y="195"/>
+    <use href="#middle" x="12" y="229" opacity=".65"/>
+    <use href="#short" x="292" y="252" opacity=".5"/>
+    <use href="#long" x="181" y="278" opacity=".85"/>
+    <use href="#middle" x="88" y="304"/>
+    <use href="#short" x="244" y="336" opacity=".6"/>
+    <use href="#long" x="31" y="360" opacity=".8"/>
+    <use href="#short" x="139" y="399" opacity=".5"/>
+    <use href="#middle" x="277" y="419"/>
+    <use href="#short" x="195" y="447" opacity=".7"/>
+  </g>
+</svg>

@@ -31,6 +31,22 @@
     if ([95,96,99].includes(code)) return 'storm';
     return 'unknown';
   }
+  // Decorative profiles from WMO categories, never an observed rain rate.
+  // Thunderstorm codes do not specify an amount: use the moderate visual profile.
+  const RAIN_PROFILES = {
+    none:{kind:'none',opacity:0,backOpacity:0,speed:2.2,backSpeed:4.3,width:380,backWidth:640},
+    drizzle:{kind:'drizzle',opacity:.16,backOpacity:.3,speed:2.8,backSpeed:5.2,width:520,backWidth:600},
+    light:{kind:'light',opacity:.35,backOpacity:.4,speed:2.2,backSpeed:4.3,width:380,backWidth:640},
+    moderate:{kind:'moderate',opacity:.58,backOpacity:.5,speed:1.6,backSpeed:3.2,width:300,backWidth:480},
+    heavy:{kind:'heavy',opacity:.76,backOpacity:.62,speed:1.05,backSpeed:2.4,width:220,backWidth:360}
+  };
+  function rainProfile(code) {
+    if ([51,53,55,56,57].includes(code)) return RAIN_PROFILES.drizzle;
+    if ([61,66,80].includes(code)) return RAIN_PROFILES.light;
+    if ([63,81,95,96,99].includes(code)) return RAIN_PROFILES.moderate;
+    if ([65,67,82].includes(code)) return RAIN_PROFILES.heavy;
+    return RAIN_PROFILES.none;
+  }
   function localDate(now, timezone) {
     return time?.dayKey(now,timezone);
   }
@@ -92,8 +108,9 @@
       return {...dayAt(at),date:day.date,dawn:day.dawn,dusk:day.dusk,...moonDays.get(day.date)};
     }
     function write(state, animate) {
+      const rain = rainProfile(code);
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
-        Object.assign(node.dataset,{phase:state.phase,solar:state.solar,weather,skyTransition:animate ? 'live' : 'instant'});
+        Object.assign(node.dataset,{phase:state.phase,solar:state.solar,weather,rain:rain.kind,skyTransition:animate ? 'live' : 'instant'});
         node.style?.setProperty('--twilight-opacity',state.strength.toFixed(3));
         node.style?.setProperty('--sun-visibility',state.sunVisibility.toFixed(3));
         node.style?.setProperty('--moon-visibility',state.moonVisibility.toFixed(3));
@@ -101,8 +118,12 @@
         node.style?.setProperty('--sun-orbit-y',state.sunY.toFixed(6));
         node.style?.setProperty('--moon-orbit-x',state.moonX.toFixed(6));
         node.style?.setProperty('--moon-orbit-y',state.moonY.toFixed(6));
-        node.style?.setProperty('--rain-opacity',weather === 'storm' ? '.85' : [65,67,82].includes(code) ? '.8' : '.6');
-        node.style?.setProperty('--rain-speed',weather === 'storm' || [65,67,82].includes(code) ? '1s' : '1.6s');
+        node.style?.setProperty('--rain-opacity',String(rain.opacity));
+        node.style?.setProperty('--rain-back-opacity',String(rain.backOpacity));
+        node.style?.setProperty('--rain-speed',`${rain.speed}s`);
+        node.style?.setProperty('--rain-back-speed',`${rain.backSpeed}s`);
+        node.style?.setProperty('--rain-width',`${rain.width}px`);
+        node.style?.setProperty('--rain-back-width',`${rain.backWidth}px`);
       }
       return state;
     }
