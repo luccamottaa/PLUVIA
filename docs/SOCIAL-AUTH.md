@@ -16,7 +16,7 @@ Retorno usa https://pluviaweather.com.br/?auth_return=1, sem herdar query/hash o
 
 Projeto: https://supabase.com/dashboard/project/dszyyrcvwrpyiypwyvxe/auth/providers
 
-1. Em URL Configuration, conferir Site URL https://pluviaweather.com.br e adicionar retorno EXATO https://pluviaweather.com.br/?auth_return=1 à allowlist. Preservar o retorno de e-mail existente. Não usar wildcard amplo de produção.
+1. Em URL Configuration, conferir Site URL https://pluviaweather.com.br/ e adicionar retorno EXATO https://pluviaweather.com.br/?auth_return=1 à allowlist, junto dos retornos de confirmação/recuperação documentados em ACCOUNT-EMAILS.md. O helper compartilha o domínio público entre os três fluxos, inclusive quando iniciados em preview; somente loopback permanece local. Não usar wildcard amplo de produção.
 2. Configurar cada provedor abaixo no painel Supabase, com secrets exclusivamente no servidor. Não enviar valores em chat, GitHub, código público ou analytics.
 3. Depois de salvar, recarregar a página ou aguardar freshness da descoberta e abrir Minha conta. Cada botão só aparece se settings.external desse provedor for true.
 4. Testar com conta de teste autorizada, cancelar consentimento, entrar novamente, sair e conferir sincronização de favoritos/nome. Verificar Chrome, Safari e PWA instalado; redirect social em iOS pode abrir o navegador e a sessão pertence ao contexto que recebe o retorno. Não prometer sessão compartilhada entre Safari e standalone.

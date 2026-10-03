@@ -35,6 +35,23 @@ test('recuperação solicita link sem senha e sem revelar existência da conta, 
  await app.nodes.get('accountForm').events.submit({preventDefault(){}});assert.equal(calls,1);
  app.nodes.get('accountLogin').events.click();assert.equal(app.nodes.get('accountPassword').required,true);
 });
+test('cadastro e recuperação iniciados no preview solicitam retorno ao domínio público',async()=>{
+ for(const origin of ['https://pluvia-lucca-49c6.vercel.app','https://pluviaweather.com.br']){
+  const app=boot({user:null});await settle();
+  app.context.location={origin,pathname:'/index.html',search:'?redirect_to=https://other.test',hash:'#fixture'};
+  let signup,recovery;
+  app.client.auth.signUp=async args=>{signup=args;return {data:{session:null}};};
+  app.client.auth.resetPasswordForEmail=async(email,options)=>{recovery={email,options};return {error:null};};
+  app.nodes.get('accountSignup').events.click();app.context.document.getElementById('accountName').value='Fixture';
+  app.context.document.getElementById('accountEmail').value='fixture@example.test';app.nodes.get('accountPassword').value='Fixture-password1!';
+  await app.nodes.get('accountForm').events.submit({preventDefault(){}});
+  assert.equal(signup.options.emailRedirectTo,'https://pluviaweather.com.br/');
+  assert.equal(signup.options.data.name,'Fixture');assert.equal(app.nodes.get('accountProfile').hidden,true);
+  app.nodes.get('accountLogin').events.click();app.nodes.get('accountForgot').events.click();
+  await app.nodes.get('accountForm').events.submit({preventDefault(){}});
+  assert.equal(recovery.options.redirectTo,'https://pluviaweather.com.br/?auth_recovery=1');
+ }
+});
 test('somente PASSWORD_RECOVERY habilita troca; valida confirmação e limpa senhas após salvar',async()=>{
  const app=boot();await settle();let args;
  app.client.auth.updateUser=async value=>{args=value;return {error:null};};
