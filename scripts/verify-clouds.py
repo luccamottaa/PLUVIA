@@ -1,4 +1,4 @@
-"""Sky textures, rain depth, lightning and motion using weather fixtures only."""
+"""Sky textures, stars, rain depth, lightning and motion using weather fixtures only."""
 import datetime,json,os,shutil,subprocess
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
@@ -32,20 +32,26 @@ with sync_playwright() as p:
  report=[]
  for width,height in [(320,740),(390,844),(844,390),(1366,768),(2560,1080)]:
   page.set_viewport_size({'width':width,'height':height})
-  for name,hour,code in [('clear',13,0),('partly',13,2),('cloudy',13,3),('drizzle',14,51),('light-rain',14,61),('rain',14,65),('storm',15,95),('storm-night',22,95),('cloudy-night',22,3),('sunrise',6,2),('sunset',18,2)]:
+  for name,hour,code in [('clear',13,0),('clear-night',22,0),('partly',13,2),('partly-night',22,2),('cloudy',13,3),('drizzle',14,51),('light-rain',14,61),('rain',14,65),('storm',15,95),('storm-night',22,95),('cloudy-night',22,3),('sunrise',6,2),('sunset',18,2)]:
    mode.update(code=code,hour=hour);page.clock.set_fixed_time(datetime.datetime(2026,10,1,hour,tzinfo=datetime.timezone.utc)+datetime.timedelta(hours=4))
    page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
    page.wait_for_function("!document.documentElement.classList.contains('awaiting-styles')")
    page.locator('#temperature').wait_for(state='visible',timeout=20000)
-   decoded=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp','rain-near.svg','rain-far.svg','lightning-near.svg','lightning-far.svg'].map(async name=>{const i=new Image();i.src='./assets/'+name;await i.decode();return [i.naturalWidth,i.naturalHeight];}))""")
-   assert decoded==[[1120,560],[1120,560],[320,480],[480,480],[270,400],[270,400]],decoded
+   decoded=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp','rain-near.svg','rain-far.svg','lightning-near.svg','lightning-far.svg','sky-stars.svg','sky-stars-shimmer.svg'].map(async name=>{const i=new Image();i.src='./assets/'+name;await i.decode();return [i.naturalWidth,i.naturalHeight];}))""")
+   assert decoded==[[1120,560],[1120,560],[320,480],[480,480],[270,400],[270,400],[1200,700],[1200,700]],decoded
    page.wait_for_timeout(200)
    assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(width,name)
    layers=page.locator('.sky-effects > .sky-clouds')
    assert layers.count()==2
    data=layers.evaluate_all("els=>els.map(el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,repeat:s.backgroundRepeat,animation:s.animationName,width:el.offsetWidth,height:el.offsetHeight};})")
    assert all(d['repeat']=='no-repeat' and d['animation']=='none' and d['width']<=width+130 and d['height']<=640 for d in data),(width,name,data)
-   assert all(d['opacity']==0 for d in data) if name=='clear' else all(d['opacity']>0 for d in data)
+   assert all(d['opacity']==0 for d in data) if code==0 else all(d['opacity']>0 for d in data)
+   stars=page.locator('.sky-effects > .sky-stars')
+   assert stars.count()==1 and page.locator('.intro-sky > .sky-stars').count()==1
+   star=stars.evaluate("el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,repeat:s.backgroundRepeat,animation:getComputedStyle(el,'::after').animationName,height:el.offsetHeight,width:el.offsetWidth};}")
+   assert star['repeat']=='no-repeat' and star['animation']=='none' and star['height']<=760 and star['width']==width,star
+   visible=name in ['clear-night','partly-night']
+   assert (star['opacity']>0)==visible,(width,name,star)
    rain=page.locator('.sky-effects > .sky-rain').evaluate_all("els=>els.map(el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,animation:s.animationName,size:s.backgroundSize};})")
    assert len(rain)==2 and all(d['animation']=='none' and d['size'].endswith('480px') for d in rain)
    wet=code in [51,61,65,95]
@@ -69,6 +75,34 @@ with sync_playwright() as p:
  page.evaluate('window.scrollTo(0,0)');page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='running'")
  page.evaluate("PLUVIA.sky.apply(0,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert all(s=='paused' for s in page.locator('.sky-effects > .sky-clouds').evaluate_all("els=>els.map(el=>getComputedStyle(el).animationPlayState)"))
+ # A few stars shimmer without drifting; condition updates keep the animation.
+ normal_stars=[]
+ mode.update(code=0,hour=22);page.clock.set_fixed_time(datetime.datetime(2026,10,2,2,tzinfo=datetime.timezone.utc))
+ for width,height in [(390,844),(1366,768)]:
+  page.set_viewport_size({'width':width,'height':height});page.goto(preview)
+  page.wait_for_function("document.body.dataset.weather==='sun' && document.querySelector('.sky-effects').dataset.motion==='running' && +getComputedStyle(document.querySelector('.sky-effects > .sky-stars')).opacity>.7")
+  page.wait_for_function("(()=>{for(let el=document.getElementById('temperature');el;el=el.parentElement)if(+getComputedStyle(el).opacity<.99)return false;return true;})()")
+  page.screenshot(path=str(output/(str(width)+'-stars-normal.png')))
+  normal_stars.append({'viewport':width,'staticField':True,'sparseShimmer':True})
+ star=page.locator('.sky-effects > .sky-stars')
+ page.evaluate("window.starAnimation=document.querySelector('.sky-effects > .sky-stars').getAnimations({subtree:true}).find(a=>a.animationName==='sky-star-shimmer');PLUVIA.sky.apply(2,0,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
+ assert page.evaluate("document.querySelector('.sky-effects > .sky-stars').getAnimations({subtree:true}).includes(starAnimation)")
+ assert star.evaluate("el=>getComputedStyle(el).transform==='none' && getComputedStyle(el,'::after').transform==='none'")
+ page.evaluate("document.body.classList.add('page-hidden')")
+ assert star.evaluate("el=>getComputedStyle(el,'::after').animationPlayState==='paused'")
+ assert page.evaluate("starAnimation.playState==='paused'")
+ page.evaluate('document.body.classList.remove("page-hidden");window.scrollTo(0,document.body.scrollHeight)')
+ page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
+ assert star.evaluate("el=>getComputedStyle(el,'::after').animationPlayState==='paused'")
+ page.evaluate('window.scrollTo(0,0)');page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='running'")
+ page.emulate_media(reduced_motion='reduce')
+ assert star.evaluate("el=>getComputedStyle(el,'::after').animationName==='none' && +getComputedStyle(el).opacity>0")
+ # Night/weather CSS gates also protect against an old shell retaining brightness.
+ page.evaluate("PLUVIA.sky.apply(95,0,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'});[document.documentElement,document.body].forEach(el=>el.style.setProperty('--stars-visibility','1'))")
+ assert star.evaluate("el=>+getComputedStyle(el).opacity===0")
+ page.evaluate("PLUVIA.sky.apply(0,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'},Date.parse('2026-10-01T16:00Z'));[document.documentElement,document.body].forEach(el=>el.style.setProperty('--stars-visibility','1'))")
+ assert star.evaluate("el=>+getComputedStyle(el).opacity===0")
+ page.emulate_media(reduced_motion='no-preference')
  # Sample native animation frames; no accelerated/flashing video in artifacts.
  lightning=[]
  for width,height in [(320,740),(390,844),(1366,768)]:
@@ -118,5 +152,5 @@ with sync_playwright() as p:
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>getComputedStyle(el).display")=='none'
  assert page.evaluate("document.querySelector('.sky-effects').getAnimations({subtree:true}).length===0")
  assert not errors,errors
- print(json.dumps({'screenshots':report,'lightning':lightning,'seamlessBoundedLayers':True,'preservedAnimationObjects':True,'rainDepth':True,'offscreenPause':True,'backgroundPseudoPause':True,'clearSkyPause':True,'reducedMotion':True,'errors':errors}))
+ print(json.dumps({'screenshots':report,'lightning':lightning,'normalStars':normal_stars,'seamlessBoundedLayers':True,'preservedAnimationObjects':True,'nightStars':True,'starWeatherGate':True,'rainDepth':True,'offscreenPause':True,'backgroundPseudoPause':True,'clearSkyPause':True,'reducedMotion':True,'errors':errors}))
  context.close();browser.close()

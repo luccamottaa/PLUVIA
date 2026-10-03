@@ -85,6 +85,8 @@ Nuvens usam somente as duas camadas existentes: `sky-cloud-veil.webp` ao fundo e
 
 Chuva reutiliza as duas camadas existentes com `rain-far.svg`/`rain-near.svg` e perfis WMO em `sky-atmosphere.js`. O tile e o deslocamento vertical têm 480px; não alterar um sem o outro. Probabilidade não controla densidade/volume; trovoada não implica chuva forte. Raios são dois pseudo-elementos do único `.sky-lightning`, com canais ramificados e pulsos locais espaçados. Pausa/reduced-motion devem cobrir também `::before` e `::after`; reduced-motion esconde raios. Efeitos são decorativos, sem ligação com detecções Xweather e sem consultas próprias. Os quatro SVGs somam menos de 15KB. Ver `docs/RAIN-AND-LIGHTNING.md`.
 
+Estrelas usam uma `.sky-stars` por cena existente, atrás das nuvens/Lua. Campo estático e oito pontos de cintilação são SVGs separados, com menos de 16KB no total; não adicionar DOM/timer por estrela, rotação, canvas ou blur. `sky-atmosphere` deriva brilho do mesmo dia municipal/crepúsculo náutico em cache; nunca do tempo desde a abertura. Somente noite limpa/parcial exibe estrelas; CSS e controlador protegem contra condição desconhecida/dados legados. Pausar cintilação fora da tela/background/tempo fechado; reduced-motion mantém estrelas estáticas. É decoração, sem catálogo ou constelações reais. Ver `docs/STARS.md`.
+
 Preserve safe areas, `svh`/`dvh`, viewport dinâmico e integração `visualViewport` dos diálogos. Teste teclado, orientação horizontal, toque e áreas pequenas, além de Android/desktop. Não usar hacks por modelo de iPhone. Preserve `prefers-reduced-motion`, foco, labels e controles nativos. O status de dados antigos deve ser visível, mesmo que o status normal permaneça discreto.
 
 ## PWA e publicação

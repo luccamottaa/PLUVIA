@@ -15,6 +15,7 @@
   'use strict';
   const WINDOW_MS = 30 * 60000;
   const CELESTIAL_FADE_MS = 15 * 60000;
+  const STAR_FADE_MS = 45 * 60000;
   const DAY_MS = 24 * 3600000;
   const CLOCK_STEP_MS = 60000;
   const ORBIT_MARGIN = .12;
@@ -67,7 +68,7 @@
           if(!Number.isFinite(start) || !Number.isFinite(end) || end<=start) return null;
           const result=sun?.getTimes(new Date(cityTime(date+'T12:00:00',city)),city.lat,city.lon) || {};
           const stamp=value=>Number.isFinite(value?.getTime?.()) ? value.getTime() : null;
-          calculatedDays.set(date,{date,start,end,rise:stamp(result.sunrise),set:stamp(result.sunset),dawn:stamp(result.dawn),dusk:stamp(result.dusk)});
+          calculatedDays.set(date,{date,start,end,rise:stamp(result.sunrise),set:stamp(result.sunset),dawn:stamp(result.dawn),dusk:stamp(result.dusk),nauticalDawn:stamp(result.nauticalDawn),nauticalDusk:stamp(result.nauticalDusk)});
           if(calculatedDays.size>3) calculatedDays.delete(calculatedDays.keys().next().value);
         }
         return calculatedDays.get(date);
@@ -114,6 +115,7 @@
         node.style?.setProperty('--twilight-opacity',state.strength.toFixed(3));
         node.style?.setProperty('--sun-visibility',state.sunVisibility.toFixed(3));
         node.style?.setProperty('--moon-visibility',state.moonVisibility.toFixed(3));
+        node.style?.setProperty('--stars-visibility',state.starVisibility.toFixed(3));
         node.style?.setProperty('--sun-orbit-x',state.sunX.toFixed(6));
         node.style?.setProperty('--sun-orbit-y',state.sunY.toFixed(6));
         node.style?.setProperty('--moon-orbit-x',state.moonX.toFixed(6));
@@ -147,6 +149,7 @@
       let sunVisibility = phase === 'day' ? 1 : 0;
       let moonVisibility = phase === 'night' ? 1 : 0;
       let dayProgress = .5, nightProgress = .5;
+      let starVisibility = Number.isFinite(at) && phase === 'night' && ['sun','partly'].includes(weather) ? 1 : 0;
       if (today) {
         // The disk belongs only to its side of the solar clock. Twilight
         // colors may linger after sunset, but they never bring the sun back.
@@ -156,7 +159,19 @@
         const nightStart = at < today.rise ? dayAt(today.start - 1)?.set ?? today.set - DAY_MS : today.set;
         const nightEnd = at < today.rise ? today.rise : dayAt(today.end)?.rise ?? today.rise + DAY_MS;
         nightProgress = clamp((at - nightStart) / (nightEnd - nightStart));
+        if (starVisibility) {
+          // Fade using the same cached solar ephemeris, never time since opening.
+          // Forecast rise/set remain the phase boundary; nautical twilight supplies
+          // the dark end when valid, with a bounded visual fallback if unavailable.
+          const calculated = calculatedDay(at);
+          const boundary = at < today.rise ? calculated?.nauticalDawn : calculated?.nauticalDusk;
+          const fade = Number.isFinite(boundary) ? (at < today.rise ? today.rise - boundary : boundary - today.set) : NaN;
+          const duration = Number.isFinite(fade) && fade >= CELESTIAL_FADE_MS && fade <= 3 * 3600000 ? fade : STAR_FADE_MS;
+          const darkness = clamp((at < today.rise ? today.rise - at : at - today.set) / duration);
+          starVisibility = darkness * darkness * (3 - 2 * darkness);
+        }
       }
+      if (weather === 'partly') starVisibility *= .48;
       // Keep the illustrated solar arc; derive the Moon from its horizon.
       let moonX = ORBIT_MARGIN + nightProgress * (1 - 2 * ORBIT_MARGIN);
       let moonY = 1 - Math.sin(Math.PI * nightProgress);
@@ -169,7 +184,7 @@
         } else moonVisibility = 0;
       }
       moonView?.update(at);
-      return write({phase,solar,weather,strength,sunVisibility,moonVisibility,
+      return write({phase,solar,weather,strength,sunVisibility,moonVisibility,starVisibility,
         sunX:ORBIT_MARGIN + dayProgress * (1 - 2 * ORBIT_MARGIN),sunY:1 - Math.sin(Math.PI * dayProgress),
         moonX,moonY},animate);
     }
