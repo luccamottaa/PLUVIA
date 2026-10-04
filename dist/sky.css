@@ -31,11 +31,11 @@
 html,body { background:var(--sky-base); }
 .pluvia-intro { background:var(--sky-color); color:var(--intro-ink); }
 .pluvia-intro::before { background:linear-gradient(180deg,transparent 25%,#03142924); }
-.pluvia-intro :is(.intro-wordmark,.intro-tagline) { color:var(--intro-ink); }
+.pluvia-intro .intro-wordmark { color:var(--brand-blue,#2f6bff); }
+.pluvia-intro .intro-tagline { color:var(--intro-ink); }
 .pluvia-intro .intro-kicker { z-index:1; color:var(--intro-muted); }
 .pluvia-intro .intro-progress { z-index:1; background:color-mix(in srgb,var(--intro-ink) 18%,transparent); }
 .pluvia-intro .intro-progress span { background:var(--intro-ink); }
-:root[data-phase="day"] .pluvia-intro .intro-drop { background:#216ec0; }
 .night-stage::before { content:""; position:absolute; inset:0 0 auto; z-index:-1; pointer-events:none; background-image:var(--sky-color); opacity:1; height:min(1450px,160vh); -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); }
 .night-stage::after { display:none; }
 /* Twilight belongs to the viewport, outside the masked weather effects.
