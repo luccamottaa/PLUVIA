@@ -83,6 +83,8 @@ CSS final é uma cascata intencional: `sky.css`, `styles.css`, `redesign.css`, `
 
 No cabeçalho, símbolo e nome PLUVIA ficam próximos (gap 2px), com o texto no mesmo azul #2f6bff da marca em todas as condições. A linha visual de horário/data foi retirada a pedido; o relógio central continua atualizando céu, astronomia, dados e consumidores. Não reintroduzir dependência dos antigos localClock/localDate/cityTimezone para essas atualizações.
 
+A intro usa a mesma assinatura azul e gap 2px do cabeçalho. Seu CSS inline inclui o fallback #2f6bff para o primeiro paint; a gota herda currentColor. Não recolorir a marca por fase do céu. Slogan, fundo e progresso continuam respondendo à paleta astronômica existente.
+
 Textos de destaque que já são azuis usam `--brand-blue:#2f6bff`, definido na folha final. `--reading-link`, `--graphic-blue` e `--map-link` reutilizam esse token em todas as fases/condições; não criar tons alternativos de azul para dias destacados, precipitação, Ciclo do dia e links de fontes. Texto comum, texto secundário e severidades conservam suas paletas; não aplicar azul globalmente a todo o conteúdo ou recolorir as imagens meteorológicas.
 
 Leituras equivalentes precisam compartilhar linhas: os cinco horários do resumo têm a mesma borda inferior reservada, e seus valores não usam margin-top:auto. Eventos solares ficam depois das leituras comuns, sem subir a temperatura daquela coluna. Sensação, máxima e mínima usam o mesmo espaçamento e métricas dos labels. Títulos/notas das seções alinham pelo centro no desktop e empilham no celular.
