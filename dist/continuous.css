@@ -2,6 +2,19 @@
    controls keep their own surfaces; these rules only apply to the home. */
 /* Blue text shares the logo's color; reading and severity palettes stay distinct. */
 :root { --brand-blue:#2f6bff; }
+/* Keep native scrolling; the browser controls the indicator's size and fade. */
+@media (forced-colors:none) {
+  html,.dialog-scroll,.rain-chart { scrollbar-color:var(--brand-blue) transparent; }
+  @supports not (scrollbar-color:blue transparent) {
+    html::-webkit-scrollbar,.dialog-scroll::-webkit-scrollbar,.rain-chart::-webkit-scrollbar { width:10px; height:10px; }
+    html::-webkit-scrollbar-track,.dialog-scroll::-webkit-scrollbar-track,.rain-chart::-webkit-scrollbar-track { background:transparent; }
+    html::-webkit-scrollbar-thumb,.dialog-scroll::-webkit-scrollbar-thumb,.rain-chart::-webkit-scrollbar-thumb { background:var(--brand-blue); border:2px solid transparent; border-radius:999px; background-clip:padding-box; }
+    html::-webkit-scrollbar-corner,.dialog-scroll::-webkit-scrollbar-corner,.rain-chart::-webkit-scrollbar-corner { background:transparent; }
+  }
+}
+@media (forced-colors:active) {
+  html,.dialog-scroll,.rain-chart { scrollbar-color:auto; }
+}
 /* Browser page pinch remains available. Installed apps only pan the page;
    Leaflet handles map zoom independently. Neither mode zooms on double tap. */
 body { touch-action:manipulation; }
