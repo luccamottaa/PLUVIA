@@ -3,22 +3,21 @@
 :root { --brand-blue:#2f6bff; --blue:var(--brand-blue); }
 /* One brand accent for account, city selection and radar controls. */
 html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog) :is(button,input,select,summary,a):focus-visible { outline-color:var(--brand-blue); }
-html body :is(#cityDialog,#accountDialog) .dialog-close { color:var(--brand-blue); }
-#cityDialog #locateCity,#accountDialog :is(#accountSubmit,#profileSave,#notificationPreferencesSave),#accountDialog .account-tabs button[aria-pressed=true] { background:#071a2d; border:1px solid var(--brand-blue); color:var(--brand-blue); }
-#cityDialog .city-actions button:not(#locateCity),#accountDialog .account-tabs button:not([aria-pressed=true]),#accountDialog .notification-actions button,#accountDialog #accountLogout { color:var(--brand-blue); border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
+#cityDialog #locateCity,#accountDialog :is(#accountSubmit,#profileSave,#notificationPreferencesSave),#accountDialog .account-tabs button[aria-pressed=true] { background:var(--brand-blue); border-color:var(--brand-blue); color:#fff; }
+#cityDialog .city-actions button:not(#locateCity),#accountDialog .notification-actions button { border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
+#accountDialog #accountLogout { color:var(--brand-blue); border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
 #cityDialog .city-result[data-current=true] { border-left-color:var(--brand-blue); }
 #cityDialog .favorite-city-card[aria-current=true] { border-color:var(--brand-blue); }
-#accountDialog .profile-avatar { background:#071a2d; color:var(--brand-blue); }
+#accountDialog .profile-avatar { background:var(--brand-blue); color:#fff; }
 #accountDialog :is(.notification-types,.notification-location,.notification-quiet-toggle) input[type=checkbox] { accent-color:var(--brand-blue); }
 #accountDialog .notification-status.is-on { color:var(--brand-blue); border-color:color-mix(in srgb,var(--brand-blue) 35%,transparent); background:color-mix(in srgb,var(--brand-blue) 8%,transparent); }
 #accountDialog .notification-status.is-on::before { background:var(--brand-blue); }
 #accountDialog :is(.notification-location-row,.notification-device) button { color:var(--brand-blue) !important; border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
-#weatherView .notification-prompt button { background:var(--map-surface,#071a2d); border-color:var(--brand-blue); }
-#radarMapContent [data-weather-layer][aria-pressed=true] { background:var(--map-surface,#071a2d) !important; border-color:var(--brand-blue) !important; }
+#radarMapContent [data-weather-layer][aria-pressed=true] { background:var(--brand-blue) !important; }
 #radarMapContent .weather-player button { color:var(--brand-blue); }
-#radarMapContent .weather-player #weatherPlay { background:var(--map-surface,#071a2d); border-color:var(--brand-blue); color:var(--brand-blue); }
+#radarMapContent .weather-player #weatherPlay { background:var(--brand-blue); border-color:var(--brand-blue); color:#fff; }
 #radarMapContent .weather-player input { accent-color:var(--brand-blue); }
-#radarMapContent .leaflet-control-attribution a,.radar-dialog-heading button { color:var(--brand-blue); }
+#radarMapContent .leaflet-control-attribution a { color:var(--brand-blue); }
 /* Keep native scrolling; the browser controls the indicator's size and fade. */
 @media (forced-colors:none) {
   html,.dialog-scroll,.rain-chart { scrollbar-color:var(--brand-blue) transparent; }
@@ -273,14 +272,14 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
   #weatherView .insight-card .attention-icon,#weatherView .insight-card .attention-icon img { width:44px; height:44px; }
 }
 
-/* Surfaces follow the actual sky phase; text keeps the requested brand palette. */
+/* Reading colors follow the actual sky phase, even on a dark-mode device. */
 #weatherView .temp-track { background:var(--reading-line); box-shadow:none; }
 #weatherView .temp-track .temp-now { background:#f8fbff; border-color:var(--reading-link); box-shadow:0 0 0 1px #f8fbff; }
-body[data-phase="day"] #weatherView [data-weather-layer]:not([aria-pressed="true"]) { background:#edf7fbd9 !important; color:var(--brand-blue) !important; border-color:#12345724 !important; }
+body[data-phase="day"] #weatherView [data-weather-layer]:not([aria-pressed="true"]) { background:#edf7fbd9 !important; color:#294e6b !important; border-color:#12345724 !important; }
 #weatherView .weather-map-legend { background:var(--map-surface); color:var(--map-ink); border-color:var(--map-line); }
 #weatherView .weather-player { grid-template-columns:44px 48px 44px minmax(80px,1fr); gap:8px; }
 #weatherView .weather-player button { display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--map-line); border-radius:50%; background:var(--map-surface); color:var(--map-link); }
-#weatherView .weather-player #weatherPlay { width:48px; height:48px; background:var(--map-surface); color:var(--brand-blue); border-color:var(--brand-blue); box-shadow:0 3px 10px #12345724; }
+#weatherView .weather-player #weatherPlay { width:48px; height:48px; background:var(--brand-blue); color:#fff; border-color:var(--brand-blue); box-shadow:0 3px 10px #12345724; }
 #weatherView .weather-player button svg { display:block; width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 #weatherView .weather-player #weatherPlay .player-play { width:25px; height:25px; fill:currentColor; stroke-width:1.5; }
 #weatherView .weather-player #weatherPlay .player-pause { stroke-width:3; }
@@ -295,7 +294,7 @@ body[data-phase="day"] #weatherView [data-weather-layer]:not([aria-pressed="true
 }
 #weatherView .section-icon { color:var(--graphic-blue); }
 #weatherView .section-icon svg { stroke-width:2.2; }
-#weatherView .source-badge.inmet { background:transparent; color:var(--brand-blue); border-color:var(--brand-blue); box-shadow:none; font-weight:700; }
+#weatherView .source-badge.inmet { background:var(--brand-blue); color:#fff; border-color:var(--brand-blue); box-shadow:none; font-weight:700; }
 #weatherView .source-meta span { color:var(--reading-muted); font-weight:600; }
 #weatherView .source-state { font-weight:700; }
 #weatherView .inmet-yellow { --alert-color:#ffe178; --alert-accent:#f4c430; }
@@ -528,17 +527,3 @@ footer.shell .footer-brand-copy strong { color:var(--brand-blue); }
 #accountDialog .notification-timing label:not(.notification-quiet-toggle) { display:grid!important; grid-template-columns:minmax(0,1fr); gap:8px; }
 #accountDialog .notification-time-pair input { width:100%!important; min-width:0; }
 #accountDialog select:focus-visible { outline:2px solid var(--brand-blue); outline-offset:3px; }
-
-/* Requested blue reading palette, including labels, values and secondary copy.
-   Keep data graphics/tiles intact and avoid blue text on solid blue actions. */
-html body :is(#weatherView,#cityDialog,#accountDialog,#radarDialog) {
-  --reading-ink:var(--brand-blue) !important;
-  --reading-muted:var(--brand-blue) !important;
-  --dialog-text:var(--brand-blue);
-  --dialog-muted:var(--brand-blue);
-  --map-ink:var(--brand-blue);
-  --map-muted:var(--brand-blue);
-  color:var(--brand-blue);
-}
-html body :is(#weatherView,#cityDialog,#accountDialog,#radarDialog) * { color:var(--brand-blue) !important; }
-html body :is(#cityDialog,#accountDialog) input::placeholder { color:var(--brand-blue); }
