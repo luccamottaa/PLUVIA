@@ -3,7 +3,7 @@ Tests geometry, important readings, sky states, alerts, errors and dialog motion
 No live authentication, API calls or personal data. Pixel screenshots are review
 artifacts: no misleading comparison against baselines from another OS/browser.
 """
-import datetime,json,os,shutil,subprocess
+import base64,datetime,json,os,shutil,subprocess
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright
@@ -45,7 +45,28 @@ with sync_playwright() as p:
    rect=page.locator(selector).bounding_box();assert rect and rect['width']>0 and rect['x']>=-1 and rect['x']+rect['width']<=page.viewport_size['width']+1,(selector,rect)
   assert page.locator('#temperature').evaluate('el=>parseFloat(getComputedStyle(el.parentElement).fontSize)')>=48
   assert not errors,errors
+ def painted_text(selector):
+  # Visibility/geometry can pass when an opaque decorative layer covers text.
+  # Check its actual foreground pixels in the viewport, without changing the
+  # DOM or relying on WebKit to repaint a second hidden-text screenshot.
+  node=page.locator(selector);node.scroll_into_view_if_needed()
+  page.evaluate('document.fonts.ready')
+  page.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
+  clip=node.bounding_box();assert clip,selector
+  encoded=base64.b64encode(page.screenshot(clip=clip)).decode()
+  colour=node.evaluate("el=>getComputedStyle(el).color.match(/[\\d.]+/g).slice(0,3).map(Number)")
+  painted=page.evaluate("""async ({encoded,colour})=>{
+   const im=new Image();im.src='data:image/png;base64,'+encoded;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d');ctx.drawImage(im,0,0);const samples=ctx.getImageData(0,0,c.width,c.height).data;
+   let count=0;for(let i=0;i<samples.length;i+=4)if(Math.max(...colour.map((value,channel)=>Math.abs(samples[i+channel]-value)))<=18)count++;return count;
+  }""",{'encoded':encoded,'colour':colour})
+  if painted<=100:
+   name=str(page.viewport_size['width'])+'-'+mode['name']+'-'+selector.replace(' ','_').replace('#','')
+   (output/(name+'-text.png')).write_bytes(base64.b64decode(encoded))
+   page.screenshot(path=str(output/(name+'-viewport.png')))
+  assert painted>100,{'state':mode['name'],'viewport':page.viewport_size,'selector':selector,'colour':colour,'paintedPixels':painted}
+  return painted
  report=[]
+ footer_paint=[]
  mode.update(name='loading',pending=True)
  page.goto(preview,wait_until='domcontentloaded')
  page.locator('#condition').wait_for(state='visible')
@@ -60,12 +81,22 @@ with sync_playwright() as p:
    page.clock.set_fixed_time(fixed+datetime.timedelta(hours=hour-12))
    page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
    page.wait_for_timeout(120);geometry()
-   state=page.evaluate('({phase:document.body.dataset.phase,weather:document.body.dataset.weather})')
+   state=page.evaluate('({phase:document.body.dataset.phase,weather:document.body.dataset.weather,solar:document.body.dataset.solar})')
    expected='storm' if code==95 else 'rain' if code==65 else 'cloud' if code==3 else None
    if expected:assert state['weather']==expected,state
    if name=='clear-day':assert state['phase']=='day',state
    if name=='clear-night':assert state['phase']=='night',state
    page.screenshot(path=str(output/(str(width)+'-'+name+'.png')),full_page=True);report.append({'viewport':width,'state':name,**state})
+   if name in ['sunrise','sunset']:
+    assert state['solar']==name,state
+    painted={selector:painted_text(selector) for selector in ['#temperature','#sunrise','#sunset','footer .footer-brand-copy strong','footer .footer-brand-copy span','#openSources','#openPrivacy']}
+    page.screenshot(path=str(output/(str(width)+'-'+name+'-footer.png')))
+    footer_paint.append({'viewport':width,'state':name,'paintedPixels':painted})
+    page.locator('#openSources').click();page.locator('#sourcesDialog').wait_for(state='visible')
+    page.keyboard.press('Escape');page.locator('#sourcesDialog').wait_for(state='hidden')
+    page.locator('#openPrivacy').click();page.locator('#sourcesDialog').wait_for(state='visible')
+    assert page.locator('#privacyTitle').is_visible()
+    page.keyboard.press('Escape');page.locator('#sourcesDialog').wait_for(state='hidden')
   mode.update(name='alert',hour=12,code=95,alert=True);page.clock.set_fixed_time(fixed);page.goto(preview)
   page.wait_for_function("document.getElementById('inmetCard').dataset.severity==='red'")
   page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
@@ -112,5 +143,5 @@ with sync_playwright() as p:
   page.evaluate("localStorage.removeItem('pluvia-weather-1302603')");page.goto(preview)
   page.wait_for_function("document.getElementById('condition').textContent==='Tempo indisponível'")
   geometry();assert page.locator('#temperature').inner_text()=='--';page.screenshot(path=str(output/(str(width)+'-error.png')),full_page=True)
- print(json.dumps({'visualContracts':report,'alerts':True,'dialogMotion':True,'reducedMotion':True,'errors':errors},ensure_ascii=False))
+ print(json.dumps({'visualContracts':report,'twilightFooterPaint':footer_paint,'alerts':True,'dialogMotion':True,'reducedMotion':True,'errors':errors},ensure_ascii=False))
  browser.close()
