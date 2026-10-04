@@ -27,6 +27,7 @@
 :root[data-weather="snow"] { --sky-base:#0e1a2d; --sky-color:linear-gradient(165deg,#29364e,#0e1a2d); --cloud-opacity:.65; }
 :root[data-weather="snow"][data-phase="day"] { --sky-base:#bed9e8; --sky-color:linear-gradient(165deg,#9ebfd5,#e5f0f5); }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#233656; --intro-muted:#f5e3de; }
+:root[data-phase="night"]:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; }
 :root[data-solar="sunset"] { --twilight-color:radial-gradient(ellipse at 78% 35%,#ffd69899,transparent 48%),linear-gradient(180deg,#39446f,#9d789c 27%,#eaa286 52%,#cf9a84 100%); }
 html,body { background:var(--sky-base); }
 .pluvia-intro { background:var(--sky-color); color:var(--intro-ink); }

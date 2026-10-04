@@ -45,7 +45,7 @@
     <link rel="preload" href="./vendor/suncalc.js?v=sky-3" as="script" />
     <link rel="preload" href="./modules/moon-view.js?v=moon-3" as="script" />
     <link rel="preload" href="./modules/sky-atmosphere.js?v=sky-10" as="script" />
-    <link rel="preload" href="./sky.css?v=sky-14" as="style" />
+    <link rel="preload" href="./sky.css?v=sky-15" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       html { background:#080f22; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
@@ -85,7 +85,7 @@
     <script src="./vendor/suncalc.js?v=sky-3"></script>
     <script src="./modules/moon-view.js?v=moon-3"></script>
     <script src="./modules/sky-atmosphere.js?v=sky-10"></script>
-    <link rel="stylesheet" href="./sky.css?v=sky-14" />
+    <link rel="stylesheet" href="./sky.css?v=sky-15" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-121" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-33" />
@@ -368,8 +368,8 @@
       </section>
       </div>
     </main>
-    </div>
     <footer class="shell"><div class="footer-brand"><span class="footer-brand-icon" aria-hidden="true"></span><div class="footer-brand-copy"><strong>PLUVIA</strong><span>O céu de cada cidade</span></div></div><div class="footer-details"><button id="openSources" class="footer-link" type="button">Fontes de dados</button><button id="openPrivacy" class="footer-link" type="button">Privacidade</button></div></footer>
+    </div>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Sem confirmação atual.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
     <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody" class="dialog-scroll"></div></dialog>
