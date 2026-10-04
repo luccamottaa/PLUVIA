@@ -97,8 +97,40 @@ with sync_playwright() as p:
    report[field]=aligned(field,count=5)
   report['summaryLabels']=aligned('.quick-metrics > .quick-metric:first-child .metric-head > span:first-child,.hero-temperature-extreme small',count=3)
   report['summaryValues']=aligned('#feelsLike,#todayHigh,#todayLow',count=3)
-  aligned('.topbar .brand,.topbar .top-actions','centerY',2)
+  aligned('.topbar .account-trigger,.topbar .brand,.topbar .top-actions','centerY',3)
   aligned('.topbar .top-actions > *','centerY')
+  # Center the whole reading, not only the number while its degree hangs outside.
+  # The same axis belongs to the brand, municipality and condition.
+  reading=page.locator('#temperature')
+  original=reading.inner_text()
+  for value in [original,'9','31','-12','100','--']:
+   reading.evaluate('(el,value)=>el.textContent=value',value)
+   number,degree=boxes('#temperature,.temperature .deg')
+   axis=boxes('.weather-main')[0]['centerX']
+   assert abs((number['x']+degree['right'])/2-axis)<=1,(width,value,number,degree,axis)
+   assert degree['x']>=number['right'] and number['x']>=0 and degree['right']<=width,(width,value,number,degree)
+   for item in boxes('.topbar .brand,#cityName,#condition'):
+    assert abs(item['centerX']-axis)<=1,(width,item,axis)
+  reading.evaluate('(el,value)=>el.textContent=value',original)
+  account=page.locator('#accountButton');greeting=account.inner_text()
+  for name in [greeting,'Olá, Lucca','Olá, Maria Eduarda Albuquerque']:
+   account.evaluate('(el,value)=>el.textContent=value',name)
+   button,brand,actions=boxes('#accountButton,.topbar .brand,.topbar .top-actions')
+   assert button['right']<=brand['x']-5 and brand['right']<=actions['x']-5,(width,name,button,brand,actions)
+   assert button['height']>=44,(width,button)
+   aligned('#accountButton,.topbar .brand,.topbar .top-actions','centerY',3)
+  account.evaluate('(el,value)=>el.textContent=value',greeting)
+  for item in boxes('.topbar .top-actions > button'):
+   assert item['width']>=44 and item['height']>=44,(width,item)
+  # Every full-width section uses the same page gutters, including the footer.
+  edges=boxes('#top,#weatherView,footer')
+  assert len(edges)==3 and max(b['x'] for b in edges)-min(b['x'] for b in edges)<=1,(width,edges)
+  assert max(b['right'] for b in edges)-min(b['right'] for b in edges)<=1,(width,edges)
+  reading_y=boxes('#wind')[0]['centerY']
+  wind_row=boxes('.wind-reading')[0]
+  assert abs(reading_y-wind_row['centerY'])<=1,(width,reading_y,wind_row)
+  wind_parts=page.locator('#wind').evaluate("el=>{const range=document.createRange();range.selectNodeContents(el.firstChild);const number=range.getBoundingClientRect(),unit=el.querySelector('sup').getBoundingClientRect();return {numberTop:number.top,numberBottom:number.bottom,numberRight:number.right,unitLeft:unit.left,unitCenterY:unit.y+unit.height/2}}")
+  assert wind_parts['unitLeft']>=wind_parts['numberRight']-1 and wind_parts['numberTop']<=wind_parts['unitCenterY']<=wind_parts['numberBottom'],(width,wind_parts)
   aligned('.weather-player > *','centerY',4)
   aligned('footer .footer-link','centerX',2)
   rows=page.evaluate("""()=>[...document.querySelectorAll('.forecast-row')].map(el=>{
@@ -193,5 +225,5 @@ with sync_playwright() as p:
  assert not errors,errors
  assert not forbidden,forbidden
  (output/'geometry.json').write_text(json.dumps(reports,ensure_ascii=False,indent=2))
- print(json.dumps({'browser':os.environ.get('PLUVIA_BROWSER','chromium'),'viewports':7,'homeLayouts':len(reports),'solarEvents':True,'longFavorites':True,'mixedTemperatureWidths':True,'dialogs':True,'errors':errors,'output':str(output)}))
+ print(json.dumps({'browser':os.environ.get('PLUVIA_BROWSER','chromium'),'viewports':7,'homeLayouts':len(reports),'solarEvents':True,'longFavorites':True,'mixedTemperatureWidths':True,'heroReadingAxis':True,'longAccountNames':True,'pageGutters':True,'windUnitInline':True,'dialogs':True,'errors':errors,'output':str(output)}))
  browser.close()

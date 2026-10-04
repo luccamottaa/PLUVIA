@@ -151,20 +151,22 @@ body[data-phase="day"] #weatherView {
   width:max-content;
   max-width:100%;
   justify-content:center;
+  gap:.04em;
   font-size:clamp(6rem,27vw,9rem) !important;
   font-weight:300;
   letter-spacing:-.05em;
   line-height:1 !important;
   color:var(--reading-ink) !important;
 }
-/* Position the degree beside the number without shifting the number's center. */
+/* Center the complete reading, including its degree, on the city's axis. */
 #weatherView .temperature .deg {
-  position:absolute;
-  inset-inline-start:calc(100% + .12em);
+  position:relative;
+  inset-inline-start:auto;
   top:.12em;
   margin:0 !important;
   transform:none;
   font-size:.3em;
+  font-weight:inherit;
   color:inherit !important;
 }
 #weatherView .condition { width:100%; max-width:none; font-size:clamp(1.15rem,4.5vw,1.55rem) !important; font-weight:500; color:var(--reading-ink) !important; }
@@ -210,7 +212,9 @@ html body #weatherView .hero-temperature-range { border-radius:0 !important; }
 #weatherView .metrics .metric > strong,#weatherView .metrics .wind-reading > strong { color:var(--reading-ink); font-size:1.65rem; line-height:1.1; }
 #weatherView .metrics .metric strong sup { color:var(--reading-muted); }
 #weatherView .metrics .metric > small { grid-column:1/-1; margin:0; color:var(--reading-muted); font-size:.8rem; }
-#weatherView .metrics .wind-reading { justify-content:flex-end; }
+#weatherView .metrics .wind-reading { justify-content:flex-end; flex-wrap:nowrap; }
+#weatherView .metrics .wind-reading > strong { display:block; flex:none; white-space:nowrap; }
+#weatherView .metrics .wind-reading > strong sup { font-size:.38em; margin-left:4px; }
 html body #weatherView .wind-compass { width:46px; height:46px; flex-basis:46px; }
 #weatherView .compass-labels { fill:var(--reading-muted); }
 #weatherView .compass-ring { stroke:var(--reading-line); }
@@ -383,7 +387,7 @@ body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weather
 /* Keep the closing brand and its source link centered at every screen size. */
 /* The footer owns the bottom safe area; keep it out of the content above it. */
 .night-stage > main.shell { padding-bottom:0; }
-footer.shell { margin-top:0; flex-direction:column; align-items:center; justify-content:center; gap:20px; text-align:center; color:var(--intro-ink); }
+footer.shell { max-width:860px; margin-top:0; flex-direction:column; align-items:center; justify-content:center; gap:20px; text-align:center; color:var(--intro-ink); }
 footer.shell > .footer-brand { flex:none; width:100%; max-width:none; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
 footer.shell .footer-brand-copy { align-items:center; text-align:center; }
 footer.shell .footer-brand-copy span { color:var(--intro-ink); }
