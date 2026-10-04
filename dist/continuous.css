@@ -1,5 +1,7 @@
 /* The forecast is one reading surface over the city sky. Dialogs and map
    controls keep their own surfaces; these rules only apply to the home. */
+/* Blue text shares the logo's color; reading and severity palettes stay distinct. */
+:root { --brand-blue:#2f6bff; }
 /* Browser page pinch remains available. Installed apps only pan the page;
    Leaflet handles map zoom independently. Neither mode zooms on double tap. */
 body { touch-action:manipulation; }
@@ -29,8 +31,8 @@ html body .topbar {
 }
 body[data-phase="day"] .topbar { color:#082744; }
 .topbar::before,.topbar::after { display:none !important; }
-.topbar .brand { grid-column:2; grid-row:1; justify-self:center; min-height:44px; gap:2px; color:#2f6bff; }
-.topbar .brand .brand-mark { margin-left:0; visibility:visible; }
+.topbar .brand { grid-column:2; grid-row:1; justify-self:center; min-height:44px; gap:2px; color:var(--brand-blue); }
+.topbar .brand .brand-mark { margin-left:0; visibility:visible; background-color:var(--brand-blue); }
 .topbar .brand span:last-child,.topbar .account-trigger,.topbar .search-trigger { color:inherit !important; }
 .topbar .account-trigger {
   grid-column:1;
@@ -74,7 +76,7 @@ body[data-phase="day"] .topbar { color:#082744; }
   --reading-ink:#f2f7ff;
   --reading-muted:#cbdceb;
   --reading-line:#b8d4ef30;
-  --reading-link:#a4ceff;
+  --reading-link:var(--brand-blue);
   --text:var(--reading-ink);
   --muted:var(--reading-muted);
   --canvas-text:var(--reading-ink);
@@ -89,7 +91,6 @@ body[data-phase="day"] #weatherView {
   --reading-ink:#082744;
   --reading-muted:#173c58;
   --reading-line:#12345730;
-  --reading-link:#064c94;
 }
 /* Specific to the home so no old day/night card variant can repaint a box. */
 #weatherView .panel,
@@ -260,9 +261,8 @@ body[data-phase="day"] #weatherView [data-weather-layer]:not([aria-pressed="true
   --range-cool:#32b8ff; --range-warm:#ffd34a; --range-hot:#ff762f;
   --chart-rain-top:#22b8ff; --chart-rain-bottom:#2673ff;
   --chart-wind-top:#1bddda; --chart-wind-bottom:#138be1;
-  --graphic-blue:#65acff;
+  --graphic-blue:var(--brand-blue);
 }
-body[data-phase="day"] #weatherView { --graphic-blue:#126ce4; }
 #weatherView .section-icon { color:var(--graphic-blue); }
 #weatherView .section-icon svg { stroke-width:2.2; }
 #weatherView .source-badge.inmet { background:#246ce5; color:#fff; border-color:#246ce5; box-shadow:none; font-weight:700; }
@@ -282,7 +282,7 @@ body[data-phase="day"] #weatherView .inmet-red { --alert-color:#812029; --alert-
 #weatherView .sun-label :is(span,svg) { color:var(--graphic-blue); }
 /* Darker daytime rain/storm skies need deeper ink than the clear-sky palette. */
 body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView {
-  --reading-ink:#041a2e; --reading-muted:#08243b; --reading-link:#042a48;
+  --reading-ink:#041a2e; --reading-muted:#08243b;
 }
 body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-yellow { --alert-color:#2f2100; }
 body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-orange { --alert-color:#3d1f00; }
@@ -299,6 +299,9 @@ footer.shell .footer-brand-copy { align-items:center; text-align:center; }
 footer.shell .footer-brand-copy span { color:var(--intro-ink); }
 footer.shell .footer-details { justify-items:center; text-align:center; }
 footer.shell .footer-details .footer-link { justify-self:center; min-height:44px; color:var(--intro-ink); }
+footer.shell .footer-brand-copy strong { color:var(--brand-blue); }
+#sourcesDialog :is(.sources-list b,a),#alertDetailBody a { color:var(--brand-blue); }
+.weather-map-section,body[data-phase="night"] .weather-map-section { --map-link:var(--brand-blue); }
 
 .hourly-decision { margin:0 0 18px; font-size:.95rem; font-weight:700; line-height:1.55; color:var(--reading-ink); }
 #weatherView .hourly-peek-item .peek-volume { font-size:.75rem; color:var(--reading-muted); white-space:nowrap; }
