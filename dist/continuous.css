@@ -2,7 +2,7 @@
    controls keep their own surfaces. */
 :root { --brand-blue:#2f6bff; --blue:var(--brand-blue); }
 /* One brand accent for account, city selection and radar controls. */
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog) :is(button,input,select,summary,a):focus-visible { outline-color:var(--brand-blue); }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) :is(button,input,select,summary,a):focus-visible { outline-color:var(--brand-blue); }
 #cityDialog #locateCity,#accountDialog :is(#accountSubmit,#profileSave,#notificationPreferencesSave),#accountDialog .account-tabs button[aria-pressed=true] { background:var(--brand-blue); border-color:var(--brand-blue); color:#fff; }
 #cityDialog .city-actions button:not(#locateCity),#accountDialog .notification-actions button { border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
 #accountDialog #accountLogout { color:var(--brand-blue); border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
@@ -297,12 +297,65 @@ body[data-phase="day"] #weatherView [data-weather-layer]:not([aria-pressed="true
 #weatherView .source-badge.inmet { background:var(--brand-blue); color:#fff; border-color:var(--brand-blue); box-shadow:none; font-weight:700; }
 #weatherView .source-meta span { color:var(--reading-muted); font-weight:600; }
 #weatherView .source-state { font-weight:700; }
-#weatherView .inmet-yellow { --alert-color:#ffe178; --alert-accent:#f4c430; }
-#weatherView .inmet-orange { --alert-color:#ffba75; --alert-accent:#ee861d; }
-#weatherView .inmet-red { --alert-color:#ffaba4; --alert-accent:#e1534b; }
+#weatherView .inmet-yellow,#alertDetail .inmet-yellow { --alert-color:#ffe178; --alert-accent:#f4c430; }
+#weatherView .inmet-orange,#alertDetail .inmet-orange { --alert-color:#ffba75; --alert-accent:#ee861d; }
+#weatherView .inmet-red,#alertDetail .inmet-red { --alert-color:#ffaba4; --alert-accent:#e1534b; }
+#alertDetail .inmet-unknown { --alert-color:var(--dialog-muted); --alert-accent:var(--dialog-muted); }
 body[data-phase="day"] #weatherView .inmet-yellow { --alert-color:#594000; --alert-accent:#ffca24; }
 body[data-phase="day"] #weatherView .inmet-orange { --alert-color:#713800; --alert-accent:#ff881e; }
 body[data-phase="day"] #weatherView .inmet-red { --alert-color:#812029; --alert-accent:#f54857; }
+
+/* Official notices have their own quiet surface and a clear reading order. */
+html body #weatherView #inmetCard { min-height:0; }
+#weatherView #inmetCard .source-head { flex-wrap:wrap; gap:10px 16px; }
+#weatherView .inmet-alert { min-width:0; padding:20px; border:1px solid var(--reading-line); border-left:3px solid var(--alert-accent); border-radius:20px; background:linear-gradient(135deg,color-mix(in srgb,var(--alert-accent) 7%,transparent),color-mix(in srgb,var(--reading-ink) 3%,transparent)); }
+#weatherView .inmet-alert + .inmet-alert { margin-top:14px; }
+.inmet-alert-heading { display:grid; grid-template-columns:40px minmax(0,1fr); align-items:start; gap:14px; }
+.inmet-alert-icon { display:grid; place-items:center; width:40px; height:40px; border:1px solid color-mix(in srgb,var(--alert-accent) 28%,transparent); border-radius:12px; background:color-mix(in srgb,var(--alert-accent) 10%,transparent); color:var(--alert-color); }
+.inmet-alert-icon svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+.inmet-alert-title { min-width:0; }
+.inmet-alert-status { display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin-bottom:10px; }
+#weatherView .inmet-alert .inmet-level { display:inline-flex; align-items:center; min-height:26px; max-width:100%; margin:0; padding:3px 9px; border:1px solid color-mix(in srgb,var(--alert-accent) 25%,transparent); border-radius:999px; background:color-mix(in srgb,var(--alert-accent) 8%,transparent); font-size:.75rem; line-height:1.4; }
+.inmet-stage { color:var(--reading-muted); font-size:.75rem; line-height:1.4; }
+#weatherView .inmet-alert h3 { margin:0; color:var(--reading-ink); font-size:1.25rem; line-height:1.3; letter-spacing:-.025em; overflow-wrap:anywhere; }
+.inmet-severity-note { display:block; margin-top:5px; color:var(--reading-muted); font-size:.8125rem; }
+#weatherView .inmet-alert .inmet-alert-risk { margin:18px 0; font-size:.9375rem; line-height:1.65; }
+.inmet-alert-meta { display:grid; grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr); gap:14px; margin:0; padding-top:16px; border-top:1px solid var(--reading-line); }
+.inmet-alert-meta > div { min-width:0; }
+.inmet-alert-meta dt { color:var(--reading-muted); font-size:.75rem; line-height:1.45; }
+.inmet-alert-meta dd { margin:5px 0 0; color:var(--reading-ink); font-size:.8125rem; line-height:1.5; overflow-wrap:anywhere; }
+.inmet-alert-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px 16px; margin-top:18px; }
+#weatherView .inmet-alert .inmet-detail { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:44px; max-width:100%; margin:0; font:750 .8125rem/1.4 var(--font-ui); text-decoration:none; }
+#weatherView .inmet-alert button.inmet-detail { padding:10px 14px; border:1px solid var(--brand-blue); border-radius:12px; background:var(--brand-blue); color:#fff; }
+#weatherView .inmet-alert .inmet-official { padding:8px 0; }
+#weatherView .inmet-alert .inmet-official:hover { text-decoration:underline; }
+#weatherView .inmet-alert button.inmet-detail > span { font-size:1.25rem; line-height:1; }
+.inmet-official svg,.inmet-official-link svg { flex:none; width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+#weatherView .inmet-alert[data-stage=stale] { border-left-color:var(--reading-muted); }
+#weatherView .inmet-notice { padding:12px 16px; border:1px solid var(--reading-line); border-radius:14px; font-size:.875rem; }
+@media(max-width:380px) { #weatherView .inmet-alert { padding:16px; } .inmet-alert-heading { gap:10px; } .inmet-alert-meta { grid-template-columns:minmax(0,1fr); } }
+
+/* Details reuse the common modal's fixed heading and single scrolling body. */
+#alertDetail .dialog-heading h2 { min-width:0; overflow-wrap:anywhere; }
+#alertDetail .inmet-detail-summary { display:flex; align-items:center; gap:14px; padding:16px; border:1px solid color-mix(in srgb,var(--alert-accent) 25%,var(--dialog-line)); border-radius:16px; background:color-mix(in srgb,var(--alert-accent) 8%,transparent); }
+#alertDetail .inmet-alert-icon { flex:none; }
+#alertDetail .inmet-level { margin:0; }
+#alertDetail .inmet-detail-summary p { margin:4px 0 0; font-size:.8125rem; }
+#alertDetail .inmet-detail-source { margin:16px 0 6px; font-size:.8125rem; }
+#alertDetail .inmet-detail-validity { margin:0 0 20px; font-size:.9375rem; }
+#alertDetail .inmet-detail-times { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:0 0 20px; }
+#alertDetail .inmet-detail-times > div { min-width:0; padding:12px; border:1px solid var(--dialog-line); border-radius:12px; background:var(--dialog-surface); }
+#alertDetail .inmet-detail-times > div:last-child { grid-column:1/-1; display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; padding:4px 0; border:0; background:none; }
+#alertDetail .inmet-detail-times dt { margin:0; color:var(--dialog-muted); font-size:.8125rem; font-weight:500; }
+#alertDetail .inmet-detail-times dd { margin:5px 0 0; font-size:.9375rem; line-height:1.5; }
+#alertDetail .inmet-detail-times > div:last-child dd { margin:0; font-size:.8125rem; }
+#alertDetail .inmet-detail-sections { margin:0; }
+#alertDetail .inmet-detail-sections > div { padding:16px 0; border-top:1px solid var(--dialog-line); }
+#alertDetail .inmet-detail-sections dt { margin:0; font-size:.9375rem; }
+#alertDetail .inmet-detail-sections dd { margin:8px 0 0; color:var(--dialog-muted); font-size:.9375rem; line-height:1.65; }
+#alertDetail details summary { min-height:44px; cursor:pointer; font-size:.875rem; }
+#alertDetail .inmet-official-link { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; padding:10px 14px; margin-top:18px; border:1px solid color-mix(in srgb,var(--brand-blue) 40%,transparent); border-radius:12px; font-size:.875rem; text-decoration:none; }
+#alertDetail .inmet-official-link:hover { text-decoration:underline; }
 #weatherView .temp-track .temp-fill { background:linear-gradient(90deg,var(--range-cool),var(--range-warm),var(--range-hot)); }
 #weatherView .rain-chart .rain-bar { background:linear-gradient(180deg,var(--chart-rain-top),var(--chart-rain-bottom)); }
 #weatherView .rain-chart .temp-bar { background:linear-gradient(180deg,var(--range-warm),var(--range-hot)); }
