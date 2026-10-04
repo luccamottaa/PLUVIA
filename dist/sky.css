@@ -1,6 +1,6 @@
 /* One atmosphere for the opening and the forecast, available before first paint. */
 :root {
-  --sky-base:#07182f; --sky-color:linear-gradient(165deg,#142e54,#07182f 85%);
+  --sky-base:#080f22; --sky-color:linear-gradient(165deg,#10142d,#080f22 85%);
   --cloud-opacity:0; --cloud-filter:brightness(.48) saturate(.65);
   --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; --sun-opacity:1;
   --rain-opacity:0; --rain-back-opacity:0; --lightning-opacity:.52;
@@ -12,19 +12,19 @@
   --cloud-filter:none; --intro-ink:#143654; --intro-muted:#2e5575;
   --lightning-opacity:.38;
 }
-:root[data-phase="night"] { --sky-base:#07182f; --sky-color:radial-gradient(ellipse at 80% 8%,#29476d66,transparent 42%),linear-gradient(165deg,#102d54,#07182f 85%); }
+:root[data-phase="night"] { --sky-base:#080f22; --sky-color:radial-gradient(ellipse at 80% 8%,#363b6440,transparent 42%),linear-gradient(165deg,#10142d,#080f22 85%); }
 :root[data-weather="sun"][data-phase="day"] { --sky-color:radial-gradient(ellipse at 84% 10%,#ffebad66,transparent 42%),linear-gradient(165deg,#59b6e9,#bce7f5 70%,#a7d7ec); }
 :root[data-weather="partly"] { --cloud-opacity:1; --sun-opacity:.92; }
 :root[data-weather="cloud"] { --cloud-opacity:.86; }
-:root[data-weather="rain"] { --cloud-opacity:.86; --sky-base:#102c45; --sky-color:linear-gradient(165deg,#2d4b67,#102c45 80%); }
-:root[data-weather="storm"] { --cloud-opacity:1; --sky-base:#111d35; --sky-color:linear-gradient(165deg,#303f60,#111d35 80%); }
+:root[data-weather="rain"] { --cloud-opacity:.86; --sky-base:#0a1728; --sky-color:linear-gradient(165deg,#19263b,#0a1728 80%); }
+:root[data-weather="storm"] { --cloud-opacity:1; --sky-base:#090f22; --sky-color:linear-gradient(165deg,#1c2037,#090f22 80%); }
 :root[data-weather="cloud"][data-phase="day"] { --sky-base:#aac4d6; --sky-color:linear-gradient(165deg,#8babca,#d3e2eb 68%,#aac4d6); --cloud-filter:brightness(.97); }
-:root[data-weather="cloud"][data-phase="night"] { --sky-base:#0c2139; --sky-color:linear-gradient(165deg,#293e59,#0c2139 85%); }
+:root[data-weather="cloud"][data-phase="night"] { --sky-base:#0a1427; --sky-color:linear-gradient(165deg,#171f36,#0a1427 85%); }
 :root[data-weather="rain"][data-phase="day"] { --sky-base:#8fadc2; --sky-color:linear-gradient(165deg,#789bb9,#bbcedc 68%,#8fadc2); --cloud-filter:brightness(.83) saturate(.7); }
 :root[data-weather="storm"][data-phase="day"] { --sky-base:#7e98b2; --sky-color:linear-gradient(165deg,#657f9e,#acbfd0 68%,#7e98b2); --cloud-filter:brightness(.68) saturate(.65); }
-:root[data-weather="fog"] { --sky-base:#20364b; --sky-color:linear-gradient(180deg,#6e839a88,#20364b); --cloud-opacity:.3; }
+:root[data-weather="fog"] { --sky-base:#111c2c; --sky-color:linear-gradient(180deg,#35405788,#111c2c); --cloud-opacity:.3; }
 :root[data-weather="fog"][data-phase="day"] { --sky-base:#c0d1dd; --sky-color:linear-gradient(165deg,#aabfcf,#e0e9ef); --cloud-opacity:.5; }
-:root[data-weather="snow"] { --sky-base:#182b45; --sky-color:linear-gradient(165deg,#49617b,#182b45); --cloud-opacity:.65; }
+:root[data-weather="snow"] { --sky-base:#0e1a2d; --sky-color:linear-gradient(165deg,#29364e,#0e1a2d); --cloud-opacity:.65; }
 :root[data-weather="snow"][data-phase="day"] { --sky-base:#bed9e8; --sky-color:linear-gradient(165deg,#9ebfd5,#e5f0f5); }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#233656; --intro-muted:#f5e3de; }
 :root[data-solar="sunset"] { --twilight-color:radial-gradient(ellipse at 78% 35%,#ffd69899,transparent 48%),linear-gradient(180deg,#39446f,#9d789c 27%,#eaa286 52%,#cf9a84 100%); }
@@ -49,7 +49,7 @@ html,body { background:var(--sky-base); }
 :root[data-phase="day"] .sky-effects::after { background:linear-gradient(90deg,#def2fa30,transparent 75%); }
 .sky-twilight { display:none; position:absolute; inset:0; z-index:0; opacity:var(--twilight-opacity,0); background:var(--twilight-color); pointer-events:none; }
 .sky-twilight-page { position:fixed; z-index:-1; }
-:root[data-phase="night"] .sky-twilight-page { background:linear-gradient(#07182f94,#07182f94),var(--twilight-color); }
+:root[data-phase="night"] .sky-twilight-page { background:linear-gradient(#080f2294,#080f2294),var(--twilight-color); }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) .sky-twilight { display:block; }
 :root:is([data-weather="cloud"],[data-weather="rain"],[data-weather="fog"],[data-weather="snow"]) .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .6); }
 :root[data-weather="storm"] .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .3); }

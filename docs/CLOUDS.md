@@ -16,6 +16,8 @@ O controlador `observeMotion` existente pausa cenas fora da área visível e no 
 
 Na home, a luz do crepúsculo recebe uma atenuação estática quando o relógio municipal já está no período noturno, para conservar contraste com o texto branco. O horário, o peso da transição e o céu da intro continuam na implementação astronômica existente.
 
+A paleta noturna usa azul profundo com índigo: céu limpo parte de #10142d e se dissolve na base #080f22, com brilho radial discreto. Tempo fechado mantém variações próprias, também escurecidas. O fundo inicial acompanha a base para evitar uma abertura mais clara antes do CSS. As cores diurnas e os gradientes de amanhecer/pôr do sol permanecem os mesmos; a atenuação noturna do crepúsculo usa a nova base, sem mudar o seu peso ou horário. Não há camada escura sobre texto, estrelas ou Lua.
+
 ## Tamanho e cache
 
 Medidas dos arquivos desta implementação:
