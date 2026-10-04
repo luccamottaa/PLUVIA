@@ -95,6 +95,8 @@ O cabeçalho usa três colunas com laterais iguais: conta à esquerda, marca cen
 
 O disco lunar compartilhado combina textura, máscara da fase e sombra translúcida suave. Não reintroduzir uma base preta opaca ou um contorno escuro pesado: eles desenham uma mancha artificial sobre o céu. Esses ajustes visuais não mudam a fase/fração astronômicas nem a cobertura pelas nuvens.
 
+O rodapé sucede o espaçamento inferior da seção astronômica sem outra margem superior. A safe area inferior pertence ao padding final do rodapé; não reservar env(safe-area-inset-bottom) também no main, pois isso cria uma faixa vazia entre o último conteúdo e a marca no iPhone. Detalhes astronômicos abertos continuam no fluxo normal.
+
 `scripts/verify-alignment.py` verifica geometria real em Chromium/WebKit: sete viewports, eventos solares, temperaturas de larguras diferentes, nomes longos, quatro modos do gráfico e diálogos. Fixtures e coordenadas clonadas existem somente no QA. Não alinhar alturas das barras meteorológicas ou astros, que representam valores/horários diferentes. O QA de preferências também confere os dois campos do horário silencioso.
 
 Nuvens usam somente as duas camadas existentes: `sky-cloud-veil.webp` ao fundo e `sky-cloud-volume.webp` à frente, em `sky.css`. Não repetir a imagem horizontalmente: isso cria emendas. O movimento alterna poucos pixels dentro de uma margem de 64px, com transform/opacity; não adicionar canvas, WebGL, turbulence ou blur animado. Pausar céu limpo, cenas fora da tela e página oculta; reduced-motion remove movimento/transição. As duas texturas do shell somam menos de 160KiB. O antigo sky-cloud-bank permanece disponível para shells legados, mas não entra no novo precache. Ver `docs/CLOUDS.md` e `scripts/verify-clouds.py`.

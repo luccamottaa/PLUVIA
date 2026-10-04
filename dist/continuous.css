@@ -293,7 +293,9 @@ body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weather
 #weatherView .rain-chart :is(.rain-bar,.temp-bar,.wind-bar) { box-shadow:inset 0 0 0 1px #12345726; }
 
 /* Keep the closing brand and its source link centered at every screen size. */
-footer.shell { flex-direction:column; align-items:center; justify-content:center; gap:20px; text-align:center; color:var(--intro-ink); }
+/* The footer owns the bottom safe area; keep it out of the content above it. */
+.night-stage > main.shell { padding-bottom:0; }
+footer.shell { margin-top:0; flex-direction:column; align-items:center; justify-content:center; gap:20px; text-align:center; color:var(--intro-ink); }
 footer.shell > .footer-brand { flex:none; width:100%; max-width:none; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
 footer.shell .footer-brand-copy { align-items:center; text-align:center; }
 footer.shell .footer-brand-copy span { color:var(--intro-ink); }
