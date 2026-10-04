@@ -39,15 +39,16 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="./assets/fonts/inter-latin-v20.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="./assets/fonts/nunito-wordmark-v32.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="./fonts.css?v=type-1" />
     <link rel="preload" href="./vendor/suncalc.js?v=sky-3" as="script" />
     <link rel="preload" href="./modules/moon-view.js?v=moon-3" as="script" />
     <link rel="preload" href="./modules/sky-atmosphere.js?v=sky-10" as="script" />
     <link rel="preload" href="./sky.css?v=sky-14" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
-      html { background:#080f22; font-family:"Nunito",ui-rounded,system-ui,sans-serif; }
+      html { background:#080f22; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
       *,*::before,*::after { box-sizing:border-box; }
       html.awaiting-styles body > :not(#pluviaIntro) { visibility:hidden; }
       body { margin:0; }
@@ -67,7 +68,7 @@
 .pluvia-intro.is-leaving { opacity:0; pointer-events:none; transition:opacity .42s ease; }
 .pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; pointer-events:none; }
 .intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; gap:2px; color:var(--brand-blue,#2f6bff); font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; animation:intro-mark-in .8s ease-out .2s both; }
-.intro-wordmark strong { font-weight:900; }
+.intro-wordmark strong { font-family:var(--font-brand,"Nunito",ui-rounded,system-ui,sans-serif); font-weight:900; }
 .intro-drop { display:block; width:clamp(42px,11vw,70px); height:clamp(55px,14vw,88px); background:currentColor; -webkit-mask:url("./logo-mark.png") center / contain no-repeat; mask:url("./logo-mark.png") center / contain no-repeat; }
 .pluvia-intro .intro-tagline { position:relative; z-index:1; margin:16px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.2rem); letter-spacing:.08em; animation:intro-caption-in .65s ease-out .5s both; }
 .pluvia-intro .intro-kicker { position:absolute; bottom:calc(65px + env(safe-area-inset-bottom)); color:#e1ebf5; font-size:.65rem; font-weight:750; letter-spacing:.24em; text-transform:uppercase; }
@@ -86,11 +87,10 @@
     <script src="./modules/sky-atmosphere.js?v=sky-10"></script>
     <link rel="stylesheet" href="./sky.css?v=sky-14" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="./styles.css?v=core-120" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-32" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-33" />
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="./styles.css?v=core-120" /></noscript>
+    <link rel="stylesheet" href="./styles.css?v=core-121" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-33" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-34" />
+    <noscript><link rel="stylesheet" href="./styles.css?v=core-121" /></noscript>
   </head>
   <body>
     <svg class="moon-definitions" width="0" height="0" aria-hidden="true" focusable="false">

@@ -36,6 +36,7 @@ jobs:
         run: |
           python scripts/verify-browser.py
           python scripts/verify-alignment.py
+          python scripts/verify-typography.py
           python scripts/verify-account-sync.py
           python scripts/verify-account-lifecycle.py
           python scripts/verify-auth-redirects.py

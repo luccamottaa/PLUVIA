@@ -276,7 +276,7 @@ html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#ale
   position:relative; top:auto; flex:none; display:flex; align-items:center; justify-content:space-between;
   margin:0; padding:22px 24px; gap:16px; background:var(--dialog-bg); border-bottom:1px solid var(--dialog-line);
 }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) .dialog-heading h2 { font-size:1.5rem; font-weight:800; letter-spacing:-.035em; line-height:1.2; margin:0; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) .dialog-heading h2 { font-size:1.5rem; font-weight:600; letter-spacing:-.035em; line-height:1.2; margin:0; }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) .dialog-close { flex:none; width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:14px; background:#aac7e513; color:var(--dialog-text); font:400 28px/1 var(--font-ui); padding:0; }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) .dialog-close:focus { outline:none; }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) :is(button,input,summary,a):focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
