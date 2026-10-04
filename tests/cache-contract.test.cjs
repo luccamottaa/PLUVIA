@@ -7,15 +7,31 @@ const root = path.join(__dirname, '..', 'dist');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 
+test('fontes locais leves têm formato válido e estão disponíveis no precache offline', () => {
+  const css = fs.readFileSync(path.join(root, 'fonts.css'), 'utf8');
+  const urls = [...css.matchAll(/src:url\("(\.\/assets\/fonts\/[^"?]+\.woff2)"\)/g)].map(match => match[1]);
+  assert.equal(urls.length, 2);
+  let total = 0;
+  for (const url of urls) {
+    const data = fs.readFileSync(path.join(root, url));
+    assert.equal(data.toString('ascii', 0, 4), 'wOF2', url);
+    assert.ok(sw.includes(`"${url}"`), `SW sem ${url}`);
+    assert.ok(html.includes(`href="${url}" as="font" type="font/woff2" crossorigin`), `preload sem ${url}`);
+    total += data.length;
+  }
+  assert.ok(total < 64 * 1024, 'fontes excedem o orçamento do shell mobile');
+  for (const name of ['INTER', 'NUNITO']) assert.match(fs.readFileSync(path.join(root, `assets/fonts/${name}-OFL.txt`), 'utf8'), /SIL OPEN FONT LICENSE/);
+});
+
 test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   const htmlRefs = [...html.matchAll(/src="(\.\/(?:modules\/)?[^"]+\.js\?v=[^"]+)"/g), ...html.matchAll(/href="(\.\/[^"?]+\.css\?v=[^"]+)"/g)].map(m => m[1]);
   assert.ok(htmlRefs.length >= 10);
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-76"/);
-  assert.match(html, /styles\.css\?v=core-120/);
-  assert.match(html, /redesign\.css\?v=panel-32/);
+  assert.match(sw, /const CACHE = "pluvia-panel-77"/);
+  assert.match(html, /styles\.css\?v=core-121/);
+  assert.match(html, /redesign\.css\?v=panel-33/);
   assert.doesNotMatch(sw, /glass\.js/);
   assert.match(html, /app\.js\?v=panel-40/);
   assert.ok(!sw.includes('"./assets/panel-night-sky.webp"'), 'não baixa a antiga foto sem uso no cache inicial');

@@ -63,6 +63,7 @@ body[data-phase="day"] .topbar { color:#082744; }
 .topbar .brand { grid-column:2; grid-row:1; justify-self:center; min-height:44px; gap:2px; color:var(--brand-blue); }
 .topbar .brand .brand-mark { margin-left:0; visibility:visible; background-color:var(--brand-blue); }
 .topbar .brand span:last-child,.topbar .account-trigger,.topbar .search-trigger { color:inherit !important; }
+.topbar .brand span:last-child { font-family:var(--font-brand); }
 .topbar .account-trigger {
   grid-column:1;
   grid-row:1;
@@ -140,7 +141,7 @@ body[data-phase="day"] #weatherView {
 /* Freshness remains announced without taking space in the visual header. */
 #weatherView #dataStatus { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
 #weatherView #dataStatus.stale { position:static; width:auto; height:auto; margin:0 0 12px; overflow:visible; clip-path:none; white-space:normal; }
-#weatherView .intro h1 { text-align:center; margin-top:16px; font-size:clamp(2.4rem,9vw,3.8rem); }
+#weatherView .intro h1 { text-align:center; margin-top:16px; font-size:clamp(2.4rem,9vw,3.8rem); font-weight:600; }
 #weatherView #cityDistance { text-align:center; color:var(--reading-muted); }
 #weatherView .weather-hero { padding-block:12px 24px; }
 #weatherView .weather-main { grid-template-columns:minmax(0,1fr); justify-items:center; gap:18px; text-align:center; }
@@ -151,6 +152,8 @@ body[data-phase="day"] #weatherView {
   max-width:100%;
   justify-content:center;
   font-size:clamp(6rem,27vw,9rem) !important;
+  font-weight:300;
+  letter-spacing:-.05em;
   line-height:1 !important;
   color:var(--reading-ink) !important;
 }
@@ -164,13 +167,16 @@ body[data-phase="day"] #weatherView {
   font-size:.3em;
   color:inherit !important;
 }
-#weatherView .condition { width:100%; max-width:none; font-size:clamp(1.15rem,4.5vw,1.55rem) !important; color:var(--reading-ink) !important; }
+#weatherView .condition { width:100%; max-width:none; font-size:clamp(1.15rem,4.5vw,1.55rem) !important; font-weight:500; color:var(--reading-ink) !important; }
 #weatherView :is(.hourly-peek,.quick-metrics,.metrics,.insight-card,.section-block,.sun-section) { margin:0; }
 #weatherView :is(.hourly-peek,.insight-card,.section-block,.sun-section) { padding:28px 0; border-top:1px solid var(--reading-line) !important; }
 #weatherView .section-heading { margin-bottom:18px; align-items:center; gap:16px; }
 #weatherView .section-heading > div:first-child { min-width:0; }
 #weatherView .section-heading > p { flex:0 1 48%; min-width:0; text-align:right; }
-#weatherView :is(.section-heading h2,.hourly-peek-heading h2,.weather-map-copy h2,.insight-card h2) { color:var(--reading-ink); }
+#weatherView :is(.section-heading h2,.hourly-peek-heading h2,.weather-map-copy h2,.insight-card h2) { color:var(--reading-ink); font-weight:600; }
+/* Fixed-width digits keep changing readings aligned without a second UI font. */
+#weatherView,#cityDialog,#hourlyDetailDialog,#alertDetail,#radarMapContent { font-variant-numeric:tabular-nums; }
+#weatherView :is(.hourly-peek-item > strong,.quick-metric > strong,.hero-temperature-extreme strong,.metric > strong,.wind-reading > strong,.air-index b,.forecast-day > strong,.temp-range strong) { font-weight:600; }
 #weatherView :is(.hourly-peek-heading a,.summary-link,.source-link,.source-content a) { color:var(--reading-link); }
 #weatherView .hourly-peek-list { padding:4px 0; gap:8px; grid-auto-columns:minmax(72px,1fr); }
 #weatherView .hourly-peek-item { min-height:145px; padding:10px 4px; border:0; border-bottom:2px solid transparent; border-radius:0; background:none; transform:none; }
@@ -383,7 +389,7 @@ footer.shell .footer-brand-copy { align-items:center; text-align:center; }
 footer.shell .footer-brand-copy span { color:var(--intro-ink); }
 footer.shell .footer-details { justify-items:center; text-align:center; }
 footer.shell .footer-details .footer-link { justify-self:center; min-height:44px; color:var(--intro-ink); }
-footer.shell .footer-brand-copy strong { color:var(--brand-blue); }
+footer.shell .footer-brand-copy strong { font-family:var(--font-brand); color:var(--brand-blue); }
 #sourcesDialog :is(.sources-list b,a),#alertDetailBody a { color:var(--brand-blue); }
 .weather-map-section,body[data-phase="night"] .weather-map-section { --map-link:var(--brand-blue); }
 
