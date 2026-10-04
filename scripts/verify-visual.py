@@ -55,15 +55,21 @@ with sync_playwright() as p:
   clip=node.bounding_box();assert clip,selector
   encoded=base64.b64encode(page.screenshot(clip=clip)).decode()
   colour=node.evaluate("el=>getComputedStyle(el).color.match(/[\\d.]+/g).slice(0,3).map(Number)")
-  painted=page.evaluate("""async ({encoded,colour})=>{
+  sample=page.evaluate("""async ({encoded,colour})=>{
    const im=new Image();im.src='data:image/png;base64,'+encoded;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d');ctx.drawImage(im,0,0);const samples=ctx.getImageData(0,0,c.width,c.height).data;
-   let count=0;for(let i=0;i<samples.length;i+=4)if(Math.max(...colour.map((value,channel)=>Math.abs(samples[i+channel]-value)))<=18)count++;return count;
+   let count=0;const channels=[[],[],[]];for(let i=0;i<samples.length;i+=4){if(Math.max(...colour.map((value,channel)=>Math.abs(samples[i+channel]-value)))<=18)count++;for(let channel=0;channel<3;channel++)channels[channel].push(samples[i+channel]);}
+   const background=channels.map(values=>values.sort((a,b)=>a-b)[Math.floor(values.length/2)]);
+   const luminance=rgb=>rgb.map(value=>{value/=255;return value<=.04045?value/12.92:((value+.055)/1.055)**2.4;}).reduce((sum,value,index)=>sum+value*[.2126,.7152,.0722][index],0);
+   const foregroundLight=luminance(colour),backgroundLight=luminance(background);return {count,contrast:(Math.max(foregroundLight,backgroundLight)+.05)/(Math.min(foregroundLight,backgroundLight)+.05)};
   }""",{'encoded':encoded,'colour':colour})
+  painted=sample['count']
   if painted<=100:
    name=str(page.viewport_size['width'])+'-'+mode['name']+'-'+selector.replace(' ','_').replace('#','')
    (output/(name+'-text.png')).write_bytes(base64.b64decode(encoded))
    page.screenshot(path=str(output/(name+'-viewport.png')))
   assert painted>100,{'state':mode['name'],'viewport':page.viewport_size,'selector':selector,'colour':colour,'paintedPixels':painted}
+  if selector in ['footer .footer-brand-copy span','#openSources','#openPrivacy']:
+   assert sample['contrast']>=4.5,{'state':mode['name'],'selector':selector,'contrast':sample['contrast']}
   return painted
  report=[]
  footer_paint=[]
