@@ -54,9 +54,9 @@ with sync_playwright() as p:
   return context,page,state
  def loaded(page):return page.evaluate("[...document.fonts].some(font=>font.family==='Inter' && font.status==='loaded') && [...document.fonts].some(font=>font.family==='Nunito' && font.status==='loaded')")
  def geometry(page,width):
-  result=page.evaluate("()=>{const number=document.querySelector('#temperature').getBoundingClientRect(),section=document.querySelector('.weather-main').getBoundingClientRect(),degree=document.querySelector('.temperature .deg').getBoundingClientRect();return {overflow:document.documentElement.scrollWidth>innerWidth,numberCenter:number.x+number.width/2,sectionCenter:section.x+section.width/2,degreeRight:degree.right,numberLeft:number.x}}")
+  result=page.evaluate("()=>{const number=document.querySelector('#temperature').getBoundingClientRect(),section=document.querySelector('.weather-main').getBoundingClientRect(),degree=document.querySelector('.temperature .deg').getBoundingClientRect();return {overflow:document.documentElement.scrollWidth>innerWidth,readingCenter:(number.x+degree.right)/2,sectionCenter:section.x+section.width/2,degreeRight:degree.right,numberLeft:number.x}}")
   assert not result['overflow'] and result['numberLeft']>=0 and result['degreeRight']<=width,result
-  assert abs(result['numberCenter']-result['sectionCenter'])<=1,result
+  assert abs(result['readingCenter']-result['sectionCenter'])<=1,result
  def resize(page,width,height):
   page.set_viewport_size({'width':width,'height':height})
   page.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
