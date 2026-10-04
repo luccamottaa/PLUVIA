@@ -51,7 +51,9 @@ with sync_playwright() as p:
  page.evaluate("cityById.set('3305158',{...cityById.get('1302603'),id:'3305158',name:'São José do Vale do Rio Preto',uf:'RJ'});favorites.add('1302603');favorites.add('3305158');dispatchEvent(new CustomEvent('pluvia:favorites-changed'))")
 
  def boxes(selector):
-  return page.locator(selector).evaluate_all("els=>els.filter(el=>el.getClientRects().length).map(el=>{const r=el.getBoundingClientRect();return {text:el.textContent.trim().slice(0,70),x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom,centerX:r.x+r.width/2,centerY:r.y+r.height/2}})")
+  # Query and measure together: favorite refresh can detach locator handles.
+  # Native CSS selectors use the visibility filter below instead of :visible.
+  return page.evaluate("selector=>[...document.querySelectorAll(selector)].filter(el=>el.getClientRects().length && getComputedStyle(el).visibility!=='hidden').map(el=>{const r=el.getBoundingClientRect();return {text:el.textContent.trim().slice(0,70),x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom,centerX:r.x+r.width/2,centerY:r.y+r.height/2}})",selector.replace(':visible',''))
  def aligned(selector,key='y',count=None):
   values=boxes(selector)
   assert values and (count is None or len(values)==count),(selector,values)
