@@ -51,7 +51,9 @@ with sync_playwright() as p:
  page.evaluate("cityById.set('3305158',{...cityById.get('1302603'),id:'3305158',name:'São José do Vale do Rio Preto',uf:'RJ'});favorites.add('1302603');favorites.add('3305158');dispatchEvent(new CustomEvent('pluvia:favorites-changed'))")
 
  def boxes(selector):
-  return page.locator(selector).evaluate_all("els=>els.filter(el=>el.getClientRects().length).map(el=>{const r=el.getBoundingClientRect();return {text:el.textContent.trim().slice(0,70),x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom,centerX:r.x+r.width/2,centerY:r.y+r.height/2}})")
+  # Query and measure together: favorite refresh can detach locator handles.
+  # Native CSS selectors use the visibility filter below instead of :visible.
+  return page.evaluate("selector=>[...document.querySelectorAll(selector)].filter(el=>el.getClientRects().length && getComputedStyle(el).visibility!=='hidden').map(el=>{const r=el.getBoundingClientRect();return {text:el.textContent.trim().slice(0,70),x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom,centerX:r.x+r.width/2,centerY:r.y+r.height/2}})",selector.replace(':visible',''))
  def aligned(selector,key='y',count=None):
   values=boxes(selector)
   assert values and (count is None or len(values)==count),(selector,values)
@@ -77,13 +79,15 @@ with sync_playwright() as p:
   if width>=390:assert carousel.evaluate('el=>el.scrollWidth<=el.clientWidth+1'),(width,'Two favorites fit fully')
   last=carousel.locator('.favorite-city-card').last
   last.scroll_into_view_if_needed()
-  card=last.bounding_box();viewport=carousel.bounding_box()
+  viewport,card=boxes('#dialogFavoriteList,#dialogFavoriteList > .favorite-city-card:last-child')
   assert card['x']>=viewport['x']-1 and card['x']+card['width']<=viewport['x']+viewport['width']+1,(width,card,viewport)
   # A partially visible row during scrolling is normal; the last row must be
   # fully accessible without escaping the dialog's scrolling area.
   result=page.locator('#cityResults .city-result').last
   result.evaluate("el=>el.scrollIntoView({block:'end',inline:'nearest',behavior:'instant'})")
-  row=result.bounding_box();area=scroll.bounding_box()
+  result_bounds=boxes('#cityDialog .dialog-scroll,#cityResults .city-result')
+  assert len(result_bounds)>1,result_bounds
+  area,row=result_bounds[0],result_bounds[-1]
   assert row['y']>=area['y']-1 and row['y']+row['height']<=area['y']+area['height']+1,(width,row,area)
   carousel.evaluate('el=>el.scrollLeft=0');scroll.evaluate('el=>el.scrollTop=0')
  def home(width,label):
@@ -97,29 +101,32 @@ with sync_playwright() as p:
   aligned('.topbar .top-actions > *','centerY')
   aligned('.weather-player > *','centerY',4)
   aligned('footer .footer-link','centerX',2)
-  rows=page.locator('.forecast-row')
-  assert rows.count()==7
-  for row in rows.all():
-   geometry=row.evaluate("el=>Object.fromEntries([...el.children].filter(c=>c.getClientRects().length).map(c=>{const r=c.getBoundingClientRect();return [c.className,{x:r.x,y:r.y,right:r.right,centerY:r.y+r.height/2}]}))")
+  rows=page.evaluate("""()=>[...document.querySelectorAll('.forecast-row')].map(el=>{
+   const box=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,centerY:r.y+r.height/2}};
+   return {geometry:Object.fromEntries([...el.children].filter(c=>c.getClientRects().length).map(c=>[c.className,box(c)])),condition:box(el.querySelector('.forecast-condition')),text:box(el.querySelector('.forecast-condition > span'))};
+  })""")
+  assert len(rows)==7
+  for row in rows:
+   geometry=row['geometry']
    if width>720:
     centers=[b['centerY'] for b in geometry.values()]
     assert max(centers)-min(centers)<=1,geometry
    else:
     for a,b in [('forecast-day','temp-range'),('forecast-condition','forecast-rain')]:
      assert abs(geometry[a]['centerY']-geometry[b]['centerY'])<=1,geometry
-   condition=row.locator('.forecast-condition').bounding_box();text=row.locator('.forecast-condition > span').bounding_box()
+   condition=row['condition'];text=row['text']
    assert text['x']+text['width']<=condition['x']+condition['width']+1,(width,text,condition)
    if width>720:assert condition['x']+condition['width']<=geometry['temp-range']['x']+1,geometry
   report['tracks']=aligned('.temp-track','x',7)
   aligned('.temp-track','width',7)
   aligned('.sun-times > div > strong',count=2)
-  for heading in page.locator('#weatherView .section-heading').all():
-   parts=heading.evaluate("el=>[...el.children].filter(c=>c.getClientRects().length).map(c=>{const r=c.getBoundingClientRect();return {y:r.y,bottom:r.bottom,centerY:r.y+r.height/2}})")
+  headings=page.evaluate("()=>[...document.querySelectorAll('#weatherView .section-heading')].map(el=>[...el.children].filter(c=>c.getClientRects().length).map(c=>{const r=c.getBoundingClientRect();return {y:r.y,bottom:r.bottom,centerY:r.y+r.height/2}}))")
+  for parts in headings:
    if len(parts)==2:
     if width>720:assert abs(parts[0]['centerY']-parts[1]['centerY'])<=1,parts
     else:assert parts[1]['y']>=parts[0]['bottom']-1,parts
-  for metric in page.locator('.metrics .metric:not(.air-metric)').all():
-   pair=metric.locator(':scope > .metric-head,:scope > strong,:scope > .wind-reading').evaluate_all("els=>els.map(el=>{const r=el.getBoundingClientRect();return r.y+r.height/2})")
+  metrics=page.evaluate("()=>[...document.querySelectorAll('.metrics .metric:not(.air-metric)')].map(el=>[...el.querySelectorAll(':scope > .metric-head,:scope > strong,:scope > .wind-reading')].map(node=>{const r=node.getBoundingClientRect();return r.y+r.height/2}))")
+  for pair in metrics:
    assert len(pair)==2 and abs(pair[0]-pair[1])<=1,pair
   for mode in ['conditions','feels','rain','wind']:
    page.locator('button[data-hourly-mode="'+mode+'"]').click()
