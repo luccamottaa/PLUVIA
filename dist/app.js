@@ -234,7 +234,14 @@ function renderInmetAlerts(raw, stale = false) {
     const risks = firstValue(alert, ["riscos", "description"], "Consulte os riscos e as orientações no aviso oficial.");
     const riskText = Array.isArray(risks) ? risks.join(" ") : String(risks);
     const timing = stage === "future" ? `Previsto a partir de ${format(start)} (${activeCity.name})` : stage === "active" ? `Vigente até ${format(end)} (${activeCity.name})` : "Vigência a confirmar no aviso oficial";
-    return `<article class="inmet-alert inmet-${severity.className}"><span class="inmet-level">${severity.label} · ${severity.description}</span><h3>${escapeHtml(decodeHtml(String(title)))}</h3><p>${escapeHtml(decodeHtml(riskText).slice(0,360))}</p><div class="source-meta"><span>${escapeHtml(area)}</span><span>${escapeHtml(timing)}</span></div><button class="inmet-detail" type="button" data-notice="${index}">Ver detalhes</button><a class="inmet-detail" href="${url}" target="_blank" rel="noreferrer">Ver aviso ${/^\d+$/.test(id) ? id : "oficial"} no INMET ↗</a></article>`;
+    const stageLabel = stale ? "Leitura anterior" : stage === "active" ? "Vigente" : stage === "future" ? "Previsto" : "A confirmar";
+    const safeTitle = escapeHtml(decodeHtml(String(title)));
+    return `<article class="inmet-alert inmet-${severity.className}" data-stage="${stale ? "stale" : stage}">
+      <div class="inmet-alert-heading"><span class="inmet-alert-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg></span><div class="inmet-alert-title"><div class="inmet-alert-status"><span class="inmet-level">${severity.label}</span><span class="inmet-stage">${stageLabel}</span></div><h3>${safeTitle}</h3><small class="inmet-severity-note">${severity.description}</small></div></div>
+      <p class="inmet-alert-risk">${escapeHtml(decodeHtml(riskText).slice(0,360))}</p>
+      <dl class="inmet-alert-meta"><div><dt>Área do aviso</dt><dd>${escapeHtml(area)}</dd></div><div><dt>Validade · horário local</dt><dd>${escapeHtml(timing)}</dd></div></dl>
+      <div class="inmet-alert-actions"><button class="inmet-detail" type="button" data-notice="${index}" aria-label="Ver detalhes: ${safeTitle}">Ver detalhes <span aria-hidden="true">›</span></button><a class="inmet-detail inmet-official" href="${url}" target="_blank" rel="noreferrer" aria-label="Abrir aviso de ${safeTitle} no INMET">Ver no INMET <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a></div>
+    </article>`;
   }).join("");
 }
 

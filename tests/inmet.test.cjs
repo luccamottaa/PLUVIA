@@ -91,6 +91,18 @@ async function test(label, fn) {await fn(); checks++; console.log(`PASS ${label}
     assert(content.indexOf('/900010') < content.indexOf('/900001'));
     assert.equal((content.match(/class="inmet-alert /g)||[]).length,2);
   });
+  await test("Card status keeps future notices, uncertain periods and previous readings explicit", () => {
+    context.renderInmetAlerts({hoje:[],futuro:[aviso({data_inicio:'2026-09-09',data_fim:'2026-09-10'})]});
+    assert.match(nodes.get('inmetContent').innerHTML,/class="inmet-stage">Previsto</);
+    assert(nodes.get('inmetContent').innerHTML.includes('Previsto a partir de'));
+    context.renderInmetAlerts({hoje:[aviso({data_inicio:'',hora_inicio:'',data_fim:'',hora_fim:''})]});
+    assert.match(nodes.get('inmetContent').innerHTML,/class="inmet-stage">A confirmar</);
+    assert(nodes.get('inmetContent').innerHTML.includes('Vigência a confirmar no aviso oficial'));
+    context.renderInmetAlerts({hoje:[aviso()]},true);
+    assert.match(nodes.get('inmetContent').innerHTML,/class="inmet-stage">Leitura anterior</);
+    assert.doesNotMatch(nodes.get('inmetContent').innerHTML,/class="inmet-stage">Vigente</);
+    assert(nodes.get('inmetContent').innerHTML.includes('confirme a situação no INMET'));
+  });
   await test("Initial failure says unavailable; later failure keeps notices explicitly unconfirmed", async () => {
     context.PLUVIA.services.alerts.getActive = async () => {throw new Error("network");};
     await context.loadInmetAlerts();
