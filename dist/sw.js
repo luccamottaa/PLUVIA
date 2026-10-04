@@ -1,4 +1,4 @@
-const CACHE = "pluvia-panel-70";
+const CACHE = "pluvia-panel-71";
 const SHELL = "./index.html";
 const PRECACHE = [
     "./", SHELL, "./modules/pwa-gestures.js?v=pwa-1", "./modules/city-time.js?v=time-1", "./sky.css?v=sky-13", "./modules/sky-atmosphere.js?v=sky-10", "./modules/moon-view.js?v=moon-3", "./assets/sky-sun.svg?v=sun-2", "./assets/moon-surface.webp", "./assets/sky-cloud-veil.webp", "./assets/sky-cloud-volume.webp", "./assets/sky-stars.svg", "./assets/sky-stars-shimmer.svg", "./analytics.js?v=analytics-4", "./styles.css?v=core-120", "./redesign.css?v=panel-31", "./continuous.css?v=layout-29", "./capitals.js?v=core-47", "./app.js?v=panel-39", "./p0.js?v=panel-36", "./modules/account-sync.js?v=sync-1", "./modules/social-auth.js?v=oauth-3", "./account.js?v=account-6", "./saved-places.js?v=places-1", "./notifications.js?v=panel-25", "./weather-map.js?v=map-3", "./modules/nowcast.js?v=nowcast-3",

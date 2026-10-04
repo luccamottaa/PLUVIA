@@ -24,7 +24,7 @@ dist/
 ├── icon-192.png     # ícone PWA
 ├── icon-512.png     # ícone PWA
 ├── icon-maskable-512.png # ícone seguro para recorte adaptativo
-├── og-pluvia.png    # compartilhamento social 1200×630
+├── og-pluvia-v2.png # compartilhamento social com marca atual, 1731×909
 └── .nojekyll        # publicação estática sem processamento do Jekyll
 
 .github/workflows/pages.yml  # publicação automática no GitHub Pages
