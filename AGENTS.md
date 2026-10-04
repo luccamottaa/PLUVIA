@@ -119,6 +119,8 @@ Durante fetch, registrar `waitUntil` de forma síncrona e esperar as gravações
 
 GitHub Pages publica `dist/` no push para `main`; PR não publica produção. Funções Supabase são publicadas separadamente. `.openai/hosting.json` é um vínculo existente com Sites; não mudar destino/domínio por preferência.
 
+A prévia social atual é `og-pluvia-v2.png`: assinatura azul da marca, slogan "O céu de cada cidade" e céu noturno original com nuvens/estrelas. Open Graph e Twitter usam a mesma URL absoluta e dimensões reais 1731×909. O arquivo antigo permanece para links já armazenados; novas artes devem receber outro nome para distinguir o cache externo. A prévia não entra no precache nem é baixada pela Home. Serviços como WhatsApp mantêm cache próprio de previews; publicar não garante atualizar mensagens antigas.
+
 ## Validação
 
 Na raiz, com Node 24:
