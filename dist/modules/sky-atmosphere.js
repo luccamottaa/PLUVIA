@@ -111,7 +111,7 @@
     function write(state, animate) {
       const rain = rainProfile(code);
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
-        Object.assign(node.dataset,{phase:state.phase,solar:state.solar,weather,rain:rain.kind,skyTransition:animate ? 'live' : 'instant'});
+        Object.assign(node.dataset,{phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,skyTransition:animate ? 'live' : 'instant'});
         node.style?.setProperty('--twilight-opacity',state.strength.toFixed(3));
         node.style?.setProperty('--sun-visibility',state.sunVisibility.toFixed(3));
         node.style?.setProperty('--moon-visibility',state.moonVisibility.toFixed(3));
@@ -177,7 +177,9 @@
       const moonX = ORBIT_MARGIN + nightProgress * (1 - 2 * ORBIT_MARGIN);
       const moonY = 1 - Math.sin(Math.PI * nightProgress);
       moonView?.update(at);
-      return write({phase,solar,weather,strength,sunVisibility,moonVisibility,starVisibility,
+      // WMO 1 (mainly clear) shares the partly-cloudy palette, but needs fewer
+      // cloud banks than WMO 2. Coverage is decorative, never an observation.
+      return write({phase,solar,weather,clouds:code === 1 ? 'few' : 'standard',strength,sunVisibility,moonVisibility,starVisibility,
         sunX:ORBIT_MARGIN + dayProgress * (1 - 2 * ORBIT_MARGIN),sunY:1 - Math.sin(Math.PI * dayProgress),
         moonX,moonY},animate);
     }

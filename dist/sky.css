@@ -94,6 +94,28 @@ html,body { background:var(--sky-base); }
 :root:is([data-weather="sun"],[data-weather="unknown"]) .sky-clouds { animation-play-state:paused; }
 .intro-sky .sky-clouds { top:-30px; }
 .intro-sky .sky-clouds-front { top:36%; }
+/* Mainly clear (WMO 1): small banks at opposite edges leave most of the sky
+   open. Reuse the opaque textures: reducing opacity would expose Sun/Moon
+   through cloud interiors. Keep the same surfaces and bounded animations. */
+:root[data-weather="partly"][data-clouds="few"] .sky-clouds {
+  --few-cloud-width:clamp(200px,min(58vw,58svh),680px);
+  background-size:var(--few-cloud-width) auto;
+  background-position:left -20px top 90px;
+  -webkit-mask-image:radial-gradient(ellipse closest-side,#000 60%,transparent 100%);
+  mask-image:radial-gradient(ellipse closest-side,#000 60%,transparent 100%);
+  -webkit-mask-size:var(--few-cloud-width) calc(var(--few-cloud-width) * .5);
+  mask-size:var(--few-cloud-width) calc(var(--few-cloud-width) * .5);
+  -webkit-mask-position:left -20px top 90px;
+  mask-position:left -20px top 90px;
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+}
+:root[data-weather="partly"][data-clouds="few"] .sky-clouds-front {
+  --few-cloud-width:clamp(180px,min(56vw,56svh),620px);
+  background-position:right 20px top 110px;
+  -webkit-mask-position:right 20px top 110px;
+  mask-position:right 20px top 110px;
+}
 /* Independent fine/distant and longer/near streaks. A whole 480px tile moves
    vertically, so looping has no seam; intensity never comes from probability. */
 .sky-rain { display:block; position:absolute; z-index:4; inset:-480px 0 0; background:url("./assets/rain-near.svg") 17px 0 / var(--rain-width,380px) 480px repeat; opacity:var(--rain-opacity); animation:sky-rain-fall var(--rain-speed,2.2s) linear infinite; animation-delay:-.7s; transition:opacity 2s ease; }
