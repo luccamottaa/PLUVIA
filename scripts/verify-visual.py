@@ -10,6 +10,8 @@ from playwright.sync_api import sync_playwright
 root=Path(__file__).resolve().parent.parent
 base=json.loads(subprocess.check_output(['node','-e',"process.stdout.write(JSON.stringify(require('./tests/support/forecast.cjs').forecast()))"],cwd=root,text=True))
 preview=os.environ.get('PLUVIA_PREVIEW_URL','http://127.0.0.1:4173')
+public_smoke=os.environ.get('PLUVIA_PUBLIC_SMOKE')=='1'
+preview_origin=(urlparse(preview).scheme,urlparse(preview).netloc)
 output=Path(os.environ.get('PLUVIA_QA_OUTPUT','/tmp/pluvia-visual'));output.mkdir(parents=True,exist_ok=True)
 fixed=datetime.datetime(2026,10,1,16,tzinfo=datetime.timezone.utc)
 mode={'name':'clear-day','hour':12,'code':0,'offline':False,'pending':False,'alert':False}
@@ -23,6 +25,7 @@ with sync_playwright() as p:
  page=context.new_page();errors=[];requests=[];blocked=[];page.on('pageerror',lambda e:errors.append(str(e)))
  def route(r):
   url=r.request.url;requests.append(url)
+  if public_smoke and r.request.method!='GET':r.abort();return
   if 'api.open-meteo.com/v1/forecast' in url:
    if mode['pending']:blocked.append(r);return
    if mode['offline']:r.abort();return
@@ -32,7 +35,7 @@ with sync_playwright() as p:
   if 'functions/v1/met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
   if 'rainviewer' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
   if '/auth/v1/settings' in url:r.fulfill(json={'external':{'email':True,'google':False,'apple':False}});return
-  if 'localhost' in url or '127.0.0.1' in url:r.continue_();return
+  if (urlparse(url).scheme,urlparse(url).netloc)==preview_origin:r.continue_();return
   r.abort()
  context.route('**/*',route)
  context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(success,error){error({code:1});}}});")
@@ -73,16 +76,18 @@ with sync_playwright() as p:
   return painted
  report=[]
  footer_paint=[]
- mode.update(name='loading',pending=True)
- page.goto(preview,wait_until='domcontentloaded')
- page.locator('#condition').wait_for(state='visible')
- assert page.locator('#temperature').inner_text()=='--'
- page.screenshot(path=str(output/'390-loading.png'),full_page=True)
- for request in blocked:request.abort()
- blocked.clear();mode['pending']=False
+ if not public_smoke:
+  mode.update(name='loading',pending=True)
+  page.goto(preview,wait_until='domcontentloaded')
+  page.locator('#condition').wait_for(state='visible')
+  assert page.locator('#temperature').inner_text()=='--'
+  page.screenshot(path=str(output/'390-loading.png'),full_page=True)
+  for request in blocked:request.abort()
+  blocked.clear();mode['pending']=False
  for width,height in [(390,844),(1366,768)]:
   page.set_viewport_size({'width':width,'height':height})
   for name,hour,code in [('clear-day',12,0),('clear-night',22,0),('rain',14,65),('storm',15,95),('cloudy',10,3),('sunrise',6,1),('sunset',18,2)]:
+   if public_smoke and name not in ['clear-day','clear-night','sunrise','sunset']:continue
    mode.update(name=name,hour=hour,code=code,offline=False,alert=False)
    page.clock.set_fixed_time(fixed+datetime.timedelta(hours=hour-12))
    page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
@@ -103,6 +108,7 @@ with sync_playwright() as p:
     page.locator('#openPrivacy').click();page.locator('#sourcesDialog').wait_for(state='visible')
     assert page.locator('#privacyTitle').is_visible()
     page.keyboard.press('Escape');page.locator('#sourcesDialog').wait_for(state='hidden')
+  if public_smoke:continue
   mode.update(name='alert',hour=12,code=95,alert=True);page.clock.set_fixed_time(fixed);page.goto(preview)
   page.wait_for_function("document.getElementById('inmetCard').dataset.severity==='red'")
   page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
@@ -149,5 +155,5 @@ with sync_playwright() as p:
   page.evaluate("localStorage.removeItem('pluvia-weather-1302603')");page.goto(preview)
   page.wait_for_function("document.getElementById('condition').textContent==='Tempo indisponível'")
   geometry();assert page.locator('#temperature').inner_text()=='--';page.screenshot(path=str(output/(str(width)+'-error.png')),full_page=True)
- print(json.dumps({'visualContracts':report,'twilightFooterPaint':footer_paint,'alerts':True,'dialogMotion':True,'reducedMotion':True,'errors':errors},ensure_ascii=False))
+ print(json.dumps({'publicSmoke':public_smoke,'visualContracts':report,'twilightFooterPaint':footer_paint,'alerts':not public_smoke,'dialogMotion':not public_smoke,'reducedMotion':True,'errors':errors},ensure_ascii=False))
  browser.close()

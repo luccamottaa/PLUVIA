@@ -16,9 +16,16 @@
   let layerRevision = 0;
   const fading = new Map();
   let stationSignature='';
+  let pendingTimeout=null,radarSnapshot=null,displayedFrameKey=null,pendingFrameKey=null,displayedPartial=false,resizePending=false;
+  const lastSize={width:0,height:0};
 
   function source(id, patch) { globalThis.PLUVIA?.sources?.set(id, {...patch, checkedAt:Date.now()}); }
   function setError(message) { $('weatherMapError').hidden = !message; $('weatherMapError').textContent = message || ''; }
+  function frameStatus(busy,message,retry=false) {
+    $('weatherMap').setAttribute('aria-busy',String(busy));
+    if ($('weatherFrameStatus')) $('weatherFrameStatus').textContent=message || '';
+    if ($('weatherMapRetry')) $('weatherMapRetry').hidden=!retry;
+  }
   function city() { return typeof activeCity !== 'undefined' ? activeCity : null; }
   function zoneTime(unix) {
     const value = new Date(unix * 1000);
@@ -48,11 +55,15 @@
     clearInterval(state.timer); state.timer = null;
     $('weatherPlay').setAttribute('aria-pressed','false'); $('weatherPlay').setAttribute('aria-label','Reproduzir animação');
   }
+  function cancelPending() {
+    clearTimeout(pendingTimeout);pendingTimeout=null;pendingFrameKey=null;
+    if (state.nextOverlay) state.map?.removeLayer(state.nextOverlay);
+    state.nextOverlay=null;
+  }
   function removeOverlay() {
+    cancelPending(); displayedFrameKey=null;displayedPartial=false;
     for (const [layer,timer] of fading) { clearTimeout(timer); state.map?.removeLayer(layer); }
     fading.clear();
-    if (state.nextOverlay && state.map) state.map.removeLayer(state.nextOverlay);
-    state.nextOverlay = null;
     if (state.overlay && state.map) state.map.removeLayer(state.overlay);
     state.overlay = null;
   }
@@ -61,14 +72,34 @@
     const slider = $('weatherTimeline'); slider.max = String(Math.max(0,frames.length - 1)); slider.value = String(state.index); slider.disabled = frames.length < 2;
     $('weatherFramePrev').disabled = frames.length < 2; $('weatherFrameNext').disabled = frames.length < 2; $('weatherPlay').disabled = frames.length < 2;
   }
-  function fadeTileLayer(layer, opacity) {
-    if (state.nextOverlay) state.map.removeLayer(state.nextOverlay);
+  function fadeTileLayer(layer, opacity, options={}) {
+    cancelPending();
     const previous = state.overlay;
     state.nextOverlay = layer;
+    pendingFrameKey=options.key || null;
+    let loaded=0,failed=0;
+    layer.on('loading',()=>{if(state.nextOverlay===layer){loaded=0;failed=0;}});
+    layer.on('tileload',()=>{loaded++;});layer.on('tileerror',()=>{failed++;});
+    frameStatus(true,options.loading || 'Carregando imagem…');
+    function fail(message) {
+      if (state.nextOverlay!==layer) return;
+      clearTimeout(pendingTimeout);pendingTimeout=null;pendingFrameKey=null;state.nextOverlay=null;
+      state.map.removeLayer(layer);stop();
+      frameStatus(false,previous ? 'A imagem anterior continua exibida.' : 'Imagem indisponível.',true);
+      setError(message);options.onError?.();
+    }
+    pendingTimeout=setTimeout(()=>fail('Esta imagem demorou para carregar. Tente outro horário ou tente novamente.'),10000);
     layer.setOpacity?.(0);
     layer.on('load',() => {
       if (state.nextOverlay !== layer) return;
+      if (!loaded) {fail('A imagem deste horário não carregou. Tente outro horário ou tente novamente.');return;}
+      clearTimeout(pendingTimeout);pendingTimeout=null;pendingFrameKey=null;
       state.nextOverlay = null; state.overlay = layer;
+      displayedFrameKey=options.key || null;
+      displayedPartial=Boolean(failed);
+      options.onReady?.(failed);
+      frameStatus(false,failed ? 'Parte da imagem não carregou.' : 'Imagem carregada.',Boolean(failed));
+      setError(failed ? 'Parte da imagem não carregou. Tente outro horário ou tente novamente.' : '');
       requestAnimationFrame(() => {
         if (state.overlay !== layer) return;
         layer.setOpacity?.(opacity);
@@ -80,8 +111,11 @@
   }
   function renderRainFrame() {
     const frame = state.frames[state.index]; if (!frame) return;
-    fadeTileLayer(L.tileLayer(`${frame.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:.76,maxNativeZoom:7,maxZoom:11,attribution:'Radar: RainViewer'}),.76);
-    $('weatherFrameTime').textContent = zoneTime(frame.time);
+    fadeTileLayer(L.tileLayer(`${frame.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:.76,maxNativeZoom:7,maxZoom:11,attribution:'Radar: RainViewer'}),.76,{
+      key:'rain:'+frame.time,loading:'Carregando imagem de '+zoneTime(frame.time)+'…',
+      onReady(failed) {$('weatherFrameTime').textContent=zoneTime(frame.time);source('radar',{status:failed ? 'partial' : 'ready',dataAt:frame.time*1000});},
+      onError() {source('radar',{status:'error'});}
+    });
     $('weatherSourceNote').textContent = 'Radar observado · RainViewer · cobertura depende dos radares disponíveis; não é previsão.';
     $('weatherMapLegend').innerHTML = '<span>Fraca</span><i class="legend-rain"></i><span>Forte</span>';
   }
@@ -106,44 +140,42 @@
   }
   function renderCloudFrame() {
     const frame = state.frames[state.index]; if (!frame) return;
-    setError('');
     const iso = new Date(frame.time*1000).toISOString().replace('.000Z','Z');
     const overlay = L.tileLayer(`${SATELLITE_ROOT}/${SATELLITE_LAYER}/default/${iso}/${SATELLITE_MATRIX}/{z}/{y}/{x}.png`,{
       opacity:0,maxNativeZoom:6,maxZoom:6,noWrap:true,className:'pluvia-cloud-overlay',
       attribution:'GOES-East / NOAA · NASA GIBS'
     });
-    let loaded = 0, failed = 0;
-    overlay.on('tileload',() => { loaded++; });
-    overlay.on('tileerror',() => { failed++; });
-    overlay.on('load',() => {
-      if ((state.overlay !== overlay && state.nextOverlay !== overlay) || state.layer !== 'clouds') return;
-      if (!loaded) {
-        stop(); setError('Imagem de satélite indisponível nesta região ou horário.');
-        source('clouds',{status:'error'});
-      } else {
-        if (failed) setError('Parte da imagem não carregou. Tente outro horário.');
-        source('clouds',{status:'ready',dataAt:frame.time*1000});
-      }
-    });
-    fadeTileLayer(overlay,.92);
-    state.marker?.closeTooltip?.();
     const date = new Intl.DateTimeFormat('pt-BR',{timeZone:city()?.timezone || 'UTC',day:'2-digit',month:'2-digit'}).format(new Date(frame.time*1000));
-    $('weatherFrameTime').textContent = date + ' · ' + zoneTime(frame.time);
+    fadeTileLayer(overlay,.92,{
+      key:'clouds:'+frame.time,loading:'Carregando imagem de '+zoneTime(frame.time)+'…',
+      onReady(failed) {$('weatherFrameTime').textContent=date+' · '+zoneTime(frame.time);source('clouds',{status:failed ? 'partial' : 'ready',dataAt:frame.time*1000});},
+      onError() {source('clouds',{status:'error'});}
+    });
+    state.marker?.closeTooltip?.();
     $('weatherSourceNote').textContent = 'Satélite GOES-East · NOAA / NASA GIBS · imagem observada no horário indicado, com atraso de processamento. Composição GeoColor de dia e infravermelho à noite.';
     $('weatherMapLegend').innerHTML = '<span>Nuvens · GOES-East</span>';
   }
-  function renderFrame() {
+  function renderFrame(force=false) {
     $('weatherTimeline').value = String(state.index);
+    const key=state.layer+':'+state.frames[state.index]?.time;
+    if (!force && state.nextOverlay && pendingFrameKey===key) return;
+    if (!force && state.overlay && displayedFrameKey===key) {
+      cancelPending();frameStatus(false,displayedPartial ? 'Parte da imagem não carregou.' : 'Imagem carregada.',displayedPartial);
+      setError(displayedPartial ? 'Parte da imagem não carregou. Tente outro horário ou tente novamente.' : '');return;
+    }
     if (state.layer === 'rain') renderRainFrame(); else if (state.layer === 'clouds') renderCloudFrame();
   }
   async function loadRain(revision) {
     source('radar',{status:'loading'});
-    const data = await fetchJson(RAIN_META);
+    const cached=radarSnapshot && Date.now()>=radarSnapshot.at && Date.now()-radarSnapshot.at<120000;
+    const data = cached ? radarSnapshot.data : await fetchJson(RAIN_META);
     if (revision !== layerRevision) return;
-    const frames = (data?.radar?.past || []).slice(-7).map(frame => ({...frame,host:data.host}));
+    const recent = (Array.isArray(data?.radar?.past) ? data.radar.past : []).filter(frame=>Number.isFinite(frame.time) && frame.time*1000<=Date.now()+60000 && Date.now()-frame.time*1000<3*3600000 && typeof frame.path==='string' && /^\/[\w/-]+$/.test(frame.path));
+    const frames = [...new Map(recent.map(frame=>[frame.time,frame])).values()].sort((a,b)=>a.time-b.time).slice(-7).map(frame=>({...frame,host:data.host}));
+    if (typeof data?.host!=='string' || !/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(data.host)) throw new Error('O radar enviou uma referência inválida.');
     if (!frames.length) throw new Error('O radar não enviou frames recentes.');
+    radarSnapshot={data,at:cached ? radarSnapshot.at : Date.now()};
     setFrames(frames,frames.length-1); renderFrame();
-    source('radar',{status:'ready',dataAt:frames.at(-1).time*1000});
   }
   async function loadClouds(revision) {
     source('clouds',{status:'loading'});
@@ -212,12 +244,15 @@
     document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
     $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : name === 'clouds' ? 'Nuvens' : name === 'stations' ? 'Estação' : 'Raios';
     $('weatherFrameTime').textContent = 'Carregando…'; $('weatherSourceNote').textContent = 'Consultando a fonte escolhida…';
+    frameStatus(true,'Consultando a fonte escolhida…');
     try {
       if (name === 'rain') await loadRain(revision); else if (name === 'clouds') await loadClouds(revision); else if (name === 'stations') loadStations(); else await loadLightning(revision);
+      if (revision===layerRevision && ['stations','lightning'].includes(name)) frameStatus(false,'Observação carregada.');
     } catch (error) {
       if (revision !== layerRevision) return;
       const id = name === 'rain' ? 'radar' : name;
       source(id,{status:'error'}); setFrames([],0); setError('Esta camada está temporariamente indisponível. As outras continuam funcionando.');
+      frameStatus(false,'Não foi possível carregar esta camada.',true);
       $('weatherFrameTime').textContent = 'Indisponível'; $('weatherSourceNote').textContent = name === 'lightning'
         ? 'Raios ainda não ativados ou temporariamente indisponíveis. Nenhuma observação foi confirmada.'
         : error?.message || 'Dados temporariamente indisponíveis.';
@@ -233,27 +268,40 @@
     if (state.marker) state.map.removeLayer(state.marker);
     state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:7,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(`${selectedCity.name}/${selectedCity.uf}`);
     state.cityId = selectedCity.id; $('weatherMapCity').textContent = `${selectedCity.name}/${selectedCity.uf} · ponto de referência do município`;
-    setTimeout(() => state.map.invalidateSize(),80);
+    resizeMap();
   }
   let initializing = false;
   let mapVisible = false;
   async function showMap() {
     if (initializing || !city()) return;
     let initialized = false;
-    initializing = true; setError('');
+    initializing = true; setError('');frameStatus(true,'Abrindo mapa…');
     try {
       await initMap();
       initialized = true;
       await selectLayer(state.layer);
       globalThis.pluviaAnalytics?.track('Weather Map Viewed',{layer:state.layer,city:city()?.name,uf:city()?.uf});
-    } catch (error) { setError(error?.message || 'Não foi possível carregar o mapa agora.'); }
+    } catch (error) { setError(error?.message || 'Não foi possível carregar o mapa agora.');frameStatus(false,'Mapa indisponível.',true); }
     finally {
       initializing = false;
       if (initialized && state.map && city()?.id !== state.cityId && (mapVisible || radarDialog?.open)) showMap();
     }
   }
   function step(amount) { if (!state.frames.length || state.nextOverlay) return; state.index = (state.index + amount + state.frames.length) % state.frames.length; renderFrame(); }
-  function resizeMap() { requestAnimationFrame(() => state.map?.invalidateSize?.({pan:false})); }
+  function resizeMap() {
+    if (resizePending) return;
+    resizePending=true;
+    requestAnimationFrame(()=>{
+      resizePending=false;const container=state.map?.getContainer?.();if (!container) return;
+      const {clientWidth:width,clientHeight:height}=container;
+      if (!width || !height || (lastSize.width===width && lastSize.height===height)) return;
+      lastSize.width=width;lastSize.height=height;state.map.invalidateSize({pan:false});
+    });
+  }
+  $('weatherMapRetry')?.addEventListener('click',()=>{
+    setError('');
+    if (!state.map) showMap();else if (state.frames.length) renderFrame(true);else selectLayer(state.layer);
+  });
   $('expandRadar')?.addEventListener('click',() => {
     if (!radarDialog || radarDialog.open || !radarContent) return;
     previousOverflow = document.body.style.overflow;

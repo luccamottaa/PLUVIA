@@ -45,7 +45,7 @@
     <link rel="preload" href="./vendor/suncalc.js?v=sky-3" as="script" />
     <link rel="preload" href="./modules/moon-view.js?v=moon-3" as="script" />
     <link rel="preload" href="./modules/sky-atmosphere.js?v=sky-10" as="script" />
-    <link rel="preload" href="./sky.css?v=sky-15" as="style" />
+    <link rel="preload" href="./sky.css?v=sky-16" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       html { background:#080f22; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
@@ -85,11 +85,11 @@
     <script src="./vendor/suncalc.js?v=sky-3"></script>
     <script src="./modules/moon-view.js?v=moon-3"></script>
     <script src="./modules/sky-atmosphere.js?v=sky-10"></script>
-    <link rel="stylesheet" href="./sky.css?v=sky-15" />
+    <link rel="stylesheet" href="./sky.css?v=sky-16" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-121" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-33" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-35" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-34" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-36" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-121" /></noscript>
   </head>
   <body>
@@ -345,6 +345,7 @@
               <input id="weatherTimeline" type="range" min="0" max="0" value="0" aria-label="Linha do tempo da chuva" disabled />
             </div>
             <small id="weatherSourceNote">Radar observado · RainViewer · cobertura depende dos radares disponíveis; não é previsão.</small>
+            <p id="weatherFrameStatus" class="weather-frame-status" role="status" aria-live="polite"></p><button id="weatherMapRetry" class="weather-map-retry" type="button" hidden>Tentar novamente</button>
             <a id="weatherLightningAttribution" href="https://www.xweather.com/" target="_blank" rel="noopener noreferrer" hidden>Powered by Vaisala Xweather</a>
           </div></div>
         </article>
@@ -384,6 +385,24 @@
       </div>
       <div class="hourly-detail-navigation"><button id="hourlyDetailPrev" type="button" aria-label="Horário anterior">‹ Anterior</button><button id="hourlyDetailNext" type="button" aria-label="Próximo horário">Próximo ›</button></div>
     </dialog>
+    <dialog id="dailyDetailDialog" class="city-dialog hourly-detail-dialog" aria-labelledby="dailyDetailTitle" aria-describedby="dailyDetailCity">
+      <div class="dialog-heading"><div><h2 id="dailyDetailTitle">Previsão do dia</h2><p id="dailyDetailCity"></p></div><button id="dailyDetailClose" class="dialog-close" type="button" autofocus aria-label="Fechar previsão diária">×</button></div>
+      <div class="dialog-scroll">
+        <p id="dailyDetailCondition"></p>
+        <dl class="hourly-detail-readings">
+          <div><dt>Mínima</dt><dd id="dailyDetailMin">—</dd></div><div><dt>Máxima</dt><dd id="dailyDetailMax">—</dd></div>
+          <div><dt>Sensação mínima</dt><dd id="dailyDetailFeelsMin">—</dd></div><div><dt>Sensação máxima</dt><dd id="dailyDetailFeelsMax">—</dd></div>
+          <div><dt>Chance de chuva no dia</dt><dd id="dailyDetailProbability">—</dd></div><div><dt>Acumulado previsto no dia</dt><dd id="dailyDetailRain">—</dd></div>
+          <div><dt>Maior vento nos horários disponíveis</dt><dd id="dailyDetailWind">—</dd></div><div><dt>Maior rajada nos horários disponíveis</dt><dd id="dailyDetailGust">—</dd></div>
+          <div><dt>Nascer do sol</dt><dd id="dailyDetailSunrise">—</dd></div><div><dt>Pôr do sol</dt><dd id="dailyDetailSunset">—</dd></div>
+          <div><dt>UV máximo previsto</dt><dd id="dailyDetailUv">—</dd></div>
+        </dl>
+        <h3>Por hora</h3><p id="dailyDetailHoursNote" class="hourly-detail-note"></p>
+        <div id="dailyDetailHours" class="daily-detail-hours" role="group" aria-label="Horários previstos para este dia"></div>
+        <small id="dailyDetailSource"></small>
+      </div>
+      <div class="hourly-detail-navigation"><button id="dailyDetailPrev" type="button">‹ Dia anterior</button><button id="dailyDetailNext" type="button">Próximo dia ›</button></div>
+    </dialog>
     <dialog id="installPushDialog" class="city-dialog" aria-labelledby="installPushTitle">
       <div class="dialog-heading"><h2 id="installPushTitle">Alertas no iPhone</h2><button id="installPushClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
       <p>Safari no iPhone só entrega Web Push se o PLUVIA estiver na Tela de Início e aberto pelo ícone.</p>
@@ -397,7 +416,7 @@
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="privacyTitle"><h3 id="privacyTitle">Privacidade</h3><label for="analyticsConsent"><input id="analyticsConsent" type="checkbox"> Ajudar a melhorar o Pluvia</label><p>Compartilhe contagens de uso e tipos de falha com o PostHog. Não enviamos nomes, e-mail, cidade, coordenadas ou texto pesquisado. Não gravamos sua tela nem vinculamos métricas à sua conta.</p><p id="analyticsChoiceStatus" role="status">Desativado. A previsão funciona sem compartilhar métricas.</p><p>O servidor recebe a conexão de rede; solicitamos que o IP não seja usado para geolocalização. <a href="https://posthog.com/privacy" target="_blank" rel="noreferrer">Política de privacidade do PostHog</a>.</p></section><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
     <script src="./analytics.js?v=analytics-4" defer></script>
-    <script src="./modules/sources.js?v=panel-22" defer></script>
+    <script src="./modules/sources.js?v=panel-23" defer></script>
     <script src="./modules/dialog-motion.js?v=motion-1" defer></script>
     <script src="./modules/http-client.js?v=http-1" defer></script>
     <script src="./modules/weather-services.js?v=core-112" defer></script>
@@ -409,13 +428,14 @@
     <script src="./modules/weather-icons.js?v=core-49" defer></script>
     <script src="./modules/weather-icon-system.js?v=modern-1" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
-    <script src="./modules/hourly-detail.js?v=detail-4" defer></script>
-    <script src="./app.js?v=panel-40" defer></script>
+    <script src="./modules/hourly-detail.js?v=detail-5" defer></script>
+    <script src="./modules/daily-detail.js?v=daily-1" defer></script>
+    <script src="./app.js?v=panel-41" defer></script>
     <script src="./p0.js?v=panel-36" defer></script>
     <script src="./modules/risks.js?v=core-118" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
     <script src="./modules/nowcast.js?v=nowcast-3" defer></script>
-    <script src="./weather-map.js?v=map-3" defer></script>
+    <script src="./weather-map.js?v=map-4" defer></script>
     <script src="./modules/account-sync.js?v=sync-1" defer></script>
     <script src="./modules/social-auth.js?v=oauth-3" defer></script>
     <script src="./account.js?v=account-6" defer></script>

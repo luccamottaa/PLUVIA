@@ -9,7 +9,7 @@
 }
 :root[data-phase="day"] {
   --sky-base:#a7d7ec; --sky-color:linear-gradient(165deg,#57b0e2,#bce7f5 70%,#a7d7ec);
-  --cloud-filter:none; --intro-ink:#143654; --intro-muted:#2e5575;
+  --cloud-filter:none; --intro-ink:#143654; --intro-muted:#233e57;
   --lightning-opacity:.38;
 }
 :root[data-phase="night"] { --sky-base:#080f22; --sky-color:radial-gradient(ellipse at 80% 8%,#363b6440,transparent 42%),linear-gradient(165deg,#10142d,#080f22 85%); }
@@ -22,12 +22,13 @@
 :root[data-weather="cloud"][data-phase="night"] { --sky-base:#0a1427; --sky-color:linear-gradient(165deg,#171f36,#0a1427 85%); }
 :root[data-weather="rain"][data-phase="day"] { --sky-base:#8fadc2; --sky-color:linear-gradient(165deg,#789bb9,#bbcedc 68%,#8fadc2); --cloud-filter:brightness(.83) saturate(.7); }
 :root[data-weather="storm"][data-phase="day"] { --sky-base:#7e98b2; --sky-color:linear-gradient(165deg,#657f9e,#acbfd0 68%,#7e98b2); --cloud-filter:brightness(.68) saturate(.65); }
+:root[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) { --intro-ink:#041a2e; --intro-muted:#08243b; }
 :root[data-weather="fog"] { --sky-base:#111c2c; --sky-color:linear-gradient(180deg,#35405788,#111c2c); --cloud-opacity:.3; }
 :root[data-weather="fog"][data-phase="day"] { --sky-base:#c0d1dd; --sky-color:linear-gradient(165deg,#aabfcf,#e0e9ef); --cloud-opacity:.5; }
 :root[data-weather="snow"] { --sky-base:#0e1a2d; --sky-color:linear-gradient(165deg,#29364e,#0e1a2d); --cloud-opacity:.65; }
 :root[data-weather="snow"][data-phase="day"] { --sky-base:#bed9e8; --sky-color:linear-gradient(165deg,#9ebfd5,#e5f0f5); }
-:root:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#233656; --intro-muted:#f5e3de; }
-:root[data-phase="night"]:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; }
+:root:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#233656; --intro-muted:#233656; }
+:root[data-phase="night"]:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#f3f8ff; --intro-muted:#233656; }
 :root[data-solar="sunset"] { --twilight-color:radial-gradient(ellipse at 78% 35%,#ffd69899,transparent 48%),linear-gradient(180deg,#39446f,#9d789c 27%,#eaa286 52%,#cf9a84 100%); }
 html,body { background:var(--sky-base); }
 .pluvia-intro { background:var(--sky-color); color:var(--intro-ink); }

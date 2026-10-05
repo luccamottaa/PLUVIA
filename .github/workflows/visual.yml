@@ -44,6 +44,8 @@ jobs:
           python scripts/verify-clouds.py
           python scripts/verify-nowcast.py
           python scripts/verify-daily-planning.py
+          python scripts/verify-daily-detail.py
+          python scripts/verify-contrast.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

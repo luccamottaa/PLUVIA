@@ -13,7 +13,7 @@ test('ampliar e fechar preserva o mapa e os frames, restaura a página e pausa o
   requestAnimationFrame:fn=>fn(),clearInterval:()=>stopped++,URL,addEventListener(){}};
  const code=fs.readFileSync('dist/weather-map.js','utf8').replace('  let leafletPromise;','  globalThis.testState=state;\n  let leafletPromise;');
  vm.runInNewContext(code,context);
- const map={invalidateSize(){resized++;}},frames=[{time:123}];context.testState.map=map;context.testState.cityId=context.activeCity.id;context.testState.frames=frames;context.testState.index=0;context.testState.timer=1;
+ const map={getContainer(){return {clientWidth:390,clientHeight:node('radarDialog').open ? 600 : 400};},invalidateSize(){resized++;}},frames=[{time:123}];context.testState.map=map;context.testState.cityId=context.activeCity.id;context.testState.frames=frames;context.testState.index=0;context.testState.timer=1;
  node('expandRadar').events.click();assert.equal(node('radarDialog').open,true);assert.equal(node('radarMapContent').parentElement,node('radarDialogContent'));assert.equal(focused,'closeRadar');assert.equal(context.document.body.style.overflow,'hidden');
  node('closeRadar').events.click();assert.equal(node('radarDialog').open,false);assert.equal(node('radarMapContent').parentElement,home);assert.equal(context.document.body.style.overflow,'auto');assert.equal(focused,'expandRadar');assert.equal(context.testState.timer,null);assert.equal(stopped,1);assert.equal(context.testState.map,map);assert.equal(context.testState.frames,frames);assert.equal(resized,2);
 });
