@@ -120,10 +120,10 @@
   function findAsset(name) {
     const resolvedName = ASSET_ALIASES[name] || name;
     for (const [category, entries] of Object.entries(ASSETS)) if (entries[resolvedName]) {
-      const version = "?v=modern-1";
+      const version = "?v=modern-2";
       return { name, resolvedName, category, file:entries[resolvedName], src:`${BASE}${category}/${entries[resolvedName]}${version}`, source:"pluvia-vector" };
     }
-    return { name, category:"fallback", file:"weather-unknown.svg", src:`${BASE}fallback/weather-unknown.svg?v=modern-1`, source:"pluvia-vector" };
+    return { name, category:"fallback", file:"weather-unknown.svg", src:`${BASE}fallback/weather-unknown.svg?v=modern-2`, source:"pluvia-vector" };
   }
   function assetFor(code, isDay = true) { return findAsset(conditionIconName(code, isDay)).file; }
   function icon(code, isDay = true, options = {}) { const info=condition(code); return { ...info, ...findAsset(conditionIconName(code,isDay)), isDay:Boolean(isDay), label:options.label || info.label }; }
