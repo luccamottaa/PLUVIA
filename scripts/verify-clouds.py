@@ -32,7 +32,7 @@ with sync_playwright() as p:
  report=[]
  for width,height in [(320,740),(390,844),(844,390),(1366,768),(2560,1080)]:
   page.set_viewport_size({'width':width,'height':height})
-  for name,hour,code in [('clear',13,0),('clear-night',22,0),('partly',13,2),('partly-night',22,2),('moon-partly',3,2),('moon-cloudy',3,3),('cloudy',13,3),('drizzle',14,51),('light-rain',14,61),('rain',14,65),('storm',15,95),('storm-night',22,95),('cloudy-night',22,3),('sunrise',6,2),('sunset',18,2)]:
+  for name,hour,code in [('clear',13,0),('clear-night',22,0),('few',13,1),('few-night',22,1),('partly',13,2),('partly-night',22,2),('moon-partly',3,2),('moon-cloudy',3,3),('cloudy',13,3),('drizzle',14,51),('light-rain',14,61),('rain',14,65),('storm',15,95),('storm-night',22,95),('cloudy-night',22,3),('sunrise',6,2),('sunset',18,2)]:
    mode.update(code=code,hour=hour);page.clock.set_fixed_time(datetime.datetime(2026,10,1,hour,tzinfo=datetime.timezone.utc)+datetime.timedelta(hours=4))
    page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
    page.wait_for_function("!document.documentElement.classList.contains('awaiting-styles')")
@@ -46,11 +46,15 @@ with sync_playwright() as p:
    data=layers.evaluate_all("els=>els.map(el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,repeat:s.backgroundRepeat,animation:s.animationName,width:el.offsetWidth,height:el.offsetHeight};})")
    assert all(d['repeat']=='no-repeat' and d['animation']=='none' and d['width']<=width+130 and d['height']<=640 for d in data),(width,name,data)
    assert all(d['opacity']==0 for d in data) if code==0 else all(d['opacity']>0 for d in data)
+   if code==1:
+    assert all(d['opacity']==1 for d in data),'poucas nuvens conservam interiores opacos'
+    assert page.evaluate("document.documentElement.dataset.clouds==='few' && document.body.dataset.clouds==='few'")
+    assert ('quase limpo' if hour==22 else 'limpo') in page.locator('#condition').inner_text()
    stars=page.locator('.sky-effects > .sky-stars')
    assert stars.count()==1 and page.locator('.intro-sky > .sky-stars').count()==1
    star=stars.evaluate("el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,repeat:s.backgroundRepeat,animation:getComputedStyle(el,'::after').animationName,height:el.offsetHeight,width:el.offsetWidth};}")
    assert star['repeat']=='no-repeat' and star['animation']=='none' and star['height']<=760 and star['width']==width,star
-   visible=name in ['clear-night','partly-night','moon-partly']
+   visible=name in ['clear-night','few-night','partly-night','moon-partly']
    assert (star['opacity']>0)==visible,(width,name,star)
    if name in ['moon-partly','moon-cloudy']:
     assert page.locator('.sky-effects > .sky-moon').evaluate("el=>getComputedStyle(el).display==='block' && +getComputedStyle(el).opacity>0")
@@ -64,6 +68,34 @@ with sync_playwright() as p:
     assert page.locator(selector).is_visible(),(width,height,name,selector)
    page.screenshot(path=str(output/(str(width)+'-'+name+'.png')))
    report.append({'viewport':[width,height],'state':name})
+ # Measure painted cloud coverage with the real textures/masks, rather than
+ # just checking dataset names. Mainly clear must leave most of the sky open
+ # on narrow, landscape and wide screens, in both scenes and municipal phases.
+ coverage=[]
+ for width,height in [(320,740),(390,844),(844,390),(1366,768),(2560,1080)]:
+  page.set_viewport_size({'width':width,'height':height})
+  for hour in [13,22]:
+   mode.update(code=1,hour=hour);page.clock.set_fixed_time(datetime.datetime(2026,10,1,hour,tzinfo=datetime.timezone.utc)+datetime.timedelta(hours=4))
+   page.goto(preview);page.wait_for_function("document.body.dataset.clouds==='few' && document.getElementById('pluviaIntro').hidden && !document.documentElement.classList.contains('awaiting-styles')")
+   for scene in ['home','intro']:
+    page.evaluate("intro=>{document.getElementById('pluviaIntro').hidden=!intro}",scene=='intro')
+    decor=page.add_style_tag(content=".night-stage > :not(.sky-effects):not(.sky-twilight-page),.pluvia-intro > :not(.intro-sky){visibility:hidden!important}:is(.sky-effects,.intro-sky) > :is(.sky-sun,.sky-moon,.sky-stars){display:none!important}")
+    fractions={}
+    for code in [1,2]:
+     page.evaluate("code=>PLUVIA.sky.apply(code,null,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})",code)
+     clip={'x':0,'y':0,'width':width,'height':min(height,650)}
+     painted=base64.b64encode(page.screenshot(clip=clip)).decode()
+     hidden=page.add_style_tag(content='.sky-clouds{opacity:0!important}')
+     clear=base64.b64encode(page.screenshot(clip=clip)).decode();hidden.evaluate('el=>el.remove()')
+     fractions[code]=page.evaluate("""async images=>{
+       const data=await Promise.all(images.map(async image=>{const im=new Image();im.src='data:image/png;base64,'+image;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d');ctx.drawImage(im,0,0);return ctx.getImageData(0,0,c.width,c.height).data;}));
+       let painted=0;for(let i=0;i<data[0].length;i+=4)if(Math.abs(data[0][i]-data[1][i])+Math.abs(data[0][i+1]-data[1][i+1])+Math.abs(data[0][i+2]-data[1][i+2])>12)painted++;
+       return painted/(data[0].length/4);
+     }""",[painted,clear])
+    assert 0<fractions[1]<.25 and fractions[1]<fractions[2]*.5,(width,height,hour,scene,fractions)
+    coverage.append({'viewport':[width,height],'hour':hour,'scene':scene,'paintedCloudFraction':fractions})
+    decor.evaluate('el=>el.remove()')
+   page.evaluate("document.getElementById('pluviaIntro').hidden=true")
  # Pixel regression: a moving opaque band with a clear gap substitutes only the
  # test texture. Real CSS, both cloud animations and both celestial disks remain.
  # This catches translucency/z-order failures without relying on an asset's crop.
@@ -106,13 +138,47 @@ with sync_playwright() as p:
    assert ratios['covered']<.02 and ratios['gap']>.9,(body,layer,ratios)
    occlusion.append({'body':body,'layer':layer,'visibility':ratios})
   disk.evaluate("el=>el.style.setProperty('display','none','important')")
+ # Sparse banks also need opaque interiors, despite their smaller edge masks.
+ # A solid QA texture checks that the sparse composition still hides each disk;
+ # the real assets and open area were measured above, without this substitution.
+ page.evaluate("""()=>{
+   PLUVIA.sky.apply(1,0,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'});
+   const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="560"><path fill="#aac4d6" d="M0 0H1120V560H0Z"/></svg>';
+   for(const el of document.querySelectorAll('.sky-effects > .sky-clouds')){
+     el.style.backgroundImage=`url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+     el.style.setProperty('opacity','0','important');
+     const a=el.getAnimations().find(a=>a.animationName?.startsWith('clouds-'));const t=a.effect.getTiming();a.pause();a.currentTime=t.delay+t.duration*2.5;
+   }
+ }""")
+ for body in ['sun','moon']:
+  disk=page.locator('.sky-effects > .sky-'+body)
+  for layer in ['back','front']:
+   cloud=page.locator('.sky-effects > .sky-clouds-'+layer)
+   center=cloud.evaluate("""el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el),w=parseFloat(s.backgroundSize);return {x:el.classList.contains('sky-clouds-front')?r.right-20-w/2:r.left-20+w/2,y:r.top+(el.classList.contains('sky-clouds-front')?110:90)+w/4};}""")
+   ratios={}
+   for state,x in [('covered',center['x']),('gap',195)]:
+    clip={'x':int(x)-4,'y':int(center['y'])-4,'width':8,'height':8}
+    disk.evaluate("el=>el.style.setProperty('display','block','important')")
+    disk.evaluate("(el,p)=>el.style.setProperty('transform',`translate3d(${p.x-el.offsetWidth/2}px,${p.y-el.offsetWidth/2}px,0)`,'important')",{'x':int(x),'y':int(center['y'])})
+    cloud.evaluate("el=>el.style.setProperty('opacity','0','important')")
+    disk.evaluate("el=>el.style.setProperty('display','none','important')");without=pixels()
+    disk.evaluate("el=>el.style.setProperty('display','block','important')");clear_energy=difference(pixels(),without)
+    assert clear_energy>100,(body,layer,state,clear_energy)
+    cloud.evaluate("el=>el.style.removeProperty('opacity')")
+    disk.evaluate("el=>el.style.setProperty('display','none','important')");without=pixels()
+    disk.evaluate("el=>el.style.setProperty('display','block','important')");ratios[state]=difference(pixels(),without)/clear_energy
+   assert ratios['covered']<.02 and ratios['gap']>.9,(body,layer,'few',ratios)
+   occlusion.append({'body':body,'layer':layer,'clouds':'few','visibility':ratios})
+   cloud.evaluate("el=>el.style.setProperty('opacity','0','important')")
+  disk.evaluate("el=>el.style.setProperty('display','none','important')")
  # Native CSS animations remain the same objects across condition updates.
  mode.update(code=3,hour=13);page.clock.set_fixed_time(datetime.datetime(2026,10,1,17,tzinfo=datetime.timezone.utc));page.goto(preview)
  page.wait_for_function("document.body.dataset.weather==='cloud' && document.getElementById('pluviaIntro').hidden")
  page.emulate_media(reduced_motion='no-preference');page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='running'")
  page.evaluate("window.cloudAnimations=[...document.querySelectorAll('.sky-effects > .sky-clouds')].map(el=>el.getAnimations().find(a=>a.animationName?.startsWith('clouds-')))")
- page.evaluate("PLUVIA.sky.apply(2,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
- assert page.evaluate("[...document.querySelectorAll('.sky-effects > .sky-clouds')].every((el,i)=>el.getAnimations().includes(cloudAnimations[i]))")
+ for code in [1,2,1,3]:
+  page.evaluate("code=>PLUVIA.sky.apply(code,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})",code)
+  assert page.evaluate("[...document.querySelectorAll('.sky-effects > .sky-clouds')].every((el,i)=>el.getAnimations().includes(cloudAnimations[i]))"),code
  assert page.locator('.sky-effects > .sky-clouds-front').evaluate("el=>getComputedStyle(el).transitionDuration")=='4s'
  page.evaluate("window.scrollTo(0,document.body.scrollHeight)");page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
  assert all(s=='paused' for s in page.locator('.sky-effects > .sky-clouds').evaluate_all("els=>els.map(el=>getComputedStyle(el).animationPlayState)"))
@@ -196,5 +262,5 @@ with sync_playwright() as p:
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>getComputedStyle(el).display")=='none'
  assert page.evaluate("document.querySelector('.sky-effects').getAnimations({subtree:true}).length===0")
  assert not errors,errors
- print(json.dumps({'screenshots':report,'celestialOcclusion':occlusion,'lightning':lightning,'normalStars':normal_stars,'seamlessBoundedLayers':True,'preservedAnimationObjects':True,'nightStars':True,'starWeatherGate':True,'rainDepth':True,'offscreenPause':True,'backgroundPseudoPause':True,'clearSkyPause':True,'reducedMotion':True,'errors':errors}))
+ print(json.dumps({'screenshots':report,'cloudCoverage':coverage,'celestialOcclusion':occlusion,'lightning':lightning,'normalStars':normal_stars,'seamlessBoundedLayers':True,'preservedAnimationObjects':True,'nightStars':True,'starWeatherGate':True,'rainDepth':True,'offscreenPause':True,'backgroundPseudoPause':True,'clearSkyPause':True,'reducedMotion':True,'errors':errors}))
  context.close();browser.close()
