@@ -21,14 +21,15 @@ with sync_playwright() as p:
     page.set_content('<base href="' + preview + '"><style>body{margin:0;font:13px system-ui}section{padding:24px;display:grid;grid-template-columns:repeat(6,1fr);gap:20px 12px}h2{grid-column:1/-1;font-size:18px;margin:0}article{text-align:center}figure{height:80px;margin:0;display:flex;align-items:center;justify-content:center;gap:12px}img{display:block;object-fit:contain}label{display:block;margin-top:8px;font-size:12px}.night{background:#0c162b;color:#fff}.day{background:#bdd6ea;color:#172b45}</style>')
     page.add_script_tag(path=str(repo/'dist/modules/weather-icon-system.js'))
     result = page.evaluate("""async () => {
-      const api=PLUVIA.weatherIcons, names=Object.keys(api.ASSETS.conditions), checks=[];
+      const api=PLUVIA.weatherIcons, names=Object.keys(api.ASSETS.conditions), checks=[], groups=[['conditions',[32,72]],['metrics',[24,48]]];
+      for(const [category,sizes] of groups) {
       for(const background of ['night','day']) {
         const section=document.createElement('section');section.className=background;
-        section.innerHTML='<h2>PLUVIA · '+(background==='night'?'Fundo noturno':'Fundo diurno')+' · 32 / 72 px</h2>';
+        section.innerHTML='<h2>PLUVIA · '+(category==='metrics'?'Indicadores':'Condições')+' · '+(background==='night'?'Fundo noturno':'Fundo diurno')+' · '+sizes.join(' / ')+' px</h2>';
         document.body.append(section);
-        for(const name of names) {
+        for(const name of Object.keys(api.ASSETS[category])) {
           const article=document.createElement('article');
-          article.innerHTML='<figure>'+[32,72].map(size=>api.markupName(name,{size,eager:true,decorative:true})).join('')+'</figure><label>'+name+'</label>';
+          article.innerHTML='<figure>'+sizes.map(size=>api.markupName(name,{size,eager:true,decorative:true})).join('')+'</figure><label>'+name+'</label>';
           section.append(article);
           for(const img of article.querySelectorAll('img')) {
             await img.decode();
@@ -49,13 +50,14 @@ with sync_playwright() as p:
             for(let i=3;i<scaled.length;i+=4)if(scaled[i]>8)smallPainted++;
             if(smallPainted<img.width*img.height*.01)throw Error('Icon disappeared at '+img.width+'px: '+name);
             if(getComputedStyle(img).animationName!=='none')throw Error('Unexpected decorative animation');
-            checks.push({name,background,size:img.width,bounds:[minX,minY,maxX,maxY],painted:count,paintedAtSize:smallPainted});
+            checks.push({name,category,background,size:img.width,bounds:[minX,minY,maxX,maxY],painted:count,paintedAtSize:smallPainted});
           }
         }
       }
+      }
       const codeMappings=Object.keys(api.CONDITIONS).map(code=>[Number(code),api.icon(Number(code),true).name,api.icon(Number(code),false).name]);
       if(codeMappings.some(([,day,night])=>!names.includes(day)||!names.includes(night)))throw Error('WMO mapping has no artwork');
-      return {icons:names.length,paintChecks:checks.length,codeMappings,checks};
+      return {icons:names.length,metricIcons:Object.keys(api.ASSETS.metrics).length,paintChecks:checks.length,codeMappings,checks};
     }""")
     page.screenshot(path=str(output/(engine+'-weather-icons.png')), full_page=True)
     page.emulate_media(reduced_motion='reduce')

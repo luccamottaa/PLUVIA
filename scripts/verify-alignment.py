@@ -97,6 +97,17 @@ with sync_playwright() as p:
    report[field]=aligned(field,count=5)
   report['summaryLabels']=aligned('.quick-metrics > .quick-metric:first-child .metric-head > span:first-child,.hero-temperature-extreme small',count=3)
   report['summaryValues']=aligned('#feelsLike,#todayHigh,#todayLow',count=3)
+  summary_icons='.quick-metrics > .quick-metric:first-child [data-weather-icon-name] img,.hero-temperature-extreme [data-weather-icon-name] img'
+  report['summaryIcons']=aligned(summary_icons,'centerY',3)
+  for icon in report['summaryIcons']:
+   assert icon['width']==icon['height']==28,(width,label,icon)
+  for selector in ['.quick-metrics > .quick-metric:first-child','.hero-temperature-extreme']:
+   for column in page.locator(selector).all():
+    geometry=column.evaluate("el=>{const icon=el.querySelector('[data-weather-icon-name] img'),heading=el.querySelector('.metric-head'),label=heading.firstElementChild,value=el.querySelector('strong');const box=n=>{const r=n.getBoundingClientRect();return {center:r.x+r.width/2,x:r.x,right:r.right,y:r.y,bottom:r.bottom}};return {column:box(el),icon:box(icon),label:box(label),value:box(value),loaded:icon.complete&&icon.naturalWidth===128,decorative:icon.alt===''&&icon.getAttribute('aria-hidden')==='true'};}")
+    assert geometry['loaded'] and geometry['decorative'],geometry
+    assert max(v['center'] for v in geometry.values() if isinstance(v,dict))-min(v['center'] for v in geometry.values() if isinstance(v,dict))<=1,geometry
+    assert geometry['icon']['bottom']<=geometry['label']['y'] and geometry['label']['bottom']<=geometry['value']['y'],geometry
+    assert all(geometry['column']['x']-1<=geometry[k]['x'] and geometry[k]['right']<=geometry['column']['right']+1 for k in ['icon','label','value']),geometry
   aligned('.topbar .account-trigger,.topbar .brand,.topbar .top-actions','centerY',3)
   aligned('.topbar .top-actions > *','centerY')
   # Center the whole reading, not only the number while its degree hangs outside.
@@ -126,8 +137,10 @@ with sync_playwright() as p:
   edges=boxes('#top,#weatherView,footer')
   assert len(edges)==3 and max(b['x'] for b in edges)-min(b['x'] for b in edges)<=1,(width,edges)
   assert max(b['right'] for b in edges)-min(b['right'] for b in edges)<=1,(width,edges)
-  reading_y=boxes('#wind')[0]['centerY']
-  wind_row=boxes('.wind-reading')[0]
+  # Measure parent and number in one frame: WebKit can restore scroll position
+  # between protocol calls after a viewport change or selected-city refresh.
+  wind_row,wind_reading=boxes('.wind-reading,#wind')
+  reading_y=wind_reading['centerY']
   assert abs(reading_y-wind_row['centerY'])<=1,(width,reading_y,wind_row)
   wind_parts=page.locator('#wind').evaluate("el=>{const range=document.createRange();range.selectNodeContents(el.firstChild);const number=range.getBoundingClientRect(),unit=el.querySelector('sup').getBoundingClientRect();return {numberTop:number.top,numberBottom:number.bottom,numberRight:number.right,unitLeft:unit.left,unitCenterY:unit.y+unit.height/2}}")
   assert wind_parts['unitLeft']>=wind_parts['numberRight']-1 and wind_parts['numberTop']<=wind_parts['unitCenterY']<=wind_parts['numberBottom'],(width,wind_parts)
@@ -215,6 +228,9 @@ with sync_playwright() as p:
    page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(100);home(width,label)
    assert ('Pôr do sol' in page.locator('#hourlyPeek').inner_text())==(label=='sunset')
    screenshot(str(width)+'-peek-'+label,'.hourly-peek')
+   if width==390 and label=='day':
+    screenshot(str(width)+'-quick-day','.quick-metrics')
+    screenshot(str(width)+'-metrics-day','.metrics')
  # A long selected name also changes reference notes and dialog subtitles.
  page.clock.set_fixed_time(datetime.datetime(2026,10,4,7,15,tzinfo=datetime.timezone.utc))
  page.evaluate("chooseCity('3305158')")

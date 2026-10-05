@@ -18,19 +18,19 @@ test('mapeia códigos WMO e respeita variantes de dia e noite', () => {
   assert.equal(icons.assetFor(80, true), 'showers.svg');
   assert.equal(icons.assetFor(80, false), 'showers-night.svg');
   assert.equal(icons.assetFor(81, false), 'showers-night.svg');
-  assert.match(icons.icon(80, false).src, /showers-night\.svg\?v=modern-2$/);
-  assert.match(icons.icon(2, false).src, /partly-cloudy-night\.svg\?v=modern-2$/);
+  assert.match(icons.icon(80, false).src, /showers-night\.svg\?v=modern-3$/);
+  assert.match(icons.icon(2, false).src, /partly-cloudy-night\.svg\?v=modern-3$/);
   assert.equal(icons.assetFor(82, false), 'heavy-rain.svg');
 });
 
 test('centraliza ícones nomeados e usa fallback local sem gerar 404', () => {
-  assert.equal(icons.namedIcon('humidity').src, './assets/weather-icons/metrics/humidity.svg?v=modern-2');
+  assert.equal(icons.namedIcon('humidity').src, './assets/weather-icons/metrics/humidity.svg?v=modern-3');
   for (const name of ['temperature-high','temperature-low','feels-like','visibility']) {
-    assert.equal(icons.namedIcon(name).src, `./assets/weather-icons/metrics/${name}.svg?v=modern-2`);
+    assert.equal(icons.namedIcon(name).src, `./assets/weather-icons/metrics/${name}.svg?v=modern-3`);
   }
   assert.equal(icons.namedIcon('rain-probability').source, 'pluvia-vector');
   assert.equal(icons.namedIcon('radar').source, 'pluvia-vector');
-  assert.equal(icons.namedIcon('radar').src, './assets/weather-icons/maps/radar.svg?v=modern-2');
+  assert.equal(icons.namedIcon('radar').src, './assets/weather-icons/maps/radar.svg?v=modern-3');
 });
 
 test('todos os ícones vetoriais existem e são válidos', () => {
@@ -41,7 +41,7 @@ test('todos os ícones vetoriais existem e são válidos', () => {
       const contents = fs.readFileSync(asset);
       if (file.endsWith('.svg')) {
         assert.match(contents.toString(), /<svg[^>]*viewBox="0 0 128 128"[\s\S]*<\/svg>/, `${category}/${file} parece inválido`);
-        if (category === 'conditions') {
+        if (['conditions','metrics'].includes(category)) {
           assert.ok(contents.length < 4 * 1024, `${file} excede orçamento de um ícone pequeno`);
           assert.doesNotMatch(contents.toString(), /<(?:script|image|foreignObject|filter|animate|set)\b|\bon\w+=|(?:href|src)=["'](?:https?:|data:)/i, `${file} precisa ser um SVG estático local`);
           for (const match of contents.toString().matchAll(/url\(#([^\)]+)\)/g)) {
@@ -55,6 +55,8 @@ test('todos os ícones vetoriais existem e são válidos', () => {
   }
   const total = Object.values(icons.ASSETS.conditions).reduce((sum, file) => sum + fs.statSync(path.join(__dirname, '../dist/assets/weather-icons/conditions', file)).size, 0);
   assert.ok(total < 50 * 1024, 'família meteorológica excede orçamento do shell mobile');
+  const metricsTotal = Object.values(icons.ASSETS.metrics).reduce((sum, file) => sum + fs.statSync(path.join(__dirname, '../dist/assets/weather-icons/metrics', file)).size, 0);
+  assert.ok(total + metricsTotal < 96 * 1024, 'ícones de condições e indicadores excedem orçamento mobile');
 });
 
 test('usa nascer e pôr do sol reais para cada frame horário', () => {

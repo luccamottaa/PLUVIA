@@ -6,7 +6,7 @@ function manifest(directory) {
  const html=fs.readFileSync(path.join(directory,'index.html'),'utf8');
  const references=[...html.matchAll(/(?:src|href)=["']([^"']+\.(?:js|css)(?:\?[^"']*)?)["']/g)].map(match=>match[1]);
  const sw=fs.readFileSync(path.join(directory,'sw.js'),'utf8');
- references.push(...[...sw.matchAll(/["'](\.\/assets\/weather-icons\/conditions\/[^"']+\.svg\?[^"']+)["']/g)].map(match=>match[1]));
+ references.push(...[...sw.matchAll(/["'](\.\/assets\/weather-icons\/(?:conditions|metrics)\/[^"']+\.svg\?[^"']+)["']/g)].map(match=>match[1]));
  const assets=[{url:'',file:'index.html'},{url:'sw.js',file:'sw.js'}];
  for(const value of new Set(references)) {
   if(/^[a-z]+:|^\/\//i.test(value))continue;

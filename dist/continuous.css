@@ -188,16 +188,18 @@ body[data-phase="day"] #weatherView {
 #weatherView .hourly-peek-item.is-now .peek-time { color:var(--reading-link); }
 #weatherView .quick-metrics { padding:20px 0; border-top:1px solid var(--reading-line); grid-template-columns:minmax(0,1fr) minmax(0,2fr); }
 html body #weatherView .quick-metrics > .quick-metric:first-child { min-height:0; padding:0 8px; gap:8px; border-radius:0 !important; }
-#weatherView .quick-metrics > .quick-metric:first-child .metric-head { flex-direction:row; justify-content:center; }
+#weatherView .quick-metrics > .quick-metric:first-child .metric-head,
+#weatherView .hero-temperature-extreme > .metric-head { display:flex; flex-direction:column-reverse; align-items:center; justify-content:center; gap:4px; }
 #weatherView .quick-metrics > .quick-metric:first-child .metric-head > span:first-child { color:var(--reading-muted); font-size:.8rem; }
 #weatherView .quick-metrics > .quick-metric:first-child .metric-head > [data-weather-icon-name],
-#weatherView .hero-temperature-extreme > [data-weather-icon-name] { display:none; }
+#weatherView .hero-temperature-extreme .metric-head > [data-weather-icon-name] { display:block; width:28px; height:28px; flex:none; margin:0; }
+#weatherView .quick-metrics > .quick-metric:first-child .metric-weather-icon,
+#weatherView .hero-temperature-extreme .metric-head .metric-weather-icon { width:28px; height:28px; }
 html body #weatherView .hero-temperature-range { border-radius:0 !important; }
 #weatherView .hero-temperature-extreme { padding:0 8px; gap:8px; border-left:1px solid var(--reading-line); }
 #weatherView .hero-temperature-extreme + .hero-temperature-extreme { border-color:var(--reading-line); }
 #weatherView .hero-temperature-extreme small { color:var(--reading-muted); }
 #weatherView .hero-temperature-extreme strong { color:var(--reading-ink); }
-#weatherView .hero-temperature-extreme > div { gap:8px; }
 #weatherView :is(.hero-temperature-extreme small,.quick-metric:first-child .metric-head > span:first-child) { font-size:.8rem; line-height:1.35; }
 #weatherView .quick-metrics > .quick-metric:last-child { grid-column:1/-1; margin-top:20px; padding:20px 0 0; border-top:1px solid var(--reading-line) !important; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 16px; min-height:0; }
 #weatherView .quick-metrics > .quick-metric:last-child > strong { grid-column:2; grid-row:1; margin:0; font-size:1.45rem; }
