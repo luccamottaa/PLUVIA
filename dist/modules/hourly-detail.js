@@ -37,9 +37,15 @@
   function mount(root) {
     const doc=root.document,el=id=>doc.getElementById(id),dialog=el('hourlyDetailDialog');
     if(!dialog) return;
-    let state=null,selectedTime=null,opener=null;
+    let state=null,selectedTime=null,opener=null,selectedDay=null;
     const unit=(value,suffix,digits=0)=>value===null ? 'Indisponível' : format(value,digits)+suffix;
-    function bounds() {return {first:state?.start || 0,last:Math.min((state?.hourly.time.length || 0)-1,(state?.start || 0)+23)};}
+    function bounds() {
+      if(selectedDay) {
+        const indices=(state?.hourly.time||[]).map((time,index)=>time.startsWith(selectedDay+'T') ? index : -1).filter(index=>index>=0);
+        return {first:indices[0]??-1,last:indices.at(-1)??-1};
+      }
+      return {first:state?.start || 0,last:Math.min((state?.hourly.time.length || 0)-1,(state?.start || 0)+23)};
+    }
     function paint() {
       const index=state?.hourly.time.indexOf(selectedTime),reading=detail(state?.hourly,index);
       if(!reading) {if(dialog.open) dialog.close();return;}
@@ -71,7 +77,8 @@
       state=next;
       if(dialog.open) paint();
     }
-    function open(index,button) {
+    function open(index,button,day=null) {
+      selectedDay=day;
       const range=bounds();
       if(!state || index<range.first || index>range.last || !detail(state.hourly,index)) return;
       selectedTime=state.hourly.time[index];opener=button;paint();
@@ -79,7 +86,7 @@
     }
     doc.addEventListener('click',event=>{
       const button=event.target.closest?.('[data-hour-index]');
-      if(button && !button.disabled && button.closest('#weatherView')) open(Number(button.dataset.hourIndex),button);
+      if(button && !button.disabled && (button.closest('#weatherView') || button.closest('#dailyDetailDialog'))) open(Number(button.dataset.hourIndex),button,button.dataset.detailDay||null);
     });
     el('hourlyDetailClose').addEventListener('click',()=>globalThis.PLUVIA?.dialogs?.close(dialog) ?? dialog.close());
     dialog.addEventListener('click',event=>{if(event.target===dialog) globalThis.PLUVIA?.dialogs?.close(dialog) ?? dialog.close();});
@@ -92,7 +99,7 @@
     el('hourlyDetailPrev').addEventListener('click',()=>move(-1));el('hourlyDetailNext').addEventListener('click',()=>move(1));
     dialog.addEventListener('keydown',event=>{if(event.key==='ArrowLeft' || event.key==='ArrowRight') {event.preventDefault();move(event.key==='ArrowLeft' ? -1 : 1);}});
     root.addEventListener('pluvia:city-changed',()=>{
-      if(dialog.open) dialog.close();state=null;selectedTime=null;
+      if(dialog.open) dialog.close();state=null;selectedTime=null;selectedDay=null;
     });
     root.PLUVIA.hourlyDetail.update=update;
   }

@@ -39,3 +39,35 @@ jobs:
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4
+  verify-public:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Conferir HTML, service worker e assets publicados
+        run: node scripts/check-release.cjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar navegador isolado
+        run: |
+          python -m pip install playwright==1.62.0
+          python -m playwright install --with-deps chromium
+      - name: Conferir dia, noite, nascer e pôr do sol no domínio público
+        env:
+          PLUVIA_PREVIEW_URL: https://pluviaweather.com.br/
+          PLUVIA_PUBLIC_SMOKE: '1'
+          PLUVIA_QA_OUTPUT: /tmp/pluvia-public-qa
+        run: python scripts/verify-visual.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pluvia-public-verification
+          path: /tmp/pluvia-public-qa
+          retention-days: 7

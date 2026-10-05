@@ -259,7 +259,7 @@ html,body { background:#041936; }
 }
 
 /* Dialogs share one scrolling surface; the header stays outside it. */
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) {
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) {
   --dialog-bg:#0d2239; --dialog-surface:#162e48; --dialog-line:#a4c7e51f;
   --dialog-text:#f1f7ff; --dialog-muted:#aac0d7;
   --dialog-top-gap:max(16px,env(safe-area-inset-top)); --dialog-bottom-gap:max(16px,env(safe-area-inset-bottom));
@@ -270,23 +270,23 @@ html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#ale
   background:var(--dialog-bg); color:var(--dialog-text); box-shadow:0 32px 100px #0008;
   color-scheme:dark;
 }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail)[open] { display:flex; flex-direction:column; }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail)::backdrop { background:#020c1bc7; backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) .dialog-heading {
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail)[open] { display:flex; flex-direction:column; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail)::backdrop { background:#020c1bc7; backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) .dialog-heading {
   position:relative; top:auto; flex:none; display:flex; align-items:center; justify-content:space-between;
   margin:0; padding:22px 24px; gap:16px; background:var(--dialog-bg); border-bottom:1px solid var(--dialog-line);
 }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) .dialog-heading h2 { font-size:1.5rem; font-weight:600; letter-spacing:-.035em; line-height:1.2; margin:0; }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) .dialog-close { flex:none; width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:14px; background:#aac7e513; color:var(--dialog-text); font:400 28px/1 var(--font-ui); padding:0; }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) .dialog-close:focus { outline:none; }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) :is(button,input,summary,a):focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) .dialog-heading h2 { font-size:1.5rem; font-weight:600; letter-spacing:-.035em; line-height:1.2; margin:0; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) .dialog-close { flex:none; width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:14px; background:#aac7e513; color:var(--dialog-text); font:400 28px/1 var(--font-ui); padding:0; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) .dialog-close:focus { outline:none; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) :is(button,input,summary,a):focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
 .dialog-scroll { flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; padding:24px; scrollbar-width:thin; scrollbar-color:#5e85ae66 transparent; scroll-padding-block:20px; }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) p { color:var(--dialog-muted); font-size:1rem; line-height:1.55; }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) p:empty { display:none; }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) :is(input:not([type=checkbox]),select) { width:100%; min-width:0; min-height:52px; padding:14px 16px; border:1px solid #8eb4df38; border-radius:14px; background:#071a2d; color:var(--dialog-text); font:inherit; font-size:1rem; box-shadow:none; }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) input::placeholder { color:#89a5c2; opacity:1; }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) button:not(.dialog-close):not(.city-result) { min-height:48px; border-radius:14px; padding:12px 16px; font-size:.9375rem; font-weight:750; line-height:1.35; }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) h3 { margin:0 0 16px; font-size:1.1875rem; font-weight:800; letter-spacing:-.02em; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) p { color:var(--dialog-muted); font-size:1rem; line-height:1.55; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) p:empty { display:none; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) :is(input:not([type=checkbox]),select) { width:100%; min-width:0; min-height:52px; padding:14px 16px; border:1px solid #8eb4df38; border-radius:14px; background:#071a2d; color:var(--dialog-text); font:inherit; font-size:1rem; box-shadow:none; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) input::placeholder { color:#89a5c2; opacity:1; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) button:not(.dialog-close):not(.city-result) { min-height:48px; border-radius:14px; padding:12px 16px; font-size:.9375rem; font-weight:750; line-height:1.35; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) h3 { margin:0 0 16px; font-size:1.1875rem; font-weight:800; letter-spacing:-.02em; }
 #cityDialog .city-picker { display:flex; flex-direction:column; gap:16px; margin:0; padding:0; }
 #cityDialog .city-search-field { display:block; flex:none; margin:0; padding:16px 24px; border-bottom:1px solid var(--dialog-line); background:var(--dialog-bg); }
 #cityDialog .city-search-field label { display:block; color:var(--dialog-muted); font-size:.875rem; margin-bottom:8px; }
@@ -354,14 +354,14 @@ html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#ale
 #sourcesDialog .official-observations a { display:block; margin:8px 0; padding:12px 14px; border:1px solid var(--dialog-line); border-radius:12px; color:#accfff; background:var(--dialog-surface); font-size:.875rem; }
 #sourcesDialog a { color:#accfff; overflow-wrap:anywhere; }
 @media(max-width:600px) {
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) { width:calc(100% - 16px); border-radius:24px; }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) .dialog-heading { padding:20px; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) { width:calc(100% - 16px); border-radius:24px; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) .dialog-heading { padding:20px; }
   #cityDialog .city-search-field { padding:12px 20px 16px; }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) .dialog-heading h2 { font-size:1.375rem; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail) .dialog-heading h2 { font-size:1.375rem; }
   .dialog-scroll { padding:20px; }
 }
 @media(prefers-reduced-motion:no-preference) {
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail)[open] { animation:dialog-appear .2s ease-out; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#alertDetail)[open] { animation:dialog-appear .2s ease-out; }
   @keyframes dialog-appear { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 }
 

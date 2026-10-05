@@ -454,13 +454,13 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
     const rainMm = daily.precipitation_sum[i];
     const weekend = [0,6].includes(d.getUTCDay());
     const reading = !Number.isFinite(rainProb) || !Number.isFinite(rainMm) ? "Previsão de chuva indisponível" : rainMm >= 20 ? "Acumulado de chuva elevado" : rainMm >= 8 ? "Chuva ao longo do dia" : rainProb >= 55 ? "Chuva provável, com baixo acumulado" : rainProb >= 30 ? "Chuva isolada" : "Baixa probabilidade de chuva";
-    return `<div class="forecast-row ${i === bestIndex ? "best-day" : ""}">
-      <div class="forecast-day"><strong>${day}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label}</span></div>
-      <div class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></div>
-      <div class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><div class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</div><strong aria-hidden="true">${fmt(max)}°</strong></div>
-      <div class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span>${rainProb ?? '—'}% · ${fmt(rainMm, 1)} mm</span></div>
-      <div class="forecast-uv">${reading} · UV ${fmt(daily.uv_index_max[i], 0)}</div>
-    </div>`;
+    return `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}" data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog" aria-label="${day}, ${label}: ${cond}, mínima ${fmt(min)} graus, máxima ${fmt(max)} graus, chance de chuva ${rainProb ?? 'indisponível'}${rainProb===null ? '' : '%'}, ${fmt(rainMm,1)} mm. Ver detalhes.">
+      <span class="forecast-day"><strong>${day}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
+      <span class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
+      <span class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</span><strong aria-hidden="true">${fmt(max)}°</strong></span>
+      <span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span>${rainProb ?? '—'}% · ${fmt(rainMm, 1)} mm</span></span>
+      <span class="forecast-uv">${reading} · UV ${fmt(daily.uv_index_max[i], 0)}</span>
+    </button>`;
   }).join("");
 }
 
@@ -642,6 +642,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   renderVisibility(data.hourly.visibility?.[start], fromCache);
   renderHourly(data.hourly, start, day);
   globalThis.PLUVIA?.hourlyDetail?.update?.({hourly:data.hourly,daily:day,start,city:activeCity,fromCache,cacheAt,isDayAt:time=>forecastIsDay(time,day)});
+  globalThis.PLUVIA?.dailyDetail?.update?.({hourly:data.hourly,daily:day,city:activeCity,fromCache,cacheAt,at:Date.now(),isDayAt:time=>forecastIsDay(time,day),dayAt:stamp=>globalThis.PLUVIA.sky.dayAt(stamp)});
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
   renderForecast(day, current.temperature_2m); renderSun(day);
   displayedWeather = {forecast:data,air,fromCache,cacheAt,weatherAt:metadata.weatherAt || cacheAt || Date.now(),hour:start,phase:atmosphere?.phase,day:globalThis.PLUVIA.time.dayKey(Date.now(),activeCity),airAt:metadata.airAt,freshAir:metadata.freshAir === true};

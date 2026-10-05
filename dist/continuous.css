@@ -507,10 +507,10 @@ footer.shell .footer-brand-copy strong { font-family:var(--font-brand); color:va
 
 /* Painéis entram de cima e saem para baixo; somente transform/opacity. */
 @media (prefers-reduced-motion:no-preference) {
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open] { animation:pluvia-dialog-enter .4s cubic-bezier(.22,1,.36,1); }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing { animation:pluvia-dialog-exit .28s cubic-bezier(.4,0,1,1) forwards; }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing::backdrop { animation:pluvia-backdrop-exit .28s ease-in forwards; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open] { animation:pluvia-dialog-enter .4s cubic-bezier(.22,1,.36,1); }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing { animation:pluvia-dialog-exit .28s cubic-bezier(.4,0,1,1) forwards; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing::backdrop { animation:pluvia-backdrop-exit .28s ease-in forwards; }
   details[open] > :not(summary) { animation:pluvia-content-enter .24s ease-out; }
   @keyframes pluvia-dialog-enter { from { opacity:0; transform:translateY(-100dvh); } to { opacity:1; transform:translateY(0); } }
   @keyframes pluvia-dialog-exit { from { opacity:var(--pluvia-exit-opacity,1); transform:var(--pluvia-exit-from,none); } to { opacity:0; transform:translateY(var(--pluvia-exit-distance,100dvh)); } }
@@ -518,7 +518,7 @@ footer.shell .footer-brand-copy strong { font-family:var(--font-brand); color:va
   @keyframes pluvia-backdrop-exit { from { opacity:1; } to { opacity:0; } }
   @keyframes pluvia-content-enter { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
 }
-@media (prefers-reduced-motion:reduce) { html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open],html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop,details[open] > :not(summary) { animation:none !important; } }
+@media (prefers-reduced-motion:reduce) { html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open],html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop,details[open] > :not(summary) { animation:none !important; } }
 #accountDialog :is(#accountRecoveryForm,#accountDeleteForm) { display:grid; gap:14px; }
 #accountDialog :is(#accountRecoveryForm,#accountDeleteForm)[hidden] { display:none; }
 #accountDialog .account-text-action { background:transparent; color:var(--dialog-muted); text-decoration:underline; text-underline-offset:3px; }
@@ -590,3 +590,26 @@ footer.shell .footer-brand-copy strong { font-family:var(--font-brand); color:va
 #accountDialog .notification-timing label:not(.notification-quiet-toggle) { display:grid!important; grid-template-columns:minmax(0,1fr); gap:8px; }
 #accountDialog .notification-time-pair input { width:100%!important; min-width:0; }
 #accountDialog select:focus-visible { outline:2px solid var(--brand-blue); outline-offset:3px; }
+
+/* Daily detail shares the existing hourly readings and native modal. */
+#weatherView button.forecast-row { width:100%; border-radius:0; border-inline:0; border-block-end:0; font:inherit; color:var(--reading-ink); text-align:left; cursor:pointer; }
+#dailyDetailDialog { font-variant-numeric:tabular-nums; }
+#dailyDetailDialog .dialog-heading > div { min-width:0; }
+#dailyDetailTitle { overflow-wrap:anywhere; }
+#dailyDetailCity { margin:6px 0 0; font-size:.875rem; }
+#dailyDetailSource { display:block; margin-top:18px; color:var(--dialog-muted); font-size:.8rem; line-height:1.5; }
+#dailyDetailDialog .hourly-detail-note { font-size:.875rem; }
+.daily-detail-hours { display:flex; gap:10px; overflow-x:auto; padding:4px 2px 12px; scroll-snap-type:x proximity; }
+.daily-hour { display:grid; align-content:start; justify-items:center; gap:8px; flex:0 0 112px; min-height:180px; padding:12px 8px; scroll-snap-align:start; background:var(--dialog-surface); color:var(--dialog-text); border:1px solid var(--dialog-line); border-radius:14px; font:inherit; }
+.daily-hour > span:nth-child(2),.daily-hour .weather-icon { width:40px; height:40px; }
+.daily-hour > strong { font-size:1.4rem; }
+.daily-hour > small { color:var(--dialog-muted); font-size:.75rem; }
+#dailyDetailDialog :is(button,[tabindex]):focus-visible { outline:2px solid var(--brand-blue); outline-offset:2px; }
+/* Keep loading feedback stable while a new image is prepared offscreen. */
+#radarMapContent .weather-frame-status { min-height:2.8em; margin:12px 0 0; color:var(--reading-muted); font-size:.8rem; line-height:1.4; }
+#radarMapContent .weather-map-retry { min-height:44px; margin-top:8px; padding:8px 16px; background:var(--brand-blue); color:#fff; border:1px solid var(--brand-blue); border-radius:12px; font:inherit; }
+#radarMapContent .weather-map-retry[hidden] { display:none; }
+body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) .topbar { color:#041a2e; }
+body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .intro h1 { color:var(--reading-ink); }
+
+.radar-dialog #radarMapContent .weather-frame-status { color:var(--map-ink); }
