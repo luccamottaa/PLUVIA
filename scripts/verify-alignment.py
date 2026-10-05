@@ -77,14 +77,14 @@ with sync_playwright() as p:
   # Favorites scroll within their own viewport; every card remains reachable.
   carousel=page.locator('#dialogFavoriteList')
   if width>=390:assert carousel.evaluate('el=>el.scrollWidth<=el.clientWidth+1'),(width,'Two favorites fit fully')
-  last=carousel.locator('.favorite-city-card').last
-  last.scroll_into_view_if_needed()
+  # Refresh may replace a card while Playwright waits for its old handle to be
+  # stable. Resolve and scroll synchronously, then measure the current cards.
+  page.evaluate("document.querySelector('#dialogFavoriteList > .favorite-city-card:last-child').scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'})")
   viewport,card=boxes('#dialogFavoriteList,#dialogFavoriteList > .favorite-city-card:last-child')
   assert card['x']>=viewport['x']-1 and card['x']+card['width']<=viewport['x']+viewport['width']+1,(width,card,viewport)
   # A partially visible row during scrolling is normal; the last row must be
   # fully accessible without escaping the dialog's scrolling area.
-  result=page.locator('#cityResults .city-result').last
-  result.evaluate("el=>el.scrollIntoView({block:'end',inline:'nearest',behavior:'instant'})")
+  page.evaluate("[...document.querySelectorAll('#cityResults .city-result')].at(-1).scrollIntoView({block:'end',inline:'nearest',behavior:'instant'})")
   result_bounds=boxes('#cityDialog .dialog-scroll,#cityResults .city-result')
   assert len(result_bounds)>1,result_bounds
   area,row=result_bounds[0],result_bounds[-1]
