@@ -172,6 +172,9 @@ with sync_playwright() as p:
    cloud.evaluate("el=>el.style.setProperty('opacity','0','important')")
   disk.evaluate("el=>el.style.setProperty('display','none','important')")
  # Native CSS animations remain the same objects across condition updates.
+ # Instant QA scrolls reach their destination before the next action. With
+ # smooth scrolling, the scene pauses mid-scroll; reversing at that moment
+ # can leave WebKit's previous scroll queued instead of returning to the top.
  mode.update(code=3,hour=13);page.clock.set_fixed_time(datetime.datetime(2026,10,1,17,tzinfo=datetime.timezone.utc));page.goto(preview)
  page.wait_for_function("document.body.dataset.weather==='cloud' && document.getElementById('pluviaIntro').hidden")
  page.emulate_media(reduced_motion='no-preference');page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='running'")
@@ -180,9 +183,9 @@ with sync_playwright() as p:
   page.evaluate("code=>PLUVIA.sky.apply(code,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})",code)
   assert page.evaluate("[...document.querySelectorAll('.sky-effects > .sky-clouds')].every((el,i)=>el.getAnimations().includes(cloudAnimations[i]))"),code
  assert page.locator('.sky-effects > .sky-clouds-front').evaluate("el=>getComputedStyle(el).transitionDuration")=='4s'
- page.evaluate("window.scrollTo(0,document.body.scrollHeight)");page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
+ page.evaluate("window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})");page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
  assert all(s=='paused' for s in page.locator('.sky-effects > .sky-clouds').evaluate_all("els=>els.map(el=>getComputedStyle(el).animationPlayState)"))
- page.evaluate('window.scrollTo(0,0)');page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='running'")
+ page.evaluate("window.scrollTo({top:0,behavior:'instant'})");page.wait_for_function("scrollY===0 && document.querySelector('.sky-effects').dataset.motion==='running'")
  page.evaluate("PLUVIA.sky.apply(0,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert all(s=='paused' for s in page.locator('.sky-effects > .sky-clouds').evaluate_all("els=>els.map(el=>getComputedStyle(el).animationPlayState)"))
  # A few stars shimmer without drifting; condition updates keep the animation.
@@ -201,10 +204,10 @@ with sync_playwright() as p:
  page.evaluate("document.body.classList.add('page-hidden')")
  assert star.evaluate("el=>getComputedStyle(el,'::after').animationPlayState==='paused'")
  assert page.evaluate("starAnimation.playState==='paused'")
- page.evaluate('document.body.classList.remove("page-hidden");window.scrollTo(0,document.body.scrollHeight)')
+ page.evaluate("document.body.classList.remove('page-hidden');window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})")
  page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
  assert star.evaluate("el=>getComputedStyle(el,'::after').animationPlayState==='paused'")
- page.evaluate('window.scrollTo(0,0)');page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='running'")
+ page.evaluate("window.scrollTo({top:0,behavior:'instant'})");page.wait_for_function("scrollY===0 && document.querySelector('.sky-effects').dataset.motion==='running'")
  page.emulate_media(reduced_motion='reduce')
  assert star.evaluate("el=>getComputedStyle(el,'::after').animationName==='none' && +getComputedStyle(el).opacity>0")
  # Night/weather CSS gates also protect against an old shell retaining brightness.
@@ -245,10 +248,10 @@ with sync_playwright() as p:
  page.evaluate("window.stormAnimations=document.querySelector('.sky-effects').getAnimations({subtree:true}).filter(a=>['sky-rain-fall','storm-flash-near','storm-flash-far'].includes(a.animationName));document.body.classList.add('page-hidden')")
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>['::before','::after'].every(p=>getComputedStyle(el,p).animationPlayState==='paused')")
  assert page.evaluate("stormAnimations.every(a=>a.playState==='paused')")
- page.evaluate('document.body.classList.remove("page-hidden");window.scrollTo(0,document.body.scrollHeight)')
+ page.evaluate("document.body.classList.remove('page-hidden');window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})")
  page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>['::before','::after'].every(p=>getComputedStyle(el,p).animationPlayState==='paused')")
- page.evaluate('window.scrollTo(0,0)');page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='running'")
+ page.evaluate("window.scrollTo({top:0,behavior:'instant'})");page.wait_for_function("scrollY===0 && document.querySelector('.sky-effects').dataset.motion==='running'")
  page.evaluate("window.rainAnimations=[...document.querySelectorAll('.sky-effects > .sky-rain')].map(el=>el.getAnimations().find(a=>a.animationName==='sky-rain-fall'));PLUVIA.sky.apply(65,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert page.evaluate("[...document.querySelectorAll('.sky-effects > .sky-rain')].every((el,i)=>el.getAnimations().includes(rainAnimations[i]))")
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>getComputedStyle(el).display")=='none'
