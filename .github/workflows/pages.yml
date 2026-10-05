@@ -64,7 +64,9 @@ jobs:
           PLUVIA_PREVIEW_URL: https://pluviaweather.com.br/
           PLUVIA_PUBLIC_SMOKE: '1'
           PLUVIA_QA_OUTPUT: /tmp/pluvia-public-qa
-        run: python scripts/verify-visual.py
+        run: |
+          python scripts/verify-visual.py
+          python scripts/verify-weather-icons.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

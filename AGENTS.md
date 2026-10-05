@@ -77,6 +77,8 @@ Publicar migration e função antes da interface. Clientes antigos ainda podem u
 
 ## Mapa, mobile e acessibilidade
 
+Ícones de condição são os 22 SVGs originais de `assets/weather-icons/conditions`, gerados por `scripts/generate-modern-weather-icons.cjs`. Reutilizar `PLUVIA.weatherIcons` para WMO, dia/noite, labels e markup; não criar outro mapa ou usar emoji por componente. Volume vem de gradientes estáticos sem filtros/animação. WMO 1 tem nuvem menor que 2, trovoada 95 não inventa chuva, e a Lua ilustrada não altera a fase astronômica do fundo. Símbolos de instrumentos/mapa são independentes. Ler `docs/WEATHER-ICONS.md`; QA `verify-weather-icons.py` roda em Chromium/WebKit, além do QA da interface. Preservar orçamento e versões/precache ao regenerar.
+
 Mantenha uma instância do mapa. Revisão da camada e cancelamento impedem resultados fora de ordem, inclusive durante inicialização ou troca de cidade fora da tela. Remova overlays pendentes e os que ainda estão terminando o fade. Reprodução para quando a página fica oculta ou o card sai da área observada; o modal aberto conta como visível. Mover o mapa ao diálogo exige `invalidateSize`.
 
 CSS final é uma cascata intencional: `sky.css`, `styles.css`, `redesign.css`, `continuous.css`. O visual atual usa fundo contínuo e limita largura; regras antigas podem ser sobrescritas. Não limpar CSS por aparência sem validar os seletores efetivamente usados. Não restaurar blur/vidro pesado no painel só porque existe no CSS legado.

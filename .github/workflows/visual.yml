@@ -35,6 +35,7 @@ jobs:
           PLUVIA_QA_OUTPUT: /tmp/pluvia-qa
         run: |
           python scripts/verify-browser.py
+          python scripts/verify-weather-icons.py
           python scripts/verify-alignment.py
           python scripts/verify-typography.py
           python scripts/verify-account-sync.py
