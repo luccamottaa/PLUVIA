@@ -101,8 +101,8 @@ html,body { background:var(--sky-base); }
   --few-cloud-width:clamp(200px,min(58vw,58svh),680px);
   background-size:var(--few-cloud-width) auto;
   background-position:left -20px top 90px;
-  -webkit-mask-image:radial-gradient(ellipse,#000 42%,transparent 76%);
-  mask-image:radial-gradient(ellipse,#000 42%,transparent 76%);
+  -webkit-mask-image:radial-gradient(ellipse closest-side,#000 60%,transparent 100%);
+  mask-image:radial-gradient(ellipse closest-side,#000 60%,transparent 100%);
   -webkit-mask-size:var(--few-cloud-width) calc(var(--few-cloud-width) * .5);
   mask-size:var(--few-cloud-width) calc(var(--few-cloud-width) * .5);
   -webkit-mask-position:left -20px top 90px;
