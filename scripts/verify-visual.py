@@ -3,7 +3,7 @@ Tests geometry, important readings, sky states, alerts, errors and dialog motion
 No live authentication, API calls or personal data. Pixel screenshots are review
 artifacts: no misleading comparison against baselines from another OS/browser.
 """
-import base64,datetime,json,os,shutil,subprocess
+import re,base64,datetime,json,os,shutil,subprocess
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright
@@ -40,6 +40,14 @@ with sync_playwright() as p:
  context.route('**/*',route)
  context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(success,error){error({code:1});}}});")
  page.clock.set_fixed_time(fixed)
+ def goto(**options):
+  # The public smoke reaches the real domain: a dropped connection before any
+  # response (seen twice after deploys) is retried; app errors still fail.
+  for attempt in range(3 if public_smoke else 1):
+   try:return page.goto(preview,**options)
+   except Exception as error:
+    if attempt==2 or not public_smoke or not re.search(r'net::ERR_(CONNECTION_(CLOSED|RESET|REFUSED|TIMED_OUT)|TIMED_OUT|NETWORK_CHANGED)',str(error)):raise
+    page.wait_for_timeout(3000*(attempt+1))
  def geometry():
   page.locator('#temperature').wait_for(state='visible',timeout=20000)
   assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),mode['name']
@@ -78,7 +86,7 @@ with sync_playwright() as p:
  footer_paint=[]
  if not public_smoke:
   mode.update(name='loading',pending=True)
-  page.goto(preview,wait_until='domcontentloaded')
+  goto(wait_until='domcontentloaded')
   page.locator('#condition').wait_for(state='visible')
   assert page.locator('#temperature').inner_text()=='--'
   page.screenshot(path=str(output/'390-loading.png'),full_page=True)
@@ -90,7 +98,7 @@ with sync_playwright() as p:
    if public_smoke and name not in ['clear-day','clear-night','sunrise','sunset']:continue
    mode.update(name=name,hour=hour,code=code,offline=False,alert=False)
    page.clock.set_fixed_time(fixed+datetime.timedelta(hours=hour-12))
-   page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
+   goto(wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
    page.wait_for_timeout(120);geometry()
    state=page.evaluate('({phase:document.body.dataset.phase,weather:document.body.dataset.weather,solar:document.body.dataset.solar})')
    expected='storm' if code==95 else 'rain' if code==65 else 'cloud' if code==3 else None
@@ -109,7 +117,7 @@ with sync_playwright() as p:
     assert page.locator('#privacyTitle').is_visible()
     page.keyboard.press('Escape');page.locator('#sourcesDialog').wait_for(state='hidden')
   if public_smoke:continue
-  mode.update(name='alert',hour=12,code=95,alert=True);page.clock.set_fixed_time(fixed);page.goto(preview)
+  mode.update(name='alert',hour=12,code=95,alert=True);page.clock.set_fixed_time(fixed);goto()
   page.wait_for_function("document.getElementById('inmetCard').dataset.severity==='red'")
   page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
   geometry();page.wait_for_function("document.getElementById('inmetContent').textContent.includes('Vigente')")
@@ -152,7 +160,7 @@ with sync_playwright() as p:
   mode.update(name='stale',offline=True,alert=False);page.evaluate('refreshAll()')
   page.wait_for_function("document.getElementById('dataStatus').dataset.freshness==='stale'")
   geometry();page.screenshot(path=str(output/(str(width)+'-stale.png')),full_page=True)
-  page.evaluate("localStorage.removeItem('pluvia-weather-1302603')");page.goto(preview)
+  page.evaluate("localStorage.removeItem('pluvia-weather-1302603')");goto()
   page.wait_for_function("document.getElementById('condition').textContent==='Tempo indisponível'")
   geometry();assert page.locator('#temperature').inner_text()=='--';page.screenshot(path=str(output/(str(width)+'-error.png')),full_page=True)
  print(json.dumps({'publicSmoke':public_smoke,'visualContracts':report,'twilightFooterPaint':footer_paint,'alerts':not public_smoke,'dialogMotion':not public_smoke,'reducedMotion':True,'errors':errors},ensure_ascii=False))
