@@ -223,8 +223,31 @@
     })));
   }
 
-  function normalizeAir(current = {}) {
+  // Média móvel de PM2,5 nas 24h que terminam na leitura atual (horário local do provedor).
+  // Exige 18 das 24 amostras (75%), critério usual de completude de médias diárias.
+  const PM25_MIN_SAMPLES = 18;
+  function shiftWallTime(value, hours) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(String(value || ""));
+    if (!match) return null;
+    const stamp = Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4] + hours, +match[5]);
+    return Number.isFinite(stamp) ? new Date(stamp).toISOString().slice(0, 16) : null;
+  }
+  function pm25Mean24h(currentTime, hourly) {
+    const times = hourly?.time, values = hourly?.pm2_5;
+    const end = String(currentTime || "").slice(0, 16), start = shiftWallTime(end, -24);
+    if (!start || !Array.isArray(times) || !Array.isArray(values) || times.length !== values.length) return null;
+    const samples = [];
+    times.forEach((time, index) => {
+      const key = String(time || "").slice(0, 16), value = values[index];
+      if (key > start && key <= end && Number.isFinite(value) && value >= 0) samples.push(value);
+    });
+    if (samples.length < PM25_MIN_SAMPLES) return null;
+    return freeze({value: Math.round(samples.reduce((sum, value) => sum + value, 0) / samples.length * 10) / 10, samples: samples.length});
+  }
+
+  function normalizeAir(current = {}, hourly = null) {
     return freeze({
+      pm25Mean24h: pm25Mean24h(current.time, hourly),
       time: current.time || null,
       aqiUs: number(current.us_aqi),
       pm25: number(current.pm2_5),
@@ -268,7 +291,7 @@
       current: normalizeCurrent(forecast.current),
       hourly: normalizeHourly(forecast.hourly),
       daily: normalizeDaily(forecast.daily),
-      airQuality: air?.current ? normalizeAir(air.current) : null,
+      airQuality: air?.current ? normalizeAir(air.current, air.hourly) : null,
       raw: freeze({ forecast, air: air || null })
     });
   }

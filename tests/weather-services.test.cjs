@@ -20,8 +20,17 @@ test('constrói URLs meteorológicas somente a partir da localização normaliza
   const air = new URL(services.airQuality.currentUrl(manaus));
   assert.equal(air.hostname, 'air-quality-api.open-meteo.com');
   assert.match(air.searchParams.get('current'), /pm2_5/);
-  assert.equal(air.searchParams.has('hourly'), false);
+  assert.equal(air.searchParams.get('hourly'), 'pm2_5');
+  assert.equal(air.searchParams.get('past_hours'), '24');
+  assert.equal(air.searchParams.get('forecast_hours'), '1');
+  assert.equal(air.searchParams.has('forecast_days'), false);
   assert.match(air.searchParams.get('current'), /us_aqi/);
+  const spread = new URL(services.ensemble.dailyUrl(manaus));
+  assert.equal(spread.hostname, 'ensemble-api.open-meteo.com');
+  assert.equal(spread.searchParams.get('daily'), 'temperature_2m_max,temperature_2m_min');
+  assert.equal(spread.searchParams.get('models'), 'icon_seamless_eps');
+  assert.equal(spread.searchParams.get('timezone'), 'America/Manaus');
+  assert.equal(spread.searchParams.has('hourly'), false);
   assert.throws(() => services.weather.forecastUrl({lat:999,lon:0,timezone:'UTC'}), /Localização/);
 });
 

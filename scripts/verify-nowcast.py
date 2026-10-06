@@ -2,7 +2,6 @@
 No Auth, Web Push, Xweather or real sensor requests. Screenshots are review artifacts.
 """
 import base64,datetime,json,os,shutil,subprocess
-from urllib.request import urlopen
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright
@@ -18,7 +17,6 @@ process.stdout.write(JSON.stringify({manifest:{schemaVersion:1,regions:[region]}
 fixtures=json.loads(subprocess.check_output(['node','-e',js],cwd=repo,text=True))
 mode={'scenario':'approaching','pending':False,'fail':False,'enabled':False};blocked=[];requests=[]
 # Pin the existing map SDK; only its download is external, never weather/Auth.
-leaflet={extension:urlopen('https://unpkg.com/leaflet@1.9.4/dist/leaflet.'+extension,timeout=20).read() for extension in ['js','css']}
 with sync_playwright() as p:
  browser=p.webkit.launch() if os.environ.get('PLUVIA_BROWSER')=='webkit' else p.chromium.launch(args=['--no-sandbox'],**({'executable_path':shutil.which('chromium')} if shutil.which('chromium') else {}))
  context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,timezone_id='Asia/Tokyo',service_workers='block',reduced_motion='reduce')
@@ -41,8 +39,6 @@ with sync_playwright() as p:
   if 'inmet.gov.br' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'hoje':[]});return
   if 'functions/v1/met-forecast' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'source':'MET Norway','hourly':[]});return
   if 'rainviewer' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
-  if 'unpkg.com/leaflet' in url:
-   extension='css' if url.endswith('.css') else 'js';r.fulfill(content_type='text/css' if extension=='css' else 'text/javascript',body=leaflet[extension]);return
   if 'tile.openstreetmap.org' in url:r.fulfill(content_type='image/png',body=base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jX1sAAAAASUVORK5CYII='));return
   if '/auth/v1/settings' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'external':{'email':True}});return
   if urlparse(url).hostname in ['localhost','127.0.0.1']:

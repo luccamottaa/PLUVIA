@@ -16,6 +16,10 @@ POST `/batch/?ip=0` usa `credentials:omit`, `referrerPolicy:no-referrer`, `$ip:n
 
 Fila somente em memória: até 50 eventos pendentes, lote 20, até 100 eventos aceitos por visita, dez padrões distintos de falha. Envio em dois segundos, timeout cinco segundos, uma consulta simultânea, sem retry em loop. Offline conserva somente a fila limitada e tenta ao reconectar. Revogar interrompe requests pendentes e descarta fila; não apaga eventos já aceitos no servidor. Falha/bloqueador de analytics nunca impede previsão ou conta.
 
+## Web Vitals
+
+`Web Vital` mede LCP, INP, CLS, FCP e TTFB com `PerformanceObserver` nativo, sem SDK. Cada métrica sai no máximo uma vez por página, quando ela fica oculta (`visibilitychange`/`pagehide`), somente com participação ativa e sem DNT/GPC. Propriedades: `metric` (enum), `rating` (`good`/`needs-improvement`/`poor`, limites do web.dev) e `metric_value` inteiro de 0 a 120000 (ms; CLS em milésimos). Não enviar seletor/elemento do LCP, URL ou atribuição de evento. INP é aproximado pelo percentil 98 das interações observadas até a página ficar oculta (até 500 interações em memória); interações posteriores não reenviam. São amostras dos participantes, não de todos os visitantes nem de aparelhos físicos específicos.
+
 ## Painel e verificação
 
 [Painel PLUVIA — Uso e confiabilidade](https://us.posthog.com/project/602240/dashboard/2158406): aberturas, pesquisa/cidades/mapa e falhas. São contagens operacionais de participantes, não métricas canônicas aprovadas do Data Catalog nem amostra de todos os usuários. Filtro `app=PLUVIA` e `environment=production`; gráficos inicialmente vazios, sem fabricar números.

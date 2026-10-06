@@ -103,10 +103,23 @@ async function test(label, fn) {await fn(); checks++; console.log(`PASS ${label}
     assert.doesNotMatch(nodes.get('inmetContent').innerHTML,/class="inmet-stage">Vigente</);
     assert(nodes.get('inmetContent').innerHTML.includes('confirme a situação no INMET'));
   });
+  await test("Section state drives the compact line: only a confirmed empty reading is 'clear'", async () => {
+    const section = nodes.get("alertas");
+    context.renderInmetAlerts({hoje:[],futuro:[]});
+    assert.equal(section.dataset.alertState,"clear");
+    context.renderInmetAlerts({hoje:[aviso()],futuro:[]});
+    assert.equal(section.dataset.alertState,"alerts");
+    // A previous reading (with or without notices) never compacts into "no alerts".
+    context.renderInmetAlerts({hoje:[],futuro:[]},true);
+    assert.equal(section.dataset.alertState,"unavailable");
+    context.renderInmetAlerts({hoje:[aviso()],futuro:[]},true);
+    assert.equal(section.dataset.alertState,"unavailable");
+  });
   await test("Initial failure says unavailable; later failure keeps notices explicitly unconfirmed", async () => {
     context.PLUVIA.services.alerts.getActive = async () => {throw new Error("network");};
     await context.loadInmetAlerts();
     assert(nodes.get("inmetState").innerHTML.includes("Consulta indisponível"));
+    assert.equal(nodes.get("alertas").dataset.alertState,"unavailable");
     context.PLUVIA.services.alerts.getActive = async () => ({hoje:[aviso()],futuro:[]});
     await context.loadInmetAlerts();
     context.PLUVIA.services.alerts.getActive = async () => {throw new Error("network");};

@@ -40,3 +40,11 @@ O diagnóstico posterior confirmou um bug de leitura da resposta do cache, não 
 ## Observações locais / PLUVIA Nowcast (piloto Manaus)
 
 NOAA Aviation Weather Center METAR SBEG é consultado pelo backend `nowcast`, com cache regional e hora original da observação. O card/camada de estação descreve somente o aeroporto Eduardo Gomes; não confirma chuva em toda a cidade e não produz ETA. Radar SIPAM quantitativo não foi integrado/autorizado. GOES/raios existentes permanecem visuais/sob demanda, sem novos acessos Xweather. Contratos, pesquisa oficial, limitações/licenças e critérios de habilitação estão em [NOWCAST.md](NOWCAST.md).
+
+## Umidade, partículas e faixa do conjunto (outubro/2026)
+
+- **Umidade baixa:** `weatherInsights.humidity` classifica a leitura atual pelas faixas da Defesa Civil (referência OMS): abaixo de 30% atenção, abaixo de 20% alerta, abaixo de 12% emergência. A hora mais seca considera somente as horas restantes do dia municipal; umidade é instantânea, sem deslocar o índice como a precipitação. Ausência continua “Umidade indisponível”, nunca 0%.
+- **PM2,5 de 24h:** a consulta de ar pede `hourly=pm2_5`, `past_hours=24` e `forecast_hours=1` (sem dias extras). `weather-data-layer` calcula a média das 24h que terminam na leitura atual e exige 18 amostras válidas (75%). A interpretação compara com a diretriz diária da OMS 2021 (15 µg/m³) e metas intermediárias. A leitura descreve concentração; não identifica fumaça, queimada ou outra origem. Cache antigo sem série horária continua válido, apenas sem a média.
+- **Faixa do conjunto ICON EPS:** `forecast-spread.js` consulta `daily=temperature_2m_max,temperature_2m_min` com `icon_seamless_eps` e `forecast_days=7` **somente ao abrir o detalhe de um dia**. Percentis 10–90 exigem 20 membros válidos; cache em memória de 3h por cidade (máximo 8), falha espera 5 min e cancelamento por troca de cidade não é falha nem repetição. É dispersão entre cenários de um modelo, não probabilidade calibrada.
+- **Normais climatológicas:** não implementadas. Uma série ERA5 de 30 anos pelo navegador custaria cerca de 780 chamadas fracionadas do Open-Meteo por cidade (limite gratuito de 600/minuto por IP) e consumiria a cota da previsão principal do próprio usuário. Exige normais INMET 1991–2020 versionadas ou serviço com cache compartilhado.
+

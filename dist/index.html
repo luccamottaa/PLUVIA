@@ -87,10 +87,10 @@
     <script src="./modules/sky-atmosphere.js?v=sky-11"></script>
     <link rel="stylesheet" href="./sky.css?v=sky-17" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="./styles.css?v=core-121" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-34" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-37" />
-    <noscript><link rel="stylesheet" href="./styles.css?v=core-121" /></noscript>
+    <link rel="stylesheet" href="./styles.css?v=core-122" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-35" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-39" />
+    <noscript><link rel="stylesheet" href="./styles.css?v=core-122" /></noscript>
   </head>
   <body>
     <svg class="moon-definitions" width="0" height="0" aria-hidden="true" focusable="false">
@@ -167,8 +167,6 @@
         <div class="city-search-field"><label for="citySearch">Cidade</label><input id="citySearch" type="search" placeholder="Ex.: Manaus, Recife, Curitiba" autocomplete="off" aria-controls="cityResults" aria-autocomplete="list" /></div>
         <div class="dialog-scroll">
         <section class="city-picker" aria-label="Cidades disponíveis">
-        <select id="stateSelect" hidden aria-hidden="true"><option value="">Todos os estados</option></select>
-        <select id="citySelect" hidden aria-hidden="true"><option value="">Selecione uma cidade</option></select>
         <div class="city-actions">        <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
         <button id="locateCity" class="city-button" type="button">Usar localização</button>
 </div>
@@ -284,41 +282,40 @@
           </div>
         </article>
       </section>
-      <section class="hourly-peek panel" aria-labelledby="hourlyPeekTitle">
-        <div class="hourly-peek-heading"><h2 id="hourlyPeekTitle">Próximas horas</h2><a href="#chuva" aria-label="Ver previsão completa por hora">Ver previsão <span aria-hidden="true">›</span></a></div>
-        <p id="hourlyDecision" class="hourly-decision">Toque em um horário para ver sensação, chuva e rajadas.</p>
-        <div class="hourly-peek-list" id="hourlyPeek" role="group" aria-label="Condições nas próximas horas"><p>Consultando as próximas horas…</p></div>
-      </section>
-      <section class="quick-metrics" aria-label="Sensação térmica e visibilidade">
-        <article class="metric quick-metric panel card-detail" aria-label="Sensação térmica atual"><div class="metric-head"><span>Sensação</span><span data-weather-icon-name="feels-like" aria-hidden="true"></span></div><strong id="feelsLike">--°</strong><small id="feelsLikeNote">Consultando…</small></article>
-        <div class="hero-temperature-range" aria-label="Temperaturas máxima e mínima previstas para hoje">
-          <div class="hero-temperature-extreme"><div class="metric-head"><small>Máxima</small><span data-weather-icon-name="temperature-high" aria-hidden="true"></span></div><strong id="todayHigh">--°</strong></div>
-          <div class="hero-temperature-extreme"><div class="metric-head"><small>Mínima</small><span data-weather-icon-name="temperature-low" aria-hidden="true"></span></div><strong id="todayLow">--°</strong></div>
-        </div>
-        <article class="metric quick-metric panel card-detail" aria-label="Visibilidade prevista"><div class="metric-head"><span>VISIBILIDADE</span><span data-weather-icon-name="visibility" aria-hidden="true"></span></div><strong id="visibilityValue">--</strong><small id="visibilityNote">Consultando a previsão…</small><span id="visibilityBadge" class="visibility-badge" hidden>Visibilidade reduzida</span></article>
-      </section>
-      <section class="metrics" aria-label="Detalhes meteorológicos">
-        <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>UMIDADE</span><span data-weather-icon-name="humidity"></span></div><strong id="humidity">--<sup>%</sup></strong><small id="humidityNote">—</small></article>
-        <article class="metric metric-sky wind-metric panel card-detail"><div class="metric-head"><span>VENTO</span><span data-weather-icon-name="wind-speed"></span></div><div class="wind-reading"><strong id="wind">--<sup> km/h</sup></strong><span class="wind-compass" id="windCompass" role="img" aria-label="Direção do vento indisponível"><svg viewBox="0 0 80 80" aria-hidden="true" focusable="false"><circle class="compass-ring" cx="40" cy="40" r="23"/><g class="compass-labels"><text x="40" y="8">N</text><text x="65" y="16">NE</text><text x="74" y="40">L</text><text x="65" y="65">SE</text><text x="40" y="74">S</text><text x="15" y="65">SO</text><text x="6" y="40">O</text><text x="15" y="16">NO</text></g><g class="compass-needle"><path class="compass-tail" d="M36 40 40 57 44 40Z"/><path class="compass-tip" d="M40 20 34 43 40 40 46 43Z"/></g><circle class="compass-center" cx="40" cy="40" r="3"/></svg></span></div><small id="windNote">—</small></article>
-        <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>PRESSÃO</span><span data-weather-icon-name="pressure"></span></div><strong id="pressure">----<sup> hPa</sup></strong><small id="pressureNote">—</small></article>
-        <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>ÍNDICE UV</span><span data-weather-icon-name="uv-index"></span></div><strong id="uv">--</strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote">—</small></article>
-        <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>QUALIDADE DO AR</span><span data-weather-icon-name="air-quality"></span></div><div class="air-reading"><div class="air-index"><b id="airValue">--</b><span>US AQI</span></div><div class="air-description"><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div><small class="air-source">Estimativa regional · Open-Meteo / CAMS</small><details id="airDetails" class="air-details" hidden><summary>Poluentes e origem</summary><p id="airDetailsTime"></p><dl id="airPollutants"></dl><p>PM2,5 e PM10 são partículas; ozônio, NO₂ e CO são gases. Concentrações em microgramas por metro cúbico. O US AQI é um índice próprio, não a soma desses valores.</p><p>Estimativa regional do CAMS via Open-Meteo; não é medição no seu endereço nem confirma a origem da poluição.</p></details></article>
-      </section>
-      <section id="notificationPrompt" class="notification-prompt panel" aria-labelledby="notificationPromptTitle" hidden>
-        <div class="notification-prompt-icon" aria-hidden="true">🔔</div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Avisos de chuva e do INMET no celular</h2><p id="notificationPromptText">Receba avisos oficiais e previsões de chuva para o município selecionado. O horário pode variar. Previsões e avisos oficiais são identificados na mensagem.</p></div><button id="notificationPromptButton" type="button">Ativar alertas</button>
-      </section>
-      <section class="alerts-section section-block" id="alertas">
+      <section class="alerts-section section-block" id="alertas" data-alert-state="loading">
         <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg></span><h2>Alertas e saúde</h2></div><p id="alertsCityLabel">Fontes oficiais</p></div>
         <div class="safety-grid">
           <article class="source-card panel" id="inmetCard"><div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div><small id="inmetUpdated" class="source-updated">Buscando leitura oficial…</small><div id="inmetContent" class="source-content"></div><a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial</a></article>
         </div>
       </section>
+      <section class="hourly-peek panel" aria-labelledby="hourlyPeekTitle">
+        <div class="hourly-peek-heading"><h2 id="hourlyPeekTitle">Próximas horas</h2><a href="#chuva" aria-label="Ver previsão completa por hora">Ver previsão <span aria-hidden="true">›</span></a></div>
+        <p id="hourlyDecision" class="hourly-decision">Toque em um horário para ver sensação, chuva e rajadas.</p>
+        <div class="hourly-peek-list" id="hourlyPeek" role="group" aria-label="Condições nas próximas horas"><p>Consultando as próximas horas…</p></div>
+      </section>
+      <section class="quick-metrics" aria-label="Sensação térmica, máxima e mínima">
+        <article class="metric quick-metric panel card-detail" aria-label="Sensação térmica atual"><div class="metric-head"><span>Sensação</span><span data-weather-icon-name="feels-like" aria-hidden="true"></span></div><strong id="feelsLike">--°</strong><small id="feelsLikeNote">Consultando…</small></article>
+        <div class="hero-temperature-range" aria-label="Temperaturas máxima e mínima previstas para hoje">
+          <div class="hero-temperature-extreme"><div class="metric-head"><small>Máxima</small><span data-weather-icon-name="temperature-high" aria-hidden="true"></span></div><strong id="todayHigh">--°</strong></div>
+          <div class="hero-temperature-extreme"><div class="metric-head"><small>Mínima</small><span data-weather-icon-name="temperature-low" aria-hidden="true"></span></div><strong id="todayLow">--°</strong></div>
+        </div>
+      </section>
+      <section class="metrics" aria-label="Detalhes meteorológicos">
+        <article class="metric metric-sky visibility-metric panel card-detail" aria-label="Visibilidade prevista"><div class="metric-head"><span>VISIBILIDADE</span><span data-weather-icon-name="visibility" aria-hidden="true"></span></div><strong id="visibilityValue">--</strong><small id="visibilityNote">Consultando a previsão…</small><span id="visibilityBadge" class="visibility-badge" hidden>Visibilidade reduzida</span></article>
+        <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>UMIDADE</span><span data-weather-icon-name="humidity"></span></div><strong id="humidity">--<sup>%</sup></strong><small id="humidityNote">—</small></article>
+        <article class="metric metric-sky wind-metric panel card-detail"><div class="metric-head"><span>VENTO</span><span data-weather-icon-name="wind-speed"></span></div><div class="wind-reading"><strong id="wind">--<sup> km/h</sup></strong><span class="wind-compass" id="windCompass" role="img" aria-label="Direção do vento indisponível"><svg viewBox="0 0 80 80" aria-hidden="true" focusable="false"><circle class="compass-ring" cx="40" cy="40" r="23"/><g class="compass-labels"><text x="40" y="8">N</text><text x="65" y="16">NE</text><text x="74" y="40">L</text><text x="65" y="65">SE</text><text x="40" y="74">S</text><text x="15" y="65">SO</text><text x="6" y="40">O</text><text x="15" y="16">NO</text></g><g class="compass-needle"><path class="compass-tail" d="M36 40 40 57 44 40Z"/><path class="compass-tip" d="M40 20 34 43 40 40 46 43Z"/></g><circle class="compass-center" cx="40" cy="40" r="3"/></svg></span></div><small id="windNote">—</small></article>
+        <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>PRESSÃO</span><span data-weather-icon-name="pressure"></span></div><strong id="pressure">----<sup> hPa</sup></strong><small id="pressureNote">—</small></article>
+        <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>ÍNDICE UV</span><span data-weather-icon-name="uv-index"></span></div><strong id="uv">--</strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote">—</small></article>
+        <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>QUALIDADE DO AR</span><span data-weather-icon-name="air-quality"></span></div><div class="air-reading"><div class="air-index"><b id="airValue">--</b><span>US AQI</span></div><div class="air-description"><strong id="airQuality">--</strong><small id="airNote">AQI indisponível</small><small id="airParticlesNote" hidden></small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div><small class="air-source">Estimativa regional · Open-Meteo / CAMS</small><details id="airDetails" class="air-details" hidden><summary>Poluentes e origem</summary><p id="airDetailsTime"></p><p id="airParticles" hidden></p><dl id="airPollutants"></dl><p>PM2,5 e PM10 são partículas; ozônio, NO₂ e CO são gases. Concentrações em microgramas por metro cúbico. O US AQI é um índice próprio, não a soma desses valores.</p><p>Estimativa regional do CAMS via Open-Meteo; não é medição no seu endereço nem confirma a origem da poluição.</p></details></article>
+      </section>
       <section class="rain-section section-block" id="chuva">
         <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h2>Previsão por hora</h2></div><div class="dry-window"><span>PRÓXIMA JANELA SECA</span><strong id="dryWindow">Calculando…</strong></div></div>
         <p class="rain-phrase panel" id="rainPhraseWrap"><strong id="rainPhrase">Lendo as próximas horas…</strong><small id="rainPhraseMeta">Open-Meteo</small></p>
+        <details class="hourly-chart-details" id="hourlyChartDetails"><summary>Gráfico por hora <span>Tempo, sensação, chuva e vento</span></summary>
         <div class="hourly-modes" role="group" aria-label="Dado da previsão por hora"><button type="button" data-hourly-mode="conditions" aria-pressed="true">Tempo</button><button type="button" data-hourly-mode="feels" aria-pressed="false">Sensação</button><button type="button" data-hourly-mode="rain" aria-pressed="false">Chuva</button><button type="button" data-hourly-mode="wind" aria-pressed="false">Vento</button></div>
         <p id="hourlyChartLegend" class="hourly-chart-legend">Barras mostram a temperatura; a sensação aparece abaixo. Horários locais da cidade.</p>
         <div class="rain-chart panel" id="rainChart" tabindex="0" role="region" aria-label="Previsão por hora"><div class="chart-loading">Montando a previsão horária…</div></div>
+        </details>
       </section>
       <section id="nowcastCard" data-enabled="false" class="nowcast-card panel section-block" aria-labelledby="nowcastTitle" hidden>
         <div class="nowcast-heading"><div><span class="eyebrow">PLUVIA NOWCAST · PILOTO</span><h2 id="nowcastTitle">Observações em Manaus</h2></div><span id="nowcastMock" class="nowcast-dev" hidden>DEV / MOCK DATA</span></div>
@@ -353,6 +350,9 @@
       <section class="forecast-section section-block" id="previsao">
         <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 4h2m4 0h2m-8 4h2m4 0h2"/></svg></span><h2>Próximos 7 dias</h2></div><p id="forecastCityLabel">Referência do município</p></div>
         <div class="forecast-list panel" id="forecastList"></div>
+      </section>
+      <section id="notificationPrompt" class="notification-prompt panel" aria-labelledby="notificationPromptTitle" hidden>
+        <div class="notification-prompt-icon" aria-hidden="true">🔔</div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Avisos de chuva e do INMET no celular</h2><p id="notificationPromptText">Receba avisos oficiais e previsões de chuva para o município selecionado. O horário pode variar. Previsões e avisos oficiais são identificados na mensagem.</p></div><button id="notificationPromptButton" type="button">Ativar alertas</button>
       </section>
       <section class="sun-section panel" aria-label="Ciclo solar">
         <div class="sun-copy"><div class="sun-label"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>CICLO DO DIA</span></div><strong id="daylight">--h --min de luz</strong><p id="sunPhrase"></p></div>
@@ -397,6 +397,7 @@
           <div><dt>Nascer do sol</dt><dd id="dailyDetailSunrise">—</dd></div><div><dt>Pôr do sol</dt><dd id="dailyDetailSunset">—</dd></div>
           <div><dt>UV máximo previsto</dt><dd id="dailyDetailUv">—</dd></div>
         </dl>
+        <p id="dailyDetailSpread" class="hourly-detail-note" hidden></p>
         <h3>Por hora</h3><p id="dailyDetailHoursNote" class="hourly-detail-note"></p>
         <div id="dailyDetailHours" class="daily-detail-hours" role="group" aria-label="Horários previstos para este dia"></div>
         <small id="dailyDetailSource"></small>
@@ -415,27 +416,28 @@
       <button id="installPushReload" type="button">Recarregar após a instalação</button>
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="privacyTitle"><h3 id="privacyTitle">Privacidade</h3><label for="analyticsConsent"><input id="analyticsConsent" type="checkbox"> Ajudar a melhorar o Pluvia</label><p>Compartilhe contagens de uso e tipos de falha com o PostHog. Não enviamos nomes, e-mail, cidade, coordenadas ou texto pesquisado. Não gravamos sua tela nem vinculamos métricas à sua conta.</p><p id="analyticsChoiceStatus" role="status">Desativado. A previsão funciona sem compartilhar métricas.</p><p>O servidor recebe a conexão de rede; solicitamos que o IP não seja usado para geolocalização. <a href="https://posthog.com/privacy" target="_blank" rel="noreferrer">Política de privacidade do PostHog</a>.</p></section><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
-    <script src="./analytics.js?v=analytics-4" defer></script>
+    <script src="./analytics.js?v=analytics-5" defer></script>
     <script src="./modules/sources.js?v=panel-23" defer></script>
     <script src="./modules/dialog-motion.js?v=motion-1" defer></script>
     <script src="./modules/http-client.js?v=http-1" defer></script>
-    <script src="./modules/weather-services.js?v=core-112" defer></script>
-    <script src="./modules/weather-data-layer.js?v=core-111" defer></script>
+    <script src="./modules/weather-services.js?v=core-113" defer></script>
+    <script src="./modules/weather-data-layer.js?v=core-112" defer></script>
     <script src="./modules/met-merge.js?v=core-110" defer></script>
     <script src="./modules/weather-extras.js?v=core-109" defer></script>
-    <script src="./modules/weather-insights.js?v=core-66" defer></script>
+    <script src="./modules/weather-insights.js?v=core-67" defer></script>
     <script src="./modules/radar-probe.js?v=core-70" defer></script>
     <script src="./modules/weather-icons.js?v=core-49" defer></script>
     <script src="./modules/weather-icon-system.js?v=modern-3" defer></script>
     <script src="./capitals.js?v=core-47" defer></script>
     <script src="./modules/hourly-detail.js?v=detail-5" defer></script>
-    <script src="./modules/daily-detail.js?v=daily-1" defer></script>
-    <script src="./app.js?v=panel-41" defer></script>
-    <script src="./p0.js?v=panel-36" defer></script>
+    <script src="./modules/daily-detail.js?v=daily-2" defer></script>
+    <script src="./modules/forecast-spread.js?v=spread-1" defer></script>
+    <script src="./app.js?v=panel-43" defer></script>
+    <script src="./p0.js?v=panel-37" defer></script>
     <script src="./modules/risks.js?v=core-118" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
     <script src="./modules/nowcast.js?v=nowcast-3" defer></script>
-    <script src="./weather-map.js?v=map-4" defer></script>
+    <script src="./weather-map.js?v=map-5" defer></script>
     <script src="./modules/account-sync.js?v=sync-1" defer></script>
     <script src="./modules/social-auth.js?v=oauth-3" defer></script>
     <script src="./account.js?v=account-6" defer></script>

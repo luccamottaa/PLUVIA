@@ -10,7 +10,7 @@ Leia os arquivos envolvidos e seus consumidores antes de editar. O estado e a or
 
 - `dist/index.html`: DOM, SVG compartilhado, abertura e ordem de carregamento.
 - `dist/app.js`: escolha de cidade, revisões de consultas, atualização, cache meteorológico e renderização dos cards.
-- `dist/p0.js`: abertura pública, fallback de localização, integração da busca/favoritos, atualização do SW e viewport dos diálogos. Há extensões de funções de `app.js`; confira ambos.
+- `dist/p0.js`: abertura pública, fallback de localização, teclado da busca, atualização do SW e viewport dos diálogos. Não sobrescreve mais funções de `app.js`: `renderCityOptions`/`updateCityLabels` efetivos vivem em `app.js`; não reintroduzir monkey-patch.
 - `dist/capitals.js`: capitais, busca, normalização dos nomes e carregadores municipais. `municipality-index.js` é leve; `cities/<uf>.js` traz detalhes sob demanda; `municipalities.js` completo é reservado ao GPS. O catálogo contém 5.571 municípios. Regenere índices com `node scripts/chunk-municipalities.cjs` quando mudar o catálogo.
 - `dist/modules/http-client.js`: timeout, cancelamento, classificação de erros e limpeza de controllers.
 - `dist/modules/weather-services.js`: URLs e consultas Open-Meteo, CAMS, INMET, MET Norway e ensemble. Deduplica consultas simultâneas idênticas; sinais externos mantêm cancelamento independente. Cada cliente mantém seu próprio conjunto de consultas.
@@ -19,7 +19,7 @@ Leia os arquivos envolvidos e seus consumidores antes de editar. O estado e a or
 - `hourly-detail.js`, `weather-insights.js`, `weather-extras.js`, `risks.js`: interpretação e detalhes meteorológicos. Consulte essas implementações antes de criar regras duplicadas.
 - `modules/share-weather.js`: compartilha texto a partir do snapshot normalizado, com fonte/idade e calendário municipal. Web Share, clipboard e seleção manual são fallbacks em sequência; cancelar o share não deve copiar. Troca de cidade invalida respostas pendentes. Não incluir coordenadas ou dados da conta no texto.
 - `smart-summary.js`: regras/hash preservados para compatibilidade e testes do servidor. O Resumo Inteligente foi retirado da Home por solicitação do usuário: não carregar o módulo, consultar a função de IA ou recriar o card sem nova solicitação. AQI/MET continuam complementando a primeira previsão progressivamente.
-- `weather-map.js`: instância única Leaflet, radar RainViewer, satélite GOES/NASA e raios Xweather. `radar-probe.js` usa um cliente próprio. Não colocar suas consultas no grupo de cancelamento da previsão principal.
+- `weather-map.js`: instância única Leaflet (servida de `vendor/leaflet/`, sem CDN), radar RainViewer, satélite GOES/NASA e raios Xweather. `radar-probe.js` usa um cliente próprio. Não colocar suas consultas no grupo de cancelamento da previsão principal.
 - `account.js`: Supabase Auth e integração da conta; `modules/account-sync.js`: transporte serializado, revisão de usuário e snapshot canônico; `favorite-cities.js`: leituras breves, com concorrência limitada; `saved-places.js`: nomes pessoais de cidades, sincronização e tombstones; `notifications.js`: opt-in Web Push e preferências.
 - `supabase/functions/`: serviços Deno; `_shared/` contém HTTP, autenticação/admin, Web Push e política de notificações. `supabase/migrations/` contém RLS, quotas, Vault e cron. SDK e credenciais administrativas ficam no servidor; a chave publicável da conta não é um segredo.
 
@@ -99,7 +99,7 @@ Leituras equivalentes precisam compartilhar linhas: os cinco horários do resumo
 
 A velocidade e sua unidade ficam juntas, inclusive no celular; a regra mobile legada de `redesign.css` não deve empilhar km/h na Home. A bússola permanece ao lado, sem wrap. Cabeçalho, previsão e rodapé têm o mesmo limite de 860px e as mesmas bordas laterais; a linha do rodapé não deve se estender além do conteúdo no desktop.
 
-Na previsão diária, minmax(0,...) permite que as colunas encolham; a condição deve quebrar dentro da própria coluna. Mínima/barra/máxima têm trilhos numéricos comuns, inclusive com valores negativos ou de um dígito. Não ocultar textos ou usar deslocamentos arbitrários para corrigir sobreposição. Favoritos usam subgrid quando disponível para compartilhar linhas de nome, temperatura, condição, sensação, extremos, horário, aviso e idade. Preserve as classes desses campos; browsers antigos mantêm os cards roláveis sem cortar conteúdo. Não adicionar medições/timers por card.
+Na previsão diária, minmax(0,...) permite que as colunas encolham; no desktop a condição deve quebrar dentro da própria coluna. No celular cada dia é uma linha (dia/data, ícone, chuva, mínima-barra-máxima) e o texto da condição fica apenas para leitores de tela (o rótulo do botão já o inclui); a nota só aparece para chuva relevante ou UV ≥ 8. Mínima/barra/máxima têm trilhos numéricos comuns, inclusive com valores negativos ou de um dígito. Não ocultar textos ou usar deslocamentos arbitrários para corrigir sobreposição. Favoritos usam subgrid quando disponível para compartilhar linhas de nome, temperatura, condição, sensação, extremos, horário, aviso e idade. Preserve as classes desses campos; browsers antigos mantêm os cards roláveis sem cortar conteúdo. Não adicionar medições/timers por card.
 
 O detalhe horário também compartilha as linhas de labels/valores por par via subgrid. Um label que quebra em duas linhas, inclusive com fonte fallback, não pode deslocar só o valor de sua coluna. Preserve o fallback legível/rolável sem subgrid, em vez de cortar labels ou reservar alturas fixas baseadas em uma fonte.
 
@@ -215,6 +215,16 @@ SIPAM quantitativo ainda não está autorizado/integrado. Não criar scraping do
 Mocks somente em `tests/support/nowcast-fixtures.cjs` + `scripts/nowcast-dev-server.cjs` loopback. Nunca colocar fixtures em dist/SW, habilitar allowMock no handler público ou expor cenário de desenvolvimento no endpoint. Cliente de produção rejeita mock:true; desenvolvimento mostra DEV / MOCK DATA. SW exclui também /api/ local.
 
 Não criar tabelas de frames/células sem fonte real, retenção definida e justificativa. Não guardar GPS preciso em cache público. A publicação do backend deve preceder o frontend; até existir endpoint, capacidades falham e card permanece oculto. Novo QA: `python scripts/verify-nowcast.py` e variante PLUVIA_BROWSER=webkit, com fixtures, sete viewports, hora municipal, expiração, refresh e estação no mapa. Não chamar isso de validação com radar real ou hardware iOS.
+
+## Umidade, partículas e faixa do conjunto
+
+Umidade usa `weatherInsights.humidity` (faixas Defesa Civil/OMS, hora mais seca restante do dia municipal). PM2,5 de 24h vem do snapshot (`airQuality.pm25Mean24h`, 18 de 24 amostras) e `weatherInsights.particles` (OMS 2021); descreve concentração, nunca atribui fumaça/queimada. `modules/forecast-spread.js` consulta o conjunto ICON EPS diário somente ao abrir um dia, com cliente próprio, cache curto e invalidação por cidade; `daily-detail.js` só lê. Não mover essas consultas para a abertura da Home. Normais climatológicas pelo navegador estão fora: ver `docs/DATA-SOURCES.md`. Web Vitals seguem `docs/ANALYTICS.md`.
+
+## Home compacta (outubro/2026)
+
+A seção `#alertas` fica logo abaixo do hero, antes de Próximas horas. `data-alert-state` (`loading`/`clear`/`alerts`/`unavailable`) é definido por `setAlertState` em app.js; somente uma leitura atual e vazia vira `clear`, que o CSS compacta em uma linha (título só para leitores de tela). Leitura anterior ou falha nunca compactam como “sem avisos”. Com aviso, o card completo aparece no mesmo lugar. O convite de notificações fica depois dos 7 dias.
+
+Visibilidade, umidade, vento e pressão são tiles `.metric-sky` em grade (2 colunas no celular, 4 no desktop) que ocupam quatro linhas via subgrid (rótulo, valor, nota, selo); tiles da mesma fileira compartilham essas linhas. UV e ar ocupam a largura toda. O gráfico por hora fica em `#hourlyChartDetails` (recolhido); “Ver previsão” o abre, e janela seca/frase de chuva continuam visíveis. Títulos de seção usam um único tamanho. `closeCitySearch` só devolve o foco à busca quando o diálogo estava aberto: o fallback sem localização não pode focar a lupa na abertura. QA de alinhamento mede as fileiras dos tiles e a linha única dos dias.
 
 ## Detalhe diário e estabilidade dos frames
 

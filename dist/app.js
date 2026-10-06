@@ -81,10 +81,7 @@ function uvLabel(value) {
 }
 
 function humidityLabel(value) {
-  if (value >= 85) return "Umidade muito alta";
-  if (value >= 70) return "Umidade alta";
-  if (value >= 50) return "Faixa confortável";
-  return "Ar mais seco";
+  return weatherInsights?.humidityLevel?.(value)?.label || "Umidade indisponível";
 }
 
 function pressureLabel(value) {
@@ -213,12 +210,19 @@ function selectInmetAlerts(raw, now = Date.now(), city = activeCity) {
   }).sort((a,b) => (a.stage === "active" ? 0 : 1) - (b.stage === "active" ? 0 : 1) || b.severity.rank - a.severity.rank);
 }
 
+function setAlertState(state) {
+  const section = $("alertas");
+  if (section?.dataset) section.dataset.alertState = state;
+}
+
 function renderInmetAlerts(raw, stale = false) {
   globalThis.PLUVIA?.modules.alerts.receive?.(raw, stale);
   const state = $("inmetState"); const content = $("inmetContent");
   const alerts = selectInmetAlerts(raw);
   const activeOfficial = alerts.find(item => item.stage === "active" && item.area === activeCity.name);
   $("inmetCard").dataset.severity = stale ? "unknown" : activeOfficial?.severity.className || "none";
+  // Sem aviso, a seção vira uma linha discreta abaixo do topo; com aviso, ganha destaque no mesmo lugar.
+  setAlertState(stale ? "unavailable" : alerts.length ? "alerts" : "clear");
   if (!alerts.length) {
     state.className = "source-state"; state.innerHTML = `<i></i>${stale ? "Consulta indisponível" : "Nenhum aviso identificado"}`;
     content.innerHTML = stale ? "<h3>Confira o mapa do INMET</h3><p>Não foi possível confirmar os avisos atuais. A leitura anterior não confirma a situação de agora.</p>" : `<h3>✓ Sem alertas meteorológicos ativos</h3><p>A consulta oficial não retornou avisos vigentes ou previstos para ${activeCity.name}. Verificação atualizada agora; confira também o mapa oficial.</p>`;
@@ -277,6 +281,7 @@ async function loadInmetAlerts(revision = cityRevision) {
     if (lastInmetResponse) { renderInmetAlerts(lastInmetResponse, true); updateInmetTimestamp(true); return; }
     const state = $("inmetState"); const content = $("inmetContent");
     $("inmetCard").dataset.severity = "unknown";
+    setAlertState("unavailable");
     state.className = "source-state warning"; state.innerHTML = "<i></i>Consulta indisponível";
     content.innerHTML = "<h3>Abra o mapa do INMET</h3><p>A fonte automática não respondeu agora. Use o atalho abaixo para conferir os avisos oficiais diretamente no INMET.</p>";
     updateInmetTimestamp(true);
@@ -443,7 +448,7 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
   $("forecastList").innerHTML = days.map((date, offset) => {
     const i = indices[offset];
     const d = new Date(`${date}T12:00:00Z`);
-    const day = date === today ? "Hoje" : new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC",weekday: "long"}).format(d).replace(/^./, c => c.toUpperCase());
+    const day = date === today ? "Hoje" : new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC",weekday: "long"}).format(d).replace(/-feira$/, "").replace(/^./, c => c.toUpperCase());
     const label = new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC",day: "2-digit", month: "short"}).format(d).replace(".", "");
     const [cond] = weather(daily.weather_code[i]); const min = daily.temperature_2m_min[i]; const max = daily.temperature_2m_max[i];
     const left = Math.max(0, Math.min(98, (min - minAll) / spread * 100));
@@ -454,12 +459,15 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
     const rainMm = daily.precipitation_sum[i];
     const weekend = [0,6].includes(d.getUTCDay());
     const reading = !Number.isFinite(rainProb) || !Number.isFinite(rainMm) ? "Previsão de chuva indisponível" : rainMm >= 20 ? "Acumulado de chuva elevado" : rainMm >= 8 ? "Chuva ao longo do dia" : rainProb >= 55 ? "Chuva provável, com baixo acumulado" : rainProb >= 30 ? "Chuva isolada" : "Baixa probabilidade de chuva";
+    const uvMax = daily.uv_index_max?.[i];
+    // A linha mostra só o que acrescenta: chuva relevante ou UV muito alto. O restante fica no detalhe do dia.
+    const notes = [reading !== "Baixa probabilidade de chuva" && reading, Number.isFinite(uvMax) && uvMax >= 8 && `UV ${fmt(uvMax, 0)} · ${uvMax >= 11 ? "extremo" : "muito alto"}`].filter(Boolean);
     return `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}" data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog" aria-label="${day}, ${label}: ${cond}, mínima ${fmt(min)} graus, máxima ${fmt(max)} graus, chance de chuva ${rainProb ?? 'indisponível'}${rainProb===null ? '' : '%'}, ${fmt(rainMm,1)} mm. Ver detalhes.">
       <span class="forecast-day"><strong>${day}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
       <span class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
       <span class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</span><strong aria-hidden="true">${fmt(max)}°</strong></span>
-      <span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span>${rainProb ?? '—'}% · ${fmt(rainMm, 1)} mm</span></span>
-      <span class="forecast-uv">${reading} · UV ${fmt(daily.uv_index_max[i], 0)}</span>
+      <span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="forecast-rain-chance">${rainProb ?? '—'}%</span><span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span></span></span>
+      <span class="forecast-uv"${notes.length ? "" : " hidden"}>${notes.join(" · ")}</span>
     </button>`;
   }).join("");
 }
@@ -500,7 +508,10 @@ function renderSun(daily, at = Date.now()) {
   $("sunDot").style.left = `${point.left}%`; $("sunDot").style.top = `${point.top}px`;
   const remainingMinutes = Math.max(1, Math.ceil((set - at) / 60000));
   const remainingTime = remainingMinutes < 60 ? `${remainingMinutes} min` : `${Math.floor(remainingMinutes / 60)} h ${remainingMinutes % 60} min`;
-  $("sunPhrase").textContent = at < rise ? "O sol ainda não nasceu." : at >= set ? `O sol já se pôs em ${activeCity.name}.` : `Restam cerca de ${remainingTime} de luz natural.`;
+  const duration = ms => { const total = Math.max(1, Math.ceil(ms / 60000)); return total < 60 ? `${total} min` : `${Math.floor(total / 60)}h ${String(total % 60).padStart(2, "0")}min`; };
+  const nextRise = at < rise ? rise : globalThis.PLUVIA?.sky?.dayAt?.(at + 86400000)?.rise;
+  const untilRise = Number.isFinite(nextRise) && nextRise > at ? ` Nasce em ${duration(nextRise - at)}, às ${formatUpdateTime(nextRise)}.` : "";
+  $("sunPhrase").textContent = at < rise ? `O sol ainda não nasceu.${untilRise}` : at >= set ? `O sol já se pôs em ${activeCity.name}.${untilRise}` : `Restam cerca de ${remainingTime} de luz natural.`;
   const sunshine = daily.sunshine_duration?.[index], daylight = daily.daylight_duration?.[index];
   const sunshineMinutes = Math.round(sunshine / 60), daylightMinutes = Math.round(daylight / 60);
   $("sunshineNote").textContent = Number.isFinite(sunshine) && Number.isFinite(daylight)
@@ -552,11 +563,24 @@ function clearWeatherInsights() {
   if ($("rainPhrase")) $("rainPhrase").textContent = "Previsão de chuva indisponível.";
 }
 
+function renderAirParticles(air) {
+  const reading = weatherInsights?.particles?.(air?.pm25Mean24h);
+  if ($("airParticles")) {
+    $("airParticles").hidden = !reading;
+    $("airParticles").textContent = reading ? `PM2,5 média de 24h: ${fmt(reading.value,1)} µg/m³ · ${reading.label} (15 µg/m³).` : '';
+  }
+  if ($("airParticlesNote")) {
+    $("airParticlesNote").hidden = !reading?.notable;
+    $("airParticlesNote").textContent = reading?.notable ? `${reading.label} · PM2,5 24h ${fmt(reading.value,0)} µg/m³` : '';
+  }
+}
+
 function renderAirDetails(snapshot) {
   const details = $("airDetails");
   if (!details) return;
   const air = snapshot?.airQuality;
   details.hidden = !air;
+  renderAirParticles(air);
   if (!air) return;
   const fields = [['pm25','PM2,5'],['pm10','PM10'],['ozone','Ozônio'],['nitrogenDioxide','NO₂'],['carbonMonoxide','CO']];
   const readings = fields.filter(([key]) => Number.isFinite(air[key]) && air[key]>=0).map(([key,label]) => {
@@ -623,7 +647,9 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   const dayIndex = day.time.indexOf(globalThis.PLUVIA.time.dayKey(Date.now(),activeCity));
   $("todayHigh").textContent = `${fmt(day.temperature_2m_max[dayIndex])}°`;
   $("todayLow").textContent = `${fmt(day.temperature_2m_min[dayIndex])}°`;
-  $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
+  $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; const humidityReading = weatherInsights?.humidity?.(data.hourly,start,current);
+  $("humidityNote").textContent = humidityReading?.note || humidityLabel(current.relative_humidity_2m);
+  $("humidity").closest?.(".metric")?.setAttribute("data-humidity-level",humidityReading?.level || "unknown");
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `De ${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
   $("windCompass").style.setProperty("--wind-deg", `${Number.isFinite(current.wind_direction_10m) ? current.wind_direction_10m : 0}deg`);
   $("windCompass").style.setProperty("--wind-visible", Number.isFinite(current.wind_direction_10m) ? "1" : "0");
@@ -849,22 +875,36 @@ function updateCityLabels() {
   if (!activeCity) return;
   $("cityName").textContent = activeCity.name;
   $("alertsCityLabel").textContent = "Fontes oficiais e leitura ambiental para " + activeCity.name;
-  $("forecastCityLabel").textContent = "Previsão diária para a área urbana de " + activeCity.name;
+  $("forecastCityLabel").textContent = "Previsão para o ponto de referência de " + activeCity.name + ", não para um endereço específico.";
+  const distance = $("cityDistance");
+  if (distance) {
+    distance.hidden = !(activeCity.distanceKm >= 2);
+    if (activeCity.distanceKm >= 2) distance.textContent = "a " + Math.round(activeCity.distanceKm) + " km de " + activeCity.name + " · " + activeCity.uf;
+  }
+  globalThis.PLUVIA?.modules?.['weather-layers']?.cityChanged?.(activeCity);
   const starred = favorites.has(activeCity.id);
   $("favoriteCity").textContent = starred ? "★ Favorita" : "☆ Favoritar";
   $("favoriteCity").setAttribute("aria-pressed", String(starred));
   $("favoriteCity").setAttribute("aria-label", (starred ? "Remover dos favoritos: " : "Favoritar: ") + activeCity.name);
   updateClock();
 }
+let activeResultIndex = -1;
 function renderCityOptions() {
-  const query = normalizeName($("citySearch").value || "").trim();
-  const uf = $("stateSelect").value || "";
-  const browsing = !query && !uf;
-  const matches = browsing ? [...new Map([activeCity,...[...favorites].map(id=>cityById.get(id)),...CAPITALS].filter(Boolean).map(city=>[city.id,city])).values()] : searchCities(query,uf);
-  const shown = matches.slice(0,60);
-  $("citySelect").innerHTML = '<option value="">Selecione uma cidade</option>' + shown.map(city => '<option value="' + city.id + '">' + (favorites.has(city.id) ? "★ " : "") + escapeHtml(city.name) + " · " + city.uf + "</option>").join("");
-  $("citySelect").value = shown.some(city => city.id === activeCity?.id) ? activeCity.id : "";
-  $("cityPickerStatus").textContent = browsing ? "Digite o nome para buscar municípios. Cidades favoritas e capitais aparecem na lista inicial." : !matches.length ? "Nenhuma cidade encontrada. Confira o nome ou o estado." : matches.length > 60 ? "Mostrando 60 de " + matches.length + " cidades. Digite mais letras para refinar a busca." : matches.length + " cidades encontradas. Selecione uma cidade na lista.";
+  const query = normalizeName(document.getElementById("citySearch").value || "").trim();
+  const initial = [...new Map([
+    ...[...favorites].map(id => cityById.get(id)),
+    activeCity,
+    ...CAPITALS
+  ].filter(Boolean).map(city => [city.id, city])).values()];
+  const matches = query ? searchCities(query) : initial;
+  const shown = query ? matches.slice(0, 12) : matches;
+  const list = document.getElementById("cityResults");
+  activeResultIndex = -1;
+  list.innerHTML = shown.map(city => {
+    const capital = CAPITALS.some(item => item.id === city.id);
+    return `<li><button class="city-result" type="button" role="option" aria-selected="false" data-current="${city.id === activeCity?.id}" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
+  }).join("");
+  document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
 }
 function chooseCity(id, locatedCity = null) {
   const city = locatedCity || cityById.get(id);
@@ -913,7 +953,9 @@ function chooseCity(id, locatedCity = null) {
   if (!saved) {
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
     delete $("airQualityCard").dataset.aqiLevel;
+    $("humidity").closest?.(".metric")?.removeAttribute("data-humidity-level");
     renderAirQuality(null);
+    renderAirParticles(null);
     $("uvScale").hidden = true;
     $("visibilityBadge").hidden = true;
     $("windCompass").style.setProperty?.("--wind-visible","0");
@@ -927,8 +969,8 @@ function chooseCity(id, locatedCity = null) {
     $(source + "Content").innerHTML = "<h3>Consultando " + escapeHtml(city.name) + "</h3><p>Buscando informações para a cidade selecionada.</p>";
   });
   $("inmetCard").dataset.severity = "unknown";
+  setAlertState("loading");
   $("citySearch").value = "";
-  $("stateSelect").value = "";
   renderCityOptions(); updateCityLabels();
   $("weatherView")?.classList.toggle('initial-loading', !saved);
   if (saved) {
@@ -951,13 +993,10 @@ function toggleFavoriteCity() {
 }
 function setupCityPicker() {
   emptyCityContent = new Map(cityResetIds.map(id => [id,$(id).innerHTML]));
-  $("stateSelect").innerHTML = '<option value="">Todos os estados</option>' + [...stateNames].sort((a,b)=>a[1].localeCompare(b[1],'pt-BR')).map(([uf,name])=>'<option value="'+uf+'">'+escapeHtml(name)+' · '+uf+'</option>').join('');
   renderCityOptions(); updateCityLabels();
 
   let searchTimer;
   $("citySearch").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(renderCityOptions,120); });
-  $("stateSelect").addEventListener("change", renderCityOptions);
-  $("citySelect").addEventListener("change", event => chooseCity(event.target.value));
   $("favoriteCity").addEventListener("click", toggleFavoriteCity);
   $("locateCity").addEventListener("click", () => requestLocation('city_picker'));
   $("welcomeLocate").addEventListener("click", () => requestLocation('welcome'));
@@ -1008,10 +1047,11 @@ function openCitySearch() {
 }
 function closeCitySearch(animate = false) {
   const dialog = $("cityDialog");
-  if (dialog.open) {
-    if (animate && globalThis.PLUVIA?.dialogs) { globalThis.PLUVIA.dialogs.close(dialog); return; }
-    dialog.close();
-  }
+  // O foco volta para a busca só quando o diálogo estava aberto; a escolha automática
+  // da cidade (fallback sem localização) não pode roubar o foco ao abrir a página.
+  if (!dialog.open) return;
+  if (animate && globalThis.PLUVIA?.dialogs) { globalThis.PLUVIA.dialogs.close(dialog); return; }
+  dialog.close();
   $("openCitySearch").focus();
 }
 function requestLocation(source = 'automatic') {
@@ -1060,6 +1100,11 @@ document.querySelector(".hourly-modes")?.addEventListener("click", event => {
   event.currentTarget.querySelectorAll("button[data-hourly-mode]").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
   const forecast = displayedWeather?.forecast;
   if (forecast) renderHourly(forecast.hourly, selectCurrentHour(forecast.hourly.time), forecast.daily);
+});
+// "Ver previsão" abre o gráfico por hora, que fica recolhido para não repetir a faixa das próximas horas.
+document.querySelector(".hourly-peek-heading a")?.addEventListener("click", () => {
+  const details = $("hourlyChartDetails");
+  if (details) details.open = true;
 });
 setupScrollAnimations();
 setupPullToRefresh();

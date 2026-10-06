@@ -46,3 +46,8 @@ python scripts/verify-visual.py
 O frontend é JavaScript estático em dist, sem comando de build, lint ou typecheck frontend configurado. CI valida sintaxe e tipos das funções Supabase existentes; esta etapa não altera backend ou banco.
 
 Próxima medição útil: profiling em dispositivo físico, com o céu animado e uma sequência real de radar, sem confundir o resultado de fixtures com cobertura ou disponibilidade dos sensores.
+
+## Faixa provável da temperatura
+
+`#dailyDetailSpread` mostra a faixa 10–90 da máxima/mínima entre os membros do conjunto ICON EPS. `daily-detail.js` continua sem requests: apenas lê `PLUVIA.forecastSpread.peek(cityId)` e repinta no evento `pluvia:forecast-spread` da mesma cidade. A consulta pertence a `forecast-spread.js`, com cliente HTTP próprio, iniciada pelo clique nos dias da previsão. Dias sem membros suficientes ocultam a linha. Leaflet é servido localmente em `vendor/leaflet/` (1.9.4, BSD-2), fora do precache de instalação e com cache de runtime do SW.
+

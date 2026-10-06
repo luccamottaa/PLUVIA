@@ -54,6 +54,8 @@
         ['dailyDetailProbability',reading.probability,'%'],['dailyDetailRain',reading.mm,' mm',1],
         ['dailyDetailWind',reading.wind,' km/h'],['dailyDetailGust',reading.gust,' km/h'],['dailyDetailUv',reading.uv,'']
       ]) el(id).textContent=unit(value,suffix,digits);
+      const spread=root.PLUVIA.forecastSpread,spreadText=spread?.describe?.(spread.peek?.(state.city.id)?.days?.[reading.date])||'';
+      if(el('dailyDetailSpread')) {el('dailyDetailSpread').textContent=spreadText;el('dailyDetailSpread').hidden=!spreadText;}
       const solar=state.dayAt?.(time.parse(reading.date+'T12:00',state.city));
       el('dailyDetailSunrise').textContent=stamp(solar?.rise);el('dailyDetailSunset').textContent=stamp(solar?.set);
       el('dailyDetailHoursNote').textContent=reading.hours.length ? `${reading.hours.length} horários disponíveis${reading.complete ? ' para este dia' : ' · dados horários parciais'}. Vento e rajadas representam os maiores valores desses horários.` : 'Detalhes horários indisponíveis para este dia. Os totais acima vêm da previsão diária.';
@@ -105,6 +107,7 @@
     }
     el('dailyDetailPrev').addEventListener('click',()=>move(-1));el('dailyDetailNext').addEventListener('click',()=>move(1));
     root.addEventListener('pluvia:city-changed',()=>{if(dialog.open) dialog.close();state=null;selectedDate=null;});
+    root.addEventListener('pluvia:forecast-spread',event=>{if(dialog.open && state?.city.id===event.detail?.cityId) paint();});
     root.PLUVIA.dailyDetail.update=update;
   }
   return {detail,mount};
