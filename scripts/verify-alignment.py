@@ -97,13 +97,13 @@ with sync_playwright() as p:
    report[field]=aligned(field,count=5)
   report['summaryLabels']=aligned('.quick-metrics > .quick-metric:first-child .metric-head > span:first-child,.hero-temperature-extreme small',count=3)
   report['summaryValues']=aligned('#feelsLike,#todayHigh,#todayLow',count=3)
-  summary_icons='.quick-metrics > .quick-metric:first-child [data-weather-icon-name] img,.hero-temperature-extreme [data-weather-icon-name] img'
+  summary_icons='.quick-metrics > .quick-metric:first-child [data-weather-icon-name] svg,.hero-temperature-extreme [data-weather-icon-name] svg'
   report['summaryIcons']=aligned(summary_icons,'centerY',3)
   for icon in report['summaryIcons']:
    assert icon['width']==icon['height']==28,(width,label,icon)
   for selector in ['.quick-metrics > .quick-metric:first-child','.hero-temperature-extreme']:
    for column in page.locator(selector).all():
-    geometry=column.evaluate("el=>{const icon=el.querySelector('[data-weather-icon-name] img'),heading=el.querySelector('.metric-head'),label=heading.firstElementChild,value=el.querySelector('strong');const box=n=>{const r=n.getBoundingClientRect();return {center:r.x+r.width/2,x:r.x,right:r.right,y:r.y,bottom:r.bottom}};return {column:box(el),icon:box(icon),label:box(label),value:box(value),loaded:icon.complete&&icon.naturalWidth===128,decorative:icon.alt===''&&icon.getAttribute('aria-hidden')==='true'};}")
+    geometry=column.evaluate("el=>{const icon=el.querySelector('[data-weather-icon-name] svg'),heading=el.querySelector('.metric-head'),label=heading.firstElementChild,value=el.querySelector('strong');const box=n=>{const r=n.getBoundingClientRect();return {center:r.x+r.width/2,x:r.x,right:r.right,y:r.y,bottom:r.bottom}};return {column:box(el),icon:box(icon),label:box(label),value:box(value),loaded:icon.classList.contains('metric-line-icon')&&icon.querySelector('path')!==null,decorative:icon.getAttribute('aria-hidden')==='true'&&icon.getAttribute('focusable')==='false'};}")
     assert geometry['loaded'] and geometry['decorative'],geometry
     assert max(v['center'] for v in geometry.values() if isinstance(v,dict))-min(v['center'] for v in geometry.values() if isinstance(v,dict))<=1,geometry
     assert geometry['icon']['bottom']<=geometry['label']['y'] and geometry['label']['bottom']<=geometry['value']['y'],geometry
