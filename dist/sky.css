@@ -28,7 +28,7 @@
 :root[data-weather="snow"] { --sky-base:#0e1a2d; --sky-color:linear-gradient(165deg,#29364e,#0e1a2d); --cloud-opacity:.65; }
 :root[data-weather="snow"][data-phase="day"] { --sky-base:#bed9e8; --sky-color:linear-gradient(165deg,#9ebfd5,#e5f0f5); }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#233656; --intro-muted:#233656; }
-:root[data-phase="night"]:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#f3f8ff; --intro-muted:#233656; }
+:root[data-phase="night"]:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; }
 :root[data-solar="sunset"] { --twilight-color:radial-gradient(ellipse at 78% 35%,#ffd69899,transparent 48%),linear-gradient(180deg,#39446f,#9d789c 27%,#eaa286 52%,#cf9a84 100%); }
 html,body { background:var(--sky-base); }
 .pluvia-intro { background:var(--sky-color); color:var(--intro-ink); }
@@ -51,7 +51,10 @@ html,body { background:var(--sky-base); }
 :root[data-phase="day"] .sky-effects::after { background:linear-gradient(90deg,#def2fa30,transparent 75%); }
 .sky-twilight { display:none; position:absolute; inset:0; z-index:0; opacity:var(--twilight-opacity,0); background:var(--twilight-color); pointer-events:none; }
 .sky-twilight-page { position:fixed; z-index:-1; }
-:root[data-phase="night"] .sky-twilight-page { background:linear-gradient(#080f2294,#080f2294),var(--twilight-color); }
+:root[data-phase="night"] .sky-twilight-page,
+/* A intro segue a mesma atenuação noturna da página: o texto claro do lado noturno do
+   crepúsculo não pode depender de uma nuvem passar atrás dele. */
+:root[data-phase="night"] .intro-sky .sky-twilight { background:linear-gradient(#080f2294,#080f2294),var(--twilight-color); }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) .sky-twilight { display:block; }
 :root:is([data-weather="cloud"],[data-weather="rain"],[data-weather="fog"],[data-weather="snow"]) .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .6); }
 :root[data-weather="storm"] .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .3); }
@@ -78,11 +81,11 @@ html,body { background:var(--sky-base); }
 .sky-moon::before { content:""; position:absolute; inset:-65%; border-radius:50%; background:radial-gradient(circle,#c3dfff1f,transparent 64%); opacity:var(--moon-light,0); }
 :root[data-phase="night"] .sky-moon { display:block; }
 .intro-sky .sky-moon { width:64px; }
-/* Two photographic layers: a distant veil and a softer volumetric foreground.
+/* Two generated soft layers (scripts/generate-soft-clouds.py): a distant veil and a volumetric foreground.
    Only bounded transforms move; no turbulence, canvas loop or animated blur.
    Keeping the nodes painted allows weather changes to fade without restarting. */
-.sky-clouds { display:block; position:absolute; z-index:2; left:-64px; width:calc(100% + 128px); height:clamp(440px,70vw,640px); top:-60px; background:url("./assets/sky-cloud-veil.webp?v=clouds-2") center / cover no-repeat; opacity:var(--cloud-opacity); filter:var(--cloud-filter); -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); animation:clouds-back 130s ease-in-out infinite alternate; animation-delay:-82s; transition:opacity 4s ease; }
-.sky-clouds-front { top:17%; background-image:url("./assets/sky-cloud-volume.webp?v=clouds-2"); opacity:calc(var(--cloud-opacity) * .48); animation:clouds-front 105s ease-in-out infinite alternate; animation-delay:-61s; }
+.sky-clouds { display:block; position:absolute; z-index:2; left:-64px; width:calc(100% + 128px); height:clamp(440px,70vw,640px); top:-60px; background:url("./assets/sky-cloud-veil.webp?v=clouds-3") center / cover no-repeat; opacity:var(--cloud-opacity); filter:var(--cloud-filter); -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); animation:clouds-back 130s ease-in-out infinite alternate; animation-delay:-82s; transition:opacity 4s ease; }
+.sky-clouds-front { top:17%; background-image:url("./assets/sky-cloud-volume.webp?v=clouds-3"); opacity:calc(var(--cloud-opacity) * .48); animation:clouds-front 105s ease-in-out infinite alternate; animation-delay:-61s; }
 /* Texture alpha carries the real gaps. Fading an entire partially cloudy layer
    makes the celestial disks bleed through even its dense, opaque interiors. */
 :root[data-weather="partly"] .sky-clouds-front { opacity:var(--cloud-opacity); }
