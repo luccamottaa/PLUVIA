@@ -220,6 +220,13 @@
   // ausente não é tempo seco: a resposta só cobre as horas com leitura.
   const STORM_CODES = new Set([95, 96, 99]);
   const hourLabel = value => { const hour = Number(String(value || "").slice(11, 13)); return Number.isFinite(hour) ? `${hour}h` : clock(value); };
+  // "das 15h" / "da 1h" / "da meia-noite"; "às 15h" / "à 1h" / "à meia-noite".
+  const hourPhrase = (value, preposition = "das") => {
+    const hour = Number(String(value || "").slice(11, 13));
+    const singular = preposition === "às" ? "à" : "da";
+    if (hour === 0) return `${singular} meia-noite`;
+    return hour === 1 ? `${singular} 1h` : `${preposition} ${hourLabel(value)}`;
+  };
   const rainIntensity = mm => mm >= 7.5 ? "forte" : mm >= 2.5 ? "moderada" : "fraca";
   // Código atual de chuva/trovoada vale como "chovendo agora", mesmo se a série horária
   // discordar; a intensidade vem do próprio código (garoa/fraca, moderada, forte).
@@ -252,13 +259,13 @@
       const intensity = [rainIntensity(peak), ...span.map(hour => hour.nowIntensity).filter(Boolean)].reduce((a,b) => order.indexOf(b) > order.indexOf(a) ? b : a);
       const kind = storm ? "trovoada" : `chuva ${intensity}`;
       if (first === 0) {
-        const tail = end + 1 < hours.length ? `deve parar por volta das ${hourLabel(hours[end + 1].time)}` : `sem pausa prevista nas próximas ${hours.length} horas`;
+        const tail = end + 1 < hours.length ? `deve parar por volta ${hourPhrase(hours[end + 1].time)}` : `sem pausa prevista nas próximas ${hours.length} horas`;
         return {tone:storm ? "storm" : "rain", text:`${kind[0].toUpperCase()}${kind.slice(1)} agora; ${tail}.`, hours:hours.length, start:hours[0].time};
       }
-      return {tone:storm ? "storm" : "rain", text:`Leve guarda-chuva: ${kind} a partir das ${hourLabel(hours[first].time)}.`, hours:hours.length, start:hours[first].time};
+      return {tone:storm ? "storm" : "rain", text:`Leve guarda-chuva: ${kind} a partir ${hourPhrase(hours[first].time)}.`, hours:hours.length, start:hours[first].time};
     }
     const maybe = hours.find(hour => hour.chance !== null && hour.chance >= 30);
-    if (maybe) return {tone:"maybe", text:`Pode chover a partir das ${hourLabel(maybe.time)} (${Math.round(maybe.chance)}% de chance).`, hours:hours.length, start:maybe.time};
+    if (maybe) return {tone:"maybe", text:`Pode chover a partir ${hourPhrase(maybe.time)} (${Math.round(maybe.chance)}% de chance).`, hours:hours.length, start:maybe.time};
     if (hours.length < 3) return unknown;
     return {tone:"dry", text:`Sem chuva prevista nas próximas ${hours.length} horas.`, hours:hours.length};
   }

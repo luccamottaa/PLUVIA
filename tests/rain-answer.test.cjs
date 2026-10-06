@@ -40,3 +40,9 @@ test('condição atual de chuva vale como "agora", mesmo com a série horária s
  assert.equal(rainAnswer(series(14,{mm:h=>h<2?1:0,chance:h=>h<2?80:5}),0,{current:{weather_code:95}}).text,'Trovoada agora; deve parar por volta das 15h.');
  assert.equal(rainAnswer(series(14),0,{current:{weather_code:3}}).tone,'dry');
 });
+test('horas no singular e meia-noite com a preposição certa',()=>{
+ const late=series(14,{mm:h=>h===11?3:0,chance:h=>h===11?80:5});
+ assert.equal(rainAnswer(late,0).text,'Leve guarda-chuva: chuva moderada a partir da meia-noite.');
+ const one=series(14,{mm:h=>h===12?1:0,chance:h=>h===12?80:5});
+ assert.equal(rainAnswer(one,0,{horizon:13}).text,'Leve guarda-chuva: chuva fraca a partir da 1h.');
+});
