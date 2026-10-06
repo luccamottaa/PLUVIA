@@ -1029,6 +1029,18 @@ function renderCityOptions() {
   }).join("");
   document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
 }
+// On a city page the address follows the chosen city: another capital page, or the Home.
+// Elsewhere (the Home itself) the URL never changes. The document title is not rewritten.
+function syncCityPage(city) {
+  if (!/^\/clima\//.test(globalThis.location?.pathname || "")) return;
+  const path = cityPagePath(city) || "/";
+  if (location.pathname === path) return;
+  try { history.replaceState(history.state, "", path + location.hash); } catch {}
+  document.querySelectorAll?.(".capital-links a").forEach(link => {
+    if (link.getAttribute("href") === path) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+}
 function chooseCity(id, locatedCity = null) {
   const city = locatedCity || cityById.get(id);
   if (!city) return;
@@ -1068,6 +1080,7 @@ function chooseCity(id, locatedCity = null) {
   globalThis.PLUVIA?.radar?.reset?.(city.id);
   globalThis.PLUVIA?.modules.location.reset?.();
   writePreference("pluvia-city", city.id);
+  syncCityPage(city);
   writePreference("pluvia-city-record", {id:city.id,name:city.name,uf:city.uf,state:city.state,lat:city.lat,lon:city.lon,timezone:city.timezone});
   globalThis.dispatchEvent?.(new CustomEvent('pluvia:city-changed',{detail:{id:city.id}}));
   clearTimeout(errorTimer);

@@ -257,7 +257,7 @@
       let completed=false;
       const fail=()=>{if(completed)return;completed=true;clearTimeout(timeout);script.remove?.();reject(new Error('SDK indisponível'));};
       const timeout=setTimeout(fail,12000);
-      script.src = './vendor/supabase-2.116.0.js';
+      script.src = '/vendor/supabase-2.116.0.js';
       script.onload = () => {
         if(completed)return;completed=true;clearTimeout(timeout);
         try {

@@ -24,13 +24,13 @@ test('mapeia códigos WMO e respeita variantes de dia e noite', () => {
 });
 
 test('centraliza ícones nomeados e usa fallback local sem gerar 404', () => {
-  assert.equal(icons.namedIcon('humidity').src, './assets/weather-icons/metrics/humidity.svg?v=modern-3');
+  assert.equal(icons.namedIcon('humidity').src, '/assets/weather-icons/metrics/humidity.svg?v=modern-3');
   for (const name of ['temperature-high','temperature-low','feels-like','visibility']) {
-    assert.equal(icons.namedIcon(name).src, `./assets/weather-icons/metrics/${name}.svg?v=modern-3`);
+    assert.equal(icons.namedIcon(name).src, `/assets/weather-icons/metrics/${name}.svg?v=modern-3`);
   }
   assert.equal(icons.namedIcon('rain-probability').source, 'pluvia-vector');
   assert.equal(icons.namedIcon('radar').source, 'pluvia-vector');
-  assert.equal(icons.namedIcon('radar').src, './assets/weather-icons/maps/radar.svg?v=modern-3');
+  assert.equal(icons.namedIcon('radar').src, '/assets/weather-icons/maps/radar.svg?v=modern-3');
 });
 
 test('todos os ícones vetoriais existem e são válidos', () => {

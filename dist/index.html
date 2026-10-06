@@ -95,7 +95,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-122" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-36" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-46" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-47" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-122" /></noscript>
   </head>
   <body>
@@ -270,7 +270,7 @@
       </div></dialog>
       <div id="weatherView" class="initial-loading" aria-busy="true">
       <p id="locationNotice" class="location-notice" hidden role="status">Localização indisponível. Manaus está selecionada como referência. <button type="button" id="noticeChangeCity">Trocar cidade</button></p>
-      <script>try{if(localStorage.getItem("pluvia-city")==null)document.getElementById("locationNotice").hidden=false}catch{}</script>
+      <script>try{if(localStorage.getItem("pluvia-city")==null&&!document.querySelector('meta[name="pluvia-city"]'))document.getElementById("locationNotice").hidden=false}catch{}</script>
       <section class="intro" id="agora">
         <div>
           <div class="eyebrow" id="dataStatus"><span class="live-dot" aria-hidden="true"></span><span id="statusText" role="status">Consultando o tempo</span></div>
@@ -381,7 +381,7 @@
       </section>
       </div>
     </main>
-    <footer class="shell"><div class="footer-brand"><span class="footer-brand-icon" aria-hidden="true"></span><div class="footer-brand-copy"><strong>PLUVIA</strong><span>O céu de cada cidade</span></div></div><div class="footer-details"><button id="openSources" class="footer-link" type="button">Fontes de dados</button><button id="openPrivacy" class="footer-link" type="button">Privacidade</button></div></footer>
+    <footer class="shell"><div class="footer-brand"><span class="footer-brand-icon" aria-hidden="true"></span><div class="footer-brand-copy"><strong>PLUVIA</strong><span>O céu de cada cidade</span></div></div><div class="footer-details"><button id="openSources" class="footer-link" type="button">Fontes de dados</button><button id="openPrivacy" class="footer-link" type="button">Privacidade</button></div><!-- capitais:inicio --><nav class="capital-links" aria-label="Previsão nas capitais"><details><summary class="footer-link">Previsão nas capitais</summary><ul><li><a href="/clima/aracaju-se/">Aracaju</a></li><li><a href="/clima/belem-pa/">Belém</a></li><li><a href="/clima/belo-horizonte-mg/">Belo Horizonte</a></li><li><a href="/clima/boa-vista-rr/">Boa Vista</a></li><li><a href="/clima/brasilia-df/">Brasília</a></li><li><a href="/clima/campo-grande-ms/">Campo Grande</a></li><li><a href="/clima/cuiaba-mt/">Cuiabá</a></li><li><a href="/clima/curitiba-pr/">Curitiba</a></li><li><a href="/clima/florianopolis-sc/">Florianópolis</a></li><li><a href="/clima/fortaleza-ce/">Fortaleza</a></li><li><a href="/clima/goiania-go/">Goiânia</a></li><li><a href="/clima/joao-pessoa-pb/">João Pessoa</a></li><li><a href="/clima/macapa-ap/">Macapá</a></li><li><a href="/clima/maceio-al/">Maceió</a></li><li><a href="/clima/manaus-am/">Manaus</a></li><li><a href="/clima/natal-rn/">Natal</a></li><li><a href="/clima/palmas-to/">Palmas</a></li><li><a href="/clima/porto-alegre-rs/">Porto Alegre</a></li><li><a href="/clima/porto-velho-ro/">Porto Velho</a></li><li><a href="/clima/recife-pe/">Recife</a></li><li><a href="/clima/rio-branco-ac/">Rio Branco</a></li><li><a href="/clima/rio-de-janeiro-rj/">Rio de Janeiro</a></li><li><a href="/clima/salvador-ba/">Salvador</a></li><li><a href="/clima/sao-luis-ma/">São Luís</a></li><li><a href="/clima/sao-paulo-sp/">São Paulo</a></li><li><a href="/clima/teresina-pi/">Teresina</a></li><li><a href="/clima/vitoria-es/">Vitória</a></li></ul></details></nav><!-- capitais:fim --></footer>
     </div>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Sem confirmação atual.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
@@ -438,21 +438,21 @@
     <script src="./modules/weather-extras.js?v=core-109" defer></script>
     <script src="./modules/weather-insights.js?v=core-69" defer></script>
     <script src="./modules/radar-probe.js?v=core-70" defer></script>
-    <script src="./modules/weather-icons.js?v=core-49" defer></script>
-    <script src="./modules/weather-icon-system.js?v=modern-4" defer></script>
-    <script src="./capitals.js?v=core-47" defer></script>
+    <script src="./modules/weather-icons.js?v=core-50" defer></script>
+    <script src="./modules/weather-icon-system.js?v=modern-5" defer></script>
+    <script src="./capitals.js?v=core-48" defer></script>
     <script src="./modules/hourly-detail.js?v=detail-5" defer></script>
     <script src="./modules/daily-detail.js?v=daily-2" defer></script>
     <script src="./modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="./app.js?v=panel-51" defer></script>
-    <script src="./p0.js?v=panel-38" defer></script>
+    <script src="./app.js?v=panel-52" defer></script>
+    <script src="./p0.js?v=panel-39" defer></script>
     <script src="./modules/risks.js?v=core-118" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
     <script src="./modules/nowcast.js?v=nowcast-3" defer></script>
-    <script src="./weather-map.js?v=map-5" defer></script>
+    <script src="./weather-map.js?v=map-6" defer></script>
     <script src="./modules/account-sync.js?v=sync-1" defer></script>
     <script src="./modules/social-auth.js?v=oauth-3" defer></script>
-    <script src="./account.js?v=account-6" defer></script>
+    <script src="./account.js?v=account-7" defer></script>
     <script src="./favorite-cities.js?v=favorites-7" defer></script>
     <script src="./modules/share-weather.js?v=share-2" defer></script>
     <script src="./saved-places.js?v=places-1" defer></script>
