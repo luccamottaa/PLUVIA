@@ -1254,7 +1254,16 @@ setupScrollAnimations();
 setupPullToRefresh();
 updateClock();
 setInterval(updateClock, 30000);
-requestLocation();
+// The opening never prompts for location: it uses the position only when the visitor
+// already granted it (no dialog then); otherwise the buttons ask on a tap. A city page
+// (/clima/<nome>-<uf>/) shows its own city, so it never applies the position by itself.
+function requestLocationIfGranted() {
+  if (document.querySelector?.('meta[name="pluvia-city"]')) return;
+  const permissions = globalThis.navigator?.permissions;
+  if (!permissions?.query) return;
+  permissions.query({name:"geolocation"}).then(status => { if (status.state === "granted") requestLocation('automatic'); }).catch(() => {});
+}
+requestLocationIfGranted();
 setInterval(() => { if (!document.hidden) refreshAll(); }, AUTO_REFRESH_MS);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) updateClock(); refreshIfStale(); });
 window.addEventListener("pageshow", () => { updateClock(); refreshIfStale(); });

@@ -49,7 +49,8 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
     const showNotice = () => {
       if (!notice) return;
       notice.hidden = false;
-      notice.innerHTML = 'Localização indisponível. Manaus está selecionada como referência. <button type="button" id="noticeChangeCity">Trocar cidade</button>';
+      notice.innerHTML = 'Mostrando Manaus como referência. <button type="button" id="noticeLocate">Usar minha localização</button> <button type="button" id="noticeChangeCity">Trocar cidade</button>';
+      document.getElementById("noticeLocate")?.addEventListener("click", () => requestLocation('notice'));
       document.getElementById("noticeChangeCity")?.addEventListener("click", () => openCitySearch());
     };
     if (fallback) showNotice();
@@ -58,7 +59,7 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
       if (activeCity || !fallback) return;
       chooseCity(fallback.id);
       showNotice(); // chooseCity clears the notice of an explicit selection
-      locationMessage("Localização indisponível. Manaus foi selecionada como referência. É possível trocar a cidade a qualquer momento.");
+      locationMessage("Manaus foi selecionada como referência. Use sua localização ou troque a cidade a qualquer momento.");
     };
     // The wait only lets a restored account apply its main city. Without a saved
     // Supabase session or an OAuth return in the URL nothing can arrive, so the

@@ -20,7 +20,8 @@ report = []
 with sync_playwright() as p:
     browser = p.webkit.launch(headless=True) if engine == 'webkit' else p.chromium.launch(
         headless=True, args=['--no-sandbox'], **({'executable_path': shutil.which('chromium')} if shutil.which('chromium') else {}))
-    for label, saved in [('first-visit', None), ('other-city-saved', '1302603')]:
+    # gps-granted: permissão já concedida responde sem perguntar; a página não pode trocar de cidade.
+    for label, saved, gps in [('first-visit', None, False), ('other-city-saved', '1302603', False), ('gps-granted', None, True)]:
         context = browser.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True, service_workers='block', reduced_motion='reduce', timezone_id='Asia/Tokyo')
         forecasts, missing = [], []
         def route(r):
@@ -36,7 +37,8 @@ with sync_playwright() as p:
             if (urlparse(url).scheme, urlparse(url).netloc) == origin: r.continue_(); return
             r.abort()
         context.route('**/*', route)
-        context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});"
+        geolocation = "ok({coords:{latitude:-3.119,longitude:-60.022}})" if gps else "fail({code:1})"
+        context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');window.__gpsCalls=0;Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){window.__gpsCalls++;" + geolocation + ";}}});"
                                 + (f"localStorage.setItem('pluvia-city',JSON.stringify('{saved}'));" if saved else ''))
         page = context.new_page(); errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
@@ -51,6 +53,9 @@ with sync_playwright() as p:
         assert state['notice'], (label, 'o aviso de localização não aparece numa página de cidade')
         assert state['canonical'] == 'https://pluviaweather.com.br/clima/belem-pa/', state
         assert state['links'] == 27 and state['current'] == 'Belém' and 'capital do Pará' in state['note'], state
+        page.wait_for_timeout(1500)
+        assert page.evaluate("window.__gpsCalls") == 0, (label, 'a página de cidade não pede localização sozinha')
+        assert page.evaluate("location.pathname") == '/clima/belem-pa/' and page.evaluate("document.getElementById('cityName').textContent") == 'Belém', label
         assert forecasts == ['-1.456'], (label, 'uma consulta, só de Belém', forecasts)
         page.evaluate("chooseCity('2611606')"); page.wait_for_function("location.pathname==='/clima/recife-pe/'")
         assert page.evaluate("document.querySelector('.capital-links [aria-current=page]')?.textContent") == 'Recife'
