@@ -13,21 +13,28 @@ const CACHE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 
 const RequestError = globalThis.PLUVIA?.http?.RequestError;
 
+// Conexões instáveis: até três tentativas, com espera crescente (1s, 3s + variação)
+// e prazo maior a cada vez. Só repete erros temporários; cancelamento/troca de cidade param.
+const FORECAST_ATTEMPTS = [{delay:0},{delay:1000,timeoutMs:12000},{delay:3000,timeoutMs:15000}];
 async function fetchForecast(city = activeCity, revision = cityRevision) {
-  try {
-    const data = await services.weather.getForecast(city);
-    if (!validForecast(data)) throw new RequestError('Previsão incompleta.', {retryable:true});
-    return data;
-  } catch (error) {
-    if (!error?.retryable) throw error;
-    if (revision !== cityRevision) throw new Error('Cidade alterada');
-    await new Promise(resolve => setTimeout(resolve, 900));
-    if (revision !== cityRevision) throw new Error('Cidade alterada');
-    const data = await services.weather.getForecast(city, {timeoutMs:12000});
-    if (!validForecast(data)) throw new RequestError('Previsão incompleta.', {retryable:false});
-    return data;
+  let lastError;
+  for (const [index,attempt] of FORECAST_ATTEMPTS.entries()) {
+    if (attempt.delay) {
+      await new Promise(resolve => setTimeout(resolve, attempt.delay + Math.round(Math.random() * 400)));
+      if (revision !== cityRevision) throw new Error('Cidade alterada');
+    }
+    try {
+      const data = await services.weather.getForecast(city, attempt.timeoutMs ? {timeoutMs:attempt.timeoutMs} : undefined);
+      if (!validForecast(data)) throw new RequestError('Previsão incompleta.', {retryable:index < FORECAST_ATTEMPTS.length - 1});
+      return data;
+    } catch (error) {
+      lastError = error;
+      if (!error?.retryable || revision !== cityRevision) throw error;
+    }
   }
+  throw lastError;
 }
+
 
 function prefetchForecast(city) {
   if (!city) return;
@@ -677,7 +684,8 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   renderAirDetails(weatherData?.get(activeCity.id));
   if (air && !metadata.freshAir) $("airNote").textContent += ' · leitura anterior';
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
-  setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}` : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache);
+  setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}`
+    : data.pluviaReduced ? `Previsão reduzida · MET Norway · ${formatUpdateTime(observedAt)}` : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache || Boolean(data.pluviaReduced));
   renderVisibility(data.hourly.visibility?.[start], fromCache);
   renderHourly(data.hourly, start, day);
   globalThis.PLUVIA?.hourlyDetail?.update?.({hourly:data.hourly,daily:day,start,city:activeCity,fromCache,cacheAt,isDayAt:time=>forecastIsDay(time,day)});
@@ -691,11 +699,11 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
 async function loadWeather(revision = cityRevision) {
   const city = activeCity;
   $("weatherView")?.setAttribute('aria-busy','true');
+  const optional = Promise.allSettled([
+    Promise.resolve().then(() => services.airQuality.getCurrent(city)),
+    Promise.resolve().then(() => services.metNorway.getForecast(city))
+  ]);
   try {
-    const optional = Promise.allSettled([
-      Promise.resolve().then(() => services.airQuality.getCurrent(city)),
-      Promise.resolve().then(() => services.metNorway.getForecast(city))
-    ]);
     const original = await fetchForecast(city,revision);
     if (revision !== cityRevision) return false;
     // Optional sources must not hold the first usable forecast behind their timeout.
@@ -724,11 +732,27 @@ async function loadWeather(revision = cityRevision) {
     globalThis.PLUVIA?.sources.set('met-norway',{status:usingMet ? 'ready' : 'error',checkedAt:usingMet ? Date.now() : null,dataAt:usingMet ? Date.parse(merged.time) : null});
     globalThis.PLUVIA?.sources.set("air-quality",{status:freshAir ? "ready" : air ? "stale" : "error",checkedAt:freshAir ? Date.now() : airAt,dataAt:air?.current?.time ? cityDate(air.current.time,city).getTime() : null});
     clearTimeout(errorTimer); $("errorToast").classList.remove("show"); $("errorToast").setAttribute("aria-hidden", "true");
+    clearTimeout(failureRetryTimer); failureNoticeShown = false;
     globalThis.PLUVIA?.radar?.probe?.(city);
     return true;
   } catch (error) {
     if (revision !== cityRevision) return false;
     const saved = cached();
+    const offline = globalThis.navigator?.onLine === false;
+    const [airResult,metResult] = offline ? [] : await optional;
+    if (revision !== cityRevision) return false;
+    const reduced = offline ? null : reducedForecast(metResult, city);
+    const savedAge = saved ? Date.now() - (saved.weatherAt || saved.at) : Infinity;
+    if (reduced && savedAge > REDUCED_PREFERRED_AFTER_MS) {
+      const freshAir = airResult?.status === "fulfilled" && weatherData?.validateAirQuality?.(airResult.value).valid === true;
+      const savedAir = weatherData?.cachedAir(saved) || {air:null,at:null};
+      render(reduced, freshAir ? airResult.value : savedAir.air, false, 0, {airAt:freshAir ? Date.now() : savedAir.at, freshAir});
+      globalThis.PLUVIA?.sources.set("weather",{status:"error"});
+      globalThis.PLUVIA?.sources.set('met-norway',{status:'ready',checkedAt:Date.now(),dataAt:cityDate(reduced.current.time,city).getTime()});
+      showWeatherError("Fonte principal fora do ar. Mostrando previsão reduzida do MET Norway; tentaremos de novo em 1 minuto.");
+      scheduleFailureRetry(revision);
+      return true;
+    }
     if (saved) { render(saved.data.forecast, weatherData?.cachedAir(saved)?.air, true, saved.weatherAt || saved.at,{airAt:weatherData?.cachedAir(saved)?.at}); }
     markWeatherUnavailable(Boolean(displayedWeather));
     globalThis.PLUVIA?.sources.set("weather",{status:displayedWeather ? "stale" : "error"});
@@ -742,15 +766,13 @@ async function loadWeather(revision = cityRevision) {
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("dryWindow").textContent = "Sem dados";
       $("sunPhrase").textContent = "Ciclo solar indisponível.";
-      $("errorMessage").textContent = "Confira a conexão e puxe para atualizar.";
-      $("errorToast").setAttribute("aria-hidden", "false");
-      $("errorToast").classList.add("show");
-      clearTimeout(errorTimer);
-      errorTimer = setTimeout(() => {
-        $("errorToast").classList.remove("show");
-        $("errorToast").setAttribute("aria-hidden", "true");
-      }, 4500);
     }
+    if (!displayedWeather || !displayedWeather.fromCache || offline) {
+      showWeatherError(offline
+        ? (displayedWeather ? "Sem internet. Mostrando a última previsão salva." : "Sem internet e sem previsão salva desta cidade. Tentaremos de novo quando a conexão voltar.")
+        : "As fontes de previsão não responderam. Tentaremos de novo em 1 minuto.");
+    } else showWeatherError("As fontes de previsão não responderam. Mostrando a última previsão salva; tentaremos de novo em 1 minuto.");
+    if (!offline) scheduleFailureRetry(revision);
     return false;
   } finally {
     if (revision === cityRevision) {
@@ -758,6 +780,35 @@ async function loadWeather(revision = cityRevision) {
       $("weatherView")?.classList.remove('initial-loading');
     }
   }
+}
+
+// Com o Open-Meteo fora do ar, o MET Norway sozinho vira uma previsão reduzida.
+// Preferimos dados salvos recentes (completos) a ela; acima de 3h, a reduzida é mais útil.
+const REDUCED_PREFERRED_AFTER_MS = 3 * 3600000;
+function reducedForecast(metResult, city) {
+  if (metResult?.status !== 'fulfilled') return null;
+  try {
+    const data = globalThis.PLUVIA?.metMerge?.toForecast?.(metResult.value, city, {sun:globalThis.PLUVIA?.sun});
+    return data && weatherData?.validateForecast?.(data,{reduced:true}).valid === true ? data : null;
+  } catch { return null; }
+}
+let failureRetryTimer = null, failureNoticeShown = false;
+function scheduleFailureRetry(revision) {
+  clearTimeout(failureRetryTimer);
+  failureRetryTimer = setTimeout(() => { if (revision === cityRevision && !document.hidden) refreshAll(); }, 60000);
+}
+// Uma mensagem por sequência de falhas: a atualização automática não repete o aviso a cada 5 minutos.
+function showWeatherError(message) {
+  if (failureNoticeShown) return;
+  failureNoticeShown = true;
+  $("errorMessage").textContent = message;
+  $("errorToast").setAttribute("aria-hidden", "false");
+  $("errorToast").classList.add("show");
+  clearTimeout(errorTimer);
+  errorTimer = setTimeout(() => {
+    $("errorToast").classList.remove("show");
+    $("errorToast").setAttribute("aria-hidden", "true");
+  }, 6000);
 }
 
 async function refreshAll() {
@@ -949,6 +1000,7 @@ function chooseCity(id, locatedCity = null) {
   cityRevision++;
   services?.abortAll();
   refreshInFlight = null;
+  clearTimeout(failureRetryTimer); failureNoticeShown = false;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
   lastInmetResponse = null; lastInmetReadAt = 0;
   applyWeatherAtmosphere(null, null);

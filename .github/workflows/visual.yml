@@ -47,6 +47,7 @@ jobs:
           python scripts/verify-daily-planning.py
           python scripts/verify-daily-detail.py
           python scripts/verify-contrast.py
+          python scripts/verify-resilience.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -104,5 +104,100 @@
     });
     return {forecast:{...forecast,current,hourly,daily,pluviaSources:{metNorway:[...touched]}},used:touched.size > 0,fields:[...touched],time:currentPoint.time};
   }
-  return {merge,weatherCode};
+  const pad = value => String(value).padStart(2,'0');
+  function localIso(at, timezone) {
+    const parts = localParts(new Date(at),timezone);
+    return `${parts.day}T${pad(parts.hour)}:${pad(parts.minute)}`;
+  }
+  /* Previsão reduzida só com o MET Norway, para quando o Open-Meteo falhar.
+     Mesmo formato do Open-Meteo, mas o que o MET não entrega (sensação, chance de
+     chuva, UV, visibilidade) fica null: ausência nunca vira zero nem estimativa.
+     Usa só a parte horária contínua da série; dias sem 22 horas cobertas ficam sem
+     máxima/mínima. Nascer/pôr vêm do cálculo astronômico (SunCalc), não do provedor. */
+  function toForecast(met, city, {sun = null, now = Date.now()} = {}) {
+    const timezone = city?.timezone;
+    if (met?.source !== 'MET Norway' || !Array.isArray(met.hourly) || !timezone) return null;
+    const sorted = met.hourly.filter(point => Number.isFinite(Date.parse(point?.time)) && Date.parse(point.time) % 3600000 === 0)
+      .sort((a,b) => Date.parse(a.time) - Date.parse(b.time));
+    const points = [];
+    for (const point of sorted) {
+      const at = Date.parse(point.time);
+      if (at < now - 90 * 60_000) continue;
+      if (points.length && at - Date.parse(points[points.length - 1].time) !== 3600000) break;
+      points.push(point);
+    }
+    if (points.length < 3) return null;
+    const value = (point,key,min,max) => finite(point[key],min,max) ? point[key] : null;
+    const times = points.map(point => localIso(Date.parse(point.time),timezone));
+    const series = (key,min,max) => points.map(point => value(point,key,min,max));
+    const hourly = {
+      time:times,
+      temperature_2m:series('temperatureC',-90,70),
+      apparent_temperature:times.map(() => null),
+      precipitation_probability:times.map(() => null),
+      // next_1_hours começa no ponto: o acumulado pertence ao intervalo que termina na hora seguinte.
+      precipitation:points.map((point,i) => i === 0 ? null : value(points[i-1],'precipitationNextHourMm',0,1000)),
+      rain:times.map(() => null),
+      weather_code:points.map(point => { const code = weatherCode(point.symbol); return Number.isFinite(code) ? code : null; }),
+      cloud_cover:series('cloudCover',0,100),
+      visibility:times.map(() => null),
+      wind_speed_10m:series('windKmh',0,432),
+      wind_gusts_10m:series('gustKmh',0,432),
+      wind_direction_10m:series('windDirection',0,360),
+      relative_humidity_2m:series('humidity',0,100),
+      pressure_msl:series('pressureHpa',850,1100),
+      uv_index:times.map(() => null)
+    };
+    const solar = day => {
+      try {
+        const result = sun?.getTimes?.(new Date(time.parse(`${day}T12:00:00`,timezone)),city.lat,city.lon) || {};
+        const rise = result.sunrise?.getTime?.(), set = result.sunset?.getTime?.();
+        return Number.isFinite(rise) && Number.isFinite(set) && set > rise ? {rise,set} : null;
+      } catch { return null; }
+    };
+    const nearest = points.reduce((best,point) => Math.abs(Date.parse(point.time) - now) < Math.abs(Date.parse(best.time) - now) ? point : best,points[0]);
+    if (Math.abs(Date.parse(nearest.time) - now) > 75 * 60_000) return null;
+    const index = points.indexOf(nearest);
+    const today = localParts(new Date(now),timezone).day;
+    const todaySolar = solar(today);
+    const current = {
+      time:times[index],
+      temperature_2m:hourly.temperature_2m[index],
+      apparent_temperature:null,
+      relative_humidity_2m:hourly.relative_humidity_2m[index],
+      precipitation:null,
+      rain:null,
+      weather_code:hourly.weather_code[index],
+      cloud_cover:hourly.cloud_cover[index],
+      pressure_msl:hourly.pressure_msl[index],
+      wind_speed_10m:hourly.wind_speed_10m[index],
+      wind_direction_10m:hourly.wind_direction_10m[index],
+      wind_gusts_10m:hourly.wind_gusts_10m[index],
+      is_day:todaySolar ? Number(now >= todaySolar.rise && now < todaySolar.set) : null
+    };
+    const days = [today, ...new Set(times.map(value => value.slice(0,10)).filter(day => day > today))];
+    const daily = {time:[],weather_code:[],temperature_2m_max:[],temperature_2m_min:[],apparent_temperature_max:[],apparent_temperature_min:[],
+      precipitation_sum:[],rain_sum:[],precipitation_probability_max:[],uv_index_max:[],sunrise:[],sunset:[]};
+    for (const day of days) {
+      const hours = times.map((value,i) => value.slice(0,10) === day ? i : -1).filter(i => i >= 0);
+      const complete = new Set(hours.map(i => times[i].slice(11,13))).size >= 22;
+      if (day !== today && !complete) continue;
+      const temps = hours.map(i => hourly.temperature_2m[i]);
+      const codes = hours.map(i => hourly.weather_code[i]);
+      const rain = hours.map(i => hourly.precipitation[i]);
+      const severity = code => code >= 95 ? 6 : code >= 80 ? 5 : code >= 51 && code <= 77 ? 4 : code >= 45 ? 3 : code >= 3 ? 2 : code >= 1 ? 1 : 0;
+      const sunTimes = solar(day);
+      daily.time.push(day);
+      daily.temperature_2m_max.push(complete && temps.every(Number.isFinite) ? Math.max(...temps) : null);
+      daily.temperature_2m_min.push(complete && temps.every(Number.isFinite) ? Math.min(...temps) : null);
+      daily.weather_code.push(codes.some(Number.isFinite) ? codes.filter(Number.isFinite).reduce((worst,code) => severity(code) > severity(worst) ? code : worst) : null);
+      daily.precipitation_sum.push(complete && rain.every(Number.isFinite) ? Math.round(rain.reduce((a,b) => a + b,0) * 10) / 10 : null);
+      for (const key of ['apparent_temperature_max','apparent_temperature_min','rain_sum','precipitation_probability_max','uv_index_max']) daily[key].push(null);
+      daily.sunrise.push(sunTimes ? localIso(sunTimes.rise,timezone) : null);
+      daily.sunset.push(sunTimes ? localIso(sunTimes.set,timezone) : null);
+    }
+    return {timezone,current,hourly,daily,pluviaReduced:{source:'MET Norway',missing:['apparent_temperature','precipitation_probability','uv_index','visibility']},
+      pluviaSources:{metNorway:['reduced']}};
+  }
+  return {merge,weatherCode,toForecast};
 });
