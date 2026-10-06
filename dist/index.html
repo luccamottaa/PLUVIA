@@ -51,7 +51,13 @@
       html { background:#080f22; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
       *,*::before,*::after { box-sizing:border-box; }
       html.awaiting-styles body > :not(#pluviaIntro) { visibility:hidden; }
+      /* Base column from styles.css (async): hidden boxes that move still count as layout shift,
+         so the desktop column starts centered. styles.css and later sheets refine it per viewport. */
+      .shell { width:min(1180px,calc(100% - 48px)); max-width:100%; margin-inline:auto; }
       body { margin:0; }
+      /* Out of flow from the first paint: while styles.css (async) loaded, the link took 20px and then lifted the whole page. */
+      .skip-link { position:fixed; top:8px; left:16px; z-index:70; transform:translateY(-150%); }
+      .skip-link:focus { transform:none; }
       [hidden] { display:none !important; }
 .pluvia-intro {
   position:fixed; inset:0; z-index:100; min-height:100dvh;
@@ -89,7 +95,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-122" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-36" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-45" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-46" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-122" /></noscript>
   </head>
   <body>
@@ -263,7 +269,8 @@
         <p id="accountStatus" role="status" aria-live="polite"></p>
       </div></dialog>
       <div id="weatherView" class="initial-loading" aria-busy="true">
-      <p id="locationNotice" class="location-notice" hidden role="status"></p>
+      <p id="locationNotice" class="location-notice" hidden role="status">Localização indisponível. Manaus está selecionada como referência. <button type="button" id="noticeChangeCity">Trocar cidade</button></p>
+      <script>try{if(localStorage.getItem("pluvia-city")==null)document.getElementById("locationNotice").hidden=false}catch{}</script>
       <section class="intro" id="agora">
         <div>
           <div class="eyebrow" id="dataStatus"><span class="live-dot" aria-hidden="true"></span><span id="statusText" role="status">Consultando o tempo</span></div>
@@ -296,7 +303,7 @@
       <section class="hourly-peek panel" aria-labelledby="hourlyPeekTitle">
         <div class="hourly-peek-heading"><h2 id="hourlyPeekTitle">Próximas horas</h2><a href="#chuva" aria-label="Ver previsão completa por hora">Ver previsão <span aria-hidden="true">›</span></a></div>
         <p id="hourlyDecision" class="hourly-decision">Toque em um horário para ver sensação, chuva e rajadas.</p>
-        <div class="hourly-peek-list" id="hourlyPeek" role="group" aria-label="Condições nas próximas horas"><span class="sk-peek" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-num" aria-hidden="true"></span></span><span class="sk-peek" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-num" aria-hidden="true"></span></span><span class="sk-peek" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-num" aria-hidden="true"></span></span><span class="sk-peek" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-num" aria-hidden="true"></span></span><span class="sk-peek" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-num" aria-hidden="true"></span></span></div>
+        <div class="hourly-peek-list" id="hourlyPeek" role="group" aria-label="Condições nas próximas horas"><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong><small class="peek-volume">&nbsp;</small><small class="peek-volume">&nbsp;</small></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong><small class="peek-volume">&nbsp;</small><small class="peek-volume">&nbsp;</small></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong><small class="peek-volume">&nbsp;</small><small class="peek-volume">&nbsp;</small></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong><small class="peek-volume">&nbsp;</small><small class="peek-volume">&nbsp;</small></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong><small class="peek-volume">&nbsp;</small><small class="peek-volume">&nbsp;</small></span></div>
       </section>
       <section class="quick-metrics" aria-label="Sensação térmica, máxima e mínima">
         <article class="metric quick-metric panel card-detail" aria-label="Sensação térmica atual"><div class="metric-head"><span>Sensação</span><span data-weather-icon-name="feels-like" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="feelsLike"><span class="sk sk-num" aria-hidden="true"></span></strong><small id="feelsLikeNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
@@ -437,8 +444,8 @@
     <script src="./modules/hourly-detail.js?v=detail-5" defer></script>
     <script src="./modules/daily-detail.js?v=daily-2" defer></script>
     <script src="./modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="./app.js?v=panel-50" defer></script>
-    <script src="./p0.js?v=panel-37" defer></script>
+    <script src="./app.js?v=panel-51" defer></script>
+    <script src="./p0.js?v=panel-38" defer></script>
     <script src="./modules/risks.js?v=core-118" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
     <script src="./modules/nowcast.js?v=nowcast-3" defer></script>

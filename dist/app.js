@@ -44,10 +44,14 @@ function prefetchForecast(city) {
     const age = Date.now() - saved?.at;
     if (age >= 0 && age <= CACHE_MAX_AGE_MS && validForecast(saved?.data?.forecast)) return;
   } catch {}
-  fetchForecast(city, cityRevision).then(data => {
+  const promise = fetchForecast(city, cityRevision);
+  prefetchedForecast = {cityId:city.id, at:Date.now(), promise};
+  promise.then(data => {
     try {
       if (localStorage.getItem(`pluvia-weather-${city.id}`)) return;
-      localStorage.setItem(`pluvia-weather-${city.id}`, JSON.stringify({at:Date.now(),weatherAt:Date.now(),airAt:null,data:{forecast:data,air:null}}));
+      const at = Date.now();
+      localStorage.setItem(`pluvia-weather-${city.id}`, JSON.stringify({at,weatherAt:at,airAt:null,data:{forecast:data,air:null}}));
+      prefetchSavedAt = at;
     } catch {}
   }).catch(() => {});
 }
@@ -746,7 +750,8 @@ async function loadWeather(revision = cityRevision) {
     Promise.resolve().then(() => services.metNorway.getForecast(city))
   ]);
   try {
-    const original = await fetchForecast(city,revision);
+    const prefetched = takePrefetchedForecast(city);
+    const original = await (prefetched ? prefetched.catch(() => fetchForecast(city,revision)) : fetchForecast(city,revision));
     if (revision !== cityRevision) return false;
     // Optional sources must not hold the first usable forecast behind their timeout.
     if (!displayedWeather || displayedWeather.fromCache) {
@@ -830,6 +835,14 @@ async function loadWeather(revision = cityRevision) {
 
 // Com o Open-Meteo fora do ar, o MET Norway sozinho vira uma previsão reduzida.
 // Preferimos dados salvos recentes (completos) a ela; acima de 3h, a reduzida é mais útil.
+// The opening prefetches the fallback city's forecast; its first load reuses that
+// request instead of downloading the same forecast again a moment later.
+let prefetchedForecast = null, prefetchSavedAt = 0;
+function takePrefetchedForecast(city) {
+  const entry = prefetchedForecast;
+  prefetchedForecast = null;
+  return entry && entry.cityId === city?.id && Date.now() - entry.at < 2 * 60000 ? entry.promise : null;
+}
 const REDUCED_PREFERRED_AFTER_MS = 3 * 3600000;
 function reducedForecast(metResult, city) {
   if (metResult?.status !== 'fulfilled') return null;
@@ -1089,7 +1102,12 @@ function chooseCity(id, locatedCity = null) {
   if (saved) {
     const savedAir = weatherData?.cachedAir(saved);
     render(saved.data.forecast,savedAir?.air,true,saved.weatherAt || saved.at,{airAt:savedAir?.at});
-    setDataStatus(savedStatus(saved.weatherAt || saved.at, isOffline() ? "offline" : "loading"), true);
+    const savedAt = saved.weatherAt || saved.at, offline = isOffline();
+    // Only this opening's own prefetch reads as current while it refreshes (showing then
+    // hiding the status shifted the page). Any other saved reading, however recent, keeps
+    // the visible status: the refresh may still fail.
+    const ownPrefetch = !offline && saved.at === prefetchSavedAt;
+    setDataStatus(ownPrefetch ? "Atualizando…" : savedStatus(savedAt, offline ? "offline" : "loading"), !ownPrefetch);
   } else {
     setDataStatus("Consultando o tempo em " + city.name);
   }

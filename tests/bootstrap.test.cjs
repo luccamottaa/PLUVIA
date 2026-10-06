@@ -78,3 +78,34 @@ test('escolha automática da cidade não rouba o foco; fechar o diálogo devolve
   context.closeCitySearch(true);
   assert.equal(animated,1,'fechamento animado delega ao controlador, que devolve o foco no evento close');
 });
+
+test('primeira visita sem sessão salva escolhe Manaus na hora; sessão ou retorno OAuth aguardam a conta', () => {
+  const run = ({storage = {}, search = '', hash = ''} = {}) => {
+    const nodes = new Map(), chosen = [], timers = [];
+    const element = id => {
+      if (!nodes.has(id)) nodes.set(id,{hidden:true,innerHTML:'',textContent:'',addEventListener(){}});
+      return nodes.get(id);
+    };
+    const context = vm.createContext({
+      document:{getElementById:element,addEventListener(){},querySelectorAll:()=>[],documentElement:{scrollTop:0},body:{scrollTop:0}},
+      window:{scrollTo(){},addEventListener(){},isSecureContext:false},
+      navigator:{},location:{search,hash},localStorage:storage,
+      setTimeout:(fn,ms)=>{timers.push(ms);return timers.length;},clearTimeout(){},
+      activeCity:null,cityById:new Map([['1302603',{id:'1302603',name:'Manaus',uf:'AM'}]]),CITIES:[],
+      readPreference:()=>null,prefetchForecast(){},locationMessage(){},openCitySearch(){},
+      chooseCity:id=>{chosen.push(id);vm.runInContext('activeCity=cityById.get('+JSON.stringify(id)+')',context);},
+    });
+    vm.runInContext(fs.readFileSync('dist/p0.js','utf8'),context);
+    return {chosen,timers,notice:nodes.get('locationNotice')};
+  };
+  const fresh = run();
+  assert.deepEqual(fresh.chosen,['1302603']);
+  assert.equal(fresh.timers.includes(1500),false);
+  assert.equal(fresh.notice.hidden,false,'o aviso continua visível depois da escolha automática');
+  for (const options of [{storage:{'sb-dszyyrcvwrpyiypwyvxe-auth-token':'{}'}},{search:'?auth_return=1'},{hash:'#access_token=x'}]) {
+    const waiting = run(options);
+    assert.deepEqual(waiting.chosen,[],JSON.stringify(options));
+    assert.ok(waiting.timers.includes(1500));
+    assert.equal(waiting.notice.hidden,false,'o aviso reserva o espaço desde o primeiro paint');
+  }
+});
