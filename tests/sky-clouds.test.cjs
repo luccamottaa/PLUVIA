@@ -1,5 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {create}=require('../dist/modules/sky-atmosphere.js');
+const fs=require('node:fs'),vm=require('node:vm');
 const city={id:'1302603',lat:-3.119,lon:-60.022,timezone:'America/Manaus'};
 const at=Date.parse('2026-10-01T22:00:00-04:00');
 function setup() {
@@ -36,4 +37,24 @@ test('abertura com previsão salva reutiliza a mesma cobertura de céu quase lim
   assert.equal(sky.bootstrap(storage,at).clouds,'few');
   assert.equal(root.dataset.weather,'partly');
   assert.equal(sky.bootstrap({getItem(){return null;}},at).clouds,'standard','sem cache não inventa poucas nuvens');
+});
+test('chuva moderada/forte e trovoada escurecem o céu diurno e trocam a tinta do texto; crepúsculo e noite preservam a regra',()=>{
+  const context=vm.createContext({});
+  vm.runInContext(fs.readFileSync('dist/vendor/suncalc.js','utf8'),context);
+  const root={dataset:{},style:{setProperty(){}}},body={dataset:{},style:{setProperty(){}}};
+  const sky=create({document:{documentElement:root,body},sun:context.PLUVIA.sun});
+  const noon=Date.parse('2026-10-01T12:00:00-04:00');
+  for(const [code,rain,ink] of [[0,'none','dark'],[3,'none','dark'],[51,'drizzle','dark'],[61,'light','dark'],[63,'moderate','light'],[65,'heavy','light'],[95,'moderate','light']]) {
+    sky.apply(code,1,null,city,noon);
+    assert.equal(root.dataset.rain,rain,String(code));
+    assert.equal(root.dataset.ink,ink,String(code));
+    assert.equal(body.dataset.ink,ink,'intro e Home usam a mesma tinta');
+    assert.equal(sky.update(noon+30000).phase,'day');
+    assert.equal(body.dataset.ink,ink,'o relógio conserva a tinta da condição');
+  }
+  for(const code of [0,3,65,95]) { sky.apply(code,0,null,city,at); assert.equal(root.dataset.ink,'light',String(code)); }
+  const sunset=sky.dayAt(noon).set;
+  sky.apply(65,1,null,city,sunset-60000);
+  assert.equal(root.dataset.solar,'sunset');
+  assert.equal(root.dataset.ink,'dark','a luz do crepúsculo mantém a tinta escura');
 });

@@ -110,8 +110,13 @@
     }
     function write(state, animate) {
       const rain = rainProfile(code);
+      // Text ink follows how dark the sky is, not only the Sun: moderate/heavy rain and
+      // thunderstorms paint a dark daytime sky, so the reading switches to light ink.
+      // Twilight windows keep their own (dark) ink over the bright twilight light.
+      const darkDay = state.phase === 'day' && state.solar === 'none' && (rain.kind === 'moderate' || rain.kind === 'heavy');
+      const ink = state.phase === 'day' && !darkDay ? 'dark' : 'light';
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
-        Object.assign(node.dataset,{phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,skyTransition:animate ? 'live' : 'instant'});
+        Object.assign(node.dataset,{phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,ink,skyTransition:animate ? 'live' : 'instant'});
         node.style?.setProperty('--twilight-opacity',state.strength.toFixed(3));
         node.style?.setProperty('--sun-visibility',state.sunVisibility.toFixed(3));
         node.style?.setProperty('--moon-visibility',state.moonVisibility.toFixed(3));

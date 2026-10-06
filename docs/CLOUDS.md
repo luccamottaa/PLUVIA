@@ -68,3 +68,17 @@ O usuário achou a versão anterior estática e embaçada: o movimento era ±32p
 - **Noite:** o filtro estático ganha leve tom azulado com o mesmo brilho, em vez de cinza neutro.
 
 Custo: 151,4KiB + 191,9KiB = 343,3KiB no precache (orçamento 360KiB, verificado pelo gerador e pelo teste de cache). O alfa continua sem perdas com 64 níveis; alfa com perdas do WebP reduzia para 12–16 níveis e voltaria a desenhar degraus. A camada fica mais larga (tela + um tile); WebKit e Chromium usam camadas em tiles para superfícies grandes, mas isso não é uma medição de memória, FPS ou bateria em aparelho físico. URLs `?v=clouds-4`.
+
+## Nuvens por condição (outubro/2026)
+
+Pedido do usuário: nuvens de chuva escuras. As mesmas duas texturas recebem filtro, céu de fundo e névoa próprios de cada condição, sem novo asset:
+
+| Condição (dia) | Céu | Texto |
+| --- | --- | --- |
+| Nublado | cinza-azulado claro | escuro |
+| Garoa / chuva fraca | cinza (brightness .8) | escuro |
+| Chuva moderada / trovoada | ardósia escura (brightness .44) | claro |
+| Chuva forte | mais escuro (.38) | claro |
+| Trovoada | mais escuro com tom azul-violeta (.34) | claro |
+
+À noite chuva (.29) e chuva forte/trovoada (.25) também escurecem em relação ao nublado (.33). O critério vem de `data-rain` (perfil decorativo da categoria WMO, não taxa observada). Um céu escuro com texto escuro não tem contraste, então `sky-atmosphere` escreve `data-ink`: tinta clara à noite e nos dias escuros de chuva, exceto na janela do crepúsculo, que conserva a tinta escura sobre a luz do amanhecer/pôr do sol. As regras de texto em `continuous.css`/`redesign.css` passaram a usar `data-ink`. `verify-contrast.py` mede doze estados, incluindo garoa, chuva fraca e chuva moderada; os links continuam no azul da marca por contrato, que tem pouco contraste sobre nuvens cinza (já ocorria à noite).
