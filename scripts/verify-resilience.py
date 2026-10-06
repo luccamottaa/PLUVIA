@@ -54,10 +54,11 @@ with sync_playwright() as p:
  page.wait_for_function("document.getElementById('temperature').textContent==='28'",timeout=30000)
  state=page.evaluate("""()=>({status:document.getElementById('statusText').textContent,toast:document.getElementById('errorMessage').textContent,toastShown:document.getElementById('errorToast').classList.contains('show'),
    condition:document.getElementById('condition').textContent,feels:document.getElementById('feelsLike').textContent,uv:document.getElementById('uv').textContent,
-   hours:document.querySelectorAll('#hourlyPeek [data-hour-index]').length,days:document.querySelectorAll('#forecastList [data-day-index]').length,cached:localStorage.getItem('pluvia-weather-1302603')})""")
+   rain:document.getElementById('rainAnswer').textContent,hours:document.querySelectorAll('#hourlyPeek [data-hour-index]').length,days:document.querySelectorAll('#forecastList [data-day-index]').length,cached:localStorage.getItem('pluvia-weather-1302603')})""")
  assert 'Previsão reduzida · MET Norway' in state['status'],state
  assert state['toastShown'] and 'previsão reduzida do MET Norway' in state['toast'],state
  assert state['feels'].startswith('--') and state['uv'].startswith('--'),'campos que o MET não entrega ficam indisponíveis, não zero'
+ assert state['rain']=='Leve guarda-chuva: chuva fraca a partir das 17h.',state['rain']
  assert state['hours']>=5 and 1<=state['days']<=3 and state['cached'] is None,state
  assert calls['open_meteo']==3,calls
  page.screenshot(path=str(output/'reduced.png'));report['reduced']=state
