@@ -48,6 +48,13 @@
     if ([65,67,82].includes(code)) return RAIN_PROFILES.heavy;
     return RAIN_PROFILES.none;
   }
+  // Decorative cloud drift follows the current 10 m wind: calm air barely moves the
+  // layers, strong wind speeds them up. 10 km/h keeps the CSS reference duration.
+  // A missing reading is not calm: it keeps the neutral rate.
+  function cloudRate(windKmh) {
+    if (typeof windKmh !== 'number' || !Number.isFinite(windKmh) || windKmh < 0 || windKmh > 400) return 1;
+    return Math.round(Math.min(2.4,Math.max(.4,.4 + windKmh * .06)) * 100) / 100;
+  }
   function localDate(now, timezone) {
     return time?.dayKey(now,timezone);
   }
@@ -55,7 +62,7 @@
     return time?.parse(value,city) ?? NaN;
   }
   function create({document, sun = null, moon = null, moonView = null, now = () => Date.now()} = {}) {
-    let city = null, rows = [], weather = 'unknown', providerPhase = 'unknown', code = null;
+    let city = null, rows = [], weather = 'unknown', providerPhase = 'unknown', code = null, wind = null;
     let lastUpdate = null;
     const calculatedDays = new Map(), moonDays = new Map();
     function calculatedDay(at) {
@@ -108,6 +115,18 @@
       }
       return {...dayAt(at),date:day.date,dawn:day.dawn,dusk:day.dusk,...moonDays.get(day.date)};
     }
+    // playbackRate keeps each CSS animation's position, so a new reading changes the
+    // speed without a jump. Runs on the existing clock: animations created after the
+    // stylesheet loads receive the rate on the next tick; no timer of its own.
+    function syncCloudRate() {
+      const rate = cloudRate(wind);
+      for (const node of [document?.documentElement,document?.body].filter(Boolean)) node.style?.setProperty('--cloud-rate',String(rate));
+      for (const layer of document?.querySelectorAll?.('.sky-clouds') || []) {
+        for (const animation of layer.getAnimations?.() || []) {
+          if (animation.animationName?.startsWith('clouds-') && Math.abs(animation.playbackRate - rate) > .001) animation.playbackRate = rate;
+        }
+      }
+    }
     function write(state, animate) {
       const rain = rainProfile(code);
       // Text ink follows how dark the sky is, not only the Sun: moderate/heavy rain and
@@ -132,6 +151,7 @@
         node.style?.setProperty('--rain-width',`${rain.width}px`);
         node.style?.setProperty('--rain-back-width',`${rain.backWidth}px`);
       }
+      syncCloudRate();
       return state;
     }
     function update(at = now(), allowMotion = true) {
@@ -188,8 +208,8 @@
         sunX:ORBIT_MARGIN + dayProgress * (1 - 2 * ORBIT_MARGIN),sunY:1 - Math.sin(Math.PI * dayProgress),
         moonX,moonY},animate);
     }
-    function apply(nextCode, isDay, daily = null, nextCity = city, at = now()) {
-      city = nextCity; code = nextCode; weather = weatherType(code);
+    function apply(nextCode, isDay, daily = null, nextCity = city, at = now(), windKmh = null) {
+      city = nextCity; code = nextCode; weather = weatherType(code); wind = windKmh;
       providerPhase = isDay === 1 ? 'day' : isDay === 0 ? 'night' : 'unknown';
       calculatedDays.clear();
       moonDays.clear();
@@ -217,7 +237,7 @@
         const cached = JSON.parse(storage?.getItem(`pluvia-weather-${selected.id}`) || 'null');
         if (cached && at - cached.at >= 0 && at - cached.at <= CACHE_AGE_MS) saved = cached.data?.forecast;
       } catch (_) { /* Storage may be blocked; the reference city still has a solar clock. */ }
-      return apply(saved?.current?.weather_code,saved?.current?.is_day,saved?.daily,selected,at);
+      return apply(saved?.current?.weather_code,saved?.current?.is_day,saved?.daily,selected,at,saved?.current?.wind_speed_10m);
     }
     return {apply,update,bootstrap,dayAt,astronomyAt};
   }
@@ -244,5 +264,5 @@
     sync();
     return {sync};
   }
-  return {create,weatherType,cityTime,observeMotion};
+  return {create,weatherType,cityTime,observeMotion,cloudRate};
 });

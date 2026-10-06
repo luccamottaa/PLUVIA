@@ -58,3 +58,23 @@ test('chuva moderada/forte e trovoada escurecem o céu diurno e trocam a tinta d
   assert.equal(root.dataset.solar,'sunset');
   assert.equal(root.dataset.ink,'dark','a luz do crepúsculo mantém a tinta escura');
 });
+test('vento atual controla a velocidade das nuvens sem salto; leitura ausente não vira calmaria',()=>{
+  const {cloudRate}=require('../dist/modules/sky-atmosphere.js');
+  assert.equal(cloudRate(10),1,'10 km/h mantém a duração de referência do CSS');
+  assert.equal(cloudRate(0),.4);
+  assert.equal(cloudRate(5),.7);
+  assert.equal(cloudRate(20),1.6);
+  assert.equal(cloudRate(80),2.4,'vendaval tem teto');
+  for(const missing of [null,undefined,NaN,'12',-3,Infinity]) assert.equal(cloudRate(missing),1,String(missing));
+  const animations=[{animationName:'clouds-back',playbackRate:1},{animationName:'clouds-front',playbackRate:1},{animationName:'sky-rain-fall',playbackRate:1}];
+  const values={},root={dataset:{},style:{setProperty(key,value){values[key]=value;}}},body={dataset:{},style:{setProperty(){}}};
+  const layers=[{getAnimations:()=>animations.slice(0,2)},{getAnimations:()=>[animations[2]]}];
+  const sky=create({document:{documentElement:root,body,querySelectorAll:selector=>selector==='.sky-clouds'?layers:[]}});
+  sky.apply(3,1,null,city,at,20);
+  assert.deepEqual(animations.map(a=>a.playbackRate),[1.6,1.6,1],'só as nuvens mudam; chuva conserva o próprio ritmo');
+  assert.equal(values['--cloud-rate'],'1.6');
+  sky.update(at+30000);
+  assert.equal(animations[0].playbackRate,1.6,'o relógio conserva o vento da última previsão');
+  sky.apply(3,1,null,city,at);
+  assert.equal(animations[0].playbackRate,1,'troca de cidade/condição sem vento volta ao ritmo neutro');
+});

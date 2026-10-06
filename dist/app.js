@@ -54,8 +54,8 @@ const weather = code => [weatherIcons?.condition(code).label || "Tempo variável
 function updateSolarAtmosphere(now = Date.now()) {
   return globalThis.PLUVIA?.sky?.update(now);
 }
-function applyWeatherAtmosphere(code, isDay, daily = null) {
-  return globalThis.PLUVIA?.sky?.apply(code, isDay, daily, activeCity);
+function applyWeatherAtmosphere(code, isDay, daily = null, wind = null) {
+  return globalThis.PLUVIA?.sky?.apply(code, isDay, daily, activeCity, undefined, wind);
 }
 
 function weatherIconSvg(code, isDay = true) {
@@ -653,7 +653,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   const current = data.current; const day = data.daily; const start = selectCurrentHour(data.hourly.time); const [condition] = weather(current.weather_code);
   $("temperature").textContent = fmt(current.temperature_2m); $("feelsLike").textContent = `${fmt(current.apparent_temperature)}°`;
   const heatGap = current.apparent_temperature - current.temperature_2m;
-  const atmosphere = applyWeatherAtmosphere(current.weather_code, current.is_day, day);
+  const atmosphere = applyWeatherAtmosphere(current.weather_code, current.is_day, day, current.wind_speed_10m);
   const isDay = atmosphere?.phase === "night" ? false : atmosphere?.phase === "day" ? true : current.is_day !== 0;
   const localCondition = !isDay && current.weather_code === 1 ? "Céu quase limpo" : condition;
   $("condition").textContent = heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition;

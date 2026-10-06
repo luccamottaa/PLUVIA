@@ -195,6 +195,10 @@ with sync_playwright() as p:
   page.evaluate("code=>PLUVIA.sky.apply(code,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})",code)
   assert page.evaluate("[...document.querySelectorAll('.sky-effects > .sky-clouds')].every((el,i)=>el.getAnimations().includes(cloudAnimations[i]))"),code
  assert page.locator('.sky-effects > .sky-clouds-front').evaluate("el=>getComputedStyle(el).transitionDuration")=='4s'
+ # Wind sets the drift speed through playbackRate on the same animation objects (no restart).
+ rates=page.evaluate("""()=>{const out=[];for(const wind of [30,2,null]){PLUVIA.sky.apply(3,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'},undefined,wind);
+   out.push([...document.querySelectorAll('.sky-effects > .sky-clouds')].map((el,i)=>{const a=el.getAnimations().find(a=>a.animationName?.startsWith('clouds-'));return a===cloudAnimations[i]?a.playbackRate:-1;}));}return out;}""")
+ assert rates==[[2.2,2.2],[0.52,0.52],[1,1]],rates
  page.evaluate("window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})");page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
  assert all(s=='paused' for s in page.locator('.sky-effects > .sky-clouds').evaluate_all("els=>els.map(el=>getComputedStyle(el).animationPlayState)"))
  page.evaluate("window.scrollTo({top:0,behavior:'instant'})");page.wait_for_function("scrollY===0 && document.querySelector('.sky-effects').dataset.motion==='running'")
@@ -284,5 +288,5 @@ with sync_playwright() as p:
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>getComputedStyle(el).display")=='none'
  assert page.evaluate("document.querySelector('.sky-effects').getAnimations({subtree:true}).length===0")
  assert not errors,errors
- print(json.dumps({'screenshots':report,'cloudCoverage':coverage,'celestialOcclusion':occlusion,'lightning':lightning,'normalStars':normal_stars,'seamlessBoundedLayers':True,'continuousDrift':True,'preservedAnimationObjects':True,'nightStars':True,'starWeatherGate':True,'rainDepth':True,'offscreenPause':True,'backgroundPseudoPause':True,'clearSkyPause':True,'reducedMotion':True,'errors':errors}))
+ print(json.dumps({'screenshots':report,'cloudCoverage':coverage,'celestialOcclusion':occlusion,'lightning':lightning,'normalStars':normal_stars,'seamlessBoundedLayers':True,'continuousDrift':True,'windDrift':True,'preservedAnimationObjects':True,'nightStars':True,'starWeatherGate':True,'rainDepth':True,'offscreenPause':True,'backgroundPseudoPause':True,'clearSkyPause':True,'reducedMotion':True,'errors':errors}))
  context.close();browser.close()
