@@ -88,7 +88,9 @@ with sync_playwright() as p:
   mode.update(name='loading',pending=True)
   goto(wait_until='domcontentloaded')
   page.locator('#condition').wait_for(state='visible')
-  assert page.locator('#temperature').inner_text()=='--'
+  # Carregando: skeleton decorativo (aria-hidden) no lugar dos números, nunca "--".
+  loading=page.evaluate("()=>({skeletons:document.querySelectorAll('#weatherView .sk').length,hidden:[...document.querySelectorAll('#weatherView .sk')].every(el=>el.getAttribute('aria-hidden')==='true'||el.closest('[aria-hidden=true]')),text:document.getElementById('temperature').innerText.trim(),air:document.getElementById('airQuality').innerText.trim(),rain:document.getElementById('rainPhrase').innerText,busy:document.getElementById('weatherView').getAttribute('aria-busy')})")
+  assert loading['skeletons']>=40 and loading['hidden'] and loading['text']=='' and loading['air']=='' and 'indisponível' not in loading['rain'] and loading['busy']=='true',loading
   page.screenshot(path=str(output/'390-loading.png'),full_page=True)
   for request in blocked:request.abort()
   blocked.clear();mode['pending']=False
