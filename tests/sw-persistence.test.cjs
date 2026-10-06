@@ -30,3 +30,12 @@ test('SW usa shell salvo offline e nunca guarda APIs externas/Auth',async()=>{
  const foreign=w.request('https://dszyyrcvwrpyiypwyvxe.supabase.co/auth/v1/token');assert.equal(foreign.response,undefined);assert.equal(foreign.synchronous,0);
  const api=w.request('https://pluviaweather.com.br/api/nowcast?region=manaus');assert.equal(api.response,undefined);assert.equal(api.synchronous,0);
 });
+test('páginas das capitais ficam em cache na própria URL, sem substituir o shell da Home',async()=>{
+ const w=worker();const page=w.request('https://pluviaweather.com.br/clima/manaus-am/','navigate');await page.response;await page.lifetime;
+ assert.equal(w.stored.has('./index.html'),false,'a página de Manaus não vira o shell');
+ assert.equal(w.stored.has('https://pluviaweather.com.br/clima/manaus-am/'),true);
+ const offline=worker({networkError:true});offline.stored.set('./index.html',new Response('offline shell'));
+ const missing=offline.request('https://pluviaweather.com.br/clima/belem-pa/','navigate');assert.equal(await (await missing.response).text(),'offline shell','sem cópia da página, o shell abre offline');await missing.lifetime;
+ offline.stored.set('https://pluviaweather.com.br/clima/belem-pa/',new Response('belem salvo'));
+ const saved=offline.request('https://pluviaweather.com.br/clima/belem-pa/','navigate');assert.equal(await (await saved.response).text(),'belem salvo');await saved.lifetime;
+});

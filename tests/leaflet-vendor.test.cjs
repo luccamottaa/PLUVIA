@@ -7,8 +7,8 @@ const map = fs.readFileSync(path.join(dist, 'weather-map.js'), 'utf8');
 
 // The map library is first-party: a third-party CDN outage or tampering cannot break or alter it.
 assert.doesNotMatch(map, /unpkg\.com|cdnjs|jsdelivr/);
-assert.match(map, /const LEAFLET_JS = '\.\/vendor\/leaflet\/leaflet\.js\?v=1\.9\.4'/);
-assert.match(map, /const LEAFLET_CSS = '\.\/vendor\/leaflet\/leaflet\.css\?v=1\.9\.4'/);
+assert.match(map, /const LEAFLET_JS = '\/vendor\/leaflet\/leaflet\.js\?v=1\.9\.4'/);
+assert.match(map, /const LEAFLET_CSS = '\/vendor\/leaflet\/leaflet\.css\?v=1\.9\.4'/);
 
 const js = fs.readFileSync(path.join(dist, 'vendor/leaflet/leaflet.js'), 'utf8');
 assert.doesNotMatch(js, /sourceMappingURL/, 'the published bundle must not reference an unpublished source map');

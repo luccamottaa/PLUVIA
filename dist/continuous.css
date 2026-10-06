@@ -403,6 +403,14 @@ footer.shell .footer-brand-copy span { color:var(--intro-ink); }
 footer.shell .footer-details { justify-items:center; text-align:center; }
 footer.shell .footer-details .footer-link { justify-self:center; min-height:44px; color:var(--intro-ink); }
 footer.shell .footer-brand-copy strong { font-family:var(--font-brand); color:var(--brand-blue); }
+/* Links para as páginas das capitais: recolhidos no rodapé, na mesma tinta dos outros links. */
+footer.shell .capital-links { display:block; width:100%; max-width:640px; padding:0; border:0; border-radius:0; background:none; box-shadow:none; color:var(--intro-ink); font-size:.85rem; line-height:1.5; }
+footer.shell .capital-links summary { display:inline-flex; align-items:center; justify-content:center; min-height:44px; cursor:pointer; color:var(--intro-ink); font-size:.77rem; text-decoration:underline; text-underline-offset:3px; }
+footer.shell .capital-links ul { display:flex; flex-wrap:wrap; justify-content:center; gap:0 14px; margin:4px 0 0; padding:0; list-style:none; }
+footer.shell .capital-links a, footer.shell .capital-links a:hover { display:inline-flex; align-items:center; min-height:32px; padding:0; border-radius:0; background:none; box-shadow:none; transform:none; font-size:inherit; font-weight:400; color:var(--intro-ink); text-decoration:underline; text-decoration-color:color-mix(in srgb,currentColor 35%,transparent); text-underline-offset:3px; }
+footer.shell .capital-links a[aria-current="page"] { font-weight:600; text-decoration:none; }
+footer.shell .capital-page-note { margin:0 0 6px; color:var(--intro-ink); }
+body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60; }
 #sourcesDialog :is(.sources-list b,a),#alertDetailBody a { color:var(--brand-blue); }
 .weather-map-section,body[data-phase="night"] .weather-map-section { --map-link:var(--brand-blue); }
 

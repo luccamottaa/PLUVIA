@@ -31,8 +31,11 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   const savedId = typeof readPreference === "function" ? readPreference("pluvia-city", null) : null;
   const fallback = cityById.get("1302603") || CITIES.find(city => city.uf === "AM");
   const saved = cityById.get(savedId);
+  // A city page (/clima/<nome>-<uf>/) opens its own city, as an explicit choice.
+  const pageCity = cityById.get(document.querySelector?.('meta[name="pluvia-city"]')?.content);
   let fallbackTimer;
-  if (saved) chooseCity(saved.id);
+  if (pageCity) chooseCity(pageCity.id);
+  else if (saved) chooseCity(saved.id);
   else if (savedId) ensureMunicipalities().then(() => {
     if (!activeCity && cityById.has(savedId)) chooseCity(savedId);
   }).catch(() => {});
@@ -101,7 +104,7 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
     lastCheck = Date.now();
     checking = (registration
       ? registration.update()
-      : navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then(value => {
+      : navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).then(value => {
         registration = value;
         return value.update();
       }))

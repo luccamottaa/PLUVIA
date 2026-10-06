@@ -45,6 +45,11 @@ let activeCity = null;
 const savedFavorites = readPreference('pluvia-favorites', []);
 let favorites = new Set(Array.isArray(savedFavorites) ? savedFavorites : []);
 const normalizeName = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+// Public pages exist only for the capitals: /clima/<nome>-<uf>/ (scripts/generate-city-pages.cjs).
+const capitalIds = new Set(CAPITALS.map(city => city.id));
+const citySlug = city => normalizeName(city.name + ' ' + city.uf).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const cityPagePath = city => capitalIds.has(city?.id) ? `/clima/${citySlug(city)}/` : null;
+const cityPageTitle = city => `Previsão do tempo em ${city.name} (${city.uf}) agora — PLUVIA`;
 
 let citySearchIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name + ' ' + city.uf + ' ' + city.state)]));
 let cityNameIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name)]));
@@ -89,7 +94,7 @@ function ensureCityIndex() {
   if (cityIndexPromise) return cityIndexPromise;
   cityIndexPromise = new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = './municipality-index.js?v=cities-3';
+    script.src = '/municipality-index.js?v=cities-3';
     script.onload = () => hydrateCityIndex() ? resolve(CITIES) : reject(new Error('Índice de cidades inválido'));
     script.onerror = () => reject(new Error('Índice de cidades indisponível'));
     document.head.appendChild(script);
@@ -115,7 +120,7 @@ function ensureCityState(uf) {
   if (cityStatePromises.has(uf)) return cityStatePromises.get(uf);
   const promise = new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = `./cities/${uf.toLowerCase()}.js?v=cities-3`;
+    script.src = `/cities/${uf.toLowerCase()}.js?v=cities-3`;
     script.onload = () => hydrateCityState(uf) ? resolve(CITIES) : reject(new Error('Base estadual inválida'));
     script.onerror = () => reject(new Error('Base estadual indisponível'));
     document.head.appendChild(script);
@@ -137,7 +142,7 @@ function ensureMunicipalities() {
   if (municipalitiesPromise) return municipalitiesPromise;
   municipalitiesPromise = new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = './municipalities.js?v=cities-2';
+    script.src = '/municipalities.js?v=cities-2';
     script.onload = () => hydrateMunicipalities() ? resolve(CITIES) : reject(new Error('Base de cidades inválida'));
     script.onerror = () => reject(new Error('Base de cidades indisponível'));
     document.head.appendChild(script);

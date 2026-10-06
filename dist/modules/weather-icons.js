@@ -6,7 +6,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const BASE = "./vendor/weathericons/";
+  const BASE = "/vendor/weathericons/";
   const CONDITIONS = {
     0: ["clear", "Céu limpo"],
     1: ["mostly-clear", "Predomínio de sol"],

@@ -14,8 +14,8 @@
   /** @typedef {'updated'|'stale-data'|'offline'|'unavailable'|'unknown'} WeatherStatusIcon */
   /** @typedef {'weather-unknown'|'metric-unknown'|'map-unknown'|'alert-unknown'|'not-available'} WeatherFallbackIcon */
 
-  const BASE = "./assets/weather-icons/";
-  const LEGACY_BASE = "./vendor/weathericons/";
+  const BASE = "/assets/weather-icons/";
+  const LEGACY_BASE = "/vendor/weathericons/";
   const CONDITIONS = Object.freeze({
     0: ["clear", "Céu limpo"], 1: ["mostly-clear", "Predomínio de céu limpo"], 2: ["partly-cloudy", "Parcialmente nublado"], 3: ["overcast", "Céu encoberto"],
     45: ["fog", "Neblina"], 48: ["fog", "Neblina com depósito"],

@@ -4,8 +4,8 @@
   if (!mapCard || !$('weatherMap')) return;
 
   // Leaflet 1.9.4 (BSD-2) is served locally: no third-party CDN can block or alter the map.
-  const LEAFLET_JS = './vendor/leaflet/leaflet.js?v=1.9.4';
-  const LEAFLET_CSS = './vendor/leaflet/leaflet.css?v=1.9.4';
+  const LEAFLET_JS = '/vendor/leaflet/leaflet.js?v=1.9.4';
+  const LEAFLET_CSS = '/vendor/leaflet/leaflet.css?v=1.9.4';
   const RAIN_META = 'https://api.rainviewer.com/public/weather-maps.json';
   const LIGHTNING_ENDPOINT = 'https://dszyyrcvwrpyiypwyvxe.supabase.co/functions/v1/lightning';
   const httpClient = globalThis.PLUVIA?.http?.createClient?.({defaultTimeoutMs:10000});

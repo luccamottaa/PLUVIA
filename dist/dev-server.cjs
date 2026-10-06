@@ -13,9 +13,12 @@ http.createServer((request, response) => {
   let pathname;
   try { pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname); }
   catch { response.writeHead(400).end(); return; }
-  const file = path.resolve(root, `.${pathname === '/' ? '/index.html' : pathname}`);
+  // Like GitHub Pages: a folder serves its index.html, and the address without the final
+  // slash redirects to it (city pages live at /clima/<nome>-<uf>/).
+  const file = path.resolve(root, `.${pathname.endsWith('/') ? pathname + 'index.html' : pathname}`);
   if (!file.startsWith(root + path.sep)) { response.writeHead(403).end(); return; }
   fs.readFile(file, (error, data) => {
+    if (error?.code === 'EISDIR') { response.writeHead(301, { Location: pathname + '/' + new URL(request.url, 'http://localhost').search }).end(); return; }
     if (error) { response.writeHead(error.code === 'ENOENT' ? 404 : 500).end(); return; }
     response.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'Cache-Control':'no-store' });
     response.end(data);
