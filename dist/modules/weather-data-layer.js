@@ -56,8 +56,18 @@
     }, 0);
   }
 
-  function validateForecast(forecast) {
+  // A previsão reduzida (só MET Norway, quando o Open-Meteo cai) exige apenas o que a
+  // fonte entrega; campos ausentes ficam null, mas tudo o que vier continua validado.
+  const REDUCED = Object.freeze({
+    current:new Set(["temperature_2m", "weather_code", "wind_speed_10m"]),
+    hourly:new Set(["temperature_2m"]),
+    daily:new Set()
+  });
+  function validateForecast(forecast, {reduced = false} = {}) {
     const errors = [];
+    const currentRequired = reduced ? REDUCED.current : new Set(CURRENT_REQUIRED_FIELDS);
+    const hourlyRequired = reduced ? REDUCED.hourly : HOURLY_REQUIRED_FIELDS;
+    const dailyRequired = reduced ? REDUCED.daily : DAILY_REQUIRED_FIELDS;
     const current = forecast?.current;
     const hourly = forecast?.hourly;
     const daily = forecast?.daily;
@@ -65,13 +75,14 @@
     if (!current || typeof current !== "object") errors.push("current ausente");
     if (!timestamp(current?.time)) errors.push("current.time inválido");
     for (const field of CURRENT_REQUIRED_FIELDS) {
-      if (!Number.isFinite(current?.[field])) errors.push(`current.${field} inválido`);
+      const value = current?.[field];
+      if (currentRequired.has(field) ? !Number.isFinite(value) : value != null && !Number.isFinite(value)) errors.push(`current.${field} inválido`);
     }
     for (const field of CURRENT_OPTIONAL_FIELDS) {
       if (current?.[field] != null && !Number.isFinite(current[field])) errors.push(`current.${field} inválido`);
     }
-    if (![0, 1].includes(current?.is_day)) errors.push("current.is_day inválido");
-    if (!Number.isFinite(current?.pressure_msl) && !Number.isFinite(current?.surface_pressure)) {
+    if (![0, 1].includes(current?.is_day) && !(reduced && current?.is_day === null)) errors.push("current.is_day inválido");
+    if (!reduced && !Number.isFinite(current?.pressure_msl) && !Number.isFinite(current?.surface_pressure)) {
       errors.push("pressão atual ausente");
     }
     if (Number.isFinite(current?.relative_humidity_2m) && (current.relative_humidity_2m < 0 || current.relative_humidity_2m > 100)) errors.push("umidade atual fora da faixa");
@@ -85,7 +96,7 @@
     for (const field of HOURLY_NUMERIC_FIELDS) {
       const values = hourly?.[field];
       const aligned = Array.isArray(values) && values.length === hourlyLength && values.every(finiteOrNull);
-      const visible = aligned && (!HOURLY_REQUIRED_FIELDS.has(field) || values.slice(hourlyStart, hourlyEnd).every(Number.isFinite));
+      const visible = aligned && (!hourlyRequired.has(field) || values.slice(hourlyStart, hourlyEnd).every(Number.isFinite));
       if (!aligned || !visible) {
         errors.push(`hourly.${field} inválido ou desalinhado`);
       }
@@ -110,7 +121,7 @@
     for (const field of DAILY_NUMERIC_FIELDS) {
       const values = daily?.[field];
       const aligned = Array.isArray(values) && values.length === dailyLength && values.every(finiteOrNull);
-      const visible = aligned && (!DAILY_REQUIRED_FIELDS.has(field) || values.slice(0, visibleDays).every(Number.isFinite));
+      const visible = aligned && (!dailyRequired.has(field) || values.slice(0, visibleDays).every(Number.isFinite));
       if (!aligned || !visible) {
         errors.push(`daily.${field} inválido ou desalinhado`);
       }
@@ -118,7 +129,7 @@
     for (const field of ["sunrise", "sunset"]) {
       const values = daily?.[field];
       const aligned = Array.isArray(values) && values.length === dailyLength && values.every(value => value === null || timestamp(value));
-      const visible = aligned && values.slice(0, visibleDays).every(timestamp);
+      const visible = aligned && (reduced || values.slice(0, visibleDays).every(timestamp));
       if (!aligned || !visible) {
         errors.push(`daily.${field} inválido ou desalinhado`);
       }
@@ -260,7 +271,7 @@
   }
 
   function normalizeOpenMeteo(forecast, air, city, metadata = {}) {
-    const validation = validateForecast(forecast);
+    const validation = validateForecast(forecast, {reduced:Boolean(forecast?.pluviaReduced)});
     if (!validation.valid) throw new TypeError(`Resposta meteorológica incompleta para normalização: ${validation.errors[0]}.`);
     if (air && !validateAirQuality(air).valid) air = null;
     const checkedAt = number(metadata.checkedAt) || Date.now();
@@ -269,7 +280,7 @@
       schemaVersion: 1,
       location,
       source: freeze({
-        weather: forecast.pluviaSources?.metNorway?.length ? "met-norway+open-meteo" : "open-meteo",
+        weather: forecast.pluviaReduced ? "met-norway" : forecast.pluviaSources?.metNorway?.length ? "met-norway+open-meteo" : "open-meteo",
         airQuality: air ? "open-meteo-cams" : null,
         kind: "model",
         checkedAt,
