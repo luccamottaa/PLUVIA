@@ -44,3 +44,20 @@ test('amanhecer entre duas horas atualiza ícones sem renovar a idade do dado',(
  vm.runInContext(app.slice(app.indexOf('function updateClock('),app.indexOf('function cityDate(')),context);context.updateClock();
  assert.equal(calls.length,1);assert.equal(calls[0][4].weatherAt,saved.weatherAt);
 });
+test('à noite a Lua percorre o mesmo arco entre o pôr e o próximo nascer, nunca de dia',()=>{
+ const {context,nodes,data}=setup();
+ const left=()=>parseFloat(nodes.get('moonDot').style.left);
+ context.renderSun(data.daily,Date.parse('2026-10-02T12:00-04:00'));
+ assert.equal(nodes.get('moonDot').hidden,true,'de dia só o Sol aparece');
+ // Depois do pôr (17:30): noite até o nascer de 03/10 (06:00) = 12h30; às 23:00 passaram 5h30.
+ context.renderSun(data.daily,Date.parse('2026-10-02T23:00-04:00'));
+ assert.equal(nodes.get('moonDot').hidden,false);
+ assert.ok(Math.abs(left()-(9+82*5.5/12.5))<0.2,left());
+ // Antes do nascer (05:45): a noite começou no pôr de 01/10 (18:00) = 11h45; às 03:00 passaram 9h.
+ context.renderSun(data.daily,Date.parse('2026-10-02T03:00-04:00'));
+ assert.ok(Math.abs(left()-(9+82*9/11.75))<0.2,left());
+ const early=left();context.renderSun(data.daily,Date.parse('2026-10-02T04:00-04:00'));assert.ok(left()>early,'a Lua avança com o relógio');
+ // Sem linha solar do dia, nenhum astro é posicionado.
+ context.renderSun(data.daily,Date.parse('2026-11-01T23:00-04:00'));
+ assert.equal(nodes.get('moonDot').hidden,true);
+});
