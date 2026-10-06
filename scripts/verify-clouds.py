@@ -38,16 +38,20 @@ with sync_playwright() as p:
    page.wait_for_function("!document.documentElement.classList.contains('awaiting-styles')")
    page.locator('#temperature').wait_for(state='visible',timeout=20000)
    decoded=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp','rain-near.svg','rain-far.svg','lightning-near.svg','lightning-far.svg','sky-stars.svg','sky-stars-shimmer.svg'].map(async name=>{const i=new Image();i.src='./assets/'+name;await i.decode();return [i.naturalWidth,i.naturalHeight];}))""")
-   assert decoded==[[1120,560],[1120,560],[320,480],[480,480],[270,400],[270,400],[1200,700],[1200,700]],decoded
+   assert decoded==[[2100,700],[2100,700],[320,480],[480,480],[270,400],[270,400],[1200,700],[1200,700]],decoded
    # Transparência contínua: com 16 níveis as bordas das nuvens viravam degraus visíveis quando esticadas.
    alpha_levels=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp'].map(async name=>{const i=new Image();i.src='./assets/'+name;await i.decode();const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;const x=c.getContext('2d');x.drawImage(i,0,0);const d=x.getImageData(0,0,c.width,c.height).data;const seen=new Set();for(let k=3;k<d.length;k+=4)seen.add(d[k]);return seen.size;}))""")
    assert all(levels>=48 for levels in alpha_levels),alpha_levels
+   # A camada desliza em repeat-x: a última coluna precisa continuar na primeira, sem degrau.
+   seams=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp'].map(async name=>{const i=new Image();i.src='./assets/'+name+'?v=clouds-4';await i.decode();const c=document.createElement('canvas');const w=c.width=i.naturalWidth,h=c.height=i.naturalHeight;const x=c.getContext('2d');x.drawImage(i,0,0);const d=x.getImageData(0,0,w,h).data;let seam=0,inner=0;for(let y=0;y<h;y++)for(let k=0;k<4;k++){seam+=Math.abs(d[(y*w+w-1)*4+k]-d[(y*w)*4+k]);inner+=Math.abs(d[(y*w+w-2)*4+k]-d[(y*w+w-1)*4+k]);}return [seam,inner];}))""")
+   assert all(seam<=2*inner+64 for seam,inner in seams),seams
    page.wait_for_timeout(200)
    assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(width,name)
    layers=page.locator('.sky-effects > .sky-clouds')
    assert layers.count()==2
-   data=layers.evaluate_all("els=>els.map(el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,repeat:s.backgroundRepeat,animation:s.animationName,width:el.offsetWidth,height:el.offsetHeight};})")
-   assert all(d['repeat']=='no-repeat' and d['animation']=='none' and d['width']<=width+130 and d['height']<=640 for d in data),(width,name,data)
+   data=layers.evaluate_all("els=>els.map(el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,repeat:s.backgroundRepeat.split(',').map(v=>v.trim()),animation:s.animationName,width:el.offsetWidth,height:el.offsetHeight};})")
+   # Uma faixa de largura da tela + um tile 3:1 permite deslizar exatamente um tile sem expor borda.
+   assert all(set(d['repeat'])=={'repeat-x'} and d['animation']=='none' and abs(d['width']-(width+3*d['height']))<=1 and 440<=d['height']<=640 for d in data),(width,name,data)
    assert all(d['opacity']==0 for d in data) if code==0 else all(d['opacity']>0 for d in data)
    if code==1:
     assert all(d['opacity']==1 for d in data),'poucas nuvens conservam interiores opacos'
@@ -113,7 +117,7 @@ with sync_playwright() as p:
    const clouds=[...document.querySelectorAll('.sky-effects > .sky-clouds')];
    const width=clouds[0].offsetWidth,height=clouds[0].offsetHeight;
    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><path fill="#aac4d6" d="M0 0H${width/2-12}V${height}H0Z M${width/2+12} 0H${width}V${height}H${width/2+12}Z"/></svg>`;
-   for(const el of clouds){el.style.backgroundImage=`url("data:image/svg+xml,${encodeURIComponent(svg)}")`;el.style.setProperty('opacity','0','important');}
+   for(const el of clouds){el.style.backgroundImage=`url("data:image/svg+xml,${encodeURIComponent(svg)}")`;el.style.backgroundSize='100% 100%';el.style.backgroundRepeat='no-repeat';el.style.setProperty('opacity','0','important');}
    for(const el of document.querySelectorAll('.sky-effects > .sky-sun,.sky-effects > .sky-moon')){
      const width=el.offsetWidth;el.style.setProperty('transform',`translate3d(${195-width/2}px,${150-width/2}px,0)`,'important');el.style.setProperty('display','none','important');
    }
@@ -146,9 +150,9 @@ with sync_playwright() as p:
  # the real assets and open area were measured above, without this substitution.
  page.evaluate("""()=>{
    PLUVIA.sky.apply(1,0,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'});
-   const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="560"><path fill="#aac4d6" d="M0 0H1120V560H0Z"/></svg>';
+   const svg='<svg xmlns="http://www.w3.org/2000/svg" width="2100" height="700"><path fill="#aac4d6" d="M0 0H2100V700H0Z"/></svg>';
    for(const el of document.querySelectorAll('.sky-effects > .sky-clouds')){
-     el.style.backgroundImage=`url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+     el.style.backgroundImage=`url("data:image/svg+xml,${encodeURIComponent(svg)}")`;el.style.removeProperty('background-size');el.style.removeProperty('background-repeat');
      el.style.setProperty('opacity','0','important');
      const a=el.getAnimations().find(a=>a.animationName?.startsWith('clouds-'));const t=a.effect.getTiming();a.pause();a.currentTime=t.delay+t.duration*2.5;
    }
@@ -157,9 +161,14 @@ with sync_playwright() as p:
   disk=page.locator('.sky-effects > .sky-'+body)
   for layer in ['back','front']:
    cloud=page.locator('.sky-effects > .sky-clouds-'+layer)
-   center=cloud.evaluate("""el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el),w=parseFloat(s.backgroundSize);return {x:el.classList.contains('sky-clouds-front')?r.right-20-w/2:r.left-20+w/2,y:r.top+(el.classList.contains('sky-clouds-front')?110:90)+w/4};}""")
+   # Bancos a cada meio tile (máscara repetida), centrados em 39%/46% e 34% da altura; o vão fica fora da elipse.
+   center=cloud.evaluate("""el=>{const r=el.getBoundingClientRect(),front=el.classList.contains('sky-clouds-front'),half=1.5*el.offsetHeight;
+     const few=Math.min(Math.max(Math.min(innerWidth,innerHeight)*(front?.56:.58),front?180:200),front?620:680);
+     let x=r.left+(front?.46:.39)*half;while(x<few/2)x+=half;
+     const gap=x-.75*few>8?x-.75*few:x+.75*few;return {x,gap,y:r.top+.34*el.offsetHeight};}""")
+   assert 8<center['gap']<382 and center['x']<382,center
    ratios={}
-   for state,x in [('covered',center['x']),('gap',195)]:
+   for state,x in [('covered',center['x']),('gap',center['gap'])]:
     clip={'x':int(x)-4,'y':int(center['y'])-4,'width':8,'height':8}
     disk.evaluate("el=>el.style.setProperty('display','block','important')")
     disk.evaluate("(el,p)=>el.style.setProperty('transform',`translate3d(${p.x-el.offsetWidth/2}px,${p.y-el.offsetWidth/2}px,0)`,'important')",{'x':int(x),'y':int(center['y'])})
@@ -191,6 +200,13 @@ with sync_playwright() as p:
  page.evaluate("window.scrollTo({top:0,behavior:'instant'})");page.wait_for_function("scrollY===0 && document.querySelector('.sky-effects').dataset.motion==='running'")
  page.evaluate("PLUVIA.sky.apply(0,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert all(s=='paused' for s in page.locator('.sky-effects > .sky-clouds').evaluate_all("els=>els.map(el=>getComputedStyle(el).animationPlayState)"))
+ # Continuous drift: linear, exactly one 3:1 tile per loop (the seamless texture hides the wrap),
+ # and the near layer completes its loop faster than the distant one (parallax).
+ drift=page.locator('.sky-effects > .sky-clouds').evaluate_all("""els=>els.map(el=>{const a=el.getAnimations().find(a=>a.animationName?.startsWith('clouds-'));const t=a.effect.getTiming();
+   const at=p=>{a.currentTime=t.delay+t.duration*(3+p);return new DOMMatrix(getComputedStyle(el).transform);};
+   const quarter=at(.25),half=at(.5);return {tile:3*el.offsetHeight,quarter:quarter.m41,half:half.m41,y:half.m42,duration:t.duration,easing:t.easing};})""")
+ assert all(abs(d['quarter']+d['tile']*.25)<=1 and abs(d['half']+d['tile']*.5)<=1 and d['y']==0 and d['easing']=='linear' for d in drift),drift
+ assert drift[1]['duration']<drift[0]['duration'],drift
  # A few stars shimmer without drifting; condition updates keep the animation.
  normal_stars=[]
  mode.update(code=0,hour=22);page.clock.set_fixed_time(datetime.datetime(2026,10,2,2,tzinfo=datetime.timezone.utc))
@@ -268,5 +284,5 @@ with sync_playwright() as p:
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>getComputedStyle(el).display")=='none'
  assert page.evaluate("document.querySelector('.sky-effects').getAnimations({subtree:true}).length===0")
  assert not errors,errors
- print(json.dumps({'screenshots':report,'cloudCoverage':coverage,'celestialOcclusion':occlusion,'lightning':lightning,'normalStars':normal_stars,'seamlessBoundedLayers':True,'preservedAnimationObjects':True,'nightStars':True,'starWeatherGate':True,'rainDepth':True,'offscreenPause':True,'backgroundPseudoPause':True,'clearSkyPause':True,'reducedMotion':True,'errors':errors}))
+ print(json.dumps({'screenshots':report,'cloudCoverage':coverage,'celestialOcclusion':occlusion,'lightning':lightning,'normalStars':normal_stars,'seamlessBoundedLayers':True,'continuousDrift':True,'preservedAnimationObjects':True,'nightStars':True,'starWeatherGate':True,'rainDepth':True,'offscreenPause':True,'backgroundPseudoPause':True,'clearSkyPause':True,'reducedMotion':True,'errors':errors}))
  context.close();browser.close()

@@ -81,43 +81,46 @@ html,body { background:var(--sky-base); }
 .sky-moon::before { content:""; position:absolute; inset:-65%; border-radius:50%; background:radial-gradient(circle,#c3dfff1f,transparent 64%); opacity:var(--moon-light,0); }
 :root[data-phase="night"] .sky-moon { display:block; }
 .intro-sky .sky-moon { width:64px; }
-/* Two generated soft layers (scripts/generate-soft-clouds.py): a distant veil and a volumetric foreground.
-   Only bounded transforms move; no turbulence, canvas loop or animated blur.
-   Keeping the nodes painted allows weather changes to fade without restarting. */
-.sky-clouds { display:block; position:absolute; z-index:2; left:-64px; width:calc(100% + 128px); height:clamp(440px,70vw,640px); top:-60px; background:url("./assets/sky-cloud-veil.webp?v=clouds-3") center / cover no-repeat; opacity:var(--cloud-opacity); filter:var(--cloud-filter); -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); animation:clouds-back 130s ease-in-out infinite alternate; animation-delay:-82s; transition:opacity 4s ease; }
-.sky-clouds-front { top:17%; background-image:url("./assets/sky-cloud-volume.webp?v=clouds-3"); opacity:calc(var(--cloud-opacity) * .48); animation:clouds-front 105s ease-in-out infinite alternate; animation-delay:-61s; }
+/* Two generated cloud layers (scripts/generate-soft-clouds.py): a distant veil and a volumetric foreground.
+   Each 3:1 texture tiles seamlessly in x, so the layer drifts continuously by exactly one tile
+   (repeat-x, transform only) and loops without a jump. The near layer drifts faster (parallax).
+   No turbulence, canvas loop or animated blur; nodes stay painted so weather changes fade. */
+.sky-clouds { --cloud-height:clamp(440px,70vw,640px); --cloud-tile:calc(var(--cloud-height) * 3); display:block; position:absolute; z-index:2; left:0; width:calc(100% + var(--cloud-tile)); height:var(--cloud-height); top:-60px; background:url("./assets/sky-cloud-veil.webp?v=clouds-4") 0 0 / var(--cloud-tile) 100% repeat-x; opacity:var(--cloud-opacity); filter:var(--cloud-filter); -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); animation:clouds-back 260s linear infinite; animation-delay:-97s; transition:opacity 4s ease; }
+.sky-clouds-front { top:17%; background-image:url("./assets/sky-cloud-volume.webp?v=clouds-4"); opacity:calc(var(--cloud-opacity) * .48); animation:clouds-front 160s linear infinite; animation-delay:-41s; }
 /* Texture alpha carries the real gaps. Fading an entire partially cloudy layer
    makes the celestial disks bleed through even its dense, opaque interiors. */
 :root[data-weather="partly"] .sky-clouds-front { opacity:var(--cloud-opacity); }
-:root[data-weather="partly"][data-phase="night"] { --cloud-filter:brightness(.34) saturate(.65); }
+:root[data-weather="partly"][data-phase="night"] { --cloud-filter:brightness(.33) sepia(.45) hue-rotate(185deg) saturate(1.3); }
 /* Night clouds cover the illustrated Moon with their texture alpha instead of
    removing its element or letting it bleed through translucent cloud bodies. */
-:root[data-phase="night"]:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"],[data-weather="snow"]) { --cloud-opacity:1; --cloud-filter:brightness(.34) saturate(.65); }
+:root[data-phase="night"]:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"],[data-weather="snow"]) { --cloud-opacity:1; --cloud-filter:brightness(.33) sepia(.45) hue-rotate(185deg) saturate(1.3); }
 :root[data-phase="night"]:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"],[data-weather="snow"]) .sky-clouds-front { opacity:var(--cloud-opacity); }
+/* Overcast: the defined veil keeps gaps, so a uniform haze behind its texture (same layer,
+   same filter, invisible while drifting) closes the deck; the near masses get denser by day. */
+:root:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"],[data-weather="snow"]) .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-veil.webp?v=clouds-4"),linear-gradient(#f2f5f980,#f2f5f966); }
+:root[data-phase="day"]:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"]) .sky-clouds-front { opacity:calc(var(--cloud-opacity) * .75); }
 :root:is([data-weather="sun"],[data-weather="unknown"]) .sky-clouds { animation-play-state:paused; }
 .intro-sky .sky-clouds { top:-30px; }
 .intro-sky .sky-clouds-front { top:36%; }
-/* Mainly clear (WMO 1): small banks at opposite edges leave most of the sky
-   open. Reuse the opaque textures: reducing opacity would expose Sun/Moon
-   through cloud interiors. Keep the same surfaces and bounded animations. */
+/* Mainly clear (WMO 1): an elliptical mask, repeated twice per texture tile, reveals one
+   bank of the same opaque texture every half tile; mask and texture drift together, so each
+   bank keeps its shape while it crosses the sky. Reducing opacity would expose Sun/Moon
+   through cloud interiors. The centers sit on dense regions of each generated texture. */
 :root[data-weather="partly"][data-clouds="few"] .sky-clouds {
   --few-cloud-width:clamp(200px,min(58vw,58svh),680px);
-  background-size:var(--few-cloud-width) auto;
-  background-position:left -20px top 90px;
-  -webkit-mask-image:radial-gradient(ellipse closest-side,#000 60%,transparent 100%);
-  mask-image:radial-gradient(ellipse closest-side,#000 60%,transparent 100%);
-  -webkit-mask-size:var(--few-cloud-width) calc(var(--few-cloud-width) * .5);
-  mask-size:var(--few-cloud-width) calc(var(--few-cloud-width) * .5);
-  -webkit-mask-position:left -20px top 90px;
-  mask-position:left -20px top 90px;
-  -webkit-mask-repeat:no-repeat;
-  mask-repeat:no-repeat;
+  -webkit-mask-image:radial-gradient(calc(var(--few-cloud-width) / 2) calc(var(--few-cloud-width) / 4) at 39% 34%,#000 60%,transparent 100%);
+  mask-image:radial-gradient(calc(var(--few-cloud-width) / 2) calc(var(--few-cloud-width) / 4) at 39% 34%,#000 60%,transparent 100%);
+  -webkit-mask-size:calc(var(--cloud-tile) / 2) 100%;
+  mask-size:calc(var(--cloud-tile) / 2) 100%;
+  -webkit-mask-position:0 0;
+  mask-position:0 0;
+  -webkit-mask-repeat:repeat-x;
+  mask-repeat:repeat-x;
 }
 :root[data-weather="partly"][data-clouds="few"] .sky-clouds-front {
   --few-cloud-width:clamp(180px,min(56vw,56svh),620px);
-  background-position:right 20px top 110px;
-  -webkit-mask-position:right 20px top 110px;
-  mask-position:right 20px top 110px;
+  -webkit-mask-image:radial-gradient(calc(var(--few-cloud-width) / 2) calc(var(--few-cloud-width) / 4) at 46% 34%,#000 60%,transparent 100%);
+  mask-image:radial-gradient(calc(var(--few-cloud-width) / 2) calc(var(--few-cloud-width) / 4) at 46% 34%,#000 60%,transparent 100%);
 }
 /* Independent fine/distant and longer/near streaks. A whole 480px tile moves
    vertically, so looping has no seam; intensity never comes from probability. */
@@ -132,8 +135,8 @@ html,body { background:var(--sky-base); }
 .sky-lightning::after { left:-14%; top:8%; background-image:url("./assets/lightning-far.svg"),radial-gradient(ellipse at 46% 24%,#c5ddff55,transparent 58%); background-position:42% 20px,center; background-size:auto 68%,100% 100%; animation-name:storm-flash-far; animation-duration:37s; animation-delay:-14s; }
 :root[data-weather="storm"] .sky-lightning { display:block; }
 .sky-effects { -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); }
-@keyframes clouds-back { from { transform:translate3d(-32px,-4px,0); } to { transform:translate3d(32px,4px,0); } }
-@keyframes clouds-front { from { transform:translate3d(28px,6px,0); } to { transform:translate3d(-28px,-6px,0); } }
+@keyframes clouds-back { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-1 * var(--cloud-tile)),0,0); } }
+@keyframes clouds-front { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-1 * var(--cloud-tile)),0,0); } }
 @keyframes sky-star-shimmer { 0% { opacity:.55; } 40% { opacity:.82; } 70% { opacity:.65; } 100% { opacity:.95; } }
 @keyframes sky-rain-fall { to { transform:translate3d(0,480px,0); } }
 @keyframes storm-flash-near { 0%,29.5%,34%,100% { opacity:0; } 30% { opacity:var(--lightning-opacity); } 30.8% { opacity:calc(var(--lightning-opacity) * .55); } 32% { opacity:calc(var(--lightning-opacity) * .1); } }
@@ -149,7 +152,7 @@ body.page-hidden :is(.sky-effects,.intro-sky) *::after,
   :is(.sky-effects,.intro-sky) *,
   :is(.sky-effects,.intro-sky) *::before,
   :is(.sky-effects,.intro-sky) *::after { animation:none !important; transition:none !important; }
-  .sky-clouds { transform:translate3d(-10px,0,0); }
-  .sky-clouds-front { transform:translate3d(12px,0,0); }
+  .sky-clouds { transform:translate3d(calc(var(--cloud-tile) * -.12),0,0); }
+  .sky-clouds-front { transform:none; }
   .sky-lightning { display:none !important; }
 }
