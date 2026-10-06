@@ -46,6 +46,10 @@ with sync_playwright() as p:
  page.goto(preview,wait_until='domcontentloaded')
  page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden && !document.documentElement.classList.contains('awaiting-styles')")
  page.wait_for_function("document.getElementById('inmetContent').textContent.includes('Sem alertas')")
+ # The loading skeleton also fills the hourly strip: wait for the five rendered hours,
+ # and report page errors/markup instead of a bare empty measurement if they never come.
+ try:page.wait_for_function("document.querySelectorAll('#hourlyPeek .hourly-peek-item[data-hour-index]').length===5",timeout=15000)
+ except Exception as error:raise AssertionError({'errors':errors,'hourlyPeek':page.evaluate("document.getElementById('hourlyPeek').innerHTML.slice(0,600)"),'loading':page.evaluate("document.getElementById('weatherView').className")}) from error
  page.evaluate('document.fonts.ready')
  # A real long municipality name with cloned fixture coordinates, only in QA.
  page.evaluate("cityById.set('3305158',{...cityById.get('1302603'),id:'3305158',name:'São José do Vale do Rio Preto',uf:'RJ'});favorites.add('1302603');favorites.add('3305158');dispatchEvent(new CustomEvent('pluvia:favorites-changed'))")
