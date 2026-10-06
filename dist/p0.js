@@ -3,38 +3,6 @@ function pinTop() {
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
 }
-const _updateCityLabels = updateCityLabels;
-updateCityLabels = function () {
-  _updateCityLabels();
-  if (!activeCity) return;
-  const dist = document.getElementById("cityDistance");
-  if (dist) {
-    dist.hidden = !(activeCity.distanceKm >= 2);
-    if (activeCity.distanceKm >= 2) dist.textContent = "a " + Math.round(activeCity.distanceKm) + " km de " + activeCity.name + " · " + activeCity.uf;
-  }
-  const forecast = document.getElementById("forecastCityLabel");
-  if (forecast) forecast.textContent = "Previsão para o ponto de referência de " + activeCity.name + ", não para um endereço específico.";
-  globalThis.PLUVIA?.modules?.['weather-layers']?.cityChanged?.(activeCity);
-};
-let activeResultIndex = -1;
-renderCityOptions = function () {
-  const query = normalizeName(document.getElementById("citySearch").value || "").trim();
-  const initial = [...new Map([
-    ...[...favorites].map(id => cityById.get(id)),
-    activeCity,
-    ...CAPITALS
-  ].filter(Boolean).map(city => [city.id, city])).values()];
-  const matches = query ? searchCities(query) : initial;
-  const shown = query ? matches.slice(0, 12) : matches;
-  const list = document.getElementById("cityResults");
-  activeResultIndex = -1;
-  list.innerHTML = shown.map(city => {
-    const capital = CAPITALS.some(item => item.id === city.id);
-    return `<li><button class="city-result" type="button" role="option" aria-selected="false" data-current="${city.id === activeCity?.id}" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
-  }).join("");
-  document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
-};
-
 function moveCityResult(direction) {
   const items = [...document.querySelectorAll(".city-result")];
   if (!items.length) return;

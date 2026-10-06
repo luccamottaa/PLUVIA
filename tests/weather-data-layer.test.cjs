@@ -150,3 +150,27 @@ test('contrato rejeita calendário impossível e séries fora de ordem',()=>{
     const data=structuredClone(forecast);change(data);assert.equal(layer.validateForecast(data).valid,false);
   }
 });
+
+test('PM2,5: média das 24h que terminam na leitura atual, com completude mínima', () => {
+  // PM2,5: média das 24h que terminam na leitura atual, com completude mínima e sem inventar zeros.
+  const time = [], pm = [];
+  for (let hour = 0; hour <= 24; hour += 1) {
+    const stamp = new Date(Date.UTC(2026, 9, 5, 14 + hour)).toISOString().slice(0, 16);
+    time.push(stamp); pm.push(hour === 0 ? 500 : 40);
+  }
+  const current = {time:'2026-10-06T14:00', us_aqi:110, pm2_5:40};
+  const full = layer.normalizeOpenMeteo(forecast, {current, hourly:{time, pm2_5:pm}}, city);
+  // A amostra de exatamente 24h antes fica fora da janela (500 não entra na média).
+  assert.deepEqual({...full.airQuality.pm25Mean24h}, {value:40, samples:24});
+
+  const sparse = pm.map((value, index) => index % 3 === 0 ? null : value);
+  const incomplete = layer.normalizeOpenMeteo(forecast, {current, hourly:{time, pm2_5:sparse}}, city);
+  assert.equal(incomplete.airQuality.pm25Mean24h, null, 'menos de 18 amostras válidas não formam média diária');
+
+  const legacy = layer.normalizeOpenMeteo(forecast, {current}, city);
+  assert.equal(legacy.airQuality.pm25Mean24h, null, 'cache antigo sem série horária continua válido');
+  assert.equal(legacy.airQuality.aqiUs, 110);
+
+  const mismatched = layer.normalizeOpenMeteo(forecast, {current, hourly:{time, pm2_5:pm.slice(1)}}, city);
+  assert.equal(mismatched.airQuality.pm25Mean24h, null);
+});

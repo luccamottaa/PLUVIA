@@ -45,8 +45,8 @@ test('lista inicial mostra as 27 capitais, sem duplicar favoritas, antes de carr
     normalizeName:value => value.toLowerCase(), escapeHtml:value => value,
     searchCities:() => { searches++; return capitals; }
   };
-  const p0 = fs.readFileSync('dist/p0.js','utf8');
-  vm.runInNewContext(p0.slice(p0.indexOf('let activeResultIndex'),p0.indexOf('function moveCityResult')), context);
+  const app = fs.readFileSync('dist/app.js','utf8');
+  vm.runInNewContext(app.slice(app.indexOf('let activeResultIndex'),app.indexOf('function chooseCity(')), context);
   context.renderCityOptions();
   const ids = [...nodes.cityResults.innerHTML.matchAll(/data-id="(\d+)"/g)].map(match => match[1]);
   assert.equal(ids.length,28);

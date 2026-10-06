@@ -121,6 +121,65 @@
     return {delta,trend:Math.abs(delta)<.8 ? 'stable' : delta>0 ? 'rising' : 'falling'};
   }
 
+  // Faixas de umidade relativa usadas pela Defesa Civil (referência OMS). Valores ausentes não viram ar seco.
+  const HUMIDITY_LEVELS = [
+    [12, "emergency", "Emergência: ar extremamente seco"],
+    [20, "alert", "Alerta: ar muito seco"],
+    [30, "attention", "Atenção: ar seco"],
+    [50, "dry", "Ar mais seco"],
+    [70, "comfortable", "Faixa confortável"],
+    [85, "high", "Umidade alta"],
+    [Infinity, "very-high", "Umidade muito alta"]
+  ];
+  const humidityValue = value => finite(value) && value >= 0 && value <= 100 ? Number(value) : null;
+  function humidityLevel(value) {
+    const reading = humidityValue(value);
+    if (reading === null) return null;
+    const [, level, label] = HUMIDITY_LEVELS.find(([limit]) => reading < limit);
+    return {level, label};
+  }
+
+  // Leitura atual + hora mais seca que ainda resta no dia municipal (umidade é instantânea: sem deslocar índice).
+  function humidity(hourly, start, current) {
+    const now = humidityValue(current?.relative_humidity_2m);
+    const classification = humidityLevel(now);
+    const times = hourly?.time || [];
+    let driest = null;
+    if (Number.isInteger(start) && start >= 0 && start < times.length) {
+      const today = day(times[start]);
+      for (let index = start; index < times.length && day(times[index]) === today; index += 1) {
+        const value = humidityValue(hourly?.relative_humidity_2m?.[index]);
+        if (value !== null && (!driest || value < driest.value)) driest = {value:round(value), time:clock(times[index]), index};
+      }
+    }
+    const notable = driest && driest.index !== start && driest.value < 30 && (now === null || driest.value < round(now));
+    const forecast = notable ? `chega a ${driest.value}% às ${driest.time.slice(0, 2)}h` : "";
+    const label = classification?.label || "Umidade indisponível";
+    return {
+      now: now === null ? null : round(now),
+      level: classification?.level || null,
+      label,
+      driest,
+      note: forecast ? `${label} · ${forecast}` : label
+    };
+  }
+
+  // Média de 24h de PM2,5 contra a diretriz da OMS (2021: 15 µg/m³) e suas metas intermediárias.
+  // Descreve a concentração; não identifica a origem das partículas.
+  const PM25_LEVELS = [
+    [15, "guideline", "Dentro da diretriz diária da OMS"],
+    [25, "above-guideline", "Acima da diretriz diária da OMS"],
+    [50, "elevated", "Partículas finas elevadas"],
+    [75, "high", "Partículas finas muito elevadas"],
+    [Infinity, "very-high", "Partículas finas em nível crítico"]
+  ];
+  function particles(mean) {
+    const value = number(mean?.value);
+    if (value === null || value < 0) return null;
+    const [, level, label] = PM25_LEVELS.find(([limit]) => value <= limit);
+    return {value: round(value, 1), samples: mean.samples, level, label, notable: value > 25};
+  }
+
   function rain(hourly, start) {
     const times = hourly?.time || [];
     if (start < 0 || !times[start]) return null;
@@ -184,5 +243,5 @@
     };
   }
 
-  return {currentIndex, yesterday, feelsLike, uv, pressure, rain, build, uniqueHighlights};
+  return {currentIndex, yesterday, feelsLike, uv, pressure, rain, humidity, humidityLevel, particles, build, uniqueHighlights};
 });

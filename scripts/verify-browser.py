@@ -35,7 +35,7 @@ with sync_playwright() as p:
   if 'functions/v1/met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
   if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[],'amanha':[]});return
   if 'rainviewer.com' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
-  if 'localhost' in url or '127.0.0.1' in url or 'unpkg.com/leaflet' in url:r.continue_();return
+  if 'localhost' in url or '127.0.0.1' in url:r.continue_();return
   r.abort()
  context.route('**/*',route)
  context.add_init_script("Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(success,error){error({code:1});}}});sessionStorage.setItem('pluvia-intro-seen','1');")

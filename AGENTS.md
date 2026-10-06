@@ -10,7 +10,7 @@ Leia os arquivos envolvidos e seus consumidores antes de editar. O estado e a or
 
 - `dist/index.html`: DOM, SVG compartilhado, abertura e ordem de carregamento.
 - `dist/app.js`: escolha de cidade, revisões de consultas, atualização, cache meteorológico e renderização dos cards.
-- `dist/p0.js`: abertura pública, fallback de localização, integração da busca/favoritos, atualização do SW e viewport dos diálogos. Há extensões de funções de `app.js`; confira ambos.
+- `dist/p0.js`: abertura pública, fallback de localização, teclado da busca, atualização do SW e viewport dos diálogos. Não sobrescreve mais funções de `app.js`: `renderCityOptions`/`updateCityLabels` efetivos vivem em `app.js`; não reintroduzir monkey-patch.
 - `dist/capitals.js`: capitais, busca, normalização dos nomes e carregadores municipais. `municipality-index.js` é leve; `cities/<uf>.js` traz detalhes sob demanda; `municipalities.js` completo é reservado ao GPS. O catálogo contém 5.571 municípios. Regenere índices com `node scripts/chunk-municipalities.cjs` quando mudar o catálogo.
 - `dist/modules/http-client.js`: timeout, cancelamento, classificação de erros e limpeza de controllers.
 - `dist/modules/weather-services.js`: URLs e consultas Open-Meteo, CAMS, INMET, MET Norway e ensemble. Deduplica consultas simultâneas idênticas; sinais externos mantêm cancelamento independente. Cada cliente mantém seu próprio conjunto de consultas.
@@ -19,7 +19,7 @@ Leia os arquivos envolvidos e seus consumidores antes de editar. O estado e a or
 - `hourly-detail.js`, `weather-insights.js`, `weather-extras.js`, `risks.js`: interpretação e detalhes meteorológicos. Consulte essas implementações antes de criar regras duplicadas.
 - `modules/share-weather.js`: compartilha texto a partir do snapshot normalizado, com fonte/idade e calendário municipal. Web Share, clipboard e seleção manual são fallbacks em sequência; cancelar o share não deve copiar. Troca de cidade invalida respostas pendentes. Não incluir coordenadas ou dados da conta no texto.
 - `smart-summary.js`: regras/hash preservados para compatibilidade e testes do servidor. O Resumo Inteligente foi retirado da Home por solicitação do usuário: não carregar o módulo, consultar a função de IA ou recriar o card sem nova solicitação. AQI/MET continuam complementando a primeira previsão progressivamente.
-- `weather-map.js`: instância única Leaflet, radar RainViewer, satélite GOES/NASA e raios Xweather. `radar-probe.js` usa um cliente próprio. Não colocar suas consultas no grupo de cancelamento da previsão principal.
+- `weather-map.js`: instância única Leaflet (servida de `vendor/leaflet/`, sem CDN), radar RainViewer, satélite GOES/NASA e raios Xweather. `radar-probe.js` usa um cliente próprio. Não colocar suas consultas no grupo de cancelamento da previsão principal.
 - `account.js`: Supabase Auth e integração da conta; `modules/account-sync.js`: transporte serializado, revisão de usuário e snapshot canônico; `favorite-cities.js`: leituras breves, com concorrência limitada; `saved-places.js`: nomes pessoais de cidades, sincronização e tombstones; `notifications.js`: opt-in Web Push e preferências.
 - `supabase/functions/`: serviços Deno; `_shared/` contém HTTP, autenticação/admin, Web Push e política de notificações. `supabase/migrations/` contém RLS, quotas, Vault e cron. SDK e credenciais administrativas ficam no servidor; a chave publicável da conta não é um segredo.
 
@@ -215,6 +215,10 @@ SIPAM quantitativo ainda não está autorizado/integrado. Não criar scraping do
 Mocks somente em `tests/support/nowcast-fixtures.cjs` + `scripts/nowcast-dev-server.cjs` loopback. Nunca colocar fixtures em dist/SW, habilitar allowMock no handler público ou expor cenário de desenvolvimento no endpoint. Cliente de produção rejeita mock:true; desenvolvimento mostra DEV / MOCK DATA. SW exclui também /api/ local.
 
 Não criar tabelas de frames/células sem fonte real, retenção definida e justificativa. Não guardar GPS preciso em cache público. A publicação do backend deve preceder o frontend; até existir endpoint, capacidades falham e card permanece oculto. Novo QA: `python scripts/verify-nowcast.py` e variante PLUVIA_BROWSER=webkit, com fixtures, sete viewports, hora municipal, expiração, refresh e estação no mapa. Não chamar isso de validação com radar real ou hardware iOS.
+
+## Umidade, partículas e faixa do conjunto
+
+Umidade usa `weatherInsights.humidity` (faixas Defesa Civil/OMS, hora mais seca restante do dia municipal). PM2,5 de 24h vem do snapshot (`airQuality.pm25Mean24h`, 18 de 24 amostras) e `weatherInsights.particles` (OMS 2021); descreve concentração, nunca atribui fumaça/queimada. `modules/forecast-spread.js` consulta o conjunto ICON EPS diário somente ao abrir um dia, com cliente próprio, cache curto e invalidação por cidade; `daily-detail.js` só lê. Não mover essas consultas para a abertura da Home. Normais climatológicas pelo navegador estão fora: ver `docs/DATA-SOURCES.md`. Web Vitals seguem `docs/ANALYTICS.md`.
 
 ## Detalhe diário e estabilidade dos frames
 

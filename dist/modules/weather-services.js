@@ -17,11 +17,15 @@
     daily:"weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset,sunshine_duration,daylight_duration",
     temperature_unit:"celsius", wind_speed_unit:"kmh", precipitation_unit:"mm", past_hours:"24", forecast_days:"8"
   };
+  // As 24 horas anteriores de PM2,5 permitem comparar a média diária com as diretrizes da OMS.
   const AIR_PARAMS = {
     current:"pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi",
-    forecast_days:"3"
+    hourly:"pm2_5", past_hours:"24", forecast_hours:"1"
   };
   const ENSEMBLE_PARAMS = {hourly:"precipitation", models:"icon_seamless_eps", forecast_days:"2"};
+  // Extremos diários por membro (dia municipal via timezone); ICON EPS global cobre cerca de 7 dias.
+  const ENSEMBLE_DAILY_PARAMS = {daily:"temperature_2m_max,temperature_2m_min", models:"icon_seamless_eps", forecast_days:"7"};
+  const ENSEMBLE_ENDPOINT = "https://ensemble-api.open-meteo.com/v1/ensemble";
 
   function location(city) {
     const latitude = Number(city?.lat ?? city?.latitude);
@@ -87,7 +91,9 @@
       },
       ensemble: {
         source:"open-meteo-icon-eps",
-        getForecast: (city, options) => getJson(buildUrl("https://ensemble-api.open-meteo.com/v1/ensemble", city, ENSEMBLE_PARAMS), options)
+        getForecast: (city, options) => getJson(buildUrl(ENSEMBLE_ENDPOINT, city, ENSEMBLE_PARAMS), options),
+        dailyUrl: city => buildUrl(ENSEMBLE_ENDPOINT, city, ENSEMBLE_DAILY_PARAMS),
+        getDaily: (city, options) => getJson(buildUrl(ENSEMBLE_ENDPOINT, city, ENSEMBLE_DAILY_PARAMS), options)
       },
       airQuality: {
         source:"open-meteo-cams",

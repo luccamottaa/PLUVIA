@@ -81,10 +81,7 @@ function uvLabel(value) {
 }
 
 function humidityLabel(value) {
-  if (value >= 85) return "Umidade muito alta";
-  if (value >= 70) return "Umidade alta";
-  if (value >= 50) return "Faixa confortável";
-  return "Ar mais seco";
+  return weatherInsights?.humidityLevel?.(value)?.label || "Umidade indisponível";
 }
 
 function pressureLabel(value) {
@@ -552,11 +549,24 @@ function clearWeatherInsights() {
   if ($("rainPhrase")) $("rainPhrase").textContent = "Previsão de chuva indisponível.";
 }
 
+function renderAirParticles(air) {
+  const reading = weatherInsights?.particles?.(air?.pm25Mean24h);
+  if ($("airParticles")) {
+    $("airParticles").hidden = !reading;
+    $("airParticles").textContent = reading ? `PM2,5 média de 24h: ${fmt(reading.value,1)} µg/m³ · ${reading.label} (15 µg/m³).` : '';
+  }
+  if ($("airParticlesNote")) {
+    $("airParticlesNote").hidden = !reading?.notable;
+    $("airParticlesNote").textContent = reading?.notable ? `${reading.label} · PM2,5 24h ${fmt(reading.value,0)} µg/m³` : '';
+  }
+}
+
 function renderAirDetails(snapshot) {
   const details = $("airDetails");
   if (!details) return;
   const air = snapshot?.airQuality;
   details.hidden = !air;
+  renderAirParticles(air);
   if (!air) return;
   const fields = [['pm25','PM2,5'],['pm10','PM10'],['ozone','Ozônio'],['nitrogenDioxide','NO₂'],['carbonMonoxide','CO']];
   const readings = fields.filter(([key]) => Number.isFinite(air[key]) && air[key]>=0).map(([key,label]) => {
@@ -623,7 +633,9 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   const dayIndex = day.time.indexOf(globalThis.PLUVIA.time.dayKey(Date.now(),activeCity));
   $("todayHigh").textContent = `${fmt(day.temperature_2m_max[dayIndex])}°`;
   $("todayLow").textContent = `${fmt(day.temperature_2m_min[dayIndex])}°`;
-  $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; $("humidityNote").textContent = humidityLabel(current.relative_humidity_2m);
+  $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; const humidityReading = weatherInsights?.humidity?.(data.hourly,start,current);
+  $("humidityNote").textContent = humidityReading?.note || humidityLabel(current.relative_humidity_2m);
+  $("humidity").closest?.(".metric")?.setAttribute("data-humidity-level",humidityReading?.level || "unknown");
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `De ${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
   $("windCompass").style.setProperty("--wind-deg", `${Number.isFinite(current.wind_direction_10m) ? current.wind_direction_10m : 0}deg`);
   $("windCompass").style.setProperty("--wind-visible", Number.isFinite(current.wind_direction_10m) ? "1" : "0");
@@ -849,22 +861,36 @@ function updateCityLabels() {
   if (!activeCity) return;
   $("cityName").textContent = activeCity.name;
   $("alertsCityLabel").textContent = "Fontes oficiais e leitura ambiental para " + activeCity.name;
-  $("forecastCityLabel").textContent = "Previsão diária para a área urbana de " + activeCity.name;
+  $("forecastCityLabel").textContent = "Previsão para o ponto de referência de " + activeCity.name + ", não para um endereço específico.";
+  const distance = $("cityDistance");
+  if (distance) {
+    distance.hidden = !(activeCity.distanceKm >= 2);
+    if (activeCity.distanceKm >= 2) distance.textContent = "a " + Math.round(activeCity.distanceKm) + " km de " + activeCity.name + " · " + activeCity.uf;
+  }
+  globalThis.PLUVIA?.modules?.['weather-layers']?.cityChanged?.(activeCity);
   const starred = favorites.has(activeCity.id);
   $("favoriteCity").textContent = starred ? "★ Favorita" : "☆ Favoritar";
   $("favoriteCity").setAttribute("aria-pressed", String(starred));
   $("favoriteCity").setAttribute("aria-label", (starred ? "Remover dos favoritos: " : "Favoritar: ") + activeCity.name);
   updateClock();
 }
+let activeResultIndex = -1;
 function renderCityOptions() {
-  const query = normalizeName($("citySearch").value || "").trim();
-  const uf = $("stateSelect").value || "";
-  const browsing = !query && !uf;
-  const matches = browsing ? [...new Map([activeCity,...[...favorites].map(id=>cityById.get(id)),...CAPITALS].filter(Boolean).map(city=>[city.id,city])).values()] : searchCities(query,uf);
-  const shown = matches.slice(0,60);
-  $("citySelect").innerHTML = '<option value="">Selecione uma cidade</option>' + shown.map(city => '<option value="' + city.id + '">' + (favorites.has(city.id) ? "★ " : "") + escapeHtml(city.name) + " · " + city.uf + "</option>").join("");
-  $("citySelect").value = shown.some(city => city.id === activeCity?.id) ? activeCity.id : "";
-  $("cityPickerStatus").textContent = browsing ? "Digite o nome para buscar municípios. Cidades favoritas e capitais aparecem na lista inicial." : !matches.length ? "Nenhuma cidade encontrada. Confira o nome ou o estado." : matches.length > 60 ? "Mostrando 60 de " + matches.length + " cidades. Digite mais letras para refinar a busca." : matches.length + " cidades encontradas. Selecione uma cidade na lista.";
+  const query = normalizeName(document.getElementById("citySearch").value || "").trim();
+  const initial = [...new Map([
+    ...[...favorites].map(id => cityById.get(id)),
+    activeCity,
+    ...CAPITALS
+  ].filter(Boolean).map(city => [city.id, city])).values()];
+  const matches = query ? searchCities(query) : initial;
+  const shown = query ? matches.slice(0, 12) : matches;
+  const list = document.getElementById("cityResults");
+  activeResultIndex = -1;
+  list.innerHTML = shown.map(city => {
+    const capital = CAPITALS.some(item => item.id === city.id);
+    return `<li><button class="city-result" type="button" role="option" aria-selected="false" data-current="${city.id === activeCity?.id}" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
+  }).join("");
+  document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
 }
 function chooseCity(id, locatedCity = null) {
   const city = locatedCity || cityById.get(id);
@@ -913,7 +939,9 @@ function chooseCity(id, locatedCity = null) {
   if (!saved) {
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
     delete $("airQualityCard").dataset.aqiLevel;
+    $("humidity").closest?.(".metric")?.removeAttribute("data-humidity-level");
     renderAirQuality(null);
+    renderAirParticles(null);
     $("uvScale").hidden = true;
     $("visibilityBadge").hidden = true;
     $("windCompass").style.setProperty?.("--wind-visible","0");
@@ -928,7 +956,6 @@ function chooseCity(id, locatedCity = null) {
   });
   $("inmetCard").dataset.severity = "unknown";
   $("citySearch").value = "";
-  $("stateSelect").value = "";
   renderCityOptions(); updateCityLabels();
   $("weatherView")?.classList.toggle('initial-loading', !saved);
   if (saved) {
@@ -951,13 +978,10 @@ function toggleFavoriteCity() {
 }
 function setupCityPicker() {
   emptyCityContent = new Map(cityResetIds.map(id => [id,$(id).innerHTML]));
-  $("stateSelect").innerHTML = '<option value="">Todos os estados</option>' + [...stateNames].sort((a,b)=>a[1].localeCompare(b[1],'pt-BR')).map(([uf,name])=>'<option value="'+uf+'">'+escapeHtml(name)+' · '+uf+'</option>').join('');
   renderCityOptions(); updateCityLabels();
 
   let searchTimer;
   $("citySearch").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(renderCityOptions,120); });
-  $("stateSelect").addEventListener("change", renderCityOptions);
-  $("citySelect").addEventListener("change", event => chooseCity(event.target.value));
   $("favoriteCity").addEventListener("click", toggleFavoriteCity);
   $("locateCity").addEventListener("click", () => requestLocation('city_picker'));
   $("welcomeLocate").addEventListener("click", () => requestLocation('welcome'));
