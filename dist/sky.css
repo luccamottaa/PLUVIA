@@ -81,8 +81,8 @@ html,body { background:var(--sky-base); }
 /* Two photographic layers: a distant veil and a softer volumetric foreground.
    Only bounded transforms move; no turbulence, canvas loop or animated blur.
    Keeping the nodes painted allows weather changes to fade without restarting. */
-.sky-clouds { display:block; position:absolute; z-index:2; left:-64px; width:calc(100% + 128px); height:clamp(440px,70vw,640px); top:-60px; background:url("./assets/sky-cloud-veil.webp") center / cover no-repeat; opacity:var(--cloud-opacity); filter:var(--cloud-filter); -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); animation:clouds-back 130s ease-in-out infinite alternate; animation-delay:-82s; transition:opacity 4s ease; }
-.sky-clouds-front { top:17%; background-image:url("./assets/sky-cloud-volume.webp"); opacity:calc(var(--cloud-opacity) * .48); animation:clouds-front 105s ease-in-out infinite alternate; animation-delay:-61s; }
+.sky-clouds { display:block; position:absolute; z-index:2; left:-64px; width:calc(100% + 128px); height:clamp(440px,70vw,640px); top:-60px; background:url("./assets/sky-cloud-veil.webp?v=clouds-2") center / cover no-repeat; opacity:var(--cloud-opacity); filter:var(--cloud-filter); -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); animation:clouds-back 130s ease-in-out infinite alternate; animation-delay:-82s; transition:opacity 4s ease; }
+.sky-clouds-front { top:17%; background-image:url("./assets/sky-cloud-volume.webp?v=clouds-2"); opacity:calc(var(--cloud-opacity) * .48); animation:clouds-front 105s ease-in-out infinite alternate; animation-delay:-61s; }
 /* Texture alpha carries the real gaps. Fading an entire partially cloudy layer
    makes the celestial disks bleed through even its dense, opaque interiors. */
 :root[data-weather="partly"] .sky-clouds-front { opacity:var(--cloud-opacity); }
