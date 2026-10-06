@@ -99,7 +99,7 @@ Leituras equivalentes precisam compartilhar linhas: os cinco horários do resumo
 
 A velocidade e sua unidade ficam juntas, inclusive no celular; a regra mobile legada de `redesign.css` não deve empilhar km/h na Home. A bússola permanece ao lado, sem wrap. Cabeçalho, previsão e rodapé têm o mesmo limite de 860px e as mesmas bordas laterais; a linha do rodapé não deve se estender além do conteúdo no desktop.
 
-Na previsão diária, minmax(0,...) permite que as colunas encolham; a condição deve quebrar dentro da própria coluna. Mínima/barra/máxima têm trilhos numéricos comuns, inclusive com valores negativos ou de um dígito. Não ocultar textos ou usar deslocamentos arbitrários para corrigir sobreposição. Favoritos usam subgrid quando disponível para compartilhar linhas de nome, temperatura, condição, sensação, extremos, horário, aviso e idade. Preserve as classes desses campos; browsers antigos mantêm os cards roláveis sem cortar conteúdo. Não adicionar medições/timers por card.
+Na previsão diária, minmax(0,...) permite que as colunas encolham; no desktop a condição deve quebrar dentro da própria coluna. No celular cada dia é uma linha (dia/data, ícone, chuva, mínima-barra-máxima) e o texto da condição fica apenas para leitores de tela (o rótulo do botão já o inclui); a nota só aparece para chuva relevante ou UV ≥ 8. Mínima/barra/máxima têm trilhos numéricos comuns, inclusive com valores negativos ou de um dígito. Não ocultar textos ou usar deslocamentos arbitrários para corrigir sobreposição. Favoritos usam subgrid quando disponível para compartilhar linhas de nome, temperatura, condição, sensação, extremos, horário, aviso e idade. Preserve as classes desses campos; browsers antigos mantêm os cards roláveis sem cortar conteúdo. Não adicionar medições/timers por card.
 
 O detalhe horário também compartilha as linhas de labels/valores por par via subgrid. Um label que quebra em duas linhas, inclusive com fonte fallback, não pode deslocar só o valor de sua coluna. Preserve o fallback legível/rolável sem subgrid, em vez de cortar labels ou reservar alturas fixas baseadas em uma fonte.
 
@@ -219,6 +219,12 @@ Não criar tabelas de frames/células sem fonte real, retenção definida e just
 ## Umidade, partículas e faixa do conjunto
 
 Umidade usa `weatherInsights.humidity` (faixas Defesa Civil/OMS, hora mais seca restante do dia municipal). PM2,5 de 24h vem do snapshot (`airQuality.pm25Mean24h`, 18 de 24 amostras) e `weatherInsights.particles` (OMS 2021); descreve concentração, nunca atribui fumaça/queimada. `modules/forecast-spread.js` consulta o conjunto ICON EPS diário somente ao abrir um dia, com cliente próprio, cache curto e invalidação por cidade; `daily-detail.js` só lê. Não mover essas consultas para a abertura da Home. Normais climatológicas pelo navegador estão fora: ver `docs/DATA-SOURCES.md`. Web Vitals seguem `docs/ANALYTICS.md`.
+
+## Home compacta (outubro/2026)
+
+A seção `#alertas` fica logo abaixo do hero, antes de Próximas horas. `data-alert-state` (`loading`/`clear`/`alerts`/`unavailable`) é definido por `setAlertState` em app.js; somente uma leitura atual e vazia vira `clear`, que o CSS compacta em uma linha (título só para leitores de tela). Leitura anterior ou falha nunca compactam como “sem avisos”. Com aviso, o card completo aparece no mesmo lugar. O convite de notificações fica depois dos 7 dias.
+
+Visibilidade, umidade, vento e pressão são tiles `.metric-sky` em grade (2 colunas no celular, 4 no desktop) que ocupam quatro linhas via subgrid (rótulo, valor, nota, selo); tiles da mesma fileira compartilham essas linhas. UV e ar ocupam a largura toda. O gráfico por hora fica em `#hourlyChartDetails` (recolhido); “Ver previsão” o abre, e janela seca/frase de chuva continuam visíveis. Títulos de seção usam um único tamanho. `closeCitySearch` só devolve o foco à busca quando o diálogo estava aberto: o fallback sem localização não pode focar a lupa na abertura. QA de alinhamento mede as fileiras dos tiles e a linha única dos dias.
 
 ## Detalhe diário e estabilidade dos frames
 

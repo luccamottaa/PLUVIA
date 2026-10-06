@@ -153,12 +153,10 @@ with sync_playwright() as p:
   assert len(rows)==7
   for row in rows:
    geometry=row['geometry']
-   if width>720:
-    centers=[b['centerY'] for b in geometry.values()]
-    assert max(centers)-min(centers)<=1,geometry
-   else:
-    for a,b in [('forecast-day','temp-range'),('forecast-condition','forecast-rain')]:
-     assert abs(geometry[a]['centerY']-geometry[b]['centerY'])<=1,geometry
+   # Uma linha por dia em todas as larguras; a nota opcional fica abaixo no celular.
+   line={key:value for key,value in geometry.items() if width>720 or key!='forecast-uv'}
+   centers=[b['centerY'] for b in line.values()]
+   assert max(centers)-min(centers)<=1,(width,geometry)
    condition=row['condition'];text=row['text']
    assert text['x']+text['width']<=condition['x']+condition['width']+1,(width,text,condition)
    if width>720:assert condition['x']+condition['width']<=geometry['temp-range']['x']+1,geometry
@@ -170,9 +168,23 @@ with sync_playwright() as p:
    if len(parts)==2:
     if width>720:assert abs(parts[0]['centerY']-parts[1]['centerY'])<=1,parts
     else:assert parts[1]['y']>=parts[0]['bottom']-1,parts
-  metrics=page.evaluate("()=>[...document.querySelectorAll('.metrics .metric:not(.air-metric)')].map(el=>[...el.querySelectorAll(':scope > .metric-head,:scope > strong,:scope > .wind-reading')].map(node=>{const r=node.getBoundingClientRect();return r.y+r.height/2}))")
+  metrics=page.evaluate("()=>[...document.querySelectorAll('.metrics .uv-metric')].map(el=>[...el.querySelectorAll(':scope > .metric-head,:scope > strong,:scope > .wind-reading')].map(node=>{const r=node.getBoundingClientRect();return r.y+r.height/2}))")
   for pair in metrics:
    assert len(pair)==2 and abs(pair[0]-pair[1])<=1,pair
+  # Leituras em grade: tiles da mesma fileira compartilham as linhas de rótulo, valor e nota, sem sobreposição.
+  tiles=page.evaluate("""()=>[...document.querySelectorAll('.metrics .metric-sky')].map(el=>{
+   const center=node=>{const r=node.getBoundingClientRect();return r.y+r.height/2};const box=el.getBoundingClientRect();
+   return {top:Math.round(box.y),left:box.x,right:box.right,head:center(el.querySelector(':scope > .metric-head')),value:center(el.querySelector(':scope > strong,:scope > .wind-reading')),note:el.querySelector(':scope > small').getBoundingClientRect().y};
+  })""")
+  assert len(tiles)==4,tiles
+  tile_rows={}
+  for tile in tiles:tile_rows.setdefault(tile['top'],[]).append(tile)
+  assert all(len(group)>=2 for group in tile_rows.values()),(width,tile_rows)
+  for group in tile_rows.values():
+   for key in ['head','value','note']:assert max(t[key] for t in group)-min(t[key] for t in group)<=1,(width,key,group)
+   ordered=sorted(group,key=lambda t:t['left'])
+   for a,b in zip(ordered,ordered[1:]):assert a['right']<=b['left']+1,(width,a,b)
+  page.evaluate("document.getElementById('hourlyChartDetails').open=true")
   for mode in ['conditions','feels','rain','wind']:
    page.locator('button[data-hourly-mode="'+mode+'"]').click()
    for field in ['.hour-time','.hour-temp','.hour-icon' if mode!='wind' else '.wind-direction']:

@@ -59,3 +59,22 @@ test('lista inicial mostra as 27 capitais, sem duplicar favoritas, antes de carr
   assert.equal(searches,1);
   assert.equal((nodes.cityResults.innerHTML.match(/data-id=/g)||[]).length,12,'busca mantém o limite de sugestões');
 });
+
+test('escolha automática da cidade não rouba o foco; fechar o diálogo devolve o foco à busca', () => {
+  const app = fs.readFileSync('dist/app.js','utf8');
+  const source = app.slice(app.indexOf('function closeCitySearch('),app.indexOf('function requestLocation('));
+  let focused = 0, closed = 0, animated = 0;
+  const nodes = {cityDialog:{open:false,close(){this.open=false;closed++;}},openCitySearch:{focus(){focused++;}}};
+  const context = vm.createContext({$:id => nodes[id], globalThis:{}});
+  vm.runInContext(source,context);
+  context.closeCitySearch();
+  assert.equal(focused,0,'fallback sem localização não move o foco para a busca');
+  nodes.cityDialog.open = true;
+  context.closeCitySearch();
+  assert.deepEqual([closed,focused],[1,1]);
+  nodes.cityDialog.open = true;
+  context.globalThis.PLUVIA = {dialogs:{close(){animated++;}}};
+  vm.runInContext('globalThis.PLUVIA = this.globalThis.PLUVIA', context);
+  context.closeCitySearch(true);
+  assert.equal(animated,1,'fechamento animado delega ao controlador, que devolve o foco no evento close');
+});

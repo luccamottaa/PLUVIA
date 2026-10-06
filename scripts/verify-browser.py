@@ -117,6 +117,10 @@ with sync_playwright() as p:
    assert share_rect['x']+share_rect['width']<=other['x']+1 or other['x']+other['width']<=share_rect['x']+1 or share_rect['y']+share_rect['height']<=other['y']+1 or other['y']+other['height']<=share_rect['y']+1,(width,control)
 
   if width==390: page.locator('#top').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-header-share.png')))
+  # O gráfico fica recolhido; "Ver previsão" é o caminho que o abre.
+  if not page.locator('#hourlyChartDetails').evaluate('el=>el.open'):
+   page.locator('.hourly-peek-heading a').click()
+   assert page.locator('#hourlyChartDetails').evaluate('el=>el.open')
   for chart_mode in ['conditions','feels','rain','wind']:
    page.locator('button[data-hourly-mode="'+chart_mode+'"]').click()
    assert page.locator('#rainChart').get_attribute('data-hourly-mode')==chart_mode

@@ -210,12 +210,19 @@ function selectInmetAlerts(raw, now = Date.now(), city = activeCity) {
   }).sort((a,b) => (a.stage === "active" ? 0 : 1) - (b.stage === "active" ? 0 : 1) || b.severity.rank - a.severity.rank);
 }
 
+function setAlertState(state) {
+  const section = $("alertas");
+  if (section?.dataset) section.dataset.alertState = state;
+}
+
 function renderInmetAlerts(raw, stale = false) {
   globalThis.PLUVIA?.modules.alerts.receive?.(raw, stale);
   const state = $("inmetState"); const content = $("inmetContent");
   const alerts = selectInmetAlerts(raw);
   const activeOfficial = alerts.find(item => item.stage === "active" && item.area === activeCity.name);
   $("inmetCard").dataset.severity = stale ? "unknown" : activeOfficial?.severity.className || "none";
+  // Sem aviso, a seção vira uma linha discreta abaixo do topo; com aviso, ganha destaque no mesmo lugar.
+  setAlertState(stale ? "unavailable" : alerts.length ? "alerts" : "clear");
   if (!alerts.length) {
     state.className = "source-state"; state.innerHTML = `<i></i>${stale ? "Consulta indisponível" : "Nenhum aviso identificado"}`;
     content.innerHTML = stale ? "<h3>Confira o mapa do INMET</h3><p>Não foi possível confirmar os avisos atuais. A leitura anterior não confirma a situação de agora.</p>" : `<h3>✓ Sem alertas meteorológicos ativos</h3><p>A consulta oficial não retornou avisos vigentes ou previstos para ${activeCity.name}. Verificação atualizada agora; confira também o mapa oficial.</p>`;
@@ -274,6 +281,7 @@ async function loadInmetAlerts(revision = cityRevision) {
     if (lastInmetResponse) { renderInmetAlerts(lastInmetResponse, true); updateInmetTimestamp(true); return; }
     const state = $("inmetState"); const content = $("inmetContent");
     $("inmetCard").dataset.severity = "unknown";
+    setAlertState("unavailable");
     state.className = "source-state warning"; state.innerHTML = "<i></i>Consulta indisponível";
     content.innerHTML = "<h3>Abra o mapa do INMET</h3><p>A fonte automática não respondeu agora. Use o atalho abaixo para conferir os avisos oficiais diretamente no INMET.</p>";
     updateInmetTimestamp(true);
@@ -440,7 +448,7 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
   $("forecastList").innerHTML = days.map((date, offset) => {
     const i = indices[offset];
     const d = new Date(`${date}T12:00:00Z`);
-    const day = date === today ? "Hoje" : new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC",weekday: "long"}).format(d).replace(/^./, c => c.toUpperCase());
+    const day = date === today ? "Hoje" : new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC",weekday: "long"}).format(d).replace(/-feira$/, "").replace(/^./, c => c.toUpperCase());
     const label = new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC",day: "2-digit", month: "short"}).format(d).replace(".", "");
     const [cond] = weather(daily.weather_code[i]); const min = daily.temperature_2m_min[i]; const max = daily.temperature_2m_max[i];
     const left = Math.max(0, Math.min(98, (min - minAll) / spread * 100));
@@ -451,12 +459,15 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
     const rainMm = daily.precipitation_sum[i];
     const weekend = [0,6].includes(d.getUTCDay());
     const reading = !Number.isFinite(rainProb) || !Number.isFinite(rainMm) ? "Previsão de chuva indisponível" : rainMm >= 20 ? "Acumulado de chuva elevado" : rainMm >= 8 ? "Chuva ao longo do dia" : rainProb >= 55 ? "Chuva provável, com baixo acumulado" : rainProb >= 30 ? "Chuva isolada" : "Baixa probabilidade de chuva";
+    const uvMax = daily.uv_index_max?.[i];
+    // A linha mostra só o que acrescenta: chuva relevante ou UV muito alto. O restante fica no detalhe do dia.
+    const notes = [reading !== "Baixa probabilidade de chuva" && reading, Number.isFinite(uvMax) && uvMax >= 8 && `UV ${fmt(uvMax, 0)} · ${uvMax >= 11 ? "extremo" : "muito alto"}`].filter(Boolean);
     return `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}" data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog" aria-label="${day}, ${label}: ${cond}, mínima ${fmt(min)} graus, máxima ${fmt(max)} graus, chance de chuva ${rainProb ?? 'indisponível'}${rainProb===null ? '' : '%'}, ${fmt(rainMm,1)} mm. Ver detalhes.">
       <span class="forecast-day"><strong>${day}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
       <span class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
       <span class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</span><strong aria-hidden="true">${fmt(max)}°</strong></span>
-      <span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span>${rainProb ?? '—'}% · ${fmt(rainMm, 1)} mm</span></span>
-      <span class="forecast-uv">${reading} · UV ${fmt(daily.uv_index_max[i], 0)}</span>
+      <span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="forecast-rain-chance">${rainProb ?? '—'}%</span><span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span></span></span>
+      <span class="forecast-uv"${notes.length ? "" : " hidden"}>${notes.join(" · ")}</span>
     </button>`;
   }).join("");
 }
@@ -497,7 +508,10 @@ function renderSun(daily, at = Date.now()) {
   $("sunDot").style.left = `${point.left}%`; $("sunDot").style.top = `${point.top}px`;
   const remainingMinutes = Math.max(1, Math.ceil((set - at) / 60000));
   const remainingTime = remainingMinutes < 60 ? `${remainingMinutes} min` : `${Math.floor(remainingMinutes / 60)} h ${remainingMinutes % 60} min`;
-  $("sunPhrase").textContent = at < rise ? "O sol ainda não nasceu." : at >= set ? `O sol já se pôs em ${activeCity.name}.` : `Restam cerca de ${remainingTime} de luz natural.`;
+  const duration = ms => { const total = Math.max(1, Math.ceil(ms / 60000)); return total < 60 ? `${total} min` : `${Math.floor(total / 60)}h ${String(total % 60).padStart(2, "0")}min`; };
+  const nextRise = at < rise ? rise : globalThis.PLUVIA?.sky?.dayAt?.(at + 86400000)?.rise;
+  const untilRise = Number.isFinite(nextRise) && nextRise > at ? ` Nasce em ${duration(nextRise - at)}, às ${formatUpdateTime(nextRise)}.` : "";
+  $("sunPhrase").textContent = at < rise ? `O sol ainda não nasceu.${untilRise}` : at >= set ? `O sol já se pôs em ${activeCity.name}.${untilRise}` : `Restam cerca de ${remainingTime} de luz natural.`;
   const sunshine = daily.sunshine_duration?.[index], daylight = daily.daylight_duration?.[index];
   const sunshineMinutes = Math.round(sunshine / 60), daylightMinutes = Math.round(daylight / 60);
   $("sunshineNote").textContent = Number.isFinite(sunshine) && Number.isFinite(daylight)
@@ -955,6 +969,7 @@ function chooseCity(id, locatedCity = null) {
     $(source + "Content").innerHTML = "<h3>Consultando " + escapeHtml(city.name) + "</h3><p>Buscando informações para a cidade selecionada.</p>";
   });
   $("inmetCard").dataset.severity = "unknown";
+  setAlertState("loading");
   $("citySearch").value = "";
   renderCityOptions(); updateCityLabels();
   $("weatherView")?.classList.toggle('initial-loading', !saved);
@@ -1032,10 +1047,11 @@ function openCitySearch() {
 }
 function closeCitySearch(animate = false) {
   const dialog = $("cityDialog");
-  if (dialog.open) {
-    if (animate && globalThis.PLUVIA?.dialogs) { globalThis.PLUVIA.dialogs.close(dialog); return; }
-    dialog.close();
-  }
+  // O foco volta para a busca só quando o diálogo estava aberto; a escolha automática
+  // da cidade (fallback sem localização) não pode roubar o foco ao abrir a página.
+  if (!dialog.open) return;
+  if (animate && globalThis.PLUVIA?.dialogs) { globalThis.PLUVIA.dialogs.close(dialog); return; }
+  dialog.close();
   $("openCitySearch").focus();
 }
 function requestLocation(source = 'automatic') {
@@ -1084,6 +1100,11 @@ document.querySelector(".hourly-modes")?.addEventListener("click", event => {
   event.currentTarget.querySelectorAll("button[data-hourly-mode]").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
   const forecast = displayedWeather?.forecast;
   if (forecast) renderHourly(forecast.hourly, selectCurrentHour(forecast.hourly.time), forecast.daily);
+});
+// "Ver previsão" abre o gráfico por hora, que fica recolhido para não repetir a faixa das próximas horas.
+document.querySelector(".hourly-peek-heading a")?.addEventListener("click", () => {
+  const details = $("hourlyChartDetails");
+  if (details) details.open = true;
 });
 setupScrollAnimations();
 setupPullToRefresh();
