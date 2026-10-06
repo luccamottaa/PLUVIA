@@ -141,10 +141,30 @@
     const root = scope && typeof scope.querySelectorAll === "function" ? scope : null;
     root?.querySelectorAll("[data-weather-icon-name]").forEach(node => {
       const name = node.getAttribute("data-weather-icon-name") || "weather-unknown";
+      if (node.getAttribute("data-weather-icon-style") === "line" && LINE_METRICS[name]) { node.innerHTML = lineMarkup(name); return; }
       const label = node.getAttribute("data-weather-icon-alt") || LABELS[name];
       node.innerHTML = markupName(name, { className:"metric-weather-icon", label, decorative:node.getAttribute("data-weather-icon-informative") !== "true", size:48 });
     });
   }
+  // Line glyphs for the Home reading tiles, drawn in the same stroke family as the
+  // section icons (clock, calendar, alert): 24px grid, currentColor, round joins.
+  // The colourful metric assets stay available for every other consumer.
+  const THERMOMETER = '<path d="M7.5 13.6V5.5a2 2 0 0 1 4 0v8.1a4 4 0 1 1-4 0Z"/><path d="M9.5 17V9"/>';
+  const LINE_METRICS = Object.freeze({
+    "feels-like": THERMOMETER + '<path d="M15.5 5.5c1.2 1 1.2 2 0 3s-1.2 2 0 3m4-6c1.2 1 1.2 2 0 3s-1.2 2 0 3"/>',
+    "temperature-high": THERMOMETER + '<path d="M18 11V3.5m-3 3 3-3 3 3"/>',
+    "temperature-low": THERMOMETER + '<path d="M18 3.5V11m-3-3 3 3 3-3"/>',
+    "visibility": '<path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>',
+    "humidity": '<path d="M12 3.2s-6 6.4-6 10.8a6 6 0 0 0 12 0c0-4.4-6-10.8-6-10.8Z"/><path d="M9.3 14.6a2.8 2.8 0 0 0 2.4 2.6"/>',
+    "wind-speed": '<path d="M3 8h9.5a2.5 2.5 0 1 0-2.4-3.1M3 12h15.5a2.5 2.5 0 1 1-2.4 3.1M3 16h7"/>',
+    "pressure": '<path d="M4.2 18.5a9 9 0 1 1 15.6 0"/><path d="m12 14 3.8-4.3"/><circle cx="12" cy="14" r="1"/>',
+    "uv-index": '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2m0 15v2M4.6 4.6 6 6m12 12 1.4 1.4M2.5 12h2m15 0h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
+    "air-quality": '<path d="M5 19c-.6-6.6 4.4-13 15-14 .8 9.8-5 15.6-12.2 14.4"/><path d="M4 20c3.2-4.4 6.6-7.4 10.5-9.6"/>'
+  });
+  function lineMarkup(name) {
+    const body = LINE_METRICS[String(name || "").toLowerCase()];
+    return body ? `<svg class="metric-line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${body}</svg>` : "";
+  }
   function isDayAt(iso,sunrise,sunset) { const value=Date.parse(iso), rise=Date.parse(sunrise), set=Date.parse(sunset); return Number.isFinite(value)&&Number.isFinite(rise)&&Number.isFinite(set) ? value>=rise&&value<set : true; }
-  return { ASSETS, ASSET_ALIASES, CONDITIONS, LABELS, condition, conditionIconName, assetFor, findAsset, icon, namedIcon, markup, markupName, hydrate, isDayAt };
+  return { ASSETS, ASSET_ALIASES, CONDITIONS, LABELS, LINE_METRICS, lineMarkup, condition, conditionIconName, assetFor, findAsset, icon, namedIcon, markup, markupName, hydrate, isDayAt };
 });

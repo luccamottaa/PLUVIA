@@ -210,6 +210,9 @@ html body #weatherView .hero-temperature-range { border-radius:0 !important; }
 #weatherView .metric-head > span:first-child { color:var(--reading-muted); font-size:.8rem; letter-spacing:.045em; }
 #weatherView .metric-head > [data-weather-icon-name] { width:24px; height:24px; flex:none; margin-right:auto; }
 #weatherView .metric-head .metric-weather-icon { width:24px; height:24px; }
+/* Reading tiles use line glyphs in the brand blue, the same stroke family as the section icons. */
+#weatherView .metric-head > [data-weather-icon-style="line"] { color:var(--graphic-blue); opacity:1; }
+#weatherView .metric-line-icon { display:block; width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 #weatherView .metrics .metric > strong,#weatherView .metrics .wind-reading { grid-column:2; grid-row:1; margin:0; }
 #weatherView .metrics .metric > strong,#weatherView .metrics .wind-reading > strong { color:var(--reading-ink); font-size:1.65rem; line-height:1.1; }
 #weatherView .metrics .metric strong sup { color:var(--reading-muted); }
