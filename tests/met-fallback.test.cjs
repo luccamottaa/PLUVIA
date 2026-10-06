@@ -68,3 +68,13 @@ test('dados salvos recentes (até 3h) têm prioridade sobre a previsão reduzida
  assert.equal(s.paints.length,1);assert.equal(s.paints[0][0],forecast);assert.equal(s.paints[0][2],true,'renderizado como dado salvo');
  assert.match(s.errors[0],/última previsão salva/);
 });
+
+test('status de dado salvo mostra o horário da última atualização no fuso da cidade',()=>{
+ const start=source.indexOf('function savedAtLabel('),end=source.indexOf('function dataAge(');
+ const body=source.slice(start,end)+source.slice(end,source.indexOf('\n}\n',end)+3)+source.slice(source.indexOf('function formatUpdateTime('),source.indexOf('\n}\n',source.indexOf('function formatUpdateTime('))+3);
+ const ctx=vm.createContext({activeCity:city,Intl,Date:{now:()=>now},Math,Number,PLUVIA:{time}});ctx.globalThis=ctx;
+ vm.runInContext(body,ctx);
+ assert.equal(ctx.savedStatus(now-2*3600000,'offline'),'Sem internet · atualizado às 12:20 (há 2h)');
+ assert.equal(ctx.savedStatus(now-26*3600000,'failure'),'Sem confirmação atual · atualizado em 05/10 às 12:20 (há 26h)');
+ assert.equal(ctx.savedStatus(now-5*60000,'loading'),'Atualizando… · atualizado às 14:15 (há 5 min)');
+});
