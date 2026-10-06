@@ -215,6 +215,54 @@
     return {chance:Math.round(chance), volume:volumeRounded, peak:round(peak,1), intensity, window, meta};
   }
 
+  // "Vai chover?": uma linha para as próximas horas. A hora que começa em times[i] usa o
+  // intervalo que termina em i+1 (convenção Open-Meteo, também aplicada ao MET). Valor
+  // ausente não é tempo seco: a resposta só cobre as horas com leitura.
+  const STORM_CODES = new Set([95, 96, 99]);
+  const hourLabel = value => { const hour = Number(String(value || "").slice(11, 13)); return Number.isFinite(hour) ? `${hour}h` : clock(value); };
+  const rainIntensity = mm => mm >= 7.5 ? "forte" : mm >= 2.5 ? "moderada" : "fraca";
+  // Código atual de chuva/trovoada vale como "chovendo agora", mesmo se a série horária
+  // discordar; a intensidade vem do próprio código (garoa/fraca, moderada, forte).
+  const CURRENT_RAIN = {51:"fraca",53:"fraca",55:"fraca",56:"fraca",57:"fraca",61:"fraca",80:"fraca",66:"fraca",63:"moderada",81:"moderada",65:"forte",67:"forte",82:"forte"};
+  function rainAnswer(hourly, start, {horizon = 12, current = null} = {}) {
+    const times = hourly?.time || [];
+    const unknown = {tone:"unknown", text:"Previsão de chuva indisponível.", hours:0};
+    if (!(start >= 0) || !times[start]) return unknown;
+    const hours = [];
+    for (let index = start; index < Math.min(times.length - 1, start + horizon); index += 1) {
+      if (Date.parse(times[index].slice(0,16)+"Z") + 3600000 !== Date.parse(times[index+1]?.slice(0,16)+"Z")) break;
+      const mm = number(hourly.precipitation?.[index+1]);
+      const chance = number(hourly.precipitation_probability?.[index+1]);
+      if ((mm === null || mm < 0) && (chance === null || chance < 0 || chance > 100)) break;
+      hours.push({time:times[index], mm:mm !== null && mm >= 0 ? mm : null, chance:chance !== null && chance >= 0 && chance <= 100 ? chance : null,
+        storm:STORM_CODES.has(number(hourly.weather_code?.[index+1]))});
+    }
+    if (!hours.length) return unknown;
+    const nowCode = number(current?.weather_code);
+    if (nowCode !== null && (CURRENT_RAIN[nowCode] || STORM_CODES.has(nowCode))) Object.assign(hours[0],{now:true,storm:hours[0].storm || STORM_CODES.has(nowCode),nowIntensity:CURRENT_RAIN[nowCode] || null});
+    const wet = hour => hour.now || (hour.mm !== null && hour.mm >= 0.5) || (hour.chance !== null && hour.chance >= 50 && (hour.mm === null || hour.mm >= 0.1));
+    const first = hours.findIndex(wet);
+    if (first >= 0) {
+      let end = first;
+      while (end + 1 < hours.length && wet(hours[end + 1])) end += 1;
+      const span = hours.slice(first, end + 1);
+      const storm = span.some(hour => hour.storm);
+      const peak = Math.max(0, ...span.map(hour => hour.mm ?? 0));
+      const order = ["fraca","moderada","forte"];
+      const intensity = [rainIntensity(peak), ...span.map(hour => hour.nowIntensity).filter(Boolean)].reduce((a,b) => order.indexOf(b) > order.indexOf(a) ? b : a);
+      const kind = storm ? "trovoada" : `chuva ${intensity}`;
+      if (first === 0) {
+        const tail = end + 1 < hours.length ? `deve parar por volta das ${hourLabel(hours[end + 1].time)}` : `sem pausa prevista nas próximas ${hours.length} horas`;
+        return {tone:storm ? "storm" : "rain", text:`${kind[0].toUpperCase()}${kind.slice(1)} agora; ${tail}.`, hours:hours.length, start:hours[0].time};
+      }
+      return {tone:storm ? "storm" : "rain", text:`Leve guarda-chuva: ${kind} a partir das ${hourLabel(hours[first].time)}.`, hours:hours.length, start:hours[first].time};
+    }
+    const maybe = hours.find(hour => hour.chance !== null && hour.chance >= 30);
+    if (maybe) return {tone:"maybe", text:`Pode chover a partir das ${hourLabel(maybe.time)} (${Math.round(maybe.chance)}% de chance).`, hours:hours.length, start:maybe.time};
+    if (hours.length < 3) return unknown;
+    return {tone:"dry", text:`Sem chuva prevista nas próximas ${hours.length} horas.`, hours:hours.length};
+  }
+
   function build(input) {
     const forecast = input?.forecast || input || {};
     const hourly = forecast.hourly || {};
@@ -243,5 +291,5 @@
     };
   }
 
-  return {currentIndex, yesterday, feelsLike, uv, pressure, rain, humidity, humidityLevel, particles, build, uniqueHighlights};
+  return {currentIndex, yesterday, feelsLike, uv, pressure, rain, rainAnswer, humidity, humidityLevel, particles, build, uniqueHighlights};
 });

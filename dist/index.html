@@ -279,6 +279,7 @@
               <div class="temperature"><span id="temperature"><span class="sk sk-temp" aria-hidden="true"></span></span><span class="deg">°</span></div>
             </div>
             <p class="condition" id="condition">Consultando o tempo…</p>
+            <p class="rain-answer" id="rainAnswer" data-tone="loading"><span class="sk sk-line" aria-hidden="true"></span></p>
           </div>
         </article>
       </section>
@@ -310,7 +311,7 @@
       </section>
       <section class="rain-section section-block" id="chuva">
         <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h2>Previsão por hora</h2></div><div class="dry-window"><span>PRÓXIMA JANELA SECA</span><strong id="dryWindow">Calculando…</strong></div></div>
-        <p class="rain-phrase panel" id="rainPhraseWrap"><strong id="rainPhrase">Lendo as próximas horas…</strong><small id="rainPhraseMeta">Open-Meteo</small></p>
+        <p class="rain-phrase panel" id="rainPhraseWrap"><small id="rainPhraseMeta">Open-Meteo</small></p>
         <details class="hourly-chart-details" id="hourlyChartDetails"><summary>Gráfico por hora <span>Tempo, sensação, chuva e vento</span></summary>
         <div class="hourly-modes" role="group" aria-label="Dado da previsão por hora"><button type="button" data-hourly-mode="conditions" aria-pressed="true">Tempo</button><button type="button" data-hourly-mode="feels" aria-pressed="false">Sensação</button><button type="button" data-hourly-mode="rain" aria-pressed="false">Chuva</button><button type="button" data-hourly-mode="wind" aria-pressed="false">Vento</button></div>
         <p id="hourlyChartLegend" class="hourly-chart-legend">Barras mostram a temperatura; a sensação aparece abaixo. Horários locais da cidade.</p>

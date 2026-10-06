@@ -576,12 +576,19 @@ function formatUpdateTime(at) {
 }
 
 
+function setRainAnswer(answer) {
+  const node = $("rainAnswer");
+  if (!node) return;
+  node.textContent = answer.text;
+  node.dataset.tone = answer.tone;
+}
+
 function clearWeatherInsights() {
   ["feelsLikeNote","uvNote","rainPhraseMeta"].forEach(id => {
     const node = $(id);
     if (node) node.textContent = "";
   });
-  if ($("rainPhrase")) $("rainPhrase").textContent = "Previsão de chuva indisponível.";
+  setRainAnswer({tone:"unknown",text:"Previsão de chuva indisponível."});
 }
 
 function renderAirParticles(air) {
@@ -618,13 +625,9 @@ function renderWeatherInsights(data, air, start) {
   const thermal = weatherInsights?.feelsLike?.(data.current);
   const rain = weatherInsights?.rain?.(data.hourly, start);
   if ($("feelsLikeNote") && thermal) $("feelsLikeNote").textContent = thermal.label;
-  if ($("rainPhrase")) {
-    $("rainPhrase").textContent = !rain ? "Previsão de chuva indisponível."
-      : rain.chance >= 60 && rain.volume >= 5 ? "Chuva significativa prevista nas próximas 12 horas."
-      : rain.chance >= 35 && rain.window ? `Possibilidade de chuva entre ${rain.window}.`
-      : rain.chance >= 35 ? "Possibilidade de chuva nas próximas 12 horas."
-      : "Baixa probabilidade de chuva nas próximas 12 horas.";
-  }
+  // "Vai chover?" no topo; a frase equivalente da seção por hora foi retirada a pedido.
+  setRainAnswer(weatherInsights?.rainAnswer?.(data.hourly, start, {current:data.current}) || {tone:"unknown",text:"Previsão de chuva indisponível."});
+  if ($("rainPhraseMeta") && data.pluviaReduced) { $("rainPhraseMeta").textContent = "Previsão reduzida · volume de chuva: MET Norway (CC BY 4.0); sem chance de chuva nesta fonte"; return; }
   if ($("rainPhraseMeta")) $("rainPhraseMeta").textContent = rain?.meta ? rain.meta + (data.pluviaSources?.metNorway?.includes('hourly.precipitation') ? ' · volume: MET Norway; probabilidade: Open-Meteo' : ' · Open-Meteo') : '';
 }
 
@@ -952,7 +955,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["airValue","rainPhrase","temperature","feelsLike","feelsLikeNote","condition","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","moonrise","moonset","astronomyDate"].filter(id=>$(id));
+const cityResetIds = ["airValue","rainAnswer","temperature","feelsLike","feelsLikeNote","condition","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","moonrise","moonset","astronomyDate"].filter(id=>$(id));
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;
