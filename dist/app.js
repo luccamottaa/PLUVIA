@@ -1254,7 +1254,10 @@ setupScrollAnimations();
 setupPullToRefresh();
 updateClock();
 setInterval(updateClock, 30000);
-requestLocation();
+// A city page (/clima/<nome>-<uf>/) shows its own city: an automatic position, which
+// needs no prompt when permission was granted before, would replace it and its URL.
+// The location buttons keep working there on request.
+if (!document.querySelector?.('meta[name="pluvia-city"]')) requestLocation();
 setInterval(() => { if (!document.hidden) refreshAll(); }, AUTO_REFRESH_MS);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) updateClock(); refreshIfStale(); });
 window.addEventListener("pageshow", () => { updateClock(); refreshIfStale(); });

@@ -29,6 +29,7 @@ node scripts/generate-city-pages.cjs --check  # falha se algo estiver desatualiz
 
 - **Cidade da página:** abre a própria cidade, como uma escolha explícita, mesmo com outra cidade salva. A escolha passa a ser a cidade salva, como numa troca manual.
 - **Aviso de localização:** não aparece na página de cidade.
+- **Localização automática:** a página de cidade não pede GPS ao abrir. Com a permissão já concedida, o GPS responderia sem perguntar e trocaria a cidade e a URL. Os botões de localização continuam funcionando quando a pessoa toca.
 - **Troca de cidade numa página de cidade:**
   - a URL acompanha a cidade com `history.replaceState`: outra capital vai para a página dela, e um município sem página volta para `/`;
   - na Home o endereço nunca muda;
