@@ -703,3 +703,24 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 #weatherView .sun-arc .moon-dot { position:absolute; width:52px; height:52px; transform:translate(-50%,-50%); filter:drop-shadow(0 0 10px rgba(196,216,255,.35)); pointer-events:none; }
 #weatherView .sun-arc .moon-dot[hidden] { display:none; }
 #weatherView .sun-arc .moon-dot svg { display:block; width:100%; height:100%; overflow:visible; }
+
+/* Skeleton loading: placeholder bars in the reading ink (dark by day, light at night and on
+   dark rain skies), with a light sweep that moves only by transform. Values replace them on
+   the first render; reduced motion keeps the bars still. */
+#weatherView .sk { position:relative; display:inline-block; overflow:hidden; vertical-align:middle; border-radius:8px; background:color-mix(in srgb,var(--reading-ink) 13%,transparent); }
+#weatherView .sk::after { content:""; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--reading-ink) 16%,transparent),transparent); animation:pluvia-skeleton 1.4s ease-in-out infinite; }
+#weatherView .sk-temp { width:2.1ch; height:.72em; border-radius:18px; }
+#weatherView .sk-num { width:3.2ch; height:.85em; }
+#weatherView .sk-wide { width:5ch; }
+#weatherView .sk-line { width:min(11rem,90%); height:.8em; border-radius:6px; }
+#weatherView .sk-short { width:3.5rem; }
+#weatherView .sk-icon { width:30px; height:30px; border-radius:50%; }
+#weatherView .sk-bar { width:min(9rem,45%); height:.6em; border-radius:6px; }
+#weatherView .sk-block { display:block; width:100%; height:150px; border-radius:16px; }
+#weatherView .sk-peek { display:grid; justify-items:center; align-content:start; gap:10px; min-width:64px; padding:6px 0; }
+#weatherView .sk-row { display:grid; grid-template-columns:minmax(0,5rem) 30px minmax(0,1fr); align-items:center; justify-items:start; gap:14px; min-height:52px; padding:0 4px; border-bottom:1px solid var(--reading-line); }
+#weatherView .sk-row .sk-bar { justify-self:end; }
+#weatherView.initial-loading :is(.temperature,.current-bottom strong,.metric strong) { animation:none; }
+#weatherView.initial-loading .temperature .deg { visibility:hidden; }
+@keyframes pluvia-skeleton { to { transform:translateX(100%); } }
+@media (prefers-reduced-motion:reduce) { #weatherView .sk::after { animation:none; display:none; } }

@@ -774,6 +774,10 @@ async function loadWeather(revision = cityRevision) {
     globalThis.PLUVIA?.sources.set("weather",{status:displayedWeather ? "stale" : "error"});
     globalThis.PLUVIA?.sources.set("air-quality",{status:displayedWeather?.air ? "stale" : "error"});
     if (!displayedWeather) {
+      // Sem dado algum, o skeleton daria a impressão de carregamento sem fim: os valores ficam indisponíveis.
+      for (const id of ["temperature","feelsLike","todayHigh","todayLow","visibilityValue","humidity","wind","pressure","uv","airValue","airQuality"]) $(id).textContent = "--";
+      for (const id of ["feelsLikeNote","visibilityNote","humidityNote","windNote","pressureNote","uvNote"]) $(id).textContent = "—";
+      $("airNote").textContent = "AQI indisponível";
       $("condition").textContent = "Tempo indisponível";
       renderVisibility(null);
       $("rainChart").innerHTML = '<p class="chart-loading">Previsão indisponível. Tentaremos novamente.</p>';
@@ -948,7 +952,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["temperature","feelsLike","feelsLikeNote","condition","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","moonrise","moonset","astronomyDate"].filter(id=>$(id));
+const cityResetIds = ["airValue","rainPhrase","temperature","feelsLike","feelsLikeNote","condition","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","moonrise","moonset","astronomyDate"].filter(id=>$(id));
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;
@@ -1032,7 +1036,6 @@ function chooseCity(id, locatedCity = null) {
   $("errorToast").setAttribute("aria-hidden","true");
   const saved = cached();
   if (!saved) {
-    cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
     delete $("airQualityCard").dataset.aqiLevel;
     $("humidity").closest?.(".metric")?.removeAttribute("data-humidity-level");
     renderAirQuality(null);
@@ -1041,6 +1044,8 @@ function chooseCity(id, locatedCity = null) {
     $("visibilityBadge").hidden = true;
     $("windCompass").style.setProperty?.("--wind-visible","0");
     clearWeatherInsights();
+    // Por último: o conteúdo inicial (skeleton) não pode ser sobrescrito por textos de "indisponível".
+    cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
     $("sunDot").hidden = true;
     if ($("moonDot")) $("moonDot").hidden = true;
     $("condition").textContent = "Consultando as condições em " + city.name + "…";
