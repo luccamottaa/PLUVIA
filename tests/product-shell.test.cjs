@@ -102,7 +102,7 @@ assert.doesNotMatch(app, /document\.title\s*=/);
 assert.match(html, /modules\/radar-probe\.js\?v=core-70/);
 assert.match(html, /pluviaweather\.com\.br/);
 assert.match(app, /prefetchForecast/);
-assert.match(app, /Atualizando… · leitura salva/);
+assert.match(app, /savedStatus\(saved\.weatherAt \|\| saved\.at, isOffline\(\) \? "offline" : "loading"\)/);
 assert.ok(app.indexOf('sources.set("alerts",{status:"ready"') < app.indexOf('renderInmetAlerts(raw);'), 'INMET must be ready before alert render repaints the signal');
 assert.match(app, /radar\?\.reset\?\.\(city\.id\)/);
 assert.match(app, /services\?\.abortAll\(\)/);

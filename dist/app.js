@@ -29,7 +29,8 @@ async function fetchForecast(city = activeCity, revision = cityRevision) {
       return data;
     } catch (error) {
       lastError = error;
-      if (!error?.retryable || revision !== cityRevision) throw error;
+      // Sem rede, repetir só atrasa a leitura salva; o evento online dispara a nova consulta.
+      if (!error?.retryable || revision !== cityRevision || globalThis.navigator?.onLine === false) throw error;
     }
   }
   throw lastError;
@@ -628,7 +629,8 @@ function renderWeatherInsights(data, air, start) {
 }
 
 function markWeatherUnavailable(hasSavedData) {
-  setDataStatus(hasSavedData ? "Dados salvos · sem confirmação atual" : "Conexão indisponível", true);
+  const offline = isOffline();
+  setDataStatus(hasSavedData ? savedStatus(displayedWeather?.weatherAt, offline ? "offline" : "failure") : offline ? "Sem internet" : "Conexão indisponível", true);
   if (hasSavedData) {
     weatherData?.markStale?.(activeCity.id);
     globalThis.dispatchEvent?.(new CustomEvent('pluvia:weather-updated',{detail:{cityId:activeCity.id}}));
@@ -640,6 +642,20 @@ function markWeatherUnavailable(hasSavedData) {
   clearWeatherInsights();
 }
 
+// Horário em que a previsão salva foi baixada, no fuso da cidade: "às 14:20" hoje,
+// "em 05/10 às 14:20" em outro dia, sempre com a idade relativa.
+function savedAtLabel(at) {
+  if (!Number.isFinite(at)) return "horário não informado";
+  const zone = activeCity?.timezone || 'UTC';
+  const day = value => globalThis.PLUVIA?.time?.dayKey?.(value, activeCity) ?? new Date(value).toDateString();
+  const date = day(at) === day(Date.now()) ? "" : `em ${new Intl.DateTimeFormat('pt-BR',{timeZone:zone,day:'2-digit',month:'2-digit'}).format(at)} `;
+  return `${date}às ${formatUpdateTime(at)} (${dataAge(at)})`;
+}
+function savedStatus(at, reason) {
+  const prefix = reason === "offline" ? "Sem internet" : reason === "loading" ? "Atualizando…" : "Sem confirmação atual";
+  return `${prefix} · atualizado ${savedAtLabel(at)}`;
+}
+function isOffline() { return globalThis.navigator?.onLine === false; }
 function dataAge(at) {
   const minutes = Math.max(0, Math.round((Date.now() - at) / 60000));
   if (minutes < 1) return "agora";
@@ -684,7 +700,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   renderAirDetails(weatherData?.get(activeCity.id));
   if (air && !metadata.freshAir) $("airNote").textContent += ' · leitura anterior';
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
-  setDataStatus(fromCache ? `Última atualização ${formatUpdateTime(observedAt)} · dados salvos de ${dataAge(cacheAt || Date.now())}`
+  setDataStatus(fromCache ? savedStatus(cacheAt || observedAt, isOffline() ? "offline" : "failure")
     : data.pluviaReduced ? `Previsão reduzida · MET Norway · ${formatUpdateTime(observedAt)}` : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache || Boolean(data.pluviaReduced));
   renderVisibility(data.hourly.visibility?.[start], fromCache);
   renderHourly(data.hourly, start, day);
@@ -1042,7 +1058,7 @@ function chooseCity(id, locatedCity = null) {
   if (saved) {
     const savedAir = weatherData?.cachedAir(saved);
     render(saved.data.forecast,savedAir?.air,true,saved.weatherAt || saved.at,{airAt:savedAir?.at});
-    setDataStatus(`Atualizando… · leitura salva de ${dataAge(saved.at)}`, true);
+    setDataStatus(savedStatus(saved.weatherAt || saved.at, isOffline() ? "offline" : "loading"), true);
   } else {
     setDataStatus("Consultando o tempo em " + city.name);
   }
@@ -1181,4 +1197,8 @@ setInterval(() => { if (!document.hidden) refreshAll(); }, AUTO_REFRESH_MS);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) updateClock(); refreshIfStale(); });
 window.addEventListener("pageshow", () => { updateClock(); refreshIfStale(); });
 window.addEventListener("online", () => refreshAll());
+// A queda da conexão aparece na hora, sem esperar a próxima consulta falhar.
+window.addEventListener("offline", () => {
+  if (displayedWeather) setDataStatus(savedStatus(displayedWeather.weatherAt, "offline"), true);
+});
 document.addEventListener("visibilitychange", () => document.body.classList.toggle("page-hidden", document.hidden));

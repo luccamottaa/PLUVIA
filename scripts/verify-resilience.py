@@ -9,7 +9,7 @@ base=json.loads(subprocess.check_output(['node','-e',"process.stdout.write(JSON.
 preview=os.environ.get('PLUVIA_PREVIEW_URL','http://127.0.0.1:4173')
 output=Path(os.environ.get('PLUVIA_QA_OUTPUT','/tmp/pluvia-resilience'))/'resilience';output.mkdir(parents=True,exist_ok=True)
 fixed=datetime.datetime(2026,10,6,18,20,tzinfo=datetime.timezone.utc)
-mode={'open_meteo':'down','met':'up'};calls={'open_meteo':0,'met':0};errors=[]
+mode={'open_meteo':'down','met':'up','offline':False};calls={'open_meteo':0,'met':0};errors=[]
 def weather(tz):
  data=json.loads(json.dumps(base));data['timezone']=tz;local=fixed.astimezone(datetime.timezone(datetime.timedelta(hours=-4)))
  data['current']['time']=local.strftime('%Y-%m-%dT%H:%M')
@@ -28,6 +28,8 @@ with sync_playwright() as p:
  context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,timezone_id='Asia/Tokyo',service_workers='block',reduced_motion='reduce')
  def route(r):
   url=r.request.url
+  # As rotas têm precedência sobre o modo offline do navegador: a queda é simulada aqui também.
+  if mode['offline'] and urlparse(url).hostname not in ['127.0.0.1','localhost']:r.abort('internetdisconnected');return
   if 'api.open-meteo.com/v1/forecast' in url:
    calls['open_meteo']+=1
    if mode['open_meteo']=='down':r.fulfill(status=503,body='{}',content_type='application/json');return
@@ -66,9 +68,23 @@ with sync_playwright() as p:
  report['recovered']=True
  # 3. As duas fontes fora com dado salvo recente: mostra o salvo, uma única mensagem.
  mode.update(open_meteo='down',met='down');page.reload(wait_until='domcontentloaded');page.clock.run_for(2000)
- page.wait_for_function("document.getElementById('statusText').textContent.includes('dados salvos') || document.getElementById('statusText').textContent.includes('Dados salvos')",timeout=30000)
+ page.wait_for_function("document.getElementById('dataStatus').dataset.freshness==='stale' && /^Sem confirmação atual · atualizado às \\d\\d:\\d\\d \\(/.test(document.getElementById('statusText').textContent)",timeout=30000)
  assert 'última previsão salva' in page.locator('#errorMessage').text_content()
  page.screenshot(path=str(output/'saved.png'));report['savedFallback']=True
+ # 4. Conexão cai com o app aberto: o status mostra na hora o horário da última atualização,
+ # e a consulta sem rede não fica repetindo (falha rápida, sem as esperas de 1s/3s).
+ mode.update(open_meteo='up',met='up');page.reload(wait_until='domcontentloaded');page.clock.run_for(2000)
+ page.wait_for_function("document.getElementById('statusText').textContent.startsWith('Atualizado')",timeout=30000)
+ context.set_offline(True);mode['offline']=True
+ page.wait_for_function("/^Sem internet · atualizado às \\d\\d:\\d\\d \\(agora\\)$/.test(document.getElementById('statusText').textContent)",timeout=10000)
+ before=calls['open_meteo']
+ took=page.evaluate("async()=>{const t=performance.now();await refreshAll();return performance.now()-t;}")
+ assert took<2500,('sem rede, a consulta falha rápido, sem esperar as novas tentativas',took)
+ assert page.evaluate("document.getElementById('temperature').textContent")!='--' and page.locator('#statusText').text_content().startswith('Sem internet · atualizado às'),page.locator('#statusText').text_content()
+ page.screenshot(path=str(output/'offline.png'));report['offline']={'status':page.locator('#statusText').text_content(),'refreshMs':round(took)}
+ context.set_offline(False);mode['offline']=False
+ page.wait_for_function("document.getElementById('statusText').textContent.startsWith('Atualizado')",timeout=20000)
+ report['backOnline']=True
  assert not errors,errors
  browser.close()
 print(json.dumps({**report,'errors':errors},ensure_ascii=False))
