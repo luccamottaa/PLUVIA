@@ -38,17 +38,35 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   }).catch(() => {});
   else {
     if (typeof prefetchForecast === "function" && fallback) prefetchForecast(fallback);
-    fallbackTimer = setTimeout(() => {
-    if (activeCity || !fallback) return;
-    chooseCity(fallback.id);
+    // index.html already shows this notice in the first paint when no city is
+    // saved: inserting it above the painted skeleton 1.5s later shifted the whole
+    // page. An account city that arrives first goes through chooseCity, which
+    // hides it again.
     const notice = document.getElementById("locationNotice");
-    if (notice) {
+    const showNotice = () => {
+      if (!notice) return;
       notice.hidden = false;
       notice.innerHTML = 'Localização indisponível. Manaus está selecionada como referência. <button type="button" id="noticeChangeCity">Trocar cidade</button>';
-      document.getElementById("noticeChangeCity")?.addEventListener("click", openCitySearch);
-    }
-    locationMessage("Localização indisponível. Manaus foi selecionada como referência. É possível trocar a cidade a qualquer momento.");
-  }, 1500);
+      document.getElementById("noticeChangeCity")?.addEventListener("click", () => openCitySearch());
+    };
+    if (fallback) showNotice();
+    else if (notice) notice.hidden = true;
+    const pickFallback = () => {
+      if (activeCity || !fallback) return;
+      chooseCity(fallback.id);
+      showNotice(); // chooseCity clears the notice of an explicit selection
+      locationMessage("Localização indisponível. Manaus foi selecionada como referência. É possível trocar a cidade a qualquer momento.");
+    };
+    // The wait only lets a restored account apply its main city. Without a saved
+    // Supabase session or an OAuth return in the URL nothing can arrive, so the
+    // first visit gets its forecast without the fixed delay.
+    let accountMayRestore = true;
+    try {
+      accountMayRestore = /[?&#](auth_return|code|access_token|error)=/.test(location.search + location.hash) ||
+        Object.keys(localStorage).some(key => /^sb-.+-auth-token$/.test(key));
+    } catch {}
+    if (accountMayRestore) fallbackTimer = setTimeout(pickFallback, 1500);
+    else pickFallback();
   }
   const welcome = document.getElementById("locationWelcome");
   if (welcome) welcome.hidden = true;

@@ -79,7 +79,7 @@ test('o cliente consulta o MET Norway e apresenta a atribuição da previsão co
   assert.doesNotMatch(html,/id="forecastSourceNote"/);
   assert.match(html,/creativecommons\.org\/licenses\/by\/4\.0/);
   const app=fs.readFileSync('dist/app.js','utf8');
-  assert.match(app,/await fetchForecast\(city,revision\)/);
+  assert.match(app,/fetchForecast\(city,revision\)/);
   assert.match(app,/services\.airQuality\.getCurrent\(city\)/);
   assert.match(app,/services\.metNorway\.getForecast\(city\)/);
   assert.match(app,/loadWeather\(revision\), loadInmetAlerts\(revision\)/);
