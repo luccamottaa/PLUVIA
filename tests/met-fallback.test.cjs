@@ -76,6 +76,5 @@ test('status de dado salvo mostra o horário da última atualização no fuso da
  vm.runInContext(body,ctx);
  assert.equal(ctx.savedStatus(now-2*3600000,'offline'),'Sem internet · atualizado às 12:20 (há 2h)');
  assert.equal(ctx.savedStatus(now-26*3600000,'failure'),'Sem confirmação atual · atualizado em 05/10 às 12:20 (há 26h)');
- assert.equal(ctx.savedStatus(now-5*60000,'loading'),'Atualizando…');
- assert.equal(ctx.savedStatus(now-40*60000,'loading'),'Atualizando… · atualizado às 13:40 (há 40 min)');
+ assert.equal(ctx.savedStatus(now-5*60000,'loading'),'Atualizando… · atualizado às 14:15 (há 5 min)');
 });

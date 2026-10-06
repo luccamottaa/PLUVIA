@@ -49,7 +49,9 @@ function prefetchForecast(city) {
   promise.then(data => {
     try {
       if (localStorage.getItem(`pluvia-weather-${city.id}`)) return;
-      localStorage.setItem(`pluvia-weather-${city.id}`, JSON.stringify({at:Date.now(),weatherAt:Date.now(),airAt:null,data:{forecast:data,air:null}}));
+      const at = Date.now();
+      localStorage.setItem(`pluvia-weather-${city.id}`, JSON.stringify({at,weatherAt:at,airAt:null,data:{forecast:data,air:null}}));
+      prefetchSavedAt = at;
     } catch {}
   }).catch(() => {});
 }
@@ -679,9 +681,7 @@ function savedAtLabel(at) {
   const date = day(at) === day(Date.now()) ? "" : `em ${new Intl.DateTimeFormat('pt-BR',{timeZone:zone,day:'2-digit',month:'2-digit'}).format(at)} `;
   return `${date}às ${formatUpdateTime(at)} (${dataAge(at)})`;
 }
-function recentlySaved(at) { return Date.now() - at < 10 * 60000; }
 function savedStatus(at, reason) {
-  if (reason === "loading" && recentlySaved(at)) return "Atualizando…";
   const prefix = reason === "offline" ? "Sem internet" : reason === "loading" ? "Atualizando…" : "Sem confirmação atual";
   return `${prefix} · atualizado ${savedAtLabel(at)}`;
 }
@@ -837,7 +837,7 @@ async function loadWeather(revision = cityRevision) {
 // Preferimos dados salvos recentes (completos) a ela; acima de 3h, a reduzida é mais útil.
 // The opening prefetches the fallback city's forecast; its first load reuses that
 // request instead of downloading the same forecast again a moment later.
-let prefetchedForecast = null;
+let prefetchedForecast = null, prefetchSavedAt = 0;
 function takePrefetchedForecast(city) {
   const entry = prefetchedForecast;
   prefetchedForecast = null;
@@ -1103,9 +1103,11 @@ function chooseCity(id, locatedCity = null) {
     const savedAir = weatherData?.cachedAir(saved);
     render(saved.data.forecast,savedAir?.air,true,saved.weatherAt || saved.at,{airAt:savedAir?.at});
     const savedAt = saved.weatherAt || saved.at, offline = isOffline();
-    // Minutes-old data (often this opening's own prefetch) reads as current while it
-    // refreshes; showing then hiding the status line only shifted the page.
-    setDataStatus(savedStatus(savedAt, offline ? "offline" : "loading"), offline || !recentlySaved(savedAt));
+    // Only this opening's own prefetch reads as current while it refreshes (showing then
+    // hiding the status shifted the page). Any other saved reading, however recent, keeps
+    // the visible status: the refresh may still fail.
+    const ownPrefetch = !offline && saved.at === prefetchSavedAt;
+    setDataStatus(ownPrefetch ? "Atualizando…" : savedStatus(savedAt, offline ? "offline" : "loading"), !ownPrefetch);
   } else {
     setDataStatus("Consultando o tempo em " + city.name);
   }

@@ -32,7 +32,8 @@ Acessibilidade automática já estava em 100. Isso cobre labels, contraste das a
    - O skeleton passou a usar as mesmas classes do item real (`hourly-peek-item sk-peek` com `peek-*`), então a altura vem do mesmo CSS.
 3. **Card INMET carregando** reserva a linha da leitura (`#inmetContent:empty`).
 4. **Status "Atualizando…"** aparecia e sumia em 300 ms com uma leitura de minutos atrás.
-   - Leitura salva há menos de 10 min (`recentlySaved`) aparece como atual enquanto atualiza.
+   - Somente a leitura gravada pelo prefetch desta mesma abertura aparece como atual enquanto atualiza.
+   - Uma regra anterior, "menos de 10 min", escondia por até ~30 s o status de leitura salva quando a rede travava num recarregamento. O WebKit da CI pegou o problema.
    - Offline ou leitura mais antiga continuam com o status visível.
 5. **Skip link**: até o `styles.css` (assíncrono) chegar, ele ocupava 20 px no fluxo e depois subia a página. O posicionamento foi para o CSS crítico inline.
 6. **Coluna do desktop**: antes do `styles.css`, o `main` ocupava a largura toda.
