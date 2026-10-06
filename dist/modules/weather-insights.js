@@ -270,6 +270,43 @@
     return {tone:"dry", text:`Sem chuva prevista nas próximas ${hours.length} horas.`, hours:hours.length};
   }
 
+  // Dicas curtas a partir dos dados das próximas horas, sem tom alarmista. Só aparecem quando há
+  // algo para fazer; valores ausentes são ignorados (nunca viram zero). No máximo três, pela ordem
+  // rajadas, calor, ar, UV. Limiares: rajada ≥ 50 km/h; sensação ≥ 41° (faixa de perigo do índice
+  // de calor; abaixo disso seria dica diária no Norte); US AQI > 100; UV ≥ 6 no resto do dia.
+  function tips(forecast, air = null, start = 0, {horizon = 12} = {}) {
+    const hourly = forecast?.hourly || {};
+    const times = hourly.time || [];
+    if (!(start >= 0) || !times[start]) return [];
+    const ahead = [];
+    for (let index = start; index < Math.min(times.length, start + horizon); index += 1) ahead.push(index);
+    const peakOf = key => ahead.reduce((best, index) => {
+      const value = number(hourly[key]?.[index]);
+      return value !== null && value >= 0 && (!best || value > best.value) ? {value, index} : best;
+    }, null);
+    const result = [];
+    const gust = peakOf("wind_gusts_10m");
+    if (gust && gust.value >= 50) result.push({kind:"wind", text:`Rajadas de até ${Math.round(gust.value)} km/h por volta ${hourPhrase(times[gust.index])}: atenção a objetos soltos e galhos.`});
+    const heat = peakOf("apparent_temperature");
+    if (heat && heat.value >= 41) result.push({kind:"heat", text:`Sensação de até ${Math.round(heat.value)}° por volta ${hourPhrase(times[heat.index])}: beba água e evite esforço no sol.`});
+    const aqi = number(air?.current?.us_aqi);
+    if (aqi !== null && aqi > 150) result.push({kind:"air", text:"Ar ruim: prefira atividades leves e em ambientes internos."});
+    else if (aqi !== null && aqi > 100) result.push({kind:"air", text:"Ar ruim para grupos sensíveis: evite exercício intenso ao ar livre."});
+    const today = day(times[start]);
+    const high = [];
+    for (let index = start; index < times.length && day(times[index]) === today; index += 1) {
+      const value = number(hourly.uv_index?.[index]);
+      if (value !== null && value >= 6) high.push({index, value});
+    }
+    if (high.length) {
+      const strongest = Math.max(...high.map(point => point.value));
+      const from = high[0].index, to = high[high.length - 1].index;
+      const window = from === to ? `por volta ${hourPhrase(times[from])}` : `${hourPhrase(times[from])} ${hourPhrase(times[to],"às")}`;
+      result.push({kind:"uv", text:`UV ${strongest >= 8 ? "muito alto" : "alto"} ${window}: use protetor e prefira a sombra.`});
+    }
+    return result.slice(0, 3);
+  }
+
   function build(input) {
     const forecast = input?.forecast || input || {};
     const hourly = forecast.hourly || {};
@@ -298,5 +335,5 @@
     };
   }
 
-  return {currentIndex, yesterday, feelsLike, uv, pressure, rain, rainAnswer, humidity, humidityLevel, particles, build, uniqueHighlights};
+  return {currentIndex, yesterday, feelsLike, uv, pressure, rain, rainAnswer, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
 });

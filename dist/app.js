@@ -576,6 +576,27 @@ function formatUpdateTime(at) {
 }
 
 
+// Dicas contextuais: somem quando não há nada para fazer. Texto entra como textContent.
+const TIP_ICONS = {wind:"wind-speed", heat:"feels-like", air:"air-quality", uv:"uv-index"};
+function renderTips(list) {
+  const section = $("tips"), target = $("tipsList");
+  if (!section || !target) return;
+  const items = Array.isArray(list) ? list : [];
+  section.hidden = items.length === 0;
+  if (!items.length) { target.textContent = ""; return; }
+  target.replaceChildren(...items.map(tip => {
+    const item = document.createElement("li");
+    item.dataset.tip = tip.kind;
+    const icon = document.createElement("span");
+    icon.className = "tip-icon"; icon.setAttribute("aria-hidden","true");
+    icon.innerHTML = weatherIcons?.lineMarkup?.(TIP_ICONS[tip.kind]) || "";
+    const text = document.createElement("span");
+    text.textContent = tip.text;
+    item.append(icon, text);
+    return item;
+  }));
+}
+
 function setRainAnswer(answer) {
   const node = $("rainAnswer");
   if (!node) return;
@@ -589,6 +610,7 @@ function clearWeatherInsights() {
     if (node) node.textContent = "";
   });
   setRainAnswer({tone:"unknown",text:"Previsão de chuva indisponível."});
+  renderTips([]);
 }
 
 function renderAirParticles(air) {
@@ -627,6 +649,7 @@ function renderWeatherInsights(data, air, start) {
   if ($("feelsLikeNote") && thermal) $("feelsLikeNote").textContent = thermal.label;
   // "Vai chover?" no topo; a frase equivalente da seção por hora foi retirada a pedido.
   setRainAnswer(weatherInsights?.rainAnswer?.(data.hourly, start, {current:data.current}) || {tone:"unknown",text:"Previsão de chuva indisponível."});
+  renderTips(weatherInsights?.tips?.(data, air, start));
   if ($("rainPhraseMeta") && data.pluviaReduced) { $("rainPhraseMeta").textContent = "Previsão reduzida · volume de chuva: MET Norway (CC BY 4.0); sem chance de chuva nesta fonte"; return; }
   if ($("rainPhraseMeta")) $("rainPhraseMeta").textContent = rain?.meta ? rain.meta + (data.pluviaSources?.metNorway?.includes('hourly.precipitation') ? ' · volume: MET Norway; probabilidade: Open-Meteo' : ' · Open-Meteo') : '';
 }

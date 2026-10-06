@@ -728,3 +728,10 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 /* "Vai chover?": uma linha logo abaixo da condição, na tinta de leitura. */
 #weatherView .rain-answer { margin:8px auto 0; max-width:32rem; color:var(--reading-ink); font-size:1rem; font-weight:500; line-height:1.4; text-align:center; text-wrap:balance; }
 #weatherView .rain-answer[data-tone="loading"] .sk-line { width:min(15rem,80%); }
+
+/* Dicas contextuais: lista curta, só quando há algo para fazer. */
+#weatherView .tips-section { margin:0; padding:14px 0 18px; border-bottom:1px solid var(--reading-line); }
+#weatherView .tips-title { margin:0 0 10px; color:var(--reading-muted); font-size:.8rem; font-weight:600; letter-spacing:.045em; text-transform:uppercase; }
+#weatherView .tips-list { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
+#weatherView .tips-list li { display:flex; align-items:flex-start; gap:10px; color:var(--reading-ink); font-size:.95rem; line-height:1.4; }
+#weatherView .tip-icon { flex:none; width:22px; height:22px; margin-top:1px; color:var(--graphic-blue); }
