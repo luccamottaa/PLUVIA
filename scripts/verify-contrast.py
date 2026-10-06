@@ -54,7 +54,7 @@ with sync_playwright() as p:
   rgb=el.evaluate("el=>getComputedStyle(el).color.match(/[\\d.]+/g).slice(0,3).map(Number)")
   result=page.evaluate("""async ({encoded,rgb})=>{const i=new Image();i.src='data:image/png;base64,'+encoded;await i.decode();const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const ctx=c.getContext('2d');ctx.drawImage(i,0,0);const data=ctx.getImageData(0,0,c.width,c.height).data,channels=[[],[],[]];for(let p=0;p<data.length;p+=4)for(let a=0;a<3;a++)channels[a].push(data[p+a]);const bg=channels.map(v=>v.sort((a,b)=>a-b)[Math.floor(v.length/2)]);const lum=v=>v.map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4}).reduce((s,v,i)=>s+v*[.2126,.7152,.0722][i],0);const a=lum(rgb),b=lum(bg);return {rgb,bg,contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05)}}""",{'encoded':encoded,'rgb':rgb})
   return result
- for hour,code,label in [(12,0,'sun'),(12,2,'partly'),(12,3,'cloud'),(12,65,'rain'),(12,95,'storm'),(12,45,'fog'),(6,1,'dawn'),(18,2,'dusk'),(22,0,'night')]:
+ for hour,code,label in [(12,0,'sun'),(12,2,'partly'),(12,3,'cloud'),(12,51,'drizzle'),(12,61,'light-rain'),(12,63,'moderate-rain'),(12,65,'rain'),(12,95,'storm'),(12,45,'fog'),(6,1,'dawn'),(18,2,'dusk'),(22,0,'night')]:
   page.clock.set_fixed_time(datetime.datetime(2026,10,4,0,0,tzinfo=datetime.timezone.utc)+datetime.timedelta(hours=hour+4))
   page.evaluate("({code})=>{displayedWeather.forecast.current.weather_code=code;render(displayedWeather.forecast,displayedWeather.air,false,Date.now())}",{'code':code})
   page.evaluate("document.getElementById('weatherFrameStatus').textContent='Carregando imagem…'")
@@ -70,6 +70,6 @@ with sync_playwright() as p:
    reports.append({'state':label,'selector':selector,**result})
   page.evaluate("document.getElementById('pluviaIntro').hidden=true")
  (output/'report.json').write_text(json.dumps(reports,ensure_ascii=False,indent=2))
- print(json.dumps({'contrastSamples':len(reports),'minimum':min(r['contrast'] for r in reports),'states':9,'errors':errors}))
+ print(json.dumps({'contrastSamples':len(reports),'minimum':min(r['contrast'] for r in reports),'states':12,'errors':errors}))
  assert not errors,errors
  browser.close()

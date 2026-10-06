@@ -373,13 +373,13 @@ html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dai
 
 /* The atmosphere palette lives in sky.css, including the opening. */
 body { background:var(--sky-base); --bg:var(--sky-base); }
-body[data-phase="day"] { --canvas-text:#123457; --canvas-muted:#294e72; }
-body[data-phase="day"] .topbar { background:transparent !important; box-shadow:none; }
-body[data-phase="day"] :is(.intro h1,.intro .eyebrow,.intro .clock-wrap small,.intro .clock-wrap strong,.weather-hero .temperature,.weather-hero .temperature .deg,.weather-hero .condition,.topbar .brand span:last-child,.topbar .account-trigger) { color:#123457; text-shadow:none; }
-body[data-phase="day"] .section-heading :is(h2,p),body[data-phase="day"] footer { color:#193d60; }
-body[data-phase="day"] .footer-link { color:#193d60; }
-body[data-phase="day"] .panel:not(.weather-hero):not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night),
-body[data-phase="day"] .hourly-peek.panel,body[data-phase="day"] .quick-metrics > .quick-metric.panel,body[data-phase="day"] .quick-metrics .hero-temperature-range {
+body[data-ink="dark"] { --canvas-text:#123457; --canvas-muted:#294e72; }
+body[data-ink="dark"] .topbar { background:transparent !important; box-shadow:none; }
+body[data-ink="dark"] :is(.intro h1,.intro .eyebrow,.intro .clock-wrap small,.intro .clock-wrap strong,.weather-hero .temperature,.weather-hero .temperature .deg,.weather-hero .condition,.topbar .brand span:last-child,.topbar .account-trigger) { color:#123457; text-shadow:none; }
+body[data-ink="dark"] .section-heading :is(h2,p),body[data-ink="dark"] footer { color:#193d60; }
+body[data-ink="dark"] .footer-link { color:#193d60; }
+body[data-ink="dark"] .panel:not(.weather-hero):not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night),
+body[data-ink="dark"] .hourly-peek.panel,body[data-ink="dark"] .quick-metrics > .quick-metric.panel,body[data-ink="dark"] .quick-metrics .hero-temperature-range {
   background:linear-gradient(145deg,rgba(23,65,111,.95),rgba(8,37,77,.94)) !important;
 }
 

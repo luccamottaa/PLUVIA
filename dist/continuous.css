@@ -58,7 +58,7 @@ html body .topbar {
   animation:none;
   color:#f2f7ff;
 }
-body[data-phase="day"] .topbar { color:#082744; }
+body[data-ink="dark"] .topbar { color:#082744; }
 .topbar::before,.topbar::after { display:none !important; }
 .topbar .brand { grid-column:2; grid-row:1; justify-self:center; min-height:44px; gap:2px; color:var(--brand-blue); }
 .topbar .brand .brand-mark { margin-left:0; visibility:visible; background-color:var(--brand-blue); }
@@ -117,7 +117,7 @@ body[data-phase="day"] .topbar { color:#082744; }
   margin-inline:auto;
   color:var(--reading-ink);
 }
-body[data-phase="day"] #weatherView {
+body[data-ink="dark"] #weatherView {
   --reading-ink:#082744;
   --reading-muted:#173c58;
   --reading-line:#12345730;
@@ -220,7 +220,7 @@ html body #weatherView .hero-temperature-range { border-radius:0 !important; }
 html body #weatherView .wind-compass { width:46px; height:46px; flex-basis:46px; }
 #weatherView .compass-labels { fill:var(--reading-muted); }
 #weatherView .compass-ring { stroke:var(--reading-line); }
-body[data-phase="day"] #weatherView .compass-tip { fill:#0757aa; stroke:#123457; }
+body[data-ink="dark"] #weatherView .compass-tip { fill:#0757aa; stroke:#123457; }
 #weatherView .uv-scale { grid-column:1/-1; margin:0; }
 html body #weatherView .metrics .air-metric { display:flex; gap:16px; padding:28px 0; }
 #weatherView .air-index b { color:var(--reading-ink); }
@@ -229,12 +229,12 @@ html body #weatherView .metrics .air-metric { display:flex; gap:16px; padding:28
 #weatherView .air-index b { white-space:nowrap; }
 #weatherView .air-description { min-width:0; }
 #weatherView :is(.air-index > span,.air-description small,.air-scale-labels,.air-source) { color:var(--reading-muted) !important; }
-body[data-phase="day"] #weatherView .air-metric[data-aqi-level="good"] { --aqi-accent:#096546; }
-body[data-phase="day"] #weatherView .air-metric[data-aqi-level="moderate"] { --aqi-accent:#725100; }
-body[data-phase="day"] #weatherView .air-metric[data-aqi-level="sensitive"] { --aqi-accent:#873a05; }
-body[data-phase="day"] #weatherView .air-metric[data-aqi-level="poor"] { --aqi-accent:#98283b; }
-body[data-phase="day"] #weatherView .air-metric[data-aqi-level="very-poor"] { --aqi-accent:#62398c; }
-body[data-phase="day"] #weatherView .air-metric[data-aqi-level="hazardous"] { --aqi-accent:#7a2653; }
+body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="good"] { --aqi-accent:#096546; }
+body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="moderate"] { --aqi-accent:#725100; }
+body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="sensitive"] { --aqi-accent:#873a05; }
+body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="poor"] { --aqi-accent:#98283b; }
+body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="very-poor"] { --aqi-accent:#62398c; }
+body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="hazardous"] { --aqi-accent:#7a2653; }
 #weatherView .insight-card .card-topline { flex-wrap:wrap; }
 #weatherView .insight-card :is(#attentionText,#attentionBasis,.context-highlights li) { color:var(--reading-muted); }
 #weatherView .insight-card .context-highlights { border-color:var(--reading-line); }
@@ -242,8 +242,8 @@ body[data-phase="day"] #weatherView .air-metric[data-aqi-level="hazardous"] { --
 #weatherView .insight-card .signal { background:none; padding:0; color:var(--reading-link); }
 #weatherView .insight-card.warning .signal { color:#dfae52; }
 #weatherView .insight-card.danger .signal { color:#ffabb9; }
-body[data-phase="day"] #weatherView .insight-card.warning .signal { color:#76500a; }
-body[data-phase="day"] #weatherView .insight-card.danger .signal { color:#92213b; }
+body[data-ink="dark"] #weatherView .insight-card.warning .signal { color:#76500a; }
+body[data-ink="dark"] #weatherView .insight-card.danger .signal { color:#92213b; }
 #weatherView .notification-prompt { padding:24px 0; border-top:1px solid var(--reading-line) !important; }
 #weatherView :is(.source-card,.weather-map-card) { padding:0; }
 #weatherView .source-content { padding:20px 0; }
@@ -291,7 +291,7 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
 /* Reading colors follow the actual sky phase, even on a dark-mode device. */
 #weatherView .temp-track { background:var(--reading-line); box-shadow:none; }
 #weatherView .temp-track .temp-now { background:#f8fbff; border-color:var(--reading-link); box-shadow:0 0 0 1px #f8fbff; }
-body[data-phase="day"] #weatherView [data-weather-layer]:not([aria-pressed="true"]) { background:#edf7fbd9 !important; color:#294e6b !important; border-color:#12345724 !important; }
+body[data-ink="dark"] #weatherView [data-weather-layer]:not([aria-pressed="true"]) { background:#edf7fbd9 !important; color:#294e6b !important; border-color:#12345724 !important; }
 #weatherView .weather-map-legend { background:var(--map-surface); color:var(--map-ink); border-color:var(--map-line); }
 #weatherView .weather-player { grid-template-columns:44px 48px 44px minmax(80px,1fr); gap:8px; }
 #weatherView .weather-player button { display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--map-line); border-radius:50%; background:var(--map-surface); color:var(--map-link); }
@@ -317,9 +317,9 @@ body[data-phase="day"] #weatherView [data-weather-layer]:not([aria-pressed="true
 #weatherView .inmet-orange,#alertDetail .inmet-orange { --alert-color:#ffba75; --alert-accent:#ee861d; }
 #weatherView .inmet-red,#alertDetail .inmet-red { --alert-color:#ffaba4; --alert-accent:#e1534b; }
 #alertDetail .inmet-unknown { --alert-color:var(--dialog-muted); --alert-accent:var(--dialog-muted); }
-body[data-phase="day"] #weatherView .inmet-yellow { --alert-color:#594000; --alert-accent:#ffca24; }
-body[data-phase="day"] #weatherView .inmet-orange { --alert-color:#713800; --alert-accent:#ff881e; }
-body[data-phase="day"] #weatherView .inmet-red { --alert-color:#812029; --alert-accent:#f54857; }
+body[data-ink="dark"] #weatherView .inmet-yellow { --alert-color:#594000; --alert-accent:#ffca24; }
+body[data-ink="dark"] #weatherView .inmet-orange { --alert-color:#713800; --alert-accent:#ff881e; }
+body[data-ink="dark"] #weatherView .inmet-red { --alert-color:#812029; --alert-accent:#f54857; }
 
 /* Official notices have their own quiet surface and a clear reading order. */
 html body #weatherView #inmetCard { min-height:0; }
@@ -379,12 +379,12 @@ html body #weatherView #inmetCard { min-height:0; }
 #weatherView .rain-chart .wind-direction { color:var(--graphic-blue); }
 #weatherView .sun-label :is(span,svg) { color:var(--graphic-blue); }
 /* Darker daytime rain/storm skies need deeper ink than the clear-sky palette. */
-body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView {
+body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView {
   --reading-ink:#041a2e; --reading-muted:#08243b;
 }
-body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-yellow { --alert-color:#2f2100; }
-body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-orange { --alert-color:#3d1f00; }
-body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-red { --alert-color:#4b101b; }
+body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-yellow { --alert-color:#2f2100; }
+body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-orange { --alert-color:#3d1f00; }
+body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-red { --alert-color:#4b101b; }
 
 /* A fine edge defines vivid graphics without darkening their fills. */
 #weatherView .temp-track .temp-fill,
@@ -602,8 +602,8 @@ footer.shell .footer-brand-copy strong { font-family:var(--font-brand); color:va
 #radarMapContent .weather-frame-status { min-height:2.8em; margin:12px 0 0; color:var(--reading-muted); font-size:.8rem; line-height:1.4; }
 #radarMapContent .weather-map-retry { min-height:44px; margin-top:8px; padding:8px 16px; background:var(--brand-blue); color:#fff; border:1px solid var(--brand-blue); border-radius:12px; font:inherit; }
 #radarMapContent .weather-map-retry[hidden] { display:none; }
-body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) .topbar { color:#041a2e; }
-body[data-phase="day"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .intro h1 { color:var(--reading-ink); }
+body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) .topbar { color:#041a2e; }
+body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .intro h1 { color:var(--reading-ink); }
 
 .radar-dialog #radarMapContent .weather-frame-status { color:var(--map-ink); }
 
