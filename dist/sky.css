@@ -3,14 +3,14 @@
   --sky-base:#080f22; --sky-color:linear-gradient(165deg,#10142d,#080f22 85%);
   --cloud-opacity:0; --cloud-filter:brightness(.48) saturate(.65);
   --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; --sun-opacity:1;
-  --rain-opacity:0; --rain-back-opacity:0; --lightning-opacity:.52;
+  --rain-opacity:0; --rain-back-opacity:0; --lightning-opacity:.9;
   --stars-visibility:0;
   --twilight-color:radial-gradient(ellipse at 78% 35%,#ffe8ad99,transparent 48%),linear-gradient(180deg,#6577b6,#be99b7 24%,#f1bb99 48%,#e8c89e 100%);
 }
 :root[data-phase="day"] {
   --sky-base:#a7d7ec; --sky-color:linear-gradient(165deg,#57b0e2,#bce7f5 70%,#a7d7ec);
   --cloud-filter:none; --intro-ink:#143654; --intro-muted:#233e57;
-  --lightning-opacity:.38;
+  --lightning-opacity:.6;
 }
 :root[data-phase="night"] { --sky-base:#080f22; --sky-color:radial-gradient(ellipse at 80% 8%,#363b6440,transparent 42%),linear-gradient(165deg,#10142d,#080f22 85%); }
 :root[data-weather="sun"][data-phase="day"] { --sky-color:radial-gradient(ellipse at 84% 10%,#ffebad66,transparent 42%),linear-gradient(165deg,#59b6e9,#bce7f5 70%,#a7d7ec); }
@@ -26,9 +26,9 @@
 /* Rain clouds by condition. Drizzle/light rain stay grey under dark ink; moderate/heavy rain and
    thunderstorms (data-ink="light", set by sky-atmosphere outside twilight) darken the daytime sky
    like a rain deck and the reading switches to light ink. Heavier categories are darker. */
-:root[data-phase="day"][data-ink="light"] { --sky-base:#36414f; --sky-color:linear-gradient(165deg,#4a5566,#323d4a 70%,#36414f); --cloud-opacity:1; --cloud-filter:brightness(.44) saturate(.55); --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; --lightning-opacity:.52; }
-:root[data-phase="day"][data-ink="light"][data-rain="heavy"] { --sky-base:#2d3743; --sky-color:linear-gradient(165deg,#3e4858,#28323e 70%,#2d3743); --cloud-filter:brightness(.38) saturate(.5); }
-:root[data-phase="day"][data-ink="light"][data-weather="storm"] { --sky-base:#262b3c; --sky-color:linear-gradient(165deg,#373c54,#212739 70%,#262b3c); --cloud-filter:brightness(.34) sepia(.3) hue-rotate(195deg) saturate(1.1); }
+:root[data-phase="day"][data-ink="light"] { --sky-base:#222a35; --sky-color:linear-gradient(165deg,#2b3340,#1d242e 70%,#222a35); --cloud-opacity:1; --cloud-filter:brightness(.44) saturate(.55); --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; --lightning-opacity:.85; }
+:root[data-phase="day"][data-ink="light"][data-rain="heavy"] { --cloud-filter:brightness(.42) saturate(.5); }
+:root[data-phase="day"][data-ink="light"][data-weather="storm"] { --sky-base:#1e2232; --sky-color:linear-gradient(165deg,#2a2e42,#191d2b 70%,#1e2232); --cloud-filter:brightness(.4) sepia(.3) hue-rotate(195deg) saturate(1.1); }
 :root[data-weather="fog"] { --sky-base:#111c2c; --sky-color:linear-gradient(180deg,#35405788,#111c2c); --cloud-opacity:.3; }
 :root[data-weather="fog"][data-phase="day"] { --sky-base:#c0d1dd; --sky-color:linear-gradient(165deg,#aabfcf,#e0e9ef); --cloud-opacity:.5; }
 :root[data-weather="snow"] { --sky-base:#0e1a2d; --sky-color:linear-gradient(165deg,#29364e,#0e1a2d); --cloud-opacity:.65; }
@@ -102,11 +102,17 @@ html,body { background:var(--sky-base); }
 :root[data-phase="night"]:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"],[data-weather="snow"]) { --cloud-opacity:1; --cloud-filter:brightness(.33) sepia(.45) hue-rotate(185deg) saturate(1.3); }
 :root[data-phase="night"]:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"],[data-weather="snow"]) .sky-clouds-front { opacity:var(--cloud-opacity); }
 :root[data-phase="night"][data-weather="rain"] { --cloud-filter:brightness(.29) sepia(.45) hue-rotate(185deg) saturate(1.2); }
-:root[data-phase="night"]:is([data-rain="heavy"],[data-weather="storm"]) { --cloud-filter:brightness(.25) sepia(.4) hue-rotate(195deg) saturate(1.15); }
+:root[data-phase="night"]:is([data-rain="heavy"],[data-weather="storm"]) { --cloud-filter:brightness(.28) sepia(.4) hue-rotate(195deg) saturate(1.15); }
 /* Overcast: the defined veil keeps gaps, so a uniform haze behind its texture (same layer,
    same filter, invisible while drifting) closes the deck; the near masses get denser by day. */
 :root:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"],[data-weather="snow"]) .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-veil.webp?v=clouds-4"),linear-gradient(#f2f5f980,#f2f5f966); }
 :root[data-phase="day"]:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"]) .sky-clouds-front { opacity:calc(var(--cloud-opacity) * .75); }
+/* Rain decks (moderate/heavy rain and thunderstorms, day and night): a second copy of each
+   texture, offset inside the same tile, closes the gaps so the sky reads as a dense deck while it
+   drifts. Both copies repeat with the same period, so the one-tile loop stays seamless. */
+:root:is([data-rain="moderate"],[data-rain="heavy"]) .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-veil.webp?v=clouds-4"),url("./assets/sky-cloud-veil.webp?v=clouds-4"),linear-gradient(#c9d0d899,#c9d0d880); background-size:var(--cloud-tile) var(--cloud-height); background-position:0 0,calc(var(--cloud-tile) * .31) calc(var(--cloud-height) * .2),0 0; }
+:root:is([data-rain="moderate"],[data-rain="heavy"]) .sky-clouds-front { background-image:url("./assets/sky-cloud-volume.webp?v=clouds-4"),url("./assets/sky-cloud-volume.webp?v=clouds-4"); background-size:var(--cloud-tile) var(--cloud-height); background-position:0 0,calc(var(--cloud-tile) * .47) calc(var(--cloud-height) * .16); }
+:root:is([data-rain="moderate"],[data-rain="heavy"]) .sky-effects > .sky-clouds-front { top:6%; }
 :root[data-phase="day"][data-ink="light"] .sky-clouds-front { opacity:var(--cloud-opacity); }
 :root:is([data-weather="sun"],[data-weather="unknown"]) .sky-clouds { animation-play-state:paused; }
 .intro-sky .sky-clouds { top:-30px; }
@@ -136,20 +142,25 @@ html,body { background:var(--sky-base); }
 .sky-rain { display:block; position:absolute; z-index:4; inset:-480px 0 0; background:url("./assets/rain-near.svg") 17px 0 / var(--rain-width,380px) 480px repeat; opacity:var(--rain-opacity); animation:sky-rain-fall var(--rain-speed,2.2s) linear infinite; animation-delay:-.7s; transition:opacity 2s ease; }
 .sky-rain-back { z-index:3; background-image:url("./assets/rain-far.svg"); background-size:var(--rain-back-width,640px) 480px; background-position:83px 37px; opacity:var(--rain-back-opacity); animation-duration:var(--rain-back-speed,4.3s); animation-delay:-2.1s; }
 :root:not([data-weather="rain"]):not([data-weather="storm"]) .sky-rain { opacity:0; animation-play-state:paused; }
-/* Branched filaments and local cloud illumination, with sparse single pulses.
+/* Branched filaments that light the cloud deck and the sky around each strike.
    This is storm decoration, independent of real lightning detections on the map. */
-.sky-lightning { display:none; position:absolute; inset:0; z-index:3; }
-.sky-lightning::before,.sky-lightning::after { content:""; position:absolute; top:-30px; width:clamp(280px,54vw,720px); height:clamp(340px,48vw,540px); opacity:0; background-repeat:no-repeat; animation:storm-flash-near 23s linear infinite; animation-delay:-2s; }
-.sky-lightning::before { right:-12%; background-image:url("./assets/lightning-near.svg"),radial-gradient(ellipse at 56% 22%,#dceaff75,transparent 62%); background-position:60% 30px,center; background-size:auto 82%,100% 100%; }
-.sky-lightning::after { left:-14%; top:8%; background-image:url("./assets/lightning-far.svg"),radial-gradient(ellipse at 46% 24%,#c5ddff55,transparent 58%); background-position:42% 20px,center; background-size:auto 68%,100% 100%; animation-name:storm-flash-far; animation-duration:37s; animation-delay:-14s; }
+.sky-lightning { display:none; position:absolute; inset:0; }
+/* No z-index on the element itself: its pseudo-elements join the scene's stacking context. The near
+   channel (z 3) sits in front of the deck and lights the clouds around it with a screen-blended bloom;
+   the far channel (z 1) is behind the deck, so its glow backlights cloud edges and the sky through the
+   gaps. One shared 29s cycle; each strike is a flash and one re-strike, then darkness: at most two
+   flashes within a second, never a full-screen white flash. */
+.sky-lightning::before,.sky-lightning::after { content:""; position:absolute; left:0; right:0; top:-30px; height:clamp(460px,72svh,820px); opacity:0; background-repeat:no-repeat; pointer-events:none; animation:storm-flash-near 29s linear infinite; animation-delay:-2s; }
+.sky-lightning::before { z-index:3; mix-blend-mode:screen; background-image:url("./assets/lightning-near.svg"),radial-gradient(ellipse 58% 44% at 80% 22%,#dce8ffa6,#9fb4f05c 34%,#5c70b01c 58%,transparent 76%); background-position:right -10% top 20px,center; background-size:auto clamp(240px,34svh,380px),100% 100%; }
+.sky-lightning::after { z-index:1; background-image:url("./assets/lightning-far.svg"),radial-gradient(ellipse 60% 48% at 20% 30%,#d3e0ffe0,#8ea4e47a 38%,transparent 76%); background-position:left 6% top 60px,center; background-size:auto clamp(200px,30svh,340px),100% 100%; animation-name:storm-flash-far; }
 :root[data-weather="storm"] .sky-lightning { display:block; }
 .sky-effects { -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); }
 @keyframes clouds-back { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-1 * var(--cloud-tile)),0,0); } }
 @keyframes clouds-front { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-1 * var(--cloud-tile)),0,0); } }
 @keyframes sky-star-shimmer { 0% { opacity:.55; } 40% { opacity:.82; } 70% { opacity:.65; } 100% { opacity:.95; } }
 @keyframes sky-rain-fall { to { transform:translate3d(0,480px,0); } }
-@keyframes storm-flash-near { 0%,29.5%,34%,100% { opacity:0; } 30% { opacity:var(--lightning-opacity); } 30.8% { opacity:calc(var(--lightning-opacity) * .55); } 32% { opacity:calc(var(--lightning-opacity) * .1); } }
-@keyframes storm-flash-far { 0%,66.5%,69.5%,100% { opacity:0; } 67% { opacity:calc(var(--lightning-opacity) * .65); } 67.8% { opacity:calc(var(--lightning-opacity) * .24); } }
+@keyframes storm-flash-near { 0%,29.6%,33.2%,100% { opacity:0; } 30% { opacity:var(--lightning-opacity); } 30.35% { opacity:calc(var(--lightning-opacity) * .3); } 30.7% { opacity:calc(var(--lightning-opacity) * .85); } 31.6% { opacity:calc(var(--lightning-opacity) * .2); } }
+@keyframes storm-flash-far { 0%,66.6%,69.6%,100% { opacity:0; } 67% { opacity:calc(var(--lightning-opacity) * .8); } 67.4% { opacity:calc(var(--lightning-opacity) * .25); } 67.8% { opacity:calc(var(--lightning-opacity) * .6); } 68.6% { opacity:calc(var(--lightning-opacity) * .12); } }
 body.page-hidden :is(.sky-effects,.intro-sky) *,
 body.page-hidden :is(.sky-effects,.intro-sky) *::before,
 body.page-hidden :is(.sky-effects,.intro-sky) *::after,

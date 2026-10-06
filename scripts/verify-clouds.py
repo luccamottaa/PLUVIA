@@ -258,7 +258,7 @@ with sync_playwright() as p:
        drops:[...scene.querySelectorAll('.sky-rain')].map(el=>new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)};
    }""")
    assert sorted(sample['names'])==['sky-rain-fall','sky-rain-fall','storm-flash-far','storm-flash-near'],sample
-   assert 0<sample['near']<=.53 and sample['far']==0 and all(abs(y-264)<1 for y in sample['drops']),sample
+   assert 0<sample['near']<=.9 and sample['far']==0 and all(abs(y-264)<1 for y in sample['drops']),sample
    page.screenshot(path=str(output/(str(width)+'-lightning-'+phase+'-near.png')))
    page.evaluate("""()=>{for(const a of stormAnimations){const t=a.effect.getTiming();if(a.animationName.startsWith('storm-flash'))a.currentTime=t.delay+t.duration*(a.animationName==='storm-flash-far'?.67:.5);}}""")
    assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>+getComputedStyle(el,'::after').opacity>0 && +getComputedStyle(el,'::before').opacity===0")

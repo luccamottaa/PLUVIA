@@ -44,3 +44,11 @@ Os quatro SVGs somam 4.943 bytes. Entram no precache `pluvia-panel-61`, com `sky
 - `python scripts/verify-visual.py`: leituras, alertas, diálogos, loading e erro continuam no QA geral; o workflow também verifica os demais fluxos existentes.
 
 O QA usa fixtures, inclusive nas capturas dos clarões; amostra quadros estáticos, sem gerar vídeo acelerado de flashes. Não comprova chuva real, detecção de raios, hardware iPhone, FPS, consumo de bateria ou contraste numérico.
+
+## Teto denso e raios que iluminam (outubro/2026)
+
+Pedido do usuário: em chuva forte quase não aparecia nuvem, e o raio precisava iluminar nuvens e céu.
+
+- **Teto denso:** com chuva moderada/forte ou trovoada (`data-rain` moderate/heavy), cada camada de nuvem usa duas cópias da mesma textura, a segunda deslocada dentro do mesmo tile (véu 31%/20%, volume 47%/16%). As duas repetem com o mesmo período, então o loop de um tile continua sem emenda. O volume sobe para 6% do topo da cena na Home. O céu dos dias escuros ficou mais escuro (#1d242e a #2b3340; trovoada #191d2b a #2a2e42) e as nuvens um pouco mais claras (chuva forte .42, trovoada .40), para o relevo aparecer em vez de cinza sobre cinza. À noite chuva forte/trovoada usa brightness(.28).
+- **Raios:** `.sky-lightning` perdeu o z-index, então seus pseudo-elementos entram na pilha da cena. O canal próximo (`::before`, z 3) fica na frente das nuvens, na borda direita, com um halo em `mix-blend-mode:screen` que clareia as nuvens ao redor. O distante (`::after`, z 1) fica atrás do teto: seu halo acende o céu e contorna as bordas das nuvens pelas frestas. Os dois compartilham um ciclo de 29s (pico do próximo em 30%, do distante em 67%). Cada descarga tem um clarão e um re-strike em menos de um segundo e depois escuridão: no máximo dois clarões por segundo, sem tela branca inteira. `--lightning-opacity` passou a .9 à noite, .85 nos dias escuros e .6 no crepúsculo diurno.
+- Sem novo elemento, asset, filtro animado ou timer. Reduced motion continua escondendo os raios; pausa fora da tela/página oculta cobre os pseudo-elementos. `verify-contrast` mede chuva moderada 6,8, chuva forte 7,1 e trovoada 7,1 (sem clarão); durante o clarão o texto sobre o halo perde contraste por menos de um segundo.
