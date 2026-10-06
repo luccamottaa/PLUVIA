@@ -106,3 +106,9 @@ Há warning experimental de Node para `stripTypeScriptTypes`, já usado nos test
 Antes de publicar, revisar o diff e coordenar as funções `smart-summary`/`push-process` e `_shared/http.ts` com o frontend. Depois validar Safari/iPhone real, teclado, orientação e PWA instalado. Em seguida, priorizar escalabilidade/segurança do worker push e contrato estrito dos dados meteorológicos de notificações; testar concorrência de sincronização de conta; medir performance em aparelho intermediário e migrar gradualmente consumidores para snapshots normalizados.
 
 Atualização da etapa seguinte: WebKit foi executado após corrigir o carregador de bibliotecas de teste do ambiente, e passou nos mesmos sete viewports e nos recursos novos. O resultado anterior acima descreve apenas esta rodada histórica. Publicação e validação da evolução são registradas em `PRODUCT-EVOLUTION.md`.
+
+## Fontes fora do ar (outubro/2026)
+
+- Antes: se o Open-Meteo falhasse duas vezes, a Home caía em “Tempo indisponível” ou nos dados salvos, mesmo com o MET Norway respondendo; o MET só complementava campos.
+- Agora: até três tentativas com espera crescente; depois, previsão reduzida só com o MET Norway (sem sensação, chance de chuva, UV e visibilidade, que o MET não fornece; esses campos aparecem como indisponíveis). Dados salvos de até 3h continuam preferidos por serem completos. Uma mensagem por sequência de falhas, distinguindo sem internet, fonte fora do ar e previsão reduzida, e nova tentativa automática em 1 minuto (além do intervalo de 5 minutos e do evento `online`).
+- Limites: o MET cobre cerca de 60 horas em passos horários, então os 7 dias ficam com 1 a 3 dias; o nascer/pôr é calculado por coordenadas. Se o proxy `met-forecast` (Supabase) também cair, restam os dados salvos. `verify-resilience.py` cobre os três cenários com fixtures; não comprova disponibilidade real dos provedores.
