@@ -39,6 +39,9 @@ with sync_playwright() as p:
    page.locator('#temperature').wait_for(state='visible',timeout=20000)
    decoded=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp','rain-near.svg','rain-far.svg','lightning-near.svg','lightning-far.svg','sky-stars.svg','sky-stars-shimmer.svg'].map(async name=>{const i=new Image();i.src='./assets/'+name;await i.decode();return [i.naturalWidth,i.naturalHeight];}))""")
    assert decoded==[[1120,560],[1120,560],[320,480],[480,480],[270,400],[270,400],[1200,700],[1200,700]],decoded
+   # Transparência contínua: com 16 níveis as bordas das nuvens viravam degraus visíveis quando esticadas.
+   alpha_levels=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp'].map(async name=>{const i=new Image();i.src='./assets/'+name;await i.decode();const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;const x=c.getContext('2d');x.drawImage(i,0,0);const d=x.getImageData(0,0,c.width,c.height).data;const seen=new Set();for(let k=3;k<d.length;k+=4)seen.add(d[k]);return seen.size;}))""")
+   assert all(levels>=48 for levels in alpha_levels),alpha_levels
    page.wait_for_timeout(200)
    assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(width,name)
    layers=page.locator('.sky-effects > .sky-clouds')

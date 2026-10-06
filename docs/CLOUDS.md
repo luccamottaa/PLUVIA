@@ -48,3 +48,8 @@ O SW guarda ambas as texturas e a versão de `sky.css` referenciada pelo HTML. O
 - `python scripts/verify-visual.py`: estados gerais e diálogos; integra-se ao workflow de interface junto do novo QA.
 
 Os screenshots usam previsões fictícias e horário municipal fixado, com dispositivo em Asia/Tokyo. Não comprovam sensores reais, hardware iPhone, FPS ou consumo energético. Revisão visual documentada em `design-qa.md`.
+
+## Refino das texturas (outubro/2026)
+
+As texturas originais tinham alfa quantizado em 16 níveis e blocos de compressão no degradê. Como a camada é esticada cerca de 2,4× no celular (cover sobre altura fixa), as bordas apareciam em degraus, “pixeladas”. `scripts/refine-cloud-textures.py` reconstrói um alfa contínuo (suavização limitada a meio degrau do original, preservando o desenho), remove os blocos do RGB em cor pré-multiplicada e regrava em 1120 × 560 com alfa de 64 níveis: 53,9KiB + 98,9KiB, dentro do orçamento de 160KiB. As URLs usam `?v=clouds-2` no CSS e no precache. Não reprocessar a saída: a entrada são as texturas originais do histórico. Uma versão 2× foi avaliada e descartada: sem arte de origem maior, não acrescenta detalhe e custaria ~410KiB. Mais nitidez real exige nova arte em resolução maior. `verify-clouds.py` exige ao menos 48 níveis de alfa.
+

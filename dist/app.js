@@ -494,6 +494,19 @@ function renderSun(daily, at = Date.now()) {
   const isNight = !available || at < rise || at >= set;
   document.querySelector(".sun-section")?.classList.toggle("is-night",isNight);
   $("sunDot").hidden = isNight;
+  // À noite, a Lua (mesmo disco/fase de moon-view) percorre o arco entre o pôr e o próximo nascer,
+  // como a ilustração do fundo; horários reais da Lua continuam no detalhe astronômico.
+  const moonDot = $("moonDot");
+  if (moonDot) {
+    const nightStart = at >= set ? set : globalThis.PLUVIA?.sky?.dayAt?.(at - 86400000)?.set;
+    const nightEnd = at >= set ? globalThis.PLUVIA?.sky?.dayAt?.(at + 86400000)?.rise : rise;
+    const night = available && isNight && Number.isFinite(nightStart) && Number.isFinite(nightEnd) && nightEnd > nightStart && at >= nightStart && at <= nightEnd;
+    moonDot.hidden = !night;
+    if (night) {
+      const moonPoint = solarArcPoint((at - nightStart) / (nightEnd - nightStart));
+      moonDot.style.left = `${moonPoint.left}%`; moonDot.style.top = `${moonPoint.top}px`;
+    }
+  }
   if (!available) {
     $("sunrise").textContent = "--:--"; $("sunset").textContent = "--:--";
     $("daylight").textContent = "Ciclo solar indisponível";
@@ -961,6 +974,7 @@ function chooseCity(id, locatedCity = null) {
     $("windCompass").style.setProperty?.("--wind-visible","0");
     clearWeatherInsights();
     $("sunDot").hidden = true;
+    if ($("moonDot")) $("moonDot").hidden = true;
     $("condition").textContent = "Consultando as condições em " + city.name + "…";
   }
   ["inmet"].forEach(source => {
