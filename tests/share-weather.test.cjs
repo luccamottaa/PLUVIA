@@ -32,3 +32,22 @@ test('mudança de cidade invalida compartilhamento e ignora conclusão atrasada'
  const sharing=el('shareWeather').click();events['pluvia:city-changed']();resolve();await sharing;
  assert.equal(el('shareWeather').disabled,true);assert.equal(el('shareWeatherStatus').textContent,'');assert.equal(el('shareWeatherDialog').open,false);
 });
+test('com suporte a arquivos a imagem do story vai junto do texto; sem suporte, só o texto; troca de cidade descarta a imagem',async()=>{
+ const events={},nodes=new Map(),el=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',disabled:true,open:false,hidden:true,addEventListener(type,fn){this[type]=fn;},showModal(){this.open=true;},close(){this.open=false;},focus(){},select(){},removeAttribute(){}});return nodes.get(id);};
+ const recent={...snapshot,source:{...snapshot.source,checkedAt:Date.now()},current:{...snapshot.current,time:new Date().toISOString()}};
+ const shared=[];let canShare=true;
+ class File {constructor(parts,name,options){this.parts=parts;this.name=name;this.type=options.type;}}
+ const root={document:{getElementById:el,body:{dataset:{phase:'night'}}},File,requestIdleCallback:fn=>fn(),
+  navigator:{canShare:()=>canShare,share:async payload=>{shared.push(payload);}},
+  PLUVIA:{weatherData:{get:()=>recent},shareCard:{model:(s,options)=>({night:options.night}),render:async model=>({png:true,night:model.night})}},
+  addEventListener:(name,fn)=>events[name]=fn};
+ mount(root);events['pluvia:weather-updated']({detail:{cityId:city.id}});await new Promise(r=>setImmediate(r));
+ await el('shareWeather').click();
+ assert.equal(shared[0].files.length,1);assert.equal(shared[0].files[0].name,'pluvia-manaus.png');assert.equal(shared[0].files[0].parts[0].night,true);
+ assert.match(shared[0].text,/Manaus/);
+ canShare=false;await el('shareWeather').click();assert.equal(shared[1].files,undefined,'sem canShare(files) não envia arquivo');
+ canShare=true;events['pluvia:city-changed']();events['pluvia:weather-updated']({detail:{cityId:city.id}});
+ // A nova imagem ainda está sendo gerada (render assíncrono): este toque não reaproveita a anterior.
+ root.PLUVIA.shareCard.render=()=>new Promise(()=>{});events['pluvia:weather-updated']({detail:{cityId:city.id}});
+ await el('shareWeather').click();assert.equal(shared.at(-1).files,undefined);
+});

@@ -95,7 +95,7 @@ with sync_playwright() as p:
                                       timezone_id='Asia/Tokyo', service_workers='block', reduced_motion='reduce')
         context.route('**/*', route)
         context.add_init_script("localStorage.setItem('pluvia-city',JSON.stringify('1302603'));localStorage.setItem('pluvia-favorites',JSON.stringify(['1501402']));"
-                                "Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1})}}});")
+                                "window.__qaGeoCalls=0;Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){window.__qaGeoCalls++;window.__qaGeo ? ok(window.__qaGeo) : fail({code:1})}}});")
         page = context.new_page(); errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.clock.set_fixed_time(datetime.datetime(2026, 10, 1, 16, 30, tzinfo=datetime.timezone.utc))
@@ -112,6 +112,19 @@ with sync_playwright() as p:
             page.click('#weatherMapRecenter')
             page.wait_for_function("document.getElementById('weatherMapRecenter').dataset.centered==='true'", timeout=5000)
             assert page.evaluate("[...document.querySelectorAll('[data-weather-layer]')].filter(b => b.offsetParent).length") == 0, 'sem satélite/raios e sem grupo de camadas com só a Chuva'
+            # Abrir o radar não pede localização; o pedido só acontece no toque (aqui negado → município).
+            assert page.evaluate("window.__qaGeoCalls") == 1, 'geolocalização só pelo botão'
+            assert 'Localização não permitida' in page.locator('#weatherFrameStatus').inner_text()
+            # Com permissão: ponto "você está aqui", centralizado nele e sem trocar a cidade.
+            page.evaluate("window.__qaGeo={coords:{latitude:-3.05,longitude:-59.9,accuracy:35}}")
+            page.click('#weatherMapRecenter')
+            page.wait_for_function("document.querySelector('.pluvia-user-dot') && document.getElementById('weatherMapRecenter').dataset.centered==='true' && /sua localização/.test(document.getElementById('weatherFrameStatus').textContent)", timeout=5000)
+            assert page.evaluate("JSON.parse(localStorage.getItem('pluvia-city'))") == '1302603'
+            assert page.evaluate("Object.keys(localStorage).filter(k => /-3\\.05|59\\.9/.test(localStorage.getItem(k) || '')).length") == 0, 'posição não é salva'
+            page.mouse.move(x, y); page.mouse.down(); page.mouse.move(x + 120, y + 60, steps=8); page.mouse.up()
+            page.wait_for_function("document.getElementById('weatherMapRecenter').dataset.centered==='false'", timeout=5000)
+            page.click('#weatherMapRecenter')
+            page.wait_for_function("document.getElementById('weatherMapRecenter').dataset.centered==='true'", timeout=5000)
             report.append({'recenter': True})
         # Recarregar com a consulta da comparação em voo vira erro de página no WebKit (fetch CORS cancelado).
         if action == 'comparar':

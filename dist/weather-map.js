@@ -179,20 +179,58 @@
       $('weatherFrameTime').textContent = 'Indisponível'; $('weatherSourceNote').textContent = error?.message || 'Dados temporariamente indisponíveis.';
     }
   }
-  // Botão de recentralizar (como o "minha localização" dos apps de mapa): volta ao ponto do município
-  // depois de arrastar o mapa. Usa a referência do município; não lê o GPS do aparelho.
+  // Botão de localização, como o dos apps de mapa: só por toque, pede a posição ao navegador uma vez
+  // (sem watch nem background), mostra o ponto "você está aqui" e centraliza nele. A posição fica só
+  // em memória nesta página; não é salva, enviada ou usada para trocar a cidade. Sem permissão ou
+  // sem GPS, volta ao ponto de referência do município.
   const reduceMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  let locating = 0;
+  function recenterTarget() {
+    const selectedCity = city();
+    return state.user ? [state.user.lat,state.user.lon] : selectedCity ? [selectedCity.lat,selectedCity.lon] : null;
+  }
   function updateRecenter() {
-    const button = $('weatherMapRecenter'), selectedCity = city();
-    if (!button || !state.map || !selectedCity) return;
-    const point = state.map.latLngToContainerPoint([selectedCity.lat,selectedCity.lon]);
+    const button = $('weatherMapRecenter'), target = recenterTarget();
+    if (!button || !state.map || !target) return;
+    const point = state.map.latLngToContainerPoint(target);
     const size = state.map.getSize();
     const centered = Math.hypot(point.x - size.x / 2, point.y - size.y / 2) < 12;
     button.dataset.centered = String(centered);
   }
+  function centerOn(target, zoom) {
+    state.map.setView(target,Math.max(state.map.getZoom?.() || 7,zoom),{animate:!reduceMotion()});
+  }
+  function showUser(position) {
+    const lat = Number(position?.coords?.latitude), lon = Number(position?.coords?.longitude), accuracy = Number(position?.coords?.accuracy);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return false;
+    state.user = {lat,lon};
+    for (const layer of [state.userHalo,state.userMarker]) if (layer) state.map.removeLayer(layer);
+    // Halo da precisão informada pelo aparelho (limitado para não cobrir o mapa) e o ponto por cima.
+    state.userHalo = Number.isFinite(accuracy) && accuracy > 0 ? L.circle([lat,lon],{radius:Math.min(accuracy,5000),color:'#2f6bff',weight:1,opacity:.5,fillColor:'#2f6bff',fillOpacity:.12,interactive:false}).addTo(state.map) : null;
+    state.userMarker = L.marker([lat,lon],{icon:L.divIcon({className:'pluvia-user-dot',iconSize:[22,22],html:'<span></span>'}),keyboard:false,zIndexOffset:1000}).addTo(state.map).bindTooltip('Você está aqui');
+    return true;
+  }
   function recenter() {
     const selectedCity = city(); if (!state.map || !selectedCity) return;
-    state.map.setView([selectedCity.lat,selectedCity.lon],Math.max(state.map.getZoom?.() || 7,7),{animate:!reduceMotion()});
+    const button = $('weatherMapRecenter'), attempt = ++locating;
+    if (!globalThis.navigator?.geolocation) { centerOn([selectedCity.lat,selectedCity.lon],7); return; }
+    button?.setAttribute('aria-busy','true');
+    const done = message => {
+      if (attempt !== locating) return;
+      button?.removeAttribute('aria-busy');
+      if (message) frameStatus(false,message);
+    };
+    navigator.geolocation.getCurrentPosition(position => {
+      if (attempt !== locating || !state.map) return;
+      if (showUser(position)) { centerOn([state.user.lat,state.user.lon],9); done('Mapa centralizado na sua localização.'); }
+      else { centerOn([selectedCity.lat,selectedCity.lon],7); done(`Localização inválida; mapa centralizado em ${selectedCity.name}.`); }
+    },error => {
+      if (attempt !== locating || !state.map) return;
+      const current = city() || selectedCity;
+      // Uma posição já mostrada continua valendo; sem ela, volta ao município.
+      centerOn(recenterTarget() || [current.lat,current.lon],state.user ? 9 : 7);
+      done(state.user ? null : error?.code === 1 ? `Localização não permitida; mapa centralizado em ${current.name}.` : `Localização indisponível agora; mapa centralizado em ${current.name}.`);
+    },{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
   }
   async function initMap() {
     await loadLeaflet();
@@ -206,7 +244,7 @@
     state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:7,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(`${selectedCity.name}/${selectedCity.uf}`);
     state.cityId = selectedCity.id; $('weatherMapCity').textContent = `${selectedCity.name}/${selectedCity.uf} · ponto de referência do município`;
     const recenterButton = $('weatherMapRecenter');
-    if (recenterButton) { recenterButton.hidden = false; recenterButton.setAttribute('aria-label',`Centralizar o mapa em ${selectedCity.name}`); recenterButton.title = `Centralizar em ${selectedCity.name}`; }
+    if (recenterButton) { recenterButton.hidden = false; recenterButton.setAttribute('aria-label','Mostrar minha localização no mapa'); recenterButton.title = 'Minha localização'; }
     updateRecenter();
     resizeMap();
   }
