@@ -213,7 +213,7 @@ with sync_playwright() as p:
   page.locator('#openCitySearch').click();page.locator('#citySearch').fill('São')
   page.wait_for_function("cityIndexReady && document.getElementById('cityPickerStatus').textContent.includes('resultado') && document.querySelectorAll('#cityResults .city-result').length>1")
   page.wait_for_function("document.querySelectorAll('#dialogFavoriteList .favorite-reading').length===2 && [...document.querySelectorAll('#dialogFavoriteList .favorite-reading')].every(el=>el.textContent==='30°')")
-  header('#cityDialog .dialog-heading');aligned('#cityDialog .city-actions > *','centerY',2)
+  header('#cityDialog .dialog-heading');aligned('#cityDialog .city-actions > :not(#compareOpen)','centerY',2)
   city_bounds(width)
   for field in ['> strong','.favorite-reading','.favorite-summary:not(.favorite-feels-like)','.favorite-feels-like','.favorite-range','.favorite-local-time','.favorite-updated']:
    aligned('.favorite-city-card '+field,count=2)
