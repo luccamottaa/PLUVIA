@@ -38,6 +38,9 @@ with sync_playwright() as p:
    if '/auth/v1/settings' in url:r.fulfill(json={'external':{'email':True,'google':False,'apple':False}});return
    r.abort()
   context.route('**/*',route)
+  # Na fase offline as APIs externas falham na própria página: no WebKit, páginas controladas
+  # pelo service worker escapam do context.route e chegariam à API real (resultado aleatório).
+  context.add_init_script("if(sessionStorage.getItem('pluvia-qa-offline')==='1'){const nativeFetch=fetch;window.fetch=(input,init)=>{const url=new URL(typeof input==='string'?input:input.url,location.href);return url.origin===location.origin?nativeFetch(input,init):Promise.reject(new TypeError('Failed to fetch'));};}")
   context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
   def page_error(error):
    # WebKit also emits stackless resource-load failures as pageerror. During
@@ -89,6 +92,7 @@ with sync_playwright() as p:
   context,page,state=session(workers='allow',address='http://127.0.0.1:'+str(server.server_port))
   page.wait_for_function('navigator.serviceWorker.controller',timeout=30000)
   page.wait_for_function("async ({name,fonts})=>{const cache=await caches.open(name);return (await Promise.all(fonts.map(font=>cache.match(new URL('./assets/fonts/'+font,location.href))))).every(response=>response?.ok)}",arg={'name':cache_name,'fonts':fonts},timeout=30000)
+  page.evaluate("sessionStorage.setItem('pluvia-qa-offline','1')")
   state['offline']=True;server.shutdown();server.server_close()
   page.reload(wait_until='domcontentloaded')
   try:page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('dataStatus').dataset.freshness==='stale' && !document.documentElement.classList.contains('awaiting-styles')")
