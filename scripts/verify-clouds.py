@@ -38,7 +38,7 @@ with sync_playwright() as p:
    page.wait_for_function("!document.documentElement.classList.contains('awaiting-styles')")
    page.locator('#temperature').wait_for(state='visible',timeout=20000)
    decoded=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp','rain-near.svg','rain-far.svg','lightning-near.svg','lightning-far.svg','sky-stars.svg','sky-stars-shimmer.svg'].map(async name=>{const i=new Image();i.src='./assets/'+name;await i.decode();return [i.naturalWidth,i.naturalHeight];}))""")
-   assert decoded==[[2100,700],[2100,700],[320,480],[480,480],[270,400],[270,400],[1200,700],[1200,700]],decoded
+   assert decoded==[[2100,700],[2100,700],[320,480],[480,480],[270,400],[270,400],[900,1100],[1040,1280]],decoded
    # Transparência contínua: com 16 níveis as bordas das nuvens viravam degraus visíveis quando esticadas.
    alpha_levels=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp'].map(async name=>{const i=new Image();i.src='./assets/'+name;await i.decode();const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;const x=c.getContext('2d');x.drawImage(i,0,0);const d=x.getImageData(0,0,c.width,c.height).data;const seen=new Set();for(let k=3;k<d.length;k+=4)seen.add(d[k]);return seen.size;}))""")
    assert all(levels>=48 for levels in alpha_levels),alpha_levels
@@ -59,8 +59,9 @@ with sync_playwright() as p:
     assert ('quase limpo' if hour==22 else 'limpo') in page.locator('#condition').inner_text()
    stars=page.locator('.sky-effects > .sky-stars')
    assert stars.count()==1 and page.locator('.intro-sky > .sky-stars').count()==1
-   star=stars.evaluate("el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,repeat:s.backgroundRepeat,animation:getComputedStyle(el,'::after').animationName,height:el.offsetHeight,width:el.offsetWidth};}")
-   assert star['repeat']=='no-repeat' and star['animation']=='none' and star['height']<=760 and star['width']==width,star
+   # Tile 1:1 em px reais, repetido por toda a cena (a máscara da cena esmaece embaixo).
+   star=stars.evaluate("el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,repeat:s.backgroundRepeat,size:s.backgroundSize,animation:getComputedStyle(el,'::after').animationName,height:el.offsetHeight,scene:el.parentElement.offsetHeight,width:el.offsetWidth};}")
+   assert star['repeat']=='repeat' and star['size']=='900px 1100px' and star['animation']=='none' and star['height']==star['scene'] and star['width']==width,star
    visible=name in ['clear-night','few-night','partly-night','moon-partly']
    assert (star['opacity']>0)==visible,(width,name,star)
    if name in ['moon-partly','moon-cloudy']:

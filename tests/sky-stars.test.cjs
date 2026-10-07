@@ -33,7 +33,7 @@ test('brilho entra após o pôr do sol e sai gradualmente até o nascer, sem rel
 });
 test('céu parcial atenua estrelas; condições fechadas e códigos inválidos limpam o brilho',()=>{
  const {sky,root,body}=setup(),at=stamp('2026-10-03T22:00');
- for(const [code,expected] of [[0,1],[1,.48],[2,.48],[3,0],[45,0],[48,0],[51,0],[61,0],[65,0],[75,0],[95,0],[99,0],[null,0],['0',0],[NaN,0]]) {
+ for(const [code,expected] of [[0,1],[1,.85],[2,.6],[3,0],[45,0],[48,0],[51,0],[61,0],[65,0],[75,0],[95,0],[99,0],[null,0],['0',0],[NaN,0]]) {
   sky.apply(0,0,null,manaus,at);
   const state=sky.apply(code,0,null,manaus,at);
   assert.equal(state.starVisibility,expected,String(code));
