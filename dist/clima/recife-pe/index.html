@@ -96,7 +96,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="/styles.css?v=core-123" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="/redesign.css?v=panel-37" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-48" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-49" />
     <noscript><link rel="stylesheet" href="/styles.css?v=core-123" /></noscript>
   </head>
   <body>
@@ -176,6 +176,7 @@
         <section class="city-picker" aria-label="Cidades disponíveis">
         <div class="city-actions">        <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
         <button id="locateCity" class="city-button" type="button">Usar localização</button>
+        <button id="compareOpen" class="city-button" type="button" aria-haspopup="dialog" aria-controls="compareDialog">Comparar cidades</button>
 </div>
         <section id="dialogFavorites" class="favorite-cities" hidden aria-labelledby="dialogFavoritesTitle"><h3 id="dialogFavoritesTitle">Favoritos</h3><div id="dialogFavoriteList" class="favorite-city-list"></div><p id="dialogFavoriteStatus" role="status" aria-live="polite"></p></section>
         <ul id="cityResults" class="city-results" role="listbox" aria-label="Cidades encontradas"></ul>
@@ -389,6 +390,15 @@
     <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody" class="dialog-scroll"></div></dialog>
     <dialog id="shareWeatherDialog" class="city-dialog" aria-labelledby="shareWeatherTitle"><div class="dialog-heading"><h2 id="shareWeatherTitle">Compartilhar previsão</h2><button id="shareWeatherClose" class="dialog-close" type="button" aria-label="Fechar compartilhamento">×</button></div><p>Selecione e copie o texto para compartilhar.</p><label for="shareWeatherText">Condição meteorológica</label><textarea id="shareWeatherText" readonly rows="7"></textarea></dialog>
 
+    <dialog id="compareDialog" class="city-dialog compare-dialog" aria-labelledby="compareTitle">
+      <div class="dialog-heading"><h2 id="compareTitle">Comparar cidades</h2><button id="compareClose" class="dialog-close" type="button" autofocus aria-label="Fechar comparação">×</button></div>
+      <div class="dialog-scroll">
+        <div class="compare-pick"><label id="compareCityLabel" for="compareCity">Comparar com</label><select id="compareCity"></select></div>
+        <p id="compareStatus" class="compare-status" role="status" aria-live="polite"></p>
+        <div class="compare-table-wrap"><table id="compareTable" class="compare-table"></table></div>
+        <p class="compare-note">Previsão Open-Meteo e qualidade do ar CAMS (Open-Meteo), com as mesmas regras da tela principal. A cidade aberta usa a previsão já carregada.</p>
+      </div>
+    </dialog>
     <dialog id="hourlyDetailDialog" class="city-dialog hourly-detail-dialog" aria-labelledby="hourlyDetailTitle" aria-describedby="hourlyDetailCity">
       <div class="dialog-heading"><div><h2 id="hourlyDetailTitle">Previsão por hora</h2><p id="hourlyDetailCity"></p></div><button id="hourlyDetailClose" class="dialog-close" type="button" autofocus aria-label="Fechar previsão por hora">×</button></div>
       <div class="dialog-scroll">
@@ -433,8 +443,8 @@
     <script src="/modules/sources.js?v=panel-23" defer></script>
     <script src="/modules/dialog-motion.js?v=motion-1" defer></script>
     <script src="/modules/http-client.js?v=http-1" defer></script>
-    <script src="/modules/weather-services.js?v=core-113" defer></script>
-    <script src="/modules/weather-data-layer.js?v=core-113" defer></script>
+    <script src="/modules/weather-services.js?v=core-114" defer></script>
+    <script src="/modules/weather-data-layer.js?v=core-114" defer></script>
     <script src="/modules/met-merge.js?v=core-111" defer></script>
     <script src="/modules/weather-extras.js?v=core-109" defer></script>
     <script src="/modules/weather-insights.js?v=core-69" defer></script>
@@ -456,7 +466,9 @@
     <script src="/account.js?v=account-8" defer></script>
     <script src="/favorite-cities.js?v=favorites-7" defer></script>
     <script src="/modules/share-weather.js?v=share-2" defer></script>
-    <script src="/saved-places.js?v=places-1" defer></script>
+    <script src="/saved-places.js?v=places-2" defer></script>
+    <script src="/modules/compare-cities.js?v=compare-2" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-1" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-2" defer></script>
     <script src="/notifications.js?v=panel-25" defer></script>
   </body>

@@ -89,6 +89,8 @@
     let busy = false, editing = null, editingBase = null, generation = 0, canonical = false;
     const status = value => {el("savedPlacesStatus").textContent = value;};
     const reset = () => {editing=null;editingBase=null;el("savedPlaceName").value="";el("savedPlaceSave").textContent="Salvar cidade atual";el("savedPlaceCancel").hidden=true;};
+    // Leitura para outros módulos (ex.: Comparar cidades); a lista continua sendo deste módulo.
+    (root.PLUVIA = root.PLUVIA || {}).savedPlaces = {list:() => visible(records).map(item => ({id:item.id,name:item.name,cityId:item.cityId,cityName:item.cityName,uf:item.uf}))};
     function paint() {
       const list = el("savedPlacesList"); list.textContent = "";
       el("savedPlacesMode").textContent = owner
