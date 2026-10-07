@@ -91,7 +91,11 @@ with sync_playwright() as p:
   page.wait_for_function("async ({name,fonts})=>{const cache=await caches.open(name);return (await Promise.all(fonts.map(font=>cache.match(new URL('./assets/fonts/'+font,location.href))))).every(response=>response?.ok)}",arg={'name':cache_name,'fonts':fonts},timeout=30000)
   state['offline']=True;server.shutdown();server.server_close()
   page.reload(wait_until='domcontentloaded')
-  page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('dataStatus').dataset.freshness==='stale' && !document.documentElement.classList.contains('awaiting-styles')")
+  try:page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('dataStatus').dataset.freshness==='stale' && !document.documentElement.classList.contains('awaiting-styles')")
+  except Exception:
+   # Diagnóstico do reload offline: mostra em que estado a página parou antes de falhar.
+   print(json.dumps(page.evaluate("()=>({temperature:document.getElementById('temperature')?.textContent,freshness:document.getElementById('dataStatus')?.dataset.freshness,status:document.getElementById('statusText')?.textContent,classes:document.documentElement.className,controller:Boolean(navigator.serviceWorker?.controller),sheets:[...document.styleSheets].map(s=>(s.href||'inline').split('/').pop()+':'+s.media.mediaText),saved:Object.keys(localStorage).filter(k=>k.startsWith('pluvia-weather')),loaded:performance.getEntriesByType('resource').filter(e=>/[.](js|css)/.test(e.name)&&!e.transferSize&&!e.decodedBodySize).map(e=>e.name.split('/').pop())})"),ensure_ascii=False))
+   raise
   page.evaluate('document.fonts.ready');assert loaded(page);geometry(page,390)
   assert page.locator('#dataStatus').is_visible()
   page.screenshot(path=str(output/'offline-inter.png'))
