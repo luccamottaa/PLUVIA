@@ -73,6 +73,8 @@ Favoritos usam operações adicionar/remover e têm limite 30. Uma edição de l
 
 `account-sync` serializa requests, deduplica leituras e invalida respostas/controladores na troca de conta, inclusive A → B → A. Revalidar ao reconectar/retornar ao app respeita freshness de 30 segundos; não adicionar polling por componente. Favoritos/cidade principal usam outbox local **por usuário**, bounded e sem nomes/endereços/GPS, preservado inclusive durante requests. Locais e nome exigem confirmação do servidor; não prometer fila offline para eles. Snapshot canônico prevalece sobre metadata antiga do SDK. Atualizações preservam texto focado, mas troca de conta limpa esse campo.
 
+O SDK do Supabase (~210 KiB) só carrega na abertura quando pode haver sessão: chave `sb-*-auth-token` no storage ou retorno `auth_return`/`auth_recovery`/`code`/`access_token`/`error` na URL (storage bloqueado conta como possível sessão); fora disso a conta aparece deslogada e o SDK vem no primeiro uso. Não voltar a chamar `restoreAccount()` incondicionalmente na abertura. Ver `docs/PERFORMANCE.md`.
+
 Publicar migration e função antes da interface. Clientes antigos ainda podem usar read-merge-write e sobrescrever listas; atualizar a geração do SW é necessário, mas não garante atualização instantânea de todas as instalações. Não alegar sync em tempo real ou consistência absoluta contra writers legados. Consulte `docs/ACCOUNT-SYNCHRONIZATION.md`.
 
 ## Mapa, mobile e acessibilidade
