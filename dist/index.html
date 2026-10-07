@@ -97,8 +97,8 @@
     <link rel="stylesheet" href="./sky.css?v=sky-24" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-124" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="./redesign.css?v=panel-39" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-51" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-40" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-52" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-124" /></noscript>
   </head>
   <body>
@@ -178,7 +178,8 @@
         <section class="city-picker" aria-label="Cidades disponíveis">
         <div class="city-actions">        <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
         <button id="locateCity" class="city-button" type="button">Usar localização</button>
-        <button id="compareOpen" class="city-button" type="button" aria-haspopup="dialog" aria-controls="compareDialog">Comparar cidades</button>
+        <button id="compareOpen" class="city-button" type="button" aria-haspopup="dialog" aria-controls="compareDialog" aria-label="Comparar cidades">Comparar</button>
+        <button id="brazilOpen" class="city-button" type="button" aria-haspopup="dialog" aria-controls="brazilDialog">Brasil agora</button>
 </div>
         <section id="dialogFavorites" class="favorite-cities" hidden aria-labelledby="dialogFavoritesTitle"><h3 id="dialogFavoritesTitle">Favoritos</h3><div id="dialogFavoriteList" class="favorite-city-list"></div><p id="dialogFavoriteStatus" role="status" aria-live="polite"></p></section>
         <ul id="cityResults" class="city-results" role="listbox" aria-label="Cidades encontradas"></ul>
@@ -349,7 +350,7 @@
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
           <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><h2 id="weatherMapCardTitle">Chuva na região</h2><p id="weatherMapCity">Referência do município</p></div>
           <button id="expandRadar" class="expand-radar" type="button" aria-haspopup="dialog" aria-controls="radarDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg>Ampliar radar</button>
-          <div id="radarMapContent"><div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button id="weatherStationsLayer" type="button" data-weather-layer="stations" aria-pressed="false" hidden>Estação</button></div><div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Mapa meteorológico interativo"></div><button id="weatherMapRecenter" class="weather-map-recenter" type="button" aria-label="Centralizar o mapa no município" title="Centralizar no município" data-centered="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle class="recenter-dot" cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg></button><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
+          <div id="radarMapContent"><div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button id="weatherStationsLayer" type="button" data-weather-layer="stations" aria-pressed="false" hidden>Estação</button></div><div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Mapa meteorológico interativo"></div><button id="weatherMapRecenter" class="weather-map-recenter" type="button" aria-label="Mostrar minha localização no mapa" title="Minha localização" data-centered="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle class="recenter-dot" cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg></button><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
           <div class="weather-timebar">
             <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
             <div class="weather-player">
@@ -391,7 +392,7 @@
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Sem confirmação atual.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
     <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody" class="dialog-scroll"></div></dialog>
-    <dialog id="shareWeatherDialog" class="city-dialog" aria-labelledby="shareWeatherTitle"><div class="dialog-heading"><h2 id="shareWeatherTitle">Compartilhar previsão</h2><button id="shareWeatherClose" class="dialog-close" type="button" aria-label="Fechar compartilhamento">×</button></div><p>Selecione e copie o texto para compartilhar.</p><label for="shareWeatherText">Condição meteorológica</label><textarea id="shareWeatherText" readonly rows="7"></textarea></dialog>
+    <dialog id="shareWeatherDialog" class="city-dialog" aria-labelledby="shareWeatherTitle"><div class="dialog-heading"><h2 id="shareWeatherTitle">Compartilhar previsão</h2><button id="shareWeatherClose" class="dialog-close" type="button" aria-label="Fechar compartilhamento">×</button></div><p>Selecione e copie o texto para compartilhar.</p><img id="shareWeatherImage" class="share-weather-image" alt="Imagem da previsão para compartilhar" width="1080" height="1920" hidden><a id="shareWeatherDownload" class="share-weather-download" hidden>Baixar imagem</a><label for="shareWeatherText">Condição meteorológica</label><textarea id="shareWeatherText" readonly rows="7"></textarea></dialog>
 
     <dialog id="compareDialog" class="city-dialog compare-dialog" aria-labelledby="compareTitle">
       <div class="dialog-heading"><h2 id="compareTitle">Comparar cidades</h2><button id="compareClose" class="dialog-close" type="button" autofocus aria-label="Fechar comparação">×</button></div>
@@ -400,6 +401,14 @@
         <p id="compareStatus" class="compare-status" role="status" aria-live="polite"></p>
         <div class="compare-table-wrap"><table id="compareTable" class="compare-table"></table></div>
         <p class="compare-note">Previsão Open-Meteo e qualidade do ar CAMS (Open-Meteo), com as mesmas regras da tela principal. A cidade aberta usa a previsão já carregada.</p>
+      </div>
+    </dialog>
+    <dialog id="brazilDialog" class="city-dialog brazil-dialog" aria-labelledby="brazilTitle">
+      <div class="dialog-heading"><h2 id="brazilTitle">Brasil agora</h2><button id="brazilClose" class="dialog-close" type="button" autofocus aria-label="Fechar Brasil agora">×</button></div>
+      <div class="dialog-scroll">
+        <p id="brazilStatus" class="brazil-status" role="status" aria-live="polite"></p>
+        <div id="brazilList" class="brazil-list"></div>
+        <p class="brazil-note">Temperatura atual, condição e máxima/mínima do dia em cada capital, pelo calendário local. Previsão Open-Meteo no ponto de referência do município. Toque numa capital para abrir a previsão completa.</p>
       </div>
     </dialog>
     <dialog id="hourlyDetailDialog" class="city-dialog hourly-detail-dialog" aria-labelledby="hourlyDetailTitle" aria-describedby="hourlyDetailCity">
@@ -463,14 +472,16 @@
     <script src="./modules/risks.js?v=core-118" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
     <script src="./modules/nowcast.js?v=nowcast-3" defer></script>
-    <script src="./weather-map.js?v=map-7" defer></script>
+    <script src="./weather-map.js?v=map-8" defer></script>
     <script src="./modules/account-sync.js?v=sync-1" defer></script>
     <script src="./modules/social-auth.js?v=oauth-3" defer></script>
     <script src="./account.js?v=account-8" defer></script>
     <script src="./favorite-cities.js?v=favorites-7" defer></script>
-    <script src="./modules/share-weather.js?v=share-2" defer></script>
+    <script src="./modules/share-card.js?v=share-card-1" defer></script>
+    <script src="./modules/share-weather.js?v=share-3" defer></script>
     <script src="./saved-places.js?v=places-2" defer></script>
     <script src="./modules/compare-cities.js?v=compare-2" defer></script>
+    <script src="./modules/brazil-now.js?v=brazil-1" defer></script>
     <script src="./modules/pwa-shortcuts.js?v=shortcuts-1" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-2" defer></script>
     <script src="./notifications.js?v=panel-25" defer></script>

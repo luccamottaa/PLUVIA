@@ -2,7 +2,7 @@
 
 ## O que é
 
-- Em "Suas cidades" (lupa), o botão **Comparar cidades** abre um diálogo com a cidade aberta ao lado de outra.
+- Em "Suas cidades" (lupa), o botão **Comparar** (rótulo acessível "Comparar cidades", ao lado de "Brasil agora") abre um diálogo com a cidade aberta ao lado de outra.
 - A outra cidade vem de uma lista com, nesta ordem:
   - **Meus locais**, com o nome pessoal (ex.: "Faculdade · Belém/PA");
   - **Favoritos**;

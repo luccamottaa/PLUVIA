@@ -30,11 +30,14 @@ assert.match(sources,/fires:\{name:'INPE BDQueimadas',status:'prepared'/);
 assert.doesNotMatch(sources,/Vaisala Xweather|NASA GIBS/);
 assert.doesNotMatch(map,/functions\/v1\/lightning|Xweather|loadLightning/);
 assert.doesNotMatch(html,/weatherLightningAttribution|data-weather-layer="(clouds|lightning)"/);
-// Recentralizar: volta ao ponto do município (sem GPS), com estado centralizado e sem animação em reduced-motion.
-assert.match(html,/id="weatherMapRecenter"[^>]*type="button"[^>]*aria-label="Centralizar o mapa no município"[^>]*hidden/);
-assert.match(map,/function recenter\(\)[\s\S]*?setView\(\[selectedCity\.lat,selectedCity\.lon\],Math\.max\(state\.map\.getZoom\?\.\(\) \|\| 7,7\),\{animate:!reduceMotion\(\)\}\)/);
+// Localização no radar: só por toque (sem watchPosition/background), ponto "você está aqui" em memória,
+// sem trocar a cidade; sem permissão volta ao município. data-centered acompanha o movimento.
+assert.match(html,/id="weatherMapRecenter"[^>]*type="button"[^>]*aria-label="Mostrar minha localização no mapa"[^>]*hidden/);
+assert.match(map,/\$\('weatherMapRecenter'\)\?\.addEventListener\('click',recenter\)/);
+assert.equal((map.match(/geolocation\.getCurrentPosition/g) || []).length,1,'uma única chamada, dentro do clique');
+assert.doesNotMatch(map,/watchPosition|localStorage|sessionStorage|requestLocation|selectCity/);
+assert.match(map,/function centerOn\(target, zoom\)[\s\S]*?\{animate:!reduceMotion\(\)\}/);
 assert.match(map,/state\.map\.on\?\.\('moveend zoomend resize',updateRecenter\)/);
-assert.doesNotMatch(map,/geolocation/);
 assert.match(docs,/RainViewer Weather Maps API/);
 assert.doesNotMatch(map,/Math\.random|mock|fake/i);
 
