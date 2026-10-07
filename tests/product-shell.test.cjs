@@ -62,7 +62,7 @@ assert.match(styles, /footer \{ margin-top: 48px; padding-block: 28px/);
 assert.match(styles, /footer \{ margin-top: 28px; align-items:start;/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-panel-105/);
+assert.match(sw, /pluvia-panel-106/);
 assert.match(html, /redesign\.css\?v=panel-37/);
 assert.match(sw, /assets\/sky-cloud-veil\.webp/);
 assert.match(html, /id="weatherView" class="initial-loading" aria-busy="true"/);
