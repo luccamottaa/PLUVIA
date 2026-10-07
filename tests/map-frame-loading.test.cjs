@@ -35,7 +35,7 @@ test('mesmo frame não cria overlays; retorno ao radar reaproveita metadados por
  h.api.renderFrame();assert.equal(h.layers.length,count);h.ready(first);h.api.renderFrame();assert.equal(h.layers.length,count);
  h.api.state.index=0;h.api.renderFrame();const cancelled=h.layers.at(-1);
  h.api.state.index=1;h.api.renderFrame();h.ready(cancelled);assert.equal(h.api.state.overlay,first);assert.equal(h.api.state.nextOverlay,null);
- await h.api.selectLayer('clouds');await h.api.selectLayer('rain');assert.equal(h.requests.length,1);
+ await h.api.selectLayer('stations');await h.api.selectLayer('rain');assert.equal(h.requests.length,1);
  h.advance(120001);await h.api.selectLayer('rain');assert.equal(h.requests.length,2);
 });
 test('resize em rajada executa uma medição por frame e só invalida tamanho alterado',()=>{

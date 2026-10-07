@@ -12,7 +12,7 @@ Diálogos conservam uma área vertical de scroll, navegação por teclado, foco,
 
 ## Radar e custo de trabalho
 
-Radar RainViewer e GOES-East/NASA GIBS continuam os fornecedores existentes. A imagem anterior e seu horário permanecem até chegar ao menos um tile válido da próxima. O evento `load` sozinho pode significar que **todos os tiles falharam**, portanto não basta para confirmar sucesso.
+Radar RainViewer é o fornecedor do mapa; as camadas de satélite (GOES-East/NASA GIBS) e raios (Xweather) foram retiradas a pedido do usuário em outubro/2026. Um botão de recentralizar volta ao ponto de referência do município (sem GPS). A imagem anterior e seu horário permanecem até chegar ao menos um tile válido da próxima. O evento `load` sozinho pode significar que **todos os tiles falharam**, portanto não basta para confirmar sucesso.
 
 Cada frame pendente tem timeout de 10 segundos. Falha total preserva a imagem anterior, para a reprodução e libera nova tentativa. Falha parcial é explícita; não significa ausência de chuva. Callbacks de frames cancelados não podem substituir o atual. Horário e fonte são confirmados na entrega da imagem, não na solicitação.
 
