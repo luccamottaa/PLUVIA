@@ -66,8 +66,8 @@ html,body { background:var(--sky-base); }
 :root[data-weather="storm"] .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .3); }
 /* A fixed, irregular point field stays behind the clouds and celestial disks.
    Only a few brighter points shimmer; the sky never rotates or restarts on open. */
-.sky-stars { position:absolute; inset:0 0 auto; height:clamp(500px,64vw,760px); z-index:0; pointer-events:none; background:url("./assets/sky-stars.svg") center top / cover no-repeat; opacity:calc(var(--stars-visibility,0) * .72); -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); transition:opacity 4s ease; }
-.sky-stars::after { content:""; position:absolute; inset:0; background:url("./assets/sky-stars-shimmer.svg") center top / cover no-repeat; opacity:.8; animation:sky-star-shimmer 9s ease-in-out infinite alternate; animation-delay:-5s; animation-play-state:paused; }
+.sky-stars { position:absolute; inset:0; z-index:0; pointer-events:none; background:url("./assets/sky-stars.svg?v=stars-2") center top / 900px 1100px repeat; opacity:var(--stars-visibility,0); transition:opacity 4s ease; } /* tile 1:1 em px reais; a cena (sky-effects) já esmaece embaixo */
+.sky-stars::after { content:""; position:absolute; inset:0; background:url("./assets/sky-stars-shimmer.svg?v=stars-2") center top / 1040px 1280px repeat; opacity:.8; animation:sky-star-shimmer 9s ease-in-out infinite alternate; animation-delay:-5s; animation-play-state:paused; }
 :root[data-phase="night"]:is([data-weather="sun"],[data-weather="partly"]) .sky-stars::after { animation-play-state:running; }
 :root[data-sky-transition="live"] .sky-stars { transition:opacity 28s linear; }
 :root:not([data-phase="night"]) .sky-stars,

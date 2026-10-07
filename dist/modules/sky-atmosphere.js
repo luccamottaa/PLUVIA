@@ -196,7 +196,9 @@
           starVisibility = darkness * darkness * (3 - 2 * darkness);
         }
       }
-      if (weather === 'partly') starVisibility *= .48;
+      // Céu quase limpo (WMO 1) deixa ver quase todo o campo; parcial (WMO 2), boa parte.
+      // As nuvens continuam por cima: é composição, não medição de visibilidade.
+      if (weather === 'partly') starVisibility *= code === 1 ? .85 : .6;
       // The background Moon illustrates the municipal night, as the Sun does
       // the day. Real moonrise/set remain in astronomyAt; phase stays shared.
       const moonX = ORBIT_MARGIN + nightProgress * (1 - 2 * ORBIT_MARGIN);
