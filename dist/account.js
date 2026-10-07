@@ -412,9 +412,17 @@
   const revalidatePreferences=()=>{if(currentUser)preferenceSync.load().then(()=>queueFlush()).catch(()=>{});};
   window.addEventListener?.('online',()=>{if(currentUser)preferenceSync.load(true).then(()=>queueFlush()).catch(()=>{});});
   document.addEventListener?.('visibilitychange',()=>{if(document.visibilityState==='visible')revalidatePreferences();});
-  // Supabase owns session persistence. Restore it on every page load instead of
-  // guessing the SDK's storage key, which may change between client versions.
-  restoreAccount().finally(()=>{
+  // O SDK (~210KiB) só carrega na abertura quando pode haver sessão: chave salva pelo
+  // Supabase (sb-<projeto>-auth-token desde a v2) ou retorno de login/confirmação/recuperação
+  // na URL. Sem isso, a conta abre deslogada e o SDK vem quando a pessoa usa a conta.
+  // Storage inacessível conta como "pode haver sessão".
+  function mayRestoreSession(){
+    try {
+      return /[?&#](auth_return|auth_recovery|code|access_token|error)=/.test(String(location.href || '')) ||
+        Object.keys(localStorage).some(key => /^sb-.+-auth-token$/.test(key));
+    } catch { return true; }
+  }
+  (mayRestoreSession() ? restoreAccount() : Promise.resolve().then(()=>paint(null))).finally(()=>{
     finishSocialReturn();
     if(recoveryReturn || recoveryAttempt){
       try {const url=new URL(location.href);url.searchParams.delete('auth_recovery');for(const key of ['error','error_code','error_description'])url.searchParams.delete(key);url.hash='';history.replaceState(history.state,'',url.href);}catch{}

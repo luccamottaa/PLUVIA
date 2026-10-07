@@ -46,6 +46,25 @@ Acessibilidade automática já estava em 100. Isso cobre labels, contraste das a
    - Só serve para uma conta restaurada aplicar a cidade principal.
    - Sem sessão Supabase salva nem retorno OAuth na URL, Manaus é escolhida na hora.
 
+## Segundo passo (PageSpeed, outubro/2026)
+
+Medido com o mesmo Lighthouse local e fixtures (celular e desktop, duas rodadas cada).
+
+1. **SDK do Supabase só quando pode haver conta.**
+   - Antes, todo visitante baixava `vendor/supabase-2.116.0.js` (~210 KiB, 178 KiB sem uso) na abertura.
+   - Agora `account.js` só restaura a sessão na abertura quando existe a chave do Supabase (`sb-<projeto>-auth-token`) ou a URL traz retorno de login, confirmação ou recuperação (`auth_return`, `auth_recovery`, `code`, `access_token`, `error`). Storage bloqueado conta como "pode haver sessão".
+   - Sem isso, a conta aparece deslogada (o evento `pluvia:auth-changed` sai com `user:null`) e o SDK carrega quando a pessoa abre a conta, entra ou usa notificações.
+   - Teste: `tests/account-lazy-sdk.test.cjs`. O QA de conta (`verify-account-sync`, `verify-account-lifecycle`, `verify-auth-redirects`) continua passando.
+   - Resultado: "JavaScript não usado" caiu de ~199 KiB para ~21 KiB (resta `weather-map.js`); nota de performance no celular subiu de ~61 para ~69.
+2. **Marca em WebP.** As máscaras da gota (intro, cabeçalho e rodapé) usam `logo-mark.webp` (7 KiB, alfa sem perdas e idêntico ao PNG) em vez do PNG de 35 KiB. O PNG fica para o badge do Push.
+3. **Pulso invisível.** O `.live-dot` pulsava (`box-shadow`, repintura a cada quadro) dentro do status que só aparece para dado antigo, quando o pulso já é desligado. Fora desse estado a animação agora fica parada.
+
+Tentativas medidas e descartadas:
+
+- **`redesign.css` e `continuous.css` assíncronas** (como o `styles.css`). Ao trocar `media=print` por `all`, o Chrome reprocessa a folha de forma assíncrona: a página aparecia um quadro sem estilo e o CLS do desktop foi a 0,10–0,78.
+- **As três folhas no `body`, depois da intro.** Sem salto, mas o Lighthouse continua contando como bloqueantes e o FCP do celular piorou (2,3 → 2,9 s).
+- **`preload` do `styles.css`.** FCP 2,3 → 3,1 s e CLS 0,04–0,05.
+
 ## Limites e o que não foi mexido
 
 - **LCP simulado de ~10 s no celular.**
@@ -58,4 +77,3 @@ Acessibilidade automática já estava em 100. Isso cobre labels, contraste das a
   - É uma mudança de arquitetura, fora deste passo.
 - **Shifts restantes de até 0,013**: a temperatura (DIV 111→135 px) e a linha do INMET ao trocar de `loading` para `clear`.
 - **Variação**: uma rodada isolada no celular deu CLS 0,11 em Próximas horas. Não reproduziu em 4 medições instrumentadas.
-- **Supabase SDK** (213 KB) continua carregando para a conta. Adiar o SDK muda o fluxo de Auth e precisa de passo próprio.

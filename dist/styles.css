@@ -235,7 +235,7 @@ footer > .footer-brand { display:flex; align-items:center; gap:15px; min-width:0
 .source-credits h3 { margin:0 0 8px; color:var(--text); font-size:1rem; }
 .source-credits p { margin:0; line-height:1.6; }
 .source-credits a { color:var(--blue); text-underline-offset:3px; }
-.footer-brand-icon { flex:0 0 62px; width:62px; height:74px; background:#316dff; -webkit-mask:url("./logo-mark.png") center / contain no-repeat; mask:url("./logo-mark.png") center / contain no-repeat; }
+.footer-brand-icon { flex:0 0 62px; width:62px; height:74px; background:#316dff; -webkit-mask:url("./logo-mark.webp") center / contain no-repeat; mask:url("./logo-mark.webp") center / contain no-repeat; }
 .footer-brand-copy { display:flex; flex-direction:column; align-items:flex-start; min-width:0; line-height:1.1; }
 .footer-brand-copy strong { color:#316dff; font-size:clamp(1.9rem,4vw,2.6rem); font-weight:900; letter-spacing:.015em; }
 .footer-brand-copy span { margin-top:7px; color:var(--canvas-text); font-size:clamp(.76rem,2.6vw,.92rem); font-weight:600; letter-spacing:.08em; }
@@ -547,7 +547,7 @@ body:has(.city-dialog[open]) { overflow:hidden; }
   
   .brand { width:44px; height:44px; }
   .brand img { width:44px; height:44px; }
-  .brand::after { -webkit-mask-image:url("./logo-mark.png"); mask-image:url("./logo-mark.png"); }
+  .brand::after { -webkit-mask-image:url("./logo-mark.webp"); mask-image:url("./logo-mark.webp"); }
   .forecast-uv { display:block !important; grid-column:1 / -1; text-align:left; }
 }
 

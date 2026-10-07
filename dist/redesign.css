@@ -153,8 +153,8 @@ html,body { background:#041936; }
 .topbar .brand::after { content:none; display:none; }
 .topbar .brand-mark {
   display:block; flex:0 0 34px; width:34px; height:42px; background:#2F6BFF;
-  -webkit-mask:url("./logo-mark.png") center / contain no-repeat;
-  mask:url("./logo-mark.png") center / contain no-repeat;
+  -webkit-mask:url("./logo-mark.webp") center / contain no-repeat;
+  mask:url("./logo-mark.webp") center / contain no-repeat;
 }
 .topbar .brand span:last-child { display:block; visibility:visible; color:#f4f8ff; font-size:1.7rem; font-weight:900; letter-spacing:-.035em; }
 .panel:not(.attention-card):not(.air-metric[data-aqi-level]):not(.sun-section.is-night) {
