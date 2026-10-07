@@ -82,6 +82,12 @@
         getBrief: (city, options) => getJson(buildUrl(FORECAST_ENDPOINT, city, {
           current:"temperature_2m,apparent_temperature,weather_code,is_day",hourly:"precipitation_probability",
           daily:"temperature_2m_max,temperature_2m_min",forecast_days:"2"
+        }),options),
+        // Comparar cidades: leitura atual, máx./mín. do dia e chuva horária para o mesmo resumo da Home.
+        getCompare: (city, options) => getJson(buildUrl(FORECAST_ENDPOINT, city, {
+          current:"temperature_2m,apparent_temperature,weather_code,is_day",
+          hourly:"precipitation_probability,precipitation,weather_code",
+          daily:"temperature_2m_max,temperature_2m_min",forecast_days:"2"
         }),options)
       },
       metNorway: {

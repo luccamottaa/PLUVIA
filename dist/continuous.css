@@ -748,3 +748,30 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 #weatherView .tips-list { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
 #weatherView .tips-list li { display:flex; align-items:flex-start; gap:10px; color:var(--reading-ink); font-size:.95rem; line-height:1.4; }
 #weatherView .tip-icon { flex:none; width:22px; height:22px; margin-top:1px; color:var(--graphic-blue); }
+
+/* Comparar cidades: tabela nativa (linhas alinhadas entre as duas colunas, cabeçalhos para leitor de tela). */
+#cityDialog #compareOpen { grid-column:1 / -1; }
+.compare-pick { display:grid; gap:6px; }
+.compare-pick label { color:var(--dialog-muted); font-size:.85rem; }
+.compare-pick select { min-height:44px; width:100%; padding:0 12px; border:1px solid var(--dialog-line); border-radius:12px; color:var(--dialog-text); background:var(--dialog-surface); font:inherit; }
+.compare-status { min-height:1.2em; margin:10px 0 0; color:var(--dialog-muted); font-size:.85rem; }
+.compare-table-wrap { overflow-x:auto; }
+.compare-table { width:100%; border-collapse:collapse; font-size:.92rem; }
+.compare-table caption { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.compare-table :is(th,td) { padding:12px 8px; border-bottom:1px solid var(--dialog-line); text-align:left; vertical-align:top; overflow-wrap:break-word; }
+.compare-table thead th { color:var(--brand-blue); font-weight:600; font-size:1rem; }
+.compare-table thead td { width:26%; }
+.compare-table tbody th { color:var(--dialog-muted); font-weight:400; font-size:.85rem; }
+.compare-table td strong { display:block; font-weight:500; font-variant-numeric:tabular-nums; }
+.compare-table :is(td,th) small { display:block; margin-top:3px; color:var(--dialog-muted); font-size:.78rem; font-weight:400; }
+.compare-note { margin:14px 0 0; color:var(--dialog-muted); font-size:.78rem; }
+@media(max-width:520px) { .compare-table :is(th,td) { padding:10px 5px; } .compare-table { font-size:.86rem; } .compare-table tbody th { font-size:.8rem; } }
+/* Telas estreitas: o rótulo ocupa a linha e as duas cidades ficam lado a lado embaixo.
+   Os papéis ARIA explícitos (no JS) mantêm a tabela para leitores de tela apesar do display:grid. */
+@media(max-width:380px) {
+  .compare-table, .compare-table :is(thead,tbody) { display:block; }
+  .compare-table tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:10px; border-bottom:1px solid var(--dialog-line); padding-block:8px; }
+  .compare-table :is(th,td) { border:0; padding:2px 0; }
+  .compare-table thead td { display:none; }
+  .compare-table tbody th { grid-column:1 / -1; padding-bottom:4px; }
+}

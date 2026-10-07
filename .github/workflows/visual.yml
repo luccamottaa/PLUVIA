@@ -49,6 +49,7 @@ jobs:
           python scripts/verify-contrast.py
           python scripts/verify-resilience.py
           python scripts/verify-city-pages.py
+          python scripts/verify-compare.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
