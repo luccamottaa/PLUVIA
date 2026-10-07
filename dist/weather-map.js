@@ -7,7 +7,6 @@
   const LEAFLET_JS = '/vendor/leaflet/leaflet.js?v=1.9.4';
   const LEAFLET_CSS = '/vendor/leaflet/leaflet.css?v=1.9.4';
   const RAIN_META = 'https://api.rainviewer.com/public/weather-maps.json';
-  const LIGHTNING_ENDPOINT = 'https://dszyyrcvwrpyiypwyvxe.supabase.co/functions/v1/lightning';
   const httpClient = globalThis.PLUVIA?.http?.createClient?.({defaultTimeoutMs:10000});
   const state = { map:null, base:null, overlay:null, marker:null, layer:'rain', frames:[], index:0, timer:null, cityId:null };
   const radarDialog = $('radarDialog'), radarContent = $('radarMapContent');
@@ -120,42 +119,6 @@
     $('weatherSourceNote').textContent = 'Radar observado · RainViewer · cobertura depende dos radares disponíveis; não é previsão.';
     $('weatherMapLegend').innerHTML = '<span>Fraca</span><i class="legend-rain"></i><span>Forte</span>';
   }
-  const SATELLITE_LAYER = 'GOES-East_ABI_GeoColor';
-  const SATELLITE_MATRIX = 'GoogleMapsCompatible_Level7';
-  const SATELLITE_ROOT = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best';
-  function satelliteFrames(xml, now = Date.now()) {
-    const domain = xml.match(/<Domain>([^<]+)<\/Domain>/)?.[1];
-    if (!domain) throw new Error('O satélite não informou horários disponíveis.');
-    const times = new Set();
-    for (const range of domain.split(',')) {
-      const [startText,endText,period] = range.trim().split('/');
-      const start = Date.parse(startText), end = Date.parse(endText || startText);
-      if (!Number.isFinite(start) || !Number.isFinite(end) || end < start || (period && period !== 'PT10M')) continue;
-      for (let time=end, count=0; time>=start && count<72; time-=600000,count++) {
-        if (time<=now && now-time<=6*3600000) times.add(time/1000);
-      }
-    }
-    const frames = [...times].sort((a,b)=>a-b).slice(-7).map(time=>({time}));
-    if (!frames.length) throw new Error('Sem imagens recentes de satélite. Tente novamente mais tarde.');
-    return frames;
-  }
-  function renderCloudFrame() {
-    const frame = state.frames[state.index]; if (!frame) return;
-    const iso = new Date(frame.time*1000).toISOString().replace('.000Z','Z');
-    const overlay = L.tileLayer(`${SATELLITE_ROOT}/${SATELLITE_LAYER}/default/${iso}/${SATELLITE_MATRIX}/{z}/{y}/{x}.png`,{
-      opacity:0,maxNativeZoom:6,maxZoom:6,noWrap:true,className:'pluvia-cloud-overlay',
-      attribution:'GOES-East / NOAA · NASA GIBS'
-    });
-    const date = new Intl.DateTimeFormat('pt-BR',{timeZone:city()?.timezone || 'UTC',day:'2-digit',month:'2-digit'}).format(new Date(frame.time*1000));
-    fadeTileLayer(overlay,.92,{
-      key:'clouds:'+frame.time,loading:'Carregando imagem de '+zoneTime(frame.time)+'…',
-      onReady(failed) {$('weatherFrameTime').textContent=date+' · '+zoneTime(frame.time);source('clouds',{status:failed ? 'partial' : 'ready',dataAt:frame.time*1000});},
-      onError() {source('clouds',{status:'error'});}
-    });
-    state.marker?.closeTooltip?.();
-    $('weatherSourceNote').textContent = 'Satélite GOES-East · NOAA / NASA GIBS · imagem observada no horário indicado, com atraso de processamento. Composição GeoColor de dia e infravermelho à noite.';
-    $('weatherMapLegend').innerHTML = '<span>Nuvens · GOES-East</span>';
-  }
   function renderFrame(force=false) {
     $('weatherTimeline').value = String(state.index);
     const key=state.layer+':'+state.frames[state.index]?.time;
@@ -164,7 +127,7 @@
       cancelPending();frameStatus(false,displayedPartial ? 'Parte da imagem não carregou.' : 'Imagem carregada.',displayedPartial);
       setError(displayedPartial ? 'Parte da imagem não carregou. Tente outro horário ou tente novamente.' : '');return;
     }
-    if (state.layer === 'rain') renderRainFrame(); else if (state.layer === 'clouds') renderCloudFrame();
+    if (state.layer === 'rain') renderRainFrame();
   }
   async function loadRain(revision) {
     source('radar',{status:'loading'});
@@ -177,42 +140,6 @@
     if (!frames.length) throw new Error('O radar não enviou frames recentes.');
     radarSnapshot={data,at:cached ? radarSnapshot.at : Date.now()};
     setFrames(frames,frames.length-1); renderFrame();
-  }
-  async function loadClouds(revision) {
-    source('clouds',{status:'loading'});
-    if (!httpClient?.getText) throw new Error('Cliente de satélite indisponível. Recarregue o app.');
-    const now = Date.now(), start = new Date(now-6*3600000).toISOString().replace(/\.\d{3}Z$/,'Z');
-    const end = new Date(now).toISOString().replace(/\.\d{3}Z$/,'Z');
-    const url = `${SATELLITE_ROOT}/1.0.0/${SATELLITE_LAYER}/default/${SATELLITE_MATRIX}/all/${start}--${end}.xml`;
-    const xml = await httpClient.getText(url,{timeoutMs:15000});
-    if (revision !== layerRevision) return;
-    const frames = satelliteFrames(xml,now);
-    setFrames(frames,frames.length-1); renderFrame();
-  }
-  async function loadLightning(revision) {
-    source('lightning',{status:'loading'});
-    const selectedCity = city();
-    const url = new URL(LIGHTNING_ENDPOINT);
-    url.searchParams.set('lat',Number(selectedCity.lat).toFixed(2));
-    url.searchParams.set('lon',Number(selectedCity.lon).toFixed(2));
-    const data = await fetchJson(url.href);
-    if (revision !== layerRevision) return;
-    if (data?.source !== 'Vaisala Xweather' || !Array.isArray(data.events) || !Number.isFinite(data.checkedAt) ||
-      Date.now()-data.checkedAt > 300_000 || data.checkedAt-Date.now() > 60_000 || data.windowMinutes !== 5 || data.radiusKm !== 40 || data.events.length > 100) throw new Error('Leitura de raios indisponível ou antiga.');
-    const marks = data.events.map(event => {
-      if (!Number.isFinite(event.lat) || !Number.isFinite(event.lon) || !Number.isFinite(event.time) || !['CG','IC'].includes(event.type)) throw new Error('Leitura de raios inválida.');
-      return L.circleMarker([event.lat,event.lon],{radius:event.type === 'CG' ? 6 : 4,color:'#fff',weight:1.5,
-        fillColor:event.type === 'CG' ? '#ffc247' : '#8b7bff',fillOpacity:.9,interactive:false});
-    });
-    state.overlay = L.layerGroup(marks).addTo(state.map);
-    setFrames([],0);
-    const checked = zoneTime(data.checkedAt/1000);
-    $('weatherFrameTime').textContent = `${checked} · últimos 5 min`;
-    $('weatherSourceNote').textContent = data.events.length
-      ? `${data.events.length}${data.truncated ? '+' : ''} registro(s) em até 40 km · consulta de ${checked}. Raios observados, não previsão nem alerta.`
-      : `Nenhum registro retornado na consulta de ${checked} em até 40 km. Isso não confirma ausência de raios agora.`;
-    $('weatherMapLegend').innerHTML = '<span><i class="legend-strike"></i> Solo</span><span><i class="legend-cloud-strike"></i> Nuvem</span>';
-    source('lightning',{status:'ready',dataAt:data.checkedAt});
   }
   function loadStations() {
     const data=globalThis.PLUVIA?.nowcast?.get();
@@ -229,7 +156,7 @@
     $('weatherMapLegend').textContent='Estação observada · '+data.stations.map(station=>station.name).join(', ');
   }
   async function selectLayer(name) {
-    if (!['rain','clouds','lightning','stations'].includes(name)) return;
+    if (!['rain','stations'].includes(name)) return;
     if (!state.map) {
       state.layer = name;
       if (!initializing) showMap();
@@ -237,27 +164,35 @@
     }
     const revision = ++layerRevision;
     stop(); setError(''); httpClient?.abortAll(); removeOverlay(); state.layer = name;
-    // Satellite tiles are native at zoom 6; avoid magnifying them into large blocks.
-    state.map.setMaxZoom?.(name === 'clouds' ? 6 : 11);
-    if (name === 'clouds' && state.map.getZoom?.() > 6) state.map.setZoom?.(6);
-    $('weatherLightningAttribution').hidden = name !== 'lightning';
     setFrames([],0);
     document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
-    $('weatherLayerName').textContent = name === 'rain' ? 'Chuva' : name === 'clouds' ? 'Nuvens' : name === 'stations' ? 'Estação' : 'Raios';
+    $('weatherLayerName').textContent = name === 'stations' ? 'Estação' : 'Chuva';
     $('weatherFrameTime').textContent = 'Carregando…'; $('weatherSourceNote').textContent = 'Consultando a fonte escolhida…';
     frameStatus(true,'Consultando a fonte escolhida…');
     try {
-      if (name === 'rain') await loadRain(revision); else if (name === 'clouds') await loadClouds(revision); else if (name === 'stations') loadStations(); else await loadLightning(revision);
-      if (revision===layerRevision && ['stations','lightning'].includes(name)) frameStatus(false,'Observação carregada.');
+      if (name === 'rain') await loadRain(revision); else loadStations();
+      if (revision===layerRevision && name==='stations') frameStatus(false,'Observação carregada.');
     } catch (error) {
       if (revision !== layerRevision) return;
-      const id = name === 'rain' ? 'radar' : name;
-      source(id,{status:'error'}); setFrames([],0); setError('Esta camada está temporariamente indisponível. As outras continuam funcionando.');
+      source(name === 'rain' ? 'radar' : name,{status:'error'}); setFrames([],0); setError('Esta camada está temporariamente indisponível. Tente novamente.');
       frameStatus(false,'Não foi possível carregar esta camada.',true);
-      $('weatherFrameTime').textContent = 'Indisponível'; $('weatherSourceNote').textContent = name === 'lightning'
-        ? 'Raios ainda não ativados ou temporariamente indisponíveis. Nenhuma observação foi confirmada.'
-        : error?.message || 'Dados temporariamente indisponíveis.';
+      $('weatherFrameTime').textContent = 'Indisponível'; $('weatherSourceNote').textContent = error?.message || 'Dados temporariamente indisponíveis.';
     }
+  }
+  // Botão de recentralizar (como o "minha localização" dos apps de mapa): volta ao ponto do município
+  // depois de arrastar o mapa. Usa a referência do município; não lê o GPS do aparelho.
+  const reduceMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  function updateRecenter() {
+    const button = $('weatherMapRecenter'), selectedCity = city();
+    if (!button || !state.map || !selectedCity) return;
+    const point = state.map.latLngToContainerPoint([selectedCity.lat,selectedCity.lon]);
+    const size = state.map.getSize();
+    const centered = Math.hypot(point.x - size.x / 2, point.y - size.y / 2) < 12;
+    button.dataset.centered = String(centered);
+  }
+  function recenter() {
+    const selectedCity = city(); if (!state.map || !selectedCity) return;
+    state.map.setView([selectedCity.lat,selectedCity.lon],Math.max(state.map.getZoom?.() || 7,7),{animate:!reduceMotion()});
   }
   async function initMap() {
     await loadLeaflet();
@@ -265,10 +200,14 @@
     if (!state.map) {
       state.map = L.map('weatherMap',{zoomControl:true,minZoom:3,maxZoom:11}).setView([selectedCity.lat,selectedCity.lon],7);
       state.base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{className:'pluvia-light-basemap',maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map);
+      state.map.on?.('moveend zoomend resize',updateRecenter);
     } else state.map.setView([selectedCity.lat,selectedCity.lon],7);
     if (state.marker) state.map.removeLayer(state.marker);
     state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:7,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(`${selectedCity.name}/${selectedCity.uf}`);
     state.cityId = selectedCity.id; $('weatherMapCity').textContent = `${selectedCity.name}/${selectedCity.uf} · ponto de referência do município`;
+    const recenterButton = $('weatherMapRecenter');
+    if (recenterButton) { recenterButton.hidden = false; recenterButton.setAttribute('aria-label',`Centralizar o mapa em ${selectedCity.name}`); recenterButton.title = `Centralizar em ${selectedCity.name}`; }
+    updateRecenter();
     resizeMap();
   }
   let initializing = false;
@@ -296,13 +235,14 @@
       resizePending=false;const container=state.map?.getContainer?.();if (!container) return;
       const {clientWidth:width,clientHeight:height}=container;
       if (!width || !height || (lastSize.width===width && lastSize.height===height)) return;
-      lastSize.width=width;lastSize.height=height;state.map.invalidateSize({pan:false});
+      lastSize.width=width;lastSize.height=height;state.map.invalidateSize({pan:true}); // mantém o mesmo centro ao ampliar/reduzir o radar
     });
   }
   $('weatherMapRetry')?.addEventListener('click',()=>{
     setError('');
     if (!state.map) showMap();else if (state.frames.length) renderFrame(true);else selectLayer(state.layer);
   });
+  $('weatherMapRecenter')?.addEventListener('click',recenter);
   $('expandRadar')?.addEventListener('click',() => {
     if (!radarDialog || radarDialog.open || !radarContent) return;
     previousOverflow = document.body.style.overflow;
@@ -340,10 +280,8 @@
     ['NOAA Aviation Weather Center','Observação METAR','Boletim do aeroporto Eduardo Gomes (SBEG), com horário da observação. Descreve a estação, sem confirmar chuva nos demais bairros.'],
     ['INMET','Dado oficial','Avisos meteorológicos vigentes e previstos para o município.'],
     ['Open-Meteo','Estimativa meteorológica','Tempo, chuva e qualidade do ar no ponto do município.'],
-    ['NOAA / NASA GIBS','Nuvens observadas por satélite','Imagens GOES-East GeoColor, com horário da captura e atraso de processamento.'],
     ['MET Norway','Previsão meteorológica','Fonte principal de temperatura, vento e precipitação. Quando indisponível, usamos Open-Meteo. Dados CC BY 4.0.'],
     ['RainViewer','Observação de radar','Composição de radares; cobertura e disponibilidade variam por região.'],
-    ['Vaisala Xweather','Raios observados sob demanda','Detecções nos últimos cinco minutos em até 40 km; disponível após ativação das credenciais no servidor.'],
     ['OpenStreetMap','Base cartográfica','Ruas e referências geográficas do mapa.'],
     ['IBGE','Referência territorial','Municípios, códigos e coordenadas centrais usadas na busca.']
   ];
@@ -362,8 +300,7 @@
     [
       ['Chuva medida por estações · Cemaden','https://mapainterativo.cemaden.gov.br/'],
       ['Focos de fogo por satélite · INPE','https://terrabrasilis.dpi.inpe.br/queimadas/bdqueimadas/'],
-      ['Raios detectados por satélite · NOAA','https://www.star.nesdis.noaa.gov/goes/'],
-      ['Rede de raios · Vaisala Xweather','https://www.xweather.com/']
+      ['Raios detectados por satélite · NOAA','https://www.star.nesdis.noaa.gov/goes/']
     ].forEach(([label,url]) => {
       const link=document.createElement('a'); link.href=url; link.target='_blank'; link.rel='noopener noreferrer'; link.textContent=label; official.appendChild(link);
     });

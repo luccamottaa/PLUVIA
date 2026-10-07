@@ -103,6 +103,16 @@ with sync_playwright() as p:
         page.wait_for_function(f"document.getElementById('{dialog}').open", timeout=20000)
         state = page.evaluate("() => ({url:location.pathname + location.search, intro:document.getElementById('pluviaIntro').hidden, open:[...document.querySelectorAll('dialog[open]')].map(d => d.id)})")
         assert state == {'url': '/?source=pwa', 'intro': True, 'open': [dialog]}, (action, state)
+        if action == 'radar':
+            # Recentralizar: abre centralizado no município, arrastar desliga o estado e o botão volta ao ponto.
+            page.wait_for_function("!document.getElementById('weatherMapRecenter').hidden && document.getElementById('weatherMapRecenter').dataset.centered==='true'", timeout=15000)
+            box = page.locator('#weatherMap').bounding_box(); x, y = box['x'] + box['width'] / 2, box['y'] + box['height'] / 2
+            page.mouse.move(x, y); page.mouse.down(); page.mouse.move(x - 150, y - 80, steps=8); page.mouse.up()
+            page.wait_for_function("document.getElementById('weatherMapRecenter').dataset.centered==='false'", timeout=5000)
+            page.click('#weatherMapRecenter')
+            page.wait_for_function("document.getElementById('weatherMapRecenter').dataset.centered==='true'", timeout=5000)
+            assert page.evaluate("[...document.querySelectorAll('[data-weather-layer]')].filter(b => b.offsetParent).length") == 0, 'sem satélite/raios e sem grupo de camadas com só a Chuva'
+            report.append({'recenter': True})
         # Recarregar com a consulta da comparação em voo vira erro de página no WebKit (fetch CORS cancelado).
         if action == 'comparar':
             page.wait_for_function("document.querySelectorAll('#compareTable tbody tr').length===5 && !/Consultando/.test(document.getElementById('compareTable').textContent)", timeout=15000)
