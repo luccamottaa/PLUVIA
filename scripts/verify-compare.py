@@ -106,6 +106,7 @@ with sync_playwright() as p:
         # Recarregar com a consulta da comparação em voo vira erro de página no WebKit (fetch CORS cancelado).
         if action == 'comparar':
             page.wait_for_function("document.querySelectorAll('#compareTable tbody tr').length===5 && !/Consultando/.test(document.getElementById('compareTable').textContent)", timeout=15000)
+        page.wait_for_load_state('networkidle')  # radar e outras consultas em voo também virariam erro no WebKit
         page.reload(wait_until='domcontentloaded')
         page.wait_for_function("document.getElementById('temperature').textContent.trim()==='30' && document.getElementById('pluviaIntro').hidden", timeout=20000)
         page.wait_for_timeout(1000)
