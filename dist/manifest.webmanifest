@@ -10,7 +10,10 @@
   "background_color": "#10233f",
   "theme_color": "#10233f",
   "lang": "pt-BR",
-  "categories": ["weather", "utilities"],
+  "categories": [
+    "weather",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "./icon-splash-192.png",
@@ -35,6 +38,47 @@
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Trocar cidade",
+      "short_name": "Cidades",
+      "description": "Buscar uma cidade, favoritos e Meus locais",
+      "url": "/?abrir=cidades",
+      "icons": [
+        {
+          "src": "/assets/shortcuts/cidades.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Comparar cidades",
+      "short_name": "Comparar",
+      "description": "Ver duas cidades lado a lado",
+      "url": "/?abrir=comparar",
+      "icons": [
+        {
+          "src": "/assets/shortcuts/comparar.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Radar de chuva",
+      "short_name": "Radar",
+      "description": "Abrir o radar ampliado",
+      "url": "/?abrir=radar",
+      "icons": [
+        {
+          "src": "/assets/shortcuts/radar.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }

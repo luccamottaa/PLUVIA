@@ -53,6 +53,7 @@
     return groups;
   }
 
+  let openDialog = null;
   function mount(root) {
     const doc = root.document, el = id => doc.getElementById(id);
     const dialog = el('compareDialog'), select = el('compareCity'), table = el('compareTable');
@@ -189,6 +190,7 @@
       dialog.querySelector('.dialog-scroll')?.scrollTo?.(0, 0);
       compare();
     }
+    openDialog = open;
     function stop() {revision++; controller?.abort(); controller = null;}
     const close = () => root.PLUVIA?.dialogs?.close(dialog) ?? dialog.close();
 
@@ -202,5 +204,6 @@
     root.addEventListener('pluvia:weather-updated', () => {if (dialog.open && !controller) compare();});
   }
 
-  return {summarize, options, mount, FRESH_MS, HORIZON};
+  // Abre o diálogo (atalho do PWA); sem o diálogo montado não faz nada.
+  return {summarize, options, mount, open:() => openDialog?.(), FRESH_MS, HORIZON};
 });

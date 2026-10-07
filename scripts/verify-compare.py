@@ -2,7 +2,7 @@
 Confere que a abertura não consulta a cidade de comparação, que o diálogo abre a partir de
 "Suas cidades" com locais salvos, favoritos e capitais, que as linhas ficam lado a lado sem
 estourar a largura (320 a 1366 px), que falhas da previsão ou do ar viram "Indisponível" com
-mensagem clara e que Escape fecha. Não testa APIs reais nem leitor de tela físico.
+mensagem clara, que Escape fecha e que os atalhos do PWA (?abrir=) abrem o diálogo certo uma vez. Não testa APIs reais nem leitor de tela físico.
 """
 import datetime, json, os, shutil, subprocess, tempfile
 from pathlib import Path
@@ -86,6 +86,27 @@ with sync_playwright() as p:
         page.keyboard.press('Escape'); page.wait_for_function("!document.getElementById('compareDialog').open", timeout=3000)
         assert not errors, (width, errors)
         report.append({'width': width, 'rows': 5})
+        context.close()
+    # Atalhos do PWA (manifest): abrem o diálogo depois da intro e da previsão, limpam o endereço e não reabrem no reload.
+    for action, dialog in [('cidades', 'cityDialog'), ('comparar', 'compareDialog'), ('radar', 'radarDialog')]:
+        context = browser.new_context(viewport={'width': 390, 'height': 844}, is_mobile=engine != 'firefox', has_touch=True,
+                                      timezone_id='Asia/Tokyo', service_workers='block', reduced_motion='reduce')
+        context.route('**/*', route)
+        context.add_init_script("localStorage.setItem('pluvia-city',JSON.stringify('1302603'));localStorage.setItem('pluvia-favorites',JSON.stringify(['1501402']));"
+                                "Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1})}}});")
+        page = context.new_page(); errors = []
+        page.on('pageerror', lambda error: errors.append(str(error)))
+        page.clock.set_fixed_time(datetime.datetime(2026, 10, 1, 16, 30, tzinfo=datetime.timezone.utc))
+        page.goto(preview + f'/?abrir={action}&source=pwa', wait_until='domcontentloaded')
+        page.wait_for_function(f"document.getElementById('{dialog}').open", timeout=20000)
+        state = page.evaluate("() => ({url:location.pathname + location.search, intro:document.getElementById('pluviaIntro').hidden, open:[...document.querySelectorAll('dialog[open]')].map(d => d.id)})")
+        assert state == {'url': '/?source=pwa', 'intro': True, 'open': [dialog]}, (action, state)
+        page.reload(wait_until='domcontentloaded')
+        page.wait_for_function("document.getElementById('temperature').textContent.trim()==='30' && document.getElementById('pluviaIntro').hidden", timeout=20000)
+        page.wait_for_timeout(1000)
+        assert page.evaluate("document.querySelectorAll('dialog[open]').length") == 0, (action, 'reload não reabre')
+        assert not errors, (action, errors)
+        report.append({'shortcut': action})
         context.close()
     browser.close()
 print(json.dumps({'browser': engine, 'cases': report}))
