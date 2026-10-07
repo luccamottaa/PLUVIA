@@ -187,12 +187,12 @@ html,body { background:#041936; }
 .attention-card.warning { background:#30271c; border-color:#645034; }
 .attention-card.danger { background:#321e26; border-color:#6b3941; }
 .attention-card p,.attention-card small { color:var(--muted); }
-.air-metric[data-aqi-level="good"] { --aqi-accent:#6ad9a1; }
-.air-metric[data-aqi-level="moderate"] { --aqi-accent:#ffdb69; }
-.air-metric[data-aqi-level="sensitive"] { --aqi-accent:#ffad66; }
-.air-metric[data-aqi-level="poor"] { --aqi-accent:#ff8288; }
-.air-metric[data-aqi-level="very-poor"] { --aqi-accent:#c9a0fc; }
-.air-metric[data-aqi-level="hazardous"] { --aqi-accent:#f2a3b9; }
+:is(.air-metric,.air-outlook b)[data-aqi-level="good"] { --aqi-accent:#6ad9a1; }
+:is(.air-metric,.air-outlook b)[data-aqi-level="moderate"] { --aqi-accent:#ffdb69; }
+:is(.air-metric,.air-outlook b)[data-aqi-level="sensitive"] { --aqi-accent:#ffad66; }
+:is(.air-metric,.air-outlook b)[data-aqi-level="poor"] { --aqi-accent:#ff8288; }
+:is(.air-metric,.air-outlook b)[data-aqi-level="very-poor"] { --aqi-accent:#c9a0fc; }
+:is(.air-metric,.air-outlook b)[data-aqi-level="hazardous"] { --aqi-accent:#f2a3b9; }
 .weather-visual,.hourly-weather-icon,.forecast-weather-icon,.rain-metric-icon { filter:invert(65%) sepia(60%) saturate(1759%) hue-rotate(189deg) brightness(105%) contrast(101%); }
 .city-dialog,.account-dialog,.weather-map-dialog { background:#101d32; color:#e5f0ff; border-color:rgba(105,170,255,.43); }
 .city-dialog .city-button,.city-dialog .city-picker input,.city-dialog .city-picker select,.city-dialog .city-result { background:#18283e; color:#e5f0ff; border-color:var(--line); }

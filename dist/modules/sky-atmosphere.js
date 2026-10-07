@@ -75,7 +75,7 @@
           if(!Number.isFinite(start) || !Number.isFinite(end) || end<=start) return null;
           const result=sun?.getTimes(new Date(cityTime(date+'T12:00:00',city)),city.lat,city.lon) || {};
           const stamp=value=>Number.isFinite(value?.getTime?.()) ? value.getTime() : null;
-          calculatedDays.set(date,{date,start,end,rise:stamp(result.sunrise),set:stamp(result.sunset),dawn:stamp(result.dawn),dusk:stamp(result.dusk),nauticalDawn:stamp(result.nauticalDawn),nauticalDusk:stamp(result.nauticalDusk)});
+          calculatedDays.set(date,{date,start,end,rise:stamp(result.sunrise),set:stamp(result.sunset),dawn:stamp(result.dawn),dusk:stamp(result.dusk),nauticalDawn:stamp(result.nauticalDawn),nauticalDusk:stamp(result.nauticalDusk),goldenEnd:stamp(result.goldenHourEnd),goldenStart:stamp(result.goldenHour)});
           if(calculatedDays.size>3) calculatedDays.delete(calculatedDays.keys().next().value);
         }
         return calculatedDays.get(date);
@@ -113,7 +113,9 @@
         moonDays.set(day.date,{moonRise:available ? rise : null,moonSet:available ? set : null,moonAvailable:available});
         if(moonDays.size>3) moonDays.delete(moonDays.keys().next().value);
       }
-      return {...dayAt(at),date:day.date,dawn:day.dawn,dusk:day.dusk,...moonDays.get(day.date)};
+      // Hora dourada: Sol entre o horizonte e 6° de altura (goldenHourEnd/goldenHour do SunCalc). As janelas
+      // usam o nascer/pôr do mesmo cálculo (calculatedRise/Set), sem misturar com o horário da previsão.
+      return {...dayAt(at),date:day.date,dawn:day.dawn,dusk:day.dusk,goldenEnd:day.goldenEnd,goldenStart:day.goldenStart,calculatedRise:day.rise,calculatedSet:day.set,...moonDays.get(day.date)};
     }
     // playbackRate keeps each CSS animation's position, so a new reading changes the
     // speed without a jump. Runs on the existing clock: animations created after the

@@ -47,7 +47,7 @@
     <link rel="stylesheet" href="/fonts.css?v=type-1" />
     <link rel="preload" href="/vendor/suncalc.js?v=sky-3" as="script" />
     <link rel="preload" href="/modules/moon-view.js?v=moon-3" as="script" />
-    <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-14" as="script" />
+    <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-15" as="script" />
     <link rel="preload" href="/sky.css?v=sky-24" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
@@ -93,12 +93,13 @@
     <script src="/modules/city-time.js?v=time-1"></script>
     <script src="/vendor/suncalc.js?v=sky-3"></script>
     <script src="/modules/moon-view.js?v=moon-3"></script>
-    <script src="/modules/sky-atmosphere.js?v=sky-14"></script>
+    <script src="/modules/sky-atmosphere.js?v=sky-15"></script>
+    <script src="/modules/sky-events.js?v=sky-events-1" defer></script>
     <link rel="stylesheet" href="/sky.css?v=sky-24" />
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="/styles.css?v=core-124" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="/redesign.css?v=panel-38" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-50" />
+    <link rel="stylesheet" href="/redesign.css?v=panel-39" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-51" />
     <noscript><link rel="stylesheet" href="/styles.css?v=core-124" /></noscript>
   </head>
   <body>
@@ -291,6 +292,7 @@
             </div>
             <p class="condition" id="condition">Consultando o tempo…</p>
             <p class="rain-answer" id="rainAnswer" data-tone="loading"><span class="sk sk-line" aria-hidden="true"></span></p>
+            <p class="yesterday-note" id="yesterdayNote"><span class="sk sk-line sk-short" aria-hidden="true"></span></p>
           </div>
         </article>
       </section>
@@ -322,7 +324,7 @@
         <article class="metric metric-sky wind-metric panel card-detail"><div class="metric-head"><span>VENTO</span><span data-weather-icon-name="wind-speed" data-weather-icon-style="line"></span></div><div class="wind-reading"><strong id="wind"><span class="sk sk-num" aria-hidden="true"></span></strong><span class="wind-compass" id="windCompass" role="img" aria-label="Direção do vento indisponível"><svg viewBox="0 0 80 80" aria-hidden="true" focusable="false"><circle class="compass-ring" cx="40" cy="40" r="23"/><g class="compass-labels"><text x="40" y="8">N</text><text x="65" y="16">NE</text><text x="74" y="40">L</text><text x="65" y="65">SE</text><text x="40" y="74">S</text><text x="15" y="65">SO</text><text x="6" y="40">O</text><text x="15" y="16">NO</text></g><g class="compass-needle"><path class="compass-tail" d="M36 40 40 57 44 40Z"/><path class="compass-tip" d="M40 20 34 43 40 40 46 43Z"/></g><circle class="compass-center" cx="40" cy="40" r="3"/></svg></span></div><small id="windNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
         <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>PRESSÃO</span><span data-weather-icon-name="pressure" data-weather-icon-style="line"></span></div><strong id="pressure"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="pressureNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
         <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>ÍNDICE UV</span><span data-weather-icon-name="uv-index" data-weather-icon-style="line"></span></div><strong id="uv"><span class="sk sk-num" aria-hidden="true"></span></strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
-        <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>QUALIDADE DO AR</span><span data-weather-icon-name="air-quality" data-weather-icon-style="line"></span></div><div class="air-reading"><div class="air-index"><b id="airValue"><span class="sk sk-num" aria-hidden="true"></span></b><span>US AQI</span></div><div class="air-description"><strong id="airQuality"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="airNote"><span class="sk sk-line" aria-hidden="true"></span></small><small id="airParticlesNote" hidden></small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div><small class="air-source">Estimativa regional · Open-Meteo / CAMS</small><details id="airDetails" class="air-details" hidden><summary>Poluentes e origem</summary><p id="airDetailsTime"></p><p id="airParticles" hidden></p><dl id="airPollutants"></dl><p>PM2,5 e PM10 são partículas; ozônio, NO₂ e CO são gases. Concentrações em microgramas por metro cúbico. O US AQI é um índice próprio, não a soma desses valores.</p><p>Estimativa regional do CAMS via Open-Meteo; não é medição no seu endereço nem confirma a origem da poluição.</p></details></article>
+        <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>QUALIDADE DO AR</span><span data-weather-icon-name="air-quality" data-weather-icon-style="line"></span></div><div class="air-reading"><div class="air-index"><b id="airValue"><span class="sk sk-num" aria-hidden="true"></span></b><span>US AQI</span></div><div class="air-description"><strong id="airQuality"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="airNote"><span class="sk sk-line" aria-hidden="true"></span></small><small id="airParticlesNote" hidden></small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div><section class="air-outlook" id="airOutlook" aria-labelledby="airOutlookTitle" hidden><h3 id="airOutlookTitle">Próximos dias</h3><ol id="airOutlookList"></ol></section><small class="air-source">Estimativa regional · Open-Meteo / CAMS<span id="airOutlookNote" hidden> · próximos dias são previsão do modelo e podem mudar</span></small><details id="airDetails" class="air-details" hidden><summary>Poluentes e origem</summary><p id="airDetailsTime"></p><p id="airParticles" hidden></p><dl id="airPollutants"></dl><p>PM2,5 e PM10 são partículas; ozônio, NO₂ e CO são gases. Concentrações em microgramas por metro cúbico. O US AQI é um índice próprio, não a soma desses valores.</p><p>Estimativa regional do CAMS via Open-Meteo; não é medição no seu endereço nem confirma a origem da poluição.</p></details></article>
       </section>
       <section class="rain-section section-block" id="chuva">
         <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h2>Previsão por hora</h2></div><div class="dry-window"><span>PRÓXIMA JANELA SECA</span><strong id="dryWindow">Calculando…</strong></div></div>
@@ -380,7 +382,8 @@
           </svg>
           <span>FASE DA LUA <strong id="moonPhase">Consultando…</strong><small id="moonIllumination">Iluminação indisponível</small></span>
         </div>
-        <details class="astronomy-details"><summary>Crepúsculo e horários da Lua</summary><p id="astronomyDate"></p><dl><div><dt>Amanhecer civil</dt><dd id="civilDawn">—</dd></div><div><dt>Fim do crepúsculo civil</dt><dd id="civilDusk">—</dd></div><div><dt>Nascer da Lua</dt><dd id="moonrise">—</dd></div><div><dt>Pôr da Lua</dt><dd id="moonset">—</dd></div></dl><small>Horários aproximados por coordenadas. Amanhecer e crepúsculo civil correspondem ao Sol a 6° abaixo do horizonte. Relevo e condições locais podem alterar a visibilidade dos astros.</small></details>
+        <div class="sky-events" id="skyEvents" hidden><h3>No céu</h3><dl><div><dt>Próxima lua nova</dt><dd id="nextNewMoon">—</dd></div><div><dt>Próxima lua cheia</dt><dd id="nextFullMoon">—</dd></div><div class="sky-events-meteor" id="meteorRow" hidden><dt>Chuva de meteoros</dt><dd id="nextMeteor">—</dd><small id="meteorNote"></small></div></dl></div>
+        <details class="astronomy-details"><summary>Crepúsculo, hora dourada e Lua</summary><p id="astronomyDate"></p><dl><div><dt>Amanhecer civil</dt><dd id="civilDawn">—</dd></div><div><dt>Fim do crepúsculo civil</dt><dd id="civilDusk">—</dd></div><div><dt>Hora dourada</dt><dd id="goldenHour">—</dd></div><div><dt>Hora azul</dt><dd id="blueHour">—</dd></div><div><dt>Nascer da Lua</dt><dd id="moonrise">—</dd></div><div><dt>Pôr da Lua</dt><dd id="moonset">—</dd></div></dl><small>Horários aproximados por coordenadas. Amanhecer e crepúsculo civil correspondem ao Sol a 6° abaixo do horizonte. Hora dourada: Sol entre o horizonte e 6° de altura; hora azul: crepúsculo civil, entre 6° abaixo do horizonte e o nascer ou o pôr. Relevo e condições locais podem alterar a visibilidade dos astros.</small></details>
       </section>
       </div>
     </main>
@@ -444,11 +447,11 @@
     <script src="/modules/sources.js?v=panel-24" defer></script>
     <script src="/modules/dialog-motion.js?v=motion-1" defer></script>
     <script src="/modules/http-client.js?v=http-1" defer></script>
-    <script src="/modules/weather-services.js?v=core-114" defer></script>
-    <script src="/modules/weather-data-layer.js?v=core-114" defer></script>
+    <script src="/modules/weather-services.js?v=core-115" defer></script>
+    <script src="/modules/weather-data-layer.js?v=core-115" defer></script>
     <script src="/modules/met-merge.js?v=core-111" defer></script>
     <script src="/modules/weather-extras.js?v=core-109" defer></script>
-    <script src="/modules/weather-insights.js?v=core-69" defer></script>
+    <script src="/modules/weather-insights.js?v=core-70" defer></script>
     <script src="/modules/radar-probe.js?v=core-70" defer></script>
     <script src="/modules/weather-icons.js?v=core-50" defer></script>
     <script src="/modules/weather-icon-system.js?v=modern-5" defer></script>
@@ -456,7 +459,7 @@
     <script src="/modules/hourly-detail.js?v=detail-5" defer></script>
     <script src="/modules/daily-detail.js?v=daily-2" defer></script>
     <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="/app.js?v=panel-54" defer></script>
+    <script src="/app.js?v=panel-55" defer></script>
     <script src="/p0.js?v=panel-40" defer></script>
     <script src="/modules/risks.js?v=core-118" defer></script>
     <script src="/modules/adapters.js?v=core-110" defer></script>

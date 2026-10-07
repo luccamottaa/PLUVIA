@@ -20,10 +20,11 @@ test('constrói URLs meteorológicas somente a partir da localização normaliza
   const air = new URL(services.airQuality.currentUrl(manaus));
   assert.equal(air.hostname, 'air-quality-api.open-meteo.com');
   assert.match(air.searchParams.get('current'), /pm2_5/);
-  assert.equal(air.searchParams.get('hourly'), 'pm2_5');
+  // PM2,5 das últimas 24 h (média OMS) e previsão horária CAMS de US AQI/PM2,5 para os próximos dias.
+  assert.equal(air.searchParams.get('hourly'), 'pm2_5,us_aqi');
   assert.equal(air.searchParams.get('past_hours'), '24');
-  assert.equal(air.searchParams.get('forecast_hours'), '1');
-  assert.equal(air.searchParams.has('forecast_days'), false);
+  assert.equal(air.searchParams.get('forecast_days'), '4');
+  assert.equal(air.searchParams.has('forecast_hours'), false);
   assert.match(air.searchParams.get('current'), /us_aqi/);
   const spread = new URL(services.ensemble.dailyUrl(manaus));
   assert.equal(spread.hostname, 'ensemble-api.open-meteo.com');

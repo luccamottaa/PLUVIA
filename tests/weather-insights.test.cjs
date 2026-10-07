@@ -27,7 +27,18 @@ function fixture() {
   const data = fixture();
   const result = insights.yesterday(data.hourly, 24);
   assert.equal(result.delta, 2);
-  assert.match(result.text, /2 °C mais quente/);
+  assert.equal(result.tone, 'warmer');
+  assert.equal(result.text, '2° mais quente que ontem neste horário.');
+}
+{
+  // Margem de 1 °C entre modelos: diferença pequena vira "parecida"; ausência de ontem não vira comparação.
+  const data = fixture();
+  data.hourly.temperature_2m[0] = data.hourly.temperature_2m[24] - 0.6;
+  assert.equal(insights.yesterday(data.hourly, 24).tone, 'same');
+  data.hourly.temperature_2m[0] = data.hourly.temperature_2m[24] + 3.4;
+  assert.equal(insights.yesterday(data.hourly, 24).text, '3° mais fresco que ontem neste horário.');
+  data.hourly.temperature_2m[0] = null;
+  assert.equal(insights.yesterday(data.hourly, 24), null);
 }
 {
   const data = fixture();

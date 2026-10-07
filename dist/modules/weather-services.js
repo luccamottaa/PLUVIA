@@ -17,10 +17,11 @@
     daily:"weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset,sunshine_duration,daylight_duration",
     temperature_unit:"celsius", wind_speed_unit:"kmh", precipitation_unit:"mm", past_hours:"24", forecast_days:"8"
   };
-  // As 24 horas anteriores de PM2,5 permitem comparar a média diária com as diretrizes da OMS.
+  // As 24 horas anteriores de PM2,5 permitem comparar a média diária com as diretrizes da OMS;
+  // a previsão CAMS horária (US AQI e PM2,5) dos próximos dias alimenta "Ar nos próximos dias".
   const AIR_PARAMS = {
     current:"pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,ozone,us_aqi",
-    hourly:"pm2_5", past_hours:"24", forecast_hours:"1"
+    hourly:"pm2_5,us_aqi", past_hours:"24", forecast_days:"4"
   };
   const ENSEMBLE_PARAMS = {hourly:"precipitation", models:"icon_seamless_eps", forecast_days:"2"};
   // Extremos diários por membro (dia municipal via timezone); ICON EPS global cobre cerca de 7 dias.
