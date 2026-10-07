@@ -256,9 +256,40 @@
     return freeze({value: Math.round(samples.reduce((sum, value) => sum + value, 0) / samples.length * 10) / 10, samples: samples.length});
   }
 
+  // Próximos dias do CAMS: pior US AQI horário e média de PM2,5 por data local (o timezone da
+  // consulta é o do município). Só dias depois do dia da leitura atual e com pelo menos 18 das 24
+  // horas válidas; ausências não viram ar limpo.
+  function airOutlook(currentTime, hourly, limit = 3) {
+    const times = hourly?.time, aqi = hourly?.us_aqi, pm = hourly?.pm2_5;
+    const today = String(currentTime || "").slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(today) || !Array.isArray(times) || !Array.isArray(aqi) || aqi.length !== times.length) return freeze([]);
+    const days = new Map();
+    times.forEach((time, index) => {
+      const date = String(time || "").slice(0, 10), value = aqi[index];
+      if (date <= today || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+      if (!days.has(date)) days.set(date, {aqi: [], pm: []});
+      if (Number.isFinite(value) && value >= 0 && value <= 500) days.get(date).aqi.push(value);
+      const particles = Array.isArray(pm) && pm.length === times.length ? pm[index] : null;
+      if (Number.isFinite(particles) && particles >= 0) days.get(date).pm.push(particles);
+    });
+    const result = [];
+    for (const [date, values] of [...days].sort(([a], [b]) => a.localeCompare(b))) {
+      if (values.aqi.length < PM25_MIN_SAMPLES) continue;
+      result.push(freeze({
+        date,
+        aqiMax: Math.round(Math.max(...values.aqi)),
+        pm25Mean: values.pm.length >= PM25_MIN_SAMPLES ? Math.round(values.pm.reduce((sum, value) => sum + value, 0) / values.pm.length * 10) / 10 : null,
+        samples: values.aqi.length
+      }));
+      if (result.length >= limit) break;
+    }
+    return freeze(result);
+  }
+
   function normalizeAir(current = {}, hourly = null) {
     return freeze({
       pm25Mean24h: pm25Mean24h(current.time, hourly),
+      outlook: airOutlook(current.time, hourly),
       time: current.time || null,
       aqiUs: number(current.us_aqi),
       pm25: number(current.pm2_5),
@@ -326,5 +357,5 @@
   }
   function clear(cityId) { cityId == null ? snapshots.clear() : snapshots.delete(String(cityId)); }
 
-  return { validateForecast, validateAirQuality, cachedAir, normalizeOpenMeteo, ingestOpenMeteo, get, markStale, clear };
+  return { validateForecast, validateAirQuality, cachedAir, airOutlook, normalizeOpenMeteo, ingestOpenMeteo, get, markStale, clear };
 });

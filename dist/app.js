@@ -112,13 +112,17 @@ function aqiLabel(value) {
   return ["Perigosa", `AQI ${Math.round(value)} · risco elevado`];
 }
 
+function aqiLevel(value) {
+  return !Number.isFinite(value) || value < 0 ? null
+    : value <= 50 ? "good" : value <= 100 ? "moderate" : value <= 150 ? "sensitive"
+    : value <= 200 ? "poor" : value <= 300 ? "very-poor" : "hazardous";
+}
+
 function renderAirQuality(value) {
   const [label, note] = aqiLabel(value);
   const card = $("airQualityCard");
   if (!Number.isFinite(value) && $("airDetails")) $("airDetails").hidden = true;
-  const level = !Number.isFinite(value) || value < 0 ? null
-    : value <= 50 ? "good" : value <= 100 ? "moderate" : value <= 150 ? "sensitive"
-    : value <= 200 ? "poor" : value <= 300 ? "very-poor" : "hazardous";
+  const level = aqiLevel(value);
   if (level) card.dataset.aqiLevel = level;
   else delete card.dataset.aqiLevel;
   $("airQuality").textContent = label;
@@ -490,12 +494,46 @@ function solarArcPoint(progress) {
   return { left: 9 + 82 * t, top: 115 - 360 * t * (1 - t) };
 }
 
+// "No céu": próximas lua nova/cheia (Meeus) e a próxima chuva de meteoros visível da latitude da
+// cidade, com a iluminação da Lua na noite do pico (mesma leitura de moon-view/SunCalc).
+function renderSkyEvents(at) {
+  const events=globalThis.PLUVIA?.skyEvents, box=$('skyEvents');
+  if(!box) return;
+  if(!events || !activeCity?.timezone) { box.hidden=true; return; }
+  const dateLabel=stamp=>new Intl.DateTimeFormat('pt-BR',{timeZone:activeCity.timezone,weekday:'short',day:'numeric',month:'short'}).format(stamp);
+  const phases=events.nextPhases(at);
+  $('nextNewMoon').textContent=Number.isFinite(phases.new) ? dateLabel(phases.new) : 'Indisponível';
+  $('nextFullMoon').textContent=Number.isFinite(phases.full) ? dateLabel(phases.full) : 'Indisponível';
+  const today=globalThis.PLUVIA.time.dayKey(at,activeCity);
+  const shower=events.nextShower(today,Number(activeCity.lat));
+  $('meteorRow').hidden=!shower;
+  if(shower) {
+    const night=new Date(shower.night+'T12:00:00Z'), next=new Date(night.getTime()+86400000);
+    const day=value=>new Intl.DateTimeFormat('pt-BR',{timeZone:'UTC',day:'numeric'}).format(value);
+    const month=new Intl.DateTimeFormat('pt-BR',{timeZone:'UTC',month:'short'}).format(next).replace('.','');
+    $('nextMeteor').textContent=`${shower.name} · noite de ${day(night)} para ${day(next)} de ${month}`;
+    // Lua na madrugada do pico (cerca de 2h no fuso da cidade): acima de metade iluminada atrapalha.
+    const dawn=globalThis.PLUVIA.time.parse(next.toISOString().slice(0,10)+'T02:00',activeCity);
+    let moon=null; try { moon=globalThis.PLUVIA?.moon?.getMoonIllumination?.(new Date(dawn))?.fraction; } catch {}
+    const moonText=Number.isFinite(moon) ? moon>=.5 ? ` A Lua ${Math.round(moon*100)}% iluminada atrapalha.` : ` Lua favorável (${Math.round(moon*100)}% iluminada).` : '';
+    $('meteorNote').textContent=`Até ~${shower.zhr} meteoros por hora em céu muito escuro; na cidade se vê bem menos. Melhor depois da meia-noite, longe das luzes.${moonText}`;
+  }
+  box.hidden=false;
+}
+
 function renderSun(daily, at = Date.now()) {
   const astronomy=globalThis.PLUVIA?.sky?.astronomyAt?.(at);
   const astronomyFields={civilDawn:astronomy?.dawn,civilDusk:astronomy?.dusk,moonrise:astronomy?.moonRise,moonset:astronomy?.moonSet};
   for(const [id,stamp] of Object.entries(astronomyFields)) {
     const field=$(id);if(field) field.textContent=Number.isFinite(stamp) ? formatUpdateTime(stamp) : id.startsWith('moon') && astronomy?.moonAvailable ? 'Sem evento hoje' : 'Indisponível';
   }
+  // Hora dourada (Sol entre 0° e 6°) e hora azul (crepúsculo civil), manhã e fim de tarde.
+  const span=(from,to)=>Number.isFinite(from) && Number.isFinite(to) && to>from ? formatUpdateTime(from)+'–'+formatUpdateTime(to) : null;
+  const windows=(morning,evening)=>[morning,evening].filter(Boolean).join(' e ') || 'Indisponível';
+  const sunRise=astronomy?.calculatedRise, sunSet=astronomy?.calculatedSet;
+  if($('goldenHour')) $('goldenHour').textContent=windows(span(sunRise,astronomy?.goldenEnd),span(astronomy?.goldenStart,sunSet));
+  if($('blueHour')) $('blueHour').textContent=windows(span(astronomy?.dawn,sunRise),span(sunSet,astronomy?.dusk));
+  renderSkyEvents(at);
   if($('astronomyDate')) $('astronomyDate').textContent='Dia '+new Intl.DateTimeFormat('pt-BR',{timeZone:activeCity.timezone,day:'numeric',month:'long'}).format(at)+' · horário de '+activeCity.name+' · estimativa astronômica';
   const today = globalThis.PLUVIA.time.dayKey(at,activeCity);
   const index = daily.time?.indexOf(today) ?? -1;
@@ -608,12 +646,21 @@ function setRainAnswer(answer) {
   node.dataset.tone = answer.tone;
 }
 
+function setYesterdayNote(comparison) {
+  const node = $("yesterdayNote");
+  if (!node) return;
+  // Sem leitura de ontem, a linha fica vazia (some pelo CSS); nunca inventa "parecida".
+  node.textContent = comparison?.text || "";
+  if (comparison?.tone) node.dataset.tone = comparison.tone; else delete node.dataset.tone;
+}
+
 function clearWeatherInsights() {
   ["feelsLikeNote","uvNote","rainPhraseMeta"].forEach(id => {
     const node = $(id);
     if (node) node.textContent = "";
   });
   setRainAnswer({tone:"unknown",text:"Previsão de chuva indisponível."});
+  setYesterdayNote(null);
   renderTips([]);
 }
 
@@ -629,7 +676,34 @@ function renderAirParticles(air) {
   }
 }
 
+// Ar nos próximos dias: pior US AQI horário previsto pelo CAMS em cada dia municipal seguinte.
+// Só dias depois de hoje (no fuso da cidade), para uma leitura salva de ontem não virar "amanhã".
+function renderAirOutlook(air) {
+  const section = $("airOutlook"), list = $("airOutlookList");
+  if (!section || !list) return;
+  const today = air?.outlook?.length ? globalThis.PLUVIA.time.dayKey(Date.now(), activeCity) : "";
+  const days = today ? air.outlook.filter(day => day.date > today).slice(0, 3) : [];
+  section.hidden = !days.length;
+  if ($("airOutlookNote")) $("airOutlookNote").hidden = !days.length;
+  if (!days.length) { list.textContent = ""; return; }
+  const tomorrow = new Date(today + "T12:00:00Z"); tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  const tomorrowKey = tomorrow.toISOString().slice(0, 10);
+  list.replaceChildren(...days.map(day => {
+    // Rótulo curto na coluna estreita; a categoria completa é a mesma escala do card.
+    const label = day.aqiMax > 100 && day.aqiMax <= 150 ? "Ruim para sensíveis" : aqiLabel(day.aqiMax)[0];
+    const item = document.createElement("li"), name = document.createElement("span"), level = document.createElement("b"), value = document.createElement("small");
+    const date = new Date(day.date + "T12:00:00Z");
+    name.textContent = day.date === tomorrowKey ? "Amanhã" : new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC", weekday:"short", day:"2-digit", month:"2-digit"}).format(date);
+    level.textContent = label;
+    level.dataset.aqiLevel = aqiLevel(day.aqiMax) || "";
+    value.textContent = `AQI até ${day.aqiMax}` + (Number.isFinite(day.pm25Mean) ? ` · PM2,5 ${fmt(day.pm25Mean, 0)} µg/m³` : "");
+    item.append(name, level, value);
+    return item;
+  }));
+}
+
 function renderAirDetails(snapshot) {
+  renderAirOutlook(snapshot?.airQuality);
   const details = $("airDetails");
   if (!details) return;
   const air = snapshot?.airQuality;
@@ -653,6 +727,8 @@ function renderWeatherInsights(data, air, start) {
   if ($("feelsLikeNote") && thermal) $("feelsLikeNote").textContent = thermal.label;
   // "Vai chover?" no topo; a frase equivalente da seção por hora foi retirada a pedido.
   setRainAnswer(weatherInsights?.rainAnswer?.(data.hourly, start, {current:data.current}) || {tone:"unknown",text:"Previsão de chuva indisponível."});
+  // Hoje vs. ontem no mesmo horário, com as 24 h passadas que a consulta principal já traz.
+  setYesterdayNote(weatherInsights?.yesterday?.(data.hourly, start));
   renderTips(weatherInsights?.tips?.(data, air, start));
   if ($("rainPhraseMeta") && data.pluviaReduced) { $("rainPhraseMeta").textContent = "Previsão reduzida · volume de chuva: MET Norway (CC BY 4.0); sem chance de chuva nesta fonte"; return; }
   if ($("rainPhraseMeta")) $("rainPhraseMeta").textContent = rain?.meta ? rain.meta + (data.pluviaSources?.metNorway?.includes('hourly.precipitation') ? ' · volume: MET Norway; probabilidade: Open-Meteo' : ' · Open-Meteo') : '';
@@ -810,6 +886,7 @@ async function loadWeather(revision = cityRevision) {
       for (const id of ["feelsLikeNote","visibilityNote","humidityNote","windNote","pressureNote","uvNote"]) $(id).textContent = "—";
       $("airNote").textContent = "AQI indisponível";
       $("condition").textContent = "Tempo indisponível";
+      setYesterdayNote(null);
       renderVisibility(null);
       $("rainChart").innerHTML = '<p class="chart-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("hourlyPeek").innerHTML = '<p>Previsão por hora indisponível.</p>';
@@ -991,7 +1068,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["airValue","rainAnswer","temperature","feelsLike","feelsLikeNote","condition","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","moonrise","moonset","astronomyDate"].filter(id=>$(id));
+const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","feelsLike","feelsLikeNote","condition","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate"].filter(id=>$(id));
 let emptyCityContent;
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;
@@ -1092,6 +1169,7 @@ function chooseCity(id, locatedCity = null) {
     $("humidity").closest?.(".metric")?.removeAttribute("data-humidity-level");
     renderAirQuality(null);
     renderAirParticles(null);
+    renderAirOutlook(null);
     $("uvScale").hidden = true;
     $("visibilityBadge").hidden = true;
     $("windCompass").style.setProperty?.("--wind-visible","0");

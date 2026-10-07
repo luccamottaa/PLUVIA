@@ -59,13 +59,16 @@
     const previous = hourly.time.findIndex(value => day(value) === previousDay && clock(value) === targetHour);
     if (previous < 0 || !finite(hourly.temperature_2m?.[previous])) return null;
     const delta = round(Number(hourly.temperature_2m[start]) - Number(hourly.temperature_2m[previous]), 1);
-    const abs = Math.abs(delta).toLocaleString("pt-BR", {maximumFractionDigits:1});
-    if (Math.abs(delta) < 0.2) return {delta, text:"Temperatura semelhante à de ontem neste horário."};
+    // Graus inteiros e margem de 1 °C: as horas passadas e as próximas podem vir de modelos diferentes
+    // (Open-Meteo/MET), então diferenças menores não sustentam "mais quente" ou "mais fresco".
+    const abs = Math.round(Math.abs(delta));
+    if (Math.abs(delta) < 1 || abs < 1) return {delta, tone:"same", text:"Temperatura parecida com a de ontem neste horário."};
     return {
       delta,
+      tone: delta > 0 ? "warmer" : "cooler",
       text: delta > 0
-        ? `${abs} °C mais quente que ontem neste horário.`
-        : `${abs} °C mais fresco que ontem neste horário.`
+        ? `${abs}° mais quente que ontem neste horário.`
+        : `${abs}° mais fresco que ontem neste horário.`
     };
   }
 

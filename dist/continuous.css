@@ -233,12 +233,12 @@ html body #weatherView .metrics .air-metric { display:flex; gap:16px; padding:28
 #weatherView .air-index b { white-space:nowrap; }
 #weatherView .air-description { min-width:0; }
 #weatherView :is(.air-index > span,.air-description small,.air-scale-labels,.air-source) { color:var(--reading-muted) !important; }
-body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="good"] { --aqi-accent:#096546; }
-body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="moderate"] { --aqi-accent:#725100; }
-body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="sensitive"] { --aqi-accent:#873a05; }
-body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="poor"] { --aqi-accent:#98283b; }
-body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="very-poor"] { --aqi-accent:#62398c; }
-body[data-ink="dark"] #weatherView .air-metric[data-aqi-level="hazardous"] { --aqi-accent:#7a2653; }
+body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="good"] { --aqi-accent:#096546; }
+body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="moderate"] { --aqi-accent:#725100; }
+body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="sensitive"] { --aqi-accent:#873a05; }
+body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="poor"] { --aqi-accent:#98283b; }
+body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="very-poor"] { --aqi-accent:#62398c; }
+body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="hazardous"] { --aqi-accent:#7a2653; }
 #weatherView .insight-card .card-topline { flex-wrap:wrap; }
 #weatherView .insight-card :is(#attentionText,#attentionBasis,.context-highlights li) { color:var(--reading-muted); }
 #weatherView .insight-card .context-highlights { border-color:var(--reading-line); }
@@ -804,3 +804,28 @@ html body #compareDialog .compare-status:empty { display:block; }
   .compare-table thead td { display:none; }
   .compare-table tbody th { grid-column:1 / -1; padding-bottom:4px; }
 }
+
+/* Ar nos próximos dias: três colunas compactas (dia, categoria, AQI máximo previsto), cor da categoria
+   pelo mesmo --aqi-accent do card; a nota de previsão do modelo fica junto da fonte. */
+#weatherView .air-outlook { grid-column:1/-1; margin-top:14px; }
+#weatherView .air-outlook h3 { margin:0 0 8px; color:var(--reading-ink); font-size:.8rem; font-weight:600; }
+#weatherView .air-outlook ol { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0; padding:0; list-style:none; }
+#weatherView .air-outlook li { display:grid; gap:2px; min-width:0; }
+#weatherView .air-outlook li > span { color:var(--reading-muted); font-size:.75rem; }
+#weatherView .air-outlook li > b { color:var(--aqi-accent,var(--reading-ink)); font-size:.88rem; font-weight:600; line-height:1.25; overflow-wrap:break-word; }
+#weatherView .air-outlook li > small { color:var(--reading-muted); font-size:.72rem; line-height:1.35; font-variant-numeric:tabular-nums; }
+/* Hoje vs. ontem: linha discreta abaixo do "Vai chover?"; vazia (sem leitura de ontem) não ocupa espaço. */
+#weatherView .yesterday-note { margin:4px auto 0; max-width:32rem; color:var(--reading-muted); font-size:.85rem; line-height:1.4; text-align:center; }
+#weatherView .yesterday-note:empty { display:none; }
+#weatherView .yesterday-note .sk-line { width:min(11rem,60%); }
+/* "No céu": próximas luas e chuva de meteoros entre a fase da Lua e o detalhe astronômico,
+   na mesma tipografia do detalhe (rótulo pequeno, valor na tinta de leitura). */
+#weatherView .sky-events { grid-column:1/-1; width:100%; min-width:0; padding-top:16px; border-top:1px solid var(--reading-line); color:var(--reading-muted); text-align:center; }
+#weatherView .sky-events[hidden] { display:none; }
+#weatherView .sky-events h3 { margin:0 0 12px; color:var(--reading-muted); font-size:.75rem; font-weight:500; letter-spacing:.09em; text-transform:uppercase; text-align:center; }
+#weatherView .sky-events dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 18px; margin:0; }
+#weatherView .sky-events dt { font-size:.8125rem; line-height:1.5; }
+#weatherView .sky-events dd { margin:4px 0 0; color:var(--reading-ink); font-size:1rem; font-weight:600; }
+#weatherView .sky-events .sky-events-meteor { grid-column:1/-1; }
+#weatherView .sky-events .sky-events-meteor[hidden] { display:none; }
+#weatherView .sky-events small { display:block; max-width:34rem; margin:4px auto 0; font-size:.78rem; line-height:1.5; }
