@@ -103,6 +103,9 @@ with sync_playwright() as p:
         page.wait_for_function(f"document.getElementById('{dialog}').open", timeout=20000)
         state = page.evaluate("() => ({url:location.pathname + location.search, intro:document.getElementById('pluviaIntro').hidden, open:[...document.querySelectorAll('dialog[open]')].map(d => d.id)})")
         assert state == {'url': '/?source=pwa', 'intro': True, 'open': [dialog]}, (action, state)
+        # Recarregar com a consulta da comparação em voo vira erro de página no WebKit (fetch CORS cancelado).
+        if action == 'comparar':
+            page.wait_for_function("document.querySelectorAll('#compareTable tbody tr').length===5 && !/Consultando/.test(document.getElementById('compareTable').textContent)", timeout=15000)
         page.reload(wait_until='domcontentloaded')
         page.wait_for_function("document.getElementById('temperature').textContent.trim()==='30' && document.getElementById('pluviaIntro').hidden", timeout=20000)
         page.wait_for_timeout(1000)
