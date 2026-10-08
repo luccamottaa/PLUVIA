@@ -4,6 +4,9 @@ import datetime,json,os,shutil,subprocess
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright
+# WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
+# o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
+RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
 root=Path(__file__).resolve().parent.parent
 base=json.loads(subprocess.check_output(['node','-e',"process.stdout.write(JSON.stringify(require('./tests/support/forecast.cjs').forecast()))"],cwd=root,text=True))
 preview=os.environ.get('PLUVIA_PREVIEW_URL','http://127.0.0.1:4173')
@@ -46,7 +49,7 @@ with sync_playwright() as p:
   r.abort()
  context.route('**/*',route)
  context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});")
- page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
+ page=context.new_page();page.on('pageerror',lambda e: None if str(e).endswith(RAINVIEWER_CANCELLED) else errors.append(str(e)))
  page.clock.install(time=fixed.timestamp())
  report={}
  # 1. Open-Meteo fora do ar, sem dados salvos: previsão reduzida do MET com aviso.

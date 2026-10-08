@@ -1,6 +1,9 @@
 import json,datetime,zoneinfo,os,subprocess,tempfile,shutil
 from pathlib import Path
 from playwright.sync_api import sync_playwright
+# WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
+# o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
+RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
 # Optional QA tool: requires Python Playwright and an installed browser.
 # Weather fixtures are confined to this process; external Auth/push is blocked.
 repo=Path(__file__).resolve().parent.parent
@@ -23,7 +26,7 @@ with sync_playwright() as p:
  browser=p.webkit.launch(headless=True) if os.environ.get('PLUVIA_BROWSER')=='webkit' else p.chromium.launch(headless=True,args=['--no-sandbox'],**({'executable_path':shutil.which('chromium')} if shutil.which('chromium') else {}))
  context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,timezone_id='Asia/Tokyo',service_workers='block')
  page=context.new_page();errors=[];disabled_requests=[];mode={'offline':False}
- page.on('pageerror',lambda err: errors.append(str(err)))
+ page.on('pageerror',lambda err: None if str(err).endswith(RAINVIEWER_CANCELLED) else errors.append(str(err)))
  def route(r):
   from urllib.parse import urlparse,parse_qs
   url=r.request.url
@@ -196,7 +199,7 @@ with sync_playwright() as p:
   app_context.add_init_script("Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(success,error){error({code:1});}}});sessionStorage.setItem('pluvia-intro-seen','1');")
   if signal=='apple-standalone':app_context.add_init_script("Object.defineProperty(navigator,'standalone',{value:true});")
   else:app_context.add_init_script("const nativeMatchMedia=window.matchMedia.bind(window);window.matchMedia=q=>{if(q!=='(display-mode: standalone)')return nativeMatchMedia(q);const mode=new EventTarget();mode.matches=true;return mode;};")
-  app_page=app_context.new_page();app_page.on('pageerror',lambda err: errors.append(str(err)))
+  app_page=app_context.new_page();app_page.on('pageerror',lambda err: None if str(err).endswith(RAINVIEWER_CANCELLED) else errors.append(str(err)))
   mode['offline']=False
   app_page.goto(preview,wait_until='domcontentloaded')
   app_page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden && !document.documentElement.classList.contains('awaiting-styles')")

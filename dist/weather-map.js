@@ -308,11 +308,17 @@
   if ('ResizeObserver' in globalThis && radarContent) new ResizeObserver(resizeMap).observe(radarContent);
   globalThis.addEventListener?.('resize',resizeMap,{passive:true});
   document.addEventListener?.('visibilitychange',() => { if (document.hidden) stop(); });
+  // Na Home o mapa só começa depois da abertura (load + ocioso): no desktop ele já nasce visível e
+  // Leaflet, tiles e metadados do radar disputavam a primeira pintura. O diálogo abre na hora.
+  const settled = new Promise(resolve => {
+    const idle = () => (globalThis.requestIdleCallback ? requestIdleCallback(() => resolve(),{timeout:2500}) : setTimeout(resolve,300));
+    if (document.readyState === 'complete') idle(); else globalThis.addEventListener?.('load',idle,{once:true});
+  });
   if ('IntersectionObserver' in globalThis) {
     const observer = new IntersectionObserver(entries => {
       mapVisible = entries.some(entry => entry.isIntersecting);
       if (!mapVisible && !radarDialog?.open) stop();
-      if (mapVisible && (!state.map || city()?.id !== state.cityId)) showMap();
+      if (mapVisible) settled.then(() => { if (mapVisible && (!state.map || city()?.id !== state.cityId)) showMap(); });
     },{rootMargin:'240px'});
     observer.observe(mapCard);
   } else { mapVisible = true; showMap(); }

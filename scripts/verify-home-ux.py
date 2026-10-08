@@ -9,6 +9,9 @@ import datetime, json, os, shutil, subprocess, tempfile
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 from playwright.sync_api import sync_playwright
+# WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
+# o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
+RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
 
 repo = Path(__file__).resolve().parent.parent
 preview = os.environ.get('PLUVIA_PREVIEW_URL', 'http://127.0.0.1:4173').rstrip('/')
@@ -55,7 +58,7 @@ with sync_playwright() as p:
         errors = []
         def open_page(city='Manaus'):
             page = context.new_page()
-            page.on('pageerror', lambda error: errors.append(str(error)))
+            page.on('pageerror', lambda error: None if str(error).endswith(RAINVIEWER_CANCELLED) else errors.append(str(error)))
             page.clock.set_fixed_time(fixed)
             page.goto(preview + '/', wait_until='domcontentloaded')
             page.wait_for_function("document.getElementById('temperature').textContent.trim()==='30' && !document.documentElement.classList.contains('awaiting-styles')", timeout=20000)

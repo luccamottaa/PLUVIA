@@ -5,6 +5,9 @@ import base64,json,os,shutil,time
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright
+# WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
+# o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
+RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
 
 root=Path(__file__).resolve().parent.parent/'dist'
 public='https://pluviaweather.com.br'
@@ -40,7 +43,7 @@ with sync_playwright() as p:
   ctx.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});")
   return ctx
  for source,dest in [(public+'/',public+'/'),(preview+'/index.html?next=https://other.test#agora',public+'/'),('http://127.0.0.1:4173/','http://127.0.0.1:4173/')]:
-  ctx=context();page=ctx.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
+  ctx=context();page=ctx.new_page();page.on('pageerror',lambda e: None if str(e).endswith(RAINVIEWER_CANCELLED) else errors.append(str(e)))
   page.goto(source,wait_until='domcontentloaded');page.locator('#accountButton').click();page.locator('#accountSignup').click()
   page.locator('#accountName').fill('Teste');page.locator('#accountEmail').fill('fixture@example.test');page.locator('#accountPassword').fill('Fixture-password1!');page.locator('#accountSubmit').click()
   page.wait_for_function("document.getElementById('accountStatus').textContent.includes('confirmar')")
@@ -51,7 +54,7 @@ with sync_playwright() as p:
   assert recovery[-1]==dest+'?auth_recovery=1',(recovery[-1],dest)
   ctx.close()
  # Open the confirmation return on another device/session with no signup storage.
- ctx=context();page=ctx.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
+ ctx=context();page=ctx.new_page();page.on('pageerror',lambda e: None if str(e).endswith(RAINVIEWER_CANCELLED) else errors.append(str(e)))
  page.goto(public+'/#access_token='+token+'&refresh_token=fixture&expires_in=3600&token_type=bearer&type=signup',wait_until='domcontentloaded')
  page.wait_for_function("document.getElementById('accountButton').textContent==='Olá, Teste'")
  assert urlparse(page.url).netloc=='pluviaweather.com.br' and not urlparse(page.url).fragment
