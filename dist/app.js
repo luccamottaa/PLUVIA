@@ -1132,13 +1132,8 @@ function renderCityDots() {
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
   if (ids.length < 2 || index < 0) return;
-  const next = ids[(index + direction + ids.length) % ids.length];
-  const view = $("weatherView");
-  if (view && !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-    view.dataset.citySwipe = direction > 0 ? "next" : "prev";
-    setTimeout(() => { delete view.dataset.citySwipe; }, 320);
-  }
-  chooseCity(next);
+  // Troca direta, sem animar o topo: deslizar/esmaecer o hero sobre o céu animado derrubava o Safari do iPhone.
+  chooseCity(ids[(index + direction + ids.length) % ids.length]);
 }
 function setupCitySwipe() {
   $("cityDots")?.addEventListener("click", event => {
