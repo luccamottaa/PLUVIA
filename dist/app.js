@@ -1132,8 +1132,13 @@ function renderCityDots() {
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
   if (ids.length < 2 || index < 0) return;
-  // Troca direta, sem animar o topo: deslizar/esmaecer o hero sobre o céu animado derrubava o Safari do iPhone.
   chooseCity(ids[(index + direction + ids.length) % ids.length]);
+  // Efeito leve: só o nome e o número deslizam um pouco. Animar o topo inteiro (#agora/.dashboard-grid)
+  // sobre o céu animado derrubava o Safari do iPhone.
+  if (globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  for (const node of document.querySelectorAll?.("#agora h1, .weather-main .temperature") || []) {
+    node.animate?.([{opacity:.35, transform:`translateX(${direction > 0 ? 18 : -18}px)`}, {opacity:1, transform:"none"}], {duration:260, easing:"ease-out"});
+  }
 }
 function setupCitySwipe() {
   $("cityDots")?.addEventListener("click", event => {
