@@ -942,7 +942,7 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 .info-tip { position:static; }
 .info-tip-body,.metric-head .info-tip-body,.section-heading .info-tip-body { left:0; right:0; width:auto; max-width:440px; }
 .metric-head .info-tip-body,.section-heading .info-tip-body { left:auto; }
-#weatherView .hourly-peek-list[data-rain="none"] .peek-rain { display:none; }
+#weatherView .hourly-peek-list:not([data-rain="some"]) .peek-rain { display:none; }
 /* Bloco da Lua simétrico ao do Sol: rótulo no topo, disco e fase lado a lado, texto sem espaçamento de rótulo. */
 #weatherView .sky-pair .moon-inline { display:grid; grid-template-columns:52px minmax(0,1fr); grid-template-areas:"label label" "disc text"; align-items:center; column-gap:12px; row-gap:8px; }
 #weatherView .sky-pair .moon-inline > svg { grid-area:disc; }
@@ -1009,3 +1009,8 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 }
 /* O alvo de 44px do ⓘ alinhado à direita não pode passar da borda da seção (rolagem lateral no iPhone SE). */
 .metric-head .info-tip > summary,.section-heading .info-tip > summary { margin-right:-6px; }
+/* Estabilidade na chegada dos dados (CLS): o esqueleto tem a mesma altura da leitura final.
+   Sem chuva relevante (o caso comum), a linha da chance não existe nem no esqueleto; a janela seca
+   ocupa sempre rótulo + valor em duas linhas; e o esqueleto do número não aumenta a linha do 30°. */
+#weatherView .dry-window-line strong { display:block; }
+#weatherView #temperature .sk-temp { vertical-align:top; }

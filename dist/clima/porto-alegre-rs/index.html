@@ -62,6 +62,9 @@
       .skip-link { position:fixed; top:8px; left:16px; z-index:70; transform:translateY(-150%); }
       .skip-link:focus { transform:none; }
       [hidden] { display:none !important; }
+      /* Mesmas medidas de styles.css (assíncrono): o aviso de referência aparece no primeiro paint e não pode crescer depois. */
+      .location-notice { margin:18px 0 0; padding:12px 16px; border:1px solid transparent; border-radius:16px; font-size:14px; }
+      .location-notice button { border:0; padding:4px 6px; background:transparent; font:inherit; font-weight:800; }
 .pluvia-intro {
   position:fixed; inset:0; z-index:100; min-height:100dvh;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -490,7 +493,7 @@
     <script src="/account.js?v=account-9" defer></script>
     <script src="/favorite-cities.js?v=favorites-7" defer></script>
     <script src="/modules/share-card.js?v=share-card-1" defer></script>
-    <script src="/modules/share-weather.js?v=share-3" defer></script>
+    <script src="/modules/share-weather.js?v=share-4" defer></script>
     <script src="/saved-places.js?v=places-2" defer></script>
     <script src="/modules/compare-cities.js?v=compare-2" defer></script>
     <script src="/modules/brazil-now.js?v=brazil-1" defer></script>

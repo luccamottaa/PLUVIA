@@ -62,31 +62,41 @@
 
     function place() {
       const wide = Boolean(media?.matches);
-      const after = (node, reference) => reference.after(node);
+      // Só move o que está fora do lugar: na ordem padrão a abertura não mexe no DOM (sem layout extra).
+      const after = (node, reference) => { if (reference.nextElementSibling !== node) reference.after(node); };
       if (wide) {
         if (!wrapper) {
           wrapper = doc.createElement('div'); wrapper.className = 'home-columns';
           for (const side of ['left', 'right']) { const column = doc.createElement('div'); column.className = 'home-column'; column.dataset.column = side; wrapper.append(column); }
         }
-        (anchor || view.firstElementChild)?.after(wrapper);
+        const top = anchor || view.firstElementChild;
+        if (top && top.nextElementSibling !== wrapper) top.after(wrapper);
         const sides = columns(layout);
         for (const side of ['left', 'right']) {
           const column = wrapper.querySelector(`[data-column="${side}"]`);
-          for (const id of sides[side]) if (nodes.get(id)) column.append(nodes.get(id));
+          sides[side].map(id => nodes.get(id)).filter(Boolean).forEach((node, index) => {
+            if (column.children[index] !== node) column.insertBefore(node, column.children[index] || null);
+          });
         }
       } else {
         let reference = anchor;
         for (const id of layout.order) {
           const node = nodes.get(id); if (!node) continue;
-          if (reference) after(node, reference); else view.append(node);
+          if (reference) after(node, reference); else if (view.lastElementChild !== node) view.append(node);
           reference = node;
+          // Os acompanhantes entram no mesmo passo (sem mover a seção seguinte duas vezes).
+          const companion = id === 'details' ? nowcast : id === 'week' ? prompt : null;
+          if (companion) { after(companion, node); reference = companion; }
         }
         wrapper?.remove(); wrapper = null;
       }
       // O convite de alertas segue os 7 dias; o Nowcast pausado fica junto das leituras.
-      if (prompt && nodes.get('week')) nodes.get('week').after(prompt);
-      if (nowcast && nodes.get('details')) nodes.get('details').after(nowcast);
-      for (const [id, node] of nodes) if (node) node.toggleAttribute('data-home-hidden', layout.hidden.includes(id));
+      if (prompt && nodes.get('week')) after(prompt, nodes.get('week'));
+      if (nowcast && nodes.get('details')) after(nowcast, nodes.get('details'));
+      for (const [id, node] of nodes) {
+        const hide = layout.hidden.includes(id);
+        if (node && node.hasAttribute('data-home-hidden') !== hide) node.toggleAttribute('data-home-hidden', hide);
+      }
       root.dispatchEvent?.(new CustomEvent('pluvia:home-layout', {detail:{layout, wide}}));
     }
 
