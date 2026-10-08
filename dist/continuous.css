@@ -914,8 +914,8 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 .info-tip { position:relative; display:inline-block; flex:none; }
 .info-tip > summary { display:grid; place-items:center; width:44px; height:44px; margin:-10px -12px; list-style:none; cursor:pointer; border-radius:50%; }
 .info-tip > summary::-webkit-details-marker { display:none; }
-.info-tip-icon { display:block; width:22px; height:22px; color:var(--reading-muted,#8aa0b8); fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
-.info-tip-icon .info-tip-dot { fill:currentColor; stroke:none; }
+/* Letra i reta (sem itálico) num círculo de borda; texto simples, sem SVG. */
+.info-tip-icon { display:block; width:20px; height:20px; border:1.5px solid currentColor; border-radius:50%; color:var(--reading-muted,#8aa0b8); font:700 12px/17px var(--font-ui); font-style:normal; text-align:center; }
 .info-tip[open] > summary > .info-tip-icon { color:var(--brand-blue); }
 @media (hover:hover) { .info-tip > summary:hover > .info-tip-icon { color:var(--brand-blue); } }
 .info-tip > summary:focus-visible { outline:2px solid var(--brand-blue); outline-offset:-6px; }
@@ -927,11 +927,12 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 .metric-head .info-tip,.section-heading .info-tip { margin-left:auto; }
 .metric-head .info-tip-body,.section-heading .info-tip-body { left:auto; right:-12px; }
 .weather-map-card #radarMapContent #weatherSourceNote { display:none; }
-/* Conta deslogada: só o ícone (44px, mesmo traço da lupa); o texto continua para leitores de tela.
-   Logada, a saudação "Olá, Nome" pedida antes continua no lugar. */
-.topbar .account-trigger[data-signed-in="false"] { display:grid; place-items:center; width:44px; }
+/* Conta: sempre o ícone de pessoa (44px, mesmo traço da lupa); "Entrar" ou "Olá, Nome" fica para leitores de tela. */
+.topbar .account-trigger[data-signed-in] { display:grid; place-items:center; width:44px; min-width:44px; padding:0; }
 .topbar .account-trigger .account-icon { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
-.topbar .account-trigger[data-signed-in="false"] .account-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.topbar .account-trigger .account-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+/* Logado: a mesma pessoa, preenchida no azul da marca. */
+.topbar .account-trigger[data-signed-in="true"] .account-icon { color:var(--brand-blue); fill:currentColor; fill-opacity:.18; }
 /* Letra mínima de leitura ~13px (0,8125rem) para textos corridos e notas que estavam em 11–12px;
    rótulos curtos em caixa alta continuam em 12px. A coluna fixa de chuva dos 7 dias no celular mantém 12px. */
 #weatherView :is(.hour-solar-event,.hour-temp small,.rain-chart .rain-chance,.air-outlook li > small,.air-outlook li > span,.sky-events small,.inmet-stage,.inmet-alert-meta dt),
@@ -1014,7 +1015,6 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
    ocupa sempre rótulo + valor em duas linhas; e o esqueleto do número não aumenta a linha do 30°. */
 #weatherView .dry-window-line strong { display:block; }
 #weatherView #temperature .sk-temp { vertical-align:top; }
-/* ⓘ: o título que ancora o balão fica sempre um nível acima dos irmãos (.panel > * usa z-index 1),
-   então o balão aberto cobre a lista de horas, o mapa e as linhas seguintes. Fixo, sem trocar camadas
-   ao abrir: subir a seção inteira para z-index alto ao tocar derrubava o Safari do iPhone. */
-#weatherView :is(.hourly-peek-heading,.metric-head,.section-heading,.weather-map-copy) { z-index:2; }
+/* ⓘ aberto: o texto vai para logo depois do título (app.js), no fluxo da página. Sem posição absoluta
+   nem z-index: subir camadas de títulos/seções derrubava o Safari do iPhone. */
+#weatherView .info-tip-body[data-inline] { position:static !important; z-index:auto !important; width:auto; max-width:none; margin:10px 0 14px; box-shadow:none; }

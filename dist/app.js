@@ -1132,13 +1132,8 @@ function renderCityDots() {
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
   if (ids.length < 2 || index < 0) return;
+  // Troca direta, sem animar: animações/camadas sobre o céu animado derrubavam o Safari do iPhone.
   chooseCity(ids[(index + direction + ids.length) % ids.length]);
-  // Efeito leve: só o nome e o número deslizam um pouco. Animar o topo inteiro (#agora/.dashboard-grid)
-  // sobre o céu animado derrubava o Safari do iPhone.
-  if (globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-  for (const node of document.querySelectorAll?.("#agora h1, .weather-main .temperature") || []) {
-    node.animate?.([{opacity:.35, transform:`translateX(${direction > 0 ? 18 : -18}px)`}, {opacity:1, transform:"none"}], {duration:260, easing:"ease-out"});
-  }
 }
 function setupCitySwipe() {
   $("cityDots")?.addEventListener("click", event => {
@@ -1436,13 +1431,24 @@ document.querySelector(".hourly-peek-heading a")?.addEventListener("click", () =
   const details = $("hourlyChartDetails");
   if (details) details.open = true;
 });
-// ⓘ das seções: um balão aberto por vez; toque fora ou Escape fecha.
+// ⓘ das seções: o texto abre logo abaixo do título, no fluxo da página (sem sobrepor nada). Balão
+// flutuante exigia subir camadas (z-index) dos títulos/seções, e isso derrubava o Safari do iPhone.
+// Um aberto por vez; toque fora ou Escape fecha.
+const infoTipBodies = new WeakMap();
 document.addEventListener("click", event => {
-  for (const tip of document.querySelectorAll?.(".info-tip[open]") || []) if (!tip.contains(event.target)) tip.open = false;
+  for (const tip of document.querySelectorAll?.(".info-tip[open]") || []) {
+    if (!tip.contains(event.target) && !infoTipBodies.get(tip)?.contains(event.target)) tip.open = false;
+  }
 });
 document.addEventListener("toggle", event => {
   const tip = event.target;
-  if (!tip?.matches?.(".info-tip") || !tip.open) return;
+  if (!tip?.matches?.(".info-tip")) return;
+  const body = infoTipBodies.get(tip) || tip.querySelector(".info-tip-body");
+  if (!body) return;
+  infoTipBodies.set(tip, body);
+  const holder = tip.closest(".hourly-peek-heading, .metric-head, .section-heading, .weather-map-copy") || tip;
+  if (tip.open) { holder.after(body); body.dataset.inline = "true"; }
+  else { delete body.dataset.inline; tip.append(body); return; }
   for (const other of document.querySelectorAll(".info-tip[open]")) if (other !== tip) other.open = false;
 }, true);
 document.addEventListener("keydown", event => {

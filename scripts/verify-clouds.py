@@ -290,7 +290,10 @@ with sync_playwright() as p:
  assert all(s==0 for s in page.locator('.sky-effects > .sky-rain').evaluate_all("els=>els.map(el=>+getComputedStyle(el).opacity)"))
  page.evaluate("PLUVIA.sky.apply(95,0,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>getComputedStyle(el).display")=='none'
- assert page.evaluate("document.querySelector('.sky-effects').getAnimations({subtree:true}).length===0")
+ # Transições curtas disparadas pelo apply() acima podem estar terminando: espera assentar (até 2 s);
+ # uma animação que continua depois disso é falha real e o nome dela aparece no erro.
+ try: page.wait_for_function("document.querySelector('.sky-effects').getAnimations({subtree:true}).length===0",timeout=2000)
+ except Exception: raise AssertionError(page.evaluate("document.querySelector('.sky-effects').getAnimations({subtree:true}).map(a=>(a.animationName||a.transitionProperty||a.constructor.name)+'@'+(a.effect&&a.effect.target&&a.effect.target.className||'')+':'+a.playState)"))
  assert not errors,errors
  print(json.dumps({'screenshots':report,'cloudCoverage':coverage,'celestialOcclusion':occlusion,'lightning':lightning,'normalStars':normal_stars,'seamlessBoundedLayers':True,'continuousDrift':True,'windDrift':True,'preservedAnimationObjects':True,'nightStars':True,'starWeatherGate':True,'rainDepth':True,'offscreenPause':True,'backgroundPseudoPause':True,'clearSkyPause':True,'reducedMotion':True,'errors':errors}))
  context.close();browser.close()
