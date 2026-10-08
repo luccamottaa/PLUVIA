@@ -42,26 +42,17 @@
     paintProviders();
     window.dispatchEvent?.(new CustomEvent('pluvia:auth-changed',{detail:{user}}));
   }
-  const ACCOUNT_ICON = '<svg class="account-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6"/></svg>';
   function paintIdentity(user,force=false){
     const metadata = user?.user_metadata || {};
     const synced=preferenceSync.getSnapshot()?.displayName;
     const fullName = typeof synced==='string' && synced.trim() ? synced : [metadata.name,metadata.full_name,metadata.display_name].find(value => typeof value === 'string' && value.trim()) || '';
     const name = fullName.trim().split(/\s+/)[0].slice(0,40);
-    // Sempre o ícone de pessoa (azul quando logado); o texto (saudação ou "Entrar") fica para leitores de tela.
-    const label = user ? (name ? `Olá, ${name}` : 'Minha conta') : 'Entrar / cadastrar';
-    const accountButton = el('accountButton');
-    accountButton.textContent = label;
-    if (accountButton.ownerDocument) {
-      const text = document.createElement('span'); text.className = 'account-label'; text.textContent = label;
-      accountButton.innerHTML = ACCOUNT_ICON; accountButton.append(text);
-    }
-    accountButton.setAttribute?.('data-signed-in', String(Boolean(user)));
-    accountButton.title = label;
+    el('accountButton').textContent = user ? (name ? `Olá, ${name}` : 'Minha conta') : 'Entrar / cadastrar';
+    el('accountButton').title = el('accountButton').textContent;
     el('profileAvatar').textContent = (name || 'P').slice(0,1).toUpperCase();
     el('profileDisplayName').textContent = fullName || 'Sua conta';
     if(force || document.activeElement!==el('profileName'))el('profileName').value = fullName;
-    el('profileNameHint').textContent = name ? 'Esse nome aparece na sua conta.' : 'Falta seu nome. Salve abaixo para a conta mostrar como chamar você.';
+    el('profileNameHint').textContent = name ? 'Esse nome aparece na saudação do topo.' : 'Falta seu nome. Salve abaixo para aparecer “Olá, seu nome” no topo.';
   }
   function localFavoriteIds() {
     try { return JSON.parse(localStorage.getItem('pluvia-favorites') || '[]').filter(id=>/^\d{7}$/.test(String(id))); } catch { return []; }

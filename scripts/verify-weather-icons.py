@@ -2,9 +2,6 @@
 import json, os, re, shutil, tempfile
 from pathlib import Path
 from playwright.sync_api import sync_playwright
-# WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
-# o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
-RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
 
 repo = Path(__file__).resolve().parent.parent
 preview = os.environ.get('PLUVIA_PREVIEW_URL', 'http://127.0.0.1:4173').rstrip('/') + '/'
@@ -17,7 +14,7 @@ with sync_playwright() as p:
         headless=True, args=['--no-sandbox'], **({'executable_path': shutil.which('chromium')} if shutil.which('chromium') else {}))
     page = browser.new_page(viewport={'width':1100,'height':900}, service_workers='block')
     errors = []
-    page.on('pageerror', lambda error: None if str(error).endswith(RAINVIEWER_CANCELLED) else errors.append(str(error)))
+    page.on('pageerror', lambda error: errors.append(str(error)))
     page.route('**/*', lambda route: route.continue_() if route.request.url.startswith(preview) and route.request.method == 'GET' else route.abort())
     # A JSON asset establishes the preview origin without starting Auth or weather services.
     # The public smoke reaches the real domain: a connection dropped before any response

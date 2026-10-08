@@ -12,7 +12,7 @@ function worker({status=200,networkError=false,slowWrite=false}={}) {
  return {request,writes,release:()=>release?.(),stored};
 }
 test('SW responde imediatamente e mantém gravação viva até o cache concluir',async()=>{
- const w=worker({slowWrite:true});const req=w.request('https://pluviaweather.com.br/modules/share-weather.js?v=share-4');
+ const w=worker({slowWrite:true});const req=w.request('https://pluviaweather.com.br/modules/share-weather.js?v=share-3');
  assert.equal(req.synchronous,1);assert.equal(await (await req.response).text(),'fresh');
  let finished=false;req.lifetime.then(()=>finished=true);await new Promise(r=>setImmediate(r));assert.equal(finished,false);
  w.release();await req.lifetime;assert.equal(finished,true);assert.equal(w.stored.size,1);

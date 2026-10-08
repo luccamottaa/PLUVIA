@@ -41,13 +41,8 @@ test('com suporte a arquivos a imagem do story vai junto do texto; sem suporte, 
   navigator:{canShare:()=>canShare,share:async payload=>{shared.push(payload);}},
   PLUVIA:{weatherData:{get:()=>recent},shareCard:{model:(s,options)=>({night:options.night}),render:async model=>({png:true,night:model.night})}},
   addEventListener:(name,fn)=>events[name]=fn};
- const timers=[];root.setTimeout=fn=>timers.push(fn);
  mount(root);events['pluvia:weather-updated']({detail:{cityId:city.id}});await new Promise(r=>setImmediate(r));
- // Na abertura a imagem espera o primeiro gesto (ou 6 s): o canvas não disputa a CPU com a primeira pintura.
- await el('shareWeather').click();assert.equal(shared[0].files,undefined,'antes de qualquer gesto ainda não há imagem');
- events.pointerdown();await new Promise(r=>setImmediate(r));
- await el('shareWeather').click();shared.shift();
- assert.equal(timers.length,1,'o limite de 6 s fica agendado uma vez');
+ await el('shareWeather').click();
  assert.equal(shared[0].files.length,1);assert.equal(shared[0].files[0].name,'pluvia-manaus.png');assert.equal(shared[0].files[0].parts[0].night,true);
  assert.match(shared[0].text,/Manaus/);
  canShare=false;await el('shareWeather').click();assert.equal(shared[1].files,undefined,'sem canShare(files) não envia arquivo');

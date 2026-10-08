@@ -5,9 +5,6 @@ import base64,datetime,json,os,shutil,subprocess,time,zoneinfo
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright
-# WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
-# o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
-RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
 repo=Path(__file__).resolve().parent.parent
 preview=os.environ.get('PLUVIA_PREVIEW_URL','http://127.0.0.1:4173')
 fixture=subprocess.Popen(['node','tests/support/account-fixture.cjs'],cwd=repo,stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
@@ -36,7 +33,7 @@ def route(r):
    day=(local.date()+datetime.timedelta(days=i)).isoformat();data['daily']['time'][i]=day;data['daily']['sunrise'][i]=day+'T06:00';data['daily']['sunset'][i]=day+'T18:00'
   r.fulfill(json=data);return
  if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[],'amanha':[]});return
- if 'rainviewer.com' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
+ if 'rainviewer.com' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
  if 'functions/v1/met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
  if 'functions/v1/' in url:r.fulfill(status=401,json={'error':'Serviço bloqueado no teste.'});return
  if '127.0.0.1' in url or 'localhost' in url:r.continue_();return
@@ -55,7 +52,7 @@ try:
    context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,service_workers='block')
    context.route('**/*',route)
    context.add_init_script("if(!sessionStorage.getItem('account-fixture-seeded')){localStorage.setItem('sb-dszyyrcvwrpyiypwyvxe-auth-token',"+json.dumps(json.dumps(session))+" );sessionStorage.setItem('account-fixture-seeded','1');}sessionStorage.setItem('pluvia-intro-seen','1');Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
-   page=context.new_page();page.on('pageerror',lambda error: None if str(error).endswith(RAINVIEWER_CANCELLED) else errors.append(str(error)));page.goto(preview,wait_until='domcontentloaded')
+   page=context.new_page();page.on('pageerror',lambda error:errors.append(str(error)));page.goto(preview,wait_until='domcontentloaded')
    page.wait_for_function("window.pluviaAccount?.getPreferences()?.namedPlaces?.length===1 && document.getElementById('pluviaIntro').hidden",timeout=20000)
    pages.append(page)
   a,b=pages

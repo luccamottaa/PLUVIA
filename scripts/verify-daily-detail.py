@@ -3,9 +3,6 @@ import datetime,json,os,shutil,subprocess
 from pathlib import Path
 from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright
-# WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
-# o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
-RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
 repo=Path(__file__).resolve().parent.parent
 preview=os.environ.get('PLUVIA_PREVIEW_URL','http://127.0.0.1:4173')
 output=Path(os.environ.get('PLUVIA_QA_OUTPUT','/tmp/pluvia-qa'))/'daily-detail';output.mkdir(parents=True,exist_ok=True)
@@ -18,7 +15,7 @@ def route(r):
  if 'met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
  if 'air-quality-api' in url:r.fulfill(json={'current':{'time':'2026-10-04T10:00','us_aqi':35}});return
  if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[]});return
- if 'rainviewer' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
+ if 'rainviewer' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
  if '/auth/v1/settings' in url:r.fulfill(json={'external':{'email':True}});return
  if urlparse(url).hostname in ['localhost','127.0.0.1']:r.continue_();return
  r.abort()
@@ -27,7 +24,7 @@ with sync_playwright() as p:
  context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,timezone_id='Asia/Tokyo',service_workers='block',reduced_motion='reduce')
  context.route('**/*',route)
  context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});")
- page=context.new_page();page.on('pageerror',lambda e: None if str(e).endswith(RAINVIEWER_CANCELLED) else errors.append(str(e)));page.clock.set_fixed_time(datetime.datetime(2026,10,4,14,15,tzinfo=datetime.timezone.utc))
+ page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)));page.clock.set_fixed_time(datetime.datetime(2026,10,4,14,15,tzinfo=datetime.timezone.utc))
  page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
  report=[]
  for width,height in [(320,740),(390,844),(430,932),(844,390),(768,1024),(1366,768),(2560,1080)]:

@@ -231,29 +231,12 @@ function setAlertState(state) {
   if (section?.dataset) section.dataset.alertState = state;
 }
 
-// Faixa no topo para aviso INMET laranja/vermelho vigente na cidade (leitura atual). Leitura anterior,
-// falha ou aviso só previsto nunca aparecem aqui; o card completo continua na seção de alertas.
-function setAlertBanner(item = null, index = -1) {
-  const banner = $("alertBanner");
-  if (typeof banner?.setAttribute !== "function" || typeof banner.removeAttribute !== "function") return;
-  const show = Boolean(item) && item.severity?.rank >= 2;
-  banner.hidden = !show;
-  if (!show) { banner.removeAttribute("data-severity"); banner.removeAttribute("data-notice"); return; }
-  const title = decodeHtml(String(firstValue(item.alert, ["descricao", "evento", "titulo", "tipo"], "Aviso meteorológico")));
-  const until = Number.isFinite(item.end) ? new Intl.DateTimeFormat("pt-BR", {timeZone:activeCity.timezone, day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(item.end)) : "";
-  banner.setAttribute("data-severity", item.severity.className);
-  banner.setAttribute("data-notice", String(index));
-  $("alertBannerTitle").textContent = `${item.severity.label} do INMET · ${title}`;
-  $("alertBannerTime").textContent = Number.isFinite(item.end) ? `Vigente até ${until}` : "Vigência no aviso oficial";
-}
-
 function renderInmetAlerts(raw, stale = false) {
   globalThis.PLUVIA?.modules.alerts.receive?.(raw, stale);
   const state = $("inmetState"); const content = $("inmetContent");
   const alerts = selectInmetAlerts(raw);
   const activeOfficial = alerts.find(item => item.stage === "active" && item.area === activeCity.name);
   $("inmetCard").dataset.severity = stale ? "unknown" : activeOfficial?.severity.className || "none";
-  setAlertBanner(stale ? null : activeOfficial, activeOfficial ? alerts.indexOf(activeOfficial) : -1);
   // Sem aviso, a seção vira uma linha discreta abaixo do topo; com aviso, ganha destaque no mesmo lugar.
   setAlertState(stale ? "unavailable" : alerts.length ? "alerts" : "clear");
   if (!alerts.length) {
@@ -314,7 +297,6 @@ async function loadInmetAlerts(revision = cityRevision) {
     if (lastInmetResponse) { renderInmetAlerts(lastInmetResponse, true); updateInmetTimestamp(true); return; }
     const state = $("inmetState"); const content = $("inmetContent");
     $("inmetCard").dataset.severity = "unknown";
-    setAlertBanner(null);
     setAlertState("unavailable");
     state.className = "source-state warning"; state.innerHTML = "<i></i>Consulta indisponível";
     content.innerHTML = "<h3>Abra o mapa do INMET</h3><p>A fonte automática não respondeu agora. Use o atalho abaixo para conferir os avisos oficiais diretamente no INMET.</p>";
@@ -377,14 +359,6 @@ function hourlySolarEvents(value, next) {
     .filter(([,stamp]) => Number.isFinite(stamp) && stamp >= at && stamp < end)
     .map(([label,stamp]) => `<small class="hour-solar-event">${label} ${formatUpdateTime(stamp)}</small>`).join('');
 }
-function showHourlyHint() {
-  try {
-    if (sessionStorage.getItem("pluvia-hourly-hint-session") === "1") return true;
-    if (localStorage.getItem("pluvia-hourly-hint-seen") === "1") return false;
-    localStorage.setItem("pluvia-hourly-hint-seen", "1"); sessionStorage.setItem("pluvia-hourly-hint-session", "1");
-  } catch {}
-  return true;
-}
 function renderHourly(hourly, start, daily) {
   const chart = $("rainChart");
   const scrollLeft = chart.scrollLeft;
@@ -401,21 +375,11 @@ function renderHourly(hourly, start, daily) {
       const mm = readings.get(i).mm;
       const volume = Number.isFinite(mm) && mm >= 0 ? `${fmt(mm, 1)} mm` : "Volume indisponível";
       const rain = Number.isFinite(probability) ? `${Math.round(probability)}%` : "—";
-      // Resumo enxuto: hora, ícone, temperatura e a chance só quando relevante (≥ 20%); sensação e volume
-      // continuam no rótulo acessível e no detalhe do horário. A linha da chance fica reservada (vazia).
-      const showRain = Number.isFinite(probability) && probability >= 20;
-      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="${time}: ${fmt(temperature)} graus, sensação ${fmt(readings.get(i).feelsLike)} graus, ${rain} de chance de chuva, ${volume}. Ver detalhes"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain : ""}</span><strong>${fmt(temperature)}°</strong>${hourlySolarEvents(hourly.time[i],hourly.time[i+1])}</button>`;
+      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="${time}: ${fmt(temperature)} graus, sensação ${fmt(readings.get(i).feelsLike)} graus, ${rain} de chance de chuva, ${volume}. Ver detalhes"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain">${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}${rain}</span><strong>${fmt(temperature)}°</strong><small class="peek-volume">Sens. ${fmt(readings.get(i).feelsLike)}°</small><small class="peek-volume">${volume}</small>${hourlySolarEvents(hourly.time[i],hourly.time[i+1])}</button>`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
-    // Sem nenhuma chance relevante nas cinco horas, a linha reservada da chuva some de todas (sem buraco).
-    peek.dataset.rain = indices.slice(0, 5).some(i => Number(readings.get(i).probability) >= 20) ? "some" : "none";
   }
   const decision = $("hourlyDecision");
-  if (decision) {
-    // A dica de toque aparece só na primeira sessão; depois a linha some (sem dado, o aviso continua).
-    const hint = indices.length && showHourlyHint();
-    decision.textContent = !indices.length ? 'Previsão por hora indisponível.' : hint ? 'Toque em um horário para ver sensação, chuva e rajadas.' : '';
-    decision.hidden = Boolean(indices.length) && !hint;
-  }
+  if (decision) decision.textContent=indices.length ? 'Toque em um horário para ver sensação, chuva e rajadas.' : 'Previsão por hora indisponível.';
   const descriptions = {
     conditions:"barras mostram a temperatura; a sensação aparece abaixo",
     feels:"barras mostram a sensação térmica; a temperatura aparece abaixo",
@@ -926,7 +890,7 @@ async function loadWeather(revision = cityRevision) {
       renderVisibility(null);
       $("rainChart").innerHTML = '<p class="chart-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("hourlyPeek").innerHTML = '<p>Previsão por hora indisponível.</p>';
-      $("hourlyDecision").textContent = "Sem dados recentes para as próximas horas."; $("hourlyDecision").hidden = false;
+      $("hourlyDecision").textContent = "Sem dados recentes para as próximas horas.";
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("dryWindow").textContent = "Sem dados";
       $("sunPhrase").textContent = "Ciclo solar indisponível.";
@@ -1106,63 +1070,10 @@ function setupScrollAnimations() {
 
 const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","feelsLike","feelsLikeNote","condition","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate"].filter(id=>$(id));
 let emptyCityContent;
-// Deslizar entre cidades (como no Apple Weather): a cidade aberta e os favoritos, na ordem salva.
-// As bolinhas são botões (clique/teclado); no toque, arrastar o topo para o lado troca de cidade.
-const CITY_DOTS_MAX = 12;
-function swipeCities() {
-  if (typeof favorites === "undefined" || typeof cityById === "undefined") return [];
-  const ids = [...favorites].map(String).filter(id => cityById.has(id));
-  if (activeCity?.id && !ids.includes(activeCity.id)) ids.unshift(activeCity.id);
-  return ids;
-}
-function renderCityDots() {
-  const box = $("cityDots");
-  if (!box?.replaceChildren) return;
-  const ids = swipeCities();
-  box.hidden = ids.length < 2 || ids.length > CITY_DOTS_MAX;
-  if (box.hidden) { box.replaceChildren(); return; }
-  box.replaceChildren(...ids.map(id => {
-    const city = cityById.get(id), dot = document.createElement("button");
-    dot.type = "button"; dot.className = "city-dot"; dot.dataset.cityId = id;
-    dot.setAttribute("aria-label", city ? `${city.name}/${city.uf}` : "Cidade");
-    if (id === activeCity?.id) dot.setAttribute("aria-current", "true");
-    return dot;
-  }));
-}
-function stepCity(direction) {
-  const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
-  if (ids.length < 2 || index < 0) return;
-  // Troca direta, sem animar: animações/camadas sobre o céu animado derrubavam o Safari do iPhone.
-  chooseCity(ids[(index + direction + ids.length) % ids.length]);
-}
-function setupCitySwipe() {
-  $("cityDots")?.addEventListener("click", event => {
-    const id = event.target.closest?.("[data-city-id]")?.dataset.cityId;
-    if (id && id !== activeCity?.id) chooseCity(id);
-  });
-  let start = null;
-  for (const area of document.querySelectorAll?.("#agora, .dashboard-grid") || []) {
-    area.addEventListener("touchstart", event => {
-      const touch = event.touches?.[0];
-      start = touch && event.touches.length === 1 ? {x:touch.clientX, y:touch.clientY, at:Date.now()} : null;
-    }, {passive:true});
-    area.addEventListener("touchend", event => {
-      const touch = event.changedTouches?.[0];
-      if (!start || !touch) return;
-      const dx = touch.clientX - start.x, dy = touch.clientY - start.y, quick = Date.now() - start.at < 800;
-      start = null;
-      // Só gesto claramente horizontal: rolagem e puxar para atualizar continuam verticais.
-      if (quick && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) stepCity(dx < 0 ? 1 : -1);
-    }, {passive:true});
-  }
-  globalThis.addEventListener?.("pluvia:favorites-changed", renderCityDots);
-}
-
 function updateCityLabels() {
   $("favoriteCity").disabled = !activeCity;
   if (!activeCity) return;
   $("cityName").textContent = activeCity.name;
-  renderCityDots();
   $("alertsCityLabel").textContent = "Fontes oficiais e leitura ambiental para " + activeCity.name;
   $("forecastCityLabel").textContent = "Previsão para o ponto de referência de " + activeCity.name + ", não para um endereço específico.";
   const distance = $("cityDistance");
@@ -1178,21 +1089,9 @@ function updateCityLabels() {
   updateClock();
 }
 let activeResultIndex = -1;
-// Buscas recentes: as últimas cidades abertas pelo diálogo "Suas cidades", só neste aparelho (ids).
-const RECENT_KEY = "pluvia-recent-cities", RECENT_MAX = 5;
-function recentCityIds() {
-  try { const ids = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); return Array.isArray(ids) ? ids.filter(id => /^\d{7}$/.test(String(id))).map(String).slice(0, RECENT_MAX) : []; }
-  catch { return []; }
-}
-function rememberRecentCity(id) {
-  if (!/^\d{7}$/.test(String(id))) return;
-  try { localStorage.setItem(RECENT_KEY, JSON.stringify([String(id), ...recentCityIds().filter(item => item !== String(id))].slice(0, RECENT_MAX))); } catch {}
-}
 function renderCityOptions() {
   const query = normalizeName(document.getElementById("citySearch").value || "").trim();
-  const recent = new Set(recentCityIds().filter(id => id !== activeCity?.id && cityById.has(id)));
   const initial = [...new Map([
-    ...[...recent].map(id => cityById.get(id)),
     ...[...favorites].map(id => cityById.get(id)),
     activeCity,
     ...CAPITALS
@@ -1203,7 +1102,7 @@ function renderCityOptions() {
   activeResultIndex = -1;
   list.innerHTML = shown.map(city => {
     const capital = CAPITALS.some(item => item.id === city.id);
-    return `<li><button class="city-result" type="button" role="option" aria-selected="false" data-current="${city.id === activeCity?.id}" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${!query && recent.has(city.id) ? "Recente · " : ""}${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
+    return `<li><button class="city-result" type="button" role="option" aria-selected="false" data-current="${city.id === activeCity?.id}" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
   }).join("");
   document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
 }
@@ -1222,7 +1121,6 @@ function syncCityPage(city) {
 function chooseCity(id, locatedCity = null) {
   const city = locatedCity || cityById.get(id);
   if (!city) return;
-  if ($("cityDialog")?.open && !locatedCity) rememberRecentCity(city.id);
   if (city.needsDetails) {
     locationAttempt++; locationPending = false; locationButtons(false);
     const choice = ++cityChoiceAttempt;
@@ -1288,7 +1186,6 @@ function chooseCity(id, locatedCity = null) {
     $(source + "Content").innerHTML = "<h3>Consultando " + escapeHtml(city.name) + "</h3><p>Buscando informações para a cidade selecionada.</p>";
   });
   $("inmetCard").dataset.severity = "unknown";
-  setAlertBanner(null);
   setAlertState("loading");
   $("citySearch").value = "";
   renderCityOptions(); updateCityLabels();
@@ -1431,36 +1328,6 @@ document.querySelector(".hourly-peek-heading a")?.addEventListener("click", () =
   const details = $("hourlyChartDetails");
   if (details) details.open = true;
 });
-// ⓘ das seções: o texto abre logo abaixo do título, no fluxo da página (sem sobrepor nada). Balão
-// flutuante exigia subir camadas (z-index) dos títulos/seções, e isso derrubava o Safari do iPhone.
-// Um aberto por vez; toque fora ou Escape fecha.
-const infoTipBodies = new WeakMap();
-document.addEventListener("click", event => {
-  for (const tip of document.querySelectorAll?.(".info-tip[open]") || []) {
-    if (!tip.contains(event.target) && !infoTipBodies.get(tip)?.contains(event.target)) tip.open = false;
-  }
-});
-document.addEventListener("toggle", event => {
-  const tip = event.target;
-  if (!tip?.matches?.(".info-tip")) return;
-  const body = infoTipBodies.get(tip) || tip.querySelector(".info-tip-body");
-  if (!body) return;
-  infoTipBodies.set(tip, body);
-  const holder = tip.closest(".hourly-peek-heading, .metric-head, .section-heading, .weather-map-copy") || tip;
-  if (tip.open) { holder.after(body); body.dataset.inline = "true"; }
-  else { delete body.dataset.inline; tip.append(body); return; }
-  for (const other of document.querySelectorAll(".info-tip[open]")) if (other !== tip) other.open = false;
-}, true);
-document.addEventListener("keydown", event => {
-  if (event.key !== "Escape") return;
-  const open = document.querySelector?.(".info-tip[open]");
-  if (open) { open.open = false; open.querySelector("summary")?.focus(); }
-});
-$("alertBanner")?.addEventListener("click", event => {
-  const index = event.currentTarget.dataset.notice;
-  document.querySelector(`#inmetContent [data-notice="${index}"]`)?.click();
-});
-setupCitySwipe();
 setupScrollAnimations();
 setupPullToRefresh();
 updateClock();

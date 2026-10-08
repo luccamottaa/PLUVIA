@@ -2,9 +2,6 @@
   "use strict";
   const el = id => document.getElementById(id);
   const prompt = el("notificationPrompt"), promptButton = el("notificationPromptButton"), promptText = el("notificationPromptText");
-  // "Agora não" esconde o convite da Home neste aparelho; os alertas continuam na conta.
-  const DISMISS_KEY = "pluvia-notification-prompt-dismissed";
-  const promptDismissed = () => { try { return localStorage.getItem(DISMISS_KEY) === "1"; } catch { return false; } };
   const toggle = el("notificationToggle"), testButton = el("notificationTest"), statusBadge = el("notificationStatusBadge");
   const supportNote = el("notificationSupportNote"), diagnosticsNode = el("notificationDiagnostics"), form = el("notificationPreferencesForm"), devicesNode = el("notificationDevices"), locationsNode = el("notificationLocations");
   const installDialog = el("installPushDialog"), continueNote = el("notificationContinueNote");
@@ -189,7 +186,7 @@
   }
 
   async function paintState() {
-    prompt.hidden = promptDismissed();
+    prompt.hidden = false;
     await paintDiagnostics();
     if (continueNote) continueNote.hidden = !(supported && currentUser() && pendingEnable && Notification.permission !== "granted");
     const city = cityLabel();
@@ -221,7 +218,7 @@
       ? `Alertas ligados para ${city}. O PLUVIA avisa mesmo fechado.`
       : `Avisa alerta oficial e chuva nas próximas horas em ${city}. A permissão só aparece depois do seu toque.`;
     message(active ? "Este dispositivo pode receber notificações mesmo com o PLUVIA fechado." : pendingEnable && currentUser() ? "Conta conectada. Toque em “Ativar alertas” para solicitar permissão." : "A permissão será solicitada após o toque em “Ativar alertas”.");
-    prompt.hidden = active || promptDismissed();
+    prompt.hidden = active;
   }
 
   async function loadConfig() {
@@ -316,11 +313,6 @@
   }
 
   promptButton.addEventListener("click", enable);
-  el("notificationPromptDismiss")?.addEventListener("click", () => {
-    try { localStorage.setItem(DISMISS_KEY, "1"); } catch {}
-    prompt.hidden = true;
-    el("accountButton")?.focus?.({preventScroll:true});
-  });
   toggle.addEventListener("click", toggleNotifications);
   el("installPushClose")?.addEventListener("click", () => globalThis.PLUVIA?.dialogs?.close(installDialog) ?? installDialog?.close());
   el("installPushReload")?.addEventListener("click", () => location.reload());
