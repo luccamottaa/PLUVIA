@@ -1018,6 +1018,7 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
    ocupa sempre rótulo + valor em duas linhas; e o esqueleto do número não aumenta a linha do 30°. */
 #weatherView .dry-window-line strong { display:block; }
 #weatherView #temperature .sk-temp { vertical-align:top; }
-/* ⓘ aberto (data-tip-open, marcado em app.js): o título que o ancora (z-index próprio, ex.: 1) e a seção
-   sobem acima da lista de horas e das seções seguintes; senão o texto se mistura com os horários. */
-#weatherView [data-tip-open] { position:relative; z-index:40; }
+/* ⓘ: o título que ancora o balão fica sempre um nível acima dos irmãos (.panel > * usa z-index 1),
+   então o balão aberto cobre a lista de horas, o mapa e as linhas seguintes. Fixo, sem trocar camadas
+   ao abrir: subir a seção inteira para z-index alto ao tocar derrubava o Safari do iPhone. */
+#weatherView :is(.hourly-peek-heading,.metric-head,.section-heading,.weather-map-copy) { z-index:2; }
