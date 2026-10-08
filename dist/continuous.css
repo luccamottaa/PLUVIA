@@ -1018,3 +1018,10 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 /* ⓘ aberto: o texto vai para logo depois do título (app.js), no fluxo da página. Sem posição absoluta
    nem z-index: subir camadas de títulos/seções derrubava o Safari do iPhone. */
 #weatherView .info-tip-body[data-inline] { position:static !important; z-index:auto !important; width:auto; max-width:none; margin:10px 0 14px; box-shadow:none; }
+/* Toque (celular/tablet): sem animações de entrada nem revelação ao rolar. Com o celular deitado
+   (mais de 720 px) elas voltavam a rodar sobre o céu animado; cada card animado vira uma camada do
+   tamanho da página no Safari do iPhone, e girar a tela travava o app. */
+@media (hover:none), (pointer:coarse) {
+  .intro > div:first-child, .clock-wrap, .dashboard-grid > .panel, .metrics > .metric, .hour-column, .rain-bar, .forecast-row { animation:none; }
+  .reveal-on-scroll { opacity:1; transform:none; transition:none; }
+}

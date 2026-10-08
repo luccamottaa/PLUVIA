@@ -1096,7 +1096,8 @@ function setupPullToRefresh() {
 document.querySelectorAll("nav a").forEach(link => link.addEventListener("click", () => { document.querySelectorAll("nav a").forEach(a => a.classList.remove("active")); link.classList.add("active"); }));
 
 function setupScrollAnimations() {
-  const skipLargeAnimations = window.matchMedia("(max-width: 720px), (prefers-reduced-motion: reduce)").matches;
+  // Celular deitado passa de 720 px: toque também fica sem a revelação (camadas extras derrubavam o iPhone).
+  const skipLargeAnimations = window.matchMedia("(max-width: 720px), (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse)").matches;
   if (skipLargeAnimations || !("IntersectionObserver" in window)) return;
   const targets = document.querySelectorAll(".section-block, .sun-section, footer");
   const observer = new IntersectionObserver((entries) => {

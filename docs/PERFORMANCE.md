@@ -76,6 +76,8 @@ Medido no Chromium com 390×844, DPR 3 e CPU 4× mais lenta (fixtures, mesmo mé
 - **Story liberado.** O canvas de 1080×1920 (~8 MB) é zerado depois de virar PNG.
 - **Sem `:has()` no body.** `body:has(.city-dialog[open])` virou a classe `city-dialog-open`, posta ao abrir e tirada no `close` do diálogo.
 
+**Celular deitado.** Com 844×390 (DPR 3) a estimativa subia de ~310 para ~658 MB: as nuvens cresciam para 2620×590 px (70vw) e, acima de 720 px, voltavam as animações de entrada (`rise-in`) e a revelação ao rolar, que deixavam o hero composto e a seção seguinte (802×3362) como camada por sobreposição. Agora toque não usa essas animações e a altura das nuvens é limitada por `113vh` (440 px deitado; em pé e no desktop não muda). Resultado: ~474 MB, sem as camadas do hero/seções.
+
 Não mexido: as nuvens visíveis ainda têm máscara própria (camada extra do mesmo tamanho). Mover a máscara para um contêiner estático reduziria a memória, mas mexe no contrato das nuvens e no QA de pixels; fica como próximo passo se o iPhone ainda pesar com tempo nublado/chuva.
 
 ## Limites e o que não foi mexido
