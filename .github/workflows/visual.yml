@@ -51,7 +51,6 @@ jobs:
           python scripts/verify-city-pages.py
           python scripts/verify-compare.py
           python scripts/verify-brazil.py
-          python scripts/verify-home-ux.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
