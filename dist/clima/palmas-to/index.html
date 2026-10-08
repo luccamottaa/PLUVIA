@@ -48,7 +48,7 @@
     <link rel="preload" href="/vendor/suncalc.js?v=sky-3" as="script" />
     <link rel="preload" href="/modules/moon-view.js?v=moon-3" as="script" />
     <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-16" as="script" />
-    <link rel="preload" href="/sky.css?v=sky-26" as="style" />
+    <link rel="preload" href="/sky.css?v=sky-28" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       html { background:#080f22; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
@@ -98,7 +98,25 @@
     <script src="/modules/moon-view.js?v=moon-3"></script>
     <script src="/modules/sky-atmosphere.js?v=sky-16"></script>
     <script src="/modules/sky-events.js?v=sky-events-1" defer></script>
-    <link rel="stylesheet" href="/sky.css?v=sky-26" />
+    <link rel="stylesheet" href="/sky.css?v=sky-28" />
+    <script>
+      /* Modo seguro: se a abertura anterior caiu (o Safari do iPhone fecha a página sem pagehide),
+         a próxima abre sem as camadas animadas do céu por 24 h. Fechar/ir para segundo plano limpa o
+         marcador; só uma queda o deixa para trás. ?seguro=1 força o modo. Nada sai do aparelho. */
+      (function () {
+        try {
+          var s = localStorage, now = Date.now(), until = Number(s.getItem("pluvia-safe-until")) || 0;
+          if (s.getItem("pluvia-boot-pending")) { until = now + 864e5; s.setItem("pluvia-safe-until", String(until)); }
+          if (until > now || /[?&]seguro=1(&|$)/.test(location.search)) document.documentElement.setAttribute("data-safe", "");
+          var mark = function () { try { s.setItem("pluvia-boot-pending", "1"); } catch (e) {} };
+          var clear = function () { try { s.removeItem("pluvia-boot-pending"); } catch (e) {} };
+          mark();
+          addEventListener("pagehide", clear);
+          addEventListener("pageshow", mark);
+          document.addEventListener("visibilitychange", function () { document.hidden ? clear() : mark(); });
+        } catch (e) {}
+      })();
+    </script>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="/styles.css?v=core-125" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="/redesign.css?v=panel-41" />
@@ -493,7 +511,7 @@
     <script src="/account.js?v=account-10" defer></script>
     <script src="/favorite-cities.js?v=favorites-7" defer></script>
     <script src="/modules/share-card.js?v=share-card-2" defer></script>
-    <script src="/modules/share-weather.js?v=share-4" defer></script>
+    <script src="/modules/share-weather.js?v=share-5" defer></script>
     <script src="/saved-places.js?v=places-2" defer></script>
     <script src="/modules/compare-cities.js?v=compare-2" defer></script>
     <script src="/modules/brazil-now.js?v=brazil-1" defer></script>
