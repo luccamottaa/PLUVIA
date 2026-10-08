@@ -33,12 +33,41 @@ test('modo seguro e reduzir movimento não animam',()=>{
   assert.equal(run({safe:true}).nodes[0].log.length,0);
   assert.equal(run({reduced:true}).nodes[0].log.length,0);
 });
-test('troca de cidade (gesto e bolinhas) anima só textos pequenos do topo, não blocos inteiros',()=>{
-  const helper=app.slice(app.indexOf('function animateCityText('),app.indexOf('function stepCity('));
-  assert.match(helper,/fadeIn\(\[\$\("cityName"\), \$\("temperature"\), \$\("condition"\), \$\("rainAnswer"\)\]/);
-  assert.doesNotMatch(helper,/agora|dashboard-grid|weatherView/);
+const slideSource=app.slice(app.indexOf('function slideToCity('),app.indexOf('function stepCity('));
+function slide({api=true,safe=false,reduced=false}={}){
+  const calls=[],dataset={};let finish;
+  const root={dataset,hasAttribute:name=>safe&&name==='data-safe'};
+  const document={documentElement:root};
+  if(api) document.startViewTransition=cb=>{calls.push(['start',{...dataset}]);cb();return {updateCallbackDone:Promise.resolve(),finished:new Promise(r=>{finish=r;})};};
+  const ctx={document,globalThis:{matchMedia:()=>({matches:reduced})},chooseCity:id=>calls.push(['choose',id]),animateCityText:()=>calls.push(['fade'])};
+  const {slideToCity}=vm.runInNewContext(`${slideSource}\n({slideToCity})`,ctx);
+  return {slideToCity,calls,dataset,finish:()=>finish?.()};
+}
+test('troca de cidade desliza por View Transition e cai no fade sem a API, no modo seguro ou em reduced-motion',async()=>{
+  const s=slide();
+  s.slideToCity('1501402',1);
+  assert.deepEqual(s.calls,[['start',{citySlide:'next'}],['choose','1501402']],'a troca acontece dentro da transição, com a direção do gesto');
+  s.finish();await new Promise(r=>setTimeout(r,0));
+  assert.equal(s.dataset.citySlide,undefined,'os nomes da transição saem depois dela');
+  const back=slide();back.slideToCity('x',-1);
+  assert.equal(back.calls[0][1].citySlide,'prev');
+  for(const opts of [{api:false},{safe:true},{reduced:true}]){
+    const f=slide(opts);f.slideToCity('y',1);
+    assert.deepEqual(f.calls,[['choose','y'],['fade']],JSON.stringify(opts));
+  }
   const setup=app.slice(app.indexOf('function setupCitySwipe('),app.indexOf('function updateCityLabels('));
-  assert.match(setup,/chooseCity\(id\);\s*animateCityText\(\);/,'tocar numa bolinha também anima');
+  assert.match(setup,/slideToCity\(id,/,'tocar numa bolinha também desliza');
+});
+test('a transição só nomeia quatro textos do topo durante a troca; a raiz não é fotografada',()=>{
+  const names=[...css.matchAll(/:root\[data-city-slide\] ([^{]+)\{ view-transition-name:([a-z-]+); \}/g)].map(m=>[m[1].trim(),m[2]]);
+  assert.deepEqual(names,[['#weatherView .intro h1','pluvia-city'],['#weatherView .wx-copy','pluvia-temp'],['#weatherView #condition','pluvia-condition'],['#weatherView #rainAnswer','pluvia-rain']]);
+  assert.match(css,/:root\[data-city-slide\] \{ view-transition-name:none; \}/);
+  assert.doesNotMatch(css,/^(?!.*data-city-slide).*view-transition-name:pluvia/m,'nomes só existem durante a troca');
+});
+test('ⓘ abre e fecha pela altura (grid 0fr ↔ 1fr), sem transform/opacity',()=>{
+  assert.match(css,/\.info-tip-body\[data-inline\]\[data-collapsed\] \{ grid-template-rows:0fr;/);
+  const rule=css.match(/#weatherView \.info-tip-body\[data-inline\] \{ display:grid;[^}]*\}/)[0];
+  assert.doesNotMatch(rule,/transform|opacity/);
 });
 test('no toque os esqueletos ficam parados (o brilho em transform virava uma camada por barra)',()=>{
   assert.match(css,/@media \(hover:none\), \(pointer:coarse\) \{ #weatherView \.sk::after \{ animation:none; display:none; \} \}/);

@@ -1165,18 +1165,33 @@ function fadeIn(nodes, duration, stagger = 0) {
 function animateCityText() {
   fadeIn([$("cityName"), $("temperature"), $("condition"), $("rainAnswer")], 420, 90);
 }
+// Deslize na troca de cidade: View Transitions (Safari 18+, Chrome 111+). O navegador fotografa só
+// o nome, a temperatura, a condição e o "Vai chover?" (view-transition-name durante a troca) e
+// desliza essas fotos numa camada própria acima da página; a página e o céu não ganham camadas.
+// Sem a API, em reduced-motion ou no modo seguro, troca com o fade de cor.
+function slideToCity(id, direction) {
+  const root = document.documentElement;
+  const canSlide = typeof document.startViewTransition === "function" && !root?.hasAttribute?.("data-safe") &&
+    !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if (!canSlide) { chooseCity(id); animateCityText(); return; }
+  root.dataset.citySlide = direction > 0 ? "next" : "prev";
+  try {
+    const transition = document.startViewTransition(() => chooseCity(id));
+    transition.updateCallbackDone?.catch(() => {});
+    transition.finished.catch(() => {}).finally(() => { delete root.dataset.citySlide; });
+  } catch { delete root.dataset.citySlide; chooseCity(id); }
+}
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
   if (ids.length < 2 || index < 0) return;
-  chooseCity(ids[(index + direction + ids.length) % ids.length]);
-  animateCityText();
+  slideToCity(ids[(index + direction + ids.length) % ids.length], direction);
 }
 function setupCitySwipe() {
   $("cityDots")?.addEventListener("click", event => {
     const id = event.target.closest?.("[data-city-id]")?.dataset.cityId;
     if (!id || id === activeCity?.id) return;
-    chooseCity(id);
-    animateCityText();
+    const ids = swipeCities();
+    slideToCity(id, ids.indexOf(id) > ids.indexOf(activeCity?.id) ? 1 : -1);
   });
   let start = null;
   for (const area of document.querySelectorAll?.("#agora, .dashboard-grid") || []) {
@@ -1478,6 +1493,32 @@ document.querySelector(".hourly-peek-heading a")?.addEventListener("click", () =
 // flutuante exigia subir camadas (z-index) dos títulos/seções, e isso derrubava o Safari do iPhone.
 // Um aberto por vez; toque fora ou Escape fecha.
 const infoTipBodies = new WeakMap();
+// Abrir/fechar o ⓘ suave: a altura cresce por grid-template-rows (0fr → 1fr, CSS em continuous.css),
+// empurrando o conteúdo de baixo. Só recalcula posições a cada quadro; não cria camadas.
+function infoMotion() {
+  return !document.documentElement?.hasAttribute?.("data-safe") && !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+}
+function openInfoBody(body, holder) {
+  clearTimeout(body.pluviaInfoClose);
+  if (!body.querySelector(":scope > .info-tip-inner")) {
+    const inner = document.createElement("div");
+    inner.className = "info-tip-inner";
+    inner.append(...body.childNodes);
+    body.append(inner);
+  }
+  holder.after(body);
+  body.dataset.inline = "true";
+  if (!infoMotion()) { delete body.dataset.collapsed; return; }
+  body.dataset.collapsed = "true";
+  globalThis.getComputedStyle?.(body).gridTemplateRows;
+  delete body.dataset.collapsed;
+}
+function closeInfoBody(body, tip) {
+  const finish = () => { delete body.dataset.collapsed; delete body.dataset.inline; tip.append(body); };
+  if (!infoMotion() || !body.dataset.inline) { finish(); return; }
+  body.dataset.collapsed = "true";
+  body.pluviaInfoClose = setTimeout(() => { if (!tip.open) finish(); }, 280);
+}
 document.addEventListener("click", event => {
   for (const tip of document.querySelectorAll?.(".info-tip[open]") || []) {
     if (!tip.contains(event.target) && !infoTipBodies.get(tip)?.contains(event.target)) tip.open = false;
@@ -1490,8 +1531,8 @@ document.addEventListener("toggle", event => {
   if (!body) return;
   infoTipBodies.set(tip, body);
   const holder = tip.closest(".hourly-peek-heading, .metric-head, .section-heading, .weather-map-copy") || tip;
-  if (tip.open) { holder.after(body); body.dataset.inline = "true"; fadeIn([body], 260); }
-  else { delete body.dataset.inline; tip.append(body); return; }
+  if (tip.open) { openInfoBody(body, holder); }
+  else { closeInfoBody(body, tip); return; }
   for (const other of document.querySelectorAll(".info-tip[open]")) if (other !== tip) other.open = false;
 }, true);
 document.addEventListener("keydown", event => {
