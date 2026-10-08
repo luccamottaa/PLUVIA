@@ -180,3 +180,6 @@ body.page-hidden :is(.sky-effects,.intro-sky) *::after,
   .sky-clouds-front { transform:none; }
   .sky-lightning { display:none !important; }
 }
+/* Modo seguro (index.html): depois de uma queda, o céu fica só no gradiente, sem nuvens, chuva,
+   raios e estrelas, que são as camadas compostas grandes. Sol e Lua ficam (pequenos). */
+:root[data-safe] :is(.sky-clouds,.sky-rain,.sky-lightning,.sky-stars) { display:none !important; }
