@@ -1139,11 +1139,18 @@ function renderCityDots() {
     return dot;
   }));
 }
+// Efeito leve só de opacidade, em poucos textos pequenos. Nada de transform/deslizar ou z-index:
+// deslizar o topo/grade sobre o céu animado fazia o Safari do iPhone compor a página inteira e cair.
+// Sem animação em reduced-motion e no modo seguro (depois de uma queda).
+function fadeIn(nodes, duration) {
+  if (document.documentElement?.hasAttribute?.("data-safe") || globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+  for (const node of nodes) node?.animate?.([{opacity:0},{opacity:1}], {duration, easing:"ease-out"});
+}
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
   if (ids.length < 2 || index < 0) return;
-  // Troca direta, sem animar: animações/camadas sobre o céu animado derrubavam o Safari do iPhone.
   chooseCity(ids[(index + direction + ids.length) % ids.length]);
+  fadeIn(["cityName","temperature","condition","rainAnswer"].map(id => $(id)), 280);
 }
 function setupCitySwipe() {
   $("cityDots")?.addEventListener("click", event => {
@@ -1462,7 +1469,7 @@ document.addEventListener("toggle", event => {
   if (!body) return;
   infoTipBodies.set(tip, body);
   const holder = tip.closest(".hourly-peek-heading, .metric-head, .section-heading, .weather-map-copy") || tip;
-  if (tip.open) { holder.after(body); body.dataset.inline = "true"; }
+  if (tip.open) { holder.after(body); body.dataset.inline = "true"; fadeIn([body], 200); }
   else { delete body.dataset.inline; tip.append(body); return; }
   for (const other of document.querySelectorAll(".info-tip[open]")) if (other !== tip) other.open = false;
 }, true);
