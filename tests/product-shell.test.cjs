@@ -76,7 +76,7 @@ for(const layer of ['rain','stations']) assert.ok(html.includes(`data-weather-la
 assert.doesNotMatch(html, /data-weather-layer="(satellite|clouds|lightning)"/);
 assert.doesNotMatch(html, /id="goOutCard"|PLUVIA SINAL · DÁ PRA SAIR\?|Por que este sinal\?/);
 assert.doesNotMatch(app, /renderGoOut/);
-assert.match(sw, /weather-map\.js\?v=map-9/);
+assert.match(sw, /weather-map\.js\?v=map-10/);
 assert.doesNotMatch(html, /modules\/signal\.js/);
 assert.doesNotMatch(html, /RESUMO INTELIGENTE/);
 assert.doesNotMatch(html, /id="smokeCard"|FUMAÇA E PARTÍCULAS/);
