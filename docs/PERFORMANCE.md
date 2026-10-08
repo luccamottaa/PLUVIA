@@ -65,6 +65,19 @@ Tentativas medidas e descartadas:
 - **As três folhas no `body`, depois da intro.** Sem salto, mas o Lighthouse continua contando como bloqueantes e o FCP do celular piorou (2,3 → 2,9 s).
 - **`preload` do `styles.css`.** FCP 2,3 → 3,1 s e CLS 0,04–0,05.
 
+## Fluidez no celular (outubro/2026)
+
+Medido no Chromium com 390×844, DPR 3 e CPU 4× mais lenta (fixtures, mesmo método das seções anteriores). Camadas de composição contadas pelo `LayerTree` do DevTools; o tamanho é largura × altura × 4 bytes × DPR², antes do recorte em tiles, então serve para comparar, não como memória real do iPhone.
+
+- **Camadas invisíveis saíam da tela, mas não da memória.** Nuvens com céu limpo, chuva sem chuva e estrelas de dia ficavam com opacidade 0 e animação pausada, mas continuavam compostas (cada nuvem 1710×440 px ≈ 27 MB em DPR 3). Agora recebem `visibility:hidden` **depois** do fade (`visibility 0s <duração do fade>`), e aparecem na hora quando voltam. Céu limpo de dia: ~208 → ~154 MB; noite limpa: ~299 → ~190 MB. A transição de `visibility` não tem duração (só atraso): com duração ela fazia o Chrome recalcular estilo a cada quadro por 4 s (39 → 219 recálculos na abertura).
+- **Ritmo das nuvens no próximo quadro.** `syncCloudRate` lia `getAnimations()` logo depois de escrever o estado do céu, forçando um recálculo de estilo da página inteira (~170 ms com CPU 4×). No navegador o `playbackRate` vai para o próximo `requestAnimationFrame`, quando esse cálculo já acontece; sem rAF (testes) continua síncrono.
+- **Escritas iguais não se repetem.** O relógio de 30 s reescrevia os mesmos `data-*` e variáveis em root/body; valores idênticos agora são pulados, sem invalidar estilos herdados.
+- **Gráfico por hora sob demanda.** O gráfico de 24 colunas fica dentro de `#hourlyChartDetails`, recolhido. Fechado, ele não é montado (`data-pending`); ao abrir (`toggle`) é desenhado com a previsão atual. A janela seca, fora dele, continua atualizada. Nós do DOM na abertura: 1552 → 1312; trabalho de JS da primeira renderização: ~490 → ~230 ms (CPU 4×).
+- **Story liberado.** O canvas de 1080×1920 (~8 MB) é zerado depois de virar PNG.
+- **Sem `:has()` no body.** `body:has(.city-dialog[open])` virou a classe `city-dialog-open`, posta ao abrir e tirada no `close` do diálogo.
+
+Não mexido: as nuvens visíveis ainda têm máscara própria (camada extra do mesmo tamanho). Mover a máscara para um contêiner estático reduziria a memória, mas mexe no contrato das nuvens e no QA de pixels; fica como próximo passo se o iPhone ainda pesar com tempo nublado/chuva.
+
 ## Limites e o que não foi mexido
 
 - **LCP simulado de ~10 s no celular.**
