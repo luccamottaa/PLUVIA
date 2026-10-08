@@ -1441,8 +1441,13 @@ document.addEventListener("click", event => {
   for (const tip of document.querySelectorAll?.(".info-tip[open]") || []) if (!tip.contains(event.target)) tip.open = false;
 });
 document.addEventListener("toggle", event => {
-  if (!event.target?.matches?.(".info-tip") || !event.target.open) return;
-  for (const tip of document.querySelectorAll(".info-tip[open]")) if (tip !== event.target) tip.open = false;
+  const tip = event.target;
+  if (!tip?.matches?.(".info-tip")) return;
+  // O título que ancora o balão e a sua seção sobem de camada enquanto ele está aberto (o título tem
+  // z-index próprio e a lista seguinte ficava por cima). Marcado aqui: :has() nem sempre é recalculado.
+  for (const holder of [tip.closest(".hourly-peek-heading, .metric-head, .section-heading, .weather-map-copy"), tip.closest("section, article")]) holder?.toggleAttribute("data-tip-open", tip.open);
+  if (!tip.open) return;
+  for (const other of document.querySelectorAll(".info-tip[open]")) if (other !== tip) other.open = false;
 }, true);
 document.addEventListener("keydown", event => {
   if (event.key !== "Escape") return;

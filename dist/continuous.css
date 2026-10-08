@@ -1014,3 +1014,6 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
    ocupa sempre rótulo + valor em duas linhas; e o esqueleto do número não aumenta a linha do 30°. */
 #weatherView .dry-window-line strong { display:block; }
 #weatherView #temperature .sk-temp { vertical-align:top; }
+/* ⓘ aberto (data-tip-open, marcado em app.js): o título que o ancora (z-index próprio, ex.: 1) e a seção
+   sobem acima da lista de horas e das seções seguintes; senão o texto se mistura com os horários. */
+#weatherView [data-tip-open] { position:relative; z-index:40; }
