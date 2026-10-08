@@ -126,7 +126,8 @@ with sync_playwright() as p:
    assert page.locator('#hourlyChartDetails').evaluate('el=>el.open')
   for chart_mode in ['conditions','feels','rain','wind']:
    page.locator('button[data-hourly-mode="'+chart_mode+'"]').click()
-   assert page.locator('#rainChart').get_attribute('data-hourly-mode')==chart_mode
+   chart_state=page.evaluate("()=>({mode:document.getElementById('rainChart').dataset.hourlyMode,pending:document.getElementById('rainChart').dataset.pending,open:document.getElementById('hourlyChartDetails').open,forecast:Boolean(displayedWeather?.forecast),pressed:document.querySelector('button[data-hourly-mode][aria-pressed=\"true\"]')?.dataset.hourlyMode})")
+   assert chart_state['mode']==chart_mode,(width,chart_mode,chart_state)
    assert page.locator('button[data-hourly-mode="'+chart_mode+'"]').get_attribute('aria-pressed')=='true'
    assert page.locator('#hourlyChartLegend').is_visible()
    assert not page.evaluate('document.documentElement.scrollWidth > innerWidth'),(width,chart_mode)
