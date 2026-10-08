@@ -27,7 +27,9 @@ with sync_playwright() as p:
   if urlparse(url).hostname in ['127.0.0.1','localhost']:r.continue_();return
   r.abort()
  context.route('**/*',route)
- context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});")
+ # O radar não é assunto deste QA: escondido pela personalização, não consulta nada. No WebKit uma consulta
+ # cancelada por navegação aparece como pageerror, e o radar compacto entra na tela ao rolar até o fim.
+ context.add_init_script("localStorage.setItem('pluvia-home-layout',JSON.stringify({hidden:['radar']}));sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});")
  page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
  report=[]
  for width,height in [(320,740),(390,844),(844,390),(1366,768),(2560,1080)]:
