@@ -232,6 +232,12 @@
       done(state.user ? null : error?.code === 1 ? `Localização não permitida; mapa centralizado em ${current.name}.` : `Localização indisponível agora; mapa centralizado em ${current.name}.`);
     },{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
   }
+  // Na Home o radar é uma miniatura parada (sem arrastar/zoom, sem player); tocar abre o radar ampliado,
+  // onde o mapa volta a ser interativo. Assim a rolagem da página nunca fica presa no mapa.
+  function setInteractive(on) {
+    const map = state.map; if (!map) return;
+    for (const handler of ['dragging','touchZoom','doubleClickZoom','scrollWheelZoom','boxZoom','keyboard']) map[handler]?.[on ? 'enable' : 'disable']?.();
+  }
   async function initMap() {
     await loadLeaflet();
     const selectedCity = city(); if (!selectedCity) throw new Error('Escolha uma cidade para ver o mapa.');
@@ -239,6 +245,7 @@
       state.map = L.map('weatherMap',{zoomControl:true,minZoom:3,maxZoom:11}).setView([selectedCity.lat,selectedCity.lon],7);
       state.base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{className:'pluvia-light-basemap',maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map);
       state.map.on?.('moveend zoomend resize',updateRecenter);
+      setInteractive(Boolean(radarDialog?.open));
     } else state.map.setView([selectedCity.lat,selectedCity.lon],7);
     if (state.marker) state.map.removeLayer(state.marker);
     state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:7,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(`${selectedCity.name}/${selectedCity.uf}`);
@@ -281,17 +288,20 @@
     if (!state.map) showMap();else if (state.frames.length) renderFrame(true);else selectLayer(state.layer);
   });
   $('weatherMapRecenter')?.addEventListener('click',recenter);
+  $('radarStageOpen')?.addEventListener('click',() => $('expandRadar')?.click());
   $('expandRadar')?.addEventListener('click',() => {
     if (!radarDialog || radarDialog.open || !radarContent) return;
     previousOverflow = document.body.style.overflow;
     $('radarDialogContent').appendChild(radarContent);
     radarDialog.showModal(); document.body.style.overflow='hidden';
+    setInteractive(true);
     mapVisible=true; if (!state.map || state.cityId !== city()?.id) showMap();
     resizeMap(); $('closeRadar').focus();
   });
   $('closeRadar')?.addEventListener('click',() => globalThis.PLUVIA?.dialogs?.close(radarDialog) ?? radarDialog.close());
   radarDialog?.addEventListener('close',() => {
     stop(); radarHome?.appendChild(radarContent); document.body.style.overflow=previousOverflow;
+    setInteractive(false);
     resizeMap(); $('expandRadar')?.focus();
   });
   radarDialog?.addEventListener('click',event => { if (event.target === radarDialog) globalThis.PLUVIA?.dialogs?.close(radarDialog) ?? radarDialog.close(); });

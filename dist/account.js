@@ -42,13 +42,19 @@
     paintProviders();
     window.dispatchEvent?.(new CustomEvent('pluvia:auth-changed',{detail:{user}}));
   }
+  const ACCOUNT_ICON = '<svg class="account-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6"/></svg>';
   function paintIdentity(user,force=false){
     const metadata = user?.user_metadata || {};
     const synced=preferenceSync.getSnapshot()?.displayName;
     const fullName = typeof synced==='string' && synced.trim() ? synced : [metadata.name,metadata.full_name,metadata.display_name].find(value => typeof value === 'string' && value.trim()) || '';
     const name = fullName.trim().split(/\s+/)[0].slice(0,40);
-    el('accountButton').textContent = user ? (name ? `Olá, ${name}` : 'Minha conta') : 'Entrar / cadastrar';
-    el('accountButton').title = el('accountButton').textContent;
+    // Deslogado: ícone de pessoa (o texto fica para leitores de tela); logado: a saudação com o nome.
+    const label = user ? (name ? `Olá, ${name}` : 'Minha conta') : 'Entrar / cadastrar';
+    const accountButton = el('accountButton');
+    accountButton.textContent = label;
+    if (!user && accountButton.ownerDocument) accountButton.innerHTML = ACCOUNT_ICON + '<span class="account-label">Entrar / cadastrar</span>';
+    accountButton.setAttribute?.('data-signed-in', String(Boolean(user)));
+    accountButton.title = label;
     el('profileAvatar').textContent = (name || 'P').slice(0,1).toUpperCase();
     el('profileDisplayName').textContent = fullName || 'Sua conta';
     if(force || document.activeElement!==el('profileName'))el('profileName').value = fullName;
