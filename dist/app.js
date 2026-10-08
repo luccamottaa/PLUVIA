@@ -1132,13 +1132,13 @@ function renderCityDots() {
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
   if (ids.length < 2 || index < 0) return;
-  const next = ids[(index + direction + ids.length) % ids.length];
-  const view = $("weatherView");
-  if (view && !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-    view.dataset.citySwipe = direction > 0 ? "next" : "prev";
-    setTimeout(() => { delete view.dataset.citySwipe; }, 320);
+  chooseCity(ids[(index + direction + ids.length) % ids.length]);
+  // Efeito leve: só o nome e o número deslizam um pouco. Animar o topo inteiro (#agora/.dashboard-grid)
+  // sobre o céu animado derrubava o Safari do iPhone.
+  if (globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  for (const node of document.querySelectorAll?.("#agora h1, .weather-main .temperature") || []) {
+    node.animate?.([{opacity:.35, transform:`translateX(${direction > 0 ? 18 : -18}px)`}, {opacity:1, transform:"none"}], {duration:260, easing:"ease-out"});
   }
-  chooseCity(next);
 }
 function setupCitySwipe() {
   $("cityDots")?.addEventListener("click", event => {
@@ -1442,11 +1442,7 @@ document.addEventListener("click", event => {
 });
 document.addEventListener("toggle", event => {
   const tip = event.target;
-  if (!tip?.matches?.(".info-tip")) return;
-  // O título que ancora o balão e a sua seção sobem de camada enquanto ele está aberto (o título tem
-  // z-index próprio e a lista seguinte ficava por cima). Marcado aqui: :has() nem sempre é recalculado.
-  for (const holder of [tip.closest(".hourly-peek-heading, .metric-head, .section-heading, .weather-map-copy"), tip.closest("section, article")]) holder?.toggleAttribute("data-tip-open", tip.open);
-  if (!tip.open) return;
+  if (!tip?.matches?.(".info-tip") || !tip.open) return;
   for (const other of document.querySelectorAll(".info-tip[open]")) if (other !== tip) other.open = false;
 }, true);
 document.addEventListener("keydown", event => {

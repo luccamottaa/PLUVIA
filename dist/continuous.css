@@ -976,11 +976,7 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 #weatherView .city-dot::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--reading-ink); opacity:.3; transition:opacity .2s, transform .2s; }
 #weatherView .city-dot[aria-current="true"]::before { opacity:1; transform:scale(1.15); }
 #weatherView .city-dot:focus-visible { outline:2px solid var(--brand-blue); outline-offset:-10px; border-radius:12px; }
-#weatherView[data-city-swipe="next"] :is(#agora,.dashboard-grid) { animation:pluvia-city-next .32s ease-out; }
-#weatherView[data-city-swipe="prev"] :is(#agora,.dashboard-grid) { animation:pluvia-city-prev .32s ease-out; }
-@keyframes pluvia-city-next { from { opacity:.2; transform:translateX(28px); } to { opacity:1; transform:none; } }
-@keyframes pluvia-city-prev { from { opacity:.2; transform:translateX(-28px); } to { opacity:1; transform:none; } }
-@media (prefers-reduced-motion:reduce) { #weatherView :is(#agora,.dashboard-grid) { animation:none !important; } #weatherView .city-dot::before { transition:none; } }
+@media (prefers-reduced-motion:reduce) { #weatherView .city-dot::before { transition:none; } }
 /* Personalizar a Home: seções escondidas saem do layout; diálogo com caixa e setas de ordem (44px). */
 #weatherView [data-home-hidden] { display:none !important; }
 .home-layout-list { display:grid; gap:0; margin:12px 0 16px; padding:0; list-style:none; }
@@ -1018,6 +1014,7 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
    ocupa sempre rótulo + valor em duas linhas; e o esqueleto do número não aumenta a linha do 30°. */
 #weatherView .dry-window-line strong { display:block; }
 #weatherView #temperature .sk-temp { vertical-align:top; }
-/* ⓘ aberto (data-tip-open, marcado em app.js): o título que o ancora (z-index próprio, ex.: 1) e a seção
-   sobem acima da lista de horas e das seções seguintes; senão o texto se mistura com os horários. */
-#weatherView [data-tip-open] { position:relative; z-index:40; }
+/* ⓘ: o título que ancora o balão fica sempre um nível acima dos irmãos (.panel > * usa z-index 1),
+   então o balão aberto cobre a lista de horas, o mapa e as linhas seguintes. Fixo, sem trocar camadas
+   ao abrir: subir a seção inteira para z-index alto ao tocar derrubava o Safari do iPhone. */
+#weatherView :is(.hourly-peek-heading,.metric-head,.section-heading,.weather-map-copy) { z-index:2; }
