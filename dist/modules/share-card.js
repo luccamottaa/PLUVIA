@@ -122,7 +122,8 @@
     ctx.fillText(data.source, WIDTH / 2, 1752);
     ctx.fillStyle = brand; ctx.font = '600 40px Inter, sans-serif';
     ctx.fillText('pluviaweather.com.br', WIDTH / 2, 1830);
-    return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/png'));
+    // Depois do PNG pronto, o bitmap de 1080×1920 (~8 MB) é liberado: no iPhone essa memória pesa.
+    return new Promise(resolve => canvas.toBlob(blob => { canvas.width = canvas.height = 0; resolve(blob); }, 'image/png'));
   }
 
   return {model, render, wrap, WIDTH, HEIGHT};

@@ -439,7 +439,7 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px s
 .dialog-close { min-width:44px; min-height:44px; border:0; background:transparent; color:inherit; font-size:30px; cursor:pointer; }
 .city-dialog .city-picker { padding:18px 0 0; margin:0; }
 .city-dialog .city-search-field,.city-dialog .city-state-field,.city-dialog .city-select-field { flex-basis:100%; }
-body:has(.city-dialog[open]) { overflow:hidden; }
+body.city-dialog-open { overflow:hidden; } /* classe em vez de :has(): o Safari reavaliava o body a cada [open] da página */
 .location-welcome { max-width:680px; margin:40px auto 60px; padding:clamp(24px,5vw,48px); }
 .location-welcome h1 { font-size:clamp(2rem,6vw,3.2rem); margin:12px 0 16px; }
 .location-welcome p { color:var(--muted); font-size:16px; line-height:1.6; }

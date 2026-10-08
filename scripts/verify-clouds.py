@@ -198,9 +198,11 @@ with sync_playwright() as p:
  for code in [1,2,1,3]:
   page.evaluate("code=>PLUVIA.sky.apply(code,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})",code)
   assert page.evaluate("[...document.querySelectorAll('.sky-effects > .sky-clouds')].every((el,i)=>el.getAnimations().includes(cloudAnimations[i]))"),code
- assert page.locator('.sky-effects > .sky-clouds-front').evaluate("el=>getComputedStyle(el).transitionDuration")=='4s'
- # Wind sets the drift speed through playbackRate on the same animation objects (no restart).
- rates=page.evaluate("""()=>{const out=[];for(const wind of [30,2,null]){PLUVIA.sky.apply(3,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'},undefined,wind);
+ # The opacity fade stays 4s; visibility only switches off after it (hidden layers leave composition).
+ assert page.locator('.sky-effects > .sky-clouds-front').evaluate("el=>{const cs=getComputedStyle(el),p=cs.transitionProperty.split(',').map(s=>s.trim()),d=cs.transitionDuration.split(',').map(s=>s.trim());return d[p.indexOf('opacity')]}")=='4s'
+ # Wind sets the drift speed through playbackRate on the same animation objects (no restart),
+ # applied in the next frame so the sky write does not force a synchronous style pass.
+ rates=page.evaluate("""async()=>{const out=[];const frame=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));for(const wind of [30,2,null]){PLUVIA.sky.apply(3,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'},undefined,wind);await frame();
    out.push([...document.querySelectorAll('.sky-effects > .sky-clouds')].map((el,i)=>{const a=el.getAnimations().find(a=>a.animationName?.startsWith('clouds-'));return a===cloudAnimations[i]?a.playbackRate:-1;}));}return out;}""")
  assert rates==[[2.2,2.2],[0.52,0.52],[1,1]],rates
  page.evaluate("window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})");page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
