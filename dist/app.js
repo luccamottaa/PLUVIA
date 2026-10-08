@@ -1139,23 +1139,44 @@ function renderCityDots() {
     return dot;
   }));
 }
-// Efeito leve só de opacidade, em poucos textos pequenos. Nada de transform/deslizar ou z-index:
-// deslizar o topo/grade sobre o céu animado fazia o Safari do iPhone compor a página inteira e cair.
-// Sem animação em reduced-motion e no modo seguro (depois de uma queda).
-function fadeIn(nodes, duration) {
+// Efeito leve em poucos textos pequenos: o texto parte de transparente e volta à cor normal por
+// uma transição de cor (só redesenha as letras, sem criar camadas). Na troca de cidade os textos
+// aparecem em sequência (cidade → temperatura → condição → "Vai chover?"). Transição e não animação
+// porque a cor desses textos é !important, e no cascade só transições passam por cima disso.
+// Opacidade criava camadas temporárias (13 → 20) e um deslize de 24 px chegou a 77 camadas (uma de
+// 40 MB) sobre o céu animado, o padrão que derrubava o Safari do iPhone: nada de transform, opacity
+// ou z-index aqui. Sem efeito em reduced-motion e no modo seguro (depois de uma queda).
+function fadeIn(nodes, duration, stagger = 0) {
   if (document.documentElement?.hasAttribute?.("data-safe") || globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
-  for (const node of nodes) node?.animate?.([{opacity:0},{opacity:1}], {duration, easing:"ease-out"});
+  const list = nodes.filter(node => node?.style?.setProperty);
+  for (const node of list) {
+    clearTimeout(node.pluviaFade);
+    node.style.transition = "none";
+    node.style.setProperty("color", "transparent", "important");
+  }
+  for (const node of list) globalThis.getComputedStyle?.(node).color;
+  list.forEach((node, index) => {
+    const delay = index * stagger;
+    node.style.transition = `color ${duration}ms ease-out ${delay}ms`;
+    node.style.removeProperty("color");
+    node.pluviaFade = setTimeout(() => node.style.removeProperty("transition"), duration + delay + 50);
+  });
+}
+function animateCityText() {
+  fadeIn([$("cityName"), $("temperature"), $("condition"), $("rainAnswer")], 420, 90);
 }
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
   if (ids.length < 2 || index < 0) return;
   chooseCity(ids[(index + direction + ids.length) % ids.length]);
-  fadeIn(["cityName","temperature","condition","rainAnswer"].map(id => $(id)), 280);
+  animateCityText();
 }
 function setupCitySwipe() {
   $("cityDots")?.addEventListener("click", event => {
     const id = event.target.closest?.("[data-city-id]")?.dataset.cityId;
-    if (id && id !== activeCity?.id) chooseCity(id);
+    if (!id || id === activeCity?.id) return;
+    chooseCity(id);
+    animateCityText();
   });
   let start = null;
   for (const area of document.querySelectorAll?.("#agora, .dashboard-grid") || []) {
@@ -1469,7 +1490,7 @@ document.addEventListener("toggle", event => {
   if (!body) return;
   infoTipBodies.set(tip, body);
   const holder = tip.closest(".hourly-peek-heading, .metric-head, .section-heading, .weather-map-copy") || tip;
-  if (tip.open) { holder.after(body); body.dataset.inline = "true"; fadeIn([body], 200); }
+  if (tip.open) { holder.after(body); body.dataset.inline = "true"; fadeIn([body], 260); }
   else { delete body.dataset.inline; tip.append(body); return; }
   for (const other of document.querySelectorAll(".info-tip[open]")) if (other !== tip) other.open = false;
 }, true);

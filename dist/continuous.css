@@ -1025,3 +1025,7 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
   .intro > div:first-child, .clock-wrap, .dashboard-grid > .panel, .metrics > .metric, .hour-column, .rain-bar, .forecast-row { animation:none; }
   .reveal-on-scroll { opacity:1; transform:none; transition:none; }
 }
+/* Toque (celular/tablet): esqueletos parados, sem o brilho deslizante. Cada barrinha com o brilho
+   em transform virava uma camada própria sobre o céu animado (13 → 72 camadas ao trocar de cidade
+   ou abrir sem dado salvo), o padrão que derrubava o Safari do iPhone. A barra cinza continua. */
+@media (hover:none), (pointer:coarse) { #weatherView .sk::after { animation:none; display:none; } }
