@@ -34,7 +34,7 @@ with sync_playwright() as p:
   if 'air-quality-api' in url:r.fulfill(json={'current':{'time':payload('America/Manaus')['current']['time'],'us_aqi':35,'pm2_5':8,'pm10':15,'ozone':44,'nitrogen_dioxide':10,'carbon_monoxide':180}});return
   if 'functions/v1/met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
   if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[],'amanha':[]});return
-  if 'rainviewer.com' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
+  if 'rainviewer.com' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
   if 'localhost' in url or '127.0.0.1' in url:r.continue_();return
   r.abort()
  context.route('**/*',route)

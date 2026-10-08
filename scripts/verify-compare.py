@@ -46,7 +46,7 @@ with sync_playwright() as p:
                 r.fulfill(json={'current': {'time': base['current']['time'], 'us_aqi': 120 if query.get('latitude', [''])[0].startswith('-1.4') else 35}}); return
             if 'inmet.gov.br' in url: r.fulfill(json={'hoje': [], 'amanha': []}); return
             # Metadados do radar como fixture: o WebKit registra como erro de página um fetch CORS abortado.
-            if 'rainviewer.com' in url: r.fulfill(json={'host': 'https://radar.test', 'radar': {'past': []}}); return
+            if 'rainviewer.com' in url: r.fulfill(headers={'Access-Control-Allow-Origin': '*'}, json={'host': 'https://radar.test', 'radar': {'past': []}}); return
             if 'functions/v1/met-forecast' in url: r.fulfill(json={'source': 'MET Norway', 'hourly': []}); return
             if (urlparse(url).scheme, urlparse(url).netloc) == origin: r.continue_(); return
             r.abort()

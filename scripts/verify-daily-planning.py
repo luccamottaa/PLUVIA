@@ -42,7 +42,7 @@ def route(r):
   r.fulfill(json=data);return
  if 'met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
  if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[],'amanha':[]});return
- if 'rainviewer.com' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
+ if 'rainviewer.com' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
  if '127.0.0.1' in url or 'localhost' in url:r.continue_();return
  r.abort()
 try:

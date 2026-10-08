@@ -33,7 +33,7 @@ def route(r):
    day=(local.date()+datetime.timedelta(days=i)).isoformat();data['daily']['time'][i]=day;data['daily']['sunrise'][i]=day+'T06:00';data['daily']['sunset'][i]=day+'T18:00'
   r.fulfill(json=data);return
  if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[],'amanha':[]});return
- if 'rainviewer.com' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
+ if 'rainviewer.com' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
  if 'functions/v1/met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
  if 'functions/v1/' in url:r.fulfill(status=401,json={'error':'Serviço bloqueado no teste.'});return
  if '127.0.0.1' in url or 'localhost' in url:r.continue_();return

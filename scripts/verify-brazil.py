@@ -38,7 +38,7 @@ with sync_playwright() as p:
                 r.fulfill(json=data); return
             if 'air-quality-api' in url: r.fulfill(json={'current': {'time': base['current']['time'], 'us_aqi': 35}}); return
             if 'inmet.gov.br' in url: r.fulfill(json={'hoje': [], 'amanha': []}); return
-            if 'rainviewer.com' in url: r.fulfill(json={'host': 'https://radar.test', 'radar': {'past': []}}); return
+            if 'rainviewer.com' in url: r.fulfill(headers={'Access-Control-Allow-Origin': '*'}, json={'host': 'https://radar.test', 'radar': {'past': []}}); return
             if 'functions/v1/met-forecast' in url: r.fulfill(json={'source': 'MET Norway', 'hourly': []}); return
             if (urlparse(url).scheme, urlparse(url).netloc) == origin: r.continue_(); return
             r.abort()

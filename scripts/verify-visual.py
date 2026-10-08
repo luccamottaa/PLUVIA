@@ -33,7 +33,7 @@ with sync_playwright() as p:
   if 'air-quality-api' in url:r.fulfill(json={'current':{'time':weather('America/Manaus')['current']['time'],'us_aqi':35,'pm2_5':8,'pm10':15,'ozone':44,'nitrogen_dioxide':10,'carbon_monoxide':180}});return
   if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[{'id':999999,'descricao':'Aviso de teste','geocodes':'1302603','severidade':'Grande Perigo','inicio':'2026-10-01T00:00:00Z','fim':'2026-10-02T00:00:00Z'}] if mode['alert'] else []});return
   if 'functions/v1/met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
-  if 'rainviewer' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
+  if 'rainviewer' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
   if '/auth/v1/settings' in url:r.fulfill(json={'external':{'email':True,'google':False,'apple':False}});return
   if (urlparse(url).scheme,urlparse(url).netloc)==preview_origin:r.continue_();return
   r.abort()

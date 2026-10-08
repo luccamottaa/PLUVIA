@@ -40,7 +40,7 @@ with sync_playwright() as p:
    r.fulfill(json=met());return
   if 'air-quality-api' in url:r.abort();return
   if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[]});return
-  if 'rainviewer' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
+  if 'rainviewer' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
   if '/auth/v1/settings' in url:r.fulfill(json={'external':{'email':True,'google':False,'apple':False}});return
   if urlparse(url).hostname in ['127.0.0.1','localhost']:r.continue_();return
   r.abort()

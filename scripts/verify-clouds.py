@@ -22,7 +22,7 @@ with sync_playwright() as p:
   if 'air-quality-api' in url:r.fulfill(json={'current':{'time':weather('America/Manaus')['current']['time'],'us_aqi':35}});return
   if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[]});return
   if 'functions/v1/met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
-  if 'rainviewer' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
+  if 'rainviewer' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
   if '/auth/v1/settings' in url:r.fulfill(json={'external':{'email':True,'google':False,'apple':False}});return
   if urlparse(url).hostname in ['127.0.0.1','localhost']:r.continue_();return
   r.abort()
