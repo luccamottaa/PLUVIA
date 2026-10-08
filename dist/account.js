@@ -48,17 +48,20 @@
     const synced=preferenceSync.getSnapshot()?.displayName;
     const fullName = typeof synced==='string' && synced.trim() ? synced : [metadata.name,metadata.full_name,metadata.display_name].find(value => typeof value === 'string' && value.trim()) || '';
     const name = fullName.trim().split(/\s+/)[0].slice(0,40);
-    // Deslogado: ícone de pessoa (o texto fica para leitores de tela); logado: a saudação com o nome.
+    // Sempre o ícone de pessoa (azul quando logado); o texto (saudação ou "Entrar") fica para leitores de tela.
     const label = user ? (name ? `Olá, ${name}` : 'Minha conta') : 'Entrar / cadastrar';
     const accountButton = el('accountButton');
     accountButton.textContent = label;
-    if (!user && accountButton.ownerDocument) accountButton.innerHTML = ACCOUNT_ICON + '<span class="account-label">Entrar / cadastrar</span>';
+    if (accountButton.ownerDocument) {
+      const text = document.createElement('span'); text.className = 'account-label'; text.textContent = label;
+      accountButton.innerHTML = ACCOUNT_ICON; accountButton.append(text);
+    }
     accountButton.setAttribute?.('data-signed-in', String(Boolean(user)));
     accountButton.title = label;
     el('profileAvatar').textContent = (name || 'P').slice(0,1).toUpperCase();
     el('profileDisplayName').textContent = fullName || 'Sua conta';
     if(force || document.activeElement!==el('profileName'))el('profileName').value = fullName;
-    el('profileNameHint').textContent = name ? 'Esse nome aparece na saudação do topo.' : 'Falta seu nome. Salve abaixo para aparecer “Olá, seu nome” no topo.';
+    el('profileNameHint').textContent = name ? 'Esse nome aparece na sua conta.' : 'Falta seu nome. Salve abaixo para a conta mostrar como chamar você.';
   }
   function localFavoriteIds() {
     try { return JSON.parse(localStorage.getItem('pluvia-favorites') || '[]').filter(id=>/^\d{7}$/.test(String(id))); } catch { return []; }
