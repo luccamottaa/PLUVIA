@@ -23,7 +23,7 @@
   function setError(message) { $('weatherMapError').hidden = !message; $('weatherMapError').textContent = message || ''; }
   function frameStatus(busy,message,retry=false) {
     $('weatherMap').setAttribute('aria-busy',String(busy));
-    if ($('weatherFrameStatus')) $('weatherFrameStatus').textContent=message || '';
+    if ($('weatherFrameStatus')) { $('weatherFrameStatus').textContent=message || ''; $('weatherFrameStatus').dataset && ($('weatherFrameStatus').dataset.state=retry ? 'error' : busy ? 'busy' : 'ok'); }
     if ($('weatherMapRetry')) $('weatherMapRetry').hidden=!retry;
   }
   function city() { return typeof activeCity !== 'undefined' ? activeCity : null; }

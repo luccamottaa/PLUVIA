@@ -882,6 +882,8 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 .weather-map-card #radarMapContent .weather-timebar { grid-template-columns:1fr; gap:4px; }
 .weather-map-card #radarMapContent .weather-frame-status { min-height:0; margin:0; }
 .weather-map-card #radarMapContent .weather-frame-status:empty { display:none; }
+/* Na Home só falhas aparecem ("Imagem carregada."/"Consultando…" eram ruído); o diálogo mostra tudo. */
+.weather-map-card #radarMapContent .weather-frame-status:not([data-state="error"]) { display:none; }
 .radar-stage-open { position:absolute; inset:0; z-index:450; width:100%; height:100%; padding:0; border:0; background:none; cursor:pointer; }
 .radar-dialog .radar-stage-open { display:none; }
 /* Ciclo do dia compacto: arco em cima; embaixo Sol (nascer/pôr) | Lua (fase e iluminação) lado a lado.
