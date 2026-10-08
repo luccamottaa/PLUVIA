@@ -6,6 +6,9 @@ import base64,datetime,json,os,shutil,subprocess,tempfile,time
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright
+# WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
+# o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
+RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
 
 repo=Path(__file__).resolve().parent.parent
 preview=os.environ.get('PLUVIA_PREVIEW_URL','http://127.0.0.1:4173')
@@ -42,7 +45,7 @@ def route(r):
   r.fulfill(json=data);return
  if 'met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
  if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[],'amanha':[]});return
- if 'rainviewer.com' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
+ if 'rainviewer.com' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
  if '127.0.0.1' in url or 'localhost' in url:r.continue_();return
  r.abort()
 try:
@@ -51,7 +54,7 @@ try:
   context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,timezone_id='Asia/Tokyo',service_workers='block',reduced_motion='reduce')
   context.route('**/*',route)
   context.add_init_script("if(!sessionStorage.getItem('daily-fixture')){localStorage.setItem('sb-dszyyrcvwrpyiypwyvxe-auth-token',"+json.dumps(json.dumps(session))+" );sessionStorage.setItem('daily-fixture','1');}sessionStorage.setItem('pluvia-intro-seen','1');Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
-  page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.clock.set_fixed_time(fixed)
+  page=context.new_page();errors=[];page.on('pageerror',lambda e: None if str(e).endswith(RAINVIEWER_CANCELLED) else errors.append(str(e)));page.clock.set_fixed_time(fixed)
   page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden",timeout=20000)
   assert page.locator('#outdoorPlan').count()==0
   page.locator('#hourlyPeek [data-hour-index]').first.click();assert 'Previsão para' in page.locator('#hourlyDetailTitle').inner_text();page.keyboard.press('Escape')

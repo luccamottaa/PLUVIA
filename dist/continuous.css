@@ -527,10 +527,10 @@ body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60
 
 /* Painéis entram de cima e saem para baixo; somente transform/opacity. */
 @media (prefers-reduced-motion:no-preference) {
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#alertDetail,#radarDialog,#installPushDialog)[open] { animation:pluvia-dialog-enter .4s cubic-bezier(.22,1,.36,1); }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing { animation:pluvia-dialog-exit .28s cubic-bezier(.4,0,1,1) forwards; }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing::backdrop { animation:pluvia-backdrop-exit .28s ease-in forwards; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open] { animation:pluvia-dialog-enter .4s cubic-bezier(.22,1,.36,1); }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing { animation:pluvia-dialog-exit .28s cubic-bezier(.4,0,1,1) forwards; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing::backdrop { animation:pluvia-backdrop-exit .28s ease-in forwards; }
   details[open] > :not(summary) { animation:pluvia-content-enter .24s ease-out; }
   @keyframes pluvia-dialog-enter { from { opacity:0; transform:translateY(-100dvh); } to { opacity:1; transform:translateY(0); } }
   @keyframes pluvia-dialog-exit { from { opacity:var(--pluvia-exit-opacity,1); transform:var(--pluvia-exit-from,none); } to { opacity:0; transform:translateY(var(--pluvia-exit-distance,100dvh)); } }
@@ -538,7 +538,7 @@ body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60
   @keyframes pluvia-backdrop-exit { from { opacity:1; } to { opacity:0; } }
   @keyframes pluvia-content-enter { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
 }
-@media (prefers-reduced-motion:reduce) { html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#alertDetail,#radarDialog,#installPushDialog)[open],html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop,details[open] > :not(summary) { animation:none !important; } }
+@media (prefers-reduced-motion:reduce) { html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open],html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop,details[open] > :not(summary) { animation:none !important; } }
 #accountDialog :is(#accountRecoveryForm,#accountDeleteForm) { display:grid; gap:14px; }
 #accountDialog :is(#accountRecoveryForm,#accountDeleteForm)[hidden] { display:none; }
 #accountDialog .account-text-action { background:transparent; color:var(--dialog-muted); text-decoration:underline; text-underline-offset:3px; }
@@ -857,3 +857,160 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 #shareWeatherDialog .share-weather-image { display:block; width:auto; max-width:100%; max-height:min(46vh,420px); margin:0 auto 12px; border-radius:16px; box-shadow:0 8px 24px #0006; }
 #shareWeatherDialog .share-weather-image[hidden],#shareWeatherDialog .share-weather-download[hidden] { display:none; }
 #shareWeatherDialog .share-weather-download { display:flex; align-items:center; justify-content:center; min-height:44px; margin:0 0 16px; border-radius:12px; background:var(--brand-blue); color:#fff; font-weight:600; text-decoration:none; }
+
+/* Próximas horas enxuto: hora, ícone, chance (só ≥ 20%, linha reservada) e temperatura. */
+#weatherView .hourly-peek-item { min-height:0; gap:6px; padding-block:10px 12px; }
+#weatherView .hourly-peek-item .peek-rain { min-height:20px; justify-content:center; font-size:.8125rem; }
+#weatherView .hourly-peek-item > strong { font-size:1.35rem; }
+/* "Previsão por hora" agora mora em Próximas horas: janela seca numa linha, gráfico recolhido logo abaixo. */
+#weatherView .dry-window-line { margin:14px 0 0; color:var(--reading-muted); font-size:.875rem; line-height:1.45; }
+#weatherView .dry-window-line strong { color:var(--reading-ink); font-weight:600; }
+#weatherView .hourly-peek .hourly-chart-details { margin-top:12px; }
+#weatherView .hourly-peek .rain-phrase { margin:10px 0 0; padding:0; border:0; background:none; box-shadow:none; }
+#weatherView .hourly-peek .rain-phrase small { color:var(--reading-muted); font-size:.8125rem; }
+/* Convite de alertas: "Ativar" principal e "Agora não" discreto, que esconde o convite neste aparelho. */
+.notification-prompt-actions { display:grid; gap:6px; justify-items:stretch; }
+#weatherView .notification-prompt .notification-prompt-dismiss { border-color:transparent; background:none; color:var(--reading-link); }
+@media(max-width:640px) { .notification-prompt-actions { grid-column:1 / -1; } }
+/* Radar compacto na Home: título com "Abrir radar" ao lado, miniatura baixa e só o horário da imagem.
+   Player, zoom e localização ficam no radar ampliado (o mesmo #radarMapContent, movido ao diálogo). */
+#weatherView .weather-map-card { grid-template-columns:minmax(0,1fr) auto; align-items:center; column-gap:16px; }
+#weatherView .weather-map-card > #radarMapContent { grid-column:1 / -1; }
+#weatherView .weather-map-card .expand-radar { grid-column:2; grid-row:1; margin:0; white-space:nowrap; }
+.weather-map-card #radarMapContent .weather-map-stage { height:clamp(190px,30vw,240px); }
+.weather-map-card #radarMapContent :is(.weather-player,.weather-layer-chips,#weatherMapRecenter,.leaflet-control-zoom,.weather-map-retry) { display:none !important; }
+.weather-map-card #radarMapContent .weather-timebar { grid-template-columns:1fr; gap:4px; }
+.weather-map-card #radarMapContent .weather-frame-status { min-height:0; margin:0; }
+.weather-map-card #radarMapContent .weather-frame-status:empty { display:none; }
+.radar-stage-open { position:absolute; inset:0; z-index:450; width:100%; height:100%; padding:0; border:0; background:none; cursor:pointer; }
+.radar-dialog .radar-stage-open { display:none; }
+/* Ciclo do dia compacto: arco em cima; embaixo Sol (nascer/pôr) | Lua (fase e iluminação) lado a lado.
+   "No céu", horas de sol previstas e horários finos ficam em "Mais sobre o céu". */
+#weatherView .sky-pair { grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; padding-top:16px; border-top:1px solid var(--reading-line); text-align:left; }
+#weatherView .sky-pair > div { min-width:0; }
+#weatherView .sky-pair-moon { padding-left:16px; border-left:1px solid var(--reading-line); }
+#weatherView .sky-pair-sun { padding-right:16px; }
+#weatherView .sky-pair-title { display:block; margin-bottom:8px; color:var(--reading-muted); font-size:.75rem; font-weight:500; letter-spacing:.09em; }
+#weatherView .sky-pair .sun-times { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; width:100%; }
+#weatherView .sky-pair .sun-times div { display:flex; align-items:baseline; justify-content:space-between; gap:8px; text-align:left; }
+#weatherView .sky-pair .sun-times div + div { border-left:0; }
+#weatherView .sky-pair .sun-times span { font-size:.875rem; }
+#weatherView .sky-pair .sun-times strong { font-size:1.15rem; }
+#weatherView .sky-pair .moon-inline { justify-content:flex-start; gap:12px; width:auto; padding:0; border-top:0; }
+#weatherView .sky-pair .moon-phase-icon { width:52px; height:52px; flex:0 0 52px; }
+#weatherView .sky-pair .moon-inline strong { font-size:1.05rem; }
+#weatherView .astronomy-details .sunshine-note { margin:12px 0 0; text-align:center; }
+#weatherView .astronomy-details .sky-events { margin-top:16px; }
+@media(max-width:380px) {
+  #weatherView .sky-pair { grid-template-columns:minmax(0,1fr); row-gap:14px; }
+  #weatherView .sky-pair-moon { padding:14px 0 0; border-left:0; border-top:1px solid var(--reading-line); }
+  #weatherView .sky-pair-sun { padding-right:0; }
+}
+/* ⓘ por seção: fontes e limites num balão, sem repetir avisos em todo card. Status de dado salvo,
+   antigo ou reduzido continua sempre visível (#dataStatus, notas da própria leitura). */
+.heading-with-tip { display:flex; align-items:center; gap:8px; min-width:0; }
+.info-tip { position:relative; display:inline-block; flex:none; }
+.info-tip > summary { display:grid; place-items:center; width:44px; height:44px; margin:-10px -12px; list-style:none; cursor:pointer; border-radius:50%; }
+.info-tip > summary::-webkit-details-marker { display:none; }
+.info-tip > summary > span { display:grid; place-items:center; width:20px; height:20px; border:1.5px solid currentColor; border-radius:50%; color:var(--reading-muted,#8aa0b8); font:600 .75rem/1 var(--font-ui); font-style:italic; }
+.info-tip[open] > summary > span,.info-tip > summary:hover > span { color:var(--brand-blue); }
+.info-tip > summary:focus-visible { outline:2px solid var(--brand-blue); outline-offset:-6px; }
+.info-tip-body { position:absolute; z-index:600; top:calc(100% + 4px); left:-12px; width:min(300px,calc(100vw - 48px)); padding:12px 14px; border:1px solid #a4c7e533; border-radius:14px; background:#0d2239; color:#e3eefb; box-shadow:0 16px 40px #0008; text-align:left; text-transform:none; letter-spacing:0; font:400 .8125rem/1.5 var(--font-ui); }
+.info-tip-body p { margin:0; color:inherit !important; font-size:inherit !important; }
+.info-tip-body p + p { margin-top:8px; }
+.info-tip-body small { color:inherit !important; font-size:inherit !important; }
+/* No card do ar e nos 7 dias o ⓘ fica à direita: o balão abre para dentro da tela. */
+.metric-head .info-tip,.section-heading .info-tip { margin-left:auto; }
+.metric-head .info-tip-body,.section-heading .info-tip-body { left:auto; right:-12px; }
+.weather-map-card #radarMapContent #weatherSourceNote { display:none; }
+/* Conta deslogada: só o ícone (44px, mesmo traço da lupa); o texto continua para leitores de tela.
+   Logada, a saudação "Olá, Nome" pedida antes continua no lugar. */
+.topbar .account-trigger[data-signed-in="false"] { display:grid; place-items:center; width:44px; }
+.topbar .account-trigger .account-icon { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
+.topbar .account-trigger[data-signed-in="false"] .account-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+/* Letra mínima de leitura ~13px (0,8125rem) para textos corridos e notas que estavam em 11–12px;
+   rótulos curtos em caixa alta continuam em 12px. A coluna fixa de chuva dos 7 dias no celular mantém 12px. */
+#weatherView :is(.hour-solar-event,.hour-temp small,.rain-chart .rain-chance,.air-outlook li > small,.air-outlook li > span,.sky-events small,.inmet-stage,.inmet-alert-meta dt),
+.moon-inline #moonIllumination,.favorite-city-card small,.daily-hour > small,.compare-table :is(td,th) small,.compare-note { font-size:.8125rem; }
+#weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) #inmetUpdated { font-size:.8125rem; }
+@media(max-width:720px) {
+  #weatherView .forecast-day > span { font-size:.8125rem; }
+  #weatherView .forecast-rain-volume { font-size:.75rem; }
+}
+/* O balão se ancora no cabeçalho da seção (largura dele), não no botão: nunca sai da tela no celular. */
+#weatherView :is(.hourly-peek-heading,.metric-head,.section-heading,.weather-map-copy) { position:relative; }
+.info-tip { position:static; }
+.info-tip-body,.metric-head .info-tip-body,.section-heading .info-tip-body { left:0; right:0; width:auto; max-width:440px; }
+.metric-head .info-tip-body,.section-heading .info-tip-body { left:auto; }
+#weatherView .hourly-peek-list:not([data-rain="some"]) .peek-rain { display:none; }
+/* Bloco da Lua simétrico ao do Sol: rótulo no topo, disco e fase lado a lado, texto sem espaçamento de rótulo. */
+#weatherView .sky-pair .moon-inline { display:grid; grid-template-columns:52px minmax(0,1fr); grid-template-areas:"label label" "disc text"; align-items:center; column-gap:12px; row-gap:8px; }
+#weatherView .sky-pair .moon-inline > svg { grid-area:disc; }
+#weatherView .sky-pair .moon-inline > span { display:contents; }
+#weatherView .sky-pair .moon-label { grid-area:label; color:var(--reading-muted); font-size:.75rem; font-weight:500; letter-spacing:.09em; }
+#weatherView .sky-pair .moon-inline strong { grid-area:text; align-self:start; margin:0; }
+#weatherView .sky-pair .moon-inline #moonIllumination { grid-column:2; margin:-2px 0 0; letter-spacing:0; line-height:1.4; }
+#weatherView .sky-pair .moon-inline strong { grid-row:2; }
+#weatherView .sky-pair .moon-inline #moonIllumination { grid-row:3; }
+#weatherView .sky-pair .moon-inline > svg { grid-row:2 / span 2; }
+/* Banner de aviso INMET laranja/vermelho vigente: faixa sólida logo abaixo do "Vai chover?".
+   Cores sólidas com contraste próprio (não dependem do céu); toque abre o detalhe oficial. */
+#weatherView .alert-banner { display:flex; align-items:center; gap:12px; width:min(100%,32rem); min-height:56px; margin:14px auto 0; padding:10px 14px; border:0; border-radius:16px; font:inherit; text-align:left; cursor:pointer; box-shadow:0 6px 18px #10234033; }
+#weatherView .alert-banner[hidden] { display:none; }
+#weatherView .alert-banner[data-severity="orange"] { background:#f08c1e; color:#1a0d00; }
+#weatherView .alert-banner[data-severity="red"] { background:#b3261e; color:#fff; }
+#weatherView .alert-banner > svg { flex:none; width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+#weatherView .alert-banner > span:not(.alert-banner-more) { display:grid; gap:2px; min-width:0; flex:1; }
+#weatherView .alert-banner strong { font-size:.9375rem; font-weight:600; line-height:1.3; color:inherit; }
+#weatherView .alert-banner small { font-size:.8125rem; line-height:1.3; color:inherit; opacity:.9; }
+#weatherView .alert-banner-more { flex:none; font-size:1.4rem; line-height:1; }
+#weatherView .alert-banner:focus-visible { outline:3px solid var(--brand-blue); outline-offset:3px; }
+/* Bolinhas das cidades (deslizar o topo troca de cidade): alvo de 44px de altura, ponto de 8px. */
+#weatherView .city-dots { display:flex; justify-content:center; flex-wrap:wrap; gap:0; margin:10px auto 0; }
+#weatherView .city-dots[hidden] { display:none; }
+#weatherView .city-dot { display:grid; place-items:center; width:22px; height:44px; padding:0; border:0; background:none; cursor:pointer; }
+#weatherView .city-dot::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--reading-ink); opacity:.3; transition:opacity .2s, transform .2s; }
+#weatherView .city-dot[aria-current="true"]::before { opacity:1; transform:scale(1.15); }
+#weatherView .city-dot:focus-visible { outline:2px solid var(--brand-blue); outline-offset:-10px; border-radius:12px; }
+#weatherView[data-city-swipe="next"] :is(#agora,.dashboard-grid) { animation:pluvia-city-next .32s ease-out; }
+#weatherView[data-city-swipe="prev"] :is(#agora,.dashboard-grid) { animation:pluvia-city-prev .32s ease-out; }
+@keyframes pluvia-city-next { from { opacity:.2; transform:translateX(28px); } to { opacity:1; transform:none; } }
+@keyframes pluvia-city-prev { from { opacity:.2; transform:translateX(-28px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion:reduce) { #weatherView :is(#agora,.dashboard-grid) { animation:none !important; } #weatherView .city-dot::before { transition:none; } }
+/* Personalizar a Home: seções escondidas saem do layout; diálogo com caixa e setas de ordem (44px). */
+#weatherView [data-home-hidden] { display:none !important; }
+.home-layout-list { display:grid; gap:0; margin:12px 0 16px; padding:0; list-style:none; }
+.home-layout-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:52px; border-bottom:1px solid var(--dialog-line); }
+.home-layout-list label { display:flex; align-items:center; gap:12px; min-width:0; min-height:44px; color:var(--dialog-text); cursor:pointer; }
+.home-layout-list input { flex:none; width:20px; height:20px; margin:0; accent-color:var(--brand-blue); }
+.home-layout-move { display:flex; gap:4px; flex:none; }
+.home-layout-move button { width:44px; height:44px; border:1px solid var(--dialog-line); border-radius:12px; background:var(--dialog-surface); color:var(--dialog-text); font:600 1.1rem/1 var(--font-ui); cursor:pointer; }
+.home-layout-move button:disabled { opacity:.35; cursor:default; }
+.home-layout-reset { min-height:44px; width:100%; border:1px solid var(--dialog-line); border-radius:12px; background:none; color:var(--dialog-text); font:inherit; cursor:pointer; }
+:is(.home-layout-move button,.home-layout-reset,.home-layout-list input):focus-visible { outline:2px solid var(--brand-blue); outline-offset:2px; }
+
+/* Desktop largo (≥ 1100 px): cabeçalho, conteúdo e rodapé crescem juntos até 1180 px; abaixo do topo,
+   as seções vão para duas colunas independentes (sem linhas em comum, então não sobram buracos). */
+@media (min-width:1100px) {
+  html body .topbar,footer.shell { max-width:1180px; }
+  #weatherView { width:min(1180px,100%); }
+  #weatherView .home-columns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:48px; align-items:start; }
+  #weatherView .home-column { min-width:0; }
+  #weatherView .home-column > :first-child { border-top:1px solid var(--reading-line) !important; }
+  #weatherView .home-column .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (min-width:1100px) {
+  /* 7 dias na coluna: chance e volume empilhados (como no celular) para caber sem vazar; condição continua escrita. */
+  #weatherView .home-column .forecast-list .forecast-row { grid-template-columns:minmax(0,.9fr) minmax(0,1.5fr) minmax(0,1.45fr) 5rem; }
+  #weatherView .home-column .forecast-rain-values { display:grid; justify-items:end; gap:0; line-height:1.25; }
+  #weatherView .home-column .forecast-rain-volume::before { content:none; }
+  #weatherView .home-column .forecast-list :is(.forecast-rain-chance,.forecast-rain-volume) { min-width:0; }
+  #weatherView .home-column .forecast-rain-volume { color:var(--reading-muted); font-size:.75rem; }
+}
+/* O alvo de 44px do ⓘ alinhado à direita não pode passar da borda da seção (rolagem lateral no iPhone SE). */
+.metric-head .info-tip > summary,.section-heading .info-tip > summary { margin-right:-6px; }
+/* Estabilidade na chegada dos dados (CLS): o esqueleto tem a mesma altura da leitura final.
+   Sem chuva relevante (o caso comum), a linha da chance não existe nem no esqueleto; a janela seca
+   ocupa sempre rótulo + valor em duas linhas; e o esqueleto do número não aumenta a linha do 30°. */
+#weatherView .dry-window-line strong { display:block; }
+#weatherView #temperature .sk-temp { vertical-align:top; }

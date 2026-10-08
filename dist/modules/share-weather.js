@@ -46,13 +46,19 @@
       const night=root.document.body?.dataset?.phase==='night';
       const data=cards.model(snapshot,{condition:conditionLabel(),night});
       if(!data) return;
-      const schedule=root.requestIdleCallback ? fn=>root.requestIdleCallback(fn,{timeout:2000}) : fn=>root.setTimeout(fn,300);
+      const idle=root.requestIdleCallback ? fn=>root.requestIdleCallback(fn,{timeout:2000}) : fn=>root.setTimeout(fn,300);
+      // Fora da abertura: espera o primeiro toque/rolagem/tecla (ou 6 s), para o canvas não disputar a CPU
+      // com a primeira pintura. Ainda fica pronto antes do toque em Compartilhar na prática.
+      const schedule=fn=>engaged ? idle(fn) : (pendingCard=()=>idle(fn), root.setTimeout(engage,6000));
       schedule(()=>cards.render(data,{document:root.document}).then(blob=>{
         if(token!==cardToken || !blob) return;
         const name=String(snapshot?.location?.name || 'cidade').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
         card=new root.File([blob],`pluvia-${name || 'previsao'}.png`,{type:'image/png'});
       }).catch(()=>{}));
     }
+    let engaged=false,pendingCard=null;
+    function engage() { engaged=true; const run=pendingCard; pendingCard=null; run?.(); }
+    for(const type of ['pointerdown','keydown','scroll','touchstart']) root.addEventListener?.(type,engage,{once:true,passive:true,capture:true});
     function clearCardPreview() {
       if(cardUrl) {root.URL?.revokeObjectURL?.(cardUrl);cardUrl=null;}
       const image=el('shareWeatherImage'),link=el('shareWeatherDownload');

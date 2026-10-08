@@ -6,6 +6,9 @@ import datetime,json,os,shutil,subprocess,tempfile
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright
+# WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
+# o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
+RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
 
 repo=Path(__file__).resolve().parent.parent
 preview=os.environ.get('PLUVIA_PREVIEW_URL','http://127.0.0.1:4173')
@@ -31,7 +34,7 @@ def route(r):
  if 'air-quality-api' in url:r.fulfill(json={'current':{'time':'2026-10-04T03:00','us_aqi':35}});return
  if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[],'amanha':[]});return
  if 'met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
- if 'rainviewer.com' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
+ if 'rainviewer.com' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
  if '/auth/v1/settings' in url:r.fulfill(json={'external':{'email':True,'google':False,'apple':False}});return
  if urlparse(url).hostname in ['localhost','127.0.0.1']:r.continue_();return
  r.abort()
@@ -41,7 +44,7 @@ with sync_playwright() as p:
  context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,timezone_id='Asia/Tokyo',service_workers='block',reduced_motion='reduce')
  context.route('**/*',route)
  context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
- page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
+ page=context.new_page();page.on('pageerror',lambda e: None if str(e).endswith(RAINVIEWER_CANCELLED) else errors.append(str(e)))
  page.clock.set_fixed_time(datetime.datetime(2026,10,4,7,15,tzinfo=datetime.timezone.utc))
  page.goto(preview,wait_until='domcontentloaded')
  page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden && !document.documentElement.classList.contains('awaiting-styles')")
@@ -97,8 +100,12 @@ with sync_playwright() as p:
  def home(width,label):
   assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(width,label)
   report={'width':width,'period':label}
-  for field in ['.peek-time','.peek-rain','.peek-icon','.hourly-peek-item > strong','.peek-volume:nth-of-type(1)','.peek-volume:nth-of-type(2)']:
+  # A linha da chance só existe quando alguma das cinco horas tem >= 20%; aí ela é reservada em todas.
+  rain_row=page.evaluate("document.getElementById('hourlyPeek').dataset.rain")
+  assert rain_row in ('some','none'),rain_row
+  for field in ['.peek-time','.peek-icon','.hourly-peek-item > strong']+(['.peek-rain'] if rain_row=='some' else []):
    report[field]=aligned(field,count=5)
+  if rain_row=='none': assert not boxes('.peek-rain'),(width,label)
   report['summaryLabels']=aligned('.quick-metrics > .quick-metric:first-child .metric-head > span:first-child,.hero-temperature-extreme small',count=3)
   report['summaryValues']=aligned('#feelsLike,#todayHigh,#todayLow',count=3)
   summary_icons='.quick-metrics > .quick-metric:first-child [data-weather-icon-name] svg,.hero-temperature-extreme [data-weather-icon-name] svg'
@@ -148,8 +155,9 @@ with sync_playwright() as p:
   assert abs(reading_y-wind_row['centerY'])<=1,(width,reading_y,wind_row)
   wind_parts=page.locator('#wind').evaluate("el=>{const range=document.createRange();range.selectNodeContents(el.firstChild);const number=range.getBoundingClientRect(),unit=el.querySelector('sup').getBoundingClientRect();return {numberTop:number.top,numberBottom:number.bottom,numberRight:number.right,unitLeft:unit.left,unitCenterY:unit.y+unit.height/2}}")
   assert wind_parts['unitLeft']>=wind_parts['numberRight']-1 and wind_parts['numberTop']<=wind_parts['unitCenterY']<=wind_parts['numberBottom'],(width,wind_parts)
-  aligned('.weather-player > *','centerY',4)
-  aligned('footer .footer-link','centerX',2)
+  # Radar compacto: na Home só a miniatura (sem player); o player alinhado é medido no radar ampliado.
+  assert not boxes('.weather-map-card .weather-player > *'),(width,'player só no radar ampliado')
+  aligned('footer .footer-link','centerX',3)
   rows=page.evaluate("""()=>[...document.querySelectorAll('.forecast-row')].map(el=>{
    const box=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,centerY:r.y+r.height/2}};
    return {geometry:Object.fromEntries([...el.children].filter(c=>c.getClientRects().length).map(c=>[c.className,box(c)])),condition:box(el.querySelector('.forecast-condition')),text:box(el.querySelector('.forecast-condition > span'))};
@@ -172,7 +180,8 @@ with sync_playwright() as p:
    if width>720:assert condition['x']+condition['width']<=geometry['temp-range']['x']+1,geometry
   report['tracks']=aligned('.temp-track','x',7)
   aligned('.temp-track','width',7)
-  aligned('.sun-times > div > strong',count=2)
+  # Sol | Lua: nascer e pôr empilhados no bloco do Sol, valores na mesma borda direita.
+  aligned('.sun-times > div > strong','right',2)
   headings=page.evaluate("()=>[...document.querySelectorAll('#weatherView .section-heading')].map(el=>[...el.children].filter(c=>c.getClientRects().length).map(c=>{const r=c.getBoundingClientRect();return {y:r.y,bottom:r.bottom,centerY:r.y+r.height/2}}))")
   for parts in headings:
    if len(parts)==2:
@@ -236,6 +245,9 @@ with sync_playwright() as p:
   for i in range(0,len(readings)-1,2):assert abs(readings[i]['y']-readings[i+1]['y'])<=1,(width,readings[i:i+2])
   aligned('.hourly-detail-navigation button','centerY',2)
   if width in [320,390,1366]:screenshot(str(width)+'-hour-detail','#hourlyDetailDialog')
+  close()
+  page.locator('#expandRadar').click();page.wait_for_function("document.getElementById('radarDialog').open")
+  aligned('#radarDialog .weather-player > *','centerY',4)
   close()
   page.locator('#openSources').click();header('#sourcesDialog .dialog-heading')
   if width in [320,390,1366]:screenshot(str(width)+'-sources','#sourcesDialog')

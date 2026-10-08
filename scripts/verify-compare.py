@@ -8,6 +8,9 @@ import datetime, json, os, shutil, subprocess, tempfile
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 from playwright.sync_api import sync_playwright
+# WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
+# o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
+RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
 
 repo = Path(__file__).resolve().parent.parent
 preview = os.environ.get('PLUVIA_PREVIEW_URL', 'http://127.0.0.1:4173').rstrip('/')
@@ -46,7 +49,7 @@ with sync_playwright() as p:
                 r.fulfill(json={'current': {'time': base['current']['time'], 'us_aqi': 120 if query.get('latitude', [''])[0].startswith('-1.4') else 35}}); return
             if 'inmet.gov.br' in url: r.fulfill(json={'hoje': [], 'amanha': []}); return
             # Metadados do radar como fixture: o WebKit registra como erro de página um fetch CORS abortado.
-            if 'rainviewer.com' in url: r.fulfill(json={'host': 'https://radar.test', 'radar': {'past': []}}); return
+            if 'rainviewer.com' in url: r.fulfill(headers={'Access-Control-Allow-Origin': '*'}, json={'host': 'https://radar.test', 'radar': {'past': []}}); return
             if 'functions/v1/met-forecast' in url: r.fulfill(json={'source': 'MET Norway', 'hourly': []}); return
             if (urlparse(url).scheme, urlparse(url).netloc) == origin: r.continue_(); return
             r.abort()
@@ -56,7 +59,7 @@ with sync_playwright() as p:
                                 "localStorage.setItem('pluvia-named-places-guest-v1',JSON.stringify([{id:'p1',name:'Faculdade',cityId:'1501402',cityName:'Belém',uf:'PA',updatedAt:1}]));"
                                 "Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1})}}});")
         page = context.new_page(); errors = []
-        page.on('pageerror', lambda error: errors.append(str(error)))
+        page.on('pageerror', lambda error: None if str(error).endswith(RAINVIEWER_CANCELLED) else errors.append(str(error)))
         page.clock.set_fixed_time(datetime.datetime(2026, 10, 1, 16, 30, tzinfo=datetime.timezone.utc))
         calls.clear()
         page.goto(preview + '/', wait_until='domcontentloaded')
@@ -97,7 +100,7 @@ with sync_playwright() as p:
         context.add_init_script("localStorage.setItem('pluvia-city',JSON.stringify('1302603'));localStorage.setItem('pluvia-favorites',JSON.stringify(['1501402']));"
                                 "window.__qaGeoCalls=0;Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){window.__qaGeoCalls++;window.__qaGeo ? ok(window.__qaGeo) : fail({code:1})}}});")
         page = context.new_page(); errors = []
-        page.on('pageerror', lambda error: errors.append(str(error)))
+        page.on('pageerror', lambda error: None if str(error).endswith(RAINVIEWER_CANCELLED) else errors.append(str(error)))
         page.clock.set_fixed_time(datetime.datetime(2026, 10, 1, 16, 30, tzinfo=datetime.timezone.utc))
         page.goto(preview + f'/?abrir={action}&source=pwa', wait_until='domcontentloaded')
         page.wait_for_function(f"document.getElementById('{dialog}').open", timeout=20000)

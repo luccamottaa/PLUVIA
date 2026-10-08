@@ -7,6 +7,9 @@ import re,base64,datetime,json,os,shutil,subprocess
 from pathlib import Path
 from urllib.parse import urlparse,parse_qs
 from playwright.sync_api import sync_playwright
+# WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
+# o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
+RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
 root=Path(__file__).resolve().parent.parent
 base=json.loads(subprocess.check_output(['node','-e',"process.stdout.write(JSON.stringify(require('./tests/support/forecast.cjs').forecast()))"],cwd=root,text=True))
 preview=os.environ.get('PLUVIA_PREVIEW_URL','http://127.0.0.1:4173')
@@ -22,7 +25,7 @@ def weather(tz):
 with sync_playwright() as p:
  browser=p.webkit.launch() if os.environ.get('PLUVIA_BROWSER')=='webkit' else p.chromium.launch(args=['--no-sandbox'],**({'executable_path':shutil.which('chromium')} if shutil.which('chromium') else {}))
  context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,timezone_id='Asia/Tokyo',service_workers='block',reduced_motion='reduce')
- page=context.new_page();errors=[];requests=[];blocked=[];page.on('pageerror',lambda e:errors.append(str(e)))
+ page=context.new_page();errors=[];requests=[];blocked=[];page.on('pageerror',lambda e: None if str(e).endswith(RAINVIEWER_CANCELLED) else errors.append(str(e)))
  def route(r):
   url=r.request.url;requests.append(url)
   if public_smoke and r.request.method!='GET':r.abort();return
@@ -33,7 +36,7 @@ with sync_playwright() as p:
   if 'air-quality-api' in url:r.fulfill(json={'current':{'time':weather('America/Manaus')['current']['time'],'us_aqi':35,'pm2_5':8,'pm10':15,'ozone':44,'nitrogen_dioxide':10,'carbon_monoxide':180}});return
   if 'inmet.gov.br' in url:r.fulfill(json={'hoje':[{'id':999999,'descricao':'Aviso de teste','geocodes':'1302603','severidade':'Grande Perigo','inicio':'2026-10-01T00:00:00Z','fim':'2026-10-02T00:00:00Z'}] if mode['alert'] else []});return
   if 'functions/v1/met-forecast' in url:r.fulfill(json={'source':'MET Norway','hourly':[]});return
-  if 'rainviewer' in url:r.fulfill(json={'host':'https://radar.test','radar':{'past':[]}});return
+  if 'rainviewer' in url:r.fulfill(headers={'Access-Control-Allow-Origin':'*'},json={'host':'https://radar.test','radar':{'past':[]}});return
   if '/auth/v1/settings' in url:r.fulfill(json={'external':{'email':True,'google':False,'apple':False}});return
   if (urlparse(url).scheme,urlparse(url).netloc)==preview_origin:r.continue_();return
   r.abort()
