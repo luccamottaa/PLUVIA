@@ -78,3 +78,19 @@ test('vento atual controla a velocidade das nuvens sem salto; leitura ausente n�
   sky.apply(3,1,null,city,at);
   assert.equal(animations[0].playbackRate,1,'troca de cidade/condição sem vento volta ao ritmo neutro');
 });
+test('no navegador o ritmo do vento entra no próximo quadro e escritas iguais não se repetem',()=>{
+  const animations=[{animationName:'clouds-back',playbackRate:1}];
+  let writes=0;const frames=[];
+  const root={dataset:{},style:{setProperty(){writes++;}}},body={dataset:{},style:{setProperty(){writes++;}}};
+  const sky=create({frame:fn=>frames.push(fn),document:{documentElement:root,body,querySelectorAll:()=>[{getAnimations:()=>animations}]}});
+  sky.apply(3,1,null,city,at,20);
+  assert.equal(animations[0].playbackRate,1,'nada de getAnimations() logo depois de escrever o estado do céu');
+  assert.equal(frames.length,1);
+  sky.apply(3,1,null,city,at,20);
+  assert.equal(frames.length,1,'um quadro pendente atende várias escritas');
+  frames.shift()();
+  assert.equal(animations[0].playbackRate,1.6);
+  const before=writes;
+  sky.apply(3,1,null,city,at,20);
+  assert.equal(writes,before,'o mesmo estado não reescreve propriedades herdadas pela página inteira');
+});

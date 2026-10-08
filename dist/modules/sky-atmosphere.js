@@ -3,7 +3,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   else {
     root.PLUVIA = root.PLUVIA || {};
-    root.PLUVIA.sky = api.create({document:root.document, sun:root.PLUVIA.sun, moon:root.PLUVIA.moon, moonView:root.PLUVIA.moonView});
+    root.PLUVIA.sky = api.create({document:root.document, frame:root.requestAnimationFrame?.bind(root), sun:root.PLUVIA.sun, moon:root.PLUVIA.moon, moonView:root.PLUVIA.moonView});
     let storage;
     try { storage = root.localStorage; } catch (_) {}
     root.PLUVIA.sky.bootstrap(storage);
@@ -61,7 +61,7 @@
   function cityTime(value, city) {
     return time?.parse(value,city) ?? NaN;
   }
-  function create({document, sun = null, moon = null, moonView = null, now = () => Date.now()} = {}) {
+  function create({document, frame = null, sun = null, moon = null, moonView = null, now = () => Date.now()} = {}) {
     let city = null, rows = [], weather = 'unknown', providerPhase = 'unknown', code = null, wind = null;
     let lastUpdate = null;
     const calculatedDays = new Map(), moonDays = new Map();
@@ -120,14 +120,34 @@
     // playbackRate keeps each CSS animation's position, so a new reading changes the
     // speed without a jump. Runs on the existing clock: animations created after the
     // stylesheet loads receive the rate on the next tick; no timer of its own.
-    function syncCloudRate() {
+    // Reading getAnimations() right after writing the sky state forces a synchronous style pass
+    // over the whole page; in the browser the rate is applied in the next frame instead, when that
+    // pass already happens. Without requestAnimationFrame (tests) it stays synchronous.
+    let ratePending = false;
+    function applyCloudRate() {
+      ratePending = false;
       const rate = cloudRate(wind);
-      for (const node of [document?.documentElement,document?.body].filter(Boolean)) node.style?.setProperty('--cloud-rate',String(rate));
       for (const layer of document?.querySelectorAll?.('.sky-clouds') || []) {
         for (const animation of layer.getAnimations?.() || []) {
           if (animation.animationName?.startsWith('clouds-') && Math.abs(animation.playbackRate - rate) > .001) animation.playbackRate = rate;
         }
       }
+    }
+    function syncCloudRate() {
+      const rate = cloudRate(wind);
+      for (const node of [document?.documentElement,document?.body].filter(Boolean)) setVar(node,'--cloud-rate',String(rate));
+      if (typeof frame !== 'function') return applyCloudRate();
+      if (!ratePending) { ratePending = true; frame(applyCloudRate); }
+    }
+    // The 30 s clock rewrites the same state most of the time; identical writes are skipped so
+    // they do not invalidate the style of every element that inherits these properties.
+    const written = new WeakMap();
+    function setVar(node, key, value) {
+      let values = written.get(node);
+      if (!values) written.set(node, values = new Map());
+      if (values.get(key) === value) return;
+      values.set(key, value);
+      node.style?.setProperty(key, value);
     }
     function write(state, animate) {
       const rain = rainProfile(code);
@@ -137,21 +157,21 @@
       const darkDay = state.phase === 'day' && state.solar === 'none' && (rain.kind === 'moderate' || rain.kind === 'heavy');
       const ink = state.phase === 'day' && !darkDay ? 'dark' : 'light';
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
-        Object.assign(node.dataset,{phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,ink,skyTransition:animate ? 'live' : 'instant'});
-        node.style?.setProperty('--twilight-opacity',state.strength.toFixed(3));
-        node.style?.setProperty('--sun-visibility',state.sunVisibility.toFixed(3));
-        node.style?.setProperty('--moon-visibility',state.moonVisibility.toFixed(3));
-        node.style?.setProperty('--stars-visibility',state.starVisibility.toFixed(3));
-        node.style?.setProperty('--sun-orbit-x',state.sunX.toFixed(6));
-        node.style?.setProperty('--sun-orbit-y',state.sunY.toFixed(6));
-        node.style?.setProperty('--moon-orbit-x',state.moonX.toFixed(6));
-        node.style?.setProperty('--moon-orbit-y',state.moonY.toFixed(6));
-        node.style?.setProperty('--rain-opacity',String(rain.opacity));
-        node.style?.setProperty('--rain-back-opacity',String(rain.backOpacity));
-        node.style?.setProperty('--rain-speed',`${rain.speed}s`);
-        node.style?.setProperty('--rain-back-speed',`${rain.backSpeed}s`);
-        node.style?.setProperty('--rain-width',`${rain.width}px`);
-        node.style?.setProperty('--rain-back-width',`${rain.backWidth}px`);
+        for (const [key,value] of Object.entries({phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,ink,skyTransition:animate ? 'live' : 'instant'})) if (node.dataset[key] !== value) node.dataset[key] = value;
+        setVar(node,'--twilight-opacity',state.strength.toFixed(3));
+        setVar(node,'--sun-visibility',state.sunVisibility.toFixed(3));
+        setVar(node,'--moon-visibility',state.moonVisibility.toFixed(3));
+        setVar(node,'--stars-visibility',state.starVisibility.toFixed(3));
+        setVar(node,'--sun-orbit-x',state.sunX.toFixed(6));
+        setVar(node,'--sun-orbit-y',state.sunY.toFixed(6));
+        setVar(node,'--moon-orbit-x',state.moonX.toFixed(6));
+        setVar(node,'--moon-orbit-y',state.moonY.toFixed(6));
+        setVar(node,'--rain-opacity',String(rain.opacity));
+        setVar(node,'--rain-back-opacity',String(rain.backOpacity));
+        setVar(node,'--rain-speed',`${rain.speed}s`);
+        setVar(node,'--rain-back-speed',`${rain.backSpeed}s`);
+        setVar(node,'--rain-width',`${rain.width}px`);
+        setVar(node,'--rain-back-width',`${rain.backWidth}px`);
       }
       syncCloudRate();
       return state;

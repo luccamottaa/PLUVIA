@@ -66,12 +66,14 @@ html,body { background:var(--sky-base); }
 :root[data-weather="storm"] .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .3); }
 /* A fixed, irregular point field stays behind the clouds and celestial disks.
    Only a few brighter points shimmer; the sky never rotates or restarts on open. */
-.sky-stars { position:absolute; inset:0; z-index:0; pointer-events:none; background:url("./assets/sky-stars.svg?v=stars-2") center top / 900px 1100px repeat; opacity:var(--stars-visibility,0); transition:opacity 4s ease; } /* tile 1:1 em px reais; a cena (sky-effects) já esmaece embaixo */
+.sky-stars { position:absolute; inset:0; z-index:0; pointer-events:none; background:url("./assets/sky-stars.svg?v=stars-2") center top / 900px 1100px repeat; opacity:var(--stars-visibility,0); transition:opacity 4s ease,visibility 0s; } /* tile 1:1 em px reais; a cena (sky-effects) já esmaece embaixo */
 .sky-stars::after { content:""; position:absolute; inset:0; background:url("./assets/sky-stars-shimmer.svg?v=stars-2") center top / 1040px 1280px repeat; opacity:.8; animation:sky-star-shimmer 9s ease-in-out infinite alternate; animation-delay:-5s; animation-play-state:paused; }
 :root[data-phase="night"]:is([data-weather="sun"],[data-weather="partly"]) .sky-stars::after { animation-play-state:running; }
-:root[data-sky-transition="live"] .sky-stars { transition:opacity 28s linear; }
+:root[data-sky-transition="live"] .sky-stars { transition:opacity 28s linear,visibility 0s; }
 :root:not([data-phase="night"]) .sky-stars,
-:root:not([data-weather="sun"]):not([data-weather="partly"]) .sky-stars { opacity:0; }
+:root:not([data-weather="sun"]):not([data-weather="partly"]) .sky-stars { opacity:0; visibility:hidden; transition:opacity 4s ease,visibility 0s 4s; }
+:root[data-sky-transition="live"]:not([data-phase="night"]) .sky-stars,
+:root[data-sky-transition="live"]:not([data-weather="sun"]):not([data-weather="partly"]) .sky-stars { transition:opacity 28s linear,visibility 0s 28s; }
 /* A luminous photosphere and atmospheric glow travel as one object.
    Static gradients keep the light steady and avoid animated blur on mobile. */
 .sky-sun { display:none; position:absolute; z-index:1; top:0; left:0; width:108px; aspect-ratio:1; opacity:calc(var(--sun-opacity) * var(--sun-visibility,0)); transform:translate3d(calc(var(--sun-orbit-x,.5) * 100vw - 50%),calc(env(safe-area-inset-top,0px) + var(--orbit-top) + var(--sun-orbit-y,0) * var(--orbit-height) - 50%),0); background:url("./assets/sky-sun.svg?v=sun-2") center / contain no-repeat; }
@@ -91,7 +93,7 @@ html,body { background:var(--sky-base); }
    Each 3:1 texture tiles seamlessly in x, so the layer drifts continuously by exactly one tile
    (repeat-x, transform only) and loops without a jump. The near layer drifts faster (parallax).
    No turbulence, canvas loop or animated blur; nodes stay painted so weather changes fade. */
-.sky-clouds { --cloud-height:clamp(440px,70vw,640px); --cloud-tile:calc(var(--cloud-height) * 3); display:block; position:absolute; z-index:2; left:0; width:calc(100% + var(--cloud-tile)); height:var(--cloud-height); top:-60px; background:url("./assets/sky-cloud-veil.webp?v=clouds-4") 0 0 / var(--cloud-tile) 100% repeat-x; opacity:var(--cloud-opacity); filter:var(--cloud-filter); -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); animation:clouds-back 460s linear infinite; animation-delay:-172s; transition:opacity 4s ease; }
+.sky-clouds { --cloud-height:clamp(440px,70vw,640px); --cloud-tile:calc(var(--cloud-height) * 3); display:block; position:absolute; z-index:2; left:0; width:calc(100% + var(--cloud-tile)); height:var(--cloud-height); top:-60px; background:url("./assets/sky-cloud-veil.webp?v=clouds-4") 0 0 / var(--cloud-tile) 100% repeat-x; opacity:var(--cloud-opacity); filter:var(--cloud-filter); -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); animation:clouds-back 460s linear infinite; animation-delay:-172s; transition:opacity 4s ease,visibility 0s; }
 .sky-clouds-front { top:17%; background-image:url("./assets/sky-cloud-volume.webp?v=clouds-4"); opacity:calc(var(--cloud-opacity) * .48); animation:clouds-front 300s linear infinite; animation-delay:-77s; }
 /* Texture alpha carries the real gaps. Fading an entire partially cloudy layer
    makes the celestial disks bleed through even its dense, opaque interiors. */
@@ -114,7 +116,9 @@ html,body { background:var(--sky-base); }
 :root:is([data-rain="moderate"],[data-rain="heavy"]) .sky-clouds-front { background-image:url("./assets/sky-cloud-volume.webp?v=clouds-4"),url("./assets/sky-cloud-volume.webp?v=clouds-4"); background-size:var(--cloud-tile) var(--cloud-height); background-position:0 0,calc(var(--cloud-tile) * .47) calc(var(--cloud-height) * .16); }
 :root:is([data-rain="moderate"],[data-rain="heavy"]) .sky-effects > .sky-clouds-front { top:6%; }
 :root[data-phase="day"][data-ink="light"] .sky-clouds-front { opacity:var(--cloud-opacity); }
-:root:is([data-weather="sun"],[data-weather="unknown"]) .sky-clouds { animation-play-state:paused; }
+/* Camadas invisíveis também saem da composição (visibility depois do fade): no iPhone cada uma
+   ocupava dezenas de MB de memória de vídeo mesmo com opacidade zero. */
+:root:is([data-weather="sun"],[data-weather="unknown"]) .sky-clouds { animation-play-state:paused; visibility:hidden; transition:opacity 4s ease,visibility 0s 4s; }
 .intro-sky .sky-clouds { top:-30px; }
 .intro-sky .sky-clouds-front { top:36%; }
 /* Mainly clear (WMO 1): an elliptical mask, repeated twice per texture tile, reveals one
@@ -139,9 +143,9 @@ html,body { background:var(--sky-base); }
 }
 /* Independent fine/distant and longer/near streaks. A whole 480px tile moves
    vertically, so looping has no seam; intensity never comes from probability. */
-.sky-rain { display:block; position:absolute; z-index:4; inset:-480px 0 0; background:url("./assets/rain-near.svg") 17px 0 / var(--rain-width,380px) 480px repeat; opacity:var(--rain-opacity); animation:sky-rain-fall var(--rain-speed,2.2s) linear infinite; animation-delay:-.7s; transition:opacity 2s ease; }
+.sky-rain { display:block; position:absolute; z-index:4; inset:-480px 0 0; background:url("./assets/rain-near.svg") 17px 0 / var(--rain-width,380px) 480px repeat; opacity:var(--rain-opacity); animation:sky-rain-fall var(--rain-speed,2.2s) linear infinite; animation-delay:-.7s; transition:opacity 2s ease,visibility 0s; }
 .sky-rain-back { z-index:3; background-image:url("./assets/rain-far.svg"); background-size:var(--rain-back-width,640px) 480px; background-position:83px 37px; opacity:var(--rain-back-opacity); animation-duration:var(--rain-back-speed,4.3s); animation-delay:-2.1s; }
-:root:not([data-weather="rain"]):not([data-weather="storm"]) .sky-rain { opacity:0; animation-play-state:paused; }
+:root:not([data-weather="rain"]):not([data-weather="storm"]) .sky-rain { opacity:0; animation-play-state:paused; visibility:hidden; transition:opacity 2s ease,visibility 0s 2s; }
 /* Branched filaments that light the cloud deck and the sky around each strike.
    This is storm decoration, independent of real lightning detections on the map. */
 .sky-lightning { display:none; position:absolute; inset:0; }
