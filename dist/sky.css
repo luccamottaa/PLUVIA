@@ -180,6 +180,11 @@ body.page-hidden :is(.sky-effects,.intro-sky) *::after,
   .sky-clouds-front { transform:none; }
   .sky-lightning { display:none !important; }
 }
-/* Modo seguro (index.html): depois de uma queda, o céu fica só no gradiente, sem nuvens, chuva,
-   raios e estrelas, que são as camadas compostas grandes. Sol e Lua ficam (pequenos). */
-:root[data-safe] :is(.sky-clouds,.sky-rain,.sky-lightning,.sky-stars) { display:none !important; }
+/* Modo seguro (index.html): depois de uma queda o céu continua inteiro (nuvens, chuva, estrelas, Sol
+   e Lua), só que parado. Sem animação as nuvens não viram camadas compostas de 1700+ px com máscara;
+   são pintadas só na área visível. Translate 2D (não 3D) para não criar camada. Raios ficam de fora. */
+:root[data-safe] :is(.sky-clouds,.sky-rain), :root[data-safe] .sky-stars::after { animation:none !important; }
+:root[data-safe] .sky-clouds { transform:translate(calc(var(--cloud-tile) * -.12),0); }
+:root[data-safe] .sky-clouds-front { transform:none; }
+:root[data-safe] .sky-rain { transform:none; }
+:root[data-safe] .sky-lightning { display:none !important; }

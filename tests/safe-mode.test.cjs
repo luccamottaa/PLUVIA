@@ -40,6 +40,9 @@ test('segundo plano limpa o marcador e a volta o recoloca; ?seguro=1 força o mo
   assert.equal(store['pluvia-boot-pending'],'1');
   assert.equal(boot({},{search:'?seguro=1'}).safe,true);
 });
-test('modo seguro tira as camadas grandes do céu',()=>{
-  assert.match(css,/:root\[data-safe\] :is\(\.sky-clouds,\.sky-rain,\.sky-lightning,\.sky-stars\) \{ display:none !important; \}/);
+test('modo seguro mantém o céu, parado: sem animação nem camada 3D, só os raios saem',()=>{
+  assert.match(css,/:root\[data-safe\] :is\(\.sky-clouds,\.sky-rain\), :root\[data-safe\] \.sky-stars::after \{ animation:none !important; \}/);
+  assert.match(css,/:root\[data-safe\] \.sky-clouds \{ transform:translate\(/);
+  assert.doesNotMatch(css,/:root\[data-safe\][^{]*sky-clouds[^{]*\{[^}]*display:none/,'as nuvens continuam visíveis');
+  assert.match(css,/:root\[data-safe\] \.sky-lightning \{ display:none !important; \}/);
 });
