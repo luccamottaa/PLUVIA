@@ -105,6 +105,7 @@
       const days=available(),position=days.findIndex(day=>day.date===selectedDate)+delta;
       if(position<0 || position>=days.length) return;
       selectedDate=days[position].date;paint();dialog.querySelector('.dialog-scroll').scrollTop=0;
+      root.PLUVIA?.fadeText?.(Array.from(dialog.querySelectorAll('h2, .dialog-scroll :is(dd, #dailyDetailCondition, .daily-hour strong)')),280);
     }
     el('dailyDetailPrev').addEventListener('click',()=>move(-1));el('dailyDetailNext').addEventListener('click',()=>move(1));
     root.addEventListener('pluvia:city-changed',()=>{if(dialog.open) dialog.close();state=null;selectedDate=null;});

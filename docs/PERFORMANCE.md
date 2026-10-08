@@ -89,6 +89,7 @@ Mesmo método (390×844, DPR 3, CPU 4×), medindo tarefas longas e intervalos en
 - **`getAnimations()` só quando precisa.** A leitura das animações das nuvens forçava ~160–240 ms de estilo a cada troca, mesmo com o mesmo vento. Agora roda quando o ritmo muda ou quando o CSS cria animações de nuvem (`animationstart`).
 - **`<details>` pela altura.** Gráfico, “Mais sobre o céu”, ar, conta e rodapé abriam de uma vez (e a entrada antiga animava transform/opacity em cada filho). Agora a altura cresce e encolhe por `grid-template-rows` (340 ms), como o ⓘ: só layout, sem camadas.
 - **Bolinhas reaproveitadas.** A lista era recriada a cada troca, então a transição nunca acontecia; agora só `aria-current` muda e a atual vira uma pílula pela largura.
+- **Onde não havia movimento.** Véu ao tocar botões (sombra interna, só pintura), bússola pelo menor caminho, UV e Sol/Lua deslizando, barras do gráfico crescendo por altura ao abrir/trocar o modo e fade de cor ao navegar nos detalhes. Medido: abrir o gráfico com as barras crescendo fica em 17 camadas (as mesmas do gráfico aberto); trocar o modo sobe a 20 por menos de 1 s e volta.
 
 Tarefas longas somadas na troca para a cidade seguinte: ~776 → ~550 ms; volta: ~377 → ~210 ms (CPU 4×; num celular real ≈ ¼ disso). O que sobra é o recálculo de estilo/layout da troca de conteúdo (esqueletos → dados) e a própria View Transition; o deslize em si roda no compositor.
 

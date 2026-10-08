@@ -1042,20 +1042,39 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 :root[data-city-slide] #weatherView .wx-copy { view-transition-name:pluvia-temp; }
 :root[data-city-slide] #weatherView #condition { view-transition-name:pluvia-condition; }
 :root[data-city-slide] #weatherView #rainAnswer { view-transition-name:pluvia-rain; }
-::view-transition-group(pluvia-city),::view-transition-group(pluvia-temp),::view-transition-group(pluvia-condition),::view-transition-group(pluvia-rain) { animation-duration:.42s; }
-::view-transition-old(pluvia-city),::view-transition-old(pluvia-temp),::view-transition-old(pluvia-condition),::view-transition-old(pluvia-rain) { animation:pluvia-slide-out .42s cubic-bezier(.3,.7,.2,1) both; }
-::view-transition-new(pluvia-city),::view-transition-new(pluvia-temp),::view-transition-new(pluvia-condition),::view-transition-new(pluvia-rain) { animation:pluvia-slide-in .42s cubic-bezier(.3,.7,.2,1) both; }
-::view-transition-new(pluvia-temp) { animation-delay:.03s; }
-::view-transition-new(pluvia-condition) { animation-delay:.06s; }
-::view-transition-new(pluvia-rain) { animation-delay:.09s; }
+::view-transition-group(pluvia-city),::view-transition-group(pluvia-temp),::view-transition-group(pluvia-condition),::view-transition-group(pluvia-rain) { animation-duration:.56s; animation-timing-function:cubic-bezier(.22,1,.36,1); }
+::view-transition-old(pluvia-city),::view-transition-old(pluvia-temp),::view-transition-old(pluvia-condition),::view-transition-old(pluvia-rain) { animation:pluvia-slide-out .34s cubic-bezier(.4,0,.6,1) both; }
+::view-transition-new(pluvia-city),::view-transition-new(pluvia-temp),::view-transition-new(pluvia-condition),::view-transition-new(pluvia-rain) { animation:pluvia-slide-in .56s cubic-bezier(.22,1,.36,1) .06s both; }
+::view-transition-new(pluvia-temp) { animation-delay:.1s; }
+::view-transition-new(pluvia-condition) { animation-delay:.14s; }
+::view-transition-new(pluvia-rain) { animation-delay:.18s; }
 :root[data-city-slide="prev"]::view-transition-old(pluvia-city),:root[data-city-slide="prev"]::view-transition-old(pluvia-temp),:root[data-city-slide="prev"]::view-transition-old(pluvia-condition),:root[data-city-slide="prev"]::view-transition-old(pluvia-rain) { animation-name:pluvia-slide-out-prev; }
 :root[data-city-slide="prev"]::view-transition-new(pluvia-city),:root[data-city-slide="prev"]::view-transition-new(pluvia-temp),:root[data-city-slide="prev"]::view-transition-new(pluvia-condition),:root[data-city-slide="prev"]::view-transition-new(pluvia-rain) { animation-name:pluvia-slide-in-prev; }
-@keyframes pluvia-slide-out { to { opacity:0; transform:translateX(-40%); } }
-@keyframes pluvia-slide-in { from { opacity:0; transform:translateX(40%); } }
-@keyframes pluvia-slide-out-prev { to { opacity:0; transform:translateX(40%); } }
-@keyframes pluvia-slide-in-prev { from { opacity:0; transform:translateX(-40%); } }
+@keyframes pluvia-slide-out { to { opacity:0; transform:translateX(-22%); } }
+@keyframes pluvia-slide-in { from { opacity:0; transform:translateX(22%); } }
+@keyframes pluvia-slide-out-prev { to { opacity:0; transform:translateX(22%); } }
+@keyframes pluvia-slide-in-prev { from { opacity:0; transform:translateX(-22%); } }
 /* ⓘ abre e fecha pela altura (grid 0fr ↔ 1fr), empurrando o conteúdo de baixo sem criar camadas. */
 #weatherView .info-tip-body[data-inline] { display:grid; grid-template-rows:1fr; transition:grid-template-rows .3s cubic-bezier(.3,.7,.2,1),margin .3s cubic-bezier(.3,.7,.2,1),padding .3s cubic-bezier(.3,.7,.2,1),border-color .3s,color .3s; }
 #weatherView .info-tip-body[data-inline][data-collapsed] { grid-template-rows:0fr; margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0; border-color:transparent; color:transparent; }
 #weatherView .info-tip-inner { min-height:0; overflow:hidden; }
 @media (prefers-reduced-motion:reduce) { #weatherView .info-tip-body[data-inline] { transition:none; } }
+/* Movimento suave onde não havia (só cor, fundo, layout de elementos pequenos ou SVG; nada de
+   transform/opacity em blocos grandes, que viravam camadas e derrubavam o Safari do iPhone). */
+:where(button, summary, a, [role="button"]) { transition:color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease; }
+/* Toque: um véu na cor do próprio texto (sombra interna, por cima do fundo, sem trocá-lo) enquanto o
+   dedo está no botão; some suave ao soltar. Só botões que não tinham resposta própria ao toque. */
+html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary) { transition:color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .28s ease; }
+html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary):active:not(:disabled) { box-shadow:inset 0 0 0 100px color-mix(in srgb, currentColor 14%, transparent); transition-duration:0s; }
+/* Bússola gira pelo menor caminho (app.js), marcador do UV e Sol/Lua do arco deslizam até a leitura nova. */
+.compass-needle { transition:transform .8s cubic-bezier(.22,1,.36,1), opacity .4s ease; }
+.uv-scale span { transition:left .8s cubic-bezier(.22,1,.36,1); }
+#weatherView .sun-arc :is(.sun-dot,.moon-dot) { transition:left 1s cubic-bezier(.22,1,.36,1), top 1s cubic-bezier(.22,1,.36,1); }
+/* Barras do gráfico crescem da base, em onda, ao abrir ou trocar o modo (data-grow só nesses gestos). */
+#weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:pluvia-bar-grow .6s cubic-bezier(.22,1,.36,1) calc(var(--i,0) * 16ms) both; }
+@keyframes pluvia-bar-grow { from { height:0; min-height:0; } }
+@media (prefers-reduced-motion:reduce) {
+  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot) { transition:none; }
+  #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
+}
+:root[data-safe] #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }

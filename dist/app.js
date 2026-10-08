@@ -456,7 +456,7 @@ function renderHourly(hourly, start, daily) {
       const plotted = hourlyMode === "feels" ? readings.get(i).feelsLike : temperature;
       const secondary = hourlyMode === "feels" ? `Temp. ${fmt(temperature)}°` : `Sens. ${fmt(readings.get(i).feelsLike)}°`;
       const bar = Number.isFinite(plotted) ? `<div class="temp-bar" style="height:${(24 + (plotted - minTemp) / tempSpread * 111).toFixed(0)}px"></div>` : '';
-      return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${weather(hourly.weather_code[i])[0]}">
+      return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" style="--i:${p}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${weather(hourly.weather_code[i])[0]}">
         <span class="hour-time">${time}</span><span class="hour-temp">${fmt(plotted)}°<small>${secondary}</small></span>
         <div class="bar-area">${bar}</div>
         <span class="hour-detail">${Number.isFinite(readings.get(i).probability) ? Math.round(readings.get(i).probability) + "%" : "—"} de chuva<small>${fmt(readings.get(i).mm,1)} mm</small></span><span class="hour-icon">${icon}</span>${solarEvent}</button>`;
@@ -468,7 +468,7 @@ function renderHourly(hourly, start, daily) {
       const validDirection = Number.isFinite(speed) && speed > 0 && Number.isFinite(direction) && direction >= 0 && direction <= 360;
       const arrow = validDirection ? `<span style="transform:rotate(${direction}deg)">↑</span>` : "—";
       const bar = Number.isFinite(speed) ? `<div class="wind-bar" style="height:${(16 + Math.max(0, speed) / maxWind * 125).toFixed(0)}px"></div>` : "";
-      return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: vento ${fmt(speed)} km/h, rajadas ${fmt(gust)} km/h${validDirection ? `, vindo de ${windDirection(direction)}` : ""}">
+      return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" style="--i:${p}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: vento ${fmt(speed)} km/h, rajadas ${fmt(gust)} km/h${validDirection ? `, vindo de ${windDirection(direction)}` : ""}">
         <span class="hour-time">${time}</span><span class="hour-temp">${fmt(speed)}</span>
         <div class="bar-area">${bar}</div><span class="hour-detail">km/h<small>Raj. ${fmt(gust)}</small></span>
         <span class="wind-direction" aria-hidden="true">${arrow}</span>${solarEvent}</button>`;
@@ -478,7 +478,7 @@ function renderHourly(hourly, start, daily) {
     const mm = readings.get(i).mm;
     const bar = mm > 0 ? `<div class="rain-bar" style="height:${(mm / maxRain * 150).toFixed(1)}px"></div>` : '';
     const gust = readings.get(i).gust;
-    return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${prob ?? "—"}% de chuva, ${fmt(mm, 1)} milímetro${gust >= 45 ? `, rajadas de ${fmt(gust)} quilômetros por hora` : ""}">
+    return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" style="--i:${p}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${prob ?? "—"}% de chuva, ${fmt(mm, 1)} milímetro${gust >= 45 ? `, rajadas de ${fmt(gust)} quilômetros por hora` : ""}">
       <span class="hour-time">${time}</span>
       <span class="hour-temp"><span class="rain-chance">${prob === null ? "Chance —" : `${prob}% de chance`}</span></span>
       <div class="bar-area">${bar}</div>
@@ -787,6 +787,7 @@ function markWeatherUnavailable(hasSavedData) {
     globalThis.dispatchEvent?.(new CustomEvent('pluvia:weather-updated',{detail:{cityId:activeCity.id}}));
     return;
   }
+  $("windCompass").pluviaTurn = 0;
   $("windCompass").style.setProperty("--wind-deg", "0deg");
   $("windCompass").style.setProperty("--wind-visible", "0");
   $("windCompass").setAttribute("aria-label", "Direção do vento indisponível");
@@ -838,7 +839,10 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   $("humidityNote").textContent = humidityReading?.note || humidityLabel(current.relative_humidity_2m);
   $("humidity").closest?.(".metric")?.setAttribute("data-humidity-level",humidityReading?.level || "unknown");
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `De ${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
-  $("windCompass").style.setProperty("--wind-deg", `${Number.isFinite(current.wind_direction_10m) ? current.wind_direction_10m : 0}deg`);
+  // A agulha gira pelo menor caminho (350° → 10° anda 20°, não 340°); o ângulo acumulado fica no elemento.
+  const compass = $("windCompass"), turn = compass.pluviaTurn || 0, heading = Number.isFinite(current.wind_direction_10m) ? current.wind_direction_10m : 0;
+  compass.pluviaTurn = turn + ((((heading - turn) % 360) + 540) % 360 - 180);
+  compass.style.setProperty("--wind-deg", `${compass.pluviaTurn}deg`);
   $("windCompass").style.setProperty("--wind-visible", Number.isFinite(current.wind_direction_10m) ? "1" : "0");
   $("windCompass").setAttribute("aria-label", `Vento de ${windDirection(current.wind_direction_10m)}, ${fmt(current.wind_speed_10m)} quilômetros por hora, rajadas de ${fmt(current.wind_gusts_10m)} quilômetros por hora`);
   $("pressure").innerHTML = `${fmt(current.pressure_msl ?? current.surface_pressure)}<sup> hPa</sup>`;
@@ -1173,6 +1177,8 @@ function fadeIn(nodes, duration, stagger = 0) {
     node.pluviaFade = setTimeout(() => node.style.removeProperty("transition"), duration + delay + 50);
   });
 }
+// Os detalhes por hora/dia usam o mesmo fade ao navegar entre horários/dias.
+if (globalThis.PLUVIA) globalThis.PLUVIA.fadeText = fadeIn;
 function animateCityText() {
   fadeIn([$("cityName"), $("temperature"), $("condition"), $("rainAnswer")], 420, 90);
 }
@@ -1483,17 +1489,29 @@ function requestLocation(source = 'automatic') {
 }
 
 setupCityPicker();
+// Ao abrir o gráfico ou trocar o modo, as barras crescem a partir da base (altura, sem transform);
+// atualizações automáticas redesenham sem animar.
+function growHourlyBars() {
+  const chart = $("rainChart");
+  if (!chart?.dataset) return;
+  chart.dataset.grow = "true";
+  clearTimeout(chart.pluviaGrow);
+  chart.pluviaGrow = setTimeout(() => { delete chart.dataset.grow; }, 900);
+}
 document.querySelector(".hourly-modes")?.addEventListener("click", event => {
   const button = event.target.closest("button[data-hourly-mode]");
   if (!button || !event.currentTarget.contains(button)) return;
   hourlyMode = button.dataset.hourlyMode;
   event.currentTarget.querySelectorAll("button[data-hourly-mode]").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
   const forecast = displayedWeather?.forecast;
+  growHourlyBars();
   if (forecast) renderHourly(forecast.hourly, selectCurrentHour(forecast.hourly.time), forecast.daily);
 });
 $("hourlyChartDetails")?.addEventListener("toggle", event => {
   const forecast = displayedWeather?.forecast;
-  if (event.currentTarget.open && $("rainChart")?.dataset.pending && forecast) renderHourly(forecast.hourly, selectCurrentHour(forecast.hourly.time), forecast.daily);
+  if (!event.currentTarget.open || !forecast) return;
+  growHourlyBars();
+  if ($("rainChart")?.dataset.pending) renderHourly(forecast.hourly, selectCurrentHour(forecast.hourly.time), forecast.daily);
 });
 // "Ver previsão" abre o gráfico por hora, que fica recolhido para não repetir a faixa das próximas horas.
 document.querySelector(".hourly-peek-heading a")?.addEventListener("click", () => {

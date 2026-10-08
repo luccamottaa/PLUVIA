@@ -98,6 +98,8 @@
       const index=(state?.hourly.time.indexOf(selectedTime) ?? -1)+delta,range=bounds();
       if(index<range.first || index>range.last) return;
       selectedTime=state.hourly.time[index];paint();
+      // Anterior/Próximo: os valores novos entram por transição de cor (sem camadas), como na troca de cidade.
+      globalThis.PLUVIA?.fadeText?.(Array.from(dialog.querySelectorAll('h2, .dialog-scroll :is(strong, dd, #hourlyDetailCondition)')),280);
     }
     el('hourlyDetailPrev').addEventListener('click',()=>move(-1));el('hourlyDetailNext').addEventListener('click',()=>move(1));
     dialog.addEventListener('keydown',event=>{if(event.key==='ArrowLeft' || event.key==='ArrowRight') {event.preventDefault();move(event.key==='ArrowLeft' ? -1 : 1);}});

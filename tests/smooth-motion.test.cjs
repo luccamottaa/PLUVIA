@@ -127,3 +127,30 @@ test('CSS do movimento: só grid-template-rows, sem transform/opacity e desligad
   assert.doesNotMatch(css,/pluvia-content-enter/,'a entrada antiga com transform saiu');
   assert.match(css,/\.city-dot\[aria-current="true"\]::before \{ width:18px; opacity:1; \}/,'bolinha ativa vira pílula por largura, sem transform');
 });
+
+test('toque, ponteiros e gráfico animam sem camadas e respeitam reduced-motion/modo seguro',()=>{
+  const css=fs.readFileSync(require.resolve('../dist/continuous.css'),'utf8');
+  const app=fs.readFileSync(require.resolve('../dist/app.js'),'utf8');
+  assert.match(css,/:active:not\(:disabled\) \{ box-shadow:inset 0 0 0 100px color-mix\(in srgb, currentColor 14%, transparent\); transition-duration:0s; \}/,'toque é um véu por sombra interna, sem trocar o fundo');
+  assert.match(css,/\.compass-needle \{ transition:transform [^}]+\}/);
+  assert.match(css,/\.uv-scale span \{ transition:left [^}]+\}/);
+  assert.match(css,/\.rain-chart\[data-grow\] :is\(\.temp-bar,\.wind-bar,\.rain-bar\) \{ animation:pluvia-bar-grow [^}]*calc\(var\(--i,0\) \* 16ms\)/,'barras crescem em onda só quando data-grow');
+  assert.match(css,/@keyframes pluvia-bar-grow \{ from \{ height:0; min-height:0; \} \}/,'cresce por altura, sem scaleY');
+  assert.match(css,/:root\[data-safe\] #weatherView \.rain-chart\[data-grow\] :is\(\.temp-bar,\.wind-bar,\.rain-bar\) \{ animation:none; \}/);
+  const reduced=css.slice(css.lastIndexOf('@media (prefers-reduced-motion:reduce) {'));
+  assert.match(reduced,/\.compass-needle, \.uv-scale span, #weatherView \.sun-arc :is\(\.sun-dot,\.moon-dot\) \{ transition:none; \}/);
+  assert.match(app,/compass\.pluviaTurn = turn \+ \(\(\(\(heading - turn\) % 360\) \+ 540\) % 360 - 180\)/,'agulha pelo menor caminho');
+  assert.equal((app.match(/style="--i:\$\{p\}"/g)||[]).length,3,'as três formas do gráfico numeram as colunas');
+  assert.match(app,/growHourlyBars\(\);\n  if \(forecast\) renderHourly/,'trocar o modo anima');
+});
+
+test('menor caminho da agulha: 350° → 10° anda 20°, não 340°',()=>{
+  const app=fs.readFileSync(require.resolve('../dist/app.js'),'utf8');
+  const step=new Function('compass','heading',app.match(/const compass = \$\("windCompass"\), turn = compass\.pluviaTurn \|\| 0, heading = [^;]+;\n  (compass\.pluviaTurn = [^;]+;)/)[1].replace('turn +','(compass.pluviaTurn||0) +').replace('(heading - turn)','(heading - (compass.pluviaTurn||0))')+' return compass.pluviaTurn;');
+  const compass={};
+  assert.equal(step(compass,350),-10);
+  assert.equal(step(compass,10),10,'de -10 para 10: 20°');
+  assert.equal(step(compass,180),180);
+  assert.equal(step(compass,350),350);
+  assert.equal(step(compass,20),380,'de 350 para 20 gira 30° para a frente, não 330° para trás');
+});
