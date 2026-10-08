@@ -97,8 +97,12 @@ with sync_playwright() as p:
  def home(width,label):
   assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(width,label)
   report={'width':width,'period':label}
-  for field in ['.peek-time','.peek-rain','.peek-icon','.hourly-peek-item > strong','.peek-volume:nth-of-type(1)','.peek-volume:nth-of-type(2)']:
+  # A linha da chance só existe quando alguma das cinco horas tem >= 20%; aí ela é reservada em todas.
+  rain_row=page.evaluate("document.getElementById('hourlyPeek').dataset.rain")
+  assert rain_row in ('some','none'),rain_row
+  for field in ['.peek-time','.peek-icon','.hourly-peek-item > strong']+(['.peek-rain'] if rain_row=='some' else []):
    report[field]=aligned(field,count=5)
+  if rain_row=='none': assert not boxes('.peek-rain'),(width,label)
   report['summaryLabels']=aligned('.quick-metrics > .quick-metric:first-child .metric-head > span:first-child,.hero-temperature-extreme small',count=3)
   report['summaryValues']=aligned('#feelsLike,#todayHigh,#todayLow',count=3)
   summary_icons='.quick-metrics > .quick-metric:first-child [data-weather-icon-name] svg,.hero-temperature-extreme [data-weather-icon-name] svg'
@@ -148,8 +152,9 @@ with sync_playwright() as p:
   assert abs(reading_y-wind_row['centerY'])<=1,(width,reading_y,wind_row)
   wind_parts=page.locator('#wind').evaluate("el=>{const range=document.createRange();range.selectNodeContents(el.firstChild);const number=range.getBoundingClientRect(),unit=el.querySelector('sup').getBoundingClientRect();return {numberTop:number.top,numberBottom:number.bottom,numberRight:number.right,unitLeft:unit.left,unitCenterY:unit.y+unit.height/2}}")
   assert wind_parts['unitLeft']>=wind_parts['numberRight']-1 and wind_parts['numberTop']<=wind_parts['unitCenterY']<=wind_parts['numberBottom'],(width,wind_parts)
-  aligned('.weather-player > *','centerY',4)
-  aligned('footer .footer-link','centerX',2)
+  # Radar compacto: na Home só a miniatura (sem player); o player alinhado é medido no radar ampliado.
+  assert not boxes('.weather-map-card .weather-player > *'),(width,'player só no radar ampliado')
+  aligned('footer .footer-link','centerX',3)
   rows=page.evaluate("""()=>[...document.querySelectorAll('.forecast-row')].map(el=>{
    const box=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,centerY:r.y+r.height/2}};
    return {geometry:Object.fromEntries([...el.children].filter(c=>c.getClientRects().length).map(c=>[c.className,box(c)])),condition:box(el.querySelector('.forecast-condition')),text:box(el.querySelector('.forecast-condition > span'))};
@@ -172,7 +177,8 @@ with sync_playwright() as p:
    if width>720:assert condition['x']+condition['width']<=geometry['temp-range']['x']+1,geometry
   report['tracks']=aligned('.temp-track','x',7)
   aligned('.temp-track','width',7)
-  aligned('.sun-times > div > strong',count=2)
+  # Sol | Lua: nascer e pôr empilhados no bloco do Sol, valores na mesma borda direita.
+  aligned('.sun-times > div > strong','right',2)
   headings=page.evaluate("()=>[...document.querySelectorAll('#weatherView .section-heading')].map(el=>[...el.children].filter(c=>c.getClientRects().length).map(c=>{const r=c.getBoundingClientRect();return {y:r.y,bottom:r.bottom,centerY:r.y+r.height/2}}))")
   for parts in headings:
    if len(parts)==2:
@@ -236,6 +242,9 @@ with sync_playwright() as p:
   for i in range(0,len(readings)-1,2):assert abs(readings[i]['y']-readings[i+1]['y'])<=1,(width,readings[i:i+2])
   aligned('.hourly-detail-navigation button','centerY',2)
   if width in [320,390,1366]:screenshot(str(width)+'-hour-detail','#hourlyDetailDialog')
+  close()
+  page.locator('#expandRadar').click();page.wait_for_function("document.getElementById('radarDialog').open")
+  aligned('#radarDialog .weather-player > *','centerY',4)
   close()
   page.locator('#openSources').click();header('#sourcesDialog .dialog-heading')
   if width in [320,390,1366]:screenshot(str(width)+'-sources','#sourcesDialog')
