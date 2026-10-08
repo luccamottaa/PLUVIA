@@ -181,3 +181,17 @@ test('volume usa escala proporcional compartilhada, independente da chance e do 
  hourly.renderHourly({...data,time:['invalid',hours[1],hours[2]]},0,{});
  assert.equal((elements.rainChart.innerHTML.match(/data-hour-index=/g)||[]).length,2);
 });
+test('gráfico recolhido não é montado; abre e desenha com os mesmos dados', () => {
+  const {hourly,elements} = screen();
+  elements.hourlyChartDetails = {open:false};
+  elements.rainChart.innerHTML = '<p>antigo</p>';
+  hourly.renderHourly(data,0,{time:['2026-09-24']});
+  assert.equal(elements.rainChart.innerHTML,'<p>antigo</p>','fechado: nenhuma coluna montada');
+  assert.equal(elements.rainChart.dataset.pending,'true');
+  assert.equal(elements.dryWindow.textContent,'Sem chuva nas próximas horas','a janela seca fica fora do gráfico e continua atualizada');
+  elements.hourlyChartDetails.open = true;
+  hourly.renderHourly(data,0,{time:['2026-09-24']});
+  assert.match(elements.rainChart.innerHTML,/class="temp-bar"/);
+  assert.equal(elements.rainChart.dataset.pending,undefined);
+  assert.equal(elements.rainChart.scrollLeft,12,'a rolagem do gráfico aberto se mantém');
+});

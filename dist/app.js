@@ -387,7 +387,6 @@ function showHourlyHint() {
 }
 function renderHourly(hourly, start, daily) {
   const chart = $("rainChart");
-  const scrollLeft = chart.scrollLeft;
   const readings = new Map(Array.from({length:24}, (_, i) => start + i).filter(i => i < hourly.time.length)
     .map(i => [i, PLUVIA.hourlyDetail.detail(hourly, i)]).filter(([, reading]) => reading));
   const indices = [...readings.keys()];
@@ -416,6 +415,16 @@ function renderHourly(hourly, start, daily) {
     decision.textContent = !indices.length ? 'Previsão por hora indisponível.' : hint ? 'Toque em um horário para ver sensação, chuva e rajadas.' : '';
     decision.hidden = Boolean(indices.length) && !hint;
   }
+  // O gráfico fica recolhido: montar 24 colunas que ninguém vê só pesa a abertura no celular.
+  // Ele é desenhado ao abrir "Ver gráfico" (e a cada atualização enquanto estiver aberto).
+  const chartDetails = $("hourlyChartDetails");
+  if (chartDetails && !chartDetails.open) {
+    chart.dataset.pending = "true";
+    $("dryWindow").textContent = findDryWindow(hourly, start);
+    return;
+  }
+  delete chart.dataset.pending;
+  const scrollLeft = chart.scrollLeft;
   const descriptions = {
     conditions:"barras mostram a temperatura; a sensação aparece abaixo",
     feels:"barras mostram a sensação térmica; a temperatura aparece abaixo",
@@ -1328,7 +1337,7 @@ function setupCityPicker() {
   $("openCitySearch").addEventListener("click", openCitySearch);
   $("welcomeSearch").addEventListener("click", openCitySearch);
   $("closeCitySearch").addEventListener("click", () => closeCitySearch(true));
-  $("cityDialog").addEventListener("close", () => $("openCitySearch").focus());
+  $("cityDialog").addEventListener("close", () => { document.body?.classList?.remove("city-dialog-open"); $("openCitySearch").focus(); });
   $("cityDialog").addEventListener("click", event => {
     if (event.target !== $("cityDialog")) return;
     const box = $("cityDialog").getBoundingClientRect();
@@ -1363,6 +1372,7 @@ function openCitySearch() {
   renderCityOptions();
   const dialog = $("cityDialog");
   if (!dialog.open) dialog.showModal();
+  document.body?.classList?.add("city-dialog-open");
   dialog.querySelector?.(".dialog-scroll")?.scrollTo?.(0, 0);
   $("closeCitySearch").focus();
   if (!cityIndexReady) {
@@ -1425,6 +1435,10 @@ document.querySelector(".hourly-modes")?.addEventListener("click", event => {
   event.currentTarget.querySelectorAll("button[data-hourly-mode]").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
   const forecast = displayedWeather?.forecast;
   if (forecast) renderHourly(forecast.hourly, selectCurrentHour(forecast.hourly.time), forecast.daily);
+});
+$("hourlyChartDetails")?.addEventListener("toggle", event => {
+  const forecast = displayedWeather?.forecast;
+  if (event.currentTarget.open && $("rainChart")?.dataset.pending && forecast) renderHourly(forecast.hourly, selectCurrentHour(forecast.hourly.time), forecast.daily);
 });
 // "Ver previsão" abre o gráfico por hora, que fica recolhido para não repetir a faixa das próximas horas.
 document.querySelector(".hourly-peek-heading a")?.addEventListener("click", () => {
