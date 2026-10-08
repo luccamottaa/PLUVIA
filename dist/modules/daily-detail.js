@@ -7,7 +7,8 @@
 })(globalThis,function(hourlyDetail,time) {
   'use strict';
   const number=(v,min,max)=>typeof v==='number' && Number.isFinite(v) && v>=min && v<=max ? v : null;
-  const format=(v,digits=0)=>v===null ? 'Indisponível' : v.toLocaleString('pt-BR',{maximumFractionDigits:digits});
+  const numberFormats=new Map();
+  const format=(v,digits=0)=>v===null ? 'Indisponível' : (numberFormats.get(digits) || numberFormats.set(digits,new Intl.NumberFormat('pt-BR',{maximumFractionDigits:digits})).get(digits)).format(v);
   function detail(daily,hourly,index,city) {
     const date=daily?.time?.[index];
     if(!Number.isInteger(index) || index<0 || !/^\d{4}-\d{2}-\d{2}$/.test(date||'') || !Number.isFinite(time.wallTime(date+'T12:00'))) return null;
@@ -36,7 +37,7 @@
     if(!dialog) return;
     let state=null,selectedDate=null,opener=null;
     const unit=(value,suffix,digits=0)=>value===null ? 'Indisponível' : format(value,digits)+suffix;
-    const stamp=value=>Number.isFinite(value) ? new Intl.DateTimeFormat('pt-BR',{timeZone:state.city.timezone,hour:'2-digit',minute:'2-digit'}).format(value) : 'Indisponível';
+    const stamp=value=>Number.isFinite(value) ? (time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:state.city.timezone,hour:'2-digit',minute:'2-digit'}).format(value) : 'Indisponível';
     function available() {
       const today=time.dayKey(state.at||Date.now(),state.city);
       return (state.daily.time||[]).map((date,index)=>({date,index})).filter(r=>r.date>=today).slice(0,7);
@@ -45,7 +46,7 @@
       const index=state?.daily.time.indexOf(selectedDate),reading=state && detail(state.daily,state.hourly,index,state.city);
       if(!reading || !available().some(day=>day.date===selectedDate)) {if(dialog.open) dialog.close();return false;}
       const date=new Date(reading.date+'T12:00:00Z');
-      el('dailyDetailTitle').textContent=new Intl.DateTimeFormat('pt-BR',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long'}).format(date);
+      el('dailyDetailTitle').textContent=(time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long'}).format(date);
       el('dailyDetailCity').textContent=state.city.name+'/'+state.city.uf;
       el('dailyDetailCondition').textContent=reading.code===null ? 'Condição indisponível' : root.PLUVIA.weatherIcons.condition(reading.code).label;
       for(const [id,value,suffix,digits] of [

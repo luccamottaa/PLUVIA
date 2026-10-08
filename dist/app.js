@@ -240,7 +240,7 @@ function setAlertBanner(item = null, index = -1) {
   banner.hidden = !show;
   if (!show) { banner.removeAttribute("data-severity"); banner.removeAttribute("data-notice"); return; }
   const title = decodeHtml(String(firstValue(item.alert, ["descricao", "evento", "titulo", "tipo"], "Aviso meteorológico")));
-  const until = Number.isFinite(item.end) ? new Intl.DateTimeFormat("pt-BR", {timeZone:activeCity.timezone, day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(item.end)) : "";
+  const until = Number.isFinite(item.end) ? (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:activeCity.timezone, day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(item.end)) : "";
   banner.setAttribute("data-severity", item.severity.className);
   banner.setAttribute("data-notice", String(index));
   $("alertBannerTitle").textContent = `${item.severity.label} do INMET · ${title}`;
@@ -263,7 +263,7 @@ function renderInmetAlerts(raw, stale = false) {
   }
   state.className = `source-state inmet-${stale ? "unknown" : alerts[0].severity.className}`;
   state.innerHTML = `<i></i>${stale ? "Sem confirmação recente" : alerts.length === 1 ? alerts[0].severity.label : `${alerts.length} avisos na região`}`;
-  const format = value => new Intl.DateTimeFormat("pt-BR", {timeZone:activeCity.timezone, day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(value));
+  const format = value => (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:activeCity.timezone, day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(value));
   content.innerHTML = (stale ? '<p class="inmet-notice">Consulta indisponível. Os avisos abaixo vêm da leitura anterior; confirme a situação no INMET.</p>' : "") + alerts.map(({alert, area, start, end, stage, severity}, index) => {
     const id = String(firstValue(alert, ["id_aviso", "id"]));
     const url = /^\d+$/.test(id) ? `https://avisos.inmet.gov.br/${id}` : "https://alertas2.inmet.gov.br/";
@@ -509,8 +509,8 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
   $("forecastList").innerHTML = days.map((date, offset) => {
     const i = indices[offset];
     const d = new Date(`${date}T12:00:00Z`);
-    const day = date === today ? "Hoje" : new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC",weekday: "long"}).format(d).replace(/-feira$/, "").replace(/^./, c => c.toUpperCase());
-    const label = new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC",day: "2-digit", month: "short"}).format(d).replace(".", "");
+    const day = date === today ? "Hoje" : (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:"UTC",weekday: "long"}).format(d).replace(/-feira$/, "").replace(/^./, c => c.toUpperCase());
+    const label = (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:"UTC",day: "2-digit", month: "short"}).format(d).replace(".", "");
     const [cond] = weather(daily.weather_code[i]); const min = daily.temperature_2m_min[i]; const max = daily.temperature_2m_max[i];
     const left = Math.max(0, Math.min(98, (min - minAll) / spread * 100));
     const width = Math.max(2, (max - min) / spread * 100);
@@ -545,7 +545,7 @@ function renderSkyEvents(at) {
   const events=globalThis.PLUVIA?.skyEvents, box=$('skyEvents');
   if(!box) return;
   if(!events || !activeCity?.timezone) { box.hidden=true; return; }
-  const dateLabel=stamp=>new Intl.DateTimeFormat('pt-BR',{timeZone:activeCity.timezone,weekday:'short',day:'numeric',month:'short'}).format(stamp);
+  const dateLabel=stamp=>(globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:activeCity.timezone,weekday:'short',day:'numeric',month:'short'}).format(stamp);
   const phases=events.nextPhases(at);
   $('nextNewMoon').textContent=Number.isFinite(phases.new) ? dateLabel(phases.new) : 'Indisponível';
   $('nextFullMoon').textContent=Number.isFinite(phases.full) ? dateLabel(phases.full) : 'Indisponível';
@@ -554,8 +554,8 @@ function renderSkyEvents(at) {
   $('meteorRow').hidden=!shower;
   if(shower) {
     const night=new Date(shower.night+'T12:00:00Z'), next=new Date(night.getTime()+86400000);
-    const day=value=>new Intl.DateTimeFormat('pt-BR',{timeZone:'UTC',day:'numeric'}).format(value);
-    const month=new Intl.DateTimeFormat('pt-BR',{timeZone:'UTC',month:'short'}).format(next).replace('.','');
+    const day=value=>(globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:'UTC',day:'numeric'}).format(value);
+    const month=(globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:'UTC',month:'short'}).format(next).replace('.','');
     $('nextMeteor').textContent=`${shower.name} · noite de ${day(night)} para ${day(next)} de ${month}`;
     // Lua na madrugada do pico (cerca de 2h no fuso da cidade): acima de metade iluminada atrapalha.
     const dawn=globalThis.PLUVIA.time.parse(next.toISOString().slice(0,10)+'T02:00',activeCity);
@@ -579,7 +579,7 @@ function renderSun(daily, at = Date.now()) {
   if($('goldenHour')) $('goldenHour').textContent=windows(span(sunRise,astronomy?.goldenEnd),span(astronomy?.goldenStart,sunSet));
   if($('blueHour')) $('blueHour').textContent=windows(span(astronomy?.dawn,sunRise),span(sunSet,astronomy?.dusk));
   renderSkyEvents(at);
-  if($('astronomyDate')) $('astronomyDate').textContent='Dia '+new Intl.DateTimeFormat('pt-BR',{timeZone:activeCity.timezone,day:'numeric',month:'long'}).format(at)+' · horário de '+activeCity.name+' · estimativa astronômica';
+  if($('astronomyDate')) $('astronomyDate').textContent='Dia '+(globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:activeCity.timezone,day:'numeric',month:'long'}).format(at)+' · horário de '+activeCity.name+' · estimativa astronômica';
   const today = globalThis.PLUVIA.time.dayKey(at,activeCity);
   const index = daily.time?.indexOf(today) ?? -1;
   const solar = globalThis.PLUVIA?.sky?.dayAt(at);
@@ -659,7 +659,7 @@ function setDataStatus(text, stale = false) {
 
 function formatUpdateTime(at) {
   if (!Number.isFinite(at)) return 'horário não informado';
-  return new Intl.DateTimeFormat('pt-BR',{timeZone:activeCity?.timezone || 'UTC',hour:'2-digit',minute:'2-digit'}).format(at);
+  return (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:activeCity?.timezone || 'UTC',hour:'2-digit',minute:'2-digit'}).format(at);
 }
 
 
@@ -738,7 +738,7 @@ function renderAirOutlook(air) {
     const label = day.aqiMax > 100 && day.aqiMax <= 150 ? "Ruim para sensíveis" : aqiLabel(day.aqiMax)[0];
     const item = document.createElement("li"), name = document.createElement("span"), level = document.createElement("b"), value = document.createElement("small");
     const date = new Date(day.date + "T12:00:00Z");
-    name.textContent = day.date === tomorrowKey ? "Amanhã" : new Intl.DateTimeFormat("pt-BR", {timeZone:"UTC", weekday:"short", day:"2-digit", month:"2-digit"}).format(date);
+    name.textContent = day.date === tomorrowKey ? "Amanhã" : (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:"UTC", weekday:"short", day:"2-digit", month:"2-digit"}).format(date);
     level.textContent = label;
     level.dataset.aqiLevel = aqiLevel(day.aqiMax) || "";
     value.textContent = `AQI até ${day.aqiMax}` + (Number.isFinite(day.pm25Mean) ? ` · PM2,5 ${fmt(day.pm25Mean, 0)} µg/m³` : "");
@@ -762,7 +762,7 @@ function renderAirDetails(snapshot) {
   });
   $("airPollutants").replaceChildren(...readings);
   const at = globalThis.PLUVIA.time.parse(air.time,activeCity);
-  const stamp = Number.isFinite(at) ? new Intl.DateTimeFormat('pt-BR',{timeZone:activeCity.timezone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(at) : 'horário indisponível';
+  const stamp = Number.isFinite(at) ? (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:activeCity.timezone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(at) : 'horário indisponível';
   $("airDetailsTime").textContent = `${snapshot.airSource.freshness==='current' ? 'Estimativa de' : 'Leitura anterior de'} ${stamp} · horário de ${activeCity.name}.`;
 }
 
@@ -799,7 +799,7 @@ function savedAtLabel(at) {
   if (!Number.isFinite(at)) return "horário não informado";
   const zone = activeCity?.timezone || 'UTC';
   const day = value => globalThis.PLUVIA?.time?.dayKey?.(value, activeCity) ?? new Date(value).toDateString();
-  const date = day(at) === day(Date.now()) ? "" : `em ${new Intl.DateTimeFormat('pt-BR',{timeZone:zone,day:'2-digit',month:'2-digit'}).format(at)} `;
+  const date = day(at) === day(Date.now()) ? "" : `em ${(globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:zone,day:'2-digit',month:'2-digit'}).format(at)} `;
   return `${date}às ${formatUpdateTime(at)} (${dataAge(at)})`;
 }
 function savedStatus(at, reason) {
@@ -1131,6 +1131,17 @@ function renderCityDots() {
   const ids = swipeCities();
   box.hidden = ids.length < 2 || ids.length > CITY_DOTS_MAX;
   if (box.hidden) { box.replaceChildren(); return; }
+  // Mesma lista: só a bolinha atual muda, para a transição (pílula) acontecer nos mesmos botões.
+  const dots = Array.from(box.children || []);
+  if (dots.length === ids.length && dots.every((dot, index) => dot.dataset?.cityId === ids[index])) {
+    for (const dot of dots) {
+      const city = cityById.get(dot.dataset.cityId);
+      dot.setAttribute("aria-label", city ? `${city.name}/${city.uf}` : "Cidade");
+      if (dot.dataset.cityId === activeCity?.id) dot.setAttribute("aria-current", "true");
+      else dot.removeAttribute("aria-current");
+    }
+    return;
+  }
   box.replaceChildren(...ids.map(id => {
     const city = cityById.get(id), dot = document.createElement("button");
     dot.type = "button"; dot.className = "city-dot"; dot.dataset.cityId = id;
@@ -1487,7 +1498,9 @@ $("hourlyChartDetails")?.addEventListener("toggle", event => {
 // "Ver previsão" abre o gráfico por hora, que fica recolhido para não repetir a faixa das próximas horas.
 document.querySelector(".hourly-peek-heading a")?.addEventListener("click", () => {
   const details = $("hourlyChartDetails");
-  if (details) details.open = true;
+  if (!details || details.open) return;
+  if (globalThis.PLUVIA?.dialogs?.toggleDetails) globalThis.PLUVIA.dialogs.toggleDetails(details);
+  else details.open = true;
 });
 // ⓘ das seções: o texto abre logo abaixo do título, no fluxo da página (sem sobrepor nada). Balão
 // flutuante exigia subir camadas (z-index) dos títulos/seções, e isso derrubava o Safari do iPhone.

@@ -531,14 +531,19 @@ body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60
   html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
   html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing { animation:pluvia-dialog-exit .28s cubic-bezier(.4,0,1,1) forwards; }
   html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing::backdrop { animation:pluvia-backdrop-exit .28s ease-in forwards; }
-  details[open] > :not(summary) { animation:pluvia-content-enter .24s ease-out; }
   @keyframes pluvia-dialog-enter { from { opacity:0; transform:translateY(-100dvh); } to { opacity:1; transform:translateY(0); } }
   @keyframes pluvia-dialog-exit { from { opacity:var(--pluvia-exit-opacity,1); transform:var(--pluvia-exit-from,none); } to { opacity:0; transform:translateY(var(--pluvia-exit-distance,100dvh)); } }
   @keyframes pluvia-backdrop-enter { from { opacity:0; } to { opacity:1; } }
   @keyframes pluvia-backdrop-exit { from { opacity:1; } to { opacity:0; } }
-  @keyframes pluvia-content-enter { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
 }
-@media (prefers-reduced-motion:reduce) { html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open],html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop,details[open] > :not(summary) { animation:none !important; } }
+@media (prefers-reduced-motion:reduce) { html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open],html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:none !important; } }
+/* <details> abrem/fecham pela altura (dialog-motion.js): só layout, sem transform/opacity. */
+details > .details-motion { display:grid; grid-template-rows:1fr; transition:grid-template-rows .34s cubic-bezier(.22,1,.36,1); }
+details > .details-motion[data-collapsed] { grid-template-rows:0fr; }
+details > .details-motion > .details-motion-inner { min-width:0; min-height:0; }
+details > .details-motion[data-moving] > .details-motion-inner { overflow:hidden; }
+@media (prefers-reduced-motion:reduce) { details > .details-motion { transition:none; } }
+:root[data-safe] details > .details-motion { transition:none; }
 #accountDialog :is(#accountRecoveryForm,#accountDeleteForm) { display:grid; gap:14px; }
 #accountDialog :is(#accountRecoveryForm,#accountDeleteForm)[hidden] { display:none; }
 #accountDialog .account-text-action { background:transparent; color:var(--dialog-muted); text-decoration:underline; text-underline-offset:3px; }
@@ -704,9 +709,9 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 #weatherView .hourly-chart-details > summary { display:flex; flex-wrap:wrap; align-items:center; gap:2px 10px; min-height:44px; cursor:pointer; list-style:none; color:var(--reading-link); font-weight:600; }
 #weatherView .hourly-chart-details > summary::-webkit-details-marker { display:none; }
 #weatherView .hourly-chart-details > summary::after { content:"›"; margin-left:auto; font-size:1.4rem; line-height:1; transition:transform .2s ease; }
-#weatherView .hourly-chart-details[open] > summary::after { transform:rotate(90deg); }
+#weatherView .hourly-chart-details[open]:not([data-closing]) > summary::after { transform:rotate(90deg); }
 #weatherView .hourly-chart-details > summary > span { color:var(--reading-muted); font-size:.8rem; font-weight:400; }
-#weatherView .hourly-chart-details[open] > summary { margin-bottom:12px; }
+#weatherView .hourly-chart-details .details-motion-inner::before { content:""; display:block; height:12px; }
 
 /* 7 dias: uma linha por dia; a frase só aparece quando acrescenta algo. */
 #weatherView .forecast-row { padding-block:14px; }
@@ -974,8 +979,8 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 #weatherView .city-dots { display:flex; justify-content:center; flex-wrap:wrap; gap:0; margin:10px auto 0; }
 #weatherView .city-dots[hidden] { display:none; }
 #weatherView .city-dot { display:grid; place-items:center; width:22px; height:44px; padding:0; border:0; background:none; cursor:pointer; }
-#weatherView .city-dot::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--reading-ink); opacity:.3; transition:opacity .2s, transform .2s; }
-#weatherView .city-dot[aria-current="true"]::before { opacity:1; transform:scale(1.15); }
+#weatherView .city-dot::before { content:""; width:8px; height:8px; border-radius:4px; background:var(--reading-ink); opacity:.3; transition:width .32s cubic-bezier(.22,1,.36,1), opacity .32s ease; }
+#weatherView .city-dot[aria-current="true"]::before { width:18px; opacity:1; }
 #weatherView .city-dot:focus-visible { outline:2px solid var(--brand-blue); outline-offset:-10px; border-radius:12px; }
 @media (prefers-reduced-motion:reduce) { #weatherView .city-dot::before { transition:none; } }
 /* Personalizar a Home: seções escondidas saem do layout; diálogo com caixa e setas de ordem (44px). */

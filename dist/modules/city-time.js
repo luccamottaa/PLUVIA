@@ -6,7 +6,7 @@
   root.PLUVIA.time = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const formatters = new Map(), instants = new Map();
+  const formatters = new Map(), instants = new Map(), intl = new Map();
   const ISO = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?(Z|[+-]\d{2}:?\d{2})?$/i;
   function remember(map, key, value, limit) {
     map.set(key,value);
@@ -27,6 +27,16 @@
     }),32);
     return formatters.get(timezone);
   }
+  // Criar um Intl.*Format custa caro (≈1 ms cada num celular): trocar de cidade montava dezenas.
+  // Os formatadores ficam guardados por idioma + opções, num cache limitado.
+  function cachedFormat(kind, locale, options) {
+    const key = kind + locale + JSON.stringify(options || {});
+    const known = intl.get(key);
+    if (known) return known;
+    return remember(intl,key,kind === 'n' ? new Intl.NumberFormat(locale,options) : new Intl.DateTimeFormat(locale,options),96);
+  }
+  const dateFormat = (locale, options) => cachedFormat('d',locale,options);
+  const numberFormat = (locale, options) => cachedFormat('n',locale,options);
   function localParts(at, timezone) {
     const parts = formatter(timezone).formatToParts(new Date(at));
     const value = type => parts.find(part => part.type === type).value;
@@ -62,5 +72,5 @@
     const next = times.findIndex(time => parse(time,city) > at);
     return next < 0 ? times.length - 1 : Math.max(0,next - 1);
   }
-  return {parse,wallTime,dayKey,localParts,hourIndex};
+  return {parse,wallTime,dayKey,localParts,hourIndex,dateFormat,numberFormat};
 });

@@ -123,21 +123,38 @@
     // Reading getAnimations() right after writing the sky state forces a synchronous style pass
     // over the whole page; in the browser the rate is applied in the next frame instead, when that
     // pass already happens. Without requestAnimationFrame (tests) it stays synchronous.
-    let ratePending = false;
+    // getAnimations() also forces a style pass over the page: on a city change it cost ~240 ms
+    // (4× CPU). It only runs when the rate actually changes or when CSS creates new cloud
+    // animations (animationstart: first load, safe/reduced motion leaving), never on every tick.
+    let ratePending = false, appliedRate = null, rateDirty = true;
     function applyCloudRate() {
       ratePending = false;
       const rate = cloudRate(wind);
+      if (!rateDirty && rate === appliedRate) return;
       for (const layer of document?.querySelectorAll?.('.sky-clouds') || []) {
         for (const animation of layer.getAnimations?.() || []) {
           if (animation.animationName?.startsWith('clouds-') && Math.abs(animation.playbackRate - rate) > .001) animation.playbackRate = rate;
         }
       }
+      appliedRate = rate; rateDirty = false;
     }
     function syncCloudRate() {
       const rate = cloudRate(wind);
-      for (const node of [document?.documentElement,document?.body].filter(Boolean)) setVar(node,'--cloud-rate',String(rate));
+      for (const node of skyNodes()) setVar(node,'--cloud-rate',String(rate));
+      if (!rateDirty && rate === appliedRate) return;
       if (typeof frame !== 'function') return applyCloudRate();
       if (!ratePending) { ratePending = true; frame(applyCloudRate); }
+    }
+    document?.addEventListener?.('animationstart',event => {
+      if (!String(event?.animationName || '').startsWith('clouds-')) return;
+      rateDirty = true; syncCloudRate();
+    });
+    // Custom properties are inherited: written on <html>/<body>, each change recalculated the style
+    // of every element on the page (70–100 ms per write on a 4× slower CPU, several per city change).
+    // Only the sky scenes read them, so they are written there; without scenes (tests) on root/body.
+    function skyNodes() {
+      const scenes = Array.from(document?.querySelectorAll?.('.intro-sky,.sky-effects,.sky-twilight-page') || []).filter(node => node?.style);
+      return scenes.length ? scenes : [document?.documentElement,document?.body].filter(Boolean);
     }
     // The 30 s clock rewrites the same state most of the time; identical writes are skipped so
     // they do not invalidate the style of every element that inherits these properties.
@@ -158,6 +175,8 @@
       const ink = state.phase === 'day' && !darkDay ? 'dark' : 'light';
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
         for (const [key,value] of Object.entries({phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,ink,skyTransition:animate ? 'live' : 'instant'})) if (node.dataset[key] !== value) node.dataset[key] = value;
+      }
+      for (const node of skyNodes()) {
         setVar(node,'--twilight-opacity',state.strength.toFixed(3));
         setVar(node,'--sun-visibility',state.sunVisibility.toFixed(3));
         setVar(node,'--moon-visibility',state.moonVisibility.toFixed(3));

@@ -1,5 +1,6 @@
 /* Regras conservadoras: avisos oficiais confirmados por município e AQI modelado. */
 (() => {
+  const dateFormat=(locale,options)=>globalThis.PLUVIA?.time?.dateFormat?.(locale,options) ?? new Intl.DateTimeFormat(locale,options);
   const app = globalThis.PLUVIA;
   let notices = [], staleNotices = true;
   const text = value => Array.isArray(value) ? value.map(text).join('; ') : value && typeof value === 'object' ? JSON.stringify(value) : String(value ?? '');
@@ -22,7 +23,7 @@
     const {alert,area,start,end,severity} = item;
     const current = app.sources.get('alerts').status === 'ready' && !staleNotices;
     const validity = Number.isFinite(end) && end <= Date.now() ? 'Aviso encerrado pelo horário de término.' : start > Date.now() ? 'Aviso previsto; ainda não está vigente.' : item.stage === 'unconfirmed' ? 'Vigência a confirmar no INMET.' : 'Aviso vigente pelo período informado.';
-    const time = value => Number.isFinite(value) ? new Intl.DateTimeFormat('pt-BR',{timeZone:activeCity.timezone,dateStyle:'short',timeStyle:'short'}).format(value) : 'Não informado';
+    const time = value => Number.isFinite(value) ? dateFormat('pt-BR',{timeZone:activeCity.timezone,dateStyle:'short',timeStyle:'short'}).format(value) : 'Não informado';
     const id = String(firstValue(alert,['id_aviso','id']));
     const url = /^\d+$/.test(id) ? `https://avisos.inmet.gov.br/${id}` : 'https://alertas2.inmet.gov.br/';
     const risks = firstValue(alert,['riscos','description'],'Não informados nesta resposta. Consulte o aviso oficial.');

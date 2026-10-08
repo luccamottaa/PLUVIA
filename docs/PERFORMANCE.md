@@ -80,6 +80,18 @@ Medido no Chromium com 390×844, DPR 3 e CPU 4× mais lenta (fixtures, mesmo mé
 
 Não mexido: as nuvens visíveis ainda têm máscara própria (camada extra do mesmo tamanho). Mover a máscara para um contêiner estático reduziria a memória, mas mexe no contrato das nuvens e no QA de pixels; fica como próximo passo se o iPhone ainda pesar com tempo nublado/chuva.
 
+## Troca de cidade e movimentos suaves (outubro/2026)
+
+Mesmo método (390×844, DPR 3, CPU 4×), medindo tarefas longas e intervalos entre quadros durante cada interação e o perfil de CPU/trace da troca de cidade pelas bolinhas.
+
+- **Formatadores guardados.** `renderSun`, `formatUpdateTime`, eventos do céu, favoritos e detalhes criavam um `Intl.DateTimeFormat` (ou `toLocaleString` com opções) a cada número/horário. `PLUVIA.time.dateFormat/numberFormat` guardam por idioma + opções (cache de 96). `render()` na troca: ~273 → ~125 ms.
+- **Variáveis do céu nas cenas.** Escritas em `<html>`/`<body>`, cada mudança de `--sun-orbit-x`, `--rain-opacity` etc. recalculava o estilo dos ~500 elementos da página (o trace mostrava “Inline CSS style declaration was mutated” em HTML/BODY, 10 por troca). Agora vão para `.intro-sky`, `.sky-effects` e `.sky-twilight-page`, os únicos consumidores. Recálculo de estilo na troca: ~561 → ~334 ms.
+- **`getAnimations()` só quando precisa.** A leitura das animações das nuvens forçava ~160–240 ms de estilo a cada troca, mesmo com o mesmo vento. Agora roda quando o ritmo muda ou quando o CSS cria animações de nuvem (`animationstart`).
+- **`<details>` pela altura.** Gráfico, “Mais sobre o céu”, ar, conta e rodapé abriam de uma vez (e a entrada antiga animava transform/opacity em cada filho). Agora a altura cresce e encolhe por `grid-template-rows` (340 ms), como o ⓘ: só layout, sem camadas.
+- **Bolinhas reaproveitadas.** A lista era recriada a cada troca, então a transição nunca acontecia; agora só `aria-current` muda e a atual vira uma pílula pela largura.
+
+Tarefas longas somadas na troca para a cidade seguinte: ~776 → ~550 ms; volta: ~377 → ~210 ms (CPU 4×; num celular real ≈ ¼ disso). O que sobra é o recálculo de estilo/layout da troca de conteúdo (esqueletos → dados) e a própria View Transition; o deslize em si roda no compositor.
+
 ## Limites e o que não foi mexido
 
 - **LCP simulado de ~10 s no celular.**
