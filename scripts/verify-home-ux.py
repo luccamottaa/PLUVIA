@@ -56,10 +56,11 @@ with sync_playwright() as p:
                                 "sessionStorage.setItem('pluvia-intro-seen','1');"
                                 "Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1})}}});")
         errors = []
+        # Relógio fixo uma vez no contexto: no WebKit, set_fixed_time numa aba nova (about:blank) falha.
+        context.clock.set_fixed_time(fixed)
         def open_page(city='Manaus'):
             page = context.new_page()
             page.on('pageerror', lambda error: None if str(error).endswith(RAINVIEWER_CANCELLED) else errors.append(str(error)))
-            page.clock.set_fixed_time(fixed)
             page.goto(preview + '/', wait_until='domcontentloaded')
             page.wait_for_function("document.getElementById('temperature').textContent.trim()==='30' && !document.documentElement.classList.contains('awaiting-styles')", timeout=20000)
             page.wait_for_function(f"document.getElementById('cityName').textContent.includes({json.dumps(city)})", timeout=10000)
