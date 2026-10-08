@@ -914,8 +914,10 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 .info-tip { position:relative; display:inline-block; flex:none; }
 .info-tip > summary { display:grid; place-items:center; width:44px; height:44px; margin:-10px -12px; list-style:none; cursor:pointer; border-radius:50%; }
 .info-tip > summary::-webkit-details-marker { display:none; }
-.info-tip > summary > span { display:grid; place-items:center; width:20px; height:20px; border:1.5px solid currentColor; border-radius:50%; color:var(--reading-muted,#8aa0b8); font:600 .75rem/1 var(--font-ui); font-style:italic; }
-.info-tip[open] > summary > span,.info-tip > summary:hover > span { color:var(--brand-blue); }
+.info-tip-icon { display:block; width:22px; height:22px; color:var(--reading-muted,#8aa0b8); fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; }
+.info-tip-icon .info-tip-dot { fill:currentColor; stroke:none; }
+.info-tip[open] > summary > .info-tip-icon { color:var(--brand-blue); }
+@media (hover:hover) { .info-tip > summary:hover > .info-tip-icon { color:var(--brand-blue); } }
 .info-tip > summary:focus-visible { outline:2px solid var(--brand-blue); outline-offset:-6px; }
 .info-tip-body { position:absolute; z-index:600; top:calc(100% + 4px); left:-12px; width:min(300px,calc(100vw - 48px)); padding:12px 14px; border:1px solid #a4c7e533; border-radius:14px; background:#0d2239; color:#e3eefb; box-shadow:0 16px 40px #0008; text-align:left; text-transform:none; letter-spacing:0; font:400 .8125rem/1.5 var(--font-ui); }
 .info-tip-body p { margin:0; color:inherit !important; font-size:inherit !important; }
