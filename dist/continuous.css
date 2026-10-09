@@ -1041,18 +1041,25 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 :root[data-city-slide] #weatherView .wx-copy { view-transition-name:pluvia-temp; }
 :root[data-city-slide] #weatherView #condition { view-transition-name:pluvia-condition; }
 :root[data-city-slide] #weatherView #rainAnswer { view-transition-name:pluvia-rain; }
-::view-transition-group(pluvia-city),::view-transition-group(pluvia-temp),::view-transition-group(pluvia-condition),::view-transition-group(pluvia-rain) { animation-duration:.56s; animation-timing-function:cubic-bezier(.22,1,.36,1); }
-::view-transition-old(pluvia-city),::view-transition-old(pluvia-temp),::view-transition-old(pluvia-condition),::view-transition-old(pluvia-rain) { animation:pluvia-slide-out .34s cubic-bezier(.4,0,.6,1) both; }
-::view-transition-new(pluvia-city),::view-transition-new(pluvia-temp),::view-transition-new(pluvia-condition),::view-transition-new(pluvia-rain) { animation:pluvia-slide-in .56s cubic-bezier(.22,1,.36,1) .06s both; }
-::view-transition-new(pluvia-temp) { animation-delay:.1s; }
-::view-transition-new(pluvia-condition) { animation-delay:.14s; }
-::view-transition-new(pluvia-rain) { animation-delay:.18s; }
+/* A foto antiga sai rápido para o lado do gesto (200 ms, sem ficar sobreposta à nova: "ManPetrolina"),
+   e a nova desce no lugar, em cascata: nome, temperatura, condição, "Vai chover?". */
+::view-transition-group(pluvia-city),::view-transition-group(pluvia-temp),::view-transition-group(pluvia-condition),::view-transition-group(pluvia-rain) { animation-duration:.5s; animation-timing-function:cubic-bezier(.22,1,.36,1); }
+::view-transition-old(pluvia-city),::view-transition-old(pluvia-temp),::view-transition-old(pluvia-condition),::view-transition-old(pluvia-rain) { animation:pluvia-slide-out .2s cubic-bezier(.4,0,1,1) both; }
+::view-transition-new(pluvia-city),::view-transition-new(pluvia-temp),::view-transition-new(pluvia-condition),::view-transition-new(pluvia-rain) { animation:pluvia-slide-in .52s cubic-bezier(.22,1,.36,1) .1s both; }
+::view-transition-new(pluvia-temp) { animation-delay:.15s; }
+::view-transition-new(pluvia-condition) { animation-delay:.2s; }
+::view-transition-new(pluvia-rain) { animation-delay:.25s; }
 :root[data-city-slide="prev"]::view-transition-old(pluvia-city),:root[data-city-slide="prev"]::view-transition-old(pluvia-temp),:root[data-city-slide="prev"]::view-transition-old(pluvia-condition),:root[data-city-slide="prev"]::view-transition-old(pluvia-rain) { animation-name:pluvia-slide-out-prev; }
-:root[data-city-slide="prev"]::view-transition-new(pluvia-city),:root[data-city-slide="prev"]::view-transition-new(pluvia-temp),:root[data-city-slide="prev"]::view-transition-new(pluvia-condition),:root[data-city-slide="prev"]::view-transition-new(pluvia-rain) { animation-name:pluvia-slide-in-prev; }
-@keyframes pluvia-slide-out { to { opacity:0; transform:translateX(-22%); } }
-@keyframes pluvia-slide-in { from { opacity:0; transform:translateX(22%); } }
-@keyframes pluvia-slide-out-prev { to { opacity:0; transform:translateX(22%); } }
-@keyframes pluvia-slide-in-prev { from { opacity:0; transform:translateX(-22%); } }
+@keyframes pluvia-slide-out { to { opacity:0; transform:translateX(-10%); } }
+@keyframes pluvia-slide-out-prev { to { opacity:0; transform:translateX(10%); } }
+@keyframes pluvia-slide-in { from { opacity:0; transform:translateY(-18px); } }
+/* Cascata "descendo" (app.js dropIn): o bloco desce 18 px enquanto é revelado de cima para baixo.
+   Só top (position:relative) e clip-path: pintura, sem camada; transform/opacity em blocos derrubavam
+   o Safari do iPhone. "wait" esconde o bloco abaixo da dobra até ele aparecer ao rolar. */
+#weatherView [data-drop="wait"] { clip-path:inset(0 0 100% 0); }
+#weatherView [data-drop="go"] { position:relative; animation:pluvia-drop .62s cubic-bezier(.22,1,.36,1) var(--drop-delay,0ms) both; }
+@keyframes pluvia-drop { from { top:-18px; clip-path:inset(0 0 100% 0); } to { top:0; clip-path:inset(-40px); } }
+@media (prefers-reduced-motion:reduce) { #weatherView [data-drop] { clip-path:none; animation:none; } }
 /* ⓘ abre e fecha pela altura (grid 0fr ↔ 1fr), empurrando o conteúdo de baixo sem criar camadas. */
 #weatherView .info-tip-body[data-inline] { display:grid; grid-template-rows:1fr; transition:grid-template-rows .3s cubic-bezier(.3,.7,.2,1),margin .3s cubic-bezier(.3,.7,.2,1),padding .3s cubic-bezier(.3,.7,.2,1),border-color .3s,color .3s; }
 #weatherView .info-tip-body[data-inline][data-collapsed] { grid-template-rows:0fr; margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0; border-color:transparent; color:transparent; }

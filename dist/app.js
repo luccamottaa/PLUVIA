@@ -228,7 +228,15 @@ function selectInmetAlerts(raw, now = Date.now(), city = activeCity) {
 
 function setAlertState(state) {
   const section = $("alertas");
-  if (section?.dataset) section.dataset.alertState = state;
+  if (!section?.dataset) return;
+  const before = section.dataset.alertState;
+  section.dataset.alertState = state;
+  // A leitura que chega depois (Consultando → avisos/sem avisos) desce no lugar, sem surgir de vez.
+  if (before === "loading" && state !== "loading") settleBlock(section);
+}
+// Bloco que aparece ou muda depois que a página já está à vista desce no lugar (cascata "descendo").
+function settleBlock(node) {
+  if (typeof dropIn === "function" && dropMotion() && node?.dataset?.drop !== "wait" && onScreen(node)) dropIn([node]);
 }
 
 // Faixa no topo para aviso INMET laranja/vermelho vigente na cidade (leitura atual). Leitura anterior,
@@ -236,8 +244,10 @@ function setAlertState(state) {
 function setAlertBanner(item = null, index = -1) {
   const banner = $("alertBanner");
   if (typeof banner?.setAttribute !== "function" || typeof banner.removeAttribute !== "function") return;
-  const show = Boolean(item) && item.severity?.rank >= 2;
+  const show = Boolean(item) && item.severity?.rank >= 2, appearing = show && banner.hidden;
   banner.hidden = !show;
+  // A faixa que chega depois da troca (leitura nova do INMET) desce no lugar em vez de surgir de vez.
+  if (appearing && typeof dropIn === "function" && dropMotion()) dropIn([banner]);
   if (!show) { banner.removeAttribute("data-severity"); banner.removeAttribute("data-notice"); return; }
   const title = decodeHtml(String(firstValue(item.alert, ["descricao", "evento", "titulo", "tipo"], "Aviso meteorológico")));
   const until = Number.isFinite(item.end) ? (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:activeCity.timezone, day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(item.end)) : "";
@@ -669,6 +679,7 @@ function renderTips(list) {
   const section = $("tips"), target = $("tipsList");
   if (!section || !target) return;
   const items = Array.isArray(list) ? list : [];
+  const appearing = section.hidden && items.length > 0;
   section.hidden = items.length === 0;
   if (!items.length) { target.textContent = ""; return; }
   target.replaceChildren(...items.map(tip => {
@@ -682,6 +693,7 @@ function renderTips(list) {
     item.append(icon, text);
     return item;
   }));
+  if (appearing) settleBlock(section);
 }
 
 function setRainAnswer(answer) {
@@ -695,7 +707,9 @@ function setYesterdayNote(comparison) {
   const node = $("yesterdayNote");
   if (!node) return;
   // Sem leitura de ontem, a linha fica vazia (some pelo CSS); nunca inventa "parecida".
+  const appearing = !node.textContent && Boolean(comparison?.text);
   node.textContent = comparison?.text || "";
+  if (appearing) settleBlock(node);
   if (comparison?.tone) node.dataset.tone = comparison.tone; else delete node.dataset.tone;
 }
 
@@ -881,10 +895,13 @@ async function loadWeather(revision = cityRevision) {
     // Optional sources must not hold the first usable forecast behind their timeout.
     if (!displayedWeather || displayedWeather.fromCache) {
       const savedAir = weatherData.cachedAir(cached());
+      const fromSkeleton = $("weatherView")?.classList?.contains?.('initial-loading');
       render(original,savedAir.air,false,0,{airAt:savedAir.at});
       cache({forecast:original,air:savedAir.air},{weatherAt:Date.now(),airAt:savedAir.at});
       globalThis.PLUVIA?.sources.set('weather',{status:'ready',checkedAt:Date.now(),dataAt:cityDate(original.current.time,city).getTime()});
       $("weatherView")?.classList.remove('initial-loading');
+      // Cidade sem nada salvo: os esqueletos viram dados com o mesmo fade do topo e a cascata.
+      if (fromSkeleton) { animateCityText(); dropVisibleBlocks(120); }
       $("weatherView")?.setAttribute('aria-busy','false');
     }
     const [airResult,metResult] = await optional;
@@ -1099,21 +1116,57 @@ function setupPullToRefresh() {
 
 document.querySelectorAll("nav a").forEach(link => link.addEventListener("click", () => { document.querySelectorAll("nav a").forEach(a => a.classList.remove("active")); link.classList.add("active"); }));
 
+// Cascata "descendo": na troca de cidade os blocos à vista entram um depois do outro, de cima para
+// baixo, e ao rolar cada bloco desce quando aparece. O bloco desce 18 px (top, em position:relative)
+// enquanto é revelado de cima para baixo (clip-path); CSS em continuous.css. Só pintura: transform e
+// opacity nos blocos viravam camadas do tamanho da página sobre o céu animado e derrubavam o Safari do
+// iPhone (girar a tela relançava tudo). Cada bloco revela uma vez ao rolar; girar não reanima.
+const DROP_BLOCKS = ["#yesterdayNote", "#alertBanner", "#alertas", "#tips", ".hourly-peek", ".quick-metrics", ".metrics", ".air-outlook", ".weather-map-section", ".forecast-section", "#notificationPrompt", ".sun-section"];
+function dropMotion() {
+  return !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+}
+function dropIn(nodes, delay = 0, step = 70) {
+  const list = nodes.filter(node => node?.setAttribute);
+  if (!list.length) return;
+  // Remover e recolocar no mesmo quadro não reinicia a animação: um cálculo de estilo entre os dois.
+  list.forEach(node => node.removeAttribute("data-drop"));
+  globalThis.getComputedStyle?.(list[0]).top;
+  list.forEach((node, index) => {
+    node.style.setProperty("--drop-delay", `${delay + index * step}ms`);
+    node.setAttribute("data-drop", "go");
+  });
+}
+function dropBlocks(selectors) {
+  return [...document.querySelectorAll?.(selectors.map(selector => "#weatherView " + selector).join(",")) || []]
+    .filter(node => !node.hidden && !node.closest?.("[hidden]"));
+}
+function onScreen(node) {
+  const rect = node.getBoundingClientRect?.();
+  return Boolean(rect) && rect.height > 0 && rect.bottom > 0 && rect.top < (globalThis.innerHeight || 0);
+}
+// Chamado junto com chooseCity (dentro da View Transition, quando há): os blocos da cidade nova à vista
+// descem logo depois do nome, da temperatura, da condição e do "Vai chover?".
+function dropVisibleBlocks(delay) {
+  if (!dropMotion()) return;
+  dropIn(dropBlocks(DROP_BLOCKS).filter(node => node.dataset.drop !== "wait" && onScreen(node)), delay, 70);
+}
+function dropCityContent() { dropVisibleBlocks(240); }
+document.addEventListener?.("animationend", event => {
+  if (event.animationName !== "pluvia-drop" || event.target?.dataset?.drop !== "go") return;
+  event.target.removeAttribute("data-drop");
+  event.target.style.removeProperty("--drop-delay");
+});
 function setupScrollAnimations() {
-  // Celular deitado passa de 720 px: toque também fica sem a revelação (camadas extras derrubavam o iPhone).
-  const skipLargeAnimations = window.matchMedia("(max-width: 720px), (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse)").matches;
-  if (skipLargeAnimations || !("IntersectionObserver" in window)) return;
-  const targets = document.querySelectorAll(".section-block, .sun-section, footer");
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add("revealed");
-      observer.unobserve(entry.target);
-    });
-  }, { threshold: 0.12, rootMargin: "0px 0px -48px" });
-  targets.forEach((target) => {
-    target.classList.add("reveal-on-scroll");
-    observer.observe(target);
+  if (!dropMotion() || !("IntersectionObserver" in globalThis)) return;
+  const observer = new IntersectionObserver(entries => {
+    const shown = entries.filter(entry => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top).map(entry => entry.target);
+    shown.forEach(node => observer.unobserve(node));
+    dropIn(shown, 0, 90);
+  }, {rootMargin: "0px 0px -6% 0px"});
+  dropBlocks(DROP_BLOCKS.slice(2)).forEach(node => {
+    if (onScreen(node)) return;
+    node.setAttribute("data-drop", "wait");
+    observer.observe(node);
   });
 }
 
@@ -1190,13 +1243,13 @@ function slideToCity(id, direction) {
   const root = document.documentElement;
   const canSlide = typeof document.startViewTransition === "function" &&
     !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  if (!canSlide) { chooseCity(id); animateCityText(); return; }
+  if (!canSlide) { chooseCity(id); animateCityText(); dropCityContent(); return; }
   root.dataset.citySlide = direction > 0 ? "next" : "prev";
   try {
-    const transition = document.startViewTransition(() => chooseCity(id));
+    const transition = document.startViewTransition(() => { chooseCity(id); dropCityContent(); });
     transition.updateCallbackDone?.catch(() => {});
     transition.finished.catch(() => {}).finally(() => { delete root.dataset.citySlide; });
-  } catch { delete root.dataset.citySlide; chooseCity(id); }
+  } catch { delete root.dataset.citySlide; chooseCity(id); dropCityContent(); }
 }
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
@@ -1322,7 +1375,11 @@ function chooseCity(id, locatedCity = null) {
   refreshInFlight = null;
   clearTimeout(failureRetryTimer); failureNoticeShown = false;
   activeCity = city; displayedWeather = null; lastRefreshAt = 0;
-  lastInmetResponse = null; lastInmetReadAt = 0;
+  // A leitura do INMET é nacional: com menos de 5 min, a cidade nova usa a mesma na hora, sem passar
+  // por "Consultando" (a seção encolhia e crescia de novo, e a faixa laranja empurrava a página depois).
+  const inmetAge = Date.now() - lastInmetReadAt;
+  const inmetFresh = Boolean(lastInmetAvailable && lastInmetResponse) && inmetAge >= 0 && inmetAge < 300000;
+  if (!inmetFresh) { lastInmetResponse = null; lastInmetReadAt = 0; }
   applyWeatherAtmosphere(null, null);
   globalThis.pluviaAnalytics?.track('City Selected',{city:city.name,uf:city.uf,source:Number.isFinite(locatedCity?.distanceKm) ? 'location' : 'picker_or_saved'});
   globalThis.PLUVIA?.sources.reset(city.id);
@@ -1352,14 +1409,15 @@ function chooseCity(id, locatedCity = null) {
     if ($("moonDot")) $("moonDot").hidden = true;
     $("condition").textContent = "Consultando as condições em " + city.name + "…";
   }
-  ["inmet"].forEach(source => {
-    $(source + "State").className = "source-state";
-    $(source + "State").innerHTML = "<i></i>Consultando";
-    $(source + "Content").innerHTML = "<h3>Consultando " + escapeHtml(city.name) + "</h3><p>Buscando informações para a cidade selecionada.</p>";
-  });
-  $("inmetCard").dataset.severity = "unknown";
-  setAlertBanner(null);
-  setAlertState("loading");
+  if (inmetFresh) { renderInmetAlerts(lastInmetResponse); updateInmetTimestamp(); }
+  else {
+    $("inmetState").className = "source-state";
+    $("inmetState").innerHTML = "<i></i>Consultando";
+    $("inmetContent").innerHTML = "<h3>Consultando " + escapeHtml(city.name) + "</h3><p>Buscando informações para a cidade selecionada.</p>";
+    $("inmetCard").dataset.severity = "unknown";
+    setAlertBanner(null);
+    setAlertState("loading");
+  }
   $("citySearch").value = "";
   renderCityOptions(); updateCityLabels();
   $("weatherView")?.classList.toggle('initial-loading', !saved);
@@ -1367,11 +1425,13 @@ function chooseCity(id, locatedCity = null) {
     const savedAir = weatherData?.cachedAir(saved);
     render(saved.data.forecast,savedAir?.air,true,saved.weatherAt || saved.at,{airAt:savedAir?.at});
     const savedAt = saved.weatherAt || saved.at, offline = isOffline();
-    // Only this opening's own prefetch reads as current while it refreshes (showing then
-    // hiding the status shifted the page). Any other saved reading, however recent, keeps
-    // the visible status: the refresh may still fail.
-    const ownPrefetch = !offline && saved.at === prefetchSavedAt;
-    setDataStatus(ownPrefetch ? "Atualizando…" : savedStatus(savedAt, offline ? "offline" : "loading"), !ownPrefetch);
+    // This opening's own prefetch, or a reading under 10 min, reads as current while it refreshes:
+    // showing then hiding the status pushed the city name down and back on every swap between
+    // favorites. Older readings keep the visible status; if the refresh fails, the failure status
+    // (always visible) replaces it.
+    const age = Date.now() - savedAt;
+    const recent = !offline && (saved.at === prefetchSavedAt || (age >= 0 && age < 600000));
+    setDataStatus(recent ? "Atualizando…" : savedStatus(savedAt, offline ? "offline" : "loading"), !recent);
   } else {
     setDataStatus("Consultando o tempo em " + city.name);
   }
