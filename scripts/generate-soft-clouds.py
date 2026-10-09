@@ -26,10 +26,18 @@ import sys
 import numpy as np
 from PIL import Image
 
-WIDTH, HEIGHT = 2100, 700          # 3:1, entregue sem redimensionar (sem quebrar a emenda)
+# 3:1 e múltiplo de 16: o WebP comprime em blocos de 16 px; com 2100 × 700 o último bloco era
+# parcial e a última coluna saía diferente da primeira (degrau na emenda do repeat-x).
+WIDTH, HEIGHT = 2112, 704
 QUALITY = 80
 ALPHA_LEVELS = 64
-BUDGET_KIB = 360
+BUDGET_KIB = 360                   # véu + volume, que entram no precache
+
+
+def set_size(width, height):
+    """Camadas por condição usam resolução menor (são macias e esticam bem); sempre 3:1 e x16."""
+    global WIDTH, HEIGHT
+    WIDTH, HEIGHT = width, height
 
 
 def spectral_noise(rng, beta, stretch, masses=0.0):
@@ -88,7 +96,7 @@ def envelope(points):
     return np.interp(rows, [p for p, _ in points], [v for _, v in points])[:, None].astype(np.float32)
 
 
-def soft_layer(seed, *, few_x=None, beta, stretch, masses, warp, low, high, wisp, wisp_stretch, env, alpha_max,
+def soft_layer(seed, *, few_x=None, fib_beta=2.5, glow=.22, beta, stretch, masses, warp, low, high, wisp, wisp_stretch, env, alpha_max,
                bright=(252, 253, 255), shadow=(146, 162, 190), lift=.9, streak=.12):
     rng = np.random.default_rng(seed)
     base = spectral_noise(rng, beta, stretch, masses)
@@ -98,7 +106,7 @@ def soft_layer(seed, *, few_x=None, beta, stretch, masses, warp, low, high, wisp
     shape = sample(base, xs + warp * wx, ys + warp * .35 * wy)
     shape = (shape - shape.mean()) / shape.std()
     # Fine streaks: long, thin fibres stretched along the wind; they modulate density and light.
-    fib = spectral_noise(rng, 2.5, wisp_stretch)
+    fib = spectral_noise(rng, fib_beta, wisp_stretch)
     fib = sample(fib, xs + warp * .6 * wx, ys + warp * .25 * wy)
     fib = np.tanh(fib * .7)
     mid = np.tanh(spectral_noise(rng, 2.9, stretch * .8) * .8)
@@ -109,15 +117,17 @@ def soft_layer(seed, *, few_x=None, beta, stretch, masses, warp, low, high, wisp
         # a soft mass there, so the revealed cloud is whole and dense.
         for cx in (few_x * WIDTH / 2, WIDTH / 2 + few_x * WIDTH / 2):
             dx = ((xs - cx + WIDTH / 2) % WIDTH) - WIDTH / 2
-            value += 1.6 * np.exp(-(dx / 170) ** 2 - ((ys - .34 * HEIGHT) / 70) ** 2)
+            value += 1.6 * np.exp(-(dx / (.081 * WIDTH)) ** 2 - ((ys - .34 * HEIGHT) / (.1 * HEIGHT)) ** 2)
     density = np.clip(blur(smoothstep(low, high, value), 2.2), 0, 1)   # wide transition: soft, smoky edges
     # Soft top light: brighter where the cloud is thin above (lit from the sky), greyer underneath.
-    above = blur(density, 18, 26)
-    shift = 24
-    above = np.vstack([np.zeros((shift, WIDTH), np.float32), above[:-shift]])
+    k = HEIGHT / 704
+    above = blur(density, 18 * k, 26 * k)
+    shift = max(1, round(24 * k))
+    # The rows above the top edge repeat the first one (zeros left a white strip on dense decks).
+    above = np.vstack([np.repeat(above[:1], shift, axis=0), above[:-shift]])
     light = 1 - lift * .55 * above
     light += streak * fib                           # streak detail in the shading
-    light += .22 * (1 - density)                    # thin parts glow
+    light += glow * (1 - density)                   # thin parts glow
     light = np.clip(blur(light, 2.0), 0, 1)
     b, s = np.array(bright, np.float32), np.array(shadow, np.float32)
     rgb = s + (b - s) * light[..., None]
@@ -128,25 +138,49 @@ def soft_layer(seed, *, few_x=None, beta, stretch, masses, warp, low, high, wisp
     return Image.fromarray(np.dstack([rgb, a * 255]).round().clip(0, 255).astype(np.uint8), 'RGBA')
 
 
+FULL, LIGHT = (2112, 704), (1584, 528)
 LAYERS = {
-    'sky-cloud-veil': dict(seed=11, beta=3.3, stretch=3.2, masses=4, warp=70, low=-.7, high=1.4, wisp=.3, wisp_stretch=6.0,
-                           env=((0, .55), (.12, 1), (.7, 1), (.9, .7), (1, .4)), alpha_max=.92, shadow=(158, 172, 198), lift=.8, few_x=.39, streak=.14),
-    'sky-cloud-volume': dict(seed=29, beta=3.4, stretch=2.2, masses=5, warp=50, low=-.2, high=1.5, wisp=.25, wisp_stretch=5.0,
-                             env=((0, .3), (.12, .85), (.35, 1), (.85, 1), (1, .7)), alpha_max=.97, shadow=(136, 152, 182), lift=1.0, few_x=.46, streak=.12),
+    # Fair weather (WMO 1/2 and base of every condition): in the precache, within the budget.
+    'sky-cloud-veil': dict(size=FULL, precache=True, seed=11, beta=3.3, stretch=3.2, masses=4, warp=70, low=-.7, high=1.4, wisp=.3,
+                           wisp_stretch=6.0, env=((0, .55), (.12, 1), (.7, 1), (.9, .7), (1, .4)), alpha_max=.92,
+                           shadow=(158, 172, 198), lift=.8, few_x=.39, streak=.14),
+    'sky-cloud-volume': dict(size=FULL, precache=True, seed=29, beta=3.4, stretch=2.2, masses=5, warp=50, low=-.2, high=1.5,
+                             wisp=.25, wisp_stretch=5.0, env=((0, .3), (.12, .85), (.35, 1), (.85, 1), (1, .7)), alpha_max=.97,
+                             shadow=(136, 152, 182), lift=1.0, few_x=.46, streak=.12),
+    # By condition: downloaded (and cached by the SW) only when that sky is shown.
+    # Overcast and snow: a continuous stratus deck with soft relief and fibres, almost no breaks.
+    'sky-cloud-overcast': dict(size=LIGHT, seed=41, beta=3.3, stretch=3.0, masses=3, warp=60, low=-2.4, high=.4, wisp=.2,
+                               wisp_stretch=6.0, fib_beta=2.9, env=((0, 1), (.8, 1), (1, .8)), alpha_max=.95,
+                               shadow=(150, 162, 184), lift=.9, streak=.08),
+    # Rain: nimbostratus, denser and darker underneath, with soft ragged fragments.
+    'sky-cloud-rain': dict(size=LIGHT, seed=53, beta=3.2, stretch=2.6, masses=4, warp=70, low=-2.6, high=.2, wisp=.24,
+                           wisp_stretch=5.0, fib_beta=2.9, env=((0, 1), (.85, 1), (1, .85)), alpha_max=.97,
+                           shadow=(110, 122, 144), lift=1.2, streak=.08),
+    # Thunderstorm: heavy ceiling with bulging pouches and stronger light/dark contrast.
+    'sky-cloud-storm': dict(size=LIGHT, seed=67, beta=3.1, stretch=1.7, masses=5, warp=55, low=-2.8, high=0., wisp=.18,
+                            wisp_stretch=3.5, fib_beta=3.0, env=((0, 1), (1, 1)), alpha_max=.98, shadow=(82, 92, 116),
+                            lift=1.5, streak=.06, glow=.04),
+    # Fog: low horizontal bands, very soft and translucent.
+    'sky-cloud-fog': dict(size=LIGHT, seed=79, beta=3.4, stretch=7.0, masses=3, warp=40, low=-1.0, high=1.6, wisp=.22,
+                          wisp_stretch=10.0, env=((0, .2), (.3, .6), (.55, 1), (1, 1)), alpha_max=.8, shadow=(196, 204, 216),
+                          lift=.4, streak=.1),
 }
+
 
 def main(target_dir):
     os.makedirs(target_dir, exist_ok=True)
     total = 0
     for name, options in LAYERS.items():
         options = dict(options)
+        set_size(*options.pop('size'))
+        precache = options.pop('precache', False)
         options['env'] = envelope(options['env'])
         path = os.path.join(target_dir, name + '.webp')
         soft_layer(**options).save(path, 'WEBP', quality=QUALITY, method=6, alpha_quality=100)
         size = os.path.getsize(path) / 1024
-        total += size
-        print(f'{name}: {WIDTH}x{HEIGHT}, {size:.1f} KiB')
-    print(f'total: {total:.1f} KiB (orçamento {BUDGET_KIB} KiB)')
+        if precache: total += size
+        print(f'{name}: {WIDTH}x{HEIGHT}, {size:.1f} KiB' + (' (precache)' if precache else ' (sob demanda)'))
+    print(f'precache: {total:.1f} KiB (orçamento {BUDGET_KIB} KiB)')
     if total >= BUDGET_KIB:
         sys.exit('As texturas excedem o orçamento do precache.')
 
