@@ -1160,9 +1160,9 @@ function renderCityDots() {
 // porque a cor desses textos é !important, e no cascade só transições passam por cima disso.
 // Opacidade criava camadas temporárias (13 → 20) e um deslize de 24 px chegou a 77 camadas (uma de
 // 40 MB) sobre o céu animado, o padrão que derrubava o Safari do iPhone: nada de transform, opacity
-// ou z-index aqui. Sem efeito em reduced-motion e no modo seguro (depois de uma queda).
+// ou z-index aqui. Sem efeito em reduced-motion.
 function fadeIn(nodes, duration, stagger = 0) {
-  if (document.documentElement?.hasAttribute?.("data-safe") || globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+  if (globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
   const list = nodes.filter(node => node?.style?.setProperty);
   for (const node of list) {
     clearTimeout(node.pluviaFade);
@@ -1185,10 +1185,10 @@ function animateCityText() {
 // Deslize na troca de cidade: View Transitions (Safari 18+, Chrome 111+). O navegador fotografa só
 // o nome, a temperatura, a condição e o "Vai chover?" (view-transition-name durante a troca) e
 // desliza essas fotos numa camada própria acima da página; a página e o céu não ganham camadas.
-// Sem a API, em reduced-motion ou no modo seguro, troca com o fade de cor.
+// Sem a API ou em reduced-motion, troca com o fade de cor.
 function slideToCity(id, direction) {
   const root = document.documentElement;
-  const canSlide = typeof document.startViewTransition === "function" && !root?.hasAttribute?.("data-safe") &&
+  const canSlide = typeof document.startViewTransition === "function" &&
     !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   if (!canSlide) { chooseCity(id); animateCityText(); return; }
   root.dataset.citySlide = direction > 0 ? "next" : "prev";
@@ -1489,18 +1489,6 @@ function requestLocation(source = 'automatic') {
 }
 
 setupCityPicker();
-// Modo seguro (index.html): depois de uma queda o céu fica parado por 24 h. A pessoa vê o motivo e
-// pode reativar na hora; se o aparelho voltar a cair, o modo liga de novo sozinho.
-(function setupSafeModeNote() {
-  const root = document.documentElement, note = $("safeModeNote");
-  if (!note || !root?.hasAttribute?.("data-safe") || /[?&]seguro=1(&|$)/.test(location.search)) return;
-  note.hidden = false;
-  $("safeModeResume")?.addEventListener("click", () => {
-    try { localStorage.removeItem("pluvia-safe-until"); } catch {}
-    root.removeAttribute("data-safe");
-    note.hidden = true;
-  });
-})();
 // Ao abrir o gráfico ou trocar o modo, as barras crescem a partir da base (altura, sem transform);
 // atualizações automáticas redesenham sem animar.
 function growHourlyBars() {
@@ -1539,7 +1527,7 @@ const infoTipBodies = new WeakMap();
 // Abrir/fechar o ⓘ suave: a altura cresce por grid-template-rows (0fr → 1fr, CSS em continuous.css),
 // empurrando o conteúdo de baixo. Só recalcula posições a cada quadro; não cria camadas.
 function infoMotion() {
-  return !document.documentElement?.hasAttribute?.("data-safe") && !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  return !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 }
 function openInfoBody(body, holder) {
   clearTimeout(body.pluviaInfoClose);

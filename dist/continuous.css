@@ -543,7 +543,6 @@ details > .details-motion[data-collapsed] { grid-template-rows:0fr; }
 details > .details-motion > .details-motion-inner { min-width:0; min-height:0; }
 details > .details-motion[data-moving] > .details-motion-inner { overflow:hidden; }
 @media (prefers-reduced-motion:reduce) { details > .details-motion { transition:none; } }
-:root[data-safe] details > .details-motion { transition:none; }
 #accountDialog :is(#accountRecoveryForm,#accountDeleteForm) { display:grid; gap:14px; }
 #accountDialog :is(#accountRecoveryForm,#accountDeleteForm)[hidden] { display:none; }
 #accountDialog .account-text-action { background:transparent; color:var(--dialog-muted); text-decoration:underline; text-underline-offset:3px; }
@@ -1077,8 +1076,3 @@ html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notific
   :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot) { transition:none; }
   #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
 }
-:root[data-safe] #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
-/* Aviso do modo seguro: discreto, abaixo das bolinhas; só aparece com o modo ligado. */
-#weatherView .safe-mode-note { margin:6px auto 0; font-size:.8125rem; line-height:1.4; text-align:center; color:var(--reading-muted); }
-#weatherView .safe-mode-note[hidden] { display:none; }
-#weatherView .safe-mode-note button { min-height:44px; padding:0 6px; border:0; background:none; color:var(--reading-link); font:inherit; font-weight:600; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }

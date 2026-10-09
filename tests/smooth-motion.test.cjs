@@ -118,17 +118,16 @@ test('reduced motion e ⓘ não são interceptados',()=>{
   assert.equal(tip.details.childNodes.length,3,'e não ganha invólucro');
 });
 
-test('CSS do movimento: só grid-template-rows, sem transform/opacity e desligado em reduced-motion/modo seguro',()=>{
+test('CSS do movimento: só grid-template-rows, sem transform/opacity e desligado em reduced-motion',()=>{
   const css=fs.readFileSync(require.resolve('../dist/continuous.css'),'utf8');
   assert.match(css,/details > \.details-motion \{ display:grid; grid-template-rows:1fr; transition:grid-template-rows [^;]+; \}/);
   assert.match(css,/details > \.details-motion\[data-collapsed\] \{ grid-template-rows:0fr; \}/);
   assert.match(css,/prefers-reduced-motion:reduce\) \{ details > \.details-motion \{ transition:none; \} \}/);
-  assert.match(css,/:root\[data-safe\] details > \.details-motion \{ transition:none; \}/);
   assert.doesNotMatch(css,/pluvia-content-enter/,'a entrada antiga com transform saiu');
   assert.match(css,/\.city-dot\[aria-current="true"\]::before \{ width:18px; opacity:1; \}/,'bolinha ativa vira pílula por largura, sem transform');
 });
 
-test('toque, ponteiros e gráfico animam sem camadas e respeitam reduced-motion/modo seguro',()=>{
+test('toque, ponteiros e gráfico animam sem camadas e respeitam reduced-motion',()=>{
   const css=fs.readFileSync(require.resolve('../dist/continuous.css'),'utf8');
   const app=fs.readFileSync(require.resolve('../dist/app.js'),'utf8');
   assert.match(css,/:active:not\(:disabled\) \{ box-shadow:inset 0 0 0 100px color-mix\(in srgb, currentColor 14%, transparent\); transition-duration:0s; \}/,'toque é um véu por sombra interna, sem trocar o fundo');
@@ -136,7 +135,6 @@ test('toque, ponteiros e gráfico animam sem camadas e respeitam reduced-motion/
   assert.match(css,/\.uv-scale span \{ transition:left [^}]+\}/);
   assert.match(css,/\.rain-chart\[data-grow\] :is\(\.temp-bar,\.wind-bar,\.rain-bar\) \{ animation:pluvia-bar-grow [^}]*calc\(var\(--i,0\) \* 16ms\)/,'barras crescem em onda só quando data-grow');
   assert.match(css,/@keyframes pluvia-bar-grow \{ from \{ height:0; min-height:0; \} \}/,'cresce por altura, sem scaleY');
-  assert.match(css,/:root\[data-safe\] #weatherView \.rain-chart\[data-grow\] :is\(\.temp-bar,\.wind-bar,\.rain-bar\) \{ animation:none; \}/);
   const reduced=css.slice(css.lastIndexOf('@media (prefers-reduced-motion:reduce) {'));
   assert.match(reduced,/\.compass-needle, \.uv-scale span, #weatherView \.sun-arc :is\(\.sun-dot,\.moon-dot\) \{ transition:none; \}/);
   assert.match(app,/compass\.pluviaTurn = turn \+ \(\(\(\(heading - turn\) % 360\) \+ 540\) % 360 - 180\)/,'agulha pelo menor caminho');

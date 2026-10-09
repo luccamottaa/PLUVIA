@@ -46,7 +46,7 @@
   // first tap (layout only: no new layer, nothing measured per frame). Content rendered lazily on
   // `toggle` (the chart) grows with the 1fr row. ⓘ keeps its own motion in app.js.
   const DETAILS_MS=340;
-  const still=()=>motion?.matches || scope.document.documentElement?.hasAttribute?.('data-safe');
+  const still=()=>Boolean(motion?.matches);
   function wrapper(details) {
     const summary=details.querySelector(':scope > summary');
     let wrap=details.querySelector(':scope > .details-motion');
