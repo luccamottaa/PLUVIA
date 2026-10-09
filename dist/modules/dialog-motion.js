@@ -42,5 +42,45 @@
   scope.document.querySelectorAll('dialog').forEach(dialog=>{
     dialog.addEventListener('cancel',event=>{if(!event.defaultPrevented) {event.preventDefault();close(dialog);}});
   });
-  return {close};
+  // <details> open and close by height: grid-template-rows 0fr <-> 1fr on a wrapper created on the
+  // first tap (layout only: no new layer, nothing measured per frame). Content rendered lazily on
+  // `toggle` (the chart) grows with the 1fr row. ⓘ keeps its own motion in app.js.
+  const DETAILS_MS=340;
+  const still=()=>motion?.matches || scope.document.documentElement?.hasAttribute?.('data-safe');
+  function wrapper(details) {
+    const summary=details.querySelector(':scope > summary');
+    let wrap=details.querySelector(':scope > .details-motion');
+    if(wrap) return wrap;
+    wrap=scope.document.createElement('div');wrap.className='details-motion';
+    const inner=scope.document.createElement('div');inner.className='details-motion-inner';
+    for(const node of Array.from(details.childNodes)) if(node!==summary) inner.append(node);
+    wrap.append(inner);details.append(wrap);
+    return wrap;
+  }
+  function toggleDetails(details) {
+    if(still()) {details.open=!details.open;return;}
+    const wrap=wrapper(details);
+    scope.clearTimeout(wrap.pluviaTimer);
+    wrap.dataset.moving='true';
+    if(details.open && !wrap.hasAttribute('data-collapsed')) {wrap.dataset.collapsed='true';details.dataset.closing='true';}
+    else {
+      delete details.dataset.closing;
+      if(!details.open) {wrap.dataset.collapsed='true';details.open=true;scope.getComputedStyle(wrap).gridTemplateRows;}
+      delete wrap.dataset.collapsed;
+    }
+    wrap.pluviaTimer=scope.setTimeout(()=>{
+      delete wrap.dataset.moving;
+      if(wrap.hasAttribute('data-collapsed')) {details.open=false;delete wrap.dataset.collapsed;delete details.dataset.closing;}
+    },DETAILS_MS);
+  }
+  // Wrapped up front so the layout (e.g. the chart summary spacing) is the same before and after the
+  // first tap; details created later (alert detail) are wrapped on their first tap.
+  scope.document.querySelectorAll('details:not(.info-tip)').forEach(details=>{if(details.localName==='details') wrapper(details);});
+  scope.document.addEventListener?.('click',event=>{
+    const summary=event.target?.closest?.('summary'),details=summary?.parentElement;
+    if(event.defaultPrevented || details?.localName!=='details' || details.classList.contains('info-tip') || still()) return;
+    if(details.querySelector(':scope > summary')!==summary) return;
+    event.preventDefault();toggleDetails(details);
+  });
+  return {close,toggleDetails};
 });

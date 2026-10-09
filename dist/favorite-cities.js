@@ -63,7 +63,7 @@
         range.textContent=Number.isFinite(value.high) && Number.isFinite(value.low) ? `Máx. ${Math.round(value.high)}° · Mín. ${Math.round(value.low)}°${value.day && today!==value.day ? ' · '+value.day.slice(8,10)+'/'+value.day.slice(5,7) : ''}` : 'Máxima/mínima indisponíveis';
         const local=doc.createElement('small');
         local.className='favorite-local-time';
-        try {local.textContent=new Intl.DateTimeFormat('pt-BR',{timeZone:city?.timezone,hour:'2-digit',minute:'2-digit'}).format(new Date())+' · horário local';} catch {local.textContent='Horário local indisponível';}
+        try {local.textContent=(time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:city?.timezone,hour:'2-digit',minute:'2-digit'}).format(new Date())+' · horário local';} catch {local.textContent='Horário local indisponível';}
         if(!city?.timezone) local.textContent='Horário local indisponível';
         button.append(thermal,range,local);
       }
@@ -72,7 +72,7 @@
       if(notice?.status!=='ready') alert.textContent='Avisos INMET indisponíveis';
       else if(notice.alerts.length) {
         const top=notice.alerts[0];alert.dataset.severity=top.severity.className;
-        const until=new Intl.DateTimeFormat('pt-BR',{timeZone:city.timezone || 'America/Sao_Paulo',hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}).format(new Date(top.end));
+        const until=(time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:city.timezone || 'America/Sao_Paulo',hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}).format(new Date(top.end));
         alert.textContent=`INMET oficial · ${top.severity.label} · até ${until}${city.timezone ? '' : ' (Brasília)'}`;
       }
       if(alert.textContent)button.append(alert);

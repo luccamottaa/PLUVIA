@@ -1,4 +1,5 @@
 (function () {
+  const dateFormat=(locale,options)=>globalThis.PLUVIA?.time?.dateFormat?.(locale,options) ?? new Intl.DateTimeFormat(locale,options);
   const $ = id => document.getElementById(id);
   const mapCard = document.querySelector('.weather-map-card');
   if (!mapCard || !$('weatherMap')) return;
@@ -29,7 +30,7 @@
   function city() { return typeof activeCity !== 'undefined' ? activeCity : null; }
   function zoneTime(unix) {
     const value = new Date(unix * 1000);
-    return new Intl.DateTimeFormat('pt-BR',{timeZone:city()?.timezone || 'UTC',hour:'2-digit',minute:'2-digit'}).format(value);
+    return dateFormat('pt-BR',{timeZone:city()?.timezone || 'UTC',hour:'2-digit',minute:'2-digit'}).format(value);
   }
   function loadLeaflet() {
     if (globalThis.L) return Promise.resolve(globalThis.L);

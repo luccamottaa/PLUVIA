@@ -90,13 +90,15 @@ with sync_playwright() as p:
    page.goto(preview);page.wait_for_function("document.body.dataset.clouds==='few' && document.getElementById('pluviaIntro').hidden && !document.documentElement.classList.contains('awaiting-styles')")
    for scene in ['home','intro']:
     page.evaluate("intro=>{document.getElementById('pluviaIntro').hidden=!intro}",scene=='intro')
-    decor=page.add_style_tag(content=".night-stage > :not(.sky-effects):not(.sky-twilight-page),.pluvia-intro > :not(.intro-sky){visibility:hidden!important}:is(.sky-effects,.intro-sky) > :is(.sky-sun,.sky-moon,.sky-stars){display:none!important}")
+    # Os estilos do teste desligam a transição: com reduced-motion ela dura 0,01 ms, mas no Chromium
+    # headless só termina quando algo força a atualização, e a captura via o texto ainda à mostra.
+    decor=page.add_style_tag(content=".night-stage > :not(.sky-effects):not(.sky-twilight-page),.pluvia-intro > :not(.intro-sky){visibility:hidden!important}:is(.night-stage > :not(.sky-effects):not(.sky-twilight-page),.pluvia-intro > :not(.intro-sky)),:is(.night-stage > :not(.sky-effects):not(.sky-twilight-page),.pluvia-intro > :not(.intro-sky)) *{transition:none!important}:is(.sky-effects,.intro-sky) > :is(.sky-sun,.sky-moon,.sky-stars){display:none!important}")
     fractions={}
     for code in [1,2]:
      page.evaluate("code=>PLUVIA.sky.apply(code,null,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})",code)
      clip={'x':0,'y':0,'width':width,'height':min(height,650)}
      painted=base64.b64encode(page.screenshot(clip=clip)).decode()
-     hidden=page.add_style_tag(content='.sky-clouds{opacity:0!important}')
+     hidden=page.add_style_tag(content='.sky-clouds{opacity:0!important;transition:none!important}')
      clear=base64.b64encode(page.screenshot(clip=clip)).decode();hidden.evaluate('el=>el.remove()')
      fractions[code]=page.evaluate("""async images=>{
        const data=await Promise.all(images.map(async image=>{const im=new Image();im.src='data:image/png;base64,'+image;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d');ctx.drawImage(im,0,0);return ctx.getImageData(0,0,c.width,c.height).data;}));
@@ -240,9 +242,9 @@ with sync_playwright() as p:
  page.emulate_media(reduced_motion='reduce')
  assert star.evaluate("el=>getComputedStyle(el,'::after').animationName==='none' && +getComputedStyle(el).opacity>0")
  # Night/weather CSS gates also protect against an old shell retaining brightness.
- page.evaluate("PLUVIA.sky.apply(95,0,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'});[document.documentElement,document.body].forEach(el=>el.style.setProperty('--stars-visibility','1'))")
+ page.evaluate("PLUVIA.sky.apply(95,0,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'});document.querySelectorAll('.intro-sky,.sky-effects,.sky-twilight-page').forEach(el=>el.style.setProperty('--stars-visibility','1'))")
  assert star.evaluate("el=>+getComputedStyle(el).opacity===0")
- page.evaluate("PLUVIA.sky.apply(0,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'},Date.parse('2026-10-01T16:00Z'));[document.documentElement,document.body].forEach(el=>el.style.setProperty('--stars-visibility','1'))")
+ page.evaluate("PLUVIA.sky.apply(0,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'},Date.parse('2026-10-01T16:00Z'));document.querySelectorAll('.intro-sky,.sky-effects,.sky-twilight-page').forEach(el=>el.style.setProperty('--stars-visibility','1'))")
  assert star.evaluate("el=>+getComputedStyle(el).opacity===0")
  page.emulate_media(reduced_motion='no-preference')
  # Sample native animation frames; no accelerated/flashing video in artifacts.
@@ -288,7 +290,7 @@ with sync_playwright() as p:
  assert all(s=='paused' for s in page.locator('.sky-effects > .sky-rain').evaluate_all("els=>els.map(el=>getComputedStyle(el).animationPlayState)"))
  page.emulate_media(reduced_motion='reduce')
  # A legacy writer can retain wet opacity variables; the weather gate still wins.
- page.evaluate("[document.documentElement,document.body].forEach(el=>{el.style.setProperty('--rain-opacity','.8');el.style.setProperty('--rain-back-opacity','.8');})")
+ page.evaluate("document.querySelectorAll('.intro-sky,.sky-effects,.sky-twilight-page').forEach(el=>{el.style.setProperty('--rain-opacity','.8');el.style.setProperty('--rain-back-opacity','.8');})")
  assert all(s==0 for s in page.locator('.sky-effects > .sky-rain').evaluate_all("els=>els.map(el=>+getComputedStyle(el).opacity)"))
  page.evaluate("PLUVIA.sky.apply(95,0,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>getComputedStyle(el).display")=='none'

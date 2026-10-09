@@ -11,7 +11,7 @@
     if(!city?.id || !city.timezone || !Number.isFinite(current?.temperature) || !Number.isFinite(checked) || now<checked || now-checked>36*3600000) return null;
     const at=time?.parse(current.time,city);
     if(!Number.isFinite(at)) return null;
-    const stamp=new Intl.DateTimeFormat('pt-BR',{timeZone:city.timezone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(at));
+    const stamp=(time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:city.timezone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(at));
     const saved=snapshot.source.freshness==='stale' || now-checked>5*60000 || now-at>90*60000;
     const lines=[`${city.name}/${city.region} · ${Math.round(current.temperature)} °C · ${condition}`];
     if(Number.isFinite(current.apparentTemperature)) lines.push(`Sensação ${Math.round(current.apparentTemperature)} °C`);
