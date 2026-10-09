@@ -93,6 +93,14 @@ Mesmo método (390×844, DPR 3, CPU 4×), medindo tarefas longas e intervalos en
 
 Tarefas longas somadas na troca para a cidade seguinte: ~776 → ~550 ms; volta: ~377 → ~210 ms (CPU 4×; num celular real ≈ ¼ disso). O que sobra é o recálculo de estilo/layout da troca de conteúdo (esqueletos → dados) e a própria View Transition; o deslize em si roda no compositor.
 
+## Abertura no iPhone (outubro/2026)
+
+Gravação de tela do usuário (iPhone, PWA instalado, 60 fps): dentro da intro nenhum quadro passou de 17 ms; o que parecia travado era a abertura. Antes da intro, ~1 s de tela preta e um clarão que chegava a cinza claro (~170 ms: a página ainda sem pintura). E toda volta ao app depois de ~1 s em segundo plano era uma abertura nova, com a intro inteira de novo.
+
+- **Intro pinta antes.** `redesign.css` e `continuous.css` (145 KB, só da Home) saíram do `<head>` para logo depois da intro. A intro depende só do CSS inline e do `sky.css`. Primeiro desenho com SW e CPU 4× (Chromium, mediana de 7): ~436 → ~344 ms. O conteúdo da Home continua só aparecendo com o CSS pronto.
+- **Intro não repete a cada volta.** Só repete 3 h depois da última; nas voltas o app abre direto na previsão.
+- **Menos memória em segundo plano.** O céu sai da composição enquanto a página está oculta (só `visibility`, animações pausadas no mesmo ponto): estimativa das camadas ~260 → ~59 MB. Um app com menos memória em segundo plano tende a ser encerrado menos pelo iOS, mas isso só se confirma no aparelho.
+
 ## Limites e o que não foi mexido
 
 - **LCP simulado de ~10 s no celular.**

@@ -17,7 +17,7 @@ test('a intro recebe estilo e cor do tema antes dos recursos externos', () => {
   assert.match(fs.readFileSync(path.join(__dirname, '../dist/fonts.css'), 'utf8'), /font-display:swap/);
 });
 
-function runIntro({ saved = false, storageBlocked = false, reduced = false } = {}) {
+function runIntro({ saved = false, storageBlocked = false, reduced = false, local = null, now = Date.parse('2026-10-09T05:00:00Z') } = {}) {
   const timers = [];
   const intro = { hidden: false, dataset: {}, classList: { classes: [], add(name) { this.classes.push(name); } } };
   const view = { hidden: true }, welcome = { hidden: false };
@@ -30,7 +30,9 @@ function runIntro({ saved = false, storageBlocked = false, reduced = false } = {
       setItem() { if (storageBlocked) throw Error('blocked'); },
     },
     setTimeout: (callback, delay) => { timers.push({ callback, delay }); },
+    Date: { now: () => now }, Number, String,
   };
+  if (local) context.localStorage = { getItem: key => key in local ? local[key] : null, setItem: (key, value) => { local[key] = String(value); } };
   vm.runInNewContext(script, context);
   return { intro, view, welcome, timers };
 }
@@ -60,4 +62,20 @@ test('sessões já vistas ignoram a abertura; movimento reduzido encurta a dura�
   assert.equal(previous.intro.hidden, true);
   assert.equal(previous.timers.length, 0);
   assert.equal(runIntro({ reduced: true }).timers[0].delay, 300);
+});
+
+test('voltar logo depois de o iPhone fechar o app não repete a intro; depois de 3 h ela volta', () => {
+  const now = Date.parse('2026-10-09T05:00:00Z');
+  const local = {};
+  const first = runIntro({ local, now });
+  assert.equal(first.intro.hidden, false, 'primeira abertura mostra a intro');
+  assert.equal(Number(local['pluvia-intro-at']), now);
+  const back = runIntro({ local, now: now + 20 * 60e3 });
+  assert.equal(back.intro.hidden, true, 'nova sessão 20 min depois abre direto');
+  assert.equal(back.timers.length, 0);
+  assert.equal(Number(local['pluvia-intro-at']), now, 'pular não renova o horário da última intro');
+  const later = runIntro({ local, now: now + 3 * 3600e3 + 1 });
+  assert.equal(later.intro.hidden, false, '3 h depois a intro completa volta');
+  const clockBack = runIntro({ local: { 'pluvia-intro-at': String(now + 3600e3) }, now });
+  assert.equal(clockBack.intro.hidden, false, 'relógio que voltou no tempo não esconde a intro para sempre');
 });

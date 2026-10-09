@@ -171,6 +171,10 @@ body.page-hidden :is(.sky-effects,.intro-sky) *::after,
 :is(.sky-effects,.intro-sky)[data-motion="paused"] *,
 :is(.sky-effects,.intro-sky)[data-motion="paused"] *::before,
 :is(.sky-effects,.intro-sky)[data-motion="paused"] *::after { animation-play-state:paused !important; }
+/* Em segundo plano o céu sai da composição (memória das camadas de nuvem/estrela liberada), o que
+   torna o app instalado menos sujeito a ser encerrado pelo iOS. Só visibility: as animações
+   continuam pausadas no mesmo ponto e voltam sem salto. Sem transição, para valer na hora. */
+body.page-hidden :is(.sky-effects,.intro-sky) > * { visibility:hidden !important; transition:none !important; }
 @media(max-width:720px) { .sky-effects .sky-sun { width:84px; } .sky-effects .sky-moon { width:46px; } }
 @media(prefers-reduced-motion:reduce) {
   :is(.sky-effects,.intro-sky) *,
