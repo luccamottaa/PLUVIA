@@ -93,8 +93,8 @@ html,body { background:var(--sky-base); }
    Each 3:1 texture tiles seamlessly in x, so the layer drifts continuously by exactly one tile
    (repeat-x, transform only) and loops without a jump. The near layer drifts faster (parallax).
    No turbulence, canvas loop or animated blur; nodes stay painted so weather changes fade. */
-.sky-clouds { --cloud-height:clamp(440px,min(70vw,113vh),640px); --cloud-tile:calc(var(--cloud-height) * 3); display:block; position:absolute; z-index:2; left:0; width:calc(100% + var(--cloud-tile)); height:var(--cloud-height); top:-60px; background:url("./assets/sky-cloud-veil.webp?v=clouds-4") 0 0 / var(--cloud-tile) 100% repeat-x; opacity:var(--cloud-opacity); filter:var(--cloud-filter); -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); animation:clouds-back 460s linear infinite; animation-delay:-172s; transition:opacity 4s ease,visibility 0s; }
-.sky-clouds-front { top:17%; background-image:url("./assets/sky-cloud-volume.webp?v=clouds-4"); opacity:calc(var(--cloud-opacity) * .48); animation:clouds-front 300s linear infinite; animation-delay:-77s; }
+.sky-clouds { --cloud-height:clamp(440px,min(70vw,113vh),640px); --cloud-tile:calc(var(--cloud-height) * 3); display:block; position:absolute; z-index:2; left:0; width:calc(100% + var(--cloud-tile)); height:var(--cloud-height); top:-60px; background:url("./assets/sky-cloud-veil.webp?v=clouds-5") 0 0 / var(--cloud-tile) 100% repeat-x; opacity:var(--cloud-opacity); filter:var(--cloud-filter); -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); mask-image:linear-gradient(transparent,#000 18%,#000 70%,transparent); animation:clouds-back 460s linear infinite; animation-delay:-172s; transition:opacity 4s ease,visibility 0s; }
+.sky-clouds-front { top:17%; background-image:url("./assets/sky-cloud-volume.webp?v=clouds-5"); opacity:calc(var(--cloud-opacity) * .48); animation:clouds-front 300s linear infinite; animation-delay:-77s; }
 /* Texture alpha carries the real gaps. Fading an entire partially cloudy layer
    makes the celestial disks bleed through even its dense, opaque interiors. */
 :root[data-weather="partly"] .sky-clouds-front { opacity:var(--cloud-opacity); }
@@ -107,13 +107,13 @@ html,body { background:var(--sky-base); }
 :root[data-phase="night"]:is([data-rain="heavy"],[data-weather="storm"]) { --cloud-filter:brightness(.28) sepia(.4) hue-rotate(195deg) saturate(1.15); }
 /* Overcast: the defined veil keeps gaps, so a uniform haze behind its texture (same layer,
    same filter, invisible while drifting) closes the deck; the near masses get denser by day. */
-:root:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"],[data-weather="snow"]) .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-veil.webp?v=clouds-4"),linear-gradient(#f2f5f980,#f2f5f966); }
+:root:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"],[data-weather="snow"]) .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-veil.webp?v=clouds-5"),linear-gradient(#f2f5f980,#f2f5f966); }
 :root[data-phase="day"]:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"]) .sky-clouds-front { opacity:calc(var(--cloud-opacity) * .75); }
 /* Rain decks (moderate/heavy rain and thunderstorms, day and night): a second copy of each
    texture, offset inside the same tile, closes the gaps so the sky reads as a dense deck while it
    drifts. Both copies repeat with the same period, so the one-tile loop stays seamless. */
-:root:is([data-rain="moderate"],[data-rain="heavy"]) .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-veil.webp?v=clouds-4"),url("./assets/sky-cloud-veil.webp?v=clouds-4"),linear-gradient(#c9d0d899,#c9d0d880); background-size:var(--cloud-tile) var(--cloud-height); background-position:0 0,calc(var(--cloud-tile) * .31) calc(var(--cloud-height) * .2),0 0; }
-:root:is([data-rain="moderate"],[data-rain="heavy"]) .sky-clouds-front { background-image:url("./assets/sky-cloud-volume.webp?v=clouds-4"),url("./assets/sky-cloud-volume.webp?v=clouds-4"); background-size:var(--cloud-tile) var(--cloud-height); background-position:0 0,calc(var(--cloud-tile) * .47) calc(var(--cloud-height) * .16); }
+:root:is([data-rain="moderate"],[data-rain="heavy"]) .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-veil.webp?v=clouds-5"),url("./assets/sky-cloud-veil.webp?v=clouds-5"),linear-gradient(#c9d0d899,#c9d0d880); background-size:var(--cloud-tile) var(--cloud-height); background-position:0 0,calc(var(--cloud-tile) * .31) calc(var(--cloud-height) * .2),0 0; }
+:root:is([data-rain="moderate"],[data-rain="heavy"]) .sky-clouds-front { background-image:url("./assets/sky-cloud-volume.webp?v=clouds-5"),url("./assets/sky-cloud-volume.webp?v=clouds-5"); background-size:var(--cloud-tile) var(--cloud-height); background-position:0 0,calc(var(--cloud-tile) * .47) calc(var(--cloud-height) * .16); }
 :root:is([data-rain="moderate"],[data-rain="heavy"]) .sky-effects > .sky-clouds-front { top:6%; }
 :root[data-phase="day"][data-ink="light"] .sky-clouds-front { opacity:var(--cloud-opacity); }
 /* Camadas invisíveis também saem da composição (visibility depois do fade): no iPhone cada uma
