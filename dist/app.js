@@ -228,7 +228,15 @@ function selectInmetAlerts(raw, now = Date.now(), city = activeCity) {
 
 function setAlertState(state) {
   const section = $("alertas");
-  if (section?.dataset) section.dataset.alertState = state;
+  if (!section?.dataset) return;
+  const before = section.dataset.alertState;
+  section.dataset.alertState = state;
+  // A leitura que chega depois (Consultando → avisos/sem avisos) desce no lugar, sem surgir de vez.
+  if (before === "loading" && state !== "loading") settleBlock(section);
+}
+// Bloco que aparece ou muda depois que a página já está à vista desce no lugar (cascata "descendo").
+function settleBlock(node) {
+  if (typeof dropIn === "function" && dropMotion() && node?.dataset?.drop !== "wait" && onScreen(node)) dropIn([node]);
 }
 
 // Faixa no topo para aviso INMET laranja/vermelho vigente na cidade (leitura atual). Leitura anterior,
@@ -671,6 +679,7 @@ function renderTips(list) {
   const section = $("tips"), target = $("tipsList");
   if (!section || !target) return;
   const items = Array.isArray(list) ? list : [];
+  const appearing = section.hidden && items.length > 0;
   section.hidden = items.length === 0;
   if (!items.length) { target.textContent = ""; return; }
   target.replaceChildren(...items.map(tip => {
@@ -684,6 +693,7 @@ function renderTips(list) {
     item.append(icon, text);
     return item;
   }));
+  if (appearing) settleBlock(section);
 }
 
 function setRainAnswer(answer) {
@@ -697,7 +707,9 @@ function setYesterdayNote(comparison) {
   const node = $("yesterdayNote");
   if (!node) return;
   // Sem leitura de ontem, a linha fica vazia (some pelo CSS); nunca inventa "parecida".
+  const appearing = !node.textContent && Boolean(comparison?.text);
   node.textContent = comparison?.text || "";
+  if (appearing) settleBlock(node);
   if (comparison?.tone) node.dataset.tone = comparison.tone; else delete node.dataset.tone;
 }
 
@@ -883,10 +895,13 @@ async function loadWeather(revision = cityRevision) {
     // Optional sources must not hold the first usable forecast behind their timeout.
     if (!displayedWeather || displayedWeather.fromCache) {
       const savedAir = weatherData.cachedAir(cached());
+      const fromSkeleton = $("weatherView")?.classList?.contains?.('initial-loading');
       render(original,savedAir.air,false,0,{airAt:savedAir.at});
       cache({forecast:original,air:savedAir.air},{weatherAt:Date.now(),airAt:savedAir.at});
       globalThis.PLUVIA?.sources.set('weather',{status:'ready',checkedAt:Date.now(),dataAt:cityDate(original.current.time,city).getTime()});
       $("weatherView")?.classList.remove('initial-loading');
+      // Cidade sem nada salvo: os esqueletos viram dados com o mesmo fade do topo e a cascata.
+      if (fromSkeleton) { animateCityText(); dropVisibleBlocks(120); }
       $("weatherView")?.setAttribute('aria-busy','false');
     }
     const [airResult,metResult] = await optional;
@@ -1131,10 +1146,11 @@ function onScreen(node) {
 }
 // Chamado junto com chooseCity (dentro da View Transition, quando há): os blocos da cidade nova à vista
 // descem logo depois do nome, da temperatura, da condição e do "Vai chover?".
-function dropCityContent() {
+function dropVisibleBlocks(delay) {
   if (!dropMotion()) return;
-  dropIn(dropBlocks(DROP_BLOCKS).filter(node => node.dataset.drop !== "wait" && onScreen(node)), 240, 70);
+  dropIn(dropBlocks(DROP_BLOCKS).filter(node => node.dataset.drop !== "wait" && onScreen(node)), delay, 70);
 }
+function dropCityContent() { dropVisibleBlocks(240); }
 document.addEventListener?.("animationend", event => {
   if (event.animationName !== "pluvia-drop" || event.target?.dataset?.drop !== "go") return;
   event.target.removeAttribute("data-drop");

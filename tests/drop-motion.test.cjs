@@ -76,3 +76,18 @@ test('troca de cidade reaproveita a leitura nacional do INMET com menos de 5 min
   assert.match(choose,/if \(!inmetFresh\) \{ lastInmetResponse = null; lastInmetReadAt = 0; \}/);
   assert.match(choose,/if \(inmetFresh\) \{ renderInmetAlerts\(lastInmetResponse\); updateInmetTimestamp\(\); \}\n  else \{[\s\S]*setAlertState\("loading"\);\n  \}/);
 });
+test('dado que chega depois desce no lugar: alertas saindo de "Consultando", dicas e nota de ontem que surgem',()=>{
+  const pick=(start,end)=>app.slice(app.indexOf(start),app.indexOf(end));
+  const source=[pick('function setAlertState(','// Faixa no topo'),pick('function renderTips(','function setRainAnswer('),pick('function setYesterdayNote(','function clearWeatherInsights(')].join('\n');
+  const dropped=[];
+  const els={alertas:{dataset:{alertState:'loading'}},tips:{hidden:true,dataset:{}},tipsList:{replaceChildren(){},set textContent(v){}},yesterdayNote:{textContent:'',dataset:{}}};
+  const ctx={$:id=>els[id],dropIn:list=>dropped.push(...list.map(n=>Object.keys(els).find(k=>els[k]===n))),dropMotion:()=>true,onScreen:()=>true,
+    TIP_ICONS:{},weatherIcons:null,document:{createElement:()=>({dataset:{},setAttribute(){},append(){},className:'',innerHTML:'',textContent:''})}};
+  const api=vm.runInNewContext(`${source}\n({setAlertState,renderTips,setYesterdayNote})`,ctx);
+  api.setAlertState('alerts');api.setAlertState('clear');
+  api.renderTips([{kind:'uv',text:'UV alto'}]);api.renderTips([{kind:'uv',text:'UV alto'}]);
+  api.setYesterdayNote({text:'2° mais quente que ontem'});api.setYesterdayNote({text:'parecida'});
+  assert.deepEqual(dropped,['alertas','tips','yesterdayNote'],'só a primeira chegada de cada bloco desce; atualizações não reanimam');
+  const load=app.slice(app.indexOf('async function loadWeather('),app.indexOf('async function refreshAll('));
+  assert.match(load,/if \(fromSkeleton\) \{ animateCityText\(\); dropVisibleBlocks\(120\); \}/,'cidade sem nada salvo: esqueletos viram dados em cascata');
+});
