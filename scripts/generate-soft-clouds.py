@@ -1,28 +1,24 @@
 """Gera as texturas de nuvem do céu do PLUVIA (arte original, estática).
 
+Estilo pedido pelo usuário a partir do Apple Weather: nuvens macias e esfumadas,
+com fiapos longos no sentido do vento e luz suave de cima, sem contorno recortado.
 As camadas deslizam continuamente na horizontal (repeat-x), então cada textura
-precisa emendar consigo mesma sem costura: tudo é periódico em x.
+emenda consigo mesma sem costura: tudo é periódico em x.
 
-Cada nuvem é um cúmulo montado como união de esferas (um campo de altura 2,5D):
-gomos grandes por dentro, médios e pequenos na superfície (couve-flor), domo
-irregular com torres e base plana levemente recortada. Sobre esse relevo:
+1. massas: ruído espectral 1/f^beta alongado na horizontal, com distorção de
+   domínio para curvas; ondulações médias dão relevo sem granulado;
+2. fiapos: ruído mais fino e muito alongado, deformado pelo mesmo campo, soma
+   detalhe à densidade e à luz (é o que evita o aspecto "embaçado");
+3. densidade por transição larga (borda esfumada) e leve desfoque;
+4. luz: a nuvem logo acima (desfocada e deslocada) acinzenta a base; partes
+   finas ficam mais claras; os fiapos marcam o sombreado;
+5. alfa contínuo de 64 níveis, sem perdas, e cor sem pré-multiplicação em WebP.
 
-1. ondulações de baixa frequência deformam a superfície e o ruído fino só
-   desfia a borda, perto das nuvens (o céu aberto fica limpo e barato);
-2. luz de cima à esquerda pela normal do relevo, absorção da coluna a partir do
-   topo (topo branco, base cinza-azulada), oclusão nas dobras e borda fina mais
-   clara (luz atravessando);
-3. alfa contínuo de 64 níveis, sem perdas, e cor sem pré-multiplicação em WebP.
-
-O volume (frente) traz cúmulos de tamanhos variados com vãos; o véu (fundo) é um
-campo de estratocúmulos baixos e macios, quase encostados, que vira céu fechado
-com as duas cópias e a névoa do CSS em tempo nublado/chuvoso. As duas nuvens do
-perfil "poucas nuvens" (máscara do sky.css) ficam centradas em 39% (véu) e 46%
-(volume) de cada meio tile, a 34% da altura.
-
-Desfoques e derivadas usam vizinhança circular em x (FFT/roll), preservando a
-emenda. Não há canvas, WebGL ou ruído em tempo de execução: o app só exibe os
-arquivos. Uso: python scripts/generate-soft-clouds.py DESTINO_DIR
+O perfil "poucas nuvens" (máscara do sky.css) mostra um banco por meio tile:
+cada camada recebe uma massa macia em 39% (véu) e 46% (volume) do meio tile, a
+34% da altura. Desfoques e derivadas usam vizinhança circular em x (FFT),
+preservando a emenda. Não há canvas, WebGL ou ruído em tempo de execução: o app
+só exibe os arquivos. Uso: python scripts/generate-soft-clouds.py DESTINO_DIR
 """
 import os
 import sys
@@ -78,146 +74,75 @@ def smoothstep(edge0, edge1, value):
 
 
 
-def cluster(rng, cx, cy, width, height, detail=1.0, towers=2):
-    """Puffs (x, y, r, base, top) of one cumulus centred on (cx, cy): rounded dome over a flat base."""
-    base = cy + height * .5
-    phase, freq, skew = rng.uniform(0, 2 * np.pi), rng.uniform(.8, 1.6), rng.uniform(-.35, .35)
-    def profile(u):  # u in [-1, 1]; relative height of the dome with irregular towers
-        v = (u - skew) / (1 + np.sign(u - skew) * skew)
-        dome = np.clip(1 - np.abs(v) ** 1.7, 0, 1) ** .75
-        return dome * (1 + .28 * np.sin(np.pi * u * freq * towers + phase))
-    out = []
-    levels = [(.36, 6, .38), (.22, 16, .72), (.13, 30, .9), (.075, int(55 * detail), .98), (.04, int(70 * detail), 1.02)]
-    for rel_r, count, reach in levels:
-        for _ in range(count):
-            u = rng.uniform(-1, 1) * (1 if reach < .9 else .97)
-            top = profile(u) * height
-            r = height * rel_r * rng.uniform(.75, 1.25) * (.6 + .4 * profile(u))
-            if r < 3: continue
-            y = base - top * reach * rng.uniform(.9, 1.02) + r * .55
-            x = cx + u * width * .5
-            out.append((x, min(y, base - r * .2), r, base, base - height * 1.1))
-    # Fill the lower body so the base is solid and flat.
-    for u in np.linspace(-.8, .8, 6):
-        r = height * .34 * (.6 + .4 * profile(u))
-        out.append((cx + u * width * .48, base - r * .6, r, base, base - height * 1.1))
-    return out
+def sample(field, x, y):
+    x0 = np.floor(x).astype(np.int64); y = np.clip(y, 0, HEIGHT - 1.001); y0 = np.floor(y).astype(np.int64)
+    fx, fy = (x - x0).astype(np.float32), (y - y0).astype(np.float32)
+    x0 %= WIDTH; x1, y1 = (x0 + 1) % WIDTH, y0 + 1
+    top = field[y0, x0] * (1 - fx) + field[y0, x1] * fx
+    bot = field[y1, x0] * (1 - fx) + field[y1, x1] * fx
+    return top * (1 - fy) + bot * fy
 
 
-def render(puffs, noise, *, soften=0.0, fray=.6, edge=10.0, erosion=9.0, base_soft=6.0, alpha_max=1.0, light_dir=(-.35, -.8, .5),
-           bright=(255, 254, 250), shadow=(124, 139, 168), absorb=.9, ao=.45, wrap=.35):
-    height = np.zeros((HEIGHT, WIDTH), np.float32)
-    base_map = np.full((HEIGHT, WIDTH), np.nan, np.float32)
-    span_map = np.ones((HEIGHT, WIDTH), np.float32)
-    ys = np.arange(HEIGHT, dtype=np.float32)[:, None]
-    for x, y, r, base, top in puffs:
-        x0, x1 = int(np.floor(x - r)) - 1, int(np.ceil(x + r)) + 2
-        y0, y1 = max(0, int(y - r) - 1), min(HEIGHT, int(y + r) + 2)
-        if y1 <= y0: continue
-        cols = np.arange(x0, x1) % WIDTH
-        dx = (np.arange(x0, x1, dtype=np.float32) - x)[None, :]
-        dy = ys[y0:y1] - y
-        z = np.sqrt(np.clip(r * r - dx * dx - dy * dy, 0, None)) + r * .15 * (r / 40) ** .3
-        z = np.where(dx * dx + dy * dy < r * r, z, 0)
-        sub = height[y0:y1][:, cols]
-        win = z > sub
-        sub = np.where(win, z, sub)
-        height[y0:y1, cols] = sub
-        bsub = base_map[y0:y1][:, cols]; ssub = span_map[y0:y1][:, cols]
-        base_map[y0:y1, cols] = np.where(win, base, bsub)
-        span_map[y0:y1, cols] = np.where(win, base - top, ssub)
-    # Pixels just outside every puff take the base of the nearest cloud, so the flat cut also
-    # trims the frayed rim below it (otherwise faint rings outline the lower puffs).
-    occ = (height > 0).astype(np.float32)
-    known = np.nan_to_num(base_map, nan=0)
-    filled = blur(known * occ, 10) / np.maximum(blur(occ, 10), 1e-4)
-    base_map = np.where(occ > 0, known, np.where(blur(occ, 10) > 1e-3, filled, HEIGHT)).astype(np.float32)
-    known_span = np.where(occ > 0, span_map, 0)
-    span_map = np.where(occ > 0, span_map, blur(known_span, 10) / np.maximum(blur(occ, 10), 1e-4)).astype(np.float32)
-    # Billows (low-frequency) shape the surface; fine noise only frays the edge. Far from any puff
-    # nothing passes the threshold, so the open sky stays clean (and cheap to compress).
-    mid, fine = noise
-    w = np.clip(blur(height, 4) / 6, 0, 1)          # 0 in open sky: no rings, no specks
-    surf = height + erosion * mid * w               # billows shape the surface (and the light)
-    cut = smoothstep(base_soft, -base_soft * .4, ys - base_map + 5 * mid)
-    alpha = smoothstep(0, edge, surf + edge * fray * fine * w) * cut
-    if soften: alpha = np.clip(blur(alpha, soften), 0, 1)
-    # Lighting: billow normals + beer-lambert from the top of the column + ambient occlusion.
-    hs = blur(surf, 1.4)
-    gx = (np.roll(hs, -1, 1) - np.roll(hs, 1, 1)) * .5
-    gy = (np.roll(hs, -1, 0) - np.roll(hs, 1, 0)) * .5
-    n = np.stack([-gx, -gy, np.ones_like(gx)], -1)
-    n /= np.linalg.norm(n, axis=-1, keepdims=True)
-    L = np.array(light_dir, np.float32); L /= np.linalg.norm(L)
-    diffuse = np.clip(((n @ L) + wrap) / (1 + wrap), 0, 1)
-    depth = np.cumsum(alpha, axis=0)
-    rel_base = np.clip((base_map - ys) / np.maximum(span_map * .45, 12), 0, 1)
-    column = np.exp(-absorb * depth / np.maximum(span_map, 20))
-    occl = np.clip((blur(hs, 10) - hs) / 25, 0, 1)
-    light = .38 * diffuse + .3 * column + .32 * rel_base ** .7 - ao * occl
-    light = np.clip(light + .18 * (1 - alpha), 0, 1)  # thin edges glow
-    light = blur(light, .8)
+def envelope(points):
+    rows = np.linspace(0, 1, HEIGHT)
+    return np.interp(rows, [p for p, _ in points], [v for _, v in points])[:, None].astype(np.float32)
+
+
+def soft_layer(seed, *, few_x=None, beta, stretch, masses, warp, low, high, wisp, wisp_stretch, env, alpha_max,
+               bright=(252, 253, 255), shadow=(146, 162, 190), lift=.9, streak=.12):
+    rng = np.random.default_rng(seed)
+    base = spectral_noise(rng, beta, stretch, masses)
+    wx = spectral_noise(rng, beta + .2, stretch)
+    wy = spectral_noise(rng, beta + .2, stretch)
+    ys, xs = np.mgrid[0:HEIGHT, 0:WIDTH].astype(np.float32)
+    shape = sample(base, xs + warp * wx, ys + warp * .35 * wy)
+    shape = (shape - shape.mean()) / shape.std()
+    # Fine streaks: long, thin fibres stretched along the wind; they modulate density and light.
+    fib = spectral_noise(rng, 2.5, wisp_stretch)
+    fib = sample(fib, xs + warp * .6 * wx, ys + warp * .25 * wy)
+    fib = np.tanh(fib * .7)
+    mid = np.tanh(spectral_noise(rng, 2.9, stretch * .8) * .8)
+    value = shape * .82 + mid * .35 + fib * wisp
+    value = value * 1.0 + 3.2 * (env - 1)
+    if few_x is not None:
+        # The "few clouds" mask (sky.css) shows one bank per half tile at few_x, 34% of the height:
+        # a soft mass there, so the revealed cloud is whole and dense.
+        for cx in (few_x * WIDTH / 2, WIDTH / 2 + few_x * WIDTH / 2):
+            dx = ((xs - cx + WIDTH / 2) % WIDTH) - WIDTH / 2
+            value += 1.6 * np.exp(-(dx / 170) ** 2 - ((ys - .34 * HEIGHT) / 70) ** 2)
+    density = np.clip(blur(smoothstep(low, high, value), 2.2), 0, 1)   # wide transition: soft, smoky edges
+    # Soft top light: brighter where the cloud is thin above (lit from the sky), greyer underneath.
+    above = blur(density, 18, 26)
+    shift = 24
+    above = np.vstack([np.zeros((shift, WIDTH), np.float32), above[:-shift]])
+    light = 1 - lift * .55 * above
+    light += streak * fib                           # streak detail in the shading
+    light += .22 * (1 - density)                    # thin parts glow
+    light = np.clip(blur(light, 2.0), 0, 1)
     b, s = np.array(bright, np.float32), np.array(shadow, np.float32)
     rgb = s + (b - s) * light[..., None]
-    a = np.clip(alpha * alpha_max, 0, 1)
+    a = np.clip(density * alpha_max, 0, 1)
     rgb[a <= 0] = b
     step = 1 / (ALPHA_LEVELS - 1)
     a = np.round(a / step) * step
     return Image.fromarray(np.dstack([rgb, a * 255]).round().clip(0, 255).astype(np.uint8), 'RGBA')
 
 
-def fine_noise(rng, beta=1.6, mid_beta=3.0):
-    mid = np.tanh(spectral_noise(rng, mid_beta, 1.0) * .8)
-    fine = np.tanh(spectral_noise(rng, beta, 1.0) * .9)
-    return mid, fine
-
-
-def volume(seed=29):
-    rng = np.random.default_rng(seed)
-    puffs = []
-    # Two clusters that the "few clouds" mask reveals: 46% of each half tile, 34% of the height.
-    few = (.46 * WIDTH / 2, WIDTH / 2 + .46 * WIDTH / 2)
-    for cx in few:
-        puffs += cluster(rng, cx, .34 * HEIGHT, rng.uniform(300, 360), rng.uniform(150, 180))
-    # Cumulus field: varied sizes, two loose rows, gaps between masses.
-    for i in range(12):
-        cx = (i + rng.uniform(.15, .85)) * WIDTH / 12
-        if min(abs(cx - f) for f in few) < 220: continue
-        big = rng.random() < .35
-        w, h = (rng.uniform(260, 380), rng.uniform(110, 160)) if big else (rng.uniform(120, 230), rng.uniform(50, 95))
-        cy = rng.uniform(.36, .6) * HEIGHT if big else rng.uniform(.2, .66) * HEIGHT
-        puffs += cluster(rng, cx, cy, w, h)
-    return render(puffs, fine_noise(rng), soften=1.0, fray=.35, erosion=10, edge=9, base_soft=9)
-
-
-def veil(seed=11):
-    """Distant stratocumulus deck: rows of flat lumpy clusters that almost touch, so overcast and
-    rain (two offset copies plus a haze behind) read as a closed sky, with gaps in partly cloudy."""
-    rng = np.random.default_rng(seed)
-    puffs = []
-    for cx in (.39 * WIDTH / 2, WIDTH / 2 + .39 * WIDTH / 2):
-        puffs += cluster(rng, cx, .34 * HEIGHT, rng.uniform(380, 440), rng.uniform(110, 130), detail=.7, towers=3)
-    for row, (y, n) in enumerate(((.16, 11), (.27, 13), (.4, 12), (.53, 13), (.66, 11), (.78, 9))):
-        offset = rng.uniform(0, 1)
-        for i in range(n):
-            cx = (i + offset + rng.uniform(-.2, .2)) * WIDTH / n
-            cy = (y + rng.uniform(-.035, .035)) * HEIGHT
-            if abs(cy - .34 * HEIGHT) < 90 and min(abs(cx - .39 * WIDTH / 2), abs(cx - (WIDTH / 2 + .39 * WIDTH / 2))) < 240: continue
-            if rng.random() < .22: continue
-            puffs += cluster(rng, cx, cy, rng.uniform(170, 300), rng.uniform(42, 78), detail=.55, towers=3)
-    return render(puffs, fine_noise(rng, 1.7, 3.2), soften=3.0, fray=.3, edge=30, erosion=20, base_soft=22,
-                  alpha_max=.9, shadow=(166, 178, 202), absorb=.6, ao=.3)
-
-
-LAYERS = {'sky-cloud-veil': veil, 'sky-cloud-volume': volume}
-
+LAYERS = {
+    'sky-cloud-veil': dict(seed=11, beta=3.3, stretch=3.2, masses=4, warp=70, low=-.7, high=1.4, wisp=.3, wisp_stretch=6.0,
+                           env=((0, .55), (.12, 1), (.7, 1), (.9, .7), (1, .4)), alpha_max=.92, shadow=(158, 172, 198), lift=.8, few_x=.39, streak=.14),
+    'sky-cloud-volume': dict(seed=29, beta=3.4, stretch=2.2, masses=5, warp=50, low=-.2, high=1.5, wisp=.25, wisp_stretch=5.0,
+                             env=((0, .3), (.12, .85), (.35, 1), (.85, 1), (1, .7)), alpha_max=.97, shadow=(136, 152, 182), lift=1.0, few_x=.46, streak=.12),
+}
 
 def main(target_dir):
     os.makedirs(target_dir, exist_ok=True)
     total = 0
-    for name, build in LAYERS.items():
+    for name, options in LAYERS.items():
+        options = dict(options)
+        options['env'] = envelope(options['env'])
         path = os.path.join(target_dir, name + '.webp')
-        build().save(path, 'WEBP', quality=QUALITY, method=6, alpha_quality=100)
+        soft_layer(**options).save(path, 'WEBP', quality=QUALITY, method=6, alpha_quality=100)
         size = os.path.getsize(path) / 1024
         total += size
         print(f'{name}: {WIDTH}x{HEIGHT}, {size:.1f} KiB')

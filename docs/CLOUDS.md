@@ -87,19 +87,17 @@ Pedido do usuário: nuvens de chuva escuras. As mesmas duas texturas recebem fil
 
 O usuário achou o deslizamento rápido demais e pediu que a velocidade acompanhasse o vento. As durações de referência passaram a 460s (véu) e 300s (volume) por tile, valendo para 10 km/h. `sky-atmosphere` recebe o vento atual (`wind_speed_10m`, também da previsão salva na abertura) e aplica `cloudRate` como `playbackRate` nas animações `clouds-*` das duas cenas: 0,4× com ar parado, 1× em 10 km/h e até 2,4× a partir de 33 km/h. `playbackRate` preserva a posição atual, então uma nova leitura muda o ritmo sem pular; a aplicação ocorre no relógio de 30s já existente (sem timer) e alcança animações criadas depois que a folha carrega. Leitura ausente ou inválida volta a 1×: ausência não é calmaria. A direção do vento não é usada; as nuvens continuam indo para a esquerda. É decoração qualitativa, não a velocidade real das nuvens em altitude.
 
-## Cúmulos realistas (outubro/2026)
+## Nuvens macias, estilo Apple Weather (outubro/2026)
 
-O usuário pediu nuvens "bonitas e realistas". As anteriores vinham de ruído espectral com limiar: manchas chapadas, acinzentadas e quebradas em muitos fiapos. `scripts/generate-soft-clouds.py` foi reescrito:
+O usuário pediu nuvens "bonitas e realistas" e mandou como referência um print do Apple Weather nublado: céu macio, esfumado, com fiapos longos e degradês suaves de branco e cinza. Uma tentativa intermediária com cúmulos de contorno definido (esferas iluminadas) foi descartada por não corresponder a essa referência. `scripts/generate-soft-clouds.py` foi reescrito:
 
-- **Forma:** cada nuvem é um cúmulo montado como união de esferas (campo de altura 2,5D). Gomos grandes ficam por dentro; médios, pequenos e mínimos ficam na superfície (couve-flor). O domo é irregular (torres, inclinação) sobre uma base plana levemente recortada.
-- **Luz:** a normal do relevo recebe luz de cima à esquerda (difusa com "wrap"). Somam-se a absorção da coluna a partir do topo (topo branco, base cinza-azulada), a oclusão nas dobras e a borda fina um pouco mais clara.
-- **Borda:** ondulações de baixa frequência deformam a superfície. Ruído fino só desfia a borda, e só perto das nuvens, então o céu aberto fica limpo (sem pontos, anéis ou contornos fantasmas).
-- **Camadas:**
-  - Volume (frente): cúmulos de tamanhos variados com vãos.
-  - Véu (fundo): um campo de estratocúmulos baixos e macios, quase encostados. Com a segunda cópia e a névoa do CSS em tempo nublado/chuvoso, vira céu fechado.
-  - As duas nuvens do perfil "poucas nuvens" continuam centradas em 39% (véu) e 46% (volume) de cada meio tile, a 34% da altura, inteiras dentro da máscara.
+- **Massas:** ruído espectral alongado na horizontal, com distorção de domínio. Ondulações médias de baixa frequência dão relevo sem granulado.
+- **Fiapos:** ruído mais fino e bem alongado, deformado pelo mesmo campo, entra na densidade e na luz. É o detalhe que distingue estas nuvens da versão antiga, "embaçada".
+- **Borda:** transição larga, com leve desfoque: esfumada, sem recorte.
+- **Luz:** a nuvem logo acima (desfocada e deslocada) acinzenta a base, e as partes finas ficam mais claras. Os tons de cinza são frios, sem puxar para o bege.
+- **"Poucas nuvens":** cada camada recebe uma massa macia em 39% (véu) e 46% (volume) de cada meio tile, a 34% da altura, onde a máscara do CSS revela os bancos.
 - **Mantidos:** emenda periódica em x, alfa sem perdas de 64 níveis, 2100 × 700, mesmas regras de CSS, filtros por condição, noite e movimento.
-- **Tamanho:** véu 135,5KiB + volume 44,1KiB = 179,6KiB (antes 343,3KiB).
+- **Tamanho:** véu 171,9KiB + volume 136,2KiB = 308,1KiB (antes 343,3KiB).
 - **Versão:** URLs `?v=clouds-5`.
 
-Continua sendo decoração qualitativa: não é foto, não representa a nebulosidade observada e não usa nenhum asset de terceiros.
+Continua sendo decoração qualitativa: arte original gerada, não foto, sem asset da Apple, e não representa a nebulosidade observada.
