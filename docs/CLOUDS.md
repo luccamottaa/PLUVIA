@@ -86,3 +86,38 @@ Pedido do usuário: nuvens de chuva escuras. As mesmas duas texturas recebem fil
 ## Velocidade pelo vento (outubro/2026)
 
 O usuário achou o deslizamento rápido demais e pediu que a velocidade acompanhasse o vento. As durações de referência passaram a 460s (véu) e 300s (volume) por tile, valendo para 10 km/h. `sky-atmosphere` recebe o vento atual (`wind_speed_10m`, também da previsão salva na abertura) e aplica `cloudRate` como `playbackRate` nas animações `clouds-*` das duas cenas: 0,4× com ar parado, 1× em 10 km/h e até 2,4× a partir de 33 km/h. `playbackRate` preserva a posição atual, então uma nova leitura muda o ritmo sem pular; a aplicação ocorre no relógio de 30s já existente (sem timer) e alcança animações criadas depois que a folha carrega. Leitura ausente ou inválida volta a 1×: ausência não é calmaria. A direção do vento não é usada; as nuvens continuam indo para a esquerda. É decoração qualitativa, não a velocidade real das nuvens em altitude.
+
+## Nuvens macias, estilo Apple Weather (outubro/2026)
+
+O usuário pediu nuvens "bonitas e realistas" e mandou como referência um print do Apple Weather nublado: céu macio, esfumado, com fiapos longos e degradês suaves de branco e cinza. Uma tentativa intermediária com cúmulos de contorno definido (esferas iluminadas) foi descartada por não corresponder a essa referência. `scripts/generate-soft-clouds.py` foi reescrito:
+
+- **Massas:** ruído espectral alongado na horizontal, com distorção de domínio. Ondulações médias de baixa frequência dão relevo sem granulado.
+- **Fiapos:** ruído mais fino e bem alongado, deformado pelo mesmo campo, entra na densidade e na luz. É o detalhe que distingue estas nuvens da versão antiga, "embaçada".
+- **Borda:** transição larga, com leve desfoque: esfumada, sem recorte.
+- **Luz:** a nuvem logo acima (desfocada e deslocada) acinzenta a base, e as partes finas ficam mais claras. Os tons de cinza são frios, sem puxar para o bege.
+- **"Poucas nuvens":** cada camada recebe uma massa macia em 39% (véu) e 46% (volume) de cada meio tile, a 34% da altura, onde a máscara do CSS revela os bancos.
+- **Mantidos:** emenda periódica em x, alfa sem perdas de 64 níveis, mesmas regras de CSS, filtros por condição, noite e movimento.
+- **Tamanho de arquivo:** 2112 × 704 (3:1 e múltiplo de 16). Com 2100 × 700 o último bloco de 16 px do WebP era parcial, e a última coluna saía da compressão diferente da primeira (degrau na emenda, medido por `verify-clouds.py`).
+- **Tamanho:** véu 136,4KiB + volume 109,0KiB = 245,4KiB no precache (antes 343,3KiB).
+- **Céu ao redor:** em volta de cada banco do perfil "poucas nuvens", o céu é limpo, para a máscara mostrar uma nuvem só (a cobertura medida pelo QA fica abaixo de 25% mesmo em 2560 × 1080).
+- **Versão:** URLs `?v=clouds-5`.
+
+Continua sendo decoração qualitativa: arte original gerada, não foto, sem asset da Apple, e não representa a nebulosidade observada.
+
+## Nuvens para cada condição (outubro/2026)
+
+Pedido do usuário: nuvens próprias para todas as condições com nuvem, em vez das mesmas duas texturas escurecidas por filtro. O gerador produz mais quatro texturas no mesmo estilo macio:
+
+| Textura | Condições | Desenho |
+| --- | --- | --- |
+| `sky-cloud-overcast.webp` | nublado (WMO 3), neve | estrato contínuo, relevo suave e fiapos, quase sem aberturas |
+| `sky-cloud-rain.webp` | garoa e chuva | nimbostrato mais denso, base mais escura, fragmentos macios |
+| `sky-cloud-storm.webp` | trovoada | teto pesado, bolsões e mais contraste, sem brilho nas aberturas |
+| `sky-cloud-fog.webp` | neblina | faixas baixas horizontais, translúcidas, nas duas camadas (deslocadas) |
+
+- **Onde entram:** substituem o véu na camada de fundo. A camada da frente continua com o volume, e a névoa uniforme atrás continua fechando o céu.
+- **Chuva moderada/forte e trovoada:** usam duas cópias deslocadas, como antes.
+- **Céu de fundo:** os filtros por condição, a noite e o teto escuro (`data-ink`) não mudaram.
+- **Download sob demanda:** as quatro ficam em 1584 × 528, entre 50 e 100KiB cada, **fora do precache**. O navegador só as baixa quando aquele céu aparece, e o SW as guarda no cache em tempo de execução.
+- **Offline:** no primeiro dia de uma condição, sem rede, aparece só a névoa da condição atrás do volume, até haver conexão.
+- **Testes:** `cache-contract` confere que as quatro existem, são usadas pelo CSS, ficam fora do precache e têm menos de 128KiB. `verify-clouds.py` confere emenda e alfa de todas as seis texturas.
