@@ -239,12 +239,13 @@ function settleBlock(node) {
   if (typeof dropIn === "function" && dropMotion() && node?.dataset?.drop !== "wait" && onScreen(node)) dropIn([node]);
 }
 
-// Faixa no topo para aviso INMET laranja/vermelho vigente na cidade (leitura atual). Leitura anterior,
+// Faixa no topo para aviso INMET vigente na cidade (leitura atual): amarelo numa versão discreta,
+// laranja/vermelho em destaque. Severidade desconhecida não sobe. Leitura anterior,
 // falha ou aviso só previsto nunca aparecem aqui; o card completo continua na seção de alertas.
 function setAlertBanner(item = null, index = -1) {
   const banner = $("alertBanner");
   if (typeof banner?.setAttribute !== "function" || typeof banner.removeAttribute !== "function") return;
-  const show = Boolean(item) && item.severity?.rank >= 2, appearing = show && banner.hidden;
+  const show = Boolean(item) && item.severity?.rank >= 1, appearing = show && banner.hidden;
   banner.hidden = !show;
   // A faixa que chega depois da troca (leitura nova do INMET) desce no lugar em vez de surgir de vez.
   if (appearing && typeof dropIn === "function" && dropMotion()) dropIn([banner]);
