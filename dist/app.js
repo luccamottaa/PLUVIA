@@ -66,8 +66,21 @@ const weather = code => [weatherIcons?.condition(code).label || "Tempo variável
 function updateSolarAtmosphere(now = Date.now()) {
   return globalThis.PLUVIA?.sky?.update(now);
 }
+// Céu entre cidades (captureSky/fadeSky): toda aplicação de um céu diferente (outra cidade, ou a
+// previsão chegando depois da troca) passa pela cópia que some. A abertura não: o primeiro céu real
+// só aparece depois que algum já foi mostrado. Uma cópia recém-criada (cidade com previsão salva:
+// céu neutro e logo em seguida o real) continua valendo, com o céu da cidade anterior.
+let skyApplied = null, skyShown = false;
 function applyWeatherAtmosphere(code, isDay, daily = null, wind = null) {
-  return globalThis.PLUVIA?.sky?.apply(code, isDay, daily, activeCity, undefined, wind);
+  const id = activeCity?.id ?? null;
+  const same = skyApplied && skyApplied.id === id && skyApplied.code === code && skyApplied.isDay === isDay;
+  const fresh = Date.now() - Number(document.querySelector?.(".night-stage > .sky-fade")?.dataset?.at || 0) < 400;
+  const old = skyShown && !same && !fresh ? captureSky() : null;
+  skyApplied = {id, code, isDay};
+  if (code !== null && code !== undefined) skyShown = true;
+  const atmosphere = globalThis.PLUVIA?.sky?.apply(code, isDay, daily, activeCity, undefined, wind);
+  fadeSky(old);
+  return atmosphere;
 }
 
 function weatherIconSvg(code, isDay = true) {
@@ -1208,46 +1221,123 @@ function renderCityDots() {
     return dot;
   }));
 }
-// Céu entre cidades (dia → noite, pôr do sol → noite): antes da troca, uma cópia leve do céu antigo
-// (degradê, cor de base e luz do crepúsculo, sem nuvens/astros) vira uma camada do tamanho da tela,
-// acima do céu novo e abaixo do conteúdo, que some em ~1 s. Só quando o céu muda de fato; fora da
-// View Transition (que desenharia o céu por cima das seções). Uma camada temporária, removida no fim.
+// Céu entre cidades: antes de o céu mudar (troca de cidade, ou a previsão da cidade nova chegando),
+// uma cópia do céu antigo vira uma camada do tamanho da tela, acima do céu novo e abaixo do conteúdo,
+// que some em ~1 s. A cópia leva o degradê, a cor de base, a luz do crepúsculo, as duas camadas de
+// nuvens (paradas na posição em que estavam) e o Sol ou a Lua. Tudo é pintado dentro dessa única
+// camada: as cópias não têm transform, animação nem will-change, então não viram camadas próprias.
+// Só quando o céu muda de fato (estado da raiz, ou o Sol/Lua noutra posição); fora da View Transition
+// (que desenharia o céu por cima das seções). Removida no fim.
 const SKY_KEYS = ["phase", "solar", "weather", "clouds", "rain"];
+const SKY_ORBITS = {sun:["--sun-orbit-x", "--sun-orbit-y"], moon:["--moon-orbit-x", "--moon-orbit-y"]};
 function skyKey() {
   const data = document.documentElement?.dataset || {};
   return SKY_KEYS.map(key => data[key] || "").join("|");
 }
+function skyOrbit(kind) {
+  const style = document.querySelector?.(".sky-effects")?.style;
+  return SKY_ORBITS[kind].map(key => parseFloat(style?.getPropertyValue?.(key)));
+}
+// Deslocamento de um transform calculado (matrix/matrix3d), para a cópia usar left/top em vez de transform.
+function skyShift(transform) {
+  const match = /^matrix(3d)?\(([^)]+)\)/.exec(transform || "");
+  if (!match) return [0, 0];
+  const values = match[2].split(",").map(Number);
+  const [x, y] = match[1] ? [values[12], values[13]] : [values[4], values[5]];
+  return [Number.isFinite(x) ? x : 0, Number.isFinite(y) ? y : 0];
+}
 function captureSky() {
-  if (globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return null;
+  if (globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches || document.hidden) return null;
+  if (document.querySelector?.(".pluvia-intro:not([hidden])")) return null;
   const stage = document.querySelector?.(".night-stage"), twilight = document.querySelector?.(".sky-twilight-page");
   const read = globalThis.getComputedStyle;
   if (!stage || typeof read !== "function") return null;
   const before = read(stage, "::before"), rootStyle = read(document.documentElement);
   const top = (stage.getBoundingClientRect?.().top || 0) + (before.position === "fixed" ? 0 : parseFloat(before.top) || 0);
   const tw = twilight ? read(twilight) : null;
+  const effects = stage.querySelector?.(".sky-effects");
+  let scene = null;
+  if (effects) {
+    const box = effects.getBoundingClientRect?.() || {}, look = read(effects), layers = [];
+    for (const node of effects.querySelectorAll?.(".sky-clouds,.sky-sun,.sky-moon") || []) {
+      const style = read(node);
+      if (style.display === "none" || style.visibility === "hidden" || !(parseFloat(style.opacity) > 0)) continue;
+      const kind = node.classList?.contains("sky-clouds") ? "clouds" : node.classList?.contains("sky-sun") ? "sun" : "moon";
+      const [x, y] = skyShift(style.transform);
+      const layer = {kind, left:(node.offsetLeft || 0) + x, top:(node.offsetTop || 0) + y, width:node.offsetWidth || 0, height:node.offsetHeight || 0,
+        opacity:style.opacity, z:style.zIndex};
+      if (kind === "clouds") Object.assign(layer, {image:style.backgroundImage, size:style.backgroundSize, position:style.backgroundPosition,
+        repeat:style.backgroundRepeat, filter:style.filter, mask:style.maskImage || style.webkitMaskImage || "none",
+        maskSize:style.maskSize || style.webkitMaskSize, maskPosition:style.maskPosition || style.webkitMaskPosition, maskRepeat:style.maskRepeat || style.webkitMaskRepeat});
+      else Object.assign(layer, {node, orbit:skyOrbit(kind), vars:["--twilight-opacity", "--moon-light"].map(key => [key, style.getPropertyValue?.(key)?.trim()])});
+      layers.push(layer);
+    }
+    scene = {top:box.top || 0, left:box.left || 0, width:box.width || 0, height:box.height || 0, mask:look.maskImage || look.webkitMaskImage || "none", layers};
+  }
   return {key:skyKey(), base:rootStyle.getPropertyValue("--sky-base").trim(),
     gradient:{image:before.backgroundImage, fixed:before.position === "fixed", top, height:parseFloat(before.height) || 0, mask:before.maskImage || before.webkitMaskImage || "none"},
-    twilight:tw ? {image:tw.backgroundImage, opacity:tw.opacity} : null};
+    twilight:tw ? {image:tw.backgroundImage, opacity:tw.opacity} : null, scene};
+}
+// Mesmo estado e Sol/Lua no mesmo lugar (até 2% do arco): nada a suavizar, nenhuma camada.
+function skyChanged(old) {
+  if (old.key !== skyKey()) return true;
+  return (old.scene?.layers || []).some(layer => layer.orbit && skyOrbit(layer.kind).some((value, i) =>
+    Number.isFinite(value) && Number.isFinite(layer.orbit[i]) && Math.abs(value - layer.orbit[i]) > .02));
+}
+function setMask(style, mask, {maskSize, maskPosition, maskRepeat} = {}) {
+  if (!mask || mask === "none") return;
+  style.maskImage = mask; style.webkitMaskImage = mask;
+  for (const [key, value] of [["Size", maskSize], ["Position", maskPosition], ["Repeat", maskRepeat]]) {
+    if (value) { style[`mask${key}`] = value; style[`webkitMask${key}`] = value; }
+  }
+}
+function skyCopy(layer) {
+  let copy;
+  if (layer.kind === "clouds") {
+    copy = document.createElement("div");
+    Object.assign(copy.style, {backgroundImage:layer.image, backgroundSize:layer.size, backgroundPosition:layer.position, backgroundRepeat:layer.repeat});
+    if (layer.filter && layer.filter !== "none") copy.style.filter = layer.filter;
+    setMask(copy.style, layer.mask, layer);
+  } else {
+    copy = layer.node.cloneNode(true);
+    copy.removeAttribute?.("style");
+    Object.assign(copy.style, {display:"block", transform:"none", transition:"none"});
+    for (const [key, value] of layer.vars) if (value) copy.style.setProperty?.(key, value);
+  }
+  Object.assign(copy.style, {position:"absolute", left:`${layer.left}px`, top:`${layer.top}px`, width:`${layer.width}px`, height:`${layer.height}px`,
+    opacity:layer.opacity, animation:"none"});
+  if (layer.z && layer.z !== "auto") copy.style.zIndex = layer.z;
+  return copy;
 }
 function fadeSky(old) {
-  if (!old || old.key === skyKey()) return;
+  if (!old || !skyChanged(old)) return;
   const stage = document.querySelector(".night-stage"), effects = stage?.querySelector(".sky-effects");
   if (!stage || !effects) return;
   stage.querySelector(".sky-fade")?.remove();
   const veil = document.createElement("div");
   veil.className = "sky-fade";
   veil.setAttribute("aria-hidden", "true");
+  veil.dataset.at = String(Date.now());
   if (old.base) veil.style.backgroundColor = old.base;
   const gradient = document.createElement("span"), g = old.gradient;
   gradient.style.backgroundImage = g.image;
   if (g.fixed) gradient.style.inset = "0";
   else { gradient.style.top = `${g.top}px`; gradient.style.height = `${g.height}px`; }
-  if (g.mask && g.mask !== "none") { gradient.style.maskImage = g.mask; gradient.style.webkitMaskImage = g.mask; }
+  setMask(gradient.style, g.mask);
   veil.append(gradient);
   if (old.twilight && old.twilight.image !== "none" && Number(old.twilight.opacity) > 0) {
     const glow = document.createElement("span");
     glow.style.backgroundImage = old.twilight.image; glow.style.opacity = old.twilight.opacity; glow.style.inset = "0";
     veil.append(glow);
+  }
+  const scene = old.scene;
+  if (scene?.layers.length) {
+    const box = document.createElement("div");
+    box.className = "sky-fade-scene";
+    Object.assign(box.style, {top:`${scene.top}px`, left:`${scene.left}px`, width:`${scene.width}px`, height:`${scene.height}px`});
+    setMask(box.style, scene.mask);
+    box.append(...scene.layers.map(skyCopy));
+    veil.append(box);
   }
   veil.addEventListener("animationend", () => veil.remove(), {once:true});
   setTimeout(() => veil.remove(), 2000);
@@ -1289,14 +1379,13 @@ function slideToCity(id, direction) {
   const root = document.documentElement;
   const canSlide = typeof document.startViewTransition === "function" &&
     !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  const sky = captureSky();
-  if (!canSlide) { chooseCity(id); fadeSky(sky); animateCityText(); dropCityContent(); return; }
+  if (!canSlide) { chooseCity(id); animateCityText(); dropCityContent(); return; }
   root.dataset.citySlide = direction > 0 ? "next" : "prev";
   try {
-    const transition = document.startViewTransition(() => { chooseCity(id); fadeSky(sky); dropCityContent(); });
+    const transition = document.startViewTransition(() => { chooseCity(id); dropCityContent(); });
     transition.updateCallbackDone?.catch(() => {});
     transition.finished.catch(() => {}).finally(() => { delete root.dataset.citySlide; });
-  } catch { delete root.dataset.citySlide; chooseCity(id); fadeSky(sky); dropCityContent(); }
+  } catch { delete root.dataset.citySlide; chooseCity(id); dropCityContent(); }
 }
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
