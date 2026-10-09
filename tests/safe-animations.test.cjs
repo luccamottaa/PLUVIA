@@ -38,21 +38,21 @@ function slide({api=true,reduced=false}={}){
   const root={dataset,hasAttribute:()=>false};
   const document={documentElement:root};
   if(api) document.startViewTransition=cb=>{calls.push(['start',{...dataset}]);cb();return {updateCallbackDone:Promise.resolve(),finished:new Promise(r=>{finish=r;})};};
-  const ctx={document,globalThis:{matchMedia:()=>({matches:reduced})},chooseCity:id=>calls.push(['choose',id]),animateCityText:()=>calls.push(['fade']),dropCityContent:()=>calls.push(['drop'])};
+  const ctx={document,globalThis:{matchMedia:()=>({matches:reduced})},chooseCity:id=>calls.push(['choose',id]),animateCityText:()=>calls.push(['fade']),dropCityContent:()=>calls.push(['drop']),captureSky:()=>({key:'old'}),fadeSky:sky=>calls.push(['sky',sky.key])};
   const {slideToCity}=vm.runInNewContext(`${slideSource}\n({slideToCity})`,ctx);
   return {slideToCity,calls,dataset,finish:()=>finish?.()};
 }
 test('troca de cidade desliza por View Transition e cai no fade sem a API ou em reduced-motion',async()=>{
   const s=slide();
   s.slideToCity('1501402',1);
-  assert.deepEqual(s.calls,[['start',{citySlide:'next'}],['choose','1501402'],['drop']],'a troca e a cascata acontecem dentro da transição, com a direção do gesto');
+  assert.deepEqual(s.calls,[['start',{citySlide:'next'}],['choose','1501402'],['sky','old'],['drop']],'a troca, o céu e a cascata acontecem dentro da transição, com a direção do gesto');
   s.finish();await new Promise(r=>setTimeout(r,0));
   assert.equal(s.dataset.citySlide,undefined,'os nomes da transição saem depois dela');
   const back=slide();back.slideToCity('x',-1);
   assert.equal(back.calls[0][1].citySlide,'prev');
   for(const opts of [{api:false},{reduced:true}]){
     const f=slide(opts);f.slideToCity('y',1);
-    assert.deepEqual(f.calls,[['choose','y'],['fade'],['drop']],JSON.stringify(opts));
+    assert.deepEqual(f.calls,[['choose','y'],['sky','old'],['fade'],['drop']],JSON.stringify(opts));
   }
   const setup=app.slice(app.indexOf('function setupCitySwipe('),app.indexOf('function updateCityLabels('));
   assert.match(setup,/slideToCity\(id,/,'tocar numa bolinha também desliza');

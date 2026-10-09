@@ -1208,6 +1208,51 @@ function renderCityDots() {
     return dot;
   }));
 }
+// Céu entre cidades (dia → noite, pôr do sol → noite): antes da troca, uma cópia leve do céu antigo
+// (degradê, cor de base e luz do crepúsculo, sem nuvens/astros) vira uma camada do tamanho da tela,
+// acima do céu novo e abaixo do conteúdo, que some em ~1 s. Só quando o céu muda de fato; fora da
+// View Transition (que desenharia o céu por cima das seções). Uma camada temporária, removida no fim.
+const SKY_KEYS = ["phase", "solar", "weather", "clouds", "rain"];
+function skyKey() {
+  const data = document.documentElement?.dataset || {};
+  return SKY_KEYS.map(key => data[key] || "").join("|");
+}
+function captureSky() {
+  if (globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return null;
+  const stage = document.querySelector?.(".night-stage"), twilight = document.querySelector?.(".sky-twilight-page");
+  const read = globalThis.getComputedStyle;
+  if (!stage || typeof read !== "function") return null;
+  const before = read(stage, "::before"), rootStyle = read(document.documentElement);
+  const top = (stage.getBoundingClientRect?.().top || 0) + (before.position === "fixed" ? 0 : parseFloat(before.top) || 0);
+  const tw = twilight ? read(twilight) : null;
+  return {key:skyKey(), base:rootStyle.getPropertyValue("--sky-base").trim(),
+    gradient:{image:before.backgroundImage, fixed:before.position === "fixed", top, height:parseFloat(before.height) || 0, mask:before.maskImage || before.webkitMaskImage || "none"},
+    twilight:tw ? {image:tw.backgroundImage, opacity:tw.opacity} : null};
+}
+function fadeSky(old) {
+  if (!old || old.key === skyKey()) return;
+  const stage = document.querySelector(".night-stage"), effects = stage?.querySelector(".sky-effects");
+  if (!stage || !effects) return;
+  stage.querySelector(".sky-fade")?.remove();
+  const veil = document.createElement("div");
+  veil.className = "sky-fade";
+  veil.setAttribute("aria-hidden", "true");
+  if (old.base) veil.style.backgroundColor = old.base;
+  const gradient = document.createElement("span"), g = old.gradient;
+  gradient.style.backgroundImage = g.image;
+  if (g.fixed) gradient.style.inset = "0";
+  else { gradient.style.top = `${g.top}px`; gradient.style.height = `${g.height}px`; }
+  if (g.mask && g.mask !== "none") { gradient.style.maskImage = g.mask; gradient.style.webkitMaskImage = g.mask; }
+  veil.append(gradient);
+  if (old.twilight && old.twilight.image !== "none" && Number(old.twilight.opacity) > 0) {
+    const glow = document.createElement("span");
+    glow.style.backgroundImage = old.twilight.image; glow.style.opacity = old.twilight.opacity; glow.style.inset = "0";
+    veil.append(glow);
+  }
+  veil.addEventListener("animationend", () => veil.remove(), {once:true});
+  setTimeout(() => veil.remove(), 2000);
+  effects.after(veil);
+}
 // Efeito leve em poucos textos pequenos: o texto parte de transparente e volta à cor normal por
 // uma transição de cor (só redesenha as letras, sem criar camadas). Na troca de cidade os textos
 // aparecem em sequência (cidade → temperatura → condição → "Vai chover?"). Transição e não animação
@@ -1244,13 +1289,14 @@ function slideToCity(id, direction) {
   const root = document.documentElement;
   const canSlide = typeof document.startViewTransition === "function" &&
     !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  if (!canSlide) { chooseCity(id); animateCityText(); dropCityContent(); return; }
+  const sky = captureSky();
+  if (!canSlide) { chooseCity(id); fadeSky(sky); animateCityText(); dropCityContent(); return; }
   root.dataset.citySlide = direction > 0 ? "next" : "prev";
   try {
-    const transition = document.startViewTransition(() => { chooseCity(id); dropCityContent(); });
+    const transition = document.startViewTransition(() => { chooseCity(id); fadeSky(sky); dropCityContent(); });
     transition.updateCallbackDone?.catch(() => {});
     transition.finished.catch(() => {}).finally(() => { delete root.dataset.citySlide; });
-  } catch { delete root.dataset.citySlide; chooseCity(id); dropCityContent(); }
+  } catch { delete root.dataset.citySlide; chooseCity(id); fadeSky(sky); dropCityContent(); }
 }
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);

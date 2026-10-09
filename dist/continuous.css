@@ -1057,6 +1057,12 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 @keyframes pluvia-slide-out { to { opacity:0; transform:translateX(-10%); } }
 @keyframes pluvia-slide-out-prev { to { opacity:0; transform:translateX(10%); } }
 @keyframes pluvia-slide-in { from { opacity:0; transform:translateY(-18px); } }
+/* Céu entre cidades (app.js fadeSky): cópia do céu antigo, do tamanho da tela, acima do céu novo e
+   abaixo do conteúdo (mesmo z-index -1 do céu, depois dele no DOM), que some em ~1,1 s. */
+.night-stage > .sky-fade { position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden; animation:pluvia-sky-fade 1.1s cubic-bezier(.4,0,.2,1) both; }
+.night-stage > .sky-fade > span { position:absolute; left:0; right:0; background-repeat:no-repeat; background-size:100% 100%; }
+@keyframes pluvia-sky-fade { from { opacity:1; } to { opacity:0; } }
+@media (prefers-reduced-motion:reduce) { .night-stage > .sky-fade { display:none; } }
 /* Cascata "descendo" (app.js dropIn): o bloco desce 18 px enquanto é revelado de cima para baixo.
    Só top (position:relative) e clip-path: pintura, sem camada; transform/opacity em blocos derrubavam
    o Safari do iPhone. "wait" esconde o bloco abaixo da dobra até ele aparecer ao rolar. */
