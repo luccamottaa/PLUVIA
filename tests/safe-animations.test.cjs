@@ -9,9 +9,9 @@ function node(){
     set transition(v){props.transition=v;log.push(['transition',v]);},get transition(){return props.transition;},
     setProperty(k,v,p){props[k]=v;log.push(['set',k,v,p]);},removeProperty(k){delete props[k];log.push(['remove',k]);}}};
 }
-function run({safe=false,reduced=false,nodes=[node(),node()],stagger=90}={}){
+function run({reduced=false,nodes=[node(),node()],stagger=90}={}){
   const timers=[];
-  const ctx={document:{documentElement:{hasAttribute:name=>safe&&name==='data-safe'}},$:()=>null,
+  const ctx={document:{documentElement:{hasAttribute:()=>false}},$:()=>null,
     globalThis:{matchMedia:()=>({matches:reduced}),getComputedStyle:()=>({color:''})},setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){}};
   const {fadeIn}=vm.runInNewContext(`${source}\n({fadeIn})`,ctx);
   fadeIn([...nodes,null,{}],400,stagger);
@@ -29,21 +29,20 @@ test('texto parte de transparente e volta por transição de cor, em sequência,
   for(const n of nodes) assert.equal(n.props.transition,undefined,'a transição temporária é limpa');
   assert.doesNotMatch(source.replace(/\/\/.*$/gm,''),/transform|translate|scale|opacity|z-?index|animate\(/i);
 });
-test('modo seguro e reduzir movimento não animam',()=>{
-  assert.equal(run({safe:true}).nodes[0].log.length,0);
+test('reduzir movimento não anima',()=>{
   assert.equal(run({reduced:true}).nodes[0].log.length,0);
 });
 const slideSource=app.slice(app.indexOf('function slideToCity('),app.indexOf('function stepCity('));
-function slide({api=true,safe=false,reduced=false}={}){
+function slide({api=true,reduced=false}={}){
   const calls=[],dataset={};let finish;
-  const root={dataset,hasAttribute:name=>safe&&name==='data-safe'};
+  const root={dataset,hasAttribute:()=>false};
   const document={documentElement:root};
   if(api) document.startViewTransition=cb=>{calls.push(['start',{...dataset}]);cb();return {updateCallbackDone:Promise.resolve(),finished:new Promise(r=>{finish=r;})};};
   const ctx={document,globalThis:{matchMedia:()=>({matches:reduced})},chooseCity:id=>calls.push(['choose',id]),animateCityText:()=>calls.push(['fade'])};
   const {slideToCity}=vm.runInNewContext(`${slideSource}\n({slideToCity})`,ctx);
   return {slideToCity,calls,dataset,finish:()=>finish?.()};
 }
-test('troca de cidade desliza por View Transition e cai no fade sem a API, no modo seguro ou em reduced-motion',async()=>{
+test('troca de cidade desliza por View Transition e cai no fade sem a API ou em reduced-motion',async()=>{
   const s=slide();
   s.slideToCity('1501402',1);
   assert.deepEqual(s.calls,[['start',{citySlide:'next'}],['choose','1501402']],'a troca acontece dentro da transição, com a direção do gesto');
@@ -51,7 +50,7 @@ test('troca de cidade desliza por View Transition e cai no fade sem a API, no mo
   assert.equal(s.dataset.citySlide,undefined,'os nomes da transição saem depois dela');
   const back=slide();back.slideToCity('x',-1);
   assert.equal(back.calls[0][1].citySlide,'prev');
-  for(const opts of [{api:false},{safe:true},{reduced:true}]){
+  for(const opts of [{api:false},{reduced:true}]){
     const f=slide(opts);f.slideToCity('y',1);
     assert.deepEqual(f.calls,[['choose','y'],['fade']],JSON.stringify(opts));
   }

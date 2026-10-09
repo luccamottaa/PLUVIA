@@ -49,9 +49,7 @@
       const idle=root.requestIdleCallback ? fn=>root.requestIdleCallback(fn,{timeout:2000}) : fn=>root.setTimeout(fn,300);
       // Fora da abertura: espera o primeiro toque/rolagem/tecla (ou 6 s), para o canvas não disputar a CPU
       // com a primeira pintura. Ainda fica pronto antes do toque em Compartilhar na prática.
-      // Modo seguro (depois de uma queda): o story só é desenhado após o primeiro toque, sem o timer de 6 s.
-      const safe=root.document?.documentElement?.hasAttribute?.('data-safe');
-      const schedule=fn=>engaged ? idle(fn) : (pendingCard=()=>idle(fn), safe || root.setTimeout(engage,6000));
+      const schedule=fn=>engaged ? idle(fn) : (pendingCard=()=>idle(fn), root.setTimeout(engage,6000));
       schedule(()=>cards.render(data,{document:root.document}).then(blob=>{
         if(token!==cardToken || !blob) return;
         const name=String(snapshot?.location?.name || 'cidade').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');

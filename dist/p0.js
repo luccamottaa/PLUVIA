@@ -85,8 +85,6 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
     if (!pendingReload || reloadingForUpdate || document.visibilityState === 'hidden' ||
       document.querySelector?.('dialog[open], input:focus, textarea:focus, [contenteditable]:focus')) return;
     reloadingForUpdate = true;
-    // Recarregar para instalar a versão nova não é queda: sem limpar o marcador, o modo seguro ligava.
-    try { localStorage.removeItem("pluvia-boot-pending"); } catch {}
     location.reload();
   };
   navigator.serviceWorker.addEventListener("controllerchange", () => {
