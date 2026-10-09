@@ -46,3 +46,32 @@ test('modo seguro mantém o céu, parado: sem animação nem camada 3D, só os r
   assert.doesNotMatch(css,/:root\[data-safe\][^{]*sky-clouds[^{]*\{[^}]*display:none/,'as nuvens continuam visíveis');
   assert.match(css,/:root\[data-safe\] \.sky-lightning \{ display:none !important; \}/);
 });
+test('?seguro=0 desliga o modo na hora, mesmo depois de uma queda',()=>{
+  const store={'pluvia-boot-pending':'1','pluvia-safe-until':String(Date.parse('2026-10-09T05:00:00Z'))};
+  const page=boot(store,{search:'?seguro=0'});
+  assert.equal(page.safe,false);
+  assert.equal(store['pluvia-safe-until'],undefined);
+  assert.equal(store['pluvia-boot-pending'],'1','a abertura atual volta a ser vigiada');
+});
+test('aviso com "Reativar" no modo seguro; a recarga da atualização não conta como queda',()=>{
+  assert.match(html,/<p class="safe-mode-note" id="safeModeNote" hidden>Animações pausadas depois de uma falha\. <button type="button" id="safeModeResume">Reativar<\/button><\/p>/);
+  const app=fs.readFileSync(path.join(__dirname,'..','dist','app.js'),'utf8');
+  const setup=app.match(/\(function setupSafeModeNote\(\) \{[\s\S]*?\n\}\)\(\);/)[0];
+  const run=({safe,search=''})=>{
+    const store={'pluvia-safe-until':'9999999999999'},attrs=safe ? {'data-safe':''} : {},els={},click={};
+    for(const id of ['safeModeNote','safeModeResume']) els[id]={hidden:true,addEventListener:(t,f)=>{click[id]=f;}};
+    vm.runInNewContext(setup,{$:id=>els[id],location:{search},localStorage:{removeItem:k=>{delete store[k];}},
+      document:{documentElement:{hasAttribute:k=>k in attrs,removeAttribute:k=>{delete attrs[k];}}}});
+    return {store,attrs,els,click};
+  };
+  assert.equal(run({safe:false}).els.safeModeNote.hidden,true,'fora do modo seguro não aparece');
+  assert.equal(run({safe:true,search:'?seguro=1'}).els.safeModeNote.hidden,true,'modo forçado pela URL não oferece reativar');
+  const page=run({safe:true});
+  assert.equal(page.els.safeModeNote.hidden,false);
+  page.click.safeModeResume();
+  assert.equal('data-safe' in page.attrs,false,'reativa na hora, sem recarregar');
+  assert.equal(page.store['pluvia-safe-until'],undefined);
+  assert.equal(page.els.safeModeNote.hidden,true);
+  const p0=fs.readFileSync(path.join(__dirname,'..','dist','p0.js'),'utf8');
+  assert.match(p0,/localStorage\.removeItem\("pluvia-boot-pending"\); \} catch \{\}\n    location\.reload\(\);/,'recarregar para atualizar limpa o marcador antes');
+});
