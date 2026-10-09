@@ -1489,6 +1489,18 @@ function requestLocation(source = 'automatic') {
 }
 
 setupCityPicker();
+// Modo seguro (index.html): depois de uma queda o céu fica parado por 24 h. A pessoa vê o motivo e
+// pode reativar na hora; se o aparelho voltar a cair, o modo liga de novo sozinho.
+(function setupSafeModeNote() {
+  const root = document.documentElement, note = $("safeModeNote");
+  if (!note || !root?.hasAttribute?.("data-safe") || /[?&]seguro=1(&|$)/.test(location.search)) return;
+  note.hidden = false;
+  $("safeModeResume")?.addEventListener("click", () => {
+    try { localStorage.removeItem("pluvia-safe-until"); } catch {}
+    root.removeAttribute("data-safe");
+    note.hidden = true;
+  });
+})();
 // Ao abrir o gráfico ou trocar o modo, as barras crescem a partir da base (altura, sem transform);
 // atualizações automáticas redesenham sem animar.
 function growHourlyBars() {

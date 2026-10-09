@@ -1078,3 +1078,7 @@ html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notific
   #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
 }
 :root[data-safe] #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
+/* Aviso do modo seguro: discreto, abaixo das bolinhas; só aparece com o modo ligado. */
+#weatherView .safe-mode-note { margin:6px auto 0; font-size:.8125rem; line-height:1.4; text-align:center; color:var(--reading-muted); }
+#weatherView .safe-mode-note[hidden] { display:none; }
+#weatherView .safe-mode-note button { min-height:44px; padding:0 6px; border:0; background:none; color:var(--reading-link); font:inherit; font-weight:600; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }

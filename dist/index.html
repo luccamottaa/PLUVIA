@@ -101,11 +101,13 @@
     <script>
       /* Modo seguro: se a abertura anterior caiu (o Safari do iPhone fecha a página sem pagehide),
          a próxima abre sem as camadas animadas do céu por 24 h. Fechar/ir para segundo plano limpa o
-         marcador; só uma queda o deixa para trás. ?seguro=1 força o modo. Nada sai do aparelho. */
+         marcador; só uma queda o deixa para trás. ?seguro=1 força o modo, ?seguro=0 o desliga; o botão
+         "Reativar" (app.js) também. Nada sai do aparelho. */
       (function () {
         try {
           var s = localStorage, now = Date.now(), until = Number(s.getItem("pluvia-safe-until")) || 0;
-          if (s.getItem("pluvia-boot-pending")) { until = now + 864e5; s.setItem("pluvia-safe-until", String(until)); }
+          if (/[?&]seguro=0(&|$)/.test(location.search)) { s.removeItem("pluvia-boot-pending"); s.removeItem("pluvia-safe-until"); until = 0; }
+          else if (s.getItem("pluvia-boot-pending")) { until = now + 864e5; s.setItem("pluvia-safe-until", String(until)); }
           if (until > now || /[?&]seguro=1(&|$)/.test(location.search)) document.documentElement.setAttribute("data-safe", "");
           var mark = function () { try { s.setItem("pluvia-boot-pending", "1"); } catch (e) {} };
           var clear = function () { try { s.removeItem("pluvia-boot-pending"); } catch (e) {} };
@@ -119,7 +121,7 @@
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="./styles.css?v=core-125" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
     <link rel="stylesheet" href="./redesign.css?v=panel-41" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-60" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-61" />
     <noscript><link rel="stylesheet" href="./styles.css?v=core-125" /></noscript>
   </head>
   <body>
@@ -316,6 +318,7 @@
             <p class="yesterday-note" id="yesterdayNote"><span class="sk sk-line sk-short" aria-hidden="true"></span></p>
             <button id="alertBanner" class="alert-banner" type="button" hidden aria-haspopup="dialog" aria-controls="alertDetail"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg><span><strong id="alertBannerTitle"></strong><small id="alertBannerTime"></small></span><span class="alert-banner-more" aria-hidden="true">›</span></button>
             <div class="city-dots" id="cityDots" role="group" aria-label="Trocar entre suas cidades" hidden></div>
+            <p class="safe-mode-note" id="safeModeNote" hidden>Animações pausadas depois de uma falha. <button type="button" id="safeModeResume">Reativar</button></p>
           </div>
         </article>
       </section>
@@ -499,8 +502,8 @@
     <script src="./modules/hourly-detail.js?v=detail-6" defer></script>
     <script src="./modules/daily-detail.js?v=daily-3" defer></script>
     <script src="./modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="./app.js?v=panel-65" defer></script>
-    <script src="./p0.js?v=panel-40" defer></script>
+    <script src="./app.js?v=panel-66" defer></script>
+    <script src="./p0.js?v=panel-41" defer></script>
     <script src="./modules/risks.js?v=core-119" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
     <script src="./modules/nowcast.js?v=nowcast-3" defer></script>
