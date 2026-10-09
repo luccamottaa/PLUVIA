@@ -117,7 +117,10 @@ def soft_layer(seed, *, few_x=None, fib_beta=2.5, glow=.22, beta, stretch, masse
         # a soft mass there, so the revealed cloud is whole and dense.
         for cx in (few_x * WIDTH / 2, WIDTH / 2 + few_x * WIDTH / 2):
             dx = ((xs - cx + WIDTH / 2) % WIDTH) - WIDTH / 2
-            value += 1.6 * np.exp(-(dx / (.081 * WIDTH)) ** 2 - ((ys - .34 * HEIGHT) / (.1 * HEIGHT)) ** 2)
+            dy = ys - .34 * HEIGHT
+            # Clear sky around it (the mask ellipse reaches ~±18% of the tile) and one soft mass in the middle.
+            value -= 1.3 * np.exp(-(dx / (.2 * WIDTH)) ** 2 - (dy / (.3 * HEIGHT)) ** 2)
+            value += 2.6 * np.exp(-(dx / (.075 * WIDTH)) ** 2 - (dy / (.1 * HEIGHT)) ** 2)
     density = np.clip(blur(smoothstep(low, high, value), 2.2), 0, 1)   # wide transition: soft, smoky edges
     # Soft top light: brighter where the cloud is thin above (lit from the sky), greyer underneath.
     k = HEIGHT / 704
