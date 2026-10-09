@@ -48,7 +48,7 @@
     <link rel="preload" href="/vendor/suncalc.js?v=sky-3" as="script" />
     <link rel="preload" href="/modules/moon-view.js?v=moon-3" as="script" />
     <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-17" as="script" />
-    <link rel="preload" href="/sky.css?v=sky-28" as="style" />
+    <link rel="preload" href="/sky.css?v=sky-29" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       html { background:#080f22; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
@@ -98,7 +98,7 @@
     <script src="/modules/moon-view.js?v=moon-3"></script>
     <script src="/modules/sky-atmosphere.js?v=sky-17"></script>
     <script src="/modules/sky-events.js?v=sky-events-1" defer></script>
-    <link rel="stylesheet" href="/sky.css?v=sky-28" />
+    <link rel="stylesheet" href="/sky.css?v=sky-29" />
     <script>
       /* Modo seguro: se a abertura anterior caiu (o Safari do iPhone fecha a página sem pagehide),
          a próxima abre sem as camadas animadas do céu por 24 h. Fechar/ir para segundo plano limpa o
@@ -121,8 +121,6 @@
     </script>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
     <link rel="stylesheet" href="/styles.css?v=core-125" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <link rel="stylesheet" href="/redesign.css?v=panel-41" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-61" />
     <noscript><link rel="stylesheet" href="/styles.css?v=core-125" /></noscript>
   </head>
   <body>
@@ -156,6 +154,13 @@
         globalThis.PLUVIA?.sky?.update();
         var seen = false;
         try { seen = sessionStorage.getItem("pluvia-intro-seen") === "1"; sessionStorage.setItem("pluvia-intro-seen", "1"); } catch (_) {}
+        // O iPhone fecha o app instalado logo depois de ir para segundo plano, e cada volta virava uma
+        // abertura nova com a intro inteira (2,6 s). A intro completa só repete 3 h depois da última.
+        try {
+          var lastIntro = Number(localStorage.getItem("pluvia-intro-at")) || 0, now = Date.now();
+          if (!seen && now - lastIntro >= 0 && now - lastIntro < 108e5) seen = true;
+          else if (!seen) localStorage.setItem("pluvia-intro-at", String(now));
+        } catch (_) {}
         function reveal() {
           var welcome = document.getElementById("locationWelcome");
           var view = document.getElementById("weatherView");
@@ -175,6 +180,10 @@
         setTimeout(dismiss, reduced ? 300 : 2600);
       })();
     </script>
+    <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
+         o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
+    <link rel="stylesheet" href="/redesign.css?v=panel-41" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-61" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
