@@ -23,6 +23,8 @@ engine = os.environ.get('PLUVIA_BROWSER', 'chromium')
 fixed = datetime.datetime(2026, 10, 1, 16, 30, tzinfo=datetime.timezone.utc)
 ORANGE = {'id': 888888, 'descricao': 'Acumulado de chuva', 'geocodes': '1302603', 'severidade': 'Perigo',
           'inicio': '2026-10-01T00:00:00-04:00', 'fim': '2026-10-02T23:00:00-04:00'}
+YELLOW = {'id': 888889, 'descricao': 'Baixa Umidade', 'geocodes': '1302603', 'severidade': 'Perigo Potencial',
+          'inicio': '2026-10-01T00:00:00-04:00', 'fim': '2026-10-02T23:00:00-04:00'}
 report = []
 
 def no_overflow(page, label):
@@ -43,7 +45,7 @@ with sync_playwright() as p:
                 data = json.loads(json.dumps(base)); data['timezone'] = query.get('timezone', ['America/Manaus'])[0]
                 r.fulfill(json=data); return
             if 'air-quality-api' in url: r.fulfill(json={'current': {'time': base['current']['time'], 'us_aqi': 35}}); return
-            if 'inmet.gov.br' in url: r.fulfill(json={'hoje': [ORANGE] if mode['alert'] else [], 'amanha': []}); return
+            if 'inmet.gov.br' in url: r.fulfill(json={'hoje': [YELLOW if mode['alert'] == 'yellow' else ORANGE] if mode['alert'] else [], 'amanha': []}); return
             if 'rainviewer.com' in url: r.fulfill(headers={'Access-Control-Allow-Origin': '*'}, json={'host': 'https://radar.test', 'radar': {'past': []}}); return
             if 'functions/v1/met-forecast' in url: r.fulfill(json={'source': 'MET Norway', 'hourly': []}); return
             if '/auth/v1/settings' in url: r.fulfill(json={'external': {'email': True, 'google': False, 'apple': False}}); return
@@ -190,6 +192,15 @@ with sync_playwright() as p:
         page.wait_for_function("document.getElementById('alertDetail').open", timeout=5000)
         page.keyboard.press('Escape')
         no_overflow(page, (width, 'alerta'))
+        # Amarelo vigente também sobe, numa faixa discreta (mais baixa, sem sombra), com alvo de 44 px.
+        mode['alert'] = 'yellow'
+        page.close(); page = open_page()
+        page.wait_for_function("!document.getElementById('alertBanner').hidden", timeout=10000)
+        banner = page.evaluate("""() => { const b = document.getElementById('alertBanner'), r = b.getBoundingClientRect(), cs = getComputedStyle(b);
+          return {severity:b.dataset.severity, title:b.textContent, h:r.height, shadow:cs.boxShadow, inside:r.left >= 0 && r.right <= innerWidth + 0.5}; }""")
+        assert banner['severity'] == 'yellow' and 'Alerta amarelo do INMET' in banner['title'] and banner['h'] >= 44 and banner['shadow'] == 'none' and banner['inside'], banner
+        page.screenshot(path=str(output / f'{engine}-{width}-alert-yellow.png'))
+        no_overflow(page, (width, 'alerta amarelo'))
         mode['alert'] = False
         assert not errors, errors
         report.append(f'{width}px ok')

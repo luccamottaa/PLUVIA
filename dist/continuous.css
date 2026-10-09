@@ -968,6 +968,10 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 #weatherView .alert-banner[hidden] { display:none; }
 #weatherView .alert-banner[data-severity="orange"] { background:#f08c1e; color:#1a0d00; }
 #weatherView .alert-banner[data-severity="red"] { background:#b3261e; color:#fff; }
+/* Amarelo (perigo potencial) é frequente: faixa discreta, mais baixa e sem sombra, para laranja e
+   vermelho continuarem chamando mais atenção. Mantém o alvo de 44 px. */
+#weatherView .alert-banner[data-severity="yellow"] { min-height:44px; padding:6px 12px; background:#f3d046; color:#2b2200; box-shadow:none; }
+#weatherView .alert-banner[data-severity="yellow"] strong { font-size:.875rem; }
 #weatherView .alert-banner > svg { flex:none; width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 #weatherView .alert-banner > span:not(.alert-banner-more) { display:grid; gap:2px; min-width:0; flex:1; }
 #weatherView .alert-banner strong { font-size:.9375rem; font-weight:600; line-height:1.3; color:inherit; }
