@@ -101,6 +101,15 @@ Gravação de tela do usuário (iPhone, PWA instalado, 60 fps): dentro da intro 
 - **Intro não repete a cada volta.** Só repete 3 h depois da última; nas voltas o app abre direto na previsão.
 - **Menos memória em segundo plano.** O céu sai da composição enquanto a página está oculta (só `visibility`, animações pausadas no mesmo ponto): estimativa das camadas ~260 → ~59 MB. Um app com menos memória em segundo plano tende a ser encerrado menos pelo iOS, mas isso só se confirma no aparelho.
 
+## Troca sem pulos e cascata "descendo" (outubro/2026)
+
+No vídeo do iPhone, a troca entre favoritos dava três trancos: a linha "Atualizando… · atualizado às…" aparecia e sumia no topo (empurrando a cidade), a seção de alertas passava por "Consultando" (encolhia e crescia) e a faixa laranja do INMET surgia depois, empurrando a página; os nomes das duas cidades ficavam sobrepostos.
+
+- Leitura salva com menos de 10 min conta como atual enquanto atualiza (sem a linha); a falha continua sempre visível.
+- A leitura nacional do INMET com menos de 5 min é reaproveitada na hora para a cidade nova.
+- A foto antiga da View Transition sai em 200 ms; a nova desce no lugar, em cascata.
+- Os blocos à vista descem em seguida (`dropCityContent`), e ao rolar cada seção desce uma vez quando aparece. Só `top` e `clip-path`: no Chromium (390×844, DPR 3, CPU 4×) a troca no meio fica com 35 camadas/165 MB contra 38/215 MB antes, e a revelação ao rolar não cria camada.
+
 ## Limites e o que não foi mexido
 
 - **LCP simulado de ~10 s no celular.**
