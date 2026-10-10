@@ -51,7 +51,7 @@ with sync_playwright() as p:
  page.wait_for_function("document.getElementById('inmetContent').textContent.includes('Sem alertas')")
  # The loading skeleton also fills the hourly strip: wait for the six rendered hours,
  # and report page errors/markup instead of a bare empty measurement if they never come.
- try:page.wait_for_function("document.querySelectorAll('#hourlyPeek .hourly-peek-item[data-hour-index]').length===6",timeout=15000)
+ try:page.wait_for_function("document.querySelectorAll('#hourlyPeek .hourly-peek-item[data-hour-index]').length>=6",timeout=15000)
  except Exception as error:raise AssertionError({'errors':errors,'hourlyPeek':page.evaluate("document.getElementById('hourlyPeek').innerHTML.slice(0,600)"),'loading':page.evaluate("document.getElementById('weatherView').className")}) from error
  page.evaluate('document.fonts.ready')
  # A real long municipality name with cloned fixture coordinates, only in QA.
@@ -100,11 +100,13 @@ with sync_playwright() as p:
  def home(width,label):
   assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(width,label)
   report={'width':width,'period':label}
-  # A linha da chance só existe quando alguma das seis horas tem >= 20%; aí ela é reservada em todas.
+  # A linha da chance só existe quando alguma das 24 horas tem >= 20%; aí ela é reservada em todas.
+  hours=page.evaluate("document.querySelectorAll('#hourlyPeek .hourly-peek-item[data-hour-index]').length")
+  assert 6<=hours<=24,hours
   rain_row=page.evaluate("document.getElementById('hourlyPeek').dataset.rain")
   assert rain_row in ('some','none'),rain_row
   for field in ['.peek-time','.peek-icon','.hourly-peek-item > strong']+(['.peek-rain'] if rain_row=='some' else []):
-   report[field]=aligned(field,count=6)
+   report[field]=aligned(field,count=hours)
   if rain_row=='none': assert not boxes('.peek-rain'),(width,label)
   report['summaryLabels']=aligned('.quick-metrics > .quick-metric:first-child .metric-head > span:first-child,.hero-temperature-extreme small',count=3)
   report['summaryValues']=aligned('#feelsLike,#todayHigh,#todayLow',count=3)
@@ -266,7 +268,10 @@ with sync_playwright() as p:
   page.evaluate("render(displayedWeather.forecast,displayedWeather.air,false,Date.now())")
   for width,height in [(390,844),(1366,768)]:
    page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(100);home(width,label)
-   assert ('Pôr do sol' in page.locator('#hourlyPeek').inner_text())==(label=='sunset')
+   # Com 24 horas o pôr do sol entra na fileira nos dois casos; às 15h ele cai entre os seis primeiros.
+   first=page.evaluate("[...document.querySelectorAll('#hourlyPeek .hourly-peek-item')].slice(0,6).map(e=>e.textContent).join(' ')")
+   assert 'Pôr do sol' in page.locator('#hourlyPeek').text_content()
+   assert ('Pôr do sol' in first)==(label=='sunset'),first
    screenshot(str(width)+'-peek-'+label,'.hourly-peek')
    if width==390 and label=='day':
     screenshot(str(width)+'-quick-day','.quick-metrics')

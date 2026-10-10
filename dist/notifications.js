@@ -11,7 +11,7 @@
   if (!prompt || !toggle || !form) return;
 
   const boolFields = ["official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary"];
-  let config = null, busy = false, pendingEnable = false, configRevision = 0, configOwner = null;
+  let config = null, busy = false, pendingEnable = false, configRevision = 0, configOwner = null, pushActive = null;
   const preferencesModel=window.PLUVIA.notificationPreferences;
   try { pendingEnable = sessionStorage.getItem("pluvia-push-pending-enable") === "1"; } catch {}
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -222,6 +222,8 @@
       : `Avisa alerta oficial e chuva nas próximas horas em ${city}. A permissão só aparece depois do seu toque.`;
     message(active ? "Este dispositivo pode receber notificações mesmo com o PLUVIA fechado." : pendingEnable && currentUser() ? "Conta conectada. Toque em “Ativar alertas” para solicitar permissão." : "A permissão será solicitada após o toque em “Ativar alertas”.");
     prompt.hidden = active || promptDismissed();
+    pushActive = active;
+    window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed"));
   }
 
   async function loadConfig() {
@@ -315,10 +317,18 @@
     saveSubscriptionId(""); config = null;
   }
 
+  // Convite na hora certa (chuva ou aviso do INMET na Home): só quando o pedido de permissão pode
+  // mesmo aparecer agora e o convite não foi recusado. Reaproveita o mesmo fluxo de "Ativar alertas".
+  (window.PLUVIA = window.PLUVIA || {}).alertOffer = {
+    canOffer: () => pushActive === false && supported && (!isIOS || standalone) && Notification.permission !== "denied" && !promptDismissed(),
+    enable,
+    dismiss: () => { try { localStorage.setItem(DISMISS_KEY, "1"); } catch {} prompt.hidden = true; window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed")); },
+  };
   promptButton.addEventListener("click", enable);
   el("notificationPromptDismiss")?.addEventListener("click", () => {
     try { localStorage.setItem(DISMISS_KEY, "1"); } catch {}
     prompt.hidden = true;
+    window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed"));
     el("accountButton")?.focus?.({preventScroll:true});
   });
   toggle.addEventListener("click", toggleNotifications);

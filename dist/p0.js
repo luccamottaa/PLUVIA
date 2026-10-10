@@ -49,7 +49,7 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
     const showNotice = () => {
       if (!notice) return;
       notice.hidden = false;
-      notice.innerHTML = 'Mostrando Manaus como referência. <button type="button" id="noticeLocate">Usar minha localização</button> <button type="button" id="noticeChangeCity">Trocar cidade</button>';
+      notice.innerHTML = 'Mostrando Manaus como referência. <button type="button" id="noticeLocate">Usar minha localização</button> <button type="button" id="noticeChangeCity">Trocar cidade</button><span id="noticeStatus" class="notice-status"></span>';
       document.getElementById("noticeLocate")?.addEventListener("click", () => requestLocation('notice'));
       document.getElementById("noticeChangeCity")?.addEventListener("click", () => openCitySearch());
     };

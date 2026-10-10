@@ -260,6 +260,7 @@ function setAlertBanner(item = null, index = -1) {
   if (typeof banner?.setAttribute !== "function" || typeof banner.removeAttribute !== "function") return;
   const show = Boolean(item) && item.severity?.rank >= 1, appearing = show && banner.hidden;
   banner.hidden = !show;
+  if (typeof noteAlertNudge === "function") noteAlertNudge("official", show);
   // A faixa que chega depois da troca (leitura nova do INMET) desce no lugar em vez de surgir de vez.
   if (appearing && typeof dropIn === "function" && dropMotion()) dropIn([banner]);
   if (!show) { banner.removeAttribute("data-severity"); banner.removeAttribute("data-notice"); return; }
@@ -402,13 +403,18 @@ function forecastIsDay(time, daily) {
 }
 
 let hourlyMode = "conditions";
-function hourlySolarEvents(value, next) {
+// Na fileira de 24 horas a coluna é estreita: o nascer/pôr aparece como símbolo + horário,
+// e o nome do evento fica só para leitores de tela (o horário visível continua no nome acessível).
+const SOLAR_GLYPHS = {"Nascer do sol":"M12 3v5m-3-2 3-3 3 3", "Pôr do sol":"M12 3v5m-3-3 3 3 3-3"};
+function hourlySolarEvents(value, next, compact = false) {
   const at = cityDate(value).getTime(), end = cityDate(next).getTime();
   if (!Number.isFinite(at) || !Number.isFinite(end) || end-at !== 3600000) return '';
   const solar = globalThis.PLUVIA?.sky?.dayAt(at);
   return [['Nascer do sol',solar?.rise],['Pôr do sol',solar?.set]]
     .filter(([,stamp]) => Number.isFinite(stamp) && stamp >= at && stamp < end)
-    .map(([label,stamp]) => `<small class="hour-solar-event">${label} ${formatUpdateTime(stamp)}</small>`).join('');
+    .map(([label,stamp]) => compact
+      ? `<small class="hour-solar-event is-compact"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 19h18M6.5 19a5.5 5.5 0 0 1 11 0${SOLAR_GLYPHS[label]}"/></svg><span class="peek-extra">${label} </span>${formatUpdateTime(stamp)}</small>`
+      : `<small class="hour-solar-event">${label} ${formatUpdateTime(stamp)}</small>`).join('');
 }
 function showHourlyHint() {
   try {
@@ -425,7 +431,10 @@ function renderHourly(hourly, start, daily) {
   const indices = [...readings.keys()];
   const peek = $("hourlyPeek");
   if (peek) {
-    peek.innerHTML = indices.slice(0, 6).map((i, p) => {
+    // As 24 horas ficam na mesma fileira, arrastando para o lado (antes eram 6 e o resto só no gráfico).
+    // Cidade nova volta ao começo; uma atualização da mesma cidade mantém a posição da rolagem.
+    if (peek.dataset.city !== activeCity?.id) { peek.scrollLeft = 0; peek.dataset.city = activeCity?.id || ""; }
+    peek.innerHTML = indices.map((i, p) => {
       const time = p === 0 ? "Agora" : shortTime(hourly.time[i]);
       const temperature = readings.get(i).temperature;
       const probability = readings.get(i).probability;
@@ -438,12 +447,12 @@ function renderHourly(hourly, start, daily) {
       const showRain = Number.isFinite(probability) && probability >= 20;
       // Sem aria-label: o nome acessível é o próprio texto visível (hora, chance, temperatura, nascer/pôr),
       // como pede o WCAG 2.5.3, e o resto vai num trecho só para leitores de tela.
-      const solar = hourlySolarEvents(hourly.time[i],hourly.time[i+1]);
+      const solar = hourlySolarEvents(hourly.time[i],hourly.time[i+1],true);
       const extra = `. Sensação ${fmt(readings.get(i).feelsLike)}°, ${rain} de chance de chuva, ${volume}. Ver detalhes`;
       return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span><span class="peek-icon">${icon}</span><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span><strong>${fmt(temperature)}<span class="peek-deg">°</span></strong>${solar}<span class="peek-extra">${extra}</span></button>`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
-    // Sem nenhuma chance relevante nas seis horas, a linha reservada da chuva some de todas (sem buraco).
-    peek.dataset.rain = indices.slice(0, 6).some(i => Number(readings.get(i).probability) >= 20) ? "some" : "none";
+    // Sem nenhuma chance relevante nas 24 horas, a linha reservada da chuva some de todas (sem buraco).
+    peek.dataset.rain = indices.some(i => Number(readings.get(i).probability) >= 20) ? "some" : "none";
   }
   const decision = $("hourlyDecision");
   if (decision) {
@@ -566,7 +575,7 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
     // Sem aria-label: o nome do botão é o texto visível (WCAG 2.5.3); a faixa de temperatura tem o próprio
     // rótulo e os trechos .peek-extra completam a leitura só para leitores de tela.
     return `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}" data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog">
-      <span class="forecast-day"><strong>${day}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
+      <span class="forecast-day"><strong><span class="day-full">${day}</span>${day === "Hoje" ? "" : `<span class="day-short" aria-hidden="true">${day.slice(0,3)}</span>`}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
       <span class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
       <span class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</span><strong aria-hidden="true">${fmt(max)}°</strong></span>
       ${rainQuiet ? `<span class="forecast-rain" data-rain="none"><span class="peek-extra">, chance de chuva ${rainProb}%, ${fmt(rainMm, 1)} mm. Ver detalhes. </span></span>` : `<span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb ?? '—'}%</span><span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span><span class="peek-extra">. Ver detalhes. </span></span></span>`}
@@ -733,7 +742,33 @@ function setRainAnswer(answer) {
   if (!node) return;
   node.textContent = answer.text;
   node.dataset.tone = answer.tone;
+  if (typeof noteAlertNudge === "function") noteAlertNudge("rain", answer.tone === "rain" || answer.tone === "storm");
 }
+// Convite de avisos na hora em que ele faz sentido: chuva prevista ("Vai chover?" com chuva ou
+// trovoada) ou aviso do INMET vigente na cidade. Só quando o celular pode pedir a permissão agora e
+// a pessoa não recusou o convite; "Agora não" vale para os dois convites.
+function noteAlertNudge(reason, active) {
+  const box = $("alertNudge");
+  if (!box?.dataset) return;
+  if (active) box.dataset[reason] = "true"; else delete box.dataset[reason];
+  if (typeof updateAlertNudge === "function") updateAlertNudge();
+}
+function updateAlertNudge() {
+  const box = $("alertNudge"), text = $("alertNudgeText");
+  if (!box?.dataset || !text) return;
+  const nudgeRain = box.dataset.rain === "true", nudgeOfficial = box.dataset.official === "true";
+  const show = (nudgeRain || nudgeOfficial) && Boolean(globalThis.PLUVIA?.alertOffer?.canOffer?.());
+  const appearing = show && box.hidden;
+  box.hidden = !show;
+  if (!show) return;
+  text.textContent = nudgeOfficial
+    ? "Tem aviso do INMET valendo agora. Quer receber os próximos no celular?"
+    : "Vai chover por aqui. Quer um aviso no celular quando a chuva estiver chegando?";
+  if (appearing) settleBlock(box);
+}
+globalThis.addEventListener?.("pluvia:alert-offer-changed", updateAlertNudge);
+$("alertNudgeEnable")?.addEventListener?.("click", () => globalThis.PLUVIA?.alertOffer?.enable?.());
+$("alertNudgeDismiss")?.addEventListener?.("click", () => { globalThis.PLUVIA?.alertOffer?.dismiss?.(); updateAlertNudge(); });
 
 function setYesterdayNote(comparison) {
   const node = $("yesterdayNote");
@@ -1222,17 +1257,60 @@ let emptyCityContent;
 // Deslizar entre cidades (como no Apple Weather): a cidade aberta e os favoritos, na ordem salva.
 // As bolinhas são botões (clique/teclado); no toque, arrastar o topo para o lado troca de cidade.
 const CITY_DOTS_MAX = 12;
+// Ordem dos favoritos escolhida em "Organizar": só neste aparelho (ids, sem nomes), aplicada sobre a
+// lista da conta. Favorito novo, ainda fora da ordem salva, entra no fim.
+const FAVORITE_ORDER_KEY = "pluvia-favorite-order";
+function favoriteOrder() {
+  try { const value = JSON.parse(localStorage.getItem(FAVORITE_ORDER_KEY) || "[]"); return Array.isArray(value) ? value.map(String).slice(0, 60) : []; }
+  catch { return []; }
+}
+function orderedFavorites() {
+  if (typeof favorites === "undefined") return [];
+  const base = [...favorites].map(String), order = favoriteOrder();
+  const rank = id => { const index = order.indexOf(id); return index < 0 ? order.length + base.indexOf(id) : index; };
+  return [...base].sort((a, b) => rank(a) - rank(b));
+}
+function saveFavoriteOrder(ids) {
+  try { localStorage.setItem(FAVORITE_ORDER_KEY, JSON.stringify(ids.map(String).slice(0, 60))); } catch {}
+  globalThis.dispatchEvent?.(new CustomEvent("pluvia:favorites-ordered"));
+}
+if (globalThis.PLUVIA) globalThis.PLUVIA.favoriteOrder = {list:orderedFavorites, save:saveFavoriteOrder};
 function swipeCities() {
   if (typeof favorites === "undefined" || typeof cityById === "undefined") return [];
-  const ids = [...favorites].map(String).filter(id => cityById.has(id));
+  const ids = (typeof orderedFavorites === "function" ? orderedFavorites() : [...favorites].map(String)).filter(id => cityById.has(id));
   if (activeCity?.id && !ids.includes(activeCity.id)) ids.unshift(activeCity.id);
   return ids;
+}
+// Dica do gesto lateral: quase ninguém descobria que dá para deslizar entre as cidades. Aparece no
+// toque, com as bolinhas visíveis, em até 3 sessões, e some de vez no primeiro uso do gesto/bolinhas.
+const SWIPE_HINT_KEY = "pluvia-swipe-hint";
+function swipeHintState() {
+  try { return localStorage.getItem(SWIPE_HINT_KEY) || "0"; } catch { return "done"; }
+}
+function updateSwipeHint(dotsVisible) {
+  const hint = $("swipeHint");
+  if (!hint) return;
+  const touch = globalThis.matchMedia?.("(hover: none), (pointer: coarse)")?.matches;
+  const state = swipeHintState();
+  let shownThisSession = false;
+  try { shownThisSession = sessionStorage.getItem(SWIPE_HINT_KEY) === "1"; } catch {}
+  const show = Boolean(dotsVisible && touch && state !== "done" && (shownThisSession || Number(state) < 3));
+  hint.hidden = !show;
+  if (show && !shownThisSession) {
+    try { sessionStorage.setItem(SWIPE_HINT_KEY, "1"); localStorage.setItem(SWIPE_HINT_KEY, String(Number(state) + 1)); } catch {}
+  }
+}
+function finishSwipeHint() {
+  try { localStorage.setItem(SWIPE_HINT_KEY, "done"); } catch {}
+  const hint = $("swipeHint");
+  if (hint) hint.hidden = true;
 }
 function renderCityDots() {
   const box = $("cityDots");
   if (!box?.replaceChildren) return;
   const ids = swipeCities();
   box.hidden = ids.length < 2 || ids.length > CITY_DOTS_MAX;
+  if (typeof updateSwipeHint === "function") updateSwipeHint(!box.hidden);
   if (box.hidden) { box.replaceChildren(); return; }
   // Mesma lista: só a bolinha atual muda, para a transição (pílula) acontecer nos mesmos botões.
   const dots = Array.from(box.children || []);
@@ -1449,7 +1527,7 @@ function setupCitySwipe() {
     const id = event.target.closest?.("[data-city-id]")?.dataset.cityId;
     if (!id || id === activeCity?.id) return;
     const ids = swipeCities();
-    markCitySource("dots");
+    markCitySource("dots"); finishSwipeHint();
     slideToCity(id, ids.indexOf(id) > ids.indexOf(activeCity?.id) ? 1 : -1);
   });
   let start = null;
@@ -1464,10 +1542,11 @@ function setupCitySwipe() {
       const dx = touch.clientX - start.x, dy = touch.clientY - start.y, quick = Date.now() - start.at < 800;
       start = null;
       // Só gesto claramente horizontal: rolagem e puxar para atualizar continuam verticais.
-      if (quick && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) { markCitySource("swipe"); stepCity(dx < 0 ? 1 : -1); }
+      if (quick && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) { markCitySource("swipe"); finishSwipeHint(); stepCity(dx < 0 ? 1 : -1); }
     }, {passive:true});
   }
   globalThis.addEventListener?.("pluvia:favorites-changed", renderCityDots);
+  globalThis.addEventListener?.("pluvia:favorites-ordered", renderCityDots);
 }
 
 function updateCityLabels() {
@@ -1553,7 +1632,7 @@ function renderCityOptions() {
   const recent = new Set(recentCityIds().filter(id => id !== activeCity?.id && cityById.has(id)));
   const initial = [...new Map([
     ...[...recent].map(id => cityById.get(id)),
-    ...[...favorites].map(id => cityById.get(id)),
+    ...(typeof orderedFavorites === "function" ? orderedFavorites() : [...favorites]).map(id => cityById.get(id)),
     activeCity,
     ...CAPITALS
   ].filter(Boolean).map(city => [city.id, city])).values()];
@@ -1724,10 +1803,15 @@ let cityChoiceAttempt = 0;
 function locationMessage(text) {
   $("locationStatus").textContent = text;
   $("cityPickerStatus").textContent = text;
+  // O aviso "Mostrando Manaus" também mostra o andamento: tocar ali e não ver nada parecia travado.
+  const noticeStatus = $("noticeStatus");
+  if (noticeStatus) noticeStatus.textContent = text;
 }
 function locationButtons(disabled) {
   $("welcomeLocate").disabled = disabled;
   $("locateCity").disabled = disabled;
+  const notice = $("noticeLocate");
+  if (notice) { notice.disabled = disabled; notice.textContent = disabled ? "Localizando…" : "Usar minha localização"; }
 }
 function openCitySearch() {
   cityChoiceAttempt++;
@@ -1773,7 +1857,7 @@ function requestLocation(source = 'automatic') {
   const attempt = ++locationAttempt;
   locationPending = true;
   locationButtons(true);
-  locationMessage("Autorize o acesso à localização para consultar as condições meteorológicas da sua região.");
+  locationMessage("Usamos só a cidade mais próxima, nunca o endereço. Toque em Permitir no aviso do aparelho.");
   navigator.geolocation.getCurrentPosition(position => {
     if (attempt !== locationAttempt) return;
     const applyLocation = () => {
@@ -1797,6 +1881,12 @@ function requestLocation(source = 'automatic') {
     locationPending = false; locationButtons(false);
     globalThis.pluviaAnalytics?.track(error.code === 1 ? 'Location Denied' : 'Location Unavailable',{reason:error.code === 1 ? 'permission' : error.code === 3 ? 'timeout' : 'position'});
     locationMessage(error.code === 1 ? "Localização não autorizada. Selecione uma cidade sem compartilhar sua posição." : "Não foi possível obter a localização. Tente novamente ou selecione uma cidade.");
+    // Pelo aviso da Home, quem não liberou cai direto na busca, com o motivo logo abaixo do campo.
+    if (source === "notice" && !$("cityDialog")?.open) {
+      openCitySearch();
+      $("cityPickerStatus").textContent = error.code === 1 ? "Sem problema: digite o nome da sua cidade." : "A localização não respondeu. Digite o nome da sua cidade.";
+      $("citySearch")?.focus?.();
+    }
   }, {enableHighAccuracy:false,timeout:4000,maximumAge:60000});
 }
 

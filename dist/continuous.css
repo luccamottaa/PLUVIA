@@ -1212,8 +1212,9 @@ body[data-ink="dark"] #weatherView {
 
 /* Limpeza de interface (outubro/2026). */
 #weatherView .dry-window-line[hidden] { display:none; }
-/* Seis horários cabem inteiros no celular (antes eram quatro e meio). */
-#weatherView .hourly-peek-list { gap:4px; grid-auto-columns:minmax(50px,1fr); }
+/* 24 horários numa fileira que rola para o lado: seis e meio à vista (o meio horário mostra que tem mais). */
+#weatherView .hourly-peek-list { gap:4px; grid-auto-columns:max(44px, calc((100% - 24px) / 6.5)); scroll-padding-inline:0; }
+#weatherView .hourly-peek-item { scroll-snap-align:start; }
 /* Dia sem chuva relevante: a coluna da chuva fica vazia, mantendo as gotas dos outros dias alinhadas. */
 #weatherView .forecast-rain[data-rain="none"] { min-height:1px; }
 /* Marcador do AQI igual ao do UV: a pílula de borda grossa parecia um "0" sobre a barra. */
@@ -1235,3 +1236,48 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 #weatherView .home-shortcuts { display:flex; flex-wrap:wrap; gap:0 24px; margin-top:6px; padding:6px 0 0; border:0; border-top:1px solid var(--reading-line); border-radius:0; background:none; box-shadow:none; }
 #weatherView .home-shortcut { min-height:44px; padding:0; border:0; background:none; color:var(--reading-link); font:inherit; font-size:.9375rem; font-weight:600; cursor:pointer; }
 #weatherView .home-shortcut span { margin-left:2px; }
+
+/* 7 dias no celular: a barra mínima-máxima ficava espremida (~33 px em 393 px). O dia tem largura
+   própria até 4,5rem (cabe "Domingo"), a chuva 3,5rem e as temperaturas trilhos de 3,4ch; o resto vai para a barra. */
+@media(max-width:720px) {
+  #weatherView .forecast-list .forecast-row { grid-template-columns:minmax(3.25rem,4.5rem) 32px 3.5rem minmax(6.4rem,1fr); column-gap:8px; }
+  #weatherView .forecast-list .forecast-row > .temp-range { grid-template-columns:3.4ch minmax(24px,1fr) 3.4ch; column-gap:6px; }
+  #weatherView .forecast-list .forecast-day > strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+}
+#weatherView .forecast-day .day-short { display:none; }
+/* Telas estreitas (até 374 px): "Sáb", "Dom"… em vez de cortar o nome; o nome inteiro segue para leitores de tela. */
+@media(max-width:374px) {
+  #weatherView .forecast-list .forecast-row { grid-template-columns:2.6rem 32px 3.5rem minmax(0,1fr); }
+  #weatherView .forecast-list .forecast-day .day-short { display:inline; }
+  #weatherView .forecast-list .forecast-day .day-short ~ .weekend-note { display:none; }
+  #weatherView .forecast-list .forecast-day .day-full:has(+ .day-short) { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+}
+
+/* Organizar favoritos: linhas com mover para cima/baixo no lugar dos cartões. */
+.favorite-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.favorite-organize { min-height:44px; padding:0 4px; border:0; background:none; color:var(--map-link,#7aa7ff); font:inherit; font-weight:600; cursor:pointer; }
+.favorite-organize[hidden] { display:none; }
+.favorite-city-list[data-editing] { display:flex; flex-direction:column; gap:0; overflow:visible; }
+.favorite-order-row { display:grid; grid-template-columns:minmax(0,1fr) 44px 44px; align-items:center; gap:4px; min-height:48px; border-bottom:1px solid rgba(255,255,255,.12); }
+.favorite-order-row:last-child { border-bottom:0; }
+.favorite-order-row > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.favorite-order-row button { width:44px; height:44px; border:0; border-radius:999px; background:none; color:inherit; font:inherit; font-size:1.15rem; cursor:pointer; }
+.favorite-order-row button:disabled { opacity:.3; cursor:default; }
+#weatherView .swipe-hint { margin:4px auto 0; color:var(--reading-muted); font-size:.8125rem; text-align:center; }
+#weatherView .swipe-hint[hidden] { display:none; }
+.location-notice .notice-status { display:block; margin-top:4px; }
+.location-notice .notice-status:empty { display:none; }
+
+/* Convite de avisos na hora certa (chuva prevista ou aviso do INMET): uma linha discreta, sem cartão. */
+#weatherView .alert-nudge { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:4px 12px; padding:6px 4px; color:var(--reading-ink); }
+#weatherView .alert-nudge[hidden] { display:none; }
+#weatherView .alert-nudge p { flex:1 1 220px; margin:0; font-size:.9375rem; }
+#weatherView .alert-nudge-actions { display:flex; gap:4px; }
+#weatherView .alert-nudge button { min-height:44px; padding:0 10px; border:0; background:none; color:var(--reading-link); font:inherit; font-size:.9375rem; font-weight:600; cursor:pointer; }
+#weatherView .alert-nudge .alert-nudge-dismiss { color:var(--reading-muted); font-weight:400; }
+/* Nascer/pôr na fileira de 24 horas: símbolo em traço + horário, sem quebrar o nome em três linhas. */
+#weatherView .hourly-peek-item .hour-solar-event.is-compact { display:flex; flex-direction:column; align-items:center; gap:2px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+#weatherView .hour-solar-event.is-compact svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+/* A fileira rola pelo gesto; a metade do 7º horário já mostra que continua, então a barra some. */
+#weatherView .hourly-peek-list { scrollbar-width:none; }
+#weatherView .hourly-peek-list::-webkit-scrollbar { display:none; }

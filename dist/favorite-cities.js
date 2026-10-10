@@ -26,9 +26,9 @@
     const doc=root.document,el=id=>doc.getElementById(id);
     if(!el('dialogFavoriteList')) return;
     const snapshots=new Map(), errors=new Set(), pending=new Set(), queue=[];
-    let running=0, opening=false;
+    let running=0, opening=false, editing=false;
     const service=root.PLUVIA?.services?.createServices({client:root.PLUVIA?.http?.createClient?.({defaultTimeoutMs:9000})});
-    const ids=()=>typeof favorites!=='undefined' ? [...favorites].filter(id=>/^\d{7}$/.test(id)).slice(0,30) : [];
+    const ids=()=>(root.PLUVIA?.favoriteOrder?.list?.() || (typeof favorites!=='undefined' ? [...favorites] : [])).filter(id=>/^\d{7}$/.test(id)).slice(0,30);
     const current=()=>typeof activeCity!=='undefined' ? activeCity : null;
     const status=text=>{el('dialogFavoriteStatus').textContent=text;};
     function read(id) {
@@ -81,11 +81,29 @@
     const observer='IntersectionObserver' in root ? new root.IntersectionObserver(entries=>{
       for(const entry of entries) if(entry.isIntersecting) {observer.unobserve(entry.target);enqueue(entry.target.dataset.favoriteId);}
     },{rootMargin:'80px'}) : null;
+    // "Organizar": a lista vira linhas com mover para cima/baixo; a ordem fica só neste aparelho.
+    function orderRow(id,index,total) {
+      const city=typeof cityById!=='undefined' ? cityById.get(id) : null, label=city ? city.name+'/'+city.uf : 'Cidade favorita';
+      const row=doc.createElement('div');row.className='favorite-order-row';row.dataset.orderId=id;
+      const name=doc.createElement('span');name.textContent=label;
+      const up=doc.createElement('button'),down=doc.createElement('button');
+      up.type=down.type='button';up.dataset.move='-1';down.dataset.move='1';
+      up.textContent='↑';down.textContent='↓';
+      up.setAttribute('aria-label','Mover '+label+' para cima');down.setAttribute('aria-label','Mover '+label+' para baixo');
+      up.disabled=index===0;down.disabled=index===total-1;
+      row.append(name,up,down);return row;
+    }
     function paint() {
       const focused=doc.activeElement?.closest?.('[data-favorite-id]')?.dataset.favoriteId;
       const values=ids();observer?.disconnect();
       el('dialogFavorites').hidden=!values.length;
-      const list=el('dialogFavoriteList');list.replaceChildren(...values.map(card));
+      const organize=el('favoriteOrganize');
+      if(values.length<2) editing=false;
+      if(organize) {organize.hidden=values.length<2;organize.textContent=editing ? 'Pronto' : 'Organizar';organize.setAttribute('aria-pressed',String(editing));}
+      const list=el('dialogFavoriteList');
+      if(editing) {list.dataset.editing='true';list.replaceChildren(...values.map((id,index)=>orderRow(id,index,values.length)));return;}
+      delete list.dataset.editing;
+      list.replaceChildren(...values.map(card));
       for(const button of list.children) {
         if(button.dataset.favoriteId===focused)button.focus({preventScroll:true});
         observer ? observer.observe(button) : enqueue(button.dataset.favoriteId);
@@ -109,7 +127,21 @@
         }).catch(()=>errors.add(id)).finally(()=>{running--;pending.delete(id);paint();pump();});
       }
     }
+    function move(event) {
+      const button=event.target.closest('[data-move]'),row=button?.closest('[data-order-id]');if(!row) return;
+      const values=ids(),from=values.indexOf(row.dataset.orderId),to=from+Number(button.dataset.move);
+      if(from<0 || to<0 || to>=values.length) return;
+      [values[from],values[to]]=[values[to],values[from]];
+      root.PLUVIA?.favoriteOrder?.save?.(values);
+      paint();
+      // O foco acompanha a cidade movida (ou o outro botão, quando chega na ponta).
+      const moved=el('dialogFavoriteList').querySelector(`[data-order-id="${row.dataset.orderId}"]`);
+      (moved?.querySelector(`[data-move="${button.dataset.move}"]:not(:disabled)`) || moved?.querySelector('[data-move]:not(:disabled)'))?.focus({preventScroll:true});
+    }
+    el('favoriteOrganize')?.addEventListener('click',()=>{editing=!editing;paint();if(!editing) el('favoriteOrganize')?.focus({preventScroll:true});});
+    el('cityDialog')?.addEventListener('close',()=>{if(editing){editing=false;paint();}});
     async function open(event) {
+      if(editing) {move(event);return;}
       const button=event.target.closest('[data-favorite-id]');if(!button || opening) return;
       const id=button.dataset.favoriteId;if(!ids().includes(id)) return;
       opening=true;status('Abrindo cidade…');paint();
@@ -119,6 +151,7 @@
     }
     el('dialogFavoriteList').addEventListener('click',open);
     root.addEventListener('pluvia:favorites-changed',()=>{status('');paint();});
+    root.addEventListener('pluvia:favorites-ordered',()=>{if(!editing) paint();});
     root.addEventListener('pluvia:city-changed',paint);
     root.addEventListener('pluvia:alerts-updated',paint);
     root.addEventListener('pluvia:clock-updated',()=>{if(el('cityDialog')?.open) paint();});
