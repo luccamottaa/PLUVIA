@@ -1227,5 +1227,3 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 @media (max-width:420px) { #weatherView .expand-radar-verb { display:none; } }
 /* Abaixo de 340 px o título volta a quebrar para não encostar no ⓘ/botão. */
 @media (min-width:340px) and (max-width:420px) { #weatherView .weather-map-copy h2 { white-space:nowrap; } }
-/* Ciclo do dia: o arco termina a 85% da própria caixa; tira a sobra antes de Sol | Lua. */
-#weatherView .sun-arc { margin-bottom:-16px; }
