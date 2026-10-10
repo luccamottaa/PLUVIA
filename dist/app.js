@@ -117,12 +117,12 @@ function pressureLabel(value) {
 
 function aqiLabel(value) {
   if (!Number.isFinite(value) || value < 0) return ["--", "AQI indisponível"];
-  if (value <= 50) return ["Boa", `AQI ${Math.round(value)} · ar limpo`];
-  if (value <= 100) return ["Moderada", `AQI ${Math.round(value)} · aceitável`];
-  if (value <= 150) return ["Ruim para grupos sensíveis", `AQI ${Math.round(value)} · atenção para grupos sensíveis`];
-  if (value <= 200) return ["Ruim", `AQI ${Math.round(value)} · evite esforço`];
-  if (value <= 300) return ["Muito ruim", `AQI ${Math.round(value)} · exposição alta`];
-  return ["Perigosa", `AQI ${Math.round(value)} · risco elevado`];
+  if (value <= 50) return ["Boa", "Bom para atividades ao ar livre"];
+  if (value <= 100) return ["Moderada", "Aceitável para a maioria das pessoas"];
+  if (value <= 150) return ["Ruim para grupos sensíveis", "Grupos sensíveis devem reduzir o esforço"];
+  if (value <= 200) return ["Ruim", "Evite esforço ao ar livre"];
+  if (value <= 300) return ["Muito ruim", "Exposição alta: prefira ambientes fechados"];
+  return ["Perigosa", "Risco elevado: evite sair"];
 }
 
 function aqiLevel(value) {
@@ -877,7 +877,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   $("pressure").innerHTML = `${fmt(current.pressure_msl ?? current.surface_pressure)}<sup> hPa</sup>`;
   const pressureTrend = weatherInsights.pressure?.(data.hourly,start,activeCity);
   $("pressureNote").textContent = pressureTrend ? (pressureTrend.trend==='stable' ? 'Estável nas últimas 3h' : `${pressureTrend.trend==='rising' ? 'Subindo' : 'Caindo'} ${fmt(Math.abs(pressureTrend.delta),1)} hPa em 3h`)+' · estimativa' : 'Estimativa do modelo';
-  const uvNow = data.hourly.uv_index?.[start]; $("uv").textContent = fmt(uvNow, 1); $("uvNote").textContent = uvLabel(uvNow);
+  const uvNow = data.hourly.uv_index?.[start]; $("uv").textContent = fmt(uvNow, 0); $("uvNote").textContent = uvLabel(Number.isFinite(uvNow) ? Math.round(uvNow) : uvNow);
   $("uvScale").hidden = !Number.isFinite(uvNow);
   if (Number.isFinite(uvNow)) $("uvScale").style.setProperty("--uv-position", `${Math.max(0, Math.min(100, uvNow / 11 * 100))}%`);
   renderAirQuality(air?.current?.us_aqi);

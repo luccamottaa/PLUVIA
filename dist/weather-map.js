@@ -114,7 +114,7 @@
     const frame = state.frames[state.index]; if (!frame) return;
     fadeTileLayer(L.tileLayer(`${frame.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:.76,maxNativeZoom:7,maxZoom:11,attribution:'Radar: RainViewer'}),.76,{
       key:'rain:'+frame.time,loading:'Carregando imagem de '+zoneTime(frame.time)+'…',
-      onReady(failed) {$('weatherFrameTime').textContent=zoneTime(frame.time);source('radar',{status:failed ? 'partial' : 'ready',dataAt:frame.time*1000});},
+      onReady(failed) {$('weatherFrameTime').textContent=zoneTime(frame.time);$('weatherFrameTime').setAttribute?.('data-state','ready');source('radar',{status:failed ? 'partial' : 'ready',dataAt:frame.time*1000});},
       onError() {source('radar',{status:'error'});}
     });
     $('weatherSourceNote').textContent = 'Radar observado · RainViewer · cobertura depende dos radares disponíveis; não é previsão.';
