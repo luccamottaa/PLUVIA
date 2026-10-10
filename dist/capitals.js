@@ -164,11 +164,26 @@ function oneTypoAway(term, value) {
     return edits + (i < term.length || j < word.length ? 1 : 0) <= 1;
   });
 }
+// Apelidos comuns das capitais: a busca inteira precisa ser o apelido (sem casar pedaços de nomes).
+const CITY_ALIASES = new Map([
+  ['bh','3106200'],['beaga','3106200'],['sampa','3550308'],['poa','4314902'],['floripa','4205407'],
+  ['bsb','5300108'],['jampa','2507507'],['ssa','2927408'],['rec','2611606'],['cwb','4106902'],
+  ['rj','3304557'],['sp','3550308']
+]);
 function searchCities(query, uf = '') {
-  const terms = normalizeName(query).trim().split(/\s+/).filter(Boolean);
-  const matches = CITIES.filter(city => (!uf || city.uf === uf) && terms.every(term => stateNames.has(term.toUpperCase()) ? city.uf === term.toUpperCase() : citySearchIndex.get(city.id).includes(term) || oneTypoAway(term, cityNameIndex.get(city.id))));
-  const exact = normalizeName(query).trim();
-  const priority = city => cityNameIndex.get(city.id) === exact ? 0 : favorites.has(city.id) ? 1 : 2;
+  const exact = normalizeName(query).trim().replace(/\s+/g, ' ');
+  const alias = CITY_ALIASES.get(exact);
+  const terms = exact.split(' ').filter(Boolean);
+  const matches = CITIES.filter(city => (!uf || city.uf === uf) && (city.id === alias || terms.every(term => stateNames.has(term.toUpperCase()) ? city.uf === term.toUpperCase() : citySearchIndex.get(city.id).includes(term) || oneTypoAway(term, cityNameIndex.get(city.id)))));
+  // Nome exato/apelido, favoritos, depois capitais e nomes que começam pelo texto: "rio" mostra
+  // Rio Branco e Rio de Janeiro antes dos 40 municípios "Rio ...".
+  const priority = city => {
+    const name = cityNameIndex.get(city.id);
+    if (name === exact || city.id === alias) return 0;
+    if (favorites.has(city.id)) return 1;
+    const prefix = name.startsWith(exact), capital = capitalIds.has(city.id);
+    return prefix && capital ? 2 : prefix ? 3 : capital ? 4 : 5;
+  };
   matches.sort((a,b) => priority(a)-priority(b) || cityCollator.compare(a.name,b.name) || a.uf.localeCompare(b.uf));
   return matches;
 }
