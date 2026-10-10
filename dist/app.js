@@ -142,7 +142,7 @@ function renderAirQuality(value) {
   $("airNote").textContent = note;
   if ($("airValue")) $("airValue").textContent = level ? Math.round(value) : '--';
   if ($("airScale")) $("airScale").hidden = !level;
-  if ($("airScaleMarker")) $("airScaleMarker").style.left = Math.min(100,Math.max(0,value)/500*100) + '%';
+  if ($("airScaleMarker")) $("airScaleMarker").style.left = `clamp(6px,${Math.min(100,Math.max(0,value)/500*100)}%,calc(100% - 6px))`;
 }
 
 function decodeHtml(value = "") {
@@ -377,11 +377,20 @@ function findDryWindow(hourly, start) {
     if (!consecutive(hourly.time[i-1],hourly.time[i]) || !consecutive(hourly.time[i],hourly.time[i+1]) || !pair.every(value => Number.isFinite(value) && value >= 0 && value <= 100)) continue;
     knownPairs++;
     if (pair.every(value => value < 30)) {
-      const day = i === start + 1 ? "Agora" : hourly.time[i - 1].slice(0, 10) === hourly.time[start].slice(0, 10) ? "Hoje" : "Amanhã";
-      return `${day === "Agora" ? "A partir de agora" : day}, das ${shortTime(hourly.time[i - 1])} às ${shortTime(hourly.time[i + 1])}: menor probabilidade de chuva`;
+      // Já seco agora: a "janela seca" repetiria o "Vai chover?" do topo, então a linha some.
+      if (i === start + 1) return "";
+      const day = hourly.time[i - 1].slice(0, 10) === hourly.time[start].slice(0, 10) ? "Hoje" : "Amanhã";
+      return `${day}, das ${shortTime(hourly.time[i - 1])} às ${shortTime(hourly.time[i + 1])}: menor probabilidade de chuva`;
     }
   }
   return knownPairs ? "Sem período com baixa probabilidade de chuva nos horários disponíveis" : "Janela de baixa chance de chuva indisponível";
+}
+function setDryWindow(text) {
+  const value = $("dryWindow");
+  if (!value) return;
+  value.textContent = text;
+  const line = value.closest?.(".dry-window-line");
+  if (line) line.hidden = !text;
 }
 
 function forecastIsDay(time, daily) {
@@ -416,7 +425,7 @@ function renderHourly(hourly, start, daily) {
   const indices = [...readings.keys()];
   const peek = $("hourlyPeek");
   if (peek) {
-    peek.innerHTML = indices.slice(0, 5).map((i, p) => {
+    peek.innerHTML = indices.slice(0, 6).map((i, p) => {
       const time = p === 0 ? "Agora" : shortTime(hourly.time[i]);
       const temperature = readings.get(i).temperature;
       const probability = readings.get(i).probability;
@@ -433,8 +442,8 @@ function renderHourly(hourly, start, daily) {
       const extra = `. Sensação ${fmt(readings.get(i).feelsLike)}°, ${rain} de chance de chuva, ${volume}. Ver detalhes`;
       return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span><span class="peek-icon">${icon}</span><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span><strong>${fmt(temperature)}°</strong>${solar}<span class="peek-extra">${extra}</span></button>`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
-    // Sem nenhuma chance relevante nas cinco horas, a linha reservada da chuva some de todas (sem buraco).
-    peek.dataset.rain = indices.slice(0, 5).some(i => Number(readings.get(i).probability) >= 20) ? "some" : "none";
+    // Sem nenhuma chance relevante nas seis horas, a linha reservada da chuva some de todas (sem buraco).
+    peek.dataset.rain = indices.slice(0, 6).some(i => Number(readings.get(i).probability) >= 20) ? "some" : "none";
   }
   const decision = $("hourlyDecision");
   if (decision) {
@@ -448,7 +457,7 @@ function renderHourly(hourly, start, daily) {
   const chartDetails = $("hourlyChartDetails");
   if (chartDetails && !chartDetails.open) {
     chart.dataset.pending = "true";
-    $("dryWindow").textContent = findDryWindow(hourly, start);
+    setDryWindow(findDryWindow(hourly, start));
     return;
   }
   delete chart.dataset.pending;
@@ -472,7 +481,7 @@ function renderHourly(hourly, start, daily) {
     const unavailable = hourlyMode === "feels" ? "Sensação térmica por hora indisponível" : "Vento por hora indisponível";
     chart.innerHTML = `<p class="chart-loading">${unavailable}.</p>`;
     chart.setAttribute("aria-label", `${unavailable} em ${activeCity.name}.`);
-    $("dryWindow").textContent = findDryWindow(hourly, start);
+    setDryWindow(findDryWindow(hourly, start));
     return;
   }
   chart.innerHTML = indices.map((i, p) => {
@@ -515,7 +524,7 @@ function renderHourly(hourly, start, daily) {
   }).join("") || '<p class="chart-loading">Previsão por hora indisponível.</p>';
   chart.setAttribute("aria-label", `Previsão por hora em ${activeCity.name}: ${descriptions[hourlyMode]}.`);
   chart.scrollLeft = scrollLeft;
-  $("dryWindow").textContent = findDryWindow(hourly, start);
+  setDryWindow(findDryWindow(hourly, start));
 }
 
 function renderForecast(daily, currentTemperature, at = Date.now()) {
@@ -546,6 +555,9 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
       ? Math.max(0, Math.min(100, (currentTemperature - minAll) / spread * 100)) : null;
     const rainProb = Number.isFinite(daily.precipitation_probability_max[i]) ? Math.round(daily.precipitation_probability_max[i]) : null;
     const rainMm = daily.precipitation_sum[i];
+    // Mesma regra das Próximas horas: a chance só aparece quando é relevante. Dia sem leitura continua
+    // mostrando "—" (ausente não vira "sem chuva"); o valor fica para leitores de tela e no detalhe.
+    const rainQuiet = Number.isFinite(rainProb) && rainProb < 20 && Number.isFinite(rainMm) && rainMm < 0.5;
     const weekend = [0,6].includes(d.getUTCDay());
     const reading = !Number.isFinite(rainProb) || !Number.isFinite(rainMm) ? "Previsão de chuva indisponível" : rainMm >= 20 ? "Acumulado de chuva elevado" : rainMm >= 8 ? "Chuva ao longo do dia" : rainProb >= 55 ? "Chuva provável, com baixo acumulado" : rainProb >= 30 ? "Chuva isolada" : "Baixa probabilidade de chuva";
     const uvMax = daily.uv_index_max?.[i];
@@ -557,7 +569,7 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
       <span class="forecast-day"><strong>${day}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
       <span class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
       <span class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</span><strong aria-hidden="true">${fmt(max)}°</strong></span>
-      <span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb ?? '—'}%</span><span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span><span class="peek-extra">. Ver detalhes. </span></span></span>
+      ${rainQuiet ? `<span class="forecast-rain" data-rain="none"><span class="peek-extra">, chance de chuva ${rainProb}%, ${fmt(rainMm, 1)} mm. Ver detalhes. </span></span>` : `<span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb ?? '—'}%</span><span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span><span class="peek-extra">. Ver detalhes. </span></span></span>`}
       <span class="forecast-uv"${notes.length ? "" : " hidden"}>${notes.join(" · ")}</span>
     </button>`;
   }).join("");
@@ -662,7 +674,7 @@ function renderVisibility(value, fromCache = false) {
   const reduced = available && value < 5000;
   $("visibilityValue").textContent = !available ? "--" : value < 1000 ? `${fmt(value)} m` : `${fmt(value / 1000, value < 10000 ? 1 : 0)} km`;
   $("visibilityNote").textContent = !available ? "Visibilidade indisponível para esta hora."
-    : `${value < 1000 ? "Visibilidade baixa" : reduced ? "Visibilidade reduzida" : "Boa visibilidade"} · ${fromCache ? "previsão salva" : "estimativa regional"}`;
+    : `${value < 1000 ? "Visibilidade baixa" : reduced ? "Visibilidade reduzida" : "Boa visibilidade"}${fromCache ? " · previsão salva" : ""}`;
   $("visibilityBadge").hidden = !reduced;
   $("visibilityBadge").textContent = !reduced ? "" : value < 1000 ? "Visibilidade baixa" : "Visibilidade reduzida";
   $("visibilityBadge").dataset.level = value < 1000 ? "low" : "reduced";
@@ -892,7 +904,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   $("windCompass").setAttribute("aria-label", `Vento de ${windDirection(current.wind_direction_10m)}, ${fmt(current.wind_speed_10m)} quilômetros por hora, rajadas de ${fmt(current.wind_gusts_10m)} quilômetros por hora`);
   $("pressure").innerHTML = `${fmt(current.pressure_msl ?? current.surface_pressure)}<sup> hPa</sup>`;
   const pressureTrend = weatherInsights.pressure?.(data.hourly,start,activeCity);
-  $("pressureNote").textContent = pressureTrend ? (pressureTrend.trend==='stable' ? 'Estável nas últimas 3h' : `${pressureTrend.trend==='rising' ? 'Subindo' : 'Caindo'} ${fmt(Math.abs(pressureTrend.delta),1)} hPa em 3h`)+' · estimativa' : 'Tendência indisponível';
+  $("pressureNote").textContent = pressureTrend ? (pressureTrend.trend==='stable' ? 'Estável nas últimas 3h' : `${pressureTrend.trend==='rising' ? 'Subindo' : 'Caindo'} ${fmt(Math.abs(pressureTrend.delta),1)} hPa em 3h`)+' · estimativa' : 'Estimativa do modelo';
   const uvNow = data.hourly.uv_index?.[start]; $("uv").textContent = fmt(uvNow, 1); $("uvNote").textContent = uvLabel(uvNow);
   $("uvScale").hidden = !Number.isFinite(uvNow);
   if (Number.isFinite(uvNow)) $("uvScale").style.setProperty("--uv-position", `${Math.max(0, Math.min(100, uvNow / 11 * 100))}%`);
@@ -991,7 +1003,7 @@ async function loadWeather(revision = cityRevision) {
       $("hourlyPeek").innerHTML = '<p>Previsão por hora indisponível.</p>';
       $("hourlyDecision").textContent = "Sem dados recentes para as próximas horas."; $("hourlyDecision").hidden = false;
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
-      $("dryWindow").textContent = "Sem dados";
+      setDryWindow("Sem dados");
       $("sunPhrase").textContent = "Ciclo solar indisponível.";
     }
     if (!displayedWeather || !displayedWeather.fromCache || offline) {
@@ -1787,13 +1799,6 @@ $("hourlyChartDetails")?.addEventListener("toggle", event => {
   if (!event.currentTarget.open || !forecast) return;
   growHourlyBars();
   if ($("rainChart")?.dataset.pending) renderHourly(forecast.hourly, selectCurrentHour(forecast.hourly.time), forecast.daily);
-});
-// "Ver previsão" abre o gráfico por hora, que fica recolhido para não repetir a faixa das próximas horas.
-document.querySelector(".hourly-peek-heading a")?.addEventListener("click", () => {
-  const details = $("hourlyChartDetails");
-  if (!details || details.open) return;
-  if (globalThis.PLUVIA?.dialogs?.toggleDetails) globalThis.PLUVIA.dialogs.toggleDetails(details);
-  else details.open = true;
 });
 // ⓘ das seções: o texto abre logo abaixo do título, no fluxo da página (sem sobrepor nada). Balão
 // flutuante exigia subir camadas (z-index) dos títulos/seções, e isso derrubava o Safari do iPhone.

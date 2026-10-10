@@ -32,7 +32,7 @@ function screen() {
     shortTime:time => time.slice(11,16), windDirection:deg => ({0:'N',90:'L'})[deg],
     weather:() => ['Céu variável'], forecastIsDay:() => true,
     weatherIcons:{markup:() => '<img alt="Tempo">'},
-    findDryWindow:() => 'Sem chuva nas próximas horas', PLUVIA:{moon,hourlyDetail:require('../dist/modules/hourly-detail.js')}
+    findDryWindow:() => 'Sem chuva nas próximas horas', setDryWindow:text => { elements.dryWindow.textContent = text; }, PLUVIA:{moon,hourlyDetail:require('../dist/modules/hourly-detail.js')}
   };
   const hourly = vm.runInNewContext(`${hourlySource}\n({renderHourly,setMode:mode=>hourlyMode=mode})`,ctx);
   ctx.PLUVIA.moonView = moonView.create({document:{getElementById:id=>elements[id]},
@@ -194,4 +194,22 @@ test('gráfico recolhido não é montado; abre e desenha com os mesmos dados', (
   assert.match(elements.rainChart.innerHTML,/class="temp-bar"/);
   assert.equal(elements.rainChart.dataset.pending,undefined);
   assert.equal(elements.rainChart.scrollLeft,12,'a rolagem do gráfico aberto se mantém');
+});
+
+test('janela seca só aparece quando chove ou pode chover agora', () => {
+  const source = app.slice(app.indexOf('function findDryWindow('), app.indexOf('\nfunction forecastIsDay('));
+  const line = {hidden:false}, value = {textContent:'', closest:() => line};
+  const ctx = {$:id => id === 'dryWindow' ? value : null, shortTime:time => time.slice(11,16)};
+  const {findDryWindow, setDryWindow} = vm.runInNewContext(`${source}\n({findDryWindow,setDryWindow})`, ctx);
+  const time = Array.from({length:12}, (_, i) => `2026-10-01T${String(10+i).padStart(2,'0')}:00`);
+  const dry = {time, precipitation_probability:Array(12).fill(10)};
+  assert.equal(findDryWindow(dry, 0), '', 'já seco: repetiria o "Vai chover?" do topo');
+  setDryWindow(findDryWindow(dry, 0));
+  assert.equal(line.hidden, true);
+  const wet = {time, precipitation_probability:[80,80,80,80,10,10,10,10,10,10,10,10]};
+  assert.equal(findDryWindow(wet, 0), 'Hoje, das 13:00 às 15:00: menor probabilidade de chuva', 'intervalos terminam no horário (i+1)');
+  setDryWindow(findDryWindow(wet, 0));
+  assert.equal(line.hidden, false);
+  const missing = {time, precipitation_probability:Array(12).fill(null)};
+  assert.equal(findDryWindow(missing, 0), 'Janela de baixa chance de chuva indisponível', 'ausente não vira seco');
 });

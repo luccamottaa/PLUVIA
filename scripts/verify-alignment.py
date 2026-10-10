@@ -49,9 +49,9 @@ with sync_playwright() as p:
  page.goto(preview,wait_until='domcontentloaded')
  page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden && !document.documentElement.classList.contains('awaiting-styles')")
  page.wait_for_function("document.getElementById('inmetContent').textContent.includes('Sem alertas')")
- # The loading skeleton also fills the hourly strip: wait for the five rendered hours,
+ # The loading skeleton also fills the hourly strip: wait for the six rendered hours,
  # and report page errors/markup instead of a bare empty measurement if they never come.
- try:page.wait_for_function("document.querySelectorAll('#hourlyPeek .hourly-peek-item[data-hour-index]').length===5",timeout=15000)
+ try:page.wait_for_function("document.querySelectorAll('#hourlyPeek .hourly-peek-item[data-hour-index]').length===6",timeout=15000)
  except Exception as error:raise AssertionError({'errors':errors,'hourlyPeek':page.evaluate("document.getElementById('hourlyPeek').innerHTML.slice(0,600)"),'loading':page.evaluate("document.getElementById('weatherView').className")}) from error
  page.evaluate('document.fonts.ready')
  # A real long municipality name with cloned fixture coordinates, only in QA.
@@ -100,11 +100,11 @@ with sync_playwright() as p:
  def home(width,label):
   assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(width,label)
   report={'width':width,'period':label}
-  # A linha da chance só existe quando alguma das cinco horas tem >= 20%; aí ela é reservada em todas.
+  # A linha da chance só existe quando alguma das seis horas tem >= 20%; aí ela é reservada em todas.
   rain_row=page.evaluate("document.getElementById('hourlyPeek').dataset.rain")
   assert rain_row in ('some','none'),rain_row
   for field in ['.peek-time','.peek-icon','.hourly-peek-item > strong']+(['.peek-rain'] if rain_row=='some' else []):
-   report[field]=aligned(field,count=5)
+   report[field]=aligned(field,count=6)
   if rain_row=='none': assert not boxes('.peek-rain'),(width,label)
   report['summaryLabels']=aligned('.quick-metrics > .quick-metric:first-child .metric-head > span:first-child,.hero-temperature-extreme small',count=3)
   report['summaryValues']=aligned('#feelsLike,#todayHigh,#todayLow',count=3)
@@ -157,7 +157,13 @@ with sync_playwright() as p:
   assert wind_parts['unitLeft']>=wind_parts['numberRight']-1 and wind_parts['numberTop']<=wind_parts['unitCenterY']<=wind_parts['numberBottom'],(width,wind_parts)
   # Radar compacto: na Home só a miniatura (sem player); o player alinhado é medido no radar ampliado.
   assert not boxes('.weather-map-card .weather-player > *'),(width,'player só no radar ampliado')
-  aligned('footer .footer-link','centerX',3)
+  # Rodapé compacto: links lado a lado (quebram quando não cabem), cada linha centralizada e sem sobreposição.
+  links=boxes('footer .footer-link');assert len(links)==3,links
+  center=page.evaluate("(()=>{const r=document.querySelector('footer .footer-details').getBoundingClientRect();return r.x+r.width/2})()")
+  for row_y in {round(b['y']) for b in links}:
+   row=sorted([b for b in links if round(b['y'])==row_y],key=lambda b:b['x'])
+   assert abs((row[0]['x']+row[-1]['right'])/2-center)<=2,(width,row,center)
+   assert all(a['right']<=b['x'] for a,b in zip(row,row[1:])),row
   rows=page.evaluate("""()=>[...document.querySelectorAll('.forecast-row')].map(el=>{
    const box=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,centerY:r.y+r.height/2}};
    return {geometry:Object.fromEntries([...el.children].filter(c=>c.getClientRects().length).map(c=>[c.className,box(c)])),condition:box(el.querySelector('.forecast-condition')),text:box(el.querySelector('.forecast-condition > span'))};

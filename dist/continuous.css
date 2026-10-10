@@ -1209,3 +1209,21 @@ body[data-ink="dark"] #weatherView {
 
 /* Próximas horas e 7 dias: complementos só para leitores de tela (o nome do botão é o texto visível). */
 #weatherView :is(.hourly-peek-item,.forecast-row) .peek-extra { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+
+/* Limpeza de interface (outubro/2026). */
+#weatherView .dry-window-line[hidden] { display:none; }
+/* Seis horários cabem inteiros no celular (antes eram quatro e meio). */
+#weatherView .hourly-peek-list { gap:4px; grid-auto-columns:minmax(50px,1fr); }
+/* Dia sem chuva relevante: a coluna da chuva fica vazia, mantendo as gotas dos outros dias alinhadas. */
+#weatherView .forecast-rain[data-rain="none"] { min-height:1px; }
+/* Marcador do AQI igual ao do UV: a pílula de borda grossa parecia um "0" sobre a barra. */
+#weatherView .air-scale i { top:50%; width:12px; height:12px; border:2px solid var(--panel-strong); border-radius:50%; background:var(--text); box-shadow:0 0 0 1px var(--text); transform:translate(-50%,-50%); }
+/* Rodapé compacto: links lado a lado (quebram quando não cabem); uma lista aberta ocupa a linha toda. */
+footer.shell .footer-details { display:flex; flex-wrap:wrap; justify-content:center; gap:0 20px; }
+footer.shell .capital-links { display:flex; flex-wrap:wrap; justify-content:center; column-gap:20px; margin-top:-24px; }
+footer.shell .capital-links > details[open] { flex-basis:100%; }
+/* Celular: "Chuva na região" numa linha só; o botão vira "Radar" (o nome acessível continua "Abrir radar"). */
+#weatherView #weatherMapCity:empty { min-height:1lh; }
+@media (max-width:420px) { #weatherView .expand-radar-verb { display:none; } }
+/* Abaixo de 340 px o título volta a quebrar para não encostar no ⓘ/botão. */
+@media (min-width:340px) and (max-width:420px) { #weatherView .weather-map-copy h2 { white-space:nowrap; } }
