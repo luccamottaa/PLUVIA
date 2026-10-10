@@ -5,9 +5,9 @@
   const ENDPOINT = 'https://us.i.posthog.com/batch/?ip=0';
   const CHOICE_KEY = 'pluvia-analytics-consent-v1';
   const release = 'vitals-1';
-  const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital','Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed']);
+  const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital','Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed','Alert Nudge Shown','Alert Nudge Tapped','Alert Nudge Dismissed']);
   const values = {
-    mode:new Set(['login','signup']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker','automatic','notice','city_picker','swipe','dots','search','favorite','saved_place','brazil','startup','other','home']),
+    mode:new Set(['login','signup']),offer:new Set(['install','enable']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker','automatic','notice','city_picker','swipe','dots','search','favorite','saved_place','brazil','startup','other','home']),
     reason:new Set(['unsupported','permission','timeout','position','catalog']),permission:new Set(['granted','denied','default']),
     layer:new Set(['rain','clouds','lightning']),platform:new Set(['ios','android','desktop','other']),
     component:new Set(['application','asset','weather','air-quality','alerts','met-norway','ensemble','account','radar','lightning']),
@@ -47,10 +47,12 @@
     if(input){input.checked=consent && !protectedBrowser();input.disabled=protectedBrowser();}
     if(status)status.textContent=protectedBrowser() ? 'Seu navegador pede privacidade; a coleta está desativada.' : consent ? 'Participação ativada neste dispositivo. Você pode desativar a qualquer momento.' : 'Desativado. A previsão funciona sem compartilhar métricas.';
   }
+  // Aberto pelo ícone da Tela de Início: no iPhone é o que permite receber avisos.
+  const installed = () => window.matchMedia?.('(display-mode: standalone)').matches===true || navigator.standalone===true;
   function setConsent(value) {
     clear();consent=value===true && !protectedBrowser();
     try{localStorage.setItem(CHOICE_KEY,consent ? '1' : '0');}catch{}
-    paintChoice();if(enabled())track('PLUVIA Opened');
+    paintChoice();if(enabled())track('PLUVIA Opened',{standalone:installed()});
   }
   function track(name,properties={}) {
     if(!enabled() || !events.has(name) || sent>=100 || queue.length>=50 || !id())return;
@@ -134,7 +136,7 @@
     const on=(id,event,fn)=>document.getElementById(id)?.addEventListener(event,fn);
     paintChoice();on('analyticsConsent','change',event=>setConsent(event.target.checked));
     on('openPrivacy','click',()=>{document.getElementById('openSources')?.click();document.getElementById('analyticsConsent')?.focus();});
-    track('PLUVIA Opened');
+    track('PLUVIA Opened',{standalone:installed()});
     on('welcomeSearch','click',()=>track('City Search Opened',{source:'welcome'}));
     on('openCitySearch','click',()=>track('City Search Opened',{source:'topbar'}));
     on('favoriteCity','click',()=>track('Favorite City Toggled'));

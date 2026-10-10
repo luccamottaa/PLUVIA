@@ -306,16 +306,17 @@
     saveSubscriptionId(""); config = null;
   }
 
-  // Convite na hora certa (chuva ou aviso do INMET na Home): só quando o pedido de permissão pode
-  // mesmo aparecer agora e o convite não foi recusado. Reaproveita o mesmo fluxo de "Ativar alertas".
+  // Convite na hora certa (chuva ou aviso do INMET na Home), enquanto o convite não foi recusado. Reaproveita o mesmo fluxo de "Ativar alertas".
   (window.PLUVIA = window.PLUVIA || {}).alertOffer = {
-    canOffer: () => pushActive === false && supported && (!isIOS || standalone) && Notification.permission !== "denied" && !promptDismissed(),
+    // No Safari do iPhone fora da Tela de Início o pedido não existe: o convite leva ao passo a passo de instalar.
+    canOffer: () => !promptDismissed() && ((isIOS && !standalone) || (pushActive === false && supported && Notification.permission !== "denied")),
+    needsInstall: () => isIOS && !standalone,
     enable,
     dismiss: () => { try { localStorage.setItem(DISMISS_KEY, "1"); } catch {} window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed")); },
   };
   toggle.addEventListener("click", toggleNotifications);
   el("installPushClose")?.addEventListener("click", () => globalThis.PLUVIA?.dialogs?.close(installDialog) ?? installDialog?.close());
-  el("installPushReload")?.addEventListener("click", () => location.reload());
+  el("installPushReload")?.addEventListener("click", () => globalThis.PLUVIA?.dialogs?.close(installDialog) ?? installDialog?.close());
   installDialog?.addEventListener("click", event => { if (event.target === installDialog) globalThis.PLUVIA?.dialogs?.close(installDialog) ?? installDialog.close(); });
   testButton.addEventListener("click", async () => {
     if (busy || !localSubscriptionId()) return;
