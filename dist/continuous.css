@@ -424,7 +424,7 @@ footer.shell .capital-links a, footer.shell .capital-links a:hover { display:inl
 footer.shell .capital-links a[aria-current="page"] { font-weight:600; text-decoration:none; }
 footer.shell .capital-page-note { margin:0 0 6px; color:var(--intro-ink); }
 body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60; }
-#sourcesDialog :is(.sources-list b,a),#alertDetailBody a { color:var(--brand-blue); }
+#sourcesDialog :is(.sources-list b,a),#alertDetailBody a { color:#7aa7ff; } /* azul da marca clareado: os diálogos são sempre escuros e #2f6bff dava 3,6:1 */
 .weather-map-section,body[data-phase="night"] .weather-map-section { --map-link:var(--brand-blue); }
 
 .hourly-decision { margin:0 0 18px; font-size:.95rem; font-weight:700; line-height:1.55; color:var(--reading-ink); }
