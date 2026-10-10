@@ -427,7 +427,11 @@ function renderHourly(hourly, start, daily) {
       // Resumo enxuto: hora, ícone, temperatura e a chance só quando relevante (≥ 20%); sensação e volume
       // continuam no rótulo acessível e no detalhe do horário. A linha da chance fica reservada (vazia).
       const showRain = Number.isFinite(probability) && probability >= 20;
-      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="${time}: ${fmt(temperature)} graus, sensação ${fmt(readings.get(i).feelsLike)} graus, ${rain} de chance de chuva, ${volume}. Ver detalhes"><span class="peek-time">${time}</span><span class="peek-icon">${icon}</span><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain : ""}</span><strong>${fmt(temperature)}°</strong>${hourlySolarEvents(hourly.time[i],hourly.time[i+1])}</button>`;
+      // Sem aria-label: o nome acessível é o próprio texto visível (hora, chance, temperatura, nascer/pôr),
+      // como pede o WCAG 2.5.3, e o resto vai num trecho só para leitores de tela.
+      const solar = hourlySolarEvents(hourly.time[i],hourly.time[i+1]);
+      const extra = `. Sensação ${fmt(readings.get(i).feelsLike)}°, ${rain} de chance de chuva, ${volume}. Ver detalhes`;
+      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span><span class="peek-icon">${icon}</span><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span><strong>${fmt(temperature)}°</strong>${solar}<span class="peek-extra">${extra}</span></button>`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
     // Sem nenhuma chance relevante nas cinco horas, a linha reservada da chuva some de todas (sem buraco).
     peek.dataset.rain = indices.slice(0, 5).some(i => Number(readings.get(i).probability) >= 20) ? "some" : "none";
@@ -547,11 +551,13 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
     const uvMax = daily.uv_index_max?.[i];
     // A linha mostra só o que acrescenta: chuva relevante ou UV muito alto. O restante fica no detalhe do dia.
     const notes = [reading !== "Baixa probabilidade de chuva" && reading, Number.isFinite(uvMax) && uvMax >= 8 && `UV ${fmt(uvMax, 0)} · ${uvMax >= 11 ? "extremo" : "muito alto"}`].filter(Boolean);
-    return `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}" data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog" aria-label="${day}, ${label}: ${cond}, mínima ${fmt(min)} graus, máxima ${fmt(max)} graus, chance de chuva ${rainProb ?? 'indisponível'}${rainProb===null ? '' : '%'}, ${fmt(rainMm,1)} mm. Ver detalhes.">
+    // Sem aria-label: o nome do botão é o texto visível (WCAG 2.5.3); a faixa de temperatura tem o próprio
+    // rótulo e os trechos .peek-extra completam a leitura só para leitores de tela.
+    return `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}" data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog">
       <span class="forecast-day"><strong>${day}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
       <span class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
       <span class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</span><strong aria-hidden="true">${fmt(max)}°</strong></span>
-      <span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="forecast-rain-chance">${rainProb ?? '—'}%</span><span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span></span></span>
+      <span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb ?? '—'}%</span><span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span><span class="peek-extra">. Ver detalhes. </span></span></span>
       <span class="forecast-uv"${notes.length ? "" : " hidden"}>${notes.join(" · ")}</span>
     </button>`;
   }).join("");
@@ -1481,7 +1487,7 @@ function renderCityOptions() {
   activeResultIndex = -1;
   list.innerHTML = shown.map(city => {
     const capital = CAPITALS.some(item => item.id === city.id);
-    return `<li><button class="city-result" type="button" role="option" aria-selected="false" data-current="${city.id === activeCity?.id}" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${!query && recent.has(city.id) ? "Recente · " : ""}${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
+    return `<li role="none"><button class="city-result" type="button" role="option" aria-selected="false" data-current="${city.id === activeCity?.id}" data-id="${city.id}"><span>${favorites.has(city.id) ? "★ " : ""}${escapeHtml(city.name)}/${city.uf}</span><small>${!query && recent.has(city.id) ? "Recente · " : ""}${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
   }).join("");
   document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
 }
