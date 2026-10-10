@@ -2,7 +2,7 @@ const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const $ = (id) => document.getElementById(id);
 let cityRevision = 0;
 const services = globalThis.PLUVIA?.services;
-let lastRefreshAt = 0;
+let lastRefreshAt = 0, retryWhenVisible = false;
 let refreshInFlight = null;
 let displayedWeather = null;
 let errorTimer;
@@ -30,7 +30,7 @@ async function fetchForecast(city = activeCity, revision = cityRevision) {
     } catch (error) {
       lastError = error;
       // Sem rede, repetir só atrasa a leitura salva; o evento online dispara a nova consulta.
-      if (!error?.retryable || revision !== cityRevision || globalThis.navigator?.onLine === false) throw error;
+      if (!error?.retryable || error.background || revision !== cityRevision || globalThis.navigator?.onLine === false) throw error;
     }
   }
   throw lastError;
@@ -957,6 +957,8 @@ async function loadWeather(revision = cityRevision) {
     return true;
   } catch (error) {
     if (revision !== cityRevision) return false;
+    // Consulta derrubada pelo sistema com o app em segundo plano: nada de aviso de falha; a volta ao app consulta de novo.
+    if (error?.background) { retryWhenVisible = true; if (!displayedWeather && cached()) { const saved = cached(); render(saved.data.forecast, weatherData?.cachedAir(saved)?.air, true, saved.weatherAt || saved.at,{airAt:weatherData?.cachedAir(saved)?.at}); } return false; }
     const saved = cached();
     const offline = globalThis.navigator?.onLine === false;
     const [airResult,metResult] = offline ? [] : await optional;
@@ -1060,7 +1062,8 @@ async function refreshAll() {
 }
 
 function refreshIfStale() {
-  if (!document.hidden && Date.now() - lastRefreshAt >= AUTO_REFRESH_MS) refreshAll();
+  if (document.hidden) return;
+  if (retryWhenVisible || Date.now() - lastRefreshAt >= AUTO_REFRESH_MS) { retryWhenVisible = false; refreshAll(); }
 }
 
 function setupPullToRefresh() {
@@ -1697,6 +1700,7 @@ function requestLocation(source = 'automatic') {
     const failLocation = () => {
       if (attempt !== locationAttempt) return;
       locationPending = false; locationButtons(false);
+      globalThis.pluviaAnalytics?.track('Location Unavailable',{reason:'catalog'});
       locationMessage("Não foi possível identificar a cidade. Selecione-a pelo nome.");
     };
     if (municipalitiesReady) applyLocation();

@@ -37,18 +37,40 @@ function writePreference(key, value) {
 }
 const stateNames = new Map(CAPITALS.map(city => [city.uf,city.state]));
 const savedCityRecord = readPreference('pluvia-city-record', null);
+// Uma página de cidade fora das capitais traz o registro completo do município no HTML
+// (<meta name="pluvia-city-record">): a cidade abre sem esperar o índice de municípios.
+const pageCityRecord = (() => {
+  try {
+    const record = JSON.parse(typeof document !== 'undefined' && document.querySelector?.('meta[name="pluvia-city-record"]')?.content || 'null');
+    return /^\d{7}$/.test(record?.id) && typeof record.name === 'string' && /^[A-Z]{2}$/.test(record.uf) && typeof record.state === 'string' &&
+      Number.isFinite(record.lat) && Number.isFinite(record.lon) && typeof record.timezone === 'string' ? record : null;
+  } catch { return null; }
+})();
 let CITIES = [...CAPITALS];
-if (savedCityRecord?.id && !CITIES.some(city => city.id === savedCityRecord.id)) CITIES.push(Object.freeze(savedCityRecord));
+for (const record of [pageCityRecord, savedCityRecord]) {
+  if (record?.id && !CITIES.some(city => city.id === record.id)) CITIES.push(Object.freeze({...record}));
+}
 let cityById = new Map(CITIES.map(city => [city.id,city]));
 // No city is selected until location permission succeeds or the visitor chooses.
 let activeCity = null;
 const savedFavorites = readPreference('pluvia-favorites', []);
 let favorites = new Set(Array.isArray(savedFavorites) ? savedFavorites : []);
 const normalizeName = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-// Public pages exist only for the capitals: /clima/<nome>-<uf>/ (scripts/generate-city-pages.cjs).
+// Public pages /clima/<nome>-<uf>/ (scripts/generate-city-pages.cjs): the capitals plus these
+// municipalities (large regional centres and the main towns of Amazonas), by IBGE code.
+const PAGE_CITY_IDS = Object.freeze([
+  '3518800','3509502','3304904','3301702','3303500','3548708','3547809','3534401','2607901','3549904','3543402','3170206',
+  '3552205','3118601','2910800','4209102','5201405','4113700','3136702','1500800','3205002','3303302','3300456','4305108',
+  '3301009','3205200','3529401','3305109','3530607','3548500','3106705','3513801','3525904','4115200','3143302','3538709',
+  '3510609','2609600','3201308','5201108','3506003','3523107','3551009','2303709','3516200','4314407','4304606','4119905',
+  '4202404','2933307','2610707','3170107','2611101','2905701','3549805','1506807','4108304','4104808','2408003','2604106',
+  '3303906','2307304','2105302','1504208','4204202','5003702','5107602','1100122','1505536','1302504','1301902','1303403',
+  '1301852','1301209','1304203','1304062','1302900','1301704','1303536','1302702','1303809','1303569'
+]);
 const capitalIds = new Set(CAPITALS.map(city => city.id));
+const pageCityIds = new Set([...capitalIds, ...PAGE_CITY_IDS]);
 const citySlug = city => normalizeName(city.name + ' ' + city.uf).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-const cityPagePath = city => capitalIds.has(city?.id) ? `/clima/${citySlug(city)}/` : null;
+const cityPagePath = city => pageCityIds.has(city?.id) ? `/clima/${citySlug(city)}/` : null;
 const cityPageTitle = city => `Previsão do tempo em ${city.name} (${city.uf}) agora — PLUVIA`;
 
 let citySearchIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name + ' ' + city.uf + ' ' + city.state)]));

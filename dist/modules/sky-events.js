@@ -8,9 +8,10 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  // Calendário IMO 2026 (picos e taxas ideais ZHR) e declinação do radiante. `night` é a data da
-  // noite do pico (a madrugada seguinte faz parte dela). Atualizar a tabela a cada ano: sem
-  // dados do ano, o card simplesmente não mostra meteoros.
+  // Calendários IMO 2026 e 2027 (picos e taxas ideais ZHR) e declinação do radiante. `night` é a
+  // data da noite do pico no Brasil (a madrugada seguinte faz parte dela): um pico às 05h UT do dia 4
+  // cai na madrugada do dia 4 aqui, noite do dia 3. Atualizar a tabela a cada ano: sem dados do
+  // ano, o card simplesmente não mostra meteoros.
   const SHOWERS = [
     {id:'QUA', name:'Quadrântidas', night:'2026-01-03', zhr:80, dec:49},
     {id:'LYR', name:'Líridas', night:'2026-04-22', zhr:18, dec:33},
@@ -20,7 +21,16 @@
     {id:'ORI', name:'Oriônidas', night:'2026-10-21', zhr:20, dec:16},
     {id:'LEO', name:'Leônidas', night:'2026-11-17', zhr:15, dec:22},
     {id:'GEM', name:'Geminídeas', night:'2026-12-13', zhr:150, dec:33},
-    {id:'URS', name:'Ursídeas', night:'2026-12-22', zhr:10, dec:75}
+    {id:'URS', name:'Ursídeas', night:'2026-12-22', zhr:10, dec:75},
+    {id:'QUA', name:'Quadrântidas', night:'2027-01-03', zhr:80, dec:49},
+    {id:'LYR', name:'Líridas', night:'2027-04-22', zhr:18, dec:33},
+    {id:'ETA', name:'Eta Aquáridas', night:'2027-05-05', zhr:50, dec:-1},
+    {id:'SDA', name:'Delta Aquáridas do Sul', night:'2027-07-30', zhr:25, dec:-16},
+    {id:'PER', name:'Perseidas', night:'2027-08-12', zhr:110, dec:58},
+    {id:'ORI', name:'Oriônidas', night:'2027-10-21', zhr:20, dec:16},
+    {id:'LEO', name:'Leônidas', night:'2027-11-17', zhr:15, dec:22},
+    {id:'GEM', name:'Geminídeas', night:'2027-12-13', zhr:150, dec:33},
+    {id:'URS', name:'Ursídeas', night:'2027-12-22', zhr:10, dec:75}
   ];
   // Radiante abaixo disso na sua altura máxima: poucos meteoros visíveis daquela latitude.
   const MIN_RADIANT_ALTITUDE = 20;
@@ -43,7 +53,7 @@
     const terms = Number.isInteger(k) ? NEW_TERMS : FULL_TERMS;
     for (const [c, e, m, mp, f] of terms) jde += c * E ** e * Math.sin(m * M + mp * Mp + f * F);
     jde += -.00017 * Math.sin(omega);
-    const deltaT = 69 / 86400; // TT − UT por volta de 2026, em dias
+    const deltaT = 69 / 86400; // TT − UT por volta de 2026–2027, em dias
     return Math.round((jde - deltaT - 2440587.5) * 86400000);
   }
 

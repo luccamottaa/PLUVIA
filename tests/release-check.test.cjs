@@ -16,6 +16,12 @@ test('HTTP 200 with stale content fails; retries only failed assets',async()=>{
  assert.ok(results.every(r=>r.ok));assert.deepEqual(calls,['a','b','b']);
  assert.equal((await check(assets[0],'https://site.test/',async()=>new Response('wrong'))).ok,false);
 });
+test('limits simultaneous requests to the public domain',async()=>{
+ const assets=Array.from({length:20},(_,i)=>({url:'f'+i,hash:digest('f'+i)}));let active=0,peak=0;
+ const fetchImpl=async url=>{active++;peak=Math.max(peak,active);await new Promise(r=>setTimeout(r,2));active--;return new Response(new URL(url).pathname.slice(1));};
+ const results=await verify(assets,'https://site.test/',{fetchImpl,pause:async()=>{},concurrency:3});
+ assert.ok(results.every(r=>r.ok));assert.equal(results.length,20);assert.equal(peak,3);
+});
 test('network failure and timeout remain explicit',async()=>{
  const result=await check({url:'sw.js',hash:'unused'},'https://site.test/',async()=>{throw new DOMException('Slow','TimeoutError');});
  assert.equal(result.ok,false);assert.equal(result.code,'timeout');

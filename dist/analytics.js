@@ -7,8 +7,8 @@
   const release = 'vitals-1';
   const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital']);
   const values = {
-    mode:new Set(['login','signup']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker']),
-    reason:new Set(['unsupported','permission','timeout','position']),permission:new Set(['granted','denied','default']),
+    mode:new Set(['login','signup']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker','automatic','notice','city_picker']),
+    reason:new Set(['unsupported','permission','timeout','position','catalog']),permission:new Set(['granted','denied','default']),
     layer:new Set(['rain','clouds','lightning']),platform:new Set(['ios','android','desktop','other']),
     component:new Set(['application','asset','weather','air-quality','alerts','met-norway','ensemble','account','radar','lightning']),
     error_code:new Set(['timeout','network_error','invalid_response','rate_limited','provider_unavailable','http_error','client_unavailable','unexpected','resource_error']),

@@ -16,7 +16,17 @@
     }
   }
 
+  // O Safari suspende a página em segundo plano e derruba as consultas em andamento ("Load failed").
+  // Isso não é a fonte fora do ar: a falha recebe `background` e não entra na telemetria.
+  let doc = null, hiddenAt = -Infinity;
+  function watchVisibility() {
+    if (doc || !runtime.document?.addEventListener) return;
+    doc = runtime.document;
+    doc.addEventListener("visibilitychange", () => { if (doc.hidden) hiddenAt = Date.now(); });
+  }
+
   function createClient(options = {}) {
+    watchVisibility();
     const fetchImpl = options.fetchImpl || runtime.fetch?.bind(runtime);
     const schedule = options.setTimeoutImpl || runtime.setTimeout?.bind(runtime);
     const cancelSchedule = options.clearTimeoutImpl || runtime.clearTimeout?.bind(runtime);
@@ -33,6 +43,7 @@
       let timedOut = false;
       let timeout = null;
       const abortFromSignal = () => controller.abort();
+      const startedAt = Date.now();
       pending.add(controller);
       if (requestOptions.signal) {
         if (requestOptions.signal.aborted) controller.abort();
@@ -76,7 +87,8 @@
           retryable: error instanceof TypeError,
           code: "network_error"
         });
-        if (failure.code !== 'cancelled') {
+        if ((failure.code === "network_error" || failure.code === "timeout") && (doc?.hidden === true || hiddenAt >= startedAt)) failure.background = true;
+        if (failure.code !== 'cancelled' && !failure.background) {
           try {
             const address = new URL(url), host = address.hostname;
             const component = host === 'api.open-meteo.com' ? 'weather' :
