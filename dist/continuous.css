@@ -1227,3 +1227,11 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 @media (max-width:420px) { #weatherView .expand-radar-verb { display:none; } }
 /* Abaixo de 340 px o título volta a quebrar para não encostar no ⓘ/botão. */
 @media (min-width:340px) and (max-width:420px) { #weatherView .weather-map-copy h2 { white-space:nowrap; } }
+/* Próximas horas: o "°" fica pendurado à direita (sem ocupar largura), então os algarismos se
+   centralizam debaixo do ícone, como no Apple Weather. */
+#weatherView .hourly-peek-item > strong { white-space:nowrap; }
+#weatherView .hourly-peek-item > strong .peek-deg { margin-right:-.46em; }
+/* Atalhos da Home para Comparar e Brasil agora (antes só dentro de "Suas cidades"). */
+#weatherView .home-shortcuts { display:flex; flex-wrap:wrap; gap:0 24px; margin-top:6px; padding:6px 0 0; border:0; border-top:1px solid var(--reading-line); border-radius:0; background:none; box-shadow:none; }
+#weatherView .home-shortcut { min-height:44px; padding:0; border:0; background:none; color:var(--reading-link); font:inherit; font-size:.9375rem; font-weight:600; cursor:pointer; }
+#weatherView .home-shortcut span { margin-left:2px; }
