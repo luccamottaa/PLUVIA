@@ -7,7 +7,7 @@
   const release = 'vitals-1';
   const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital','Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed']);
   const values = {
-    mode:new Set(['login','signup']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker','automatic','notice','city_picker']),
+    mode:new Set(['login','signup']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker','automatic','notice','city_picker','swipe','dots','search','favorite','saved_place','brazil','startup','other','home']),
     reason:new Set(['unsupported','permission','timeout','position','catalog']),permission:new Set(['granted','denied','default']),
     layer:new Set(['rain','clouds','lightning']),platform:new Set(['ios','android','desktop','other']),
     component:new Set(['application','asset','weather','air-quality','alerts','met-norway','ensemble','account','radar','lightning']),
@@ -139,9 +139,11 @@
     on('openCitySearch','click',()=>track('City Search Opened',{source:'topbar'}));
     on('favoriteCity','click',()=>track('Favorite City Toggled'));
     on('accountButton','click',()=>track('Account Dialog Opened'));
-    on('compareOpen','click',()=>track('Compare Opened'));
+    on('compareOpen','click',()=>track('Compare Opened',{source:'city_picker'}));
+    on('homeCompare','click',()=>track('Compare Opened',{source:'home'}));
     on('compareCity','change',()=>track('Compare City Changed'));
-    on('brazilOpen','click',()=>track('Brazil Now Opened'));
+    on('brazilOpen','click',()=>track('Brazil Now Opened',{source:'city_picker'}));
+    on('homeBrazil','click',()=>track('Brazil Now Opened',{source:'home'}));
     on('accountLogin','click',()=>track('Auth Mode Selected',{mode:'login'}));
     on('accountSignup','click',()=>track('Auth Mode Selected',{mode:'signup'}));
     let searchTimer;

@@ -256,6 +256,10 @@ Ar nos próximos dias: `AIR_PARAMS` traz `hourly=pm2_5,us_aqi` com `forecast_day
 
 `modules/sky-events.js` (puro, CommonJS): lua nova/cheia pelo algoritmo de Meeus (cap. 49, erro de minutos; não usar a fase aproximada do SunCalc, que erra horas) e a próxima chuva de meteoros das tabelas IMO 2026 e 2027, só quando o radiante sobe ≥ 20° na latitude da cidade. A tabela precisa ser atualizada a cada ano; sem dados do ano o card simplesmente não mostra meteoros. `renderSkyEvents` roda no relógio central, sem timer próprio; a iluminação da Lua na madrugada do pico vem do SunCalc. Hora dourada (Sol entre 0° e 6°) e hora azul (crepúsculo civil) vêm de `sky.astronomyAt` (`goldenEnd`/`goldenStart` e `calculatedRise`/`calculatedSet` do mesmo cálculo), sem misturar com o nascer/pôr da previsão.
 
+## Atalhos e origem da troca de cidade (outubro/2026)
+
+O PostHog mostrou zero aberturas de Comparar e Brasil agora com os botões só dentro de "Suas cidades": `#previsao` termina com `nav.home-shortcuts` (`#homeCompare`, `#homeBrazil`, links em azul da marca, alvos de 44 px; o `nav` global de `styles.css` é anulado ali). `City Selected` leva `source` (`swipe`, `dots`, `search`, `favorite`, `saved_place`, `brazil`, `location`, `startup`, `other`): o clique/Enter é marcado em captura por `noteCitySourceFrom`/`markCitySource` e consumido uma vez em `chooseCity` (validade 15 s). Nas Próximas horas o grau fica num `.peek-deg` com margem negativa igual à sua largura, para o número ficar centrado sob o ícone; `strong` sem quebra.
+
 ## Brasil agora
 
 `modules/brazil-now.js` abre `#brazilDialog` pelo botão de "Suas cidades" (ao lado de "Comparar"): uma única consulta Open-Meteo com as 27 coordenadas e fusos (máx./mín. no calendário de cada capital), só ao abrir, com cliente próprio, cache de 20 min e revisão. Cada capital é validada sozinha; ausentes viram "—". Agrupa por região (Norte → Sul) e tocar numa capital chama `chooseCity`. Até 360 px a máx./mín. sai da linha visível (continua no rótulo acessível). QA: `verify-brazil.py`.

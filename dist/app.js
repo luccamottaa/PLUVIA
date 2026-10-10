@@ -440,7 +440,7 @@ function renderHourly(hourly, start, daily) {
       // como pede o WCAG 2.5.3, e o resto vai num trecho só para leitores de tela.
       const solar = hourlySolarEvents(hourly.time[i],hourly.time[i+1]);
       const extra = `. Sensação ${fmt(readings.get(i).feelsLike)}°, ${rain} de chance de chuva, ${volume}. Ver detalhes`;
-      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span><span class="peek-icon">${icon}</span><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span><strong>${fmt(temperature)}°</strong>${solar}<span class="peek-extra">${extra}</span></button>`;
+      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span><span class="peek-icon">${icon}</span><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span><strong>${fmt(temperature)}<span class="peek-deg">°</span></strong>${solar}<span class="peek-extra">${extra}</span></button>`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
     // Sem nenhuma chance relevante nas seis horas, a linha reservada da chuva some de todas (sem buraco).
     peek.dataset.rain = indices.slice(0, 6).some(i => Number(readings.get(i).probability) >= 20) ? "some" : "none";
@@ -1407,6 +1407,26 @@ function animateCityText() {
 // o nome, a temperatura, a condição e o "Vai chover?" (view-transition-name durante a troca) e
 // desliza essas fotos numa camada própria acima da página; a página e o céu não ganham camadas.
 // Sem a API ou em reduced-motion, troca com o fade de cor.
+// Origem da troca de cidade para a telemetria (só o tipo do gesto, nunca a cidade). Bolinhas e
+// deslize marcam direto; nos diálogos (busca, favoritos, locais, Brasil agora) o toque/Enter marca
+// e o chooseCity seguinte usa essa marca, mesmo depois de carregar os detalhes do município.
+let citySource = null, firstCitySelection = true;
+function markCitySource(source) { citySource = {source, at:Date.now()}; }
+const CITY_SOURCE_TARGETS = [["#cityResults","search"],["[data-favorite-id]","favorite"],["[data-place-open]","saved_place"],["#brazilDialog [data-city-id]","brazil"]];
+function noteCitySourceFrom(event) {
+  if (event.type === "keydown" && event.key !== "Enter") return;
+  const target = event.target;
+  const match = CITY_SOURCE_TARGETS.find(([selector]) => target?.closest?.(selector));
+  if (match) markCitySource(match[1]);
+}
+document.addEventListener?.("click", noteCitySourceFrom, true);
+document.addEventListener?.("keydown", noteCitySourceFrom, true);
+function takeCitySource(located, first) {
+  const mark = citySource; citySource = null;
+  if (located) return "location";
+  if (mark && Date.now() - mark.at < 15000) return mark.source;
+  return first ? "startup" : "other";
+}
 function slideToCity(id, direction) {
   const root = document.documentElement;
   const canSlide = typeof document.startViewTransition === "function" &&
@@ -1429,6 +1449,7 @@ function setupCitySwipe() {
     const id = event.target.closest?.("[data-city-id]")?.dataset.cityId;
     if (!id || id === activeCity?.id) return;
     const ids = swipeCities();
+    markCitySource("dots");
     slideToCity(id, ids.indexOf(id) > ids.indexOf(activeCity?.id) ? 1 : -1);
   });
   let start = null;
@@ -1443,7 +1464,7 @@ function setupCitySwipe() {
       const dx = touch.clientX - start.x, dy = touch.clientY - start.y, quick = Date.now() - start.at < 800;
       start = null;
       // Só gesto claramente horizontal: rolagem e puxar para atualizar continuam verticais.
-      if (quick && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) stepCity(dx < 0 ? 1 : -1);
+      if (quick && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) { markCitySource("swipe"); stepCity(dx < 0 ? 1 : -1); }
     }, {passive:true});
   }
   globalThis.addEventListener?.("pluvia:favorites-changed", renderCityDots);
@@ -1605,7 +1626,8 @@ function chooseCity(id, locatedCity = null) {
   const inmetFresh = Boolean(lastInmetAvailable && lastInmetResponse) && inmetAge >= 0 && inmetAge < 300000;
   if (!inmetFresh) { lastInmetResponse = null; lastInmetReadAt = 0; }
   applyWeatherAtmosphere(null, null);
-  globalThis.pluviaAnalytics?.track('City Selected',{city:city.name,uf:city.uf,source:Number.isFinite(locatedCity?.distanceKm) ? 'location' : 'picker_or_saved'});
+  globalThis.pluviaAnalytics?.track('City Selected',{city:city.name,uf:city.uf,source:takeCitySource(Number.isFinite(locatedCity?.distanceKm), firstCitySelection)});
+  firstCitySelection = false;
   globalThis.PLUVIA?.sources.reset(city.id);
   globalThis.PLUVIA?.radar?.reset?.(city.id);
   globalThis.PLUVIA?.modules.location.reset?.();
@@ -1679,6 +1701,9 @@ function setupCityPicker() {
   $("citySearch").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(renderCityOptions,120); });
   $("favoriteCity").addEventListener("click", toggleFavoriteCity);
   setupFavoriteSuggest();
+  // Atalhos da Home: os mesmos diálogos de "Suas cidades", onde quase ninguém os achava.
+  $("homeCompare")?.addEventListener("click", () => globalThis.PLUVIA?.compare?.open?.());
+  $("homeBrazil")?.addEventListener("click", () => globalThis.PLUVIA?.brazilNow?.open?.());
   $("locateCity").addEventListener("click", () => requestLocation('city_picker'));
   $("welcomeLocate").addEventListener("click", () => requestLocation('welcome'));
   $("openCitySearch").addEventListener("click", openCitySearch);

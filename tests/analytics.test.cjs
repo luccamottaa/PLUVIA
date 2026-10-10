@@ -110,3 +110,13 @@ test('navegador sem PerformanceObserver continua funcionando',async()=>{
  const app=setup({choice:'1'});app.document.visibilityState='hidden';app.documents.visibilitychange();await app.api.flush();
  assert.equal(app.calls.flatMap(call=>call.body.batch).some(event=>event.event==='Web Vital'),false);
 });
+test('origem da troca de cidade e dos atalhos da Home usa valores da lista fechada',async()=>{
+ const app=setup();app.api.setConsent(true);
+ const sources=['swipe','dots','search','favorite','saved_place','brazil','startup','other','location'];
+ for(const source of sources)app.api.track('City Selected',{city:'Manaus',uf:'AM',source});
+ app.api.track('City Selected',{source:'Manaus'});app.api.track('Compare Opened',{source:'home'});app.api.track('Brazil Now Opened',{source:'home'});
+ await app.api.flush();await app.api.flush();
+ const batch=app.calls.flatMap(c=>c.body.batch).filter(e=>e.event!=='PLUVIA Opened');
+ assert.deepEqual(batch.map(e=>e.properties.source ?? null),[...sources,null,'home','home']);
+ assert.doesNotMatch(JSON.stringify(batch),/Manaus|"AM"/);
+});
