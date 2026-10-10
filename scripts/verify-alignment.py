@@ -105,8 +105,11 @@ with sync_playwright() as p:
   assert 6<=hours<=24,hours
   rain_row=page.evaluate("document.getElementById('hourlyPeek').dataset.rain")
   assert rain_row in ('some','none'),rain_row
-  for field in ['.peek-time','.peek-icon','.hourly-peek-item > strong']+(['.peek-rain'] if rain_row=='some' else []):
-   report[field]=aligned(field,count=hours)
+  # Nascer/pôr é uma coluna própria (sem botão) nas mesmas linhas de horário, ícone e temperatura.
+  solar=page.evaluate("document.querySelectorAll('#hourlyPeek .hourly-solar-item').length")
+  for field in ['.peek-time','.peek-icon','.hourly-peek-item > strong']:
+   report[field]=aligned(field,count=hours+solar)
+  if rain_row=='some': report['.peek-rain']=aligned('.peek-rain',count=hours)
   if rain_row=='none': assert not boxes('.peek-rain'),(width,label)
   aligned('.topbar .account-trigger,.topbar .brand,.topbar .top-actions','centerY',3)
   aligned('.topbar .top-actions > *','centerY')
@@ -160,14 +163,11 @@ with sync_playwright() as p:
   assert len(rows)==7
   for row in rows:
    geometry=row['geometry']
-   # Uma linha por dia em todas as larguras; a nota opcional (chuva/UV) fica abaixo, e no desktop começa na coluna da condição.
+   # Uma linha por dia em todas as larguras; a antiga nota de chuva/UV embaixo saiu a pedido.
    line={key:value for key,value in geometry.items() if key!='forecast-uv'}
    centers=[b['centerY'] for b in line.values()]
    assert max(centers)-min(centers)<=1,(width,geometry)
-   if 'forecast-uv' in geometry:
-    note=geometry['forecast-uv']
-    assert note['y']>=max(b['y']+b['height'] for b in line.values())-1,(width,geometry)
-    if width>720:assert abs(note['x']-geometry['forecast-condition']['x'])<=1,(width,geometry)
+   assert 'forecast-uv' not in geometry,(width,geometry)
    # Sem a quinta coluna vazia: a chuva termina na borda direita da linha.
    if width>720:assert abs(geometry['forecast-rain']['right']-max(b['right'] for b in line.values()))<=1,(width,geometry)
    condition=row['condition'];text=row['text']

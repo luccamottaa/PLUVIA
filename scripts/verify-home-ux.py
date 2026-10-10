@@ -78,7 +78,7 @@ with sync_playwright() as p:
         hint = page.evaluate("""() => { const d = document.getElementById('hourlyDecision'), peek = document.getElementById('hourlyPeek');
           const rains = [...peek.querySelectorAll('.peek-rain')];
           return {hidden:d.hidden, text:d.textContent, state:peek.dataset.rain, shown:rains.filter(r => r.getClientRects().length).length, filled:rains.filter(r => r.textContent.trim()).length,
-            labels:[...peek.querySelectorAll('.hourly-peek-item')].every(b => /chance de chuva/.test(b.querySelector('.peek-extra')?.textContent || ''))}; }""")
+            labels:[...peek.querySelectorAll('.hourly-peek-item[data-hour-index]')].every(b => /chance de chuva/.test(b.querySelector('.peek-extra')?.textContent || ''))}; }""")
         assert not hint['hidden'] and 'Toque' in hint['text'] and hint['labels'], hint
         assert hint['state'] in ('some', 'none') and (hint['shown'] == 0 if hint['state'] == 'none' else hint['filled'] >= 1), hint
         # ⓘ: cada um abre dentro da tela, só um por vez; clique fora e Escape fecham.

@@ -60,7 +60,7 @@ test('a fileira de horas reutiliza a fonte solar, respeita o intervalo e leva a 
  ctx.PLUVIA.sky={dayAt:()=>({rise:Date.parse('2026-09-24T06:00Z'),set:Date.parse('2026-09-24T17:45Z')})};
  hourly.renderHourly({...data,apparent_temperature:[32,33,31]},0,{time:['2026-09-24']});
  const row=elements.hourlyPeek.innerHTML;
- assert.match(row,/Sensação 32°/);assert.match(row,/Pôr do sol <\/span>17:45/);assert.equal((row.match(/Pôr do sol/g)||[]).length,1);
+ assert.match(row,/Sensação 32°/);assert.match(row,/<\/button><span class="hourly-peek-item hourly-solar-item"><span class="peek-time">17:45 <\/span>.*?<strong class="solar-label">Pôr do sol<\/strong><\/span>/,'o pôr do sol é uma coluna própria, fora do botão da hora');assert.equal((row.match(/Pôr do sol/g)||[]).length,1);
  ctx.PLUVIA.sky.dayAt=()=>null;hourly.renderHourly(data,0,{});assert.doesNotMatch(elements.hourlyPeek.innerHTML,/Pôr do sol/);
 });
 
