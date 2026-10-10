@@ -386,6 +386,12 @@ html body #weatherView #inmetCard { min-height:0; }
 #alertDetail details summary { min-height:44px; cursor:pointer; font-size:.875rem; }
 #alertDetail .inmet-official-link { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; padding:10px 14px; margin-top:18px; border:1px solid color-mix(in srgb,var(--brand-blue) 40%,transparent); border-radius:12px; font-size:.875rem; text-decoration:none; }
 #alertDetail .inmet-official-link:hover { text-decoration:underline; }
+#alertDetail .inmet-detail-others { margin-top:22px; padding-top:16px; border-top:1px solid var(--dialog-line); }
+#alertDetail .inmet-detail-others h3 { margin:0 0 10px; font-size:.9375rem; font-weight:600; }
+#alertDetail .inmet-detail-other { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; column-gap:12px; width:100%; min-height:44px; margin:0 0 8px; padding:10px 14px; border:1px solid var(--dialog-line); border-left:4px solid var(--alert-accent,var(--dialog-line)); border-radius:12px; background:var(--dialog-surface); color:inherit; font:inherit; text-align:left; cursor:pointer; }
+#alertDetail .inmet-detail-other strong { font-size:.9375rem; font-weight:600; }
+#alertDetail .inmet-detail-other small { grid-column:1; color:var(--dialog-muted); font-size:.8125rem; }
+#alertDetail .inmet-detail-other > span { grid-column:2; grid-row:1 / span 2; font-size:1.2rem; }
 #weatherView .temp-track .temp-fill { background:linear-gradient(90deg,var(--range-cool),var(--range-warm),var(--range-hot)); }
 #weatherView .rain-chart .rain-bar { background:linear-gradient(180deg,var(--chart-rain-top),var(--chart-rain-bottom)); }
 #weatherView .rain-chart .temp-bar { background:linear-gradient(180deg,var(--range-warm),var(--range-hot)); }
@@ -1151,6 +1157,8 @@ body[data-ink="dark"] #weatherView {
 #weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) { padding-block:14px !important; }
 /* Sem aviso (ou ainda consultando): só uma linha discreta, sem cartão; com aviso, falha ou leitura
    anterior, o cartão completo volta no mesmo lugar. */
+/* Aviso vigente na faixa do topo: o cartão completo repetia a faixa; os outros avisos ficam no detalhe. */
+#weatherView #alertas[data-alert-state="banner"] { display:none !important; }
 #weatherView #alertas:is([data-alert-state="clear"],[data-alert-state="loading"]) {
   padding:4px 2px !important; border-color:transparent !important; background:none !important; box-shadow:none !important;
 }
@@ -1311,5 +1319,10 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 #weatherView .hour-solar-event.is-compact svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 /* A fileira rola pelo gesto; a metade do 7º horário já mostra que continua, então a barra some. */
 #weatherView .hourly-peek-list { scrollbar-width:none; }
+/* Hora atual só em azul no horário: o traço embaixo ficava longe do conteúdo, no pé da coluna. */
+#weatherView .hourly-peek-item.is-now { border-bottom-color:transparent; }
+#weatherView .hourly-peek-list .hourly-peek-item { padding-bottom:4px; }
+#weatherView .hourly-peek-item .peek-rain { min-height:18px; margin-top:-2px; }
+
 #weatherView .hourly-peek-list::-webkit-scrollbar { display:none; }
 #weatherView .hour-solar-event .solar-name { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }

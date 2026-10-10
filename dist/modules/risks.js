@@ -36,7 +36,14 @@
       <dl class="inmet-detail-times"><div><dt>Início</dt><dd>${time(start)}</dd></div><div><dt>Término</dt><dd>${time(end)}</dd></div><div><dt>Fuso</dt><dd>${clean(activeCity.timezone)}</dd></div></dl>
       <dl class="inmet-detail-sections"><div><dt>Abrangência</dt><dd>${clean(area)}</dd></div><div><dt>Municípios afetados</dt><dd>${clean(municipalities)}</dd></div><div><dt>Descrição e riscos</dt><dd>${clean(risks)}</dd></div><div><dt>Recomendações oficiais</dt><dd>${clean(recommendations)}</dd></div></dl>
       ${/enxurrada/i.test(text(risks)) ? '<details><summary>O que significa enxurrada?</summary><p>A água pode subir e correr rapidamente em ruas, igarapés e áreas baixas após chuva intensa.</p></details>' : ''}<a class="inmet-official-link" href="${url}" target="_blank" rel="noreferrer">Abrir aviso oficial no INMET <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>`;
-    $('alertDetail').showModal(); $('alertDetailClose').focus();
+    // Com a faixa no topo o cartão completo some: os outros avisos da região ficam aqui, um toque cada.
+    const others = notices.map((other,i)=>({other,i})).filter(({i})=>i!==index);
+    if (others.length) $('alertDetailBody').insertAdjacentHTML('beforeend', `<div class="inmet-detail-others"><h3>Outros avisos na região</h3>${others.map(({other,i})=>{
+      const stage = other.stage==='future' ? 'Previsto' : other.stage==='active' ? 'Vigente' : 'A confirmar';
+      return `<button type="button" class="inmet-detail-other inmet-${clean(other.severity.className)}" data-notice="${i}"><strong>${clean(firstValue(other.alert,['descricao','evento','titulo','tipo'],'Aviso INMET'))}</strong><small>${clean(other.severity.label)} · ${stage} · ${clean(other.area)}</small><span aria-hidden="true">›</span></button>`;}).join('')}</div>`);
+    $('alertDetailBody').scrollTop = 0;
+    if (!$('alertDetail').open) $('alertDetail').showModal();
+    $('alertDetailClose').focus();
   }
   app.modules.ui.refresh = () => {};
   document.addEventListener('click',event=>{ const button=event.target.closest('[data-notice]');if(button)showDetail(Number(button.dataset.notice)); });
