@@ -46,11 +46,14 @@ with sync_playwright() as p:
  def goto(**options):
   # The public smoke reaches the real domain: a dropped connection before any
   # response (seen twice after deploys) is retried; app errors still fail.
-  for attempt in range(3 if public_smoke else 1):
+  # The domain can keep refusing for tens of seconds, so the waits grow (5-40 s).
+  attempts=5 if public_smoke else 1
+  for attempt in range(attempts):
    try:return page.goto(preview,**options)
    except Exception as error:
-    if attempt==2 or not public_smoke or not re.search(r'net::ERR_(CONNECTION_(CLOSED|RESET|REFUSED|TIMED_OUT)|TIMED_OUT|NETWORK_CHANGED)',str(error)):raise
-    page.wait_for_timeout(3000*(attempt+1))
+    if attempt==attempts-1 or not public_smoke or not re.search(r'net::ERR_(CONNECTION_(CLOSED|RESET|REFUSED|TIMED_OUT)|TIMED_OUT|NETWORK_CHANGED)',str(error)):raise
+    print(f'goto {mode.get("name")}: {str(error).splitlines()[0]}; nova tentativa',flush=True)
+    page.wait_for_timeout(5000*2**attempt)
  def geometry():
   page.locator('#temperature').wait_for(state='visible',timeout=20000)
   assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),mode['name']
@@ -133,12 +136,13 @@ with sync_playwright() as p:
   page.keyboard.press('Escape')
   page.locator('#cityDialog').wait_for(state='hidden')
   # Verify downward entrance and exit, native modality and immediate reduced-motion close.
-  page.emulate_media(reduced_motion='no-preference');page.locator('#accountButton').click()
-  assert page.locator('#accountDialog').evaluate("el=>getComputedStyle(el).animationName")=='pluvia-dialog-enter'
-  # Amostra a entrada num instante fixo (50 ms): ler o transform "logo depois" do clique corria contra
-  # a animação de 400 ms no WebKit da CI, que às vezes já tinha terminado.
-  assert page.locator('#accountDialog').evaluate("""el=>{const a=el.getAnimations().find(x=>x.animationName==='pluvia-dialog-enter');if(!a)return 0;
-   a.pause();a.currentTime=50;const y=new DOMMatrixReadOnly(getComputedStyle(el).transform).m42;a.play();return y}""")<0
+  page.emulate_media(reduced_motion='no-preference')
+  # Clique e amostra no mesmo evaluate, num instante fixo (50 ms): entre um round-trip e outro, a
+  # animação de 400 ms às vezes já tinha terminado no WebKit da CI.
+  entry=page.evaluate("""()=>{const el=document.getElementById('accountDialog');const button=document.getElementById('accountButton');button.focus();button.click();
+   const name=getComputedStyle(el).animationName,a=el.getAnimations().find(x=>x.animationName==='pluvia-dialog-enter');if(!a)return {name,y:null};
+   a.pause();a.currentTime=50;const y=new DOMMatrixReadOnly(getComputedStyle(el).transform).m42;a.play();return {name,y}}""")
+  assert entry['name']=='pluvia-dialog-enter' and entry['y'] is not None and entry['y']<0,entry
   page.wait_for_timeout(450)
   rect=page.locator('#accountDialog').bounding_box();assert rect and rect['height']<=height and rect['width']<=width
   page.screenshot(path=str(output/(str(width)+'-account.png')))

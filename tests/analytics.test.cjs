@@ -36,6 +36,13 @@ test('origem e motivo da localização chegam como valores da lista fechada',asy
  const batch=app.calls.flatMap(c=>c.body.batch).filter(e=>e.event.startsWith('Location'));
  assert.deepEqual(batch.map(e=>e.properties.source ?? e.properties.reason ?? null),['automatic','notice','catalog',null]);
 });
+test('Comparar, Brasil agora e o convite de favoritar entram na lista fechada, sem propriedades',async()=>{
+ const app=setup();app.api.setConsent(true);
+ const names=['Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed'];
+ for(const name of names)app.api.track(name,{city:'Manaus'});await app.api.flush();await app.api.flush();
+ const batch=app.calls.flatMap(c=>c.body.batch).filter(e=>names.includes(e.event));
+ assert.deepEqual(batch.map(e=>e.event),names);assert.doesNotMatch(JSON.stringify(batch),/Manaus/);
+});
 test('somente o comprimento da busca é enviado e valores são limitados',async()=>{
  const app=setup({choice:'1'});app.node('citySearch').value='Manaus';app.node('citySearch').input({target:app.node('citySearch')});
  for(const [id,fn] of [...app.timers]){app.timers.delete(id);fn();}
