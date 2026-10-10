@@ -29,6 +29,13 @@ test('participação usa API pública sem SDK, perfil, conta, coordenadas ou tex
  assert.equal(body.batch[1].properties.source,'location');assert.equal(body.batch[1].properties.$process_person_profile,false);assert.equal(body.batch[1].properties.$geoip_disable,true);assert.equal(body.batch[1].properties.$ip,null);
  assert.doesNotMatch(JSON.stringify(body),/Manaus|person@example|private-account|latitude|secret/);
 });
+test('origem e motivo da localização chegam como valores da lista fechada',async()=>{
+ const app=setup();app.api.setConsent(true);
+ app.api.track('Location Requested',{source:'automatic'});app.api.track('Location Requested',{source:'notice'});
+ app.api.track('Location Unavailable',{reason:'catalog'});app.api.track('Location Requested',{source:'https://x.test/'});await app.api.flush();
+ const batch=app.calls.flatMap(c=>c.body.batch).filter(e=>e.event.startsWith('Location'));
+ assert.deepEqual(batch.map(e=>e.properties.source ?? e.properties.reason ?? null),['automatic','notice','catalog',null]);
+});
 test('somente o comprimento da busca é enviado e valores são limitados',async()=>{
  const app=setup({choice:'1'});app.node('citySearch').value='Manaus';app.node('citySearch').input({target:app.node('citySearch')});
  for(const [id,fn] of [...app.timers]){app.timers.delete(id);fn();}

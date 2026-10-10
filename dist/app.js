@@ -1700,6 +1700,7 @@ function requestLocation(source = 'automatic') {
     const failLocation = () => {
       if (attempt !== locationAttempt) return;
       locationPending = false; locationButtons(false);
+      globalThis.pluviaAnalytics?.track('Location Unavailable',{reason:'catalog'});
       locationMessage("Não foi possível identificar a cidade. Selecione-a pelo nome.");
     };
     if (municipalitiesReady) applyLocation();
