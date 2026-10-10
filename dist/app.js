@@ -1500,7 +1500,7 @@ function updateCityLabels() {
   }
   globalThis.PLUVIA?.modules?.['weather-layers']?.cityChanged?.(activeCity);
   const starred = favorites.has(activeCity.id);
-  $("favoriteCity").textContent = starred ? "★ Favorita" : "☆ Favoritar";
+  $("favoriteCity").textContent = starred ? "Favorita" : "Favoritar";
   $("favoriteCity").setAttribute("aria-pressed", String(starred));
   $("favoriteCity").setAttribute("aria-label", (starred ? "Remover dos favoritos: " : "Favoritar: ") + activeCity.name);
   updateClock();
