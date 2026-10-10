@@ -255,7 +255,7 @@ function settleBlock(node) {
 // Faixa no topo para aviso INMET vigente na cidade (leitura atual): amarelo numa versão discreta,
 // laranja/vermelho em destaque. Severidade desconhecida não sobe. Leitura anterior,
 // falha ou aviso só previsto nunca aparecem aqui; o card completo continua na seção de alertas.
-function setAlertBanner(item = null, index = -1) {
+function setAlertBanner(item = null, index = -1, others = 0) {
   const banner = $("alertBanner");
   if (typeof banner?.setAttribute !== "function" || typeof banner.removeAttribute !== "function") return;
   const show = Boolean(item) && item.severity?.rank >= 1, appearing = show && banner.hidden;
@@ -269,7 +269,9 @@ function setAlertBanner(item = null, index = -1) {
   banner.setAttribute("data-severity", item.severity.className);
   banner.setAttribute("data-notice", String(index));
   $("alertBannerTitle").textContent = `${item.severity.label} do INMET · ${title}`;
-  $("alertBannerTime").textContent = Number.isFinite(item.end) ? `Vigente até ${until}` : "Vigência no aviso oficial";
+  // Os demais avisos da região ficam no detalhe (a faixa substitui o cartão completo).
+  const more = others > 0 ? ` · +${others} aviso${others > 1 ? "s" : ""} na região` : "";
+  $("alertBannerTime").textContent = (Number.isFinite(item.end) ? `Vigente até ${until}` : "Vigência no aviso oficial") + more;
 }
 
 function renderInmetAlerts(raw, stale = false) {
@@ -278,9 +280,11 @@ function renderInmetAlerts(raw, stale = false) {
   const alerts = selectInmetAlerts(raw);
   const activeOfficial = alerts.find(item => item.stage === "active" && item.area === activeCity.name);
   $("inmetCard").dataset.severity = stale ? "unknown" : activeOfficial?.severity.className || "none";
-  setAlertBanner(stale ? null : activeOfficial, activeOfficial ? alerts.indexOf(activeOfficial) : -1);
-  // Sem aviso, a seção vira uma linha discreta abaixo do topo; com aviso, ganha destaque no mesmo lugar.
-  setAlertState(stale ? "unavailable" : alerts.length ? "alerts" : "clear");
+  const bannerItem = !stale && activeOfficial?.severity?.rank >= 1 ? activeOfficial : null;
+  setAlertBanner(bannerItem, bannerItem ? alerts.indexOf(bannerItem) : -1, bannerItem ? alerts.length - 1 : 0);
+  // Sem aviso, a seção vira uma linha discreta abaixo do topo. Com aviso vigente na faixa do topo, o cartão
+  // some (repetia a faixa); avisos só previstos, a confirmar ou de leitura anterior continuam no cartão.
+  setAlertState(stale ? "unavailable" : bannerItem ? "banner" : alerts.length ? "alerts" : "clear");
   if (!alerts.length) {
     state.className = "source-state"; state.innerHTML = `<i></i>${stale ? "Consulta indisponível" : "Nenhum aviso identificado"}`;
     content.innerHTML = stale ? "<h3>Confira o mapa do INMET</h3><p>Não foi possível confirmar os avisos atuais. A leitura anterior não confirma a situação de agora.</p>" : `<h3>Sem alertas meteorológicos ativos</h3><p>A consulta oficial não retornou avisos vigentes ou previstos para ${activeCity.name}. Verificação atualizada agora; confira também o mapa oficial.</p>`;
@@ -442,13 +446,14 @@ function renderHourly(hourly, start, daily) {
       const volume = Number.isFinite(mm) && mm >= 0 ? `${fmt(mm, 1)} mm` : "Volume indisponível";
       const rain = Number.isFinite(probability) ? `${Math.round(probability)}%` : "—";
       // Resumo enxuto: hora, ícone, temperatura e a chance só quando relevante (≥ 20%); sensação e volume
-      // continuam no rótulo acessível e no detalhe do horário. A linha da chance fica reservada (vazia).
+      // continuam no rótulo acessível e no detalhe do horário. A chance fica abaixo da temperatura: reservada
+      // entre o ícone e o número, ela abria um buraco em todas as horas sem chuva.
       const showRain = Number.isFinite(probability) && probability >= 20;
       // Sem aria-label: o nome acessível é o próprio texto visível (hora, chance, temperatura, nascer/pôr),
       // como pede o WCAG 2.5.3, e o resto vai num trecho só para leitores de tela.
       const solar = hourlySolarEvents(hourly.time[i],hourly.time[i+1],true);
       const extra = `. Sensação ${fmt(readings.get(i).feelsLike)}°, ${rain} de chance de chuva, ${volume}. Ver detalhes`;
-      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span><span class="peek-icon">${icon}</span><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span><strong>${fmt(temperature)}<span class="peek-deg">°</span></strong>${solar}<span class="peek-extra">${extra}</span></button>`;
+      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span><span class="peek-icon">${icon}</span><strong>${fmt(temperature)}<span class="peek-deg">°</span></strong><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span>${solar}<span class="peek-extra">${extra}</span></button>`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
     // Sem nenhuma chance relevante nas 24 horas, a linha reservada da chuva some de todas (sem buraco).
     peek.dataset.rain = indices.some(i => Number(readings.get(i).probability) >= 20) ? "some" : "none";
@@ -1869,10 +1874,7 @@ document.addEventListener("keydown", event => {
   const open = document.querySelector?.(".info-tip[open]");
   if (open) { open.open = false; open.querySelector("summary")?.focus(); }
 });
-$("alertBanner")?.addEventListener("click", event => {
-  const index = event.currentTarget.dataset.notice;
-  document.querySelector(`#inmetContent [data-notice="${index}"]`)?.click();
-});
+// A faixa tem data-notice: o detalhe abre pelo mesmo clique delegado dos cartões (risks.js).
 setupCitySwipe();
 setupScrollAnimations();
 setupPullToRefresh();

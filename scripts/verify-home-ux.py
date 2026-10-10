@@ -45,7 +45,7 @@ with sync_playwright() as p:
                 data = json.loads(json.dumps(base)); data['timezone'] = query.get('timezone', ['America/Manaus'])[0]
                 r.fulfill(json=data); return
             if 'air-quality-api' in url: r.fulfill(json={'current': {'time': base['current']['time'], 'us_aqi': 35}}); return
-            if 'inmet.gov.br' in url: r.fulfill(json={'hoje': [YELLOW if mode['alert'] == 'yellow' else ORANGE] if mode['alert'] else [], 'amanha': []}); return
+            if 'inmet.gov.br' in url: r.fulfill(json={'hoje': ([ORANGE, YELLOW] if mode['alert'] == 'both' else [YELLOW if mode['alert'] == 'yellow' else ORANGE]) if mode['alert'] else [], 'amanha': []}); return
             if 'rainviewer.com' in url: r.fulfill(headers={'Access-Control-Allow-Origin': '*'}, json={'host': 'https://radar.test', 'radar': {'past': []}}); return
             if 'functions/v1/met-forecast' in url: r.fulfill(json={'source': 'MET Norway', 'hourly': []}); return
             if '/auth/v1/settings' in url: r.fulfill(json={'external': {'email': True, 'google': False, 'apple': False}}); return
@@ -197,6 +197,22 @@ with sync_playwright() as p:
         assert banner['severity'] == 'yellow' and 'Alerta amarelo do INMET' in banner['title'] and banner['h'] >= 44 and banner['shadow'] == 'none' and banner['inside'], banner
         page.screenshot(path=str(output / f'{engine}-{width}-alert-yellow.png'))
         no_overflow(page, (width, 'alerta amarelo'))
+        # Com aviso vigente a faixa substitui o cartão; outros avisos da região ficam no detalhe, um toque cada.
+        mode['alert'] = 'both'
+        page.close(); page = open_page()
+        page.wait_for_function("!document.getElementById('alertBanner').hidden && document.getElementById('alertas').dataset.alertState === 'banner'", timeout=10000)
+        state = page.evaluate("[document.getElementById('alertas').getClientRects().length, document.getElementById('alertBannerTime').textContent]")
+        assert state[0] == 0 and state[1].endswith('· +1 aviso na região'), state
+        page.click('#alertBanner')
+        page.wait_for_function("document.getElementById('alertDetail').open", timeout=5000)
+        assert page.locator('#alertDetail .inmet-detail-other').count() == 1
+        first = page.locator('#alertDetailTitle').text_content()
+        page.locator('#alertDetail .inmet-detail-other').click()
+        page.wait_for_function("t => document.getElementById('alertDetailTitle').textContent !== t", arg=first, timeout=5000)
+        assert page.evaluate("document.getElementById('alertDetail').open")
+        page.screenshot(path=str(output / f'{engine}-{width}-alert-detail.png'))
+        page.keyboard.press('Escape')
+        no_overflow(page, (width, 'dois avisos'))
         mode['alert'] = False
         assert not errors, errors
         report.append(f'{width}px ok')
