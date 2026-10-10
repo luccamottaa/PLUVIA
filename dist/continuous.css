@@ -1098,10 +1098,26 @@ html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notific
 }
 
 /* Pacote visual (outubro/2026, a pedido): máx./mín. no topo, seções em cartões, um estilo de título
-   e 7 dias compactos no celular. Os cartões são só fundo + borda (sem blur, sombra, transform ou
-   z-index): não criam camadas e o céu continua visível atrás. A tinta segue data-ink. */
-#weatherView { --card-bg:rgba(160,190,240,.08); --card-line:rgba(184,212,239,.14); }
-body[data-ink="dark"] #weatherView { --card-bg:rgba(255,255,255,.3); --card-line:rgba(255,255,255,.46); }
+   e 7 dias compactos no celular. Os cartões são só pintura (fundo, borda e box-shadow, sem blur,
+   transform ou z-index): não criam camadas e o céu continua visível atrás. A tinta segue data-ink. */
+/* Vidro "líquido" sem backdrop-filter: um blur por cartão sobre as nuvens animadas seria refeito a
+   cada quadro e já derrubou o Safari do iPhone. O efeito vem só de pintura estática: preenchimento
+   mais claro no alto, borda de luz em degradê (mais forte no canto de cima e um reflexo embaixo) e
+   brilho interno com box-shadow inset. Nada disso cria camada. */
+#weatherView {
+  --card-bg:rgba(160,190,240,.08);
+  --card-line:rgba(184,212,239,.14);
+  --card-fill:linear-gradient(180deg,rgba(214,228,255,.09) 0%,rgba(170,195,240,.04) 40%,rgba(150,178,230,.04) 100%) padding-box,linear-gradient(rgba(6,12,32,.24),rgba(6,12,32,.24)) padding-box;
+  --card-rim:linear-gradient(165deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.1) 30%,rgba(255,255,255,.035) 58%,rgba(255,255,255,.07) 82%,rgba(255,255,255,.24) 100%);
+  --card-glow:inset 0 1px 0 rgba(255,255,255,.16), inset 0 10px 16px -14px rgba(255,255,255,.12), inset 0 -10px 16px -14px rgba(255,255,255,.07), 0 10px 28px -16px rgba(2,6,24,.5);
+}
+body[data-ink="dark"] #weatherView {
+  --card-bg:rgba(255,255,255,.3);
+  --card-line:rgba(255,255,255,.46);
+  --card-fill:linear-gradient(180deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.24) 100%) padding-box;
+  --card-rim:linear-gradient(165deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.5) 32%,rgba(255,255,255,.28) 60%,rgba(255,255,255,.4) 84%,rgba(255,255,255,.8) 100%);
+  --card-glow:inset 0 1px 0 rgba(255,255,255,.7), inset 0 14px 24px -16px rgba(255,255,255,.55), 0 10px 26px -18px rgba(20,48,96,.35);
+}
 #weatherView .hero-range { margin:-8px 0 0; color:var(--reading-ink); font-size:1.05rem; font-weight:500; line-height:1.35; text-align:center; }
 #weatherView .hero-range:empty { display:none; }
 #weatherView .hero-range .sk-line { width:min(9rem,50%); }
@@ -1116,9 +1132,10 @@ body[data-ink="dark"] #weatherView { --card-bg:rgba(255,255,255,.3); --card-line
 #weatherView :is(#alertas,#tips,#chuva,.quick-metrics,.metrics,.weather-map-section,#previsao,#notificationPrompt,.sun-section) {
   margin:12px 0 0 !important;
   padding:18px 16px !important;
-  border:1px solid var(--card-line) !important;
-  border-radius:22px !important;
-  background:var(--card-bg) !important;
+  border:1px solid transparent !important;
+  border-radius:24px !important;
+  background:var(--card-fill), var(--card-rim) border-box !important;
+  box-shadow:var(--card-glow);
 }
 #weatherView #alertas { margin-top:4px !important; }
 #weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) { padding-block:14px !important; }
@@ -1172,3 +1189,10 @@ body[data-ink="dark"] #weatherView { --card-bg:rgba(255,255,255,.3); --card-line
 #weatherView .sky-pair .moon-inline strong { overflow-wrap:normal; word-break:normal; }
 /* Respiro entre o último cartão e a linha do rodapé (a borda do cartão encostava nela). */
 #weatherView { padding-bottom:28px; }
+@media (forced-colors:active) {
+  #weatherView :is(#alertas,#tips,#chuva,.quick-metrics,.metrics,.weather-map-section,#previsao,#notificationPrompt,.sun-section) { border-color:CanvasText !important; box-shadow:none; }
+}
+
+/* Busca de cidades: digitando, os resultados sobem para logo abaixo do campo, antes dos botões e
+   favoritos (que continuam ali embaixo). No celular o teclado escondia a lista lá no fim. */
+#cityDialog[data-searching] :is(#cityResults,#cityPickerStatus) { order:-1; }

@@ -1468,6 +1468,14 @@ function renderCityOptions() {
   const matches = query ? searchCities(query) : initial;
   const shown = query ? matches.slice(0, 12) : matches;
   const list = document.getElementById("cityResults");
+  // While typing, the results move right under the field, above the buttons and favorites: on the
+  // phone the keyboard hid them below everything else.
+  const dialog = document.getElementById("cityDialog");
+  if (dialog && dialog.hasAttribute?.("data-searching") !== Boolean(query)) {
+    dialog.toggleAttribute?.("data-searching", Boolean(query));
+    const scroller = dialog.querySelector?.(".dialog-scroll");
+    if (scroller) scroller.scrollTop = 0;
+  }
   activeResultIndex = -1;
   list.innerHTML = shown.map(city => {
     const capital = CAPITALS.some(item => item.id === city.id);
