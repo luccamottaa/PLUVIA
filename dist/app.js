@@ -402,7 +402,7 @@ function forecastIsDay(time, daily) {
   return Number.isFinite(at) && Number.isFinite(rise) && Number.isFinite(set) ? at >= rise && at < set : true;
 }
 
-let hourlyMode = "conditions";
+// O gráfico de 24 horas saiu da Home: a fileira já mostra as 24 horas e o toque abre o detalhe.
 // Na fileira de 24 horas a coluna é estreita: o nascer/pôr aparece como símbolo + horário,
 // e o nome do evento fica só para leitores de tela (o horário visível continua no nome acessível).
 const SOLAR_GLYPHS = {"Nascer do sol":"M12 3v5m-3-2 3-3 3 3", "Pôr do sol":"M12 3v5m-3-3 3 3 3-3"};
@@ -425,7 +425,6 @@ function showHourlyHint() {
   return true;
 }
 function renderHourly(hourly, start, daily) {
-  const chart = $("rainChart");
   const readings = new Map(Array.from({length:24}, (_, i) => start + i).filter(i => i < hourly.time.length)
     .map(i => [i, PLUVIA.hourlyDetail.detail(hourly, i)]).filter(([, reading]) => reading));
   const indices = [...readings.keys()];
@@ -461,78 +460,6 @@ function renderHourly(hourly, start, daily) {
     decision.textContent = !indices.length ? 'Previsão por hora indisponível.' : hint ? 'Toque em um horário para ver sensação, chuva e rajadas.' : '';
     decision.hidden = Boolean(indices.length) && !hint;
   }
-  // O gráfico fica recolhido: montar 24 colunas que ninguém vê só pesa a abertura no celular.
-  // Ele é desenhado ao abrir "Ver gráfico" (e a cada atualização enquanto estiver aberto).
-  const chartDetails = $("hourlyChartDetails");
-  if (chartDetails && !chartDetails.open) {
-    chart.dataset.pending = "true";
-    setDryWindow(findDryWindow(hourly, start));
-    return;
-  }
-  delete chart.dataset.pending;
-  const scrollLeft = chart.scrollLeft;
-  const descriptions = {
-    conditions:"barras mostram a temperatura; a sensação aparece abaixo",
-    feels:"barras mostram a sensação térmica; a temperatura aparece abaixo",
-    rain:"barras mostram o volume previsto em mm por hora; a chance aparece separadamente em %",
-    wind:"barras mostram a velocidade em km/h, com rajadas e direção quando disponíveis"
-  };
-  const legend = $("hourlyChartLegend");
-  if (legend) legend.textContent = descriptions[hourlyMode] + '. Horários locais da cidade; toque para ver detalhes.';
-  const temperatures = indices.map(i => hourlyMode === "feels" ? readings.get(i).feelsLike : readings.get(i).temperature).filter(Number.isFinite);
-  const minTemp = temperatures.length ? Math.min(...temperatures) : 0;
-  const tempSpread = temperatures.length ? Math.max(1, Math.max(...temperatures) - minTemp) : 1;
-  const windValues = indices.map(i => readings.get(i).wind).filter(Number.isFinite);
-  const maxWind = Math.max(10, ...windValues);
-  const maxRain = Math.max(1, ...indices.map(i => readings.get(i).mm).filter(Number.isFinite));
-  chart.dataset.hourlyMode = hourlyMode;
-  if ((hourlyMode === "wind" && !windValues.length) || (hourlyMode === "feels" && !temperatures.length)) {
-    const unavailable = hourlyMode === "feels" ? "Sensação térmica por hora indisponível" : "Vento por hora indisponível";
-    chart.innerHTML = `<p class="chart-loading">${unavailable}.</p>`;
-    chart.setAttribute("aria-label", `${unavailable} em ${activeCity.name}.`);
-    setDryWindow(findDryWindow(hourly, start));
-    return;
-  }
-  chart.innerHTML = indices.map((i, p) => {
-    const time = p === 0 ? "AGORA" : shortTime(hourly.time[i]);
-    const temperature = readings.get(i).temperature;
-    const solarEvent = hourlySolarEvents(hourly.time[i],hourly.time[i+1]);
-    const icon = weatherIcons.markup(hourly.weather_code[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:false});
-    if (hourlyMode === "conditions" || hourlyMode === "feels") {
-      const plotted = hourlyMode === "feels" ? readings.get(i).feelsLike : temperature;
-      const secondary = hourlyMode === "feels" ? `Temp. ${fmt(temperature)}°` : `Sens. ${fmt(readings.get(i).feelsLike)}°`;
-      const bar = Number.isFinite(plotted) ? `<div class="temp-bar" style="height:${(24 + (plotted - minTemp) / tempSpread * 111).toFixed(0)}px"></div>` : '';
-      return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" style="--i:${p}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${weather(hourly.weather_code[i])[0]}">
-        <span class="hour-time">${time}</span><span class="hour-temp">${fmt(plotted)}°<small>${secondary}</small></span>
-        <div class="bar-area">${bar}</div>
-        <span class="hour-detail">${Number.isFinite(readings.get(i).probability) ? Math.round(readings.get(i).probability) + "%" : "—"} de chuva<small>${fmt(readings.get(i).mm,1)} mm</small></span><span class="hour-icon">${icon}</span>${solarEvent}</button>`;
-    }
-    if (hourlyMode === "wind") {
-      const speed = readings.get(i).wind;
-      const gust = readings.get(i).gust;
-      const direction = readings.get(i).direction;
-      const validDirection = Number.isFinite(speed) && speed > 0 && Number.isFinite(direction) && direction >= 0 && direction <= 360;
-      const arrow = validDirection ? `<span style="transform:rotate(${direction}deg)">↑</span>` : "—";
-      const bar = Number.isFinite(speed) ? `<div class="wind-bar" style="height:${(16 + Math.max(0, speed) / maxWind * 125).toFixed(0)}px"></div>` : "";
-      return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" style="--i:${p}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: vento ${fmt(speed)} km/h, rajadas ${fmt(gust)} km/h${validDirection ? `, vindo de ${windDirection(direction)}` : ""}">
-        <span class="hour-time">${time}</span><span class="hour-temp">${fmt(speed)}</span>
-        <div class="bar-area">${bar}</div><span class="hour-detail">km/h<small>Raj. ${fmt(gust)}</small></span>
-        <span class="wind-direction" aria-hidden="true">${arrow}</span>${solarEvent}</button>`;
-    }
-    const probability = readings.get(i).probability;
-    const prob = Number.isFinite(probability) ? Math.round(probability) : null;
-    const mm = readings.get(i).mm;
-    const bar = mm > 0 ? `<div class="rain-bar" style="height:${(mm / maxRain * 150).toFixed(1)}px"></div>` : '';
-    const gust = readings.get(i).gust;
-    return `<button type="button" class="hour-column ${p === 0 ? "now" : ""}" style="--i:${p}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog" aria-label="Ver detalhes de ${shortTime(hourly.time[i])}" title="${shortTime(hourly.time[i])}: ${fmt(temperature)} graus, ${prob ?? "—"}% de chuva, ${fmt(mm, 1)} milímetro${gust >= 45 ? `, rajadas de ${fmt(gust)} quilômetros por hora` : ""}">
-      <span class="hour-time">${time}</span>
-      <span class="hour-temp"><span class="rain-chance">${prob === null ? "Chance —" : `${prob}% de chance`}</span></span>
-      <div class="bar-area">${bar}</div>
-      <span class="rain-mm">${fmt(mm, 1)} mm</span><span class="hour-icon">${icon}</span>${solarEvent}
-    </button>`;
-  }).join("") || '<p class="chart-loading">Previsão por hora indisponível.</p>';
-  chart.setAttribute("aria-label", `Previsão por hora em ${activeCity.name}: ${descriptions[hourlyMode]}.`);
-  chart.scrollLeft = scrollLeft;
   setDryWindow(findDryWindow(hourly, start));
 }
 
@@ -656,7 +583,7 @@ function renderSun(daily, at = Date.now()) {
   if (!available) {
     $("sunrise").textContent = "--:--"; $("sunset").textContent = "--:--";
     $("daylight").textContent = "Ciclo solar indisponível";
-    $("sunPhrase").textContent = "Horários solares indisponíveis para hoje.";
+    $("sunPhrase").textContent = "";
     $("sunshineNote").textContent = "Duração prevista de sol indisponível.";
     return;
   }
@@ -665,12 +592,11 @@ function renderSun(daily, at = Date.now()) {
   $("daylight").textContent = `${Math.floor(minutes / 60)}h ${minutes % 60}min de luz`;
   const point = solarArcPoint((at - rise) / (set - rise));
   $("sunDot").style.left = `${point.left}%`; $("sunDot").style.top = `${point.top}px`;
-  const remainingMinutes = Math.max(1, Math.ceil((set - at) / 60000));
-  const remainingTime = remainingMinutes < 60 ? `${remainingMinutes} min` : `${Math.floor(remainingMinutes / 60)} h ${remainingMinutes % 60} min`;
   const duration = ms => { const total = Math.max(1, Math.ceil(ms / 60000)); return total < 60 ? `${total} min` : `${Math.floor(total / 60)}h ${String(total % 60).padStart(2, "0")}min`; };
   const nextRise = at < rise ? rise : globalThis.PLUVIA?.sky?.dayAt?.(at + 86400000)?.rise;
-  const untilRise = Number.isFinite(nextRise) && nextRise > at ? ` Nasce em ${duration(nextRise - at)}, às ${formatUpdateTime(nextRise)}.` : "";
-  $("sunPhrase").textContent = at < rise ? `O sol ainda não nasceu.${untilRise}` : at >= set ? `O sol já se pôs em ${activeCity.name}.${untilRise}` : `Restam cerca de ${remainingTime} de luz natural.`;
+  // Uma linha só (a duração do dia e o que falta); os horários ficam nas pontas do arco.
+  const untilRise = Number.isFinite(nextRise) && nextRise > at ? `nasce em ${duration(nextRise - at)}` : "";
+  $("sunPhrase").textContent = at < rise || at >= set ? untilRise : `restam ${duration(set - at)}`;
   const sunshine = daily.sunshine_duration?.[index], daylight = daily.daylight_duration?.[index];
   const sunshineMinutes = Math.round(sunshine / 60), daylightMinutes = Math.round(daylight / 60);
   $("sunshineNote").textContent = Number.isFinite(sunshine) && Number.isFinite(daylight)
@@ -682,8 +608,9 @@ function renderVisibility(value, fromCache = false) {
   const available = Number.isFinite(value) && value >= 0;
   const reduced = available && value < 5000;
   $("visibilityValue").textContent = !available ? "--" : value < 1000 ? `${fmt(value)} m` : `${fmt(value / 1000, value < 10000 ? 1 : 0)} km`;
+  // Nota só quando foge do normal: "Boa visibilidade" embaixo de 10 km não dizia nada.
   $("visibilityNote").textContent = !available ? "Visibilidade indisponível para esta hora."
-    : `${value < 1000 ? "Visibilidade baixa" : reduced ? "Visibilidade reduzida" : "Boa visibilidade"}${fromCache ? " · previsão salva" : ""}`;
+    : reduced ? `${value < 1000 ? "Visibilidade baixa" : "Visibilidade reduzida"}${fromCache ? " · previsão salva" : ""}` : "";
   $("visibilityBadge").hidden = !reduced;
   $("visibilityBadge").textContent = !reduced ? "" : value < 1000 ? "Visibilidade baixa" : "Visibilidade reduzida";
   $("visibilityBadge").dataset.level = value < 1000 ? "low" : "reduced";
@@ -900,10 +827,11 @@ function dataAge(at) {
 }
 
 // Máx./mín. de hoje logo abaixo da condição (o primeiro número que se procura); ausente não vira "--°".
-function setHeroRange(high, low) {
+// A linha do topo junta sensação, máxima e mínima (o cartão separado repetia a máx./mín. e saiu).
+function setHeroRange(high, low, feels) {
   const node = $("heroRange");
   if (!node) return;
-  const parts = [Number.isFinite(high) ? `Máx. ${fmt(high)}°` : "", Number.isFinite(low) ? `Mín. ${fmt(low)}°` : ""].filter(Boolean);
+  const parts = [Number.isFinite(feels) ? `Sensação ${fmt(feels)}°` : "", Number.isFinite(high) ? `Máx. ${fmt(high)}°` : "", Number.isFinite(low) ? `Mín. ${fmt(low)}°` : ""].filter(Boolean);
   node.textContent = parts.join(" · ");
 }
 
@@ -917,18 +845,18 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
     // A camada de interpretação nunca pode impedir a previsão principal.
   }
   const current = data.current; const day = data.daily; const start = selectCurrentHour(data.hourly.time); const [condition] = weather(current.weather_code);
-  $("temperature").textContent = fmt(current.temperature_2m); $("feelsLike").textContent = `${fmt(current.apparent_temperature)}°`;
+  $("temperature").textContent = fmt(current.temperature_2m);
   const heatGap = current.apparent_temperature - current.temperature_2m;
   const atmosphere = applyWeatherAtmosphere(current.weather_code, current.is_day, day, current.wind_speed_10m);
   const isDay = atmosphere?.phase === "night" ? false : atmosphere?.phase === "day" ? true : current.is_day !== 0;
   const localCondition = !isDay && current.weather_code === 1 ? "Céu quase limpo" : condition;
   $("condition").textContent = heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition;
   const dayIndex = day.time.indexOf(globalThis.PLUVIA.time.dayKey(Date.now(),activeCity));
-  $("todayHigh").textContent = `${fmt(day.temperature_2m_max[dayIndex])}°`;
-  $("todayLow").textContent = `${fmt(day.temperature_2m_min[dayIndex])}°`;
-  setHeroRange(day.temperature_2m_max[dayIndex], day.temperature_2m_min[dayIndex]);
+  setHeroRange(day.temperature_2m_max[dayIndex], day.temperature_2m_min[dayIndex], current.apparent_temperature);
   $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; const humidityReading = weatherInsights?.humidity?.(data.hourly,start,current);
-  $("humidityNote").textContent = humidityReading?.note || humidityLabel(current.relative_humidity_2m);
+  // Nota só para ar seco (abaixo de 30% agora ou mais tarde): "Umidade alta" a 70% é o normal de quase todo o país.
+  const humidityUnusual = ["emergency","alert","attention"].includes(humidityReading?.level) || Boolean(humidityReading?.driest && humidityReading.note !== humidityReading.label);
+  $("humidityNote").textContent = !Number.isFinite(current.relative_humidity_2m) ? humidityLabel(null) : humidityUnusual ? humidityReading.note : "";
   $("humidity").closest?.(".metric")?.setAttribute("data-humidity-level",humidityReading?.level || "unknown");
   $("wind").innerHTML = `${fmt(current.wind_speed_10m)}<sup> km/h</sup>`; $("windNote").textContent = `De ${windDirection(current.wind_direction_10m)} · rajadas ${fmt(current.wind_gusts_10m)} km/h`;
   // A agulha gira pelo menor caminho (350° → 10° anda 20°, não 340°); o ângulo acumulado fica no elemento.
@@ -1028,18 +956,17 @@ async function loadWeather(revision = cityRevision) {
     globalThis.PLUVIA?.sources.set("air-quality",{status:displayedWeather?.air ? "stale" : "error"});
     if (!displayedWeather) {
       // Sem dado algum, o skeleton daria a impressão de carregamento sem fim: os valores ficam indisponíveis.
-      for (const id of ["temperature","feelsLike","todayHigh","todayLow","visibilityValue","humidity","wind","pressure","uv","airValue","airQuality"]) $(id).textContent = "--"; setHeroRange(null, null);
-      for (const id of ["feelsLikeNote","visibilityNote","humidityNote","windNote","pressureNote","uvNote"]) $(id).textContent = "—";
+      for (const id of ["temperature","visibilityValue","humidity","wind","pressure","uv","airValue","airQuality"]) $(id).textContent = "--"; setHeroRange(null, null);
+      for (const id of ["visibilityNote","humidityNote","windNote","pressureNote","uvNote"]) $(id).textContent = "—";
       $("airNote").textContent = "AQI indisponível";
       $("condition").textContent = "Tempo indisponível";
       setYesterdayNote(null);
       renderVisibility(null);
-      $("rainChart").innerHTML = '<p class="chart-loading">Previsão indisponível. Tentaremos novamente.</p>';
       $("hourlyPeek").innerHTML = '<p>Previsão por hora indisponível.</p>';
       $("hourlyDecision").textContent = "Sem dados recentes para as próximas horas."; $("hourlyDecision").hidden = false;
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
       setDryWindow("Sem dados");
-      $("sunPhrase").textContent = "Ciclo solar indisponível.";
+      $("daylight").textContent = "Ciclo solar indisponível"; $("sunPhrase").textContent = "";
     }
     if (!displayedWeather || !displayedWeather.fromCache || offline) {
       showWeatherError(offline
@@ -1202,7 +1129,7 @@ document.querySelectorAll("nav a").forEach(link => link.addEventListener("click"
 // enquanto é revelado de cima para baixo (clip-path); CSS em continuous.css. Só pintura: transform e
 // opacity nos blocos viravam camadas do tamanho da página sobre o céu animado e derrubavam o Safari do
 // iPhone (girar a tela relançava tudo). Cada bloco revela uma vez ao rolar; girar não reanima.
-const DROP_BLOCKS = ["#yesterdayNote", "#alertBanner", "#alertas", "#tips", ".hourly-peek", ".quick-metrics", ".metrics", ".air-outlook", ".weather-map-section", ".forecast-section", "#notificationPrompt", ".sun-section"];
+const DROP_BLOCKS = ["#yesterdayNote", "#alertBanner", "#alertas", "#tips", ".hourly-peek", ".metrics", ".air-outlook", ".weather-map-section", ".forecast-section", ".sun-section"];
 function dropMotion() {
   return !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 }
@@ -1252,7 +1179,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","feelsLike","feelsLikeNote","condition","heroRange","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate"].filter(id=>$(id));
+const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","condition","heroRange","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate"].filter(id=>$(id));
 let emptyCityContent;
 // Deslizar entre cidades (como no Apple Weather): a cidade aberta e os favoritos, na ordem salva.
 // As bolinhas são botões (clique/teclado); no toque, arrastar o topo para o lado troca de cidade.
@@ -1891,30 +1818,6 @@ function requestLocation(source = 'automatic') {
 }
 
 setupCityPicker();
-// Ao abrir o gráfico ou trocar o modo, as barras crescem a partir da base (altura, sem transform);
-// atualizações automáticas redesenham sem animar.
-function growHourlyBars() {
-  const chart = $("rainChart");
-  if (!chart?.dataset) return;
-  chart.dataset.grow = "true";
-  clearTimeout(chart.pluviaGrow);
-  chart.pluviaGrow = setTimeout(() => { delete chart.dataset.grow; }, 900);
-}
-document.querySelector(".hourly-modes")?.addEventListener("click", event => {
-  const button = event.target.closest("button[data-hourly-mode]");
-  if (!button || !event.currentTarget.contains(button)) return;
-  hourlyMode = button.dataset.hourlyMode;
-  event.currentTarget.querySelectorAll("button[data-hourly-mode]").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
-  const forecast = displayedWeather?.forecast;
-  growHourlyBars();
-  if (forecast) renderHourly(forecast.hourly, selectCurrentHour(forecast.hourly.time), forecast.daily);
-});
-$("hourlyChartDetails")?.addEventListener("toggle", event => {
-  const forecast = displayedWeather?.forecast;
-  if (!event.currentTarget.open || !forecast) return;
-  growHourlyBars();
-  if ($("rainChart")?.dataset.pending) renderHourly(forecast.hourly, selectCurrentHour(forecast.hourly.time), forecast.daily);
-});
 // ⓘ das seções: o texto abre logo abaixo do título, no fluxo da página (sem sobrepor nada). Balão
 // flutuante exigia subir camadas (z-index) dos títulos/seções, e isso derrubava o Safari do iPhone.
 // Um aberto por vez; toque fora ou Escape fecha.

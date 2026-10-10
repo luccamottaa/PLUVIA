@@ -127,19 +127,16 @@ test('CSS do movimento: só grid-template-rows, sem transform/opacity e desligad
   assert.match(css,/\.city-dot\[aria-current="true"\]::before \{ width:18px; opacity:1; \}/,'bolinha ativa vira pílula por largura, sem transform');
 });
 
-test('toque, ponteiros e gráfico animam sem camadas e respeitam reduced-motion',()=>{
+test('toque e ponteiros animam sem camadas e respeitam reduced-motion',()=>{
   const css=fs.readFileSync(require.resolve('../dist/continuous.css'),'utf8');
   const app=fs.readFileSync(require.resolve('../dist/app.js'),'utf8');
   assert.match(css,/:active:not\(:disabled\) \{ box-shadow:inset 0 0 0 100px color-mix\(in srgb, currentColor 14%, transparent\); transition-duration:0s; \}/,'toque é um véu por sombra interna, sem trocar o fundo');
   assert.match(css,/\.compass-needle \{ transition:transform [^}]+\}/);
   assert.match(css,/\.uv-scale span \{ transition:left [^}]+\}/);
-  assert.match(css,/\.rain-chart\[data-grow\] :is\(\.temp-bar,\.wind-bar,\.rain-bar\) \{ animation:pluvia-bar-grow [^}]*calc\(var\(--i,0\) \* 16ms\)/,'barras crescem em onda só quando data-grow');
-  assert.match(css,/@keyframes pluvia-bar-grow \{ from \{ height:0; min-height:0; \} \}/,'cresce por altura, sem scaleY');
   const reduced=css.slice(css.lastIndexOf('@media (prefers-reduced-motion:reduce) {'));
   assert.match(reduced,/\.compass-needle, \.uv-scale span, #weatherView \.sun-arc :is\(\.sun-dot,\.moon-dot\) \{ transition:none; \}/);
   assert.match(app,/compass\.pluviaTurn = turn \+ \(\(\(\(heading - turn\) % 360\) \+ 540\) % 360 - 180\)/,'agulha pelo menor caminho');
-  assert.equal((app.match(/style="--i:\$\{p\}"/g)||[]).length,3,'as três formas do gráfico numeram as colunas');
-  assert.match(app,/growHourlyBars\(\);\n  if \(forecast\) renderHourly/,'trocar o modo anima');
+  assert.doesNotMatch(app,/growHourlyBars|rainChart/,'o gráfico de 24 horas saiu da Home');
 });
 
 test('menor caminho da agulha: 350° → 10° anda 20°, não 340°',()=>{

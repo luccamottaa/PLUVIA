@@ -120,26 +120,13 @@ with sync_playwright() as p:
    assert share_rect['x']+share_rect['width']<=other['x']+1 or other['x']+other['width']<=share_rect['x']+1 or share_rect['y']+share_rect['height']<=other['y']+1 or other['y']+other['height']<=share_rect['y']+1,(width,control)
 
   if width==390: page.locator('#top').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-header-share.png')))
-  # O gráfico fica recolhido; o resumo "Gráfico das próximas 24 horas" o abre.
-  if not page.locator('#hourlyChartDetails').evaluate('el=>el.open'):
-   page.locator('#hourlyChartDetails > summary').click()
-   assert page.locator('#hourlyChartDetails').evaluate('el=>el.open')
-  for chart_mode in ['conditions','feels','rain','wind']:
-   page.locator('button[data-hourly-mode="'+chart_mode+'"]').click()
-   chart_state=page.evaluate("()=>({mode:document.getElementById('rainChart').dataset.hourlyMode,pending:document.getElementById('rainChart').dataset.pending,open:document.getElementById('hourlyChartDetails').open,forecast:Boolean(displayedWeather?.forecast),pressed:document.querySelector('button[data-hourly-mode][aria-pressed=\"true\"]')?.dataset.hourlyMode})")
-   assert chart_state['mode']==chart_mode,(width,chart_mode,chart_state)
-   assert page.locator('button[data-hourly-mode="'+chart_mode+'"]').get_attribute('aria-pressed')=='true'
-   assert page.locator('#hourlyChartLegend').is_visible()
-   assert not page.evaluate('document.documentElement.scrollWidth > innerWidth'),(width,chart_mode)
-   if chart_mode=='feels':
-    assert '34°' in page.locator('#rainChart').inner_text()
-    assert 'Temp. 30°' in page.locator('#rainChart').inner_text()
-   if width==390 and chart_mode in ['feels','rain']:
-    page.locator('#chuva').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-hourly-'+chart_mode+'.png')))
-   if chart_mode=='rain':
-    assert '10% de chance' in page.locator('#rainChart').inner_text()
-    assert page.locator('#rainChart .rain-bar').count()==0
-  page.locator('button[data-hourly-mode="conditions"]').click()
+  # O gráfico de 24 horas saiu da Home: a fileira de Próximas horas leva as 24 horas.
+  assert page.locator('#hourlyChartDetails').count()==0 and page.locator('#rainChart').count()==0
+  assert page.locator('#hourlyPeek .hourly-peek-item').count()>=6
+  assert 'Sensação 34°' in page.locator('#hourlyPeek .hourly-peek-item').first.text_content()
+  assert not page.evaluate('document.documentElement.scrollWidth > innerWidth'),(width,'hourly')
+  if width==390:
+   page.locator('#chuva').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-hourly.png')))
   page.locator('#openCitySearch').click()
   assert page.locator('#cityDialog').evaluate('(el)=>el.open')
   page.locator('#citySearch').fill('Curitiba');page.wait_for_timeout(200)

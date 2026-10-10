@@ -37,8 +37,8 @@ test('mover troca vizinhos e ignora as pontas', () => {
 });
 
 test('colunas do desktop mantêm cada seção do seu lado, na ordem escolhida', () => {
-  const custom = layout.normalize({order:['sky', 'week', 'summary', 'hourly', 'details', 'radar']});
-  assert.deepEqual(layout.columns(custom), {left:['week', 'hourly', 'radar'], right:['sky', 'summary', 'details']});
+  const custom = layout.normalize({order:['sky', 'week', 'summary', 'hourly', 'details', 'radar']}); // 'summary' (cartão retirado) é ignorado
+  assert.deepEqual(layout.columns(custom), {left:['week', 'hourly', 'radar'], right:['sky', 'details']});
 });
 
 test('todas as seções configuráveis existem no HTML da Home', () => {

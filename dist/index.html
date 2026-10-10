@@ -45,7 +45,7 @@
     <link rel="preload" href="./assets/fonts/nunito-wordmark-v32.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="./fonts.css?v=type-1" />
     <link rel="preload" href="./vendor/suncalc.js?v=sky-3" as="script" />
-    <link rel="preload" href="./modules/moon-view.js?v=moon-3" as="script" />
+    <link rel="preload" href="./modules/moon-view.js?v=moon-4" as="script" />
     <link rel="preload" href="./modules/sky-atmosphere.js?v=sky-17" as="script" />
     <link rel="preload" href="./sky.css?v=sky-32" as="style" />
     <style>
@@ -94,7 +94,7 @@
     </style>
     <script src="./modules/city-time.js?v=time-2"></script>
     <script src="./vendor/suncalc.js?v=sky-3"></script>
-    <script src="./modules/moon-view.js?v=moon-3"></script>
+    <script src="./modules/moon-view.js?v=moon-4"></script>
     <script src="./modules/sky-atmosphere.js?v=sky-17"></script>
     <script src="./modules/sky-events.js?v=sky-events-2" defer></script>
     <link rel="stylesheet" href="./sky.css?v=sky-32" />
@@ -166,7 +166,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="./redesign.css?v=panel-41" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-74" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-75" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -332,18 +332,6 @@
         <p id="hourlyDecision" class="hourly-decision">Toque em um horário para ver sensação, chuva e rajadas.</p>
         <div class="hourly-peek-list" id="hourlyPeek" role="group" aria-label="Condições nas próximas horas"><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span></div>
         <p class="dry-window-line"><span>Próxima janela seca</span> <strong id="dryWindow">Calculando…</strong></p>
-        <details class="hourly-chart-details" id="hourlyChartDetails"><summary>Gráfico das próximas 24 horas <span>Tempo, sensação, chuva e vento</span></summary>
-        <div class="hourly-modes" role="group" aria-label="Dado da previsão por hora"><button type="button" data-hourly-mode="conditions" aria-pressed="true">Tempo</button><button type="button" data-hourly-mode="feels" aria-pressed="false">Sensação</button><button type="button" data-hourly-mode="rain" aria-pressed="false">Chuva</button><button type="button" data-hourly-mode="wind" aria-pressed="false">Vento</button></div>
-        <p id="hourlyChartLegend" class="hourly-chart-legend">Barras mostram a temperatura; a sensação aparece abaixo. Horários locais da cidade.</p>
-        <div class="rain-chart panel" id="rainChart" tabindex="0" role="region" aria-label="Previsão por hora"><div class="chart-loading"><span class="sk sk-block" aria-hidden="true"></span></div></div>
-        </details>
-      </section>
-      <section class="quick-metrics" aria-label="Sensação térmica, máxima e mínima">
-        <article class="metric quick-metric panel card-detail" aria-label="Sensação térmica atual"><div class="metric-head"><span>Sensação</span><span data-weather-icon-name="feels-like" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="feelsLike"><span class="sk sk-num" aria-hidden="true"></span></strong><small id="feelsLikeNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
-        <div class="hero-temperature-range" aria-label="Temperaturas máxima e mínima previstas para hoje">
-          <div class="hero-temperature-extreme"><div class="metric-head"><small>Máxima</small><span data-weather-icon-name="temperature-high" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="todayHigh"><span class="sk sk-num" aria-hidden="true"></span></strong></div>
-          <div class="hero-temperature-extreme"><div class="metric-head"><small>Mínima</small><span data-weather-icon-name="temperature-low" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="todayLow"><span class="sk sk-num" aria-hidden="true"></span></strong></div>
-        </div>
       </section>
       <section class="metrics" aria-label="Detalhes meteorológicos">
         <article class="metric metric-sky visibility-metric panel card-detail" aria-label="Visibilidade prevista"><div class="metric-head"><span>VISIBILIDADE</span><span data-weather-icon-name="visibility" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="visibilityValue"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="visibilityNote"><span class="sk sk-line" aria-hidden="true"></span></small><span id="visibilityBadge" class="visibility-badge" hidden>Visibilidade reduzida</span></article>
@@ -387,25 +375,11 @@
         <div class="forecast-list panel" id="forecastList"><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div></div>
         <nav class="home-shortcuts" aria-label="Explorar outras cidades"><button id="homeCompare" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="compareDialog">Comparar cidades <span aria-hidden="true">›</span></button><button id="homeBrazil" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="brazilDialog">Brasil agora <span aria-hidden="true">›</span></button></nav>
       </section>
-      <section id="notificationPrompt" class="notification-prompt panel" aria-labelledby="notificationPromptTitle" hidden>
-        <div class="notification-prompt-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></svg></div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Avisos de chuva e do INMET no celular</h2><p id="notificationPromptText">Receba avisos oficiais e previsões de chuva para o município selecionado. O horário pode variar. Previsões e avisos oficiais são identificados na mensagem.</p></div><div class="notification-prompt-actions"><button id="notificationPromptButton" type="button">Ativar alertas</button><button id="notificationPromptDismiss" class="notification-prompt-dismiss" type="button">Agora não</button></div>
-      </section>
       <section class="sun-section panel" aria-label="Ciclo solar">
-        <div class="sun-copy"><div class="sun-label"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>Ciclo do dia</span></div><strong id="daylight">--h --min de luz</strong><p id="sunPhrase"></p></div>
+        <div class="sun-copy"><div class="sun-label"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>Ciclo do dia</span></div><p class="sun-summary"><strong id="daylight">--h --min de luz</strong><span id="sunPhrase"></span></p></div>
         <div class="sun-arc" aria-hidden="true"><svg class="arc-line" viewBox="0 0 100 136" preserveAspectRatio="none"><path d="M9 115 Q50 -65 91 115" /></svg><span class="sun-dot" id="sunDot" hidden><img src="./assets/weather-icons/conditions/clear-day.svg?v=modern-3" width="64" height="64" alt="" /></span><span class="moon-dot" id="moonDot" hidden><svg viewBox="0 0 80 80" focusable="false"><use href="#moonDisc"/></svg></span></div>
-        <div class="sky-pair">
-          <div class="sky-pair-sun"><span class="sky-pair-title">SOL</span>
-          <div class="sun-times"><div><span>Nascer do sol</span><strong id="sunrise">--:--</strong></div><div><span>Pôr do sol</span><strong id="sunset">--:--</strong></div></div>
-          </div>
-          <div class="sky-pair-moon">
-            <div class="moon-inline">
-          <svg class="moon-phase-icon" viewBox="0 0 80 80" aria-hidden="true" focusable="false">
-            <use href="#moonDisc"/>
-          </svg>
-          <span><span class="moon-label">FASE DA LUA </span><strong id="moonPhase">Consultando…</strong><small id="moonIllumination">Iluminação indisponível</small></span>
-        </div>
-          </div>
-        </div>
+        <div class="sun-times sun-ends"><div><span>Nascer do sol</span><strong id="sunrise">--:--</strong></div><div><span>Pôr do sol</span><strong id="sunset">--:--</strong></div></div>
+        <div class="moon-inline moon-line"><svg class="moon-phase-icon" viewBox="0 0 80 80" aria-hidden="true" focusable="false"><use href="#moonDisc"/></svg><span><span class="moon-label">Lua: </span><strong id="moonPhase">Consultando…</strong> <small id="moonIllumination">Iluminação indisponível</small></span></div>
         <details class="astronomy-details"><summary>Mais sobre o céu</summary><p class="sunshine-note" id="sunshineNote">Consultando horas de sol previstas…</p><div class="sky-events" id="skyEvents" hidden><h3>No céu</h3><dl><div><dt>Próxima lua nova</dt><dd id="nextNewMoon">—</dd></div><div><dt>Próxima lua cheia</dt><dd id="nextFullMoon">—</dd></div><div class="sky-events-meteor" id="meteorRow" hidden><dt>Chuva de meteoros</dt><dd id="nextMeteor">—</dd><small id="meteorNote"></small></div></dl></div><p id="astronomyDate"></p><dl><div><dt>Amanhecer civil</dt><dd id="civilDawn">—</dd></div><div><dt>Fim do crepúsculo civil</dt><dd id="civilDusk">—</dd></div><div><dt>Hora dourada</dt><dd id="goldenHour">—</dd></div><div><dt>Hora azul</dt><dd id="blueHour">—</dd></div><div><dt>Nascer da Lua</dt><dd id="moonrise">—</dd></div><div><dt>Pôr da Lua</dt><dd id="moonset">—</dd></div></dl><small>Horários aproximados por coordenadas. Amanhecer e crepúsculo civil correspondem ao Sol a 6° abaixo do horizonte. Hora dourada: Sol entre o horizonte e 6° de altura; hora azul: crepúsculo civil, entre 6° abaixo do horizonte e o nascer ou o pôr. Relevo e condições locais podem alterar a visibilidade dos astros.</small></details>
       </section>
       </div>
@@ -498,7 +472,7 @@
     <script src="./modules/hourly-detail.js?v=detail-6" defer></script>
     <script src="./modules/daily-detail.js?v=daily-3" defer></script>
     <script src="./modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="./app.js?v=panel-81" defer></script>
+    <script src="./app.js?v=panel-82" defer></script>
     <script src="./p0.js?v=panel-43" defer></script>
     <script src="./modules/risks.js?v=core-119" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
@@ -513,9 +487,9 @@
     <script src="./saved-places.js?v=places-2" defer></script>
     <script src="./modules/compare-cities.js?v=compare-2" defer></script>
     <script src="./modules/brazil-now.js?v=brazil-1" defer></script>
-    <script src="./modules/home-layout.js?v=home-layout-1" defer></script>
+    <script src="./modules/home-layout.js?v=home-layout-2" defer></script>
     <script src="./modules/pwa-shortcuts.js?v=shortcuts-1" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-2" defer></script>
-    <script src="./notifications.js?v=panel-27" defer></script>
+    <script src="./notifications.js?v=panel-28" defer></script>
   </body>
 </html>

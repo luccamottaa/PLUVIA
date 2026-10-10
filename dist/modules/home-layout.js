@@ -12,8 +12,7 @@
   const KEY = 'pluvia-home-layout';
   const WIDE = '(min-width: 1100px)';
   const SECTIONS = [
-    {id:'hourly', label:'Próximas horas e gráfico', selector:'section.hourly-peek', column:'left'},
-    {id:'summary', label:'Sensação, máxima e mínima', selector:'section.quick-metrics', column:'right'},
+    {id:'hourly', label:'Próximas horas', selector:'section.hourly-peek', column:'left'},
     {id:'details', label:'Leituras, UV e qualidade do ar', selector:'section.metrics', column:'right'},
     {id:'radar', label:'Radar de chuva', selector:'section.weather-map-section', column:'left'},
     {id:'week', label:'Próximos 7 dias', selector:'section.forecast-section', column:'left'},
@@ -56,7 +55,7 @@
     const read = () => { try { return normalize(JSON.parse(root.localStorage.getItem(KEY) || 'null')); } catch { return normalize(null); } };
     const write = layout => { try { root.localStorage.setItem(KEY, JSON.stringify(layout)); } catch {} };
     const nodes = new Map(SECTIONS.map(section => [section.id, view.querySelector(':scope > ' + section.selector) || view.querySelector(section.selector)]));
-    const anchor = view.querySelector(':scope > #tips'), prompt = doc.getElementById('notificationPrompt'), nowcast = doc.getElementById('nowcastCard');
+    const anchor = view.querySelector(':scope > #tips'), nowcast = doc.getElementById('nowcastCard');
     const media = root.matchMedia?.(WIDE);
     let layout = read(), wrapper = null;
 
@@ -85,13 +84,12 @@
           if (reference) after(node, reference); else if (view.lastElementChild !== node) view.append(node);
           reference = node;
           // Os acompanhantes entram no mesmo passo (sem mover a seção seguinte duas vezes).
-          const companion = id === 'details' ? nowcast : id === 'week' ? prompt : null;
+          const companion = id === 'details' ? nowcast : null;
           if (companion) { after(companion, node); reference = companion; }
         }
         wrapper?.remove(); wrapper = null;
       }
-      // O convite de alertas segue os 7 dias; o Nowcast pausado fica junto das leituras.
-      if (prompt && nodes.get('week')) after(prompt, nodes.get('week'));
+      // O Nowcast pausado fica junto das leituras.
       if (nowcast && nodes.get('details')) after(nowcast, nodes.get('details'));
       for (const [id, node] of nodes) {
         const hide = layout.hidden.includes(id);

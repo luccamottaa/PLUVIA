@@ -12,7 +12,9 @@ const subscriptions = read('supabase/functions/push-subscriptions/index.ts');
 const sender = read('supabase/functions/push-send/index.ts');
 const processor = read('supabase/functions/push-process/index.ts');
 
-assert.match(html, /id="notificationPrompt"[\s\S]+id="notificationPromptButton"/);
+// O convite fixo saiu da Home (o cadastro continua na conta; o convite contextual reaproveita alertOffer).
+assert.doesNotMatch(html, /id="notificationPrompt"/);
+assert.match(html, /id="alertNudge"/);
 assert.match(html, /id="installPushDialog"/);
 assert.match(html, /id="notificationContinueNote"/);
 assert.match(html, /id="notificationPreferencesForm"/);
@@ -21,7 +23,8 @@ assert.match(html, /id="notificationLocations"[\s\S]+id="notificationDevices"/);
 assert.match(html, /id="notificationDiagnostics"/);
 assert.match(html, /name="minimum_severity"/);assert.match(html, /name="quiet_start"/);assert.match(html, /name="quiet_end"/);
 assert.match(client, /allAlertPreferences/);
-assert.match(client, /promptButton\.addEventListener\("click", enable\)/, 'permissão precisa partir de gesto explícito');
+assert.match(client, /toggle\.addEventListener\("click", toggleNotifications\)/, 'permissão precisa partir de gesto explícito');
+assert.match(client, /alertOffer = \{[\s\S]*?enable,/, 'o convite contextual reaproveita o mesmo fluxo por gesto');
 assert.match(client, /Notification\.requestPermission\(\)/);
 assert.doesNotMatch(client, /new Notification\s*\(/, 'teste local não pode substituir Web Push real');
 assert.match(client, /push-send[\s\S]+action: "test"/);
