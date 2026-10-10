@@ -108,4 +108,9 @@ test('primeira visita sem sessão salva escolhe Manaus na hora; sessão ou retor
     assert.ok(waiting.timers.includes(1500));
     assert.equal(waiting.notice.hidden,false,'o aviso reserva o espaço desde o primeiro paint');
   }
+  const anonStorage = {'sb-dszyyrcvwrpyiypwyvxe-auth-token':JSON.stringify({user:{id:'a',is_anonymous:true}})};
+  Object.defineProperty(anonStorage,'getItem',{value:key=>anonStorage[key] ?? null});
+  const anonymous = run({storage:anonStorage});
+  assert.deepEqual(anonymous.chosen,['1302603'],'sessão anônima dos avisos não tem cidade principal: abre sem esperar');
+  assert.equal(anonymous.timers.includes(1500),false);
 });

@@ -694,6 +694,16 @@ function updateAlertNudge() {
   const box = $("alertNudge"), text = $("alertNudgeText");
   if (!box?.dataset || !text) return;
   const nudgeRain = box.dataset.rain === "true", nudgeOfficial = box.dataset.official === "true";
+  const button = $("alertNudgeEnable"), dismiss = $("alertNudgeDismiss");
+  // Logo depois de ativar, o convite vira a confirmação até a troca de cidade.
+  if (box.dataset.done && box.dataset.done === activeCity?.id) {
+    box.hidden = false; box.dataset.offer = "done";
+    if (button) button.hidden = true;
+    if (dismiss) dismiss.hidden = true;
+    return;
+  }
+  if (button) button.hidden = false;
+  if (dismiss) dismiss.hidden = false;
   const show = (nudgeRain || nudgeOfficial) && Boolean(globalThis.PLUVIA?.alertOffer?.canOffer?.());
   const appearing = show && box.hidden;
   box.hidden = !show;
@@ -702,12 +712,18 @@ function updateAlertNudge() {
   text.textContent = nudgeOfficial
     ? "Tem aviso do INMET valendo agora. Quer receber os próximos no celular?"
     : "Vai chover por aqui. Quer um aviso no celular quando a chuva estiver chegando?";
-  const button = $("alertNudgeEnable");
   if (button) button.textContent = install ? "Como ativar" : "Ativar avisos";
   box.dataset.offer = install ? "install" : "enable";
   if (appearing) { settleBlock(box); globalThis.pluviaAnalytics?.track?.("Alert Nudge Shown", {offer:box.dataset.offer}); }
 }
 globalThis.addEventListener?.("pluvia:alert-offer-changed", updateAlertNudge);
+globalThis.addEventListener?.("pluvia:alerts-enabled", event => {
+  const box = $("alertNudge"), text = $("alertNudgeText");
+  if (!box?.dataset || !text || !activeCity || event.detail?.cityId !== activeCity.id) return;
+  box.dataset.done = activeCity.id;
+  text.textContent = `Pronto: avisos ligados para ${event.detail.label} neste aparelho.`;
+  updateAlertNudge();
+});
 $("alertNudgeEnable")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Tapped", {offer:$("alertNudge")?.dataset?.offer}); globalThis.PLUVIA?.alertOffer?.enable?.(); });
 $("alertNudgeDismiss")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Dismissed", {offer:$("alertNudge")?.dataset?.offer}); globalThis.PLUVIA?.alertOffer?.dismiss?.(); updateAlertNudge(); });
 

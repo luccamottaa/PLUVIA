@@ -67,7 +67,11 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
     let accountMayRestore = true;
     try {
       accountMayRestore = /[?&#](auth_return|code|access_token|error)=/.test(location.search + location.hash) ||
-        Object.keys(localStorage).some(key => /^sb-.+-auth-token$/.test(key));
+        Object.keys(localStorage).some(key => {
+          if (!/^sb-.+-auth-token$/.test(key)) return false;
+          // A sessão anônima dos avisos sem conta não tem cidade principal para aplicar.
+          try { return JSON.parse(localStorage.getItem(key))?.user?.is_anonymous !== true; } catch { return true; }
+        });
     } catch {}
     if (accountMayRestore) fallbackTimer = setTimeout(pickFallback, 1500);
     else pickFallback();

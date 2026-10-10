@@ -2,7 +2,7 @@
   'use strict';
   const el = id => document.getElementById(id);
   const dialog = el('accountDialog');
-  let clientPromise, mode = 'login', currentUser = null, busy = false, preferenceTimer, syncingOwner = null, flushingOwner = null, accountRevision = 0;
+  let clientPromise, mode = 'login', currentUser = null, pushUser = null, busy = false, preferenceTimer, syncingOwner = null, flushingOwner = null, accountRevision = 0;
   const social = window.PLUVIA.socialAuth;
   const providerDiscovery = social?.createDiscovery(window.PLUVIA.http?.createClient());
   let availableProviders = {google:false,apple:false}, providersLoading = null, returning = null, oauthNavigationTimer = null, oauthNavigationPending = false;
@@ -16,7 +16,11 @@
   let pendingPreferences = {}, inFlightPreferences = null;
   const message = text => { el('accountStatus').textContent = text; };
   const track = (name,properties) => window.pluviaAnalytics?.track(name,properties);
-  function paint(user) {
+  // Sessão anônima (Supabase signInAnonymously) existe só para os avisos no celular sem conta:
+  // para a interface e a sincronização ela conta como "sem conta"; pushUser guarda quem assina o push.
+  function paint(sessionUser) {
+    pushUser = sessionUser || null;
+    const user = sessionUser?.is_anonymous ? null : sessionUser;
     if (currentUser?.id !== user?.id || !user) {
       clearTimeout(preferenceTimer);
       pendingPreferences = {};
@@ -40,7 +44,7 @@
     el('accountIdentity').textContent = user?.email || '';
     el('accountIntro').hidden = !!user;
     paintProviders();
-    window.dispatchEvent?.(new CustomEvent('pluvia:auth-changed',{detail:{user}}));
+    window.dispatchEvent?.(new CustomEvent('pluvia:auth-changed',{detail:{user,pushUser}}));
   }
   const ACCOUNT_ICON = '<svg class="account-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6"/></svg>';
   function paintIdentity(user,force=false){
@@ -276,7 +280,7 @@
             if(event==='PASSWORD_RECOVERY' && user) {recoveryActive=true;recoveryAttempt=true;}
             paint(user);
             if(event==='PASSWORD_RECOVERY' && user)setTimeout(()=>{if(recoveryActive && currentUser?.id===user.id){if(!dialog.open)dialog.showModal();message('Defina sua nova senha abaixo.');el('accountNewPassword').focus();}},0);
-            if(user && !recoveryActive) setTimeout(()=>mergeAccountPreferences(user),0);
+            if(user && !user.is_anonymous && !recoveryActive) setTimeout(()=>mergeAccountPreferences(user),0);
           });
           resolve(client);
         } catch (error) { reject(error); }
@@ -295,7 +299,7 @@
       if(revision!==accountRevision)return;
       if (error) throw error;
       paint(data?.session?.user || null);
-      if(data?.session?.user && !recoveryActive) await mergeAccountPreferences(data.session.user);
+      if(currentUser && !recoveryActive) await mergeAccountPreferences(currentUser);
     } catch (_) {
       if(revision===accountRevision)paint(null);
     }
@@ -417,7 +421,20 @@
     finally { setBusy(false); }
   });
   setMode('login');
-  window.pluviaAccount = {getClient,getUser:()=>currentUser,getPreferences:()=>preferenceSync.getSnapshot(),syncPreferences:()=>preferenceSync.load(true),applyPreferences:(operations,ownerId)=>preferenceSync.apply(operations,ownerId),open(){ if(!dialog.open) dialog.showModal(); dialog.querySelector?.('.dialog-scroll')?.scrollTo?.(0, 0); el('accountClose').focus(); loadProviders().catch(()=>{}); restoreAccount().catch(()=>{}); }};
+  // Avisos sem conta: reaproveita a sessão (de conta ou anônima) ou cria uma anônima. Se o projeto
+  // não permitir login anônimo, o erro volta e notifications.js pede para entrar na conta.
+  async function ensurePushUser({create=true}={}){
+    if(pushUser)return pushUser;
+    const client=await getClient();
+    const {data}=await client.auth.getSession();
+    if(data?.session?.user){paint(data.session.user);return pushUser;}
+    if(!create)return null;
+    const result=await client.auth.signInAnonymously();
+    if(result.error || !result.data?.user)throw result.error || new Error('anonymous_unavailable');
+    paint(result.data.user);
+    return pushUser;
+  }
+  window.pluviaAccount = {getClient,getUser:()=>currentUser,getPushUser:()=>pushUser,ensurePushUser,getPreferences:()=>preferenceSync.getSnapshot(),syncPreferences:()=>preferenceSync.load(true),applyPreferences:(operations,ownerId)=>preferenceSync.apply(operations,ownerId),open(){ if(!dialog.open) dialog.showModal(); dialog.querySelector?.('.dialog-scroll')?.scrollTo?.(0, 0); el('accountClose').focus(); loadProviders().catch(()=>{}); restoreAccount().catch(()=>{}); }};
   const revalidatePreferences=()=>{if(currentUser)preferenceSync.load().then(()=>queueFlush()).catch(()=>{});};
   window.addEventListener?.('online',()=>{if(currentUser)preferenceSync.load(true).then(()=>queueFlush()).catch(()=>{});});
   document.addEventListener?.('visibilitychange',()=>{if(document.visibilityState==='visible')revalidatePreferences();});
@@ -425,12 +442,15 @@
   // Supabase (sb-<projeto>-auth-token desde a v2) ou retorno de login/confirmação/recuperação
   // na URL. Sem isso, a conta abre deslogada e o SDK vem quando a pessoa usa a conta.
   // Storage inacessível conta como "pode haver sessão".
+  // Uma sessão só anônima (avisos sem conta) não precisa do SDK na abertura: ele vem quando os
+  // avisos falam com o servidor.
   function mayRestoreSession(){
     try {
       return /[?&#](auth_return|auth_recovery|code|access_token|error)=/.test(String(location.href || '')) ||
-        Object.keys(localStorage).some(key => /^sb-.+-auth-token$/.test(key));
+        Object.keys(localStorage).some(key => /^sb-.+-auth-token$/.test(key) && !anonymousToken(localStorage.getItem(key)));
     } catch { return true; }
   }
+  function anonymousToken(value){try{return JSON.parse(value)?.user?.is_anonymous===true;}catch{return false;}}
   (mayRestoreSession() ? restoreAccount() : Promise.resolve().then(()=>paint(null))).finally(()=>{
     finishSocialReturn();
     if(recoveryReturn || recoveryAttempt){

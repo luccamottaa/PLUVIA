@@ -21,15 +21,16 @@ with sync_playwright() as p:
     page.route('**/*', lambda route: route.continue_() if route.request.url.startswith(preview) and route.request.method == 'GET' else route.abort())
     # A JSON asset establishes the preview origin without starting Auth or weather services.
     # The public smoke reaches the real domain: a connection dropped before any response
-    # (seen after deploys) is retried, as in verify-visual; other errors still fail.
-    for attempt in range(3 if os.environ.get('PLUVIA_PUBLIC_SMOKE') == '1' else 1):
+    # (seen after deploys) is retried with the same waits as verify-visual (5, 10, 20, 40 s);
+    # three short tries were not enough after the #192 and #194 deploys. Other errors still fail.
+    for attempt in range(5 if os.environ.get('PLUVIA_PUBLIC_SMOKE') == '1' else 1):
         try:
             page.goto(preview + 'assets/weather-icons/catalog.json', wait_until='domcontentloaded')
             break
         except Exception as error:
-            if attempt == 2 or os.environ.get('PLUVIA_PUBLIC_SMOKE') != '1' or not re.search(r'net::ERR_(CONNECTION_(CLOSED|RESET|REFUSED|TIMED_OUT)|TIMED_OUT|NETWORK_CHANGED)', str(error)):
+            if attempt == 4 or os.environ.get('PLUVIA_PUBLIC_SMOKE') != '1' or not re.search(r'net::ERR_(CONNECTION_(CLOSED|RESET|REFUSED|TIMED_OUT)|TIMED_OUT|NETWORK_CHANGED)', str(error)):
                 raise
-            page.wait_for_timeout(3000 * (attempt + 1))
+            page.wait_for_timeout(5000 * 2 ** attempt)
     page.set_content('<base href="' + preview + '"><style>body{margin:0;font:13px system-ui}section{padding:24px;display:grid;grid-template-columns:repeat(6,1fr);gap:20px 12px}h2{grid-column:1/-1;font-size:18px;margin:0}article{text-align:center}figure{height:80px;margin:0;display:flex;align-items:center;justify-content:center;gap:12px}img{display:block;object-fit:contain}label{display:block;margin-top:8px;font-size:12px}.night{background:#0c162b;color:#fff}.day{background:#bdd6ea;color:#172b45}</style>')
     page.add_script_tag(path=str(repo/'dist/modules/weather-icon-system.js'))
     result = page.evaluate("""async () => {

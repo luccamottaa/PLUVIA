@@ -25,7 +25,7 @@ test('renovação automática do dispositivo não monitora a cidade consultada',
 });
 test('carregar preferências preserva escolhas sem gravar ou cadastrar cidades',async()=>{
  const calls=[];
- const c=vm.createContext({currentUser:()=>({id:'test'}),config:null,configRevision:0,configOwner:null,allAlertPreferences:context.allAlertPreferences,paintPreferences:()=>{},paintDevices:()=>{},paintLocations:()=>{},paintCityChoices:()=>{},el:()=>({}),invoke:async(name,body)=>{calls.push(body);return {preferences:{notifications_enabled:true,official_alerts:false,storms:false,daily_summary:true},devices:[],locations:[]};}});
+ const c=vm.createContext({currentUser:()=>({id:'test'}),pushUser:()=>({id:'test'}),config:null,configRevision:0,configOwner:null,allAlertPreferences:context.allAlertPreferences,paintPreferences:()=>{},paintDevices:()=>{},paintLocations:()=>{},paintCityChoices:()=>{},el:()=>({}),invoke:async(name,body)=>{calls.push(body);return {preferences:{notifications_enabled:true,official_alerts:false,storms:false,daily_summary:true},devices:[],locations:[]};}});
  vm.runInContext(code.slice(code.indexOf('  async function loadConfig()'),code.indexOf('  async function register(')),c);
  await c.loadConfig();
  assert.equal(calls.length,1); assert.equal(calls[0].action,'config');
@@ -33,14 +33,14 @@ test('carregar preferências preserva escolhas sem gravar ou cadastrar cidades',
 });
 test('resposta de outra conta após sair não repinta nem habilita o formulário',async()=>{
  let user={id:'old'},finish,painted=false;const button={disabled:false};
- const c=vm.createContext({currentUser:()=>user,config:null,configRevision:0,configOwner:null,el:()=>button,paintPreferences:()=>painted=true,paintDevices:()=>{},paintLocations:()=>{},paintCityChoices:()=>{},invoke:()=>new Promise(resolve=>finish=resolve)});
+ const c=vm.createContext({currentUser:()=>user,pushUser:()=>user,config:null,configRevision:0,configOwner:null,el:()=>button,paintPreferences:()=>painted=true,paintDevices:()=>{},paintLocations:()=>{},paintCityChoices:()=>{},invoke:()=>new Promise(resolve=>finish=resolve)});
  vm.runInContext(code.slice(code.indexOf('  async function loadConfig()'),code.indexOf('  async function register(')),c);
  const pending=c.loadConfig();user={id:'new'};finish({preferences:{storms:true}});
  assert.equal(await pending,null);assert.equal(c.config,null);assert.equal(painted,false);assert.equal(button.disabled,true);
 });
 test('respostas fora de ordem e troca A → B → A não restauram preferências antigas',async()=>{
  let user={id:'A'};const finish=[],painted=[],button={disabled:false};
- const c=vm.createContext({currentUser:()=>user,config:null,configRevision:0,configOwner:null,el:()=>button,paintPreferences:p=>painted.push(p),paintDevices:()=>{},paintLocations:()=>{},paintCityChoices:()=>{},invoke:()=>new Promise(resolve=>finish.push(resolve))});
+ const c=vm.createContext({currentUser:()=>user,pushUser:()=>user,config:null,configRevision:0,configOwner:null,el:()=>button,paintPreferences:p=>painted.push(p),paintDevices:()=>{},paintLocations:()=>{},paintCityChoices:()=>{},invoke:()=>new Promise(resolve=>finish.push(resolve))});
  vm.runInContext(code.slice(code.indexOf('  async function loadConfig()'),code.indexOf('  async function register(')),c);
  const first=c.loadConfig();user={id:'B'};const second=c.loadConfig();user={id:'A'};const last=c.loadConfig();
  finish[2]({preferences:{minimum_severity:4,quiet_start:'23:00'},devices:[],locations:[]});await last;
