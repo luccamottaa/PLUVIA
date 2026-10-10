@@ -681,8 +681,9 @@ function setRainAnswer(answer) {
   if (typeof noteAlertNudge === "function") noteAlertNudge("rain", answer.tone === "rain" || answer.tone === "storm");
 }
 // Convite de avisos na hora em que ele faz sentido: chuva prevista ("Vai chover?" com chuva ou
-// trovoada) ou aviso do INMET vigente na cidade. Só quando o celular pode pedir a permissão agora e
-// a pessoa não recusou o convite; "Agora não" vale para os dois convites.
+// trovoada) ou aviso do INMET vigente na cidade, enquanto a pessoa não recusou o convite ("Agora não"
+// vale para os dois convites). No iPhone fora da Tela de Início o botão vira "Como ativar" e abre o
+// passo a passo de instalar, porque o Safari só entrega avisos ao PWA instalado.
 function noteAlertNudge(reason, active) {
   const box = $("alertNudge");
   if (!box?.dataset) return;
@@ -697,14 +698,18 @@ function updateAlertNudge() {
   const appearing = show && box.hidden;
   box.hidden = !show;
   if (!show) return;
+  const install = Boolean(globalThis.PLUVIA?.alertOffer?.needsInstall?.());
   text.textContent = nudgeOfficial
     ? "Tem aviso do INMET valendo agora. Quer receber os próximos no celular?"
     : "Vai chover por aqui. Quer um aviso no celular quando a chuva estiver chegando?";
-  if (appearing) settleBlock(box);
+  const button = $("alertNudgeEnable");
+  if (button) button.textContent = install ? "Como ativar" : "Ativar avisos";
+  box.dataset.offer = install ? "install" : "enable";
+  if (appearing) { settleBlock(box); globalThis.pluviaAnalytics?.track?.("Alert Nudge Shown", {offer:box.dataset.offer}); }
 }
 globalThis.addEventListener?.("pluvia:alert-offer-changed", updateAlertNudge);
-$("alertNudgeEnable")?.addEventListener?.("click", () => globalThis.PLUVIA?.alertOffer?.enable?.());
-$("alertNudgeDismiss")?.addEventListener?.("click", () => { globalThis.PLUVIA?.alertOffer?.dismiss?.(); updateAlertNudge(); });
+$("alertNudgeEnable")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Tapped", {offer:$("alertNudge")?.dataset?.offer}); globalThis.PLUVIA?.alertOffer?.enable?.(); });
+$("alertNudgeDismiss")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Dismissed", {offer:$("alertNudge")?.dataset?.offer}); globalThis.PLUVIA?.alertOffer?.dismiss?.(); updateAlertNudge(); });
 
 function setYesterdayNote(comparison) {
   const node = $("yesterdayNote");
@@ -1517,7 +1522,7 @@ function rememberRecentCity(id) {
   try { localStorage.setItem(RECENT_KEY, JSON.stringify([String(id), ...recentCityIds().filter(item => item !== String(id))].slice(0, RECENT_MAX))); } catch {}
 }
 // Sugestão de favoritar: o botão ☆ fica dentro de "Suas cidades" e quase ninguém o achava. Quem abre a
-// mesma cidade em 3 momentos diferentes (com 6 h de intervalo) vê um convite discreto no topo; "Agora não"
+// mesma cidade em 2 momentos diferentes (com 3 h de intervalo) vê um convite discreto no topo; "Agora não"
 // vale para aquela cidade, só neste aparelho. Ids e contagens, sem nomes nem GPS.
 const VISITS_KEY = "pluvia-city-visits", SUGGEST_DISMISSED_KEY = "pluvia-favorite-suggest-dismissed";
 function readJson(key, fallback) {
@@ -1527,7 +1532,7 @@ function readJson(key, fallback) {
 function countCityVisit(id) {
   if (!/^\d{7}$/.test(String(id))) return;
   const visits = readJson(VISITS_KEY, {}), now = Date.now(), entry = visits[id];
-  if (entry && now - entry.at >= 0 && now - entry.at < 21600000) return;
+  if (entry && now - entry.at >= 0 && now - entry.at < 10800000) return;
   visits[id] = {n:Math.min((entry?.n || 0) + 1, 99), at:now};
   const kept = Object.entries(visits).filter(([key, value]) => /^\d{7}$/.test(key) && Number.isFinite(value?.at)).sort((a, b) => b[1].at - a[1].at).slice(0, 20);
   try { localStorage.setItem(VISITS_KEY, JSON.stringify(Object.fromEntries(kept))); } catch {}
@@ -1536,7 +1541,7 @@ function favoriteSuggestionFor(city) {
   if (!city?.id || favorites.has(city.id) || favorites.size >= 30) return false;
   const dismissed = readJson(SUGGEST_DISMISSED_KEY, []);
   if (Array.isArray(dismissed) && dismissed.includes(city.id)) return false;
-  return (readJson(VISITS_KEY, {})[city.id]?.n || 0) >= 3;
+  return (readJson(VISITS_KEY, {})[city.id]?.n || 0) >= 2;
 }
 let suggestedCityId = null;
 function renderFavoriteSuggest() {

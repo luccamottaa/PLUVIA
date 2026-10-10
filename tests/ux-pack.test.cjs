@@ -53,3 +53,21 @@ test('convite de avisos aparece com chuva ou aviso oficial, só quando a permiss
   offer = false; context.updateAlertNudge(); assert.equal(box.hidden, true);
   offer = true; context.noteAlertNudge('rain', false); context.noteAlertNudge('official', false); assert.equal(box.hidden, true);
 });
+
+test('no iPhone fora da Tela de Início o convite leva ao passo a passo de instalar', () => {
+  const box = {hidden:true, dataset:{}}, text = {textContent:''}, button = {textContent:'Ativar avisos'}, tracked = [];
+  let install = true;
+  const nodes = {alertNudge:box, alertNudgeText:text, alertNudgeEnable:button};
+  const context = vm.createContext({$:id => nodes[id], settleBlock(){}, globalThis:{pluviaAnalytics:{track:(name, props) => tracked.push([name, props.offer])}, PLUVIA:{alertOffer:{canOffer:() => true, needsInstall:() => install}}}});
+  vm.runInContext(slice('function noteAlertNudge(', 'globalThis.addEventListener?.("pluvia:alert-offer-changed"'), context);
+  context.noteAlertNudge('rain', true);
+  assert.equal(button.textContent, 'Como ativar'); assert.equal(box.dataset.offer, 'install');
+  context.updateAlertNudge(); assert.deepEqual(tracked, [['Alert Nudge Shown', 'install']], 'conta só quando aparece');
+  install = false; context.updateAlertNudge(); assert.equal(button.textContent, 'Ativar avisos'); assert.equal(box.dataset.offer, 'enable');
+});
+
+test('canOffer oferece instalar no iPhone fora da Tela de Início e respeita o "Agora não"', () => {
+  const source = fs.readFileSync(__dirname + '/../dist/notifications.js', 'utf8');
+  assert.match(source, /canOffer: \(\) => !promptDismissed\(\) && \(\(isIOS && !standalone\) \|\| \(pushActive === false && supported && Notification\.permission !== "denied"\)\)/);
+  assert.match(source, /needsInstall: \(\) => isIOS && !standalone/);
+});
