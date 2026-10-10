@@ -1101,22 +1101,22 @@ html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notific
    e 7 dias compactos no celular. Os cartões são só pintura (fundo, borda e box-shadow, sem blur,
    transform ou z-index): não criam camadas e o céu continua visível atrás. A tinta segue data-ink. */
 /* Vidro "líquido" sem backdrop-filter: um blur por cartão sobre as nuvens animadas seria refeito a
-   cada quadro e já derrubou o Safari do iPhone. O efeito vem só de pintura estática: preenchimento
-   mais claro no alto, borda de luz em degradê (mais forte no canto de cima e um reflexo embaixo) e
-   brilho interno com box-shadow inset. Nada disso cria camada. */
+   cada quadro e já derrubou o Safari do iPhone. À noite o cartão é quase transparente (a pedido: sem
+   degradê branco); o vidro vem da borda de luz em degradê, mais forte nos cantos de cima à esquerda e
+   de baixo à direita, e de um fio de brilho interno no alto. Só pintura, nada cria camada. */
 #weatherView {
   --card-bg:rgba(160,190,240,.08);
   --card-line:rgba(184,212,239,.14);
-  --card-fill:linear-gradient(180deg,rgba(214,228,255,.09) 0%,rgba(170,195,240,.04) 40%,rgba(150,178,230,.04) 100%) padding-box,linear-gradient(rgba(6,12,32,.24),rgba(6,12,32,.24)) padding-box;
-  --card-rim:linear-gradient(165deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.1) 30%,rgba(255,255,255,.035) 58%,rgba(255,255,255,.07) 82%,rgba(255,255,255,.24) 100%);
-  --card-glow:inset 0 1px 0 rgba(255,255,255,.16), inset 0 10px 16px -14px rgba(255,255,255,.12), inset 0 -10px 16px -14px rgba(255,255,255,.07), 0 10px 28px -16px rgba(2,6,24,.5);
+  --card-fill:linear-gradient(rgba(150,175,225,.035),rgba(150,175,225,.035)) padding-box;
+  --card-rim:linear-gradient(150deg,rgba(255,255,255,.34) 0%,rgba(255,255,255,.09) 24%,rgba(255,255,255,.04) 50%,rgba(255,255,255,.09) 76%,rgba(255,255,255,.26) 100%);
+  --card-glow:inset 0 1px 0 rgba(255,255,255,.07);
 }
 body[data-ink="dark"] #weatherView {
   --card-bg:rgba(255,255,255,.3);
   --card-line:rgba(255,255,255,.46);
-  --card-fill:linear-gradient(180deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.24) 100%) padding-box;
-  --card-rim:linear-gradient(165deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.5) 32%,rgba(255,255,255,.28) 60%,rgba(255,255,255,.4) 84%,rgba(255,255,255,.8) 100%);
-  --card-glow:inset 0 1px 0 rgba(255,255,255,.7), inset 0 14px 24px -16px rgba(255,255,255,.55), 0 10px 26px -18px rgba(20,48,96,.35);
+  --card-fill:linear-gradient(rgba(255,255,255,.26),rgba(255,255,255,.26)) padding-box;
+  --card-rim:linear-gradient(150deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.45) 26%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.45) 76%,rgba(255,255,255,.85) 100%);
+  --card-glow:inset 0 1px 0 rgba(255,255,255,.5);
 }
 #weatherView .hero-range { margin:-8px 0 0; color:var(--reading-ink); font-size:1.05rem; font-weight:500; line-height:1.35; text-align:center; }
 #weatherView .hero-range:empty { display:none; }
