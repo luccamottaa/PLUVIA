@@ -1198,3 +1198,6 @@ body[data-ink="dark"] #weatherView {
 /* Busca de cidades: digitando, os resultados sobem para logo abaixo do campo, antes dos botões e
    favoritos (que continuam ali embaixo). No celular o teclado escondia a lista lá no fim. */
 #cityDialog[data-searching] :is(#cityResults,#cityPickerStatus) { order:-1; }
+
+/* Próximas horas e 7 dias: complementos só para leitores de tela (o nome do botão é o texto visível). */
+#weatherView :is(.hourly-peek-item,.forecast-row) .peek-extra { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
