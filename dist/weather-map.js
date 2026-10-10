@@ -346,7 +346,7 @@
     const list = document.createElement('div'); list.className = 'sources-list';
     sourceEntries.forEach(([name,kind,description]) => {
       const article=document.createElement('article'), tag=document.createElement('b'), title=document.createElement('strong'), copy=document.createElement('span');
-      tag.textContent=kind.toUpperCase(); title.textContent=name; copy.textContent=description; article.dataset.kind = kind.includes('oficial') ? 'official' : /Observa|observad|satélite/.test(kind) ? 'observation' : 'reference'; article.append(tag,title,copy); list.appendChild(article);
+      tag.textContent=kind; title.textContent=name; copy.textContent=description; article.dataset.kind = kind.includes('oficial') ? 'official' : /Observa|observad|satélite/.test(kind) ? 'observation' : 'reference'; article.append(tag,title,copy); list.appendChild(article);
     });
     body.appendChild(list);
     const official=document.createElement('section'); official.className='official-observations';

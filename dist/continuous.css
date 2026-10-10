@@ -266,11 +266,11 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
 #weatherView .forecast-row { padding:20px 0; border-color:var(--reading-line); background:none; box-shadow:none; animation:none; }
 #weatherView .forecast-row:hover { background:none; }
 #weatherView .forecast-condition { color:var(--reading-ink); }
-#weatherView .forecast-condition > span { min-width:0; overflow-wrap:anywhere; }
+#weatherView .forecast-condition > span { min-width:0; }
 #weatherView .temp-range { display:grid; grid-template-columns:4ch minmax(24px,1fr) 4ch; align-items:center; }
 #weatherView .temp-range strong { white-space:nowrap; text-align:center; }
 #weatherView .forecast-rain { align-items:center; flex-wrap:nowrap; }
-#weatherView .forecast-rain > span:last-child { min-width:0; overflow-wrap:anywhere; text-align:right; }
+#weatherView .forecast-rain > span:last-child { min-width:0; text-align:right; }
 @media(min-width:721px) {
   #weatherView .forecast-row { grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1.35fr) minmax(0,.9fr) minmax(0,1.15fr); gap:12px 16px; }
 }
@@ -347,13 +347,13 @@ html body #weatherView #inmetCard { min-height:0; }
 .inmet-alert-status { display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin-bottom:10px; }
 #weatherView .inmet-alert .inmet-level { display:inline-flex; align-items:center; min-height:26px; max-width:100%; margin:0; padding:3px 9px; border:1px solid color-mix(in srgb,var(--alert-accent) 25%,transparent); border-radius:999px; background:color-mix(in srgb,var(--alert-accent) 8%,transparent); font-size:.75rem; line-height:1.4; }
 .inmet-stage { color:var(--reading-muted); font-size:.75rem; line-height:1.4; }
-#weatherView .inmet-alert h3 { margin:0; color:var(--reading-ink); font-size:1.25rem; line-height:1.3; letter-spacing:-.025em; overflow-wrap:anywhere; }
+#weatherView .inmet-alert h3 { margin:0; color:var(--reading-ink); font-size:1.25rem; line-height:1.3; letter-spacing:-.025em; }
 .inmet-severity-note { display:block; margin-top:5px; color:var(--reading-muted); font-size:.8125rem; }
 #weatherView .inmet-alert .inmet-alert-risk { margin:18px 0; font-size:.9375rem; line-height:1.65; }
 .inmet-alert-meta { display:grid; grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr); gap:14px; margin:0; padding-top:16px; border-top:1px solid var(--reading-line); }
 .inmet-alert-meta > div { min-width:0; }
 .inmet-alert-meta dt { color:var(--reading-muted); font-size:.75rem; line-height:1.45; }
-.inmet-alert-meta dd { margin:5px 0 0; color:var(--reading-ink); font-size:.8125rem; line-height:1.5; overflow-wrap:anywhere; }
+.inmet-alert-meta dd { margin:5px 0 0; color:var(--reading-ink); font-size:.8125rem; line-height:1.5; }
 .inmet-alert-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px 16px; margin-top:18px; }
 #weatherView .inmet-alert .inmet-detail { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:44px; max-width:100%; margin:0; font:750 .8125rem/1.4 var(--font-ui); text-decoration:none; }
 #weatherView .inmet-alert button.inmet-detail { padding:10px 14px; border:1px solid var(--brand-blue); border-radius:12px; background:var(--brand-blue); color:#fff; }
@@ -366,7 +366,7 @@ html body #weatherView #inmetCard { min-height:0; }
 @media(max-width:380px) { #weatherView .inmet-alert { padding:16px; } .inmet-alert-heading { gap:10px; } .inmet-alert-meta { grid-template-columns:minmax(0,1fr); } }
 
 /* Details reuse the common modal's fixed heading and single scrolling body. */
-#alertDetail .dialog-heading h2 { min-width:0; overflow-wrap:anywhere; }
+#alertDetail .dialog-heading h2 { min-width:0; }
 #alertDetail .inmet-detail-summary { display:flex; align-items:center; gap:14px; padding:16px; border:1px solid color-mix(in srgb,var(--alert-accent) 25%,var(--dialog-line)); border-radius:16px; background:color-mix(in srgb,var(--alert-accent) 8%,transparent); }
 #alertDetail .inmet-alert-icon { flex:none; }
 #alertDetail .inmet-level { margin:0; }
@@ -496,7 +496,7 @@ body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60
 .hourly-detail-readings { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 20px; margin:24px 0 16px; }
 .hourly-detail-readings > div { min-width:0; padding:16px 0; border-top:1px solid var(--dialog-line); }
 .hourly-detail-readings dt { color:var(--dialog-muted); font-size:.875rem; line-height:1.4; }
-.hourly-detail-readings dd { margin:6px 0 0; font-size:1.15rem; font-weight:800; overflow-wrap:anywhere; }
+.hourly-detail-readings dd { margin:6px 0 0; font-size:1.15rem; font-weight:800; }
 @supports(grid-template-rows:subgrid) {
   .hourly-detail-readings > div { display:grid; grid-row:span 2; grid-template-rows:subgrid; align-items:start; }
 }
@@ -571,7 +571,7 @@ details > .details-motion[data-moving] > .details-motion-inner { overflow:hidden
 #nowcastCard { padding:24px; border-top:1px solid #aecbf333; }
 .nowcast-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .nowcast-heading h2 { margin:6px 0 0; font-size:1.25rem; }
-.nowcast-reference,.nowcast-note,#nowcastObserved small,.nowcast-inference small { font-size:.8rem; line-height:1.6; opacity:.85; overflow-wrap:anywhere; }
+.nowcast-reference,.nowcast-note,#nowcastObserved small,.nowcast-inference small { font-size:.8rem; line-height:1.6; opacity:.85; }
 .nowcast-status { font-size:.94rem; line-height:1.6; margin:14px 0; }
 .nowcast-status:empty { display:none; }
 .nowcast-observations { margin-top:18px; }
@@ -609,7 +609,7 @@ details > .details-motion[data-moving] > .details-motion-inner { overflow:hidden
 .nowcast-details summary::before { content:'+'; }
 .nowcast-details[open] summary::before { content:'−'; }
 .nowcast-details summary:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
-#nowcastSourceDetails p { margin:8px 0; opacity:.85; overflow-wrap:anywhere; }
+#nowcastSourceDetails p { margin:8px 0; opacity:.85; }
 /* Explicit grid shrinkage keeps map controls inside narrow Safari viewports. */
 #weatherView .weather-map-card { grid-template-columns:minmax(0,1fr); }
 #radarMapContent,#radarMapContent .weather-layer-chips { min-width:0; max-width:100%; }
@@ -637,7 +637,7 @@ details > .details-motion[data-moving] > .details-motion-inner { overflow:hidden
 #weatherView button.forecast-row { width:100%; border-radius:0; border-inline:0; border-block-end:0; font:inherit; color:var(--reading-ink); text-align:left; cursor:pointer; }
 #dailyDetailDialog { font-variant-numeric:tabular-nums; }
 #dailyDetailDialog .dialog-heading > div { min-width:0; }
-#dailyDetailTitle { overflow-wrap:anywhere; }
+#dailyDetailTitle { }
 #dailyDetailCity { margin:6px 0 0; font-size:.875rem; }
 #dailyDetailSource { display:block; margin-top:18px; color:var(--dialog-muted); font-size:.8rem; line-height:1.5; }
 #dailyDetailDialog .hourly-detail-note { font-size:.875rem; }
@@ -699,7 +699,7 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
   #weatherView .metrics .metric-sky { grid-template-rows:subgrid; }
 }
 #weatherView .metrics .metric-sky > .metric-head { grid-column:1; grid-row:1; min-width:0; }
-#weatherView .metrics .metric-sky > .metric-head > span:first-child { min-width:0; overflow-wrap:anywhere; }
+#weatherView .metrics .metric-sky > .metric-head > span:first-child { min-width:0; }
 #weatherView .metrics .metric-sky > strong,
 #weatherView .metrics .metric-sky > .wind-reading { grid-column:1; grid-row:2; justify-self:start; align-self:center; margin-top:10px; }
 #weatherView .metrics .metric-sky > .wind-reading { justify-content:flex-start; gap:10px; }
@@ -1328,3 +1328,214 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 #weatherView .hourly-peek-item .peek-rain { min-height:18px; margin-top:-2px; }
 
 #weatherView .hourly-peek-list::-webkit-scrollbar { display:none; }
+
+/* ===== Diálogos v2 (redesign a pedido, outubro/2026) =====
+   Folha no estilo de listas agrupadas: cabeçalho leve, grupos em cartões com linhas finas,
+   botões em pílula e interruptores no lugar das caixas de seleção. Só pintura: sem blur,
+   sem transform/z-index em blocos; o motion de entrada/saída continua em dialog-motion.js. */
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) {
+  --dialog-bg:#0b1830; --dialog-surface:#ffffff0d; --dialog-surface-2:#ffffff17; --dialog-line:#ffffff14;
+  --dialog-text:#f2f6ff; --dialog-muted:#a9b8d0; --sheet-radius:22px;
+  border-color:#ffffff1a; border-radius:32px;
+  background:linear-gradient(180deg,#14284a 0,#0b1830 240px) #0b1830;
+  box-shadow:0 30px 90px #000a,inset 0 1px 0 #ffffff14;
+}
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-heading {
+  padding:20px 16px 10px 24px; border-bottom:0; background:transparent;
+}
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-heading h2 { font-size:1.5rem; font-weight:650; letter-spacing:-.025em; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-close {
+  width:44px; height:44px; border-radius:50%; background:#ffffff14; color:var(--dialog-text); font-size:24px; font-weight:300;
+}
+html body :is(#cityDialog,#accountDialog,#sourcesDialog) .dialog-scroll { padding:8px 20px 28px; }
+/* Botões: pílulas. Primário no azul da marca; secundário em superfície clara translúcida. */
+html body :is(#cityDialog,#accountDialog,#sourcesDialog) button:not(.dialog-close):not(.city-result):not(.favorite-city-card):not(.account-provider):not(.favorite-organize):not(.account-text-action):not(.city-button) {
+  border:0; border-radius:999px; background:var(--dialog-surface-2); color:var(--dialog-text); font-weight:600;
+}
+html body :is(#cityDialog,#accountDialog) :is(#accountSubmit,#profileSave,#notificationPreferencesSave,#savedPlaceSave,#accountRecoverySave) { background:var(--brand-blue); color:#fff; }
+html body #accountDialog #notificationPreferencesSave:disabled { background:#2f6bff59; color:#ffffffa6; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog) :is(input:not([type=checkbox]),select) {
+  min-height:50px; border:1px solid #ffffff1f; border-radius:16px; background:#ffffff0a; color:var(--dialog-text);
+}
+html body :is(#cityDialog,#accountDialog,#sourcesDialog) :is(input:not([type=checkbox]),select):focus { border-color:var(--brand-blue); outline:none; box-shadow:0 0 0 3px #2f6bff40; }
+/* Títulos de grupo: discretos, como cabeçalhos de lista. */
+html body :is(#cityDialog,#accountDialog,#sourcesDialog) :is(h3,h4,legend) { margin:0 0 10px; padding:0 4px; color:var(--dialog-muted); font-size:.875rem; font-weight:600; letter-spacing:0; text-transform:none; }
+/* Interruptores: as mesmas caixas de seleção nativas (papel, foco e teclado intactos), desenhadas como chave. */
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox] {
+  -webkit-appearance:none; appearance:none; flex:none; position:relative; width:50px !important; height:30px !important; margin:0 !important;
+  border-radius:999px; background:#ffffff2e; cursor:pointer; transition:background-color .2s ease;
+}
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]::before {
+  content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff;
+  box-shadow:0 1px 3px #0006; transition:left .2s ease;
+}
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked { background:var(--brand-blue); }
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked::before { left:23px; }
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:disabled { opacity:.45; cursor:default; }
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
+@media (forced-colors:active) { html body :is(#accountDialog,#sourcesDialog) input[type=checkbox] { -webkit-appearance:auto; appearance:auto; width:20px !important; height:20px !important; } html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]::before { content:none; } }
+@media (prefers-reduced-motion:reduce){ html body :is(#accountDialog,#sourcesDialog) input[type=checkbox],html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]::before { transition:none; } }
+
+/* --- Suas cidades --- */
+html body #cityDialog .city-search-field { padding:4px 20px 14px; border-bottom:0; background:transparent; }
+html body #cityDialog .city-search-field label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+html body #cityDialog #citySearch {
+  min-height:52px; padding-left:48px; border-radius:999px; background-color:#ffffff12;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a9b8d0' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:18px 50%; background-size:20px;
+}
+html body #cityDialog .city-picker { gap:22px; }
+html body #cityDialog .city-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+html body #cityDialog .city-actions > button {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:84px; padding:12px 2px; border:0;
+  border-radius:20px; background:var(--dialog-surface); color:var(--dialog-text); font-size:.75rem; font-weight:600; line-height:1.2; text-align:center;
+}
+html body #cityDialog .city-actions > button::before {
+  content:""; width:24px; height:24px; background:var(--brand-blue); background:#8fb4ff;
+  -webkit-mask:var(--action-icon) center/contain no-repeat; mask:var(--action-icon) center/contain no-repeat;
+}
+html body #cityDialog #locateCity { background:var(--brand-blue); color:#fff; }
+html body #cityDialog #locateCity::before { background:#fff; }
+html body #cityDialog #favoriteCity { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z'/%3E%3C/svg%3E"); }
+html body #cityDialog #favoriteCity[aria-pressed=true] { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' stroke='black' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z'/%3E%3C/svg%3E"); }
+html body #cityDialog #favoriteCity[aria-pressed=true]::before { background:#ffd166; }
+html body #cityDialog #locateCity { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='7'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3Cpath d='M12 2v3m0 14v3M2 12h3m14 0h3'/%3E%3C/svg%3E"); }
+html body #cityDialog #compareOpen { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8h14m-4-4 4 4-4 4M20 16H6m4-4-4 4 4 4'/%3E%3C/svg%3E"); }
+html body #cityDialog #brazilOpen { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z'/%3E%3C/svg%3E"); }
+@media (max-width:359px) { html body #cityDialog .city-actions { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+html body #cityDialog .favorite-heading { padding:0 0 0 4px; }
+html body #cityDialog .favorite-heading h3 { margin:0; padding:0; }
+html body #cityDialog .favorite-organize { color:#8fb4ff; font-size:.875rem; }
+html body #cityDialog .favorite-city-card {
+  border:1px solid transparent; border-radius:22px; background:var(--dialog-surface); color:var(--dialog-text); padding:14px; font-weight:400;
+}
+html body #cityDialog .favorite-city-card[aria-current=true] { border-color:var(--brand-blue); background:#2f6bff1f; }
+html body #cityDialog .favorite-city-card > strong { font-size:.9375rem; font-weight:600; }
+html body #cityDialog .favorite-city-card .favorite-reading { font-size:2rem; font-weight:300; letter-spacing:-.03em; line-height:1.05; }
+html body #cityDialog .favorite-city-card :is(.favorite-summary,.favorite-range,.favorite-local-time,.favorite-updated) { font-weight:400; }
+html body #cityDialog .favorite-city-card .favorite-summary:not(.favorite-feels-like) { color:var(--dialog-text); font-size:.875rem; }
+html body #cityDialog .favorite-city-card :is(.favorite-feels-like,.favorite-range,.favorite-local-time,.favorite-updated) { color:var(--dialog-muted); font-size:.8125rem; }
+html body #cityDialog .favorite-city-card .favorite-alert { font-size:.8125rem; font-weight:500; }
+html body #cityDialog .city-results { border-top:0; border-radius:var(--sheet-radius); background:var(--dialog-surface); overflow:hidden; }
+html body #cityDialog .city-results:empty { display:none; }
+html body #cityDialog .city-result { min-height:64px; padding:12px 18px; gap:2px; border-bottom:1px solid var(--dialog-line); }
+html body #cityDialog .city-results li:last-child .city-result { border-bottom:0; }
+html body #cityDialog .city-result span { font-size:1rem; font-weight:600; }
+html body #cityDialog .city-result small { font-size:.8125rem; }
+html body #cityDialog .city-result[data-current=true] { padding-left:18px; border-left:0; background:#2f6bff1f; }
+html body #cityDialog #cityPickerStatus { padding:0 4px; }
+html body #cityDialog .saved-places { margin:22px 0 0; padding:4px 18px; border:0; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #cityDialog .saved-places > summary { display:flex; flex-direction:column; justify-content:center; min-height:64px; font-size:1rem; font-weight:600; list-style:none; }
+html body #cityDialog .saved-places > summary::-webkit-details-marker { display:none; }
+html body #cityDialog .saved-places > summary span { margin:2px 0 0; font-size:.8125rem; font-weight:400; }
+html body #cityDialog .saved-places[open] > summary { border-bottom:1px solid var(--dialog-line); }
+html body #cityDialog .saved-place-row button { background:var(--dialog-surface-2); }
+
+/* --- Minha conta --- */
+html body #accountDialog #accountIntro { margin:4px 4px 20px; }
+html body #accountDialog .account-tabs { padding:4px; border-radius:999px; background:#ffffff0f; }
+html body #accountDialog #accountTabs button { min-height:44px; border-radius:999px; background:transparent; color:var(--dialog-muted); }
+html body #accountDialog #accountTabs button[aria-pressed=true] { background:#ffffff26; color:#fff; }
+html body #accountDialog .account-provider { min-height:50px; border-radius:999px; }
+html body #accountDialog .account-text-action { min-height:44px; border:0; background:transparent; color:var(--dialog-muted); }
+html body #accountDialog .profile-identity {
+  flex-direction:column; align-items:center; gap:12px; margin:4px 0 22px; padding:24px 16px 22px; border-radius:26px; text-align:center;
+  background:radial-gradient(120% 100% at 50% 0,#2f6bff40,transparent 70%),var(--dialog-surface);
+}
+html body #accountDialog .profile-identity strong { font-size:1.375rem; font-weight:650; }
+html body #accountDialog .profile-avatar { width:76px; height:76px; border-radius:50%; background:linear-gradient(145deg,#5b8cff,#2f6bff 55%,#1d4fd8); color:#fff; font-size:2rem; font-weight:600; box-shadow:0 10px 30px #2f6bff55; }
+html body #accountDialog #accountIdentity { margin:2px 0 0; }
+html body #accountDialog #profileForm { gap:10px; padding:16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog #profileForm small { padding:0 4px; }
+html body #accountDialog .notification-settings { margin:26px 0 0; padding:0; border-top:0; }
+html body #accountDialog .notification-settings-head { padding:0 4px; }
+html body #accountDialog .notification-settings-head h3 { margin:0; padding:0; color:var(--dialog-text); font-size:1.25rem; font-weight:650; }
+html body #accountDialog .notification-status { min-height:32px; padding:6px 12px; border-radius:999px; font-size:.8125rem; font-weight:600; }
+html body #accountDialog #notificationSupportNote { margin:10px 4px 14px; font-size:.9375rem; }
+html body #accountDialog .notification-checks { margin:0 0 12px; padding:0 16px; border:0; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog .notification-checks summary { display:flex; align-items:center; min-height:52px; color:var(--dialog-text); font-size:.9375rem; }
+html body #accountDialog .notification-actions { margin:0 0 26px; gap:8px; }
+html body #accountDialog .notification-actions button { min-height:50px; }
+html body #accountDialog #notificationToggle { background:var(--brand-blue); color:#fff; }
+html body #accountDialog .alert-preferences { gap:26px; }
+html body #accountDialog .alert-preferences > small,html body #accountDialog .notification-help,html body #accountDialog #notificationPrivacy { margin:-16px 4px 0; font-size:.8125rem; line-height:1.5; }
+html body #accountDialog :is(.notification-types,.notification-timing,.notification-city-choices) { margin:0; padding:0; border:0; }
+html body #accountDialog :is(.notification-types,.notification-timing,.notification-city-choices) legend { float:left; width:100%; color:var(--dialog-muted); font-size:.875rem; font-weight:600; }
+html body #accountDialog :is(.notification-types,.notification-timing,.notification-city-choices) legend + * { clear:both; }
+html body #accountDialog .notification-types { display:block; padding:0; border-radius:var(--sheet-radius); }
+html body #accountDialog .notification-types label:not(.notification-summary-time) {
+  flex-direction:row-reverse; justify-content:space-between; align-items:center; gap:14px; min-height:56px; margin:0; padding:12px 16px;
+  border-bottom:1px solid var(--dialog-line); background:var(--dialog-surface); color:var(--dialog-text); font-size:.9375rem;
+}
+html body #accountDialog .notification-types label:not(.notification-summary-time) strong { font-weight:500; }
+html body #accountDialog .notification-types label:not(.notification-summary-time) small { margin-top:2px; font-size:.8125rem; }
+html body #accountDialog .notification-types > label:first-of-type { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #accountDialog .notification-types > label:nth-last-of-type(2) { border-bottom:0; border-radius:0 0 var(--sheet-radius) var(--sheet-radius); }
+html body #accountDialog .notification-types:has(.notification-summary-time:not([hidden])) > label:nth-last-of-type(2) { border-bottom:1px solid var(--dialog-line); border-radius:0; }
+html body #accountDialog form .notification-types .notification-summary-time { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 16px; border-radius:0 0 var(--sheet-radius) var(--sheet-radius); background:var(--dialog-surface); color:var(--dialog-text); }
+html body #accountDialog form .notification-types .notification-summary-time[hidden] { display:none; }
+html body #accountDialog form .notification-types .notification-summary-time input { width:auto; min-height:40px; }
+html body #accountDialog .notification-timing { display:block; padding:0; border-block:0; }
+html body #accountDialog .notification-timing > :is(label,div,small) { margin:0; }
+html body #accountDialog .notification-timing > label:not(.notification-quiet-toggle),html body #accountDialog .notification-timing > .notification-time-pair { padding:14px 16px; background:var(--dialog-surface); border-bottom:1px solid var(--dialog-line); color:var(--dialog-muted); }
+html body #accountDialog .notification-timing > label:first-of-type { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #accountDialog form .notification-timing .notification-quiet-toggle { flex-direction:row-reverse; justify-content:space-between; min-height:56px; padding:12px 16px; background:var(--dialog-surface); border-bottom:1px solid var(--dialog-line); font-size:.9375rem; }
+html body #accountDialog .notification-timing > label:last-of-type { border-bottom:0; border-radius:0 0 var(--sheet-radius) var(--sheet-radius); }
+html body #accountDialog .notification-timing > small { display:block; padding:10px 4px 12px; font-size:.8125rem; }
+html body #accountDialog .notification-timing > small:last-child { padding-bottom:0; }
+html body #accountDialog .notification-city-choices .notification-location {
+  flex-direction:row-reverse; justify-content:space-between; align-items:center; min-height:56px; margin:0 0 8px; padding:12px 16px;
+  border:0; border-radius:18px; background:var(--dialog-surface); font-size:.9375rem;
+}
+html body #accountDialog .notification-city-choices > small { display:block; padding:2px 4px 0; font-size:.8125rem; }
+html body #accountDialog :is(.notification-locations,.notification-devices) { margin-top:26px; padding:0; border-top:0; }
+html body #accountDialog :is(.notification-locations,.notification-devices) > div { padding:4px 16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog :is(.notification-locations,.notification-devices) > div > p { margin:12px 0; }
+html body #accountDialog .notification-locations > small { display:block; padding:8px 4px 0; }
+html body #accountDialog :is(.notification-location-row,.notification-device) { padding:12px 0; border-bottom:1px solid var(--dialog-line); }
+html body #accountDialog :is(.notification-location-row,.notification-device):last-child { border-bottom:0; }
+html body #accountDialog :is(.notification-location-row,.notification-device) button { min-height:40px; border:0; background:var(--dialog-surface-2); }
+html body #accountDialog #accountLogout { margin-top:30px; border:0; background:var(--dialog-surface); color:var(--brand-blue); color:#8fb4ff; }
+html body #accountDialog .account-delete { margin-top:10px; padding:0 16px; border-radius:var(--sheet-radius); background:transparent; }
+html body #accountDialog .account-delete > summary { display:flex; align-items:center; justify-content:center; min-height:48px; color:#ff9d97; font-size:.9375rem; }
+html body #accountDialog #accountDelete { border:0; border-radius:999px; background:#d93a3a; color:#fff; }
+
+/* --- Fontes de dados --- */
+html body #sourcesDialog #sourcesBody > p { margin:4px 4px 18px; }
+html body #sourcesDialog .sources-list { border-radius:var(--sheet-radius); background:var(--dialog-surface); overflow:hidden; }
+html body #sourcesDialog .sources-list article {
+  display:grid; grid-template-columns:40px minmax(0,1fr); column-gap:14px; padding:16px; border-bottom:1px solid var(--dialog-line);
+}
+html body #sourcesDialog .sources-list article:last-child { border-bottom:0; }
+html body #sourcesDialog .sources-list article::before {
+  content:""; position:static; grid-row:1 / span 3; width:40px; height:40px; border-radius:12px;
+  background:#8fb4ff26 var(--kind-icon) center/22px no-repeat;
+}
+html body #sourcesDialog .sources-list article { --kind-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fb4ff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z'/%3E%3C/svg%3E"); }
+html body #sourcesDialog .sources-list article[data-kind=official] { --kind-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236fd0b0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3 4 6v5c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V6z'/%3E%3Cpath d='m8.5 12 2.5 2.5 4.5-5'/%3E%3C/svg%3E"); }
+html body #sourcesDialog .sources-list article[data-kind=official]::before { background:#6fd0b026 var(--kind-icon) center/22px no-repeat; }
+html body #sourcesDialog .sources-list article[data-kind=observation] { --kind-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c4b5fd' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Cpath d='M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5'/%3E%3C/svg%3E"); }
+html body #sourcesDialog .sources-list article[data-kind=observation]::before { background:#c4b5fd26 var(--kind-icon) center/22px no-repeat; }
+html body #sourcesDialog .sources-list strong { grid-column:2; grid-row:1; font-size:1rem; font-weight:600; line-height:1.35; }
+html body #sourcesDialog .sources-list b { grid-column:2; grid-row:2; margin:2px 0 0; color:#8fb4ff; font-size:.8125rem; font-weight:500; letter-spacing:0; }
+html body #sourcesDialog .sources-list article[data-kind=official] b { color:#7fdcbc; }
+html body #sourcesDialog .sources-list article[data-kind=observation] b { color:#cbbcff; }
+html body #sourcesDialog .sources-list span { grid-column:2; grid-row:3; margin:6px 0 0; font-size:.875rem; line-height:1.5; }
+html body #sourcesDialog .official-observations { margin:28px 0 0; }
+html body #sourcesDialog .official-observations > p { margin:0 4px 10px; font-size:.875rem; }
+html body #sourcesDialog .official-observations a {
+  display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:52px; margin:0; padding:12px 16px;
+  border:0; border-bottom:1px solid var(--dialog-line); border-radius:0; background:var(--dialog-surface); color:var(--dialog-text); font-size:.9375rem; text-decoration:none;
+}
+html body #sourcesDialog .official-observations a::after { content:"↗"; flex:none; color:#8fb4ff; }
+html body #sourcesDialog .official-observations a:nth-of-type(1) { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #sourcesDialog .official-observations a:last-of-type { border-bottom:0; border-radius:0 0 var(--sheet-radius) var(--sheet-radius); }
+html body #sourcesDialog .source-credits { margin:28px 0 0; }
+html body #sourcesDialog .source-credits label[for=analyticsConsent] { display:flex; flex-direction:row-reverse; align-items:center; justify-content:space-between; gap:14px; min-height:56px; padding:12px 16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); color:var(--dialog-text); font-size:.9375rem; cursor:pointer; }
+html body #sourcesDialog .source-credits p { margin:10px 4px 0; font-size:.8125rem; line-height:1.55; }
+@media (max-width:600px) {
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) { border-radius:28px; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-heading { padding:18px 14px 8px 20px; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog) .dialog-scroll { padding:6px 16px 24px; }
+  html body #cityDialog .city-search-field { padding:4px 16px 12px; }
+}
