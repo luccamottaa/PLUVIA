@@ -25,7 +25,7 @@ test('previsão diária não chama ontem de Hoje nem cria zero para chuva ausent
  const context=vm.createContext({PLUVIA:{time},activeCity:city,$:()=>list,fmt:value=>Number.isFinite(value)?String(value):'--',weather:()=>['Nublado'],weatherIcons:{markup:()=>'',markupName:()=>''}});
  vm.runInContext(app.slice(app.indexOf('function renderForecast('),app.indexOf('function solarArcPoint(')),context);
  context.renderForecast(data.daily,30,Date.parse('2026-10-02T00:01-04:00'));
- assert.equal((list.innerHTML.match(/<strong>Hoje/g)||[]).length,1);
+ assert.equal((list.innerHTML.match(/<span class="day-full">Hoje/g)||[]).length,1);
  assert.doesNotMatch(list.innerHTML,/01 de out/);assert.match(list.innerHTML,/Previsão de chuva indisponível/);assert.doesNotMatch(list.innerHTML,/NaN|Infinity/);
 });
 
