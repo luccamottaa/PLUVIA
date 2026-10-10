@@ -1314,9 +1314,12 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 #weatherView .alert-nudge-actions { display:flex; gap:4px; }
 #weatherView .alert-nudge button { min-height:44px; padding:0 10px; border:0; background:none; color:var(--reading-link); font:inherit; font-size:.9375rem; font-weight:600; cursor:pointer; }
 #weatherView .alert-nudge .alert-nudge-dismiss { color:var(--reading-muted); font-weight:400; }
-/* Nascer/pôr na fileira de 24 horas: símbolo em traço + horário, sem quebrar o nome em três linhas. */
-#weatherView .hourly-peek-item .hour-solar-event.is-compact { display:flex; flex-direction:column; align-items:center; gap:2px; white-space:nowrap; font-variant-numeric:tabular-nums; }
-#weatherView .hour-solar-event.is-compact svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+/* Nascer/pôr como coluna própria entre as horas (horário, símbolo, nome), nas mesmas linhas das horas:
+   dentro da coluna da hora ele abria uma linha vazia embaixo de todas as outras. */
+#weatherView .hourly-solar-item { cursor:default; color:var(--reading-link); }
+#weatherView .hourly-solar-item .peek-time { color:var(--reading-link); font-variant-numeric:tabular-nums; }
+#weatherView .hourly-solar-item .solar-glyph { width:30px; height:30px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+#weatherView .hourly-peek-item.hourly-solar-item > strong.solar-label { font-size:.8125rem; font-weight:500; line-height:1.15; white-space:normal; text-align:center; color:var(--reading-link); }
 /* A fileira rola pelo gesto; a metade do 7º horário já mostra que continua, então a barra some. */
 #weatherView .hourly-peek-list { scrollbar-width:none; }
 /* Hora atual só em azul no horário: o traço embaixo ficava longe do conteúdo, no pé da coluna. */
@@ -1325,4 +1328,3 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 #weatherView .hourly-peek-item .peek-rain { min-height:18px; margin-top:-2px; }
 
 #weatherView .hourly-peek-list::-webkit-scrollbar { display:none; }
-#weatherView .hour-solar-event .solar-name { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }

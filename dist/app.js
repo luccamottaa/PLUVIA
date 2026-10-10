@@ -407,8 +407,8 @@ function forecastIsDay(time, daily) {
 }
 
 // O gráfico de 24 horas saiu da Home: a fileira já mostra as 24 horas e o toque abre o detalhe.
-// Na fileira de 24 horas a coluna é estreita: o nascer/pôr aparece como símbolo + horário,
-// e o nome do evento fica só para leitores de tela (o horário visível continua no nome acessível).
+// Na fileira de 24 horas o nascer/pôr é uma coluna própria entre as horas (horário, símbolo e nome),
+// como no Apple Weather: dentro da coluna da hora ele abria uma linha vazia em todas as outras.
 const SOLAR_GLYPHS = {"Nascer do sol":"M12 3v5m-3-2 3-3 3 3", "Pôr do sol":"M12 3v5m-3-3 3 3 3-3"};
 function hourlySolarEvents(value, next, compact = false) {
   const at = cityDate(value).getTime(), end = cityDate(next).getTime();
@@ -417,7 +417,7 @@ function hourlySolarEvents(value, next, compact = false) {
   return [['Nascer do sol',solar?.rise],['Pôr do sol',solar?.set]]
     .filter(([,stamp]) => Number.isFinite(stamp) && stamp >= at && stamp < end)
     .map(([label,stamp]) => compact
-      ? `<small class="hour-solar-event is-compact"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 19h18M6.5 19a5.5 5.5 0 0 1 11 0${SOLAR_GLYPHS[label]}"/></svg><span class="solar-name">${label} </span>${formatUpdateTime(stamp)}</small>`
+      ? `<span class="hourly-peek-item hourly-solar-item"><span class="peek-time">${formatUpdateTime(stamp)} </span><span class="peek-icon"><svg class="solar-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 19h18M6.5 19a5.5 5.5 0 0 1 11 0${SOLAR_GLYPHS[label]}"/></svg></span><strong class="solar-label">${label}</strong></span>`
       : `<small class="hour-solar-event">${label} ${formatUpdateTime(stamp)}</small>`).join('');
 }
 function showHourlyHint() {
@@ -449,11 +449,11 @@ function renderHourly(hourly, start, daily) {
       // continuam no rótulo acessível e no detalhe do horário. A chance fica abaixo da temperatura: reservada
       // entre o ícone e o número, ela abria um buraco em todas as horas sem chuva.
       const showRain = Number.isFinite(probability) && probability >= 20;
-      // Sem aria-label: o nome acessível é o próprio texto visível (hora, chance, temperatura, nascer/pôr),
+      // Sem aria-label: o nome acessível é o próprio texto visível (hora, chance, temperatura),
       // como pede o WCAG 2.5.3, e o resto vai num trecho só para leitores de tela.
       const solar = hourlySolarEvents(hourly.time[i],hourly.time[i+1],true);
       const extra = `. Sensação ${fmt(readings.get(i).feelsLike)}°, ${rain} de chance de chuva, ${volume}. Ver detalhes`;
-      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span><span class="peek-icon">${icon}</span><strong>${fmt(temperature)}<span class="peek-deg">°</span></strong><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span>${solar}<span class="peek-extra">${extra}</span></button>`;
+      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span><span class="peek-icon">${icon}</span><strong>${fmt(temperature)}<span class="peek-deg">°</span></strong><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span><span class="peek-extra">${extra}</span></button>${solar}`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
     // Sem nenhuma chance relevante nas 24 horas, a linha reservada da chuva some de todas (sem buraco).
     peek.dataset.rain = indices.some(i => Number(readings.get(i).probability) >= 20) ? "some" : "none";
@@ -502,16 +502,20 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
     const weekend = [0,6].includes(d.getUTCDay());
     const reading = !Number.isFinite(rainProb) || !Number.isFinite(rainMm) ? "Previsão de chuva indisponível" : rainMm >= 20 ? "Acumulado de chuva elevado" : rainMm >= 8 ? "Chuva ao longo do dia" : rainProb >= 55 ? "Chuva provável, com baixo acumulado" : rainProb >= 30 ? "Chuva isolada" : "Baixa probabilidade de chuva";
     const uvMax = daily.uv_index_max?.[i];
-    // A linha mostra só o que acrescenta: chuva relevante ou UV muito alto. O restante fica no detalhe do dia.
-    const notes = [reading !== "Baixa probabilidade de chuva" && reading, Number.isFinite(uvMax) && uvMax >= 8 && `UV ${fmt(uvMax, 0)} · ${uvMax >= 11 ? "extremo" : "muito alto"}`].filter(Boolean);
+    // A pedido, a linha não tem mais a nota de chuva/UV embaixo (em Manaus o UV 9 aparecia todo dia e
+    // dobrava a altura da lista): o ícone e a chance já contam a chuva, e o texto fica para leitores de tela
+    // e no detalhe do dia.
+    const notes = [reading !== "Baixa probabilidade de chuva" && reading, Number.isFinite(uvMax) && uvMax >= 8 && `UV ${fmt(uvMax, 0)} ${uvMax >= 11 ? "extremo" : "muito alto"}`].filter(Boolean);
+    const noteText = notes.length ? `. ${notes.join(", ")}` : "";
+    // Volume abaixo de 0,5 mm não muda nada para quem lê ("0,1 mm"): só a chance fica à vista.
+    const showVolume = !Number.isFinite(rainMm) || rainMm >= 0.5;
     // Sem aria-label: o nome do botão é o texto visível (WCAG 2.5.3); a faixa de temperatura tem o próprio
     // rótulo e os trechos .peek-extra completam a leitura só para leitores de tela.
     return `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}" data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog">
       <span class="forecast-day"><strong><span class="day-full">${day}</span>${day === "Hoje" ? "" : `<span class="day-short" aria-hidden="true">${day.slice(0,3)}</span>`}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
       <span class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
       <span class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</span><strong aria-hidden="true">${fmt(max)}°</strong></span>
-      ${rainQuiet ? `<span class="forecast-rain" data-rain="none"><span class="peek-extra">, chance de chuva ${rainProb}%, ${fmt(rainMm, 1)} mm. Ver detalhes. </span></span>` : `<span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb ?? '—'}%</span><span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span><span class="peek-extra">. Ver detalhes. </span></span></span>`}
-      <span class="forecast-uv"${notes.length ? "" : " hidden"}>${notes.join(" · ")}</span>
+      ${rainQuiet ? `<span class="forecast-rain" data-rain="none"><span class="peek-extra">, chance de chuva ${rainProb}%, ${fmt(rainMm, 1)} mm${noteText}. Ver detalhes. </span></span>` : `<span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb ?? '—'}%</span>${showVolume ? `<span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span>` : `<span class="peek-extra">, ${fmt(rainMm, 1)} mm</span>`}<span class="peek-extra">${noteText}. Ver detalhes. </span></span></span>`}
     </button>`;
   }).join("");
 }
