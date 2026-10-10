@@ -1098,10 +1098,28 @@ html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notific
 }
 
 /* Pacote visual (outubro/2026, a pedido): máx./mín. no topo, seções em cartões, um estilo de título
-   e 7 dias compactos no celular. Os cartões são só fundo + borda (sem blur, sombra, transform ou
-   z-index): não criam camadas e o céu continua visível atrás. A tinta segue data-ink. */
-#weatherView { --card-bg:rgba(160,190,240,.08); --card-line:rgba(184,212,239,.14); }
-body[data-ink="dark"] #weatherView { --card-bg:rgba(255,255,255,.3); --card-line:rgba(255,255,255,.46); }
+   e 7 dias compactos no celular. Os cartões são só pintura (fundo, borda e box-shadow, sem blur,
+   transform ou z-index): não criam camadas e o céu continua visível atrás. A tinta segue data-ink. */
+/* Vidro "líquido" sem backdrop-filter: um blur por cartão sobre as nuvens animadas seria refeito a
+   cada quadro e já derrubou o Safari do iPhone. À noite o cartão é quase transparente, com uma linha
+   fina e discreta em border-color (a borda em degradê via border-box apareceria pelo fundo transparente) (a pedido: sem degradê branco, sem borda de luz brilhante nos cantos). De dia o
+   vidro claro mantém a borda de luz. Só pintura, nada cria camada. */
+#weatherView {
+  --card-bg:rgba(160,190,240,.08);
+  --card-line:rgba(184,212,239,.14);
+  --card-fill:linear-gradient(rgba(150,175,225,.012),rgba(150,175,225,.012)) padding-box;
+  --card-rim:linear-gradient(transparent,transparent);
+  --card-border:rgba(190,210,245,.11);
+  --card-glow:none;
+}
+body[data-ink="dark"] #weatherView {
+  --card-bg:rgba(255,255,255,.3);
+  --card-line:rgba(255,255,255,.46);
+  --card-fill:linear-gradient(rgba(255,255,255,.26),rgba(255,255,255,.26)) padding-box;
+  --card-rim:linear-gradient(150deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.45) 26%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.45) 76%,rgba(255,255,255,.85) 100%);
+  --card-glow:inset 0 1px 0 rgba(255,255,255,.5);
+  --card-border:transparent;
+}
 #weatherView .hero-range { margin:-8px 0 0; color:var(--reading-ink); font-size:1.05rem; font-weight:500; line-height:1.35; text-align:center; }
 #weatherView .hero-range:empty { display:none; }
 #weatherView .hero-range .sk-line { width:min(9rem,50%); }
@@ -1116,9 +1134,10 @@ body[data-ink="dark"] #weatherView { --card-bg:rgba(255,255,255,.3); --card-line
 #weatherView :is(#alertas,#tips,#chuva,.quick-metrics,.metrics,.weather-map-section,#previsao,#notificationPrompt,.sun-section) {
   margin:12px 0 0 !important;
   padding:18px 16px !important;
-  border:1px solid var(--card-line) !important;
-  border-radius:22px !important;
-  background:var(--card-bg) !important;
+  border:1px solid var(--card-border,transparent) !important;
+  border-radius:24px !important;
+  background:var(--card-fill), var(--card-rim) border-box !important;
+  box-shadow:var(--card-glow);
 }
 #weatherView #alertas { margin-top:4px !important; }
 #weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) { padding-block:14px !important; }
@@ -1172,3 +1191,10 @@ body[data-ink="dark"] #weatherView { --card-bg:rgba(255,255,255,.3); --card-line
 #weatherView .sky-pair .moon-inline strong { overflow-wrap:normal; word-break:normal; }
 /* Respiro entre o último cartão e a linha do rodapé (a borda do cartão encostava nela). */
 #weatherView { padding-bottom:28px; }
+@media (forced-colors:active) {
+  #weatherView :is(#alertas,#tips,#chuva,.quick-metrics,.metrics,.weather-map-section,#previsao,#notificationPrompt,.sun-section) { border-color:CanvasText !important; box-shadow:none; }
+}
+
+/* Busca de cidades: digitando, os resultados sobem para logo abaixo do campo, antes dos botões e
+   favoritos (que continuam ali embaixo). No celular o teclado escondia a lista lá no fim. */
+#cityDialog[data-searching] :is(#cityResults,#cityPickerStatus) { order:-1; }
