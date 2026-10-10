@@ -8,7 +8,7 @@ const app = fs.readFileSync(path.join(__dirname, '..', 'dist', 'app.js'), 'utf8'
 const html = fs.readFileSync(path.join(__dirname, '..', 'dist', 'index.html'), 'utf8');
 const moon = require('../dist/vendor/suncalc.js');
 const moonView = require('../dist/modules/moon-view.js');
-const hourlySource = app.slice(app.indexOf('let hourlyMode = '), app.indexOf('\nfunction renderForecast('));
+const hourlySource = app.slice(app.indexOf('const SOLAR_GLYPHS = '), app.indexOf('\nfunction renderForecast('));
 const detailsSource = app.slice(app.indexOf('function renderVisibility('), app.indexOf('\nfunction cache(', app.indexOf('function renderVisibility(')));
 const hours = ['2026-09-24T16:00','2026-09-24T17:00','2026-09-24T18:00'];
 const data = {
@@ -18,47 +18,29 @@ const data = {
 };
 
 function screen() {
-  const chart = {innerHTML:'',scrollLeft:12,dataset:{},setAttribute(name,value){this[name]=value;}};
+  const peek = {innerHTML:'',scrollLeft:12,dataset:{}};
   const elements = {
-    rainChart:chart, dryWindow:{textContent:''}, hourlyChartLegend:{textContent:''}, visibilityValue:{textContent:''},
+    hourlyPeek:peek, dryWindow:{textContent:''}, visibilityValue:{textContent:''},
     visibilityNote:{textContent:''}, visibilityBadge:{hidden:true,textContent:'',dataset:{}},
     moonIcon:{d:'',setAttribute(name,value){this[name]=value;}},
     moonDisc:{visibility:'hidden',setAttribute(name,value){this[name]=value;}}, moonPhase:{textContent:''}
   };
   const ctx = {
-    $:id => elements[id], activeCity:{name:'Manaus'},
+    $:id => elements[id], activeCity:{id:'1302603',name:'Manaus'},
     cityDate:value=>new Date(value+'Z'),formatUpdateTime:at=>new Date(at).toISOString().slice(11,16),
     fmt:(value,digits=0) => Number.isFinite(value) ? value.toFixed(digits).replace('.',',') : '--',
     shortTime:time => time.slice(11,16), windDirection:deg => ({0:'N',90:'L'})[deg],
     weather:() => ['Céu variável'], forecastIsDay:() => true,
-    weatherIcons:{markup:() => '<img alt="Tempo">'},
+    weatherIcons:{markup:() => '<img alt="Tempo">',markupName:() => '<i></i>'}, showHourlyHint:() => false,
     findDryWindow:() => 'Sem chuva nas próximas horas', setDryWindow:text => { elements.dryWindow.textContent = text; }, PLUVIA:{moon,hourlyDetail:require('../dist/modules/hourly-detail.js')}
   };
-  const hourly = vm.runInNewContext(`${hourlySource}\n({renderHourly,setMode:mode=>hourlyMode=mode})`,ctx);
+  const hourly = vm.runInNewContext(`${hourlySource}\n({renderHourly})`,ctx);
   ctx.PLUVIA.moonView = moonView.create({document:{getElementById:id=>elements[id]},
     getIllumination:date=>ctx.PLUVIA.moon?.getMoonIllumination(date)});
   const details = {...vm.runInNewContext(`${detailsSource}\n({renderVisibility})`,ctx),
     renderMoon:at=>ctx.PLUVIA.moonView.update(at)};
   return {hourly,details,elements,ctx};
 }
-
-test('o mesmo gráfico alterna tempo, chuva e vento sem inventar leituras ausentes', () => {
-  const {hourly,elements} = screen();
-  hourly.renderHourly(data,0,{time:['2026-09-24']});
-  assert.match(elements.rainChart.innerHTML,/class="temp-bar"/);
-  assert.match(elements.rainChart.innerHTML,/27°/);
-  hourly.setMode('rain'); hourly.renderHourly(data,0,{time:['2026-09-24']});
-  assert.match(elements.rainChart.innerHTML,/80% de chance/);
-  assert.match(elements.rainChart.innerHTML,/2,0 mm/);
-  hourly.setMode('wind'); hourly.renderHourly(data,0,{time:['2026-09-24']});
-  assert.match(elements.rainChart.innerHTML,/Raj\. 25/);
-  assert.match(elements.rainChart.innerHTML,/transform:rotate\(90deg\)/);
-  assert.match(elements.rainChart.innerHTML,/--<\/span>/);
-  assert.equal(elements.rainChart.scrollLeft,12);
-  assert.match(elements.rainChart['aria-label'],/velocidade em km\/h/);
-  hourly.renderHourly({...data,wind_speed_10m:[null,null,null]},0,{time:['2026-09-24']});
-  assert.match(elements.rainChart.innerHTML,/Vento por hora indisponível/);
-});
 
 test('visibilidade baixa aparece no resumo, dado ausente fica indisponível', () => {
   const {details,elements} = screen();
@@ -73,13 +55,13 @@ test('visibilidade baixa aparece no resumo, dado ausente fica indisponível', ()
   assert.equal(elements.visibilityValue.textContent,'--');
   assert.match(elements.visibilityNote.textContent,/indisponível/);
 });
-test('eventos da timeline reutilizam a fonte solar, respeitam intervalo e mostram sensação',()=>{
+test('a fileira de horas reutiliza a fonte solar, respeita o intervalo e leva a sensação ao leitor de tela',()=>{
  const {hourly,elements,ctx}=screen();
  ctx.PLUVIA.sky={dayAt:()=>({rise:Date.parse('2026-09-24T06:00Z'),set:Date.parse('2026-09-24T17:45Z')})};
  hourly.renderHourly({...data,apparent_temperature:[32,33,31]},0,{time:['2026-09-24']});
- const chart=elements.rainChart.innerHTML;
- assert.match(chart,/Sens\. 32°/);assert.match(chart,/Pôr do sol 17:45/);assert.equal((chart.match(/Pôr do sol/g)||[]).length,1);
- ctx.PLUVIA.sky.dayAt=()=>null;hourly.renderHourly(data,0,{});assert.doesNotMatch(elements.rainChart.innerHTML,/Pôr do sol/);
+ const row=elements.hourlyPeek.innerHTML;
+ assert.match(row,/Sensação 32°/);assert.match(row,/Pôr do sol <\/span>17:45/);assert.equal((row.match(/Pôr do sol/g)||[]).length,1);
+ ctx.PLUVIA.sky.dayAt=()=>null;hourly.renderHourly(data,0,{});assert.doesNotMatch(elements.hourlyPeek.innerHTML,/Pôr do sol/);
 });
 
 test('a fase da Lua segue as efemérides de setembro de 2026', () => {
@@ -93,7 +75,7 @@ test('a fase da Lua segue as efemérides de setembro de 2026', () => {
     details.renderMoon(new Date(date));
     assert.equal(elements.moonPhase.textContent,label);
   }
-  assert.match(html,/data-hourly-mode="conditions"[\s\S]+data-hourly-mode="rain"[\s\S]+data-hourly-mode="wind"/);
+  assert.doesNotMatch(html,/id="rainChart"|data-hourly-mode=/,'o gráfico de 24 horas saiu da Home');
   assert.match(html,/id="moonPhase"/);
   assert.match(html,/id="visibilityValue"/);
 });
@@ -149,53 +131,19 @@ test('a iluminação varia dentro da mesma fase e respeita os quartos e extremos
 });
 
 
-test('probabilidade alta não fabrica volume; lacunas e valores inválidos não desenham barras',()=>{
- const {hourly,elements}=screen();hourly.setMode('rain');
- hourly.renderHourly({...data,precipitation_probability:[0,95,80],precipitation:[0,0,null]},0,{});
- assert.match(elements.rainChart.innerHTML,/95% de chance/);
- assert.match(elements.rainChart.innerHTML,/0,0 mm/);
- assert.doesNotMatch(elements.rainChart.innerHTML,/class="rain-bar"/);
- assert.match(elements.hourlyChartLegend.textContent,/volume previsto em mm por hora/);
- hourly.renderHourly({...data,time:[hours[0],hours[2]],precipitation:[0,5]},0,{});
- assert.doesNotMatch(elements.rainChart.innerHTML,/class="rain-bar"/);
- hourly.renderHourly({...data,precipitation:[0,-3,'5'],precipitation_probability:[0,101,'90']},0,{});
- assert.doesNotMatch(elements.rainChart.innerHTML,/class="rain-bar"|101%|90%/);
+test('a chance só aparece a partir de 20%, ausente não vira zero e a janela seca continua atualizada',()=>{
+ const {hourly,elements}=screen();
+ hourly.renderHourly(data,0,{time:['2026-09-24']});
+ const row=elements.hourlyPeek.innerHTML;
+ assert.equal((row.match(/data-hour-index=/g)||[]).length,3);
+ assert.match(row,/peek-rain"><i><\/i>80% /,'chance relevante visível (intervalo que termina em i+1)');
+ assert.match(row,/27<span class="peek-deg">°<\/span>/);
+ assert.equal(elements.hourlyPeek.dataset.rain,'some');
+ assert.equal(elements.dryWindow.textContent,'Sem chuva nas próximas horas');
+ hourly.renderHourly({...data,precipitation_probability:[0,5,null],precipitation:[0,0,null]},0,{});
+ assert.equal(elements.hourlyPeek.dataset.rain,'none');
+ assert.match(elements.hourlyPeek.innerHTML,/— de chance de chuva, Volume indisponível/,'ausente não vira zero');
 });
-test('sensação tem escala própria, temperatura de referência e lacunas honestas',()=>{
- const {hourly,elements}=screen();hourly.setMode('feels');
- hourly.renderHourly({...data,apparent_temperature:[33,null,37]},0,{});
- assert.match(elements.rainChart.innerHTML,/33°<small>Temp. 27°/);
- assert.match(elements.rainChart.innerHTML,/37°<small>Temp. 28°/);
- assert.equal((elements.rainChart.innerHTML.match(/class="temp-bar"/g)||[]).length,2);
- assert.match(elements.rainChart['aria-label'],/sensação térmica/);
- hourly.renderHourly(data,0,{});
- assert.match(elements.rainChart.innerHTML,/Sensação térmica por hora indisponível/);
-});
-
-test('volume usa escala proporcional compartilhada, independente da chance e do fuso do dispositivo',()=>{
- const {hourly,elements}=screen();hourly.setMode('rain');
- hourly.renderHourly({...data,time:['2026-09-24T23:00','2026-09-25T00:00','2026-09-25T01:00'],precipitation:[0,1,2],precipitation_probability:[0,99,10]},0,{});
- assert.match(elements.rainChart.innerHTML,/height:75.0px/);
- assert.match(elements.rainChart.innerHTML,/height:150.0px/);
- assert.match(elements.rainChart.innerHTML,/99% de chance/);
- hourly.renderHourly({...data,time:['invalid',hours[1],hours[2]]},0,{});
- assert.equal((elements.rainChart.innerHTML.match(/data-hour-index=/g)||[]).length,2);
-});
-test('gráfico recolhido não é montado; abre e desenha com os mesmos dados', () => {
-  const {hourly,elements} = screen();
-  elements.hourlyChartDetails = {open:false};
-  elements.rainChart.innerHTML = '<p>antigo</p>';
-  hourly.renderHourly(data,0,{time:['2026-09-24']});
-  assert.equal(elements.rainChart.innerHTML,'<p>antigo</p>','fechado: nenhuma coluna montada');
-  assert.equal(elements.rainChart.dataset.pending,'true');
-  assert.equal(elements.dryWindow.textContent,'Sem chuva nas próximas horas','a janela seca fica fora do gráfico e continua atualizada');
-  elements.hourlyChartDetails.open = true;
-  hourly.renderHourly(data,0,{time:['2026-09-24']});
-  assert.match(elements.rainChart.innerHTML,/class="temp-bar"/);
-  assert.equal(elements.rainChart.dataset.pending,undefined);
-  assert.equal(elements.rainChart.scrollLeft,12,'a rolagem do gráfico aberto se mantém');
-});
-
 test('janela seca só aparece quando chove ou pode chover agora', () => {
   const source = app.slice(app.indexOf('function findDryWindow('), app.indexOf('\nfunction forecastIsDay('));
   const line = {hidden:false}, value = {textContent:'', closest:() => line};

@@ -1,14 +1,13 @@
 (() => {
   "use strict";
   const el = id => document.getElementById(id);
-  const prompt = el("notificationPrompt"), promptButton = el("notificationPromptButton"), promptText = el("notificationPromptText");
   // "Agora não" esconde o convite da Home neste aparelho; os alertas continuam na conta.
   const DISMISS_KEY = "pluvia-notification-prompt-dismissed";
   const promptDismissed = () => { try { return localStorage.getItem(DISMISS_KEY) === "1"; } catch { return false; } };
   const toggle = el("notificationToggle"), testButton = el("notificationTest"), statusBadge = el("notificationStatusBadge");
   const supportNote = el("notificationSupportNote"), diagnosticsNode = el("notificationDiagnostics"), form = el("notificationPreferencesForm"), devicesNode = el("notificationDevices"), locationsNode = el("notificationLocations");
   const installDialog = el("installPushDialog"), continueNote = el("notificationContinueNote");
-  if (!prompt || !toggle || !form) return;
+  if (!toggle || !form) return;
 
   const boolFields = ["official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary"];
   let config = null, busy = false, pendingEnable = false, configRevision = 0, configOwner = null, pushActive = null;
@@ -189,21 +188,16 @@
   }
 
   async function paintState() {
-    prompt.hidden = promptDismissed();
     await paintDiagnostics();
     if (continueNote) continueNote.hidden = !(supported && currentUser() && pendingEnable && Notification.permission !== "granted");
-    const city = cityLabel();
     if (!supported) {
       status("blocked", "Navegador incompatível"); toggle.disabled = true; testButton.hidden = true;
       message("Este navegador não oferece Web Push completo. O restante do PLUVIA continua funcionando normalmente.");
-      promptText.textContent = "As notificações do sistema não são compatíveis com este navegador.";
       return;
     }
     if (isIOS && !standalone) {
       status("off", "Instalação necessária"); toggle.disabled = false; toggle.textContent = "Como instalar no iPhone"; testButton.hidden = true;
       message("Para receber notificações no iPhone ou iPad, adicione o PLUVIA à Tela de Início e abra pelo ícone.");
-      promptText.textContent = `No iPhone, adicione o PLUVIA à Tela de Início para avisar chuva e INMET em ${city}.`;
-      promptButton.textContent = "Como instalar";
       return;
     }
     if (Notification.permission === "denied") {
@@ -216,12 +210,7 @@
     status(active ? "on" : "off", active ? "Alertas ativos" : "Alertas desativados");
     toggle.disabled = false; toggle.textContent = active ? "Desativar neste dispositivo" : "Ativar alertas";
     testButton.hidden = !active;
-    promptButton.textContent = "Ativar alertas";
-    promptText.textContent = active
-      ? `Alertas ligados para ${city}. O PLUVIA avisa mesmo fechado.`
-      : `Avisa alerta oficial e chuva nas próximas horas em ${city}. A permissão só aparece depois do seu toque.`;
     message(active ? "Este dispositivo pode receber notificações mesmo com o PLUVIA fechado." : pendingEnable && currentUser() ? "Conta conectada. Toque em “Ativar alertas” para solicitar permissão." : "A permissão será solicitada após o toque em “Ativar alertas”.");
-    prompt.hidden = active || promptDismissed();
     pushActive = active;
     window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed"));
   }
@@ -275,7 +264,7 @@
       return;
     }
     if (!supported) { await paintState(); return; }
-    busy = true; toggle.disabled = true; promptButton.disabled = true;
+    busy = true; toggle.disabled = true;
     try {
       const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
       track("Push Permission Result", { permission, standalone });
@@ -289,7 +278,7 @@
       track("Push Enabled", { platform: deviceInfo().platform, city: currentLocation()?.cityId || "" });
       message(`Alertas ligados para ${cityLabel()}. INMET e chuva nas próximas horas. Envie um teste se quiser conferir.`);
     } catch (error) { message(error.message || "Não foi possível ativar os alertas."); }
-    finally { busy = false; promptButton.disabled = false; await paintState(); }
+    finally { busy = false; await paintState(); }
   }
 
   async function disable() {
@@ -322,15 +311,8 @@
   (window.PLUVIA = window.PLUVIA || {}).alertOffer = {
     canOffer: () => pushActive === false && supported && (!isIOS || standalone) && Notification.permission !== "denied" && !promptDismissed(),
     enable,
-    dismiss: () => { try { localStorage.setItem(DISMISS_KEY, "1"); } catch {} prompt.hidden = true; window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed")); },
+    dismiss: () => { try { localStorage.setItem(DISMISS_KEY, "1"); } catch {} window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed")); },
   };
-  promptButton.addEventListener("click", enable);
-  el("notificationPromptDismiss")?.addEventListener("click", () => {
-    try { localStorage.setItem(DISMISS_KEY, "1"); } catch {}
-    prompt.hidden = true;
-    window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed"));
-    el("accountButton")?.focus?.({preventScroll:true});
-  });
   toggle.addEventListener("click", toggleNotifications);
   el("installPushClose")?.addEventListener("click", () => globalThis.PLUVIA?.dialogs?.close(installDialog) ?? installDialog?.close());
   el("installPushReload")?.addEventListener("click", () => location.reload());

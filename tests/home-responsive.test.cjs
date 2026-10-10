@@ -10,8 +10,8 @@ const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 test('mantém a ordem mobile no fluxo normal da Home', () => {
   const current = html.indexOf('current-card weather-hero');
   const metrics = html.indexOf('class="metrics"');
-  const hourly = html.indexOf('id="rainChart"');
-  // O gráfico por hora mora em Próximas horas (antes das leituras), recolhido.
+  const hourly = html.indexOf('id="hourlyPeek"');
+  // Próximas horas vem antes das leituras.
   assert.ok(current >= 0 && current < hourly && hourly < metrics);
   assert.match(html, /id="airQuality"/);
   assert.doesNotMatch(html, /class="air-card|id="airScore"/);

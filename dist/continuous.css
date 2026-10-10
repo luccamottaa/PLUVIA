@@ -1149,6 +1149,19 @@ body[data-ink="dark"] #weatherView {
 }
 #weatherView #alertas { margin-top:4px !important; }
 #weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) { padding-block:14px !important; }
+/* Sem aviso (ou ainda consultando): só uma linha discreta, sem cartão; com aviso, falha ou leitura
+   anterior, o cartão completo volta no mesmo lugar. */
+#weatherView #alertas:is([data-alert-state="clear"],[data-alert-state="loading"]) {
+  padding:4px 2px !important; border-color:transparent !important; background:none !important; box-shadow:none !important;
+}
+#weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) #inmetCard { min-height:28px; gap:0 10px; padding:0 !important; border:0 !important; background:none !important; box-shadow:none !important; }
+#weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) #inmetCard .source-badge { min-height:24px; padding:3px 8px; font-size:.7rem; }
+#weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) #inmetContent h3 { font-size:.85rem; font-weight:500; color:var(--reading-muted); }
+#weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) #inmetUpdated { display:none; }
+#weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) :is(#inmetCard .source-head, #inmetContent, .source-link) { grid-row:1; }
+@media(max-width:420px) {
+  #weatherView .alerts-section[data-alert-state="clear"] .source-link { display:none; }
+}
 #weatherView .home-column > :first-child { margin-top:12px !important; }
 /* Linhas internas: a borda do cartão já separa o primeiro item. */
 #weatherView .metrics .metric-sky:nth-child(-n+2) { border-top:0 !important; padding-top:0; }
@@ -1197,6 +1210,24 @@ body[data-ink="dark"] #weatherView {
   #weatherView .sky-pair-sun { padding-right:0; }
 }
 #weatherView .sky-pair .moon-inline strong { overflow-wrap:normal; word-break:normal; }
+/* Ciclo do dia enxuto: uma linha (duração · o que falta), o arco com os horários nas pontas e a Lua
+   numa linha. Antes o número grande, a frase, o arco e a tabela repetiam a mesma informação. */
+#weatherView .sun-section { gap:14px; }
+#weatherView .sun-section .sun-copy .sun-summary { margin:6px 0 0; font-size:.95rem; line-height:1.45; }
+#weatherView .sun-section .sun-copy .sun-summary strong { display:inline; margin:0; color:var(--reading-ink); font-size:inherit; font-weight:500; letter-spacing:0; line-height:inherit; }
+#weatherView .sun-section #sunPhrase:not(:empty)::before { content:" · "; }
+#weatherView .sun-section .sun-ends { display:flex; justify-content:space-between; gap:12px; width:100%; margin-top:-22px; border:0; }
+#weatherView .sun-section .sun-ends div { display:grid; gap:2px; min-width:0; padding:0; border:0; text-align:left; }
+#weatherView .sun-section .sun-ends div + div { text-align:right; }
+#weatherView .sun-section .sun-ends span { font-size:.8125rem; letter-spacing:0; }
+#weatherView .sun-section .sun-ends strong { color:var(--reading-ink); font-size:1.15rem; font-weight:600; }
+#weatherView .sun-section .moon-line { display:flex; justify-content:flex-start; align-items:center; gap:10px; width:100%; padding:14px 0 0; border-top:1px solid var(--reading-line); }
+#weatherView .sun-section .moon-line .moon-phase-icon { width:32px; height:32px; flex:0 0 32px; }
+#weatherView .sun-section .moon-line > span { font:400 .95rem/1.4 var(--font-ui); letter-spacing:0; color:var(--reading-muted); }
+#weatherView .sun-section .moon-line .moon-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+#weatherView .sun-section .moon-line strong { display:inline; margin:0; color:var(--reading-ink); font:500 .95rem/1.4 var(--font-ui); }
+#weatherView .sun-section .moon-line #moonIllumination { display:inline; margin:0; font-size:inherit; }
+#weatherView .sun-section .moon-line #moonIllumination::before { content:"· "; }
 /* Respiro entre o último cartão e a linha do rodapé (a borda do cartão encostava nela). */
 #weatherView { padding-bottom:28px; }
 @media (forced-colors:active) {

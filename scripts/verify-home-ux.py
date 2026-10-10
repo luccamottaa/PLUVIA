@@ -106,11 +106,8 @@ with sync_playwright() as p:
         page.click('#radarStageOpen', force=True)
         page.wait_for_function("document.getElementById('radarDialog').open", timeout=5000)
         page.keyboard.press('Escape'); page.wait_for_function("!document.getElementById('radarDialog').open", timeout=5000)
-        # Convite de alertas: "Agora não" esconde e continua escondido depois.
-        prompt = page.locator('#notificationPrompt')
-        if prompt.is_visible():
-            page.click('#notificationPromptDismiss')
-            assert not prompt.is_visible()
+        # O convite fixo de alertas saiu da Home (fica só o convite contextual).
+        assert page.locator('#notificationPrompt').count() == 0
         # Duas colunas só a partir de 1100 px.
         columns = page.evaluate("""() => { const cols = [...document.querySelectorAll('.home-columns > .home-column')].map(c => c.getBoundingClientRect());
           return {count:cols.length, side:cols.length === 2 && cols[0].right <= cols[1].left && Math.abs(cols[0].top - cols[1].top) < 2}; }""")
@@ -121,7 +118,6 @@ with sync_playwright() as p:
         # Nova aba: dica não volta e o convite dispensado continua fora.
         page.close(); page = open_page()
         assert page.evaluate("document.getElementById('hourlyDecision').hidden"), 'dica das horas só na primeira sessão'
-        assert not page.locator('#notificationPrompt').is_visible()
 
         # Bolinhas e gesto lateral.
         dots = page.evaluate("[...document.querySelectorAll('#cityDots .city-dot')].map(d => [d.dataset.cityId, d.getAttribute('aria-current'), d.getAttribute('aria-label'), d.getBoundingClientRect().height])")
@@ -162,12 +158,12 @@ with sync_playwright() as p:
         dialog = page.evaluate("""() => { const d = document.getElementById('homeLayoutDialog'), r = d.getBoundingClientRect();
           return {items:document.querySelectorAll('#homeLayoutList li').length, inside:r.left >= 0 && r.right <= innerWidth + 0.5,
             small:[...d.querySelectorAll('#homeLayoutList button,#homeLayoutReset')].filter(b => b.getBoundingClientRect().height < 44).length}; }""")
-        assert dialog == {'items': 6, 'inside': True, 'small': 0}, dialog
+        assert dialog == {'items': 5, 'inside': True, 'small': 0}, dialog
         page.uncheck('#homeLayoutList input[data-toggle="radar"]')
         page.click('#homeLayoutList [data-move="sky"][data-delta="-1"]')
         state = page.evaluate("""() => ({radar:document.querySelector('section.weather-map-section').getClientRects().length,
           order:JSON.parse(localStorage.getItem('pluvia-home-layout')).order})""")
-        assert state['radar'] == 0 and state['order'].index('sky') == 4, state
+        assert state['radar'] == 0 and state['order'].index('sky') == 3, state
         page.screenshot(path=str(output / f'{engine}-{width}-layout.png'))
         page.keyboard.press('Escape'); page.wait_for_function("!document.getElementById('homeLayoutDialog').open", timeout=5000)
         page.close(); page = open_page()

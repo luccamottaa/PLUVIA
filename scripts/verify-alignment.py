@@ -108,19 +108,6 @@ with sync_playwright() as p:
   for field in ['.peek-time','.peek-icon','.hourly-peek-item > strong']+(['.peek-rain'] if rain_row=='some' else []):
    report[field]=aligned(field,count=hours)
   if rain_row=='none': assert not boxes('.peek-rain'),(width,label)
-  report['summaryLabels']=aligned('.quick-metrics > .quick-metric:first-child .metric-head > span:first-child,.hero-temperature-extreme small',count=3)
-  report['summaryValues']=aligned('#feelsLike,#todayHigh,#todayLow',count=3)
-  summary_icons='.quick-metrics > .quick-metric:first-child [data-weather-icon-name] svg,.hero-temperature-extreme [data-weather-icon-name] svg'
-  report['summaryIcons']=aligned(summary_icons,'centerY',3)
-  for icon in report['summaryIcons']:
-   assert icon['width']==icon['height']==28,(width,label,icon)
-  for selector in ['.quick-metrics > .quick-metric:first-child','.hero-temperature-extreme']:
-   for column in page.locator(selector).all():
-    geometry=column.evaluate("el=>{const icon=el.querySelector('[data-weather-icon-name] svg'),heading=el.querySelector('.metric-head'),label=heading.firstElementChild,value=el.querySelector('strong');const box=n=>{const r=n.getBoundingClientRect();return {center:r.x+r.width/2,x:r.x,right:r.right,y:r.y,bottom:r.bottom}};return {column:box(el),icon:box(icon),label:box(label),value:box(value),loaded:icon.classList.contains('metric-line-icon')&&icon.querySelector('path')!==null,decorative:icon.getAttribute('aria-hidden')==='true'&&icon.getAttribute('focusable')==='false'};}")
-    assert geometry['loaded'] and geometry['decorative'],geometry
-    assert max(v['center'] for v in geometry.values() if isinstance(v,dict))-min(v['center'] for v in geometry.values() if isinstance(v,dict))<=1,geometry
-    assert geometry['icon']['bottom']<=geometry['label']['y'] and geometry['label']['bottom']<=geometry['value']['y'],geometry
-    assert all(geometry['column']['x']-1<=geometry[k]['x'] and geometry[k]['right']<=geometry['column']['right']+1 for k in ['icon','label','value']),geometry
   aligned('.topbar .account-trigger,.topbar .brand,.topbar .top-actions','centerY',3)
   aligned('.topbar .top-actions > *','centerY')
   # Center the whole reading, not only the number while its degree hangs outside.
@@ -189,7 +176,7 @@ with sync_playwright() as p:
   report['tracks']=aligned('.temp-track','x',7)
   aligned('.temp-track','width',7)
   # Sol | Lua: nascer e pôr empilhados no bloco do Sol, valores na mesma borda direita.
-  aligned('.sun-times > div > strong','right',2)
+  aligned('.sun-ends > div > strong','y',2)
   headings=page.evaluate("()=>[...document.querySelectorAll('#weatherView .section-heading')].map(el=>[...el.children].filter(c=>c.getClientRects().length).map(c=>{const r=c.getBoundingClientRect();return {y:r.y,bottom:r.bottom,centerY:r.y+r.height/2}}))")
   for parts in headings:
    if len(parts)==2:
@@ -211,14 +198,7 @@ with sync_playwright() as p:
    for key in ['head','value','note']:assert max(t[key] for t in group)-min(t[key] for t in group)<=1,(width,key,group)
    ordered=sorted(group,key=lambda t:t['left'])
    for a,b in zip(ordered,ordered[1:]):assert a['right']<=b['left']+1,(width,a,b)
-  page.evaluate("document.getElementById('hourlyChartDetails').open=true")
-  for mode in ['conditions','feels','rain','wind']:
-   page.locator('button[data-hourly-mode="'+mode+'"]').click()
-   for field in ['.hour-time','.hour-temp','.hour-icon' if mode!='wind' else '.wind-direction']:
-    aligned('#rainChart '+field)
-   aligned('#rainChart '+('.rain-mm' if mode=='rain' else '.hour-detail'))
-   if width==390 and label=='sunrise':screenshot(str(width)+'-chart-'+mode,'#chuva')
-  page.locator('button[data-hourly-mode="conditions"]').click()
+  if width==390 and label=='sunrise':screenshot(str(width)+'-hourly','#chuva')
   reports.append(report)
 
  for width,height in [(320,740),(390,844),(430,932),(768,1024),(844,390),(1366,768),(2560,1080)]:
@@ -226,7 +206,7 @@ with sync_playwright() as p:
   home(width,'sunrise')
   assert 'Nascer do sol' in page.locator('#hourlyPeek').inner_text()
   if width in [320,390,768,1366]:
-   for name,selector in [('header','#top'),('peek','.hourly-peek'),('quick','.quick-metrics'),('metrics','.metrics'),('forecast','.forecast-section'),('astronomy','.sun-section')]:screenshot(str(width)+'-'+name,selector)
+   for name,selector in [('header','#top'),('peek','.hourly-peek'),('metrics','.metrics'),('forecast','.forecast-section'),('astronomy','.sun-section')]:screenshot(str(width)+'-'+name,selector)
   page.locator('#accountButton').click();page.locator('#accountDialog').wait_for(state='visible');header('#accountDialog .dialog-heading')
   for action in ['#accountLogin','#accountSignup','#accountLogin','#accountForgot']:
    page.locator(action).click();form_edges('#accountForm')
@@ -274,7 +254,6 @@ with sync_playwright() as p:
    assert ('Pôr do sol' in first)==(label=='sunset'),first
    screenshot(str(width)+'-peek-'+label,'.hourly-peek')
    if width==390 and label=='day':
-    screenshot(str(width)+'-quick-day','.quick-metrics')
     screenshot(str(width)+'-metrics-day','.metrics')
  # A long selected name also changes reference notes and dialog subtitles.
  page.clock.set_fixed_time(datetime.datetime(2026,10,4,7,15,tzinfo=datetime.timezone.utc))

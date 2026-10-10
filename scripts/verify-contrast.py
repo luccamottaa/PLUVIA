@@ -62,7 +62,7 @@ with sync_playwright() as p:
   page.evaluate("({code})=>{displayedWeather.forecast.current.weather_code=code;render(displayedWeather.forecast,displayedWeather.air,false,Date.now())}",{'code':code})
   page.evaluate("document.getElementById('weatherFrameStatus').textContent='Carregando imagem…'")
   page.set_viewport_size({'width':390,'height':844})
-  for selector in ['#accountButton','#condition','#cityName','#hourlyDecision','.quick-metric .metric-head > span:first-child','#humidityNote','#hourlyChartDetails > summary span','#sunPhrase','footer .footer-brand-copy span']:
+  for selector in ['#accountButton','#condition','#cityName','#hourlyDecision','#heroRange','#windNote','#sunPhrase','footer .footer-brand-copy span']:
    result=sample(selector)
    assert result['contrast']>=4.5,{'state':label,'selector':selector,**result}
    reports.append({'state':label,'selector':selector,**result})

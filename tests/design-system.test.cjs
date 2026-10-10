@@ -13,7 +13,7 @@ for (const token of [
   '--space-1', '--space-16', '--radius-sm', '--radius-lg'
 ]) assert(css.includes(token), `token ausente: ${token}`);
 
-assert(html.indexOf('weather-hero') < html.indexOf('id="notificationPrompt"'), 'o hero deve abrir a hierarquia da Home antes dos controles de notificação');
+assert(html.indexOf('weather-hero') < html.indexOf('id="alertNudge"'), 'o hero deve abrir a hierarquia da Home antes dos controles de notificação');
 assert.match(html, /card-primary/);
 assert.match(html, /card-secondary/);
 assert.match(html, /card-detail/);
@@ -28,7 +28,7 @@ const themedNodes=[{dataset:{}},{dataset:{}}];
 require('../dist/modules/sky-atmosphere.js').create({document:{documentElement:themedNodes[0],body:themedNodes[1]}}).apply(2,0);
 for(const node of themedNodes) assert.deepEqual({phase:node.dataset.phase,solar:node.dataset.solar,weather:node.dataset.weather},{phase:'night',solar:'none',weather:'partly'});
 assert.match(app, /classList\.toggle\("is-night"/);
-assert.match(app, /class="hour-temp"/);
+assert.match(app, /class="hourly-peek-item/);
 assert.match(app, /Sem alertas meteorológicos ativos/);
 assert.doesNotMatch(html, /id="yesterdayComparison"/, 'a comparação com ontem pertence apenas ao resumo');
 assert.doesNotMatch(html, /id="weatherExplanation"/);
