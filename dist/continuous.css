@@ -1096,3 +1096,79 @@ html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notific
   :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot) { transition:none; }
   #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
 }
+
+/* Pacote visual (outubro/2026, a pedido): máx./mín. no topo, seções em cartões, um estilo de título
+   e 7 dias compactos no celular. Os cartões são só fundo + borda (sem blur, sombra, transform ou
+   z-index): não criam camadas e o céu continua visível atrás. A tinta segue data-ink. */
+#weatherView { --card-bg:rgba(160,190,240,.08); --card-line:rgba(184,212,239,.14); }
+body[data-ink="dark"] #weatherView { --card-bg:rgba(255,255,255,.3); --card-line:rgba(255,255,255,.46); }
+#weatherView .hero-range { margin:-8px 0 0; color:var(--reading-ink); font-size:1.05rem; font-weight:500; line-height:1.35; text-align:center; }
+#weatherView .hero-range:empty { display:none; }
+#weatherView .hero-range .sk-line { width:min(9rem,50%); }
+#weatherView .weather-hero { padding-bottom:12px; }
+#weatherView .weather-main > .city-dots { margin-top:0; }
+:root[data-city-slide] #weatherView #heroRange { view-transition-name:pluvia-range; }
+::view-transition-group(pluvia-range) { animation-duration:.5s; animation-timing-function:cubic-bezier(.22,1,.36,1); }
+::view-transition-old(pluvia-range) { animation:pluvia-slide-out .2s cubic-bezier(.4,0,1,1) both; }
+:root[data-city-slide="prev"]::view-transition-old(pluvia-range) { animation-name:pluvia-slide-out-prev; }
+::view-transition-new(pluvia-range) { animation:pluvia-slide-in .52s cubic-bezier(.22,1,.36,1) .22s both; }
+
+#weatherView :is(#alertas,#tips,#chuva,.quick-metrics,.metrics,.weather-map-section,#previsao,#notificationPrompt,.sun-section) {
+  margin:12px 0 0 !important;
+  padding:18px 16px !important;
+  border:1px solid var(--card-line) !important;
+  border-radius:22px !important;
+  background:var(--card-bg) !important;
+}
+#weatherView #alertas { margin-top:4px !important; }
+#weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) { padding-block:14px !important; }
+#weatherView .home-column > :first-child { margin-top:12px !important; }
+/* Linhas internas: a borda do cartão já separa o primeiro item. */
+#weatherView .metrics .metric-sky:nth-child(-n+2) { border-top:0 !important; padding-top:0; }
+#weatherView .metrics .metric:last-child { padding-bottom:0; }
+#weatherView .forecast-list > :first-child { border-top:0 !important; }
+#weatherView .forecast-list > .forecast-row:last-child { padding-bottom:0; }
+#weatherView .forecast-list > .forecast-row:first-child { padding-top:4px; }
+#weatherView .quick-metrics > .quick-metric:last-child { padding-bottom:0; }
+@media(min-width:721px) {
+  #weatherView .metrics .metric-sky:nth-child(-n+4) { border-top:0 !important; padding-top:0; }
+  #weatherView :is(#alertas,#tips,#chuva,.quick-metrics,.metrics,.weather-map-section,#previsao,#notificationPrompt,.sun-section) { padding:22px 24px !important; }
+}
+@media(min-width:1100px) {
+  #weatherView .home-column .metrics .metric-sky:nth-child(-n+4) { border-top:1px solid var(--reading-line) !important; padding-top:18px; }
+  #weatherView .home-column .metrics .metric-sky:nth-child(-n+2) { border-top:0 !important; padding-top:0; }
+  #weatherView .home-columns { column-gap:24px; }
+}
+
+/* Um estilo de título: o mesmo h2 em todas as seções, sem sobretítulos nem ícones soltos. */
+#weatherView :is(.section-icon,.weather-map-copy > .eyebrow,.notification-prompt .eyebrow) { display:none; }
+#weatherView .sun-section .sun-copy { text-align:left; }
+#weatherView .sun-section .sun-label { justify-content:flex-start; }
+#weatherView .sun-section .sun-label svg { display:none; }
+#weatherView .sun-section .sun-label span { color:var(--reading-ink); font-size:1.3rem; font-weight:600; letter-spacing:-.02em; line-height:1.25; }
+#weatherView .sun-section .sun-copy strong { margin-top:10px; font-size:clamp(1.9rem,7vw,2.6rem); font-weight:600; }
+#weatherView .notification-prompt h2 { margin:0 0 6px; color:var(--reading-ink); font-size:1.3rem; font-weight:600; letter-spacing:-.02em; line-height:1.25; }
+/* Sino em traço, da mesma família dos ícones de leitura (antes era um emoji). */
+#weatherView .notification-prompt-icon { color:var(--graphic-blue,var(--brand-blue)); background:color-mix(in srgb,var(--brand-blue) 14%,transparent); }
+#weatherView .notification-prompt-icon svg { width:26px; height:26px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+
+/* 7 dias no celular: dia da semana sozinho (a data continua no detalhe e no rótulo do botão). */
+@media(max-width:720px) {
+  #weatherView .forecast-list .forecast-row { padding-block:10px; min-height:52px; }
+  #weatherView .forecast-list .forecast-row > .forecast-day > span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  #weatherView .forecast-list .forecast-row > .forecast-uv { font-size:.8125rem; }
+}
+
+/* Radar: erro sempre legível (a regra ".weather-map-card p" pintava o texto com a cor de leitura
+   clara sobre a caixa branca à noite) e "Indisponível" fora do azul de link. */
+#radarMapContent .weather-map-error { background:#fff; color:#8a2d12; pointer-events:none; } /* o toque passa para o mapa (abrir o radar) */
+#radarMapContent #weatherFrameTime[data-state="error"] { color:var(--reading-muted,var(--map-ink)); }
+/* Dentro do cartão a largura útil é menor: Sol e Lua empilham antes (nome da fase sem quebrar no meio). */
+@media(max-width:440px) {
+  #weatherView .sky-pair { grid-template-columns:minmax(0,1fr); row-gap:14px; }
+  #weatherView .sky-pair-moon { padding:14px 0 0; border-left:0; border-top:1px solid var(--reading-line); }
+  #weatherView .sky-pair-sun { padding-right:0; }
+}
+#weatherView .sky-pair .moon-inline strong { overflow-wrap:normal; word-break:normal; }
+/* Respiro entre o último cartão e a linha do rodapé (a borda do cartão encostava nela). */
+#weatherView { padding-bottom:28px; }

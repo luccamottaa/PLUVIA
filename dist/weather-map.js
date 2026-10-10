@@ -168,7 +168,7 @@
     setFrames([],0);
     document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
     $('weatherLayerName').textContent = name === 'stations' ? 'Estação' : 'Chuva';
-    $('weatherFrameTime').textContent = 'Carregando…'; $('weatherSourceNote').textContent = 'Consultando a fonte escolhida…';
+    $('weatherFrameTime').textContent = 'Carregando…'; $('weatherFrameTime').removeAttribute?.('data-state'); $('weatherSourceNote').textContent = 'Consultando a fonte escolhida…';
     frameStatus(true,'Consultando a fonte escolhida…');
     try {
       if (name === 'rain') await loadRain(revision); else loadStations();
@@ -177,7 +177,7 @@
       if (revision !== layerRevision) return;
       source(name === 'rain' ? 'radar' : name,{status:'error'}); setFrames([],0); setError('Esta camada está temporariamente indisponível. Tente novamente.');
       frameStatus(false,'Não foi possível carregar esta camada.',true);
-      $('weatherFrameTime').textContent = 'Indisponível'; $('weatherSourceNote').textContent = error?.message || 'Dados temporariamente indisponíveis.';
+      $('weatherFrameTime').textContent = 'Indisponível'; $('weatherFrameTime').setAttribute?.('data-state','error'); $('weatherSourceNote').textContent = error?.message || 'Dados temporariamente indisponíveis.';
     }
   }
   // Botão de localização, como o dos apps de mapa: só por toque, pede a posição ao navegador uma vez

@@ -844,6 +844,14 @@ function dataAge(at) {
   return `há ${hours}h`;
 }
 
+// Máx./mín. de hoje logo abaixo da condição (o primeiro número que se procura); ausente não vira "--°".
+function setHeroRange(high, low) {
+  const node = $("heroRange");
+  if (!node) return;
+  const parts = [Number.isFinite(high) ? `Máx. ${fmt(high)}°` : "", Number.isFinite(low) ? `Mín. ${fmt(low)}°` : ""].filter(Boolean);
+  node.textContent = parts.join(" · ");
+}
+
 function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   try {
     weatherData?.ingestOpenMeteo(data, air, activeCity, {
@@ -863,6 +871,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   const dayIndex = day.time.indexOf(globalThis.PLUVIA.time.dayKey(Date.now(),activeCity));
   $("todayHigh").textContent = `${fmt(day.temperature_2m_max[dayIndex])}°`;
   $("todayLow").textContent = `${fmt(day.temperature_2m_min[dayIndex])}°`;
+  setHeroRange(day.temperature_2m_max[dayIndex], day.temperature_2m_min[dayIndex]);
   $("humidity").innerHTML = `${fmt(current.relative_humidity_2m)}<sup>%</sup>`; const humidityReading = weatherInsights?.humidity?.(data.hourly,start,current);
   $("humidityNote").textContent = humidityReading?.note || humidityLabel(current.relative_humidity_2m);
   $("humidity").closest?.(".metric")?.setAttribute("data-humidity-level",humidityReading?.level || "unknown");
@@ -962,7 +971,7 @@ async function loadWeather(revision = cityRevision) {
     globalThis.PLUVIA?.sources.set("air-quality",{status:displayedWeather?.air ? "stale" : "error"});
     if (!displayedWeather) {
       // Sem dado algum, o skeleton daria a impressão de carregamento sem fim: os valores ficam indisponíveis.
-      for (const id of ["temperature","feelsLike","todayHigh","todayLow","visibilityValue","humidity","wind","pressure","uv","airValue","airQuality"]) $(id).textContent = "--";
+      for (const id of ["temperature","feelsLike","todayHigh","todayLow","visibilityValue","humidity","wind","pressure","uv","airValue","airQuality"]) $(id).textContent = "--"; setHeroRange(null, null);
       for (const id of ["feelsLikeNote","visibilityNote","humidityNote","windNote","pressureNote","uvNote"]) $(id).textContent = "—";
       $("airNote").textContent = "AQI indisponível";
       $("condition").textContent = "Tempo indisponível";
@@ -1185,7 +1194,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","feelsLike","feelsLikeNote","condition","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate"].filter(id=>$(id));
+const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","feelsLike","feelsLikeNote","condition","heroRange","todayHigh","todayLow","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","rainChart","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate"].filter(id=>$(id));
 let emptyCityContent;
 // Deslizar entre cidades (como no Apple Weather): a cidade aberta e os favoritos, na ordem salva.
 // As bolinhas são botões (clique/teclado); no toque, arrastar o topo para o lado troca de cidade.
@@ -1369,7 +1378,7 @@ function fadeIn(nodes, duration, stagger = 0) {
 // Os detalhes por hora/dia usam o mesmo fade ao navegar entre horários/dias.
 if (globalThis.PLUVIA) globalThis.PLUVIA.fadeText = fadeIn;
 function animateCityText() {
-  fadeIn([$("cityName"), $("temperature"), $("condition"), $("rainAnswer")], 420, 90);
+  fadeIn([$("cityName"), $("temperature"), $("condition"), $("heroRange"), $("rainAnswer")], 420, 90);
 }
 // Deslize na troca de cidade: View Transitions (Safari 18+, Chrome 111+). O navegador fotografa só
 // o nome, a temperatura, a condição e o "Vai chover?" (view-transition-name durante a troca) e
