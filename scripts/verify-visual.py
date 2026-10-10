@@ -135,7 +135,10 @@ with sync_playwright() as p:
   # Verify downward entrance and exit, native modality and immediate reduced-motion close.
   page.emulate_media(reduced_motion='no-preference');page.locator('#accountButton').click()
   assert page.locator('#accountDialog').evaluate("el=>getComputedStyle(el).animationName")=='pluvia-dialog-enter'
-  assert page.locator('#accountDialog').evaluate("el=>new DOMMatrixReadOnly(getComputedStyle(el).transform).m42")<0
+  # Amostra a entrada num instante fixo (50 ms): ler o transform "logo depois" do clique corria contra
+  # a animação de 400 ms no WebKit da CI, que às vezes já tinha terminado.
+  assert page.locator('#accountDialog').evaluate("""el=>{const a=el.getAnimations().find(x=>x.animationName==='pluvia-dialog-enter');if(!a)return 0;
+   a.pause();a.currentTime=50;const y=new DOMMatrixReadOnly(getComputedStyle(el).transform).m42;a.play();return y}""")<0
   page.wait_for_timeout(450)
   rect=page.locator('#accountDialog').bounding_box();assert rect and rect['height']<=height and rect['width']<=width
   page.screenshot(path=str(output/(str(width)+'-account.png')))

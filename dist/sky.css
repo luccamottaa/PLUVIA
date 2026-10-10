@@ -61,6 +61,13 @@ html,body { background:var(--sky-base); }
 /* A intro segue a mesma atenuação noturna da página: o texto claro do lado noturno do
    crepúsculo não pode depender de uma nuvem passar atrás dele. */
 :root[data-phase="night"] .intro-sky .sky-twilight { background:linear-gradient(#080f2294,#080f2294),var(--twilight-color); }
+/* Lado noturno do pôr/nascer do sol: índigo → ameixa → brasa só no horizonte. A película escura
+   sobre o degradê laranja virava um marrom lamacento; estes tons já são escuros o bastante para a
+   tinta clara (verify-contrast) sem a película. */
+:root[data-phase="night"][data-solar="sunset"] .sky-twilight-page,
+:root[data-phase="night"][data-solar="sunset"] .intro-sky .sky-twilight { background:radial-gradient(ellipse at 50% 112%,#f08a5c24,transparent 56%),linear-gradient(180deg,#121a45 0%,#262b66 32%,#463a78 58%,#5f3f6e 82%,#5f3d66 100%); }
+:root[data-phase="night"][data-solar="sunrise"] .sky-twilight-page,
+:root[data-phase="night"][data-solar="sunrise"] .intro-sky .sky-twilight { background:radial-gradient(ellipse at 50% 112%,#f4a87024,transparent 56%),linear-gradient(180deg,#101a44 0%,#232f69 34%,#41427f 60%,#584a78 84%,#5d4770 100%); }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) .sky-twilight { display:block; }
 :root:is([data-weather="cloud"],[data-weather="rain"],[data-weather="fog"],[data-weather="snow"]) .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .6); }
 :root[data-weather="storm"] .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .3); }

@@ -57,9 +57,9 @@ test('troca de cidade desliza por View Transition e cai no fade sem a API ou em 
   const setup=app.slice(app.indexOf('function setupCitySwipe('),app.indexOf('function updateCityLabels('));
   assert.match(setup,/slideToCity\(id,/,'tocar numa bolinha também desliza');
 });
-test('a transição só nomeia quatro textos do topo durante a troca; a raiz não é fotografada',()=>{
+test('a transição só nomeia cinco textos do topo durante a troca; a raiz não é fotografada',()=>{
   const names=[...css.matchAll(/:root\[data-city-slide\] ([^{]+)\{ view-transition-name:([a-z-]+); \}/g)].map(m=>[m[1].trim(),m[2]]);
-  assert.deepEqual(names,[['#weatherView .intro h1','pluvia-city'],['#weatherView .wx-copy','pluvia-temp'],['#weatherView #condition','pluvia-condition'],['#weatherView #rainAnswer','pluvia-rain']]);
+  assert.deepEqual(names,[['#weatherView .intro h1','pluvia-city'],['#weatherView .wx-copy','pluvia-temp'],['#weatherView #condition','pluvia-condition'],['#weatherView #rainAnswer','pluvia-rain'],['#weatherView #heroRange','pluvia-range']]);
   assert.match(css,/:root\[data-city-slide\] \{ view-transition-name:none; \}/);
   assert.doesNotMatch(css,/^(?!.*data-city-slide).*view-transition-name:pluvia/m,'nomes só existem durante a troca');
 });
