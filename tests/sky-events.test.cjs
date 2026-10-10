@@ -20,12 +20,14 @@ test('próxima chuva de meteoros respeita a data municipal e a altura do radiant
   assert.equal(events.nextShower('2026-10-07', -3.1).id, 'ORI');
   assert.equal(events.nextShower('2026-10-21', -3.1).id, 'ORI', 'a noite do pico ainda conta');
   assert.equal(events.nextShower('2026-10-22', -3.1).id, 'LEO');
-  // Ursídeas (radiante +75°) não sobem 20° nem em Manaus; depois delas, sem dados do ano seguinte.
-  assert.equal(events.nextShower('2026-12-20', -30), null);
-  assert.equal(events.nextShower('2026-12-20', -3.1), null);
+  // Ursídeas (radiante +75°) não sobem 20° nem em Manaus; Quadrântidas (+49°) só no Norte.
+  assert.equal(events.nextShower('2026-12-20', -30).night, '2027-04-22');
+  assert.equal(events.nextShower('2026-12-20', -3.1).night, '2027-01-03');
   assert.equal(events.nextShower('2026-12-01', -30).id, 'GEM', 'Geminídeas (+33°) chegam a 27° em Porto Alegre');
   assert.equal(events.nextShower('2026-12-01', 2.8).radiantAltitude, 60, 'Boa Vista (hemisfério norte)');
   assert.equal(events.nextShower('2026-08-01', -30).id, 'ORI', 'Perseidas (+58°) quase não aparecem a 30°S');
-  assert.equal(events.nextShower('2027-01-01', -3.1), null);
+  assert.equal(events.nextShower('2026-12-23', -3.1).night, '2027-01-03', 'virada do ano: Quadrântidas de 2027');
+  assert.equal(events.nextShower('2027-10-01', -3.1).night, '2027-10-21');
+  assert.equal(events.nextShower('2028-01-01', -3.1), null, 'sem a tabela do ano, nada de meteoros');
   assert.equal(events.nextShower('ontem', -3.1), null);
 });

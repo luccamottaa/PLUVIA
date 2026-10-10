@@ -24,10 +24,17 @@ async function check(asset,origin,fetchImpl=fetch) {
   return {...asset,ok,code:ok ? 'matched' : 'content_mismatch'};
  }catch(error){return {...asset,ok:false,code:['TimeoutError','AbortError'].includes(error.name)?'timeout':'network'};}
 }
-async function verify(assets,origin,{fetchImpl=fetch,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms)),attempts=4}={}) {
+// Few connections at a time: 86 simultaneous requests made the domain drop connections (`network`) after deploys.
+async function checkAll(assets,origin,fetchImpl,concurrency) {
+ const results=new Array(assets.length);let next=0;
+ const worker=async()=>{while(next<assets.length){const index=next++;results[index]=await check(assets[index],origin,fetchImpl);}};
+ await Promise.all(Array.from({length:Math.min(concurrency,assets.length)},worker));
+ return results;
+}
+async function verify(assets,origin,{fetchImpl=fetch,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms)),attempts=4,concurrency=6}={}) {
  const results=new Map();let pending=assets;
  for(let attempt=0;attempt<attempts && pending.length;attempt++) {
-  const batch=await Promise.all(pending.map(asset=>check(asset,origin,fetchImpl)));batch.forEach(result=>results.set(result.url,result));
+  const batch=await checkAll(pending,origin,fetchImpl,concurrency);batch.forEach(result=>results.set(result.url,result));
   pending=batch.filter(result=>!result.ok);if(pending.length && attempt<attempts-1)await pause(5000*(attempt+1));
  }
  return assets.map(asset=>results.get(asset.url));

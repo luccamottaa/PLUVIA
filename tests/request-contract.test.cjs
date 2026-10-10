@@ -99,3 +99,20 @@ test('observabilidade de falhas preserva erros e exclui URL, coordenadas e cance
   await assert.rejects(client.getJson('https://api.open-meteo.com/v1/forecast'),error=>error.code==='provider_unavailable');
  } finally {delete global.pluviaAnalytics;}
 });
+
+test('falha de rede com o app em segundo plano não vira telemetria nem repetição',async()=>{
+ const events=[];global.pluviaAnalytics={reportFailure:props=>events.push(props)};
+ const doc=new EventTarget();doc.hidden=false;global.document=doc;
+ try {
+  let fail;const client=createClient({fetchImpl:()=>new Promise((_,reject)=>{fail=reject;})});
+  const request=client.getJson('https://dszyyrcvwrpyiypwyvxe.supabase.co/functions/v1/met-forecast');
+  doc.hidden=true;doc.dispatchEvent(new Event('visibilitychange'));doc.hidden=false;
+  fail(new TypeError('Load failed'));
+  await assert.rejects(request,error=>error.code==='network_error' && error.background===true);
+  assert.equal(events.length,0);
+  const later=createClient({fetchImpl:async()=>{throw new TypeError('Load failed');}});
+  await new Promise(resolve=>setTimeout(resolve,2));
+  await assert.rejects(later.getJson('https://api.open-meteo.com/v1/forecast'),error=>error.code==='network_error' && !error.background);
+  assert.deepEqual(events,[{component:'weather',error_code:'network_error',status:0,error_type:'RequestError'}]);
+ } finally {delete global.pluviaAnalytics;delete global.document;}
+});
