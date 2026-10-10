@@ -46,11 +46,14 @@ with sync_playwright() as p:
  def goto(**options):
   # The public smoke reaches the real domain: a dropped connection before any
   # response (seen twice after deploys) is retried; app errors still fail.
-  for attempt in range(3 if public_smoke else 1):
+  # The domain can keep refusing for tens of seconds, so the waits grow (5-40 s).
+  attempts=5 if public_smoke else 1
+  for attempt in range(attempts):
    try:return page.goto(preview,**options)
    except Exception as error:
-    if attempt==2 or not public_smoke or not re.search(r'net::ERR_(CONNECTION_(CLOSED|RESET|REFUSED|TIMED_OUT)|TIMED_OUT|NETWORK_CHANGED)',str(error)):raise
-    page.wait_for_timeout(3000*(attempt+1))
+    if attempt==attempts-1 or not public_smoke or not re.search(r'net::ERR_(CONNECTION_(CLOSED|RESET|REFUSED|TIMED_OUT)|TIMED_OUT|NETWORK_CHANGED)',str(error)):raise
+    print(f'goto {mode.get("name")}: {str(error).splitlines()[0]}; nova tentativa',flush=True)
+    page.wait_for_timeout(5000*2**attempt)
  def geometry():
   page.locator('#temperature').wait_for(state='visible',timeout=20000)
   assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),mode['name']
