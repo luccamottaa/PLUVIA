@@ -413,7 +413,7 @@ function hourlySolarEvents(value, next, compact = false) {
   return [['Nascer do sol',solar?.rise],['Pôr do sol',solar?.set]]
     .filter(([,stamp]) => Number.isFinite(stamp) && stamp >= at && stamp < end)
     .map(([label,stamp]) => compact
-      ? `<small class="hour-solar-event is-compact"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 19h18M6.5 19a5.5 5.5 0 0 1 11 0${SOLAR_GLYPHS[label]}"/></svg><span class="peek-extra">${label} </span>${formatUpdateTime(stamp)}</small>`
+      ? `<small class="hour-solar-event is-compact"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 19h18M6.5 19a5.5 5.5 0 0 1 11 0${SOLAR_GLYPHS[label]}"/></svg><span class="solar-name">${label} </span>${formatUpdateTime(stamp)}</small>`
       : `<small class="hour-solar-event">${label} ${formatUpdateTime(stamp)}</small>`).join('');
 }
 function showHourlyHint() {
