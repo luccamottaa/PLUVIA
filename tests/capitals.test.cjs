@@ -44,6 +44,14 @@ assert.equal(context.searchCities('Boa Esperança do Norte','MT')[0].id,'5101837
 const homonyms = context.searchCities('Bom Jesus').filter(c=>c.name==='Bom Jesus');
 assert(homonyms.length > 1 && new Set(homonyms.map(c=>c.uf)).size > 1);
 assert(context.searchCities('Bom Jesus','RS').every(c=>c.uf==='RS'));
+// Apelidos e ordem: capitais e nomes que começam pelo texto vêm antes; o filtro de estado continua valendo.
+assert.equal(context.searchCities('bh')[0].id,'3106200');
+assert.equal(context.searchCities('Floripa')[0].id,'4205407');
+assert.equal(context.searchCities('sampa')[0].id,'3550308');
+assert.equal(context.searchCities('bh','RS').length,0);
+assert.equal(context.searchCities('rio').slice(0,2).map(c=>c.name).join('|'),'Rio Branco|Rio de Janeiro');
+assert.equal(context.searchCities('rio de jane')[0].id,'3304557');
+assert.equal(context.searchCities('sao goncalo')[0].name.startsWith('São Gonçalo'),true);
 assert.equal(context.nearestCity(-2.63741,-56.729).id,'1303403');
 assert.equal(context.cityDate('2026-09-08T12:00',municipalities.find(c=>c.id==='1301407')).toISOString(),'2026-09-08T17:00:00.000Z');
 assert.equal(context.cityDate('2026-09-08T12:00',municipalities.find(c=>c.id==='2605459')).toISOString(),'2026-09-08T14:00:00.000Z');

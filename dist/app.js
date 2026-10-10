@@ -801,7 +801,9 @@ function renderWeatherInsights(data, air, start) {
   // "Vai chover?" no topo; a frase equivalente da seção por hora foi retirada a pedido.
   setRainAnswer(weatherInsights?.rainAnswer?.(data.hourly, start, {current:data.current}) || {tone:"unknown",text:"Previsão de chuva indisponível."});
   // Hoje vs. ontem no mesmo horário, com as 24 h passadas que a consulta principal já traz.
-  setYesterdayNote(weatherInsights?.yesterday?.(data.hourly, start));
+  const comparison = weatherInsights?.yesterday?.(data.hourly, start);
+  const fallen = weatherInsights?.pastRain?.(data.hourly, start);
+  setYesterdayNote(fallen ? {...comparison, text:[comparison?.text, fallen.text].filter(Boolean).join(" ")} : comparison);
   renderTips(weatherInsights?.tips?.(data, air, start));
   if ($("rainPhraseMeta") && data.pluviaReduced) { $("rainPhraseMeta").textContent = "Previsão reduzida · volume de chuva: MET Norway (CC BY 4.0); sem chance de chuva nesta fonte"; return; }
   if ($("rainPhraseMeta")) $("rainPhraseMeta").textContent = rain?.meta ? rain.meta + (data.pluviaSources?.metNorway?.includes('hourly.precipitation') ? ' · volume: MET Norway; probabilidade: Open-Meteo' : ' · Open-Meteo') : '';

@@ -72,6 +72,23 @@
     };
   }
 
+  // Chuva das últimas 24 h, somando os intervalos que terminam entre start-23 e start (Open-Meteo marca o
+  // fim do intervalo). São as horas passadas do próprio modelo, não pluviômetro: só aparece com as 24
+  // horas válidas e pelo menos 1 mm; abaixo disso não afirma "não choveu".
+  function pastRain(hourly, start) {
+    const values = hourly?.precipitation;
+    if (!Array.isArray(values) || !Number.isInteger(start) || start < 23 || start >= values.length) return null;
+    let total = 0;
+    for (let index = start - 23; index <= start; index += 1) {
+      const value = number(values[index]);
+      if (value === null || value < 0) return null;
+      total += value;
+    }
+    if (total < 1) return null;
+    const mm = total < 10 ? round(total, 1) : Math.round(total);
+    return {total:round(total, 1), text:`Choveu cerca de ${mm.toLocaleString("pt-BR")} mm nas últimas 24 h, pelo modelo.`};
+  }
+
   function feelsLike(current) {
     const temperature = number(current?.temperature_2m);
     const apparent = number(current?.apparent_temperature);
@@ -338,5 +355,5 @@
     };
   }
 
-  return {currentIndex, yesterday, feelsLike, uv, pressure, rain, rainAnswer, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
+  return {currentIndex, yesterday, pastRain, feelsLike, uv, pressure, rain, rainAnswer, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
 });
