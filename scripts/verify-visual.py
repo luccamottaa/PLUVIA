@@ -67,6 +67,9 @@ with sync_playwright() as p:
   # Check its actual foreground pixels in the viewport, without changing the
   # DOM or relying on WebKit to repaint a second hidden-text screenshot.
   node=page.locator(selector);node.scroll_into_view_if_needed()
+  # Seções abaixo da dobra descem uma vez ao aparecer (clip-path de cima para baixo, ~0,6 s):
+  # mede depois que a cascata termina, senão conta um texto ainda meio revelado.
+  page.wait_for_function("sel=>!document.querySelector(sel)?.closest('[data-drop]')",arg=selector,timeout=5000)
   page.evaluate('document.fonts.ready')
   page.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
   clip=node.bounding_box();assert clip,selector
