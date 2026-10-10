@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function () {
+        var host = location.hostname;
+        if (host === "luccamottaa.github.io" || host === "www.pluviaweather.com.br") {
+          var path = location.pathname.replace(/^\/PLUVIA\/?/, "/");
+          location.replace("https://pluviaweather.com.br" + (path || "/") + location.search + location.hash);
+        }
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#041936" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="PLUVIA" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="Previsão do tempo em Diadema (SP) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET." />
+    <meta name="pluvia-city" content="3513801" />
+    <meta name="pluvia-city-record" content="{&quot;id&quot;:&quot;3513801&quot;,&quot;name&quot;:&quot;Diadema&quot;,&quot;uf&quot;:&quot;SP&quot;,&quot;state&quot;:&quot;São Paulo&quot;,&quot;lat&quot;:-23.6813,&quot;lon&quot;:-46.6205,&quot;timezone&quot;:&quot;America/Sao_Paulo&quot;}" />
+    <link rel="canonical" href="https://pluviaweather.com.br/clima/diadema-sp/" />
+    <meta property="og:site_name" content="PLUVIA" />
+    <meta property="og:title" content="Previsão do tempo em Diadema (SP) agora — PLUVIA" />
+    <meta property="og:description" content="Previsão do tempo em Diadema (SP) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET." />
+    <meta property="og:url" content="https://pluviaweather.com.br/clima/diadema-sp/" />
+    <meta property="og:image" content="https://pluviaweather.com.br/og-pluvia-v2.png" />
+    <meta property="og:image:width" content="1731" />
+    <meta property="og:image:height" content="909" />
+    <meta property="og:image:alt" content="Logo azul do PLUVIA e slogan O céu de cada cidade sobre céu noturno com nuvens e estrelas." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Previsão do tempo em Diadema (SP) agora — PLUVIA" />
+    <meta name="twitter:description" content="Previsão do tempo em Diadema (SP) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET." />
+    <meta name="twitter:image" content="https://pluviaweather.com.br/og-pluvia-v2.png" />
+    <meta name="twitter:image:alt" content="Logo azul do PLUVIA e slogan O céu de cada cidade sobre céu noturno com nuvens e estrelas." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://pluviaweather.com.br/clima/diadema-sp/","url":"https://pluviaweather.com.br/clima/diadema-sp/","name":"Previsão do tempo em Diadema (SP) agora — PLUVIA","description":"Previsão do tempo em Diadema (SP) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET.","inLanguage":"pt-BR","isPartOf":{"@type":"WebSite","name":"PLUVIA","url":"https://pluviaweather.com.br/"},"about":{"@type":"City","name":"Diadema","containedInPlace":{"@type":"AdministrativeArea","name":"São Paulo"},"geo":{"@type":"GeoCoordinates","latitude":-23.6813,"longitude":-46.6205}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"PLUVIA","item":"https://pluviaweather.com.br/"},{"@type":"ListItem","position":2,"name":"Diadema (SP)","item":"https://pluviaweather.com.br/clima/diadema-sp/"}]}]}</script>
+    <title>Previsão do tempo em Diadema (SP) agora — PLUVIA</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png" />
+    <link rel="preload" href="/assets/fonts/inter-latin-v20.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/assets/fonts/nunito-wordmark-v32.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/fonts.css?v=type-1" />
+    <link rel="preload" href="/vendor/suncalc.js?v=sky-3" as="script" />
+    <link rel="preload" href="/modules/moon-view.js?v=moon-3" as="script" />
+    <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-17" as="script" />
+    <link rel="preload" href="/sky.css?v=sky-32" as="style" />
+    <style>
+      /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
+      html { background:#080f22; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+      *,*::before,*::after { box-sizing:border-box; }
+      html.awaiting-styles body > :not(#pluviaIntro) { visibility:hidden; }
+      /* Base column from styles.css (async): hidden boxes that move still count as layout shift,
+         so the desktop column starts centered. styles.css and later sheets refine it per viewport. */
+      .shell { width:min(1180px,calc(100% - 48px)); max-width:100%; margin-inline:auto; }
+      body { margin:0; }
+      /* Out of flow from the first paint: while styles.css (async) loaded, the link took 20px and then lifted the whole page. */
+      .skip-link { position:fixed; top:8px; left:16px; z-index:70; transform:translateY(-150%); }
+      .skip-link:focus { transform:none; }
+      [hidden] { display:none !important; }
+      /* Mesmas medidas de styles.css (assíncrono): o aviso de referência aparece no primeiro paint e não pode crescer depois. */
+      .location-notice { margin:18px 0 0; padding:12px 16px; border:1px solid transparent; border-radius:16px; font-size:14px; }
+      .location-notice button { border:0; padding:4px 6px; background:transparent; font:inherit; font-weight:800; }
+.pluvia-intro {
+  position:fixed; inset:0; z-index:100; min-height:100dvh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:32px 24px; overflow:hidden; text-align:center;
+  background:var(--sky-color,linear-gradient(165deg,#10142d,#080f22));
+}
+.pluvia-intro[hidden] { display:none !important; }
+.pluvia-intro::before {
+  content:""; position:absolute; inset:-5%; pointer-events:none;
+  background:linear-gradient(180deg,transparent 25%,#03142924);
+  animation:intro-horizon 2.6s ease-out both;
+}
+.pluvia-intro.is-leaving { opacity:0; pointer-events:none; transition:opacity .42s ease; }
+.pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; pointer-events:none; }
+.intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; gap:2px; color:var(--brand-blue,#2f6bff); font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; animation:intro-mark-in .8s ease-out .2s both; }
+.intro-wordmark strong { font-family:var(--font-brand,"Nunito",ui-rounded,system-ui,sans-serif); font-weight:900; }
+.intro-drop { display:block; width:clamp(42px,11vw,70px); height:clamp(55px,14vw,88px); background:currentColor; -webkit-mask:url("/logo-mark.webp") center / contain no-repeat; mask:url("/logo-mark.webp") center / contain no-repeat; }
+.pluvia-intro .intro-tagline { position:relative; z-index:1; margin:16px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.2rem); letter-spacing:.08em; animation:intro-caption-in .65s ease-out .5s both; }
+.pluvia-intro .intro-kicker { position:absolute; bottom:calc(65px + env(safe-area-inset-bottom)); color:#e1ebf5; font-size:.65rem; font-weight:750; letter-spacing:.24em; text-transform:uppercase; }
+.pluvia-intro .intro-copy { display:none; }
+.pluvia-intro .intro-progress { position:absolute; bottom:calc(40px + env(safe-area-inset-bottom)); width:64px; height:2px; border-radius:999px; overflow:hidden; background:#ffffff30; }
+.pluvia-intro .intro-progress span { display:block; height:100%; background:#dceeff; transform-origin:left; animation:intro-progress-fill 2.6s linear both; }
+@keyframes intro-horizon { from { opacity:.4; transform:scale(1.05); } to { opacity:1; transform:scale(1); } }
+@keyframes intro-mark-in { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+@keyframes intro-caption-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes intro-progress-fill { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+@media(prefers-reduced-motion:reduce) { .pluvia-intro *,.pluvia-intro::before { animation:none !important; } }
+    </style>
+    <script src="/modules/city-time.js?v=time-2"></script>
+    <script src="/vendor/suncalc.js?v=sky-3"></script>
+    <script src="/modules/moon-view.js?v=moon-3"></script>
+    <script src="/modules/sky-atmosphere.js?v=sky-17"></script>
+    <script src="/modules/sky-events.js?v=sky-events-2" defer></script>
+    <link rel="stylesheet" href="/sky.css?v=sky-32" />
+    <script>
+      /* O antigo modo seguro (céu parado depois de uma queda) saiu a pedido: limpa as marcas que ele deixou. */
+      try { localStorage.removeItem("pluvia-boot-pending"); localStorage.removeItem("pluvia-safe-until"); } catch (e) {}
+    </script>
+    <script>document.documentElement.classList.add("awaiting-styles");</script>
+    <link rel="stylesheet" href="/styles.css?v=core-125" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <noscript><link rel="stylesheet" href="/styles.css?v=core-125" /></noscript>
+  </head>
+  <body>
+    <svg class="moon-definitions" width="0" height="0" aria-hidden="true" focusable="false">
+      <defs>
+        <clipPath id="pluviaMoonDisc"><circle cx="40" cy="40" r="34"/></clipPath>
+        <filter id="pluviaMoonSoftEdge" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation=".6"/></filter>
+        <mask id="pluviaMoonPhase" maskUnits="userSpaceOnUse" x="0" y="0" width="80" height="80"><path id="moonIcon" fill="white" filter="url(#pluviaMoonSoftEdge)" d=""/></mask>
+        <radialGradient id="pluviaMoonRim"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset=".88" stop-color="#000" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></radialGradient>
+        <image id="pluviaMoonSurface" href="/assets/moon-surface.webp" x="6" y="6" width="68" height="68"/>
+        <g id="moonDisc" visibility="hidden" clip-path="url(#pluviaMoonDisc)">
+          <circle cx="40" cy="40" r="34" fill="#60758e" opacity=".08"/>
+          <use href="#pluviaMoonSurface" opacity=".14"/>
+          <use href="#pluviaMoonSurface" mask="url(#pluviaMoonPhase)"/>
+          <circle cx="40" cy="40" r="34" fill="url(#pluviaMoonRim)"/>
+        </g>
+      </defs>
+    </svg>
+    <a class="skip-link" href="#agora">Ir para o clima</a>
+    <div id="pluviaIntro" class="pluvia-intro">
+      <p class="intro-kicker">Feito no Norte</p>
+      <div class="intro-sky" aria-hidden="true"><span class="sky-twilight"></span><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
+      <div class="intro-wordmark"><span class="intro-drop" aria-hidden="true"></span><strong>PLUVIA</strong></div>
+      <p class="intro-tagline">O céu de cada cidade</p>
+      <p class="intro-copy">Consulte o tempo antes de sair.</p>
+      <div class="intro-progress" aria-hidden="true"><span></span></div>
+    </div>
+    <script>
+      (function () {
+        var intro = document.getElementById("pluviaIntro");
+        globalThis.PLUVIA?.sky?.update();
+        var seen = false;
+        try { seen = sessionStorage.getItem("pluvia-intro-seen") === "1"; sessionStorage.setItem("pluvia-intro-seen", "1"); } catch (_) {}
+        // O iPhone fecha o app instalado logo depois de ir para segundo plano, e cada volta virava uma
+        // abertura nova com a intro inteira (2,6 s). A intro completa só repete 3 h depois da última.
+        try {
+          var lastIntro = Number(localStorage.getItem("pluvia-intro-at")) || 0, now = Date.now();
+          if (!seen && now - lastIntro >= 0 && now - lastIntro < 108e5) seen = true;
+          else if (!seen) localStorage.setItem("pluvia-intro-at", String(now));
+        } catch (_) {}
+        function reveal() {
+          var welcome = document.getElementById("locationWelcome");
+          var view = document.getElementById("weatherView");
+          if (welcome) welcome.hidden = true;
+          if (view) view.hidden = false;
+        }
+        function dismiss() {
+          if (!intro || intro.hidden || intro.dataset.done) return;
+          intro.dataset.done = "1";
+          intro.classList.add("is-leaving");
+          globalThis.PLUVIA?.skyMotion?.sync();
+          reveal();
+          setTimeout(function () { intro.hidden = true; }, 450);
+        }
+        if (seen) { intro.hidden = true; return; }
+        var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        setTimeout(dismiss, reduced ? 300 : 2600);
+      })();
+    </script>
+    <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
+         o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
+    <link rel="stylesheet" href="/redesign.css?v=panel-41" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-70" />
+    <div class="night-stage">
+    <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
+    <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
+    <header class="topbar shell" id="top">
+      <button id="accountButton" class="account-trigger" type="button" aria-haspopup="dialog" aria-controls="accountDialog" title="Entrar / cadastrar" data-signed-in="false"><svg class="account-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6"/></svg><span class="account-label">Entrar / cadastrar</span></button>
+      <a class="brand" href="#top" aria-label="PLUVIA, início"><span class="brand-mark" aria-hidden="true"></span><span>PLUVIA</span></a>
+      <div class="top-actions">
+        <button id="shareWeather" class="share-trigger search-trigger" type="button" aria-label="Compartilhar previsão" title="Compartilhar previsão" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8" /></svg></button>
+        <button id="openCitySearch" class="search-trigger" type="button" aria-label="Buscar ou trocar cidade" aria-haspopup="dialog" aria-controls="cityDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.4-3.4" /></svg></button>
+      </div>
+      <p id="shareWeatherStatus" class="share-weather-status" role="status" aria-live="polite"></p>
+    </header>
+    <main class="shell">
+      <section class="location-welcome panel" id="locationWelcome" hidden aria-labelledby="locationTitle">
+        <span class="eyebrow">PREVISÃO PARA SUA CIDADE</span>
+        <h1 id="locationTitle">Escolha uma cidade</h1>
+        <p>Autorize a localização ou escolha uma cidade pelo nome.</p>
+        <div class="welcome-actions"><button class="city-button" id="welcomeLocate" type="button">Usar minha localização</button><button class="city-button" id="welcomeSearch" type="button">Escolher cidade</button></div>
+        <p id="locationStatus" role="status" aria-live="polite"></p>
+      </section>
+      <dialog id="cityDialog" class="city-dialog" aria-labelledby="cityDialogTitle">
+        <div class="dialog-heading"><h2 id="cityDialogTitle">Suas cidades</h2><button id="closeCitySearch" class="dialog-close" type="button" aria-label="Fechar busca" autofocus>×</button></div>
+        <div class="city-search-field"><label for="citySearch">Cidade</label><input id="citySearch" type="search" placeholder="Ex.: Manaus, Recife, Curitiba" autocomplete="off" aria-controls="cityResults" aria-autocomplete="list" /></div>
+        <div class="dialog-scroll">
+        <section class="city-picker" aria-label="Cidades disponíveis">
+        <div class="city-actions">        <button id="favoriteCity" class="city-button" type="button" aria-pressed="false">☆ Favoritar</button>
+        <button id="locateCity" class="city-button" type="button">Usar localização</button>
+        <button id="compareOpen" class="city-button" type="button" aria-haspopup="dialog" aria-controls="compareDialog" aria-label="Comparar cidades">Comparar</button>
+        <button id="brazilOpen" class="city-button" type="button" aria-haspopup="dialog" aria-controls="brazilDialog">Brasil agora</button>
+</div>
+        <section id="dialogFavorites" class="favorite-cities" hidden aria-labelledby="dialogFavoritesTitle"><h3 id="dialogFavoritesTitle">Favoritos</h3><div id="dialogFavoriteList" class="favorite-city-list"></div><p id="dialogFavoriteStatus" role="status" aria-live="polite"></p></section>
+        <ul id="cityResults" class="city-results" role="listbox" aria-label="Cidades encontradas"></ul>
+        <p id="cityPickerStatus" role="status" aria-live="polite"></p>
+      </section>
+      <details class="saved-places"><summary id="savedPlacesTitle">Meus locais <span>Casa, faculdade e trabalho</span></summary>
+        <p id="savedPlacesMode"></p>
+        <p>Cada local usa a previsão da cidade selecionada.</p>
+        <form id="savedPlacesForm">
+          <label for="savedPlaceName">Nome do local</label>
+          <input id="savedPlaceName" maxlength="40" required placeholder="Casa, Faculdade, Trabalho…" autocomplete="off">
+          <div><button id="savedPlaceSave" type="submit">Salvar cidade atual</button><button id="savedPlaceCancel" type="button" hidden>Cancelar</button></div>
+        </form>
+        <p id="savedPlacesStatus" role="status" aria-live="polite"></p>
+        <ul id="savedPlacesList" aria-label="Locais salvos"></ul>
+      </details>
+      </div></dialog>
+      <dialog id="accountDialog" class="city-dialog account-dialog" aria-labelledby="accountTitle">
+        <div class="dialog-heading"><h2 id="accountTitle">Minha conta</h2><button id="accountClose" class="dialog-close" type="button" autofocus aria-label="Fechar conta">×</button></div><div class="dialog-scroll">
+        <p id="accountIntro">Entre para sincronizar suas cidades e receber alertas. A previsão continua disponível sem cadastro.</p>
+        <div id="accountTabs" class="account-tabs"><button type="button" id="accountLogin" aria-pressed="true">Entrar</button><button type="button" id="accountSignup" aria-pressed="false">Criar conta</button></div>
+        <div id="accountSocial" class="account-social" role="group" aria-label="Outras formas de entrar ou criar conta" hidden>
+          <button id="accountGoogle" class="account-provider" type="button" hidden disabled><svg class="account-provider-icon" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65Z"/><path fill="#FBBC05" d="M10.53 28.59A14.41 14.41 0 0 1 9.75 24c0-1.59.28-3.13.78-4.59l-7.98-6.19A23.89 23.89 0 0 0 0 24c0 3.87.93 7.53 2.56 10.78l7.97-6.19Z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"/></svg><span>Continuar com Google</span></button>
+          <button id="accountApple" class="account-provider" type="button" hidden disabled><svg class="account-provider-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.05 12.54c.03 3.3 2.89 4.4 2.92 4.42-.02.08-.46 1.58-1.51 3.13-.91 1.34-1.85 2.67-3.34 2.7-1.46.03-1.93-.87-3.6-.87-1.67 0-2.19.84-3.58.9-1.44.05-2.53-1.45-3.45-2.78C2.62 17.3 1.2 12.3 3.13 8.95c.96-1.67 2.67-2.73 4.52-2.76 1.41-.03 2.74.95 3.6.95.86 0 2.47-1.18 4.17-1.01.71.03 2.7.29 3.99 2.18-.1.06-2.38 1.39-2.36 4.23M14.3 4.33C15.06 3.4 15.58 2.1 15.44.8c-1.1.05-2.42.74-3.21 1.67-.71.82-1.33 2.14-1.16 3.4 1.22.1 2.47-.62 3.23-1.54"/></svg><span>Continuar com Apple</span></button>
+          <span class="account-email-separator">ou com e-mail</span>
+        </div>
+        <form id="accountForm">
+          <label id="accountNameField" hidden>Nome para exibição<input id="accountName" autocomplete="given-name" maxlength="60" /></label>
+          <label>E-mail<input id="accountEmail" type="email" autocomplete="email" required maxlength="254" /></label>
+          <label id="accountPasswordField">Senha<input id="accountPassword" type="password" autocomplete="current-password" required maxlength="128" /></label>
+          <small id="accountPasswordHint" hidden>Use 12 ou mais caracteres, com maiúscula, minúscula, número e símbolo.</small>
+          <button id="accountSubmit" type="submit">Entrar</button>
+          <button id="accountForgot" class="account-text-action" type="button">Esqueci minha senha</button>
+        </form>
+        <form id="accountRecoveryForm" hidden>
+          <p>Escolha uma nova senha para sua conta.</p>
+          <label>Nova senha<input id="accountNewPassword" type="password" autocomplete="new-password" required minlength="12" maxlength="128" aria-describedby="accountNewPasswordHint" /></label>
+          <small id="accountNewPasswordHint">Use 12 ou mais caracteres, com maiúscula, minúscula, número e símbolo.</small>
+          <label>Repita a nova senha<input id="accountNewPasswordConfirm" type="password" autocomplete="new-password" required minlength="12" maxlength="128" /></label>
+          <button id="accountRecoverySave" type="submit">Salvar nova senha</button>
+        </form>
+        <div id="accountProfile" hidden>
+          <div class="profile-identity"><span id="profileAvatar" class="profile-avatar" aria-hidden="true">P</span><div><strong id="profileDisplayName">Sua conta</strong><p id="accountIdentity"></p></div></div>
+          <form id="profileForm"><label>Seu nome<input id="profileName" autocomplete="given-name" required maxlength="60" aria-describedby="profileNameHint" /></label><small id="profileNameHint"></small><button id="profileSave" type="submit">Salvar nome</button></form>
+          <section id="notificationSettings" class="notification-settings" aria-labelledby="notificationSettingsTitle">
+            <div class="notification-settings-head"><div><span class="eyebrow">CONFIGURAÇÕES</span><h3 id="notificationSettingsTitle">Notificações</h3></div><span id="notificationStatusBadge" class="notification-status is-off">Alertas desativados</span></div>
+            <p id="notificationSupportNote" role="status" aria-live="polite">Verificando compatibilidade deste dispositivo…</p>
+            <details class="notification-checks"><summary>Compatibilidade deste dispositivo</summary><ul id="notificationDiagnostics" class="notification-diagnostics" aria-label="Diagnóstico de notificações"></ul></details>
+            <p id="notificationContinueNote" class="notification-continue" hidden>Conta conectada. Toque em <strong>Ativar alertas</strong> para solicitar permissão no iPhone.</p>
+            <div class="notification-actions"><button id="notificationToggle" type="button">Ativar alertas</button><button id="notificationTest" type="button" hidden>Enviar notificação de teste</button></div>
+            <form id="notificationPreferencesForm" class="alert-preferences">
+              <fieldset class="notification-types"><legend>Quais avisos você quer receber?</legend>
+                <label><input name="official_alerts" type="checkbox" checked><span><strong>Avisos oficiais do INMET</strong><small>Inclui os avisos amarelos, laranjas e vermelhos.</small></span></label>
+                <label><input name="rain_approaching" type="checkbox" checked><span><strong>Chuva se aproximando</strong><small>Maior chance de chuva nas próximas horas.</small></span></label>
+                <label><input name="heavy_rain" type="checkbox" checked><span><strong>Chuva forte</strong></span></label>
+                <label><input name="storms" type="checkbox" checked><span><strong>Tempestades e trovoadas</strong></span></label>
+                <label><input name="strong_wind" type="checkbox" checked><span><strong>Rajadas fortes</strong></span></label>
+                <label><input name="extreme_heat" type="checkbox" checked><span><strong>Calor intenso</strong></span></label>
+                <label><input name="air_quality" type="checkbox" checked><span><strong>Qualidade do ar ruim</strong></span></label>
+                <label><input name="weather_changes" type="checkbox" checked><span><strong>Mudanças importantes no tempo</strong></span></label>
+                <label><input name="daily_summary" type="checkbox"><span><strong>Resumo diário</strong><small>Uma previsão por cidade no horário escolhido.</small></span></label>
+                <label id="notificationSummaryTimeField" class="notification-summary-time" hidden>Horário do resumo<input name="daily_summary_time" type="time" value="07:00"></label>
+              </fieldset>
+              <small>Previsões e avisos oficiais são identificados na mensagem. A mesma condição prevista não se repete por 6 horas; um aumento de severidade gera novo aviso.</small>
+              <fieldset class="notification-timing"><legend>Intensidade e horários</legend>
+                <label>Nível mínimo dos avisos<select name="minimum_severity"><option value="1">Todos os níveis</option><option value="2">A partir de atenção</option><option value="3">A partir de perigo</option><option value="4">Somente severidade máxima</option></select></label>
+                <small>O filtro vale para os tipos escolhidos, inclusive INMET. O resumo diário segue sua própria opção.</small>
+                <label class="notification-quiet-toggle"><input name="quiet_enabled" type="checkbox"><span>Silenciar em um horário</span></label>
+                <div id="notificationQuietTimes" class="notification-time-pair" hidden><label>Início<input name="quiet_start" type="time" value="22:00" disabled></label><label>Fim<input name="quiet_end" type="time" value="07:00" disabled></label></div>
+                <label>Fuso do horário de silêncio<select name="timezone"><option value="America/Manaus">America/Manaus</option></select></label>
+                <small>Avisos de severidade máxima podem interromper o silêncio. O resumo diário usa o horário local de cada cidade; se cair no silêncio, não será enviado.</small>
+              </fieldset>
+              <fieldset class="notification-city-choices"><legend>Adicionar cidades aos avisos</legend>
+                <label class="notification-location"><input name="monitor_current_city" type="checkbox"><span id="notificationCurrentCityLabel">Receber alertas para a cidade aberta</span></label>
+                <div id="notificationFavoriteChoices"></div>
+                <small>Cidade aberta e favoritas disponíveis para adicionar. As opções só são aplicadas ao salvar.</small>
+              </fieldset>
+              <p class="notification-help">Os tipos escolhidos valem para todas as cidades monitoradas. Buscar ou favoritar uma cidade não ativa notificações.</p>
+              <small id="notificationPrivacy">Usamos somente as cidades que você escolher para enviar alertas meteorológicos relevantes. Não monitoramos GPS em segundo plano.</small>
+              <button id="notificationPreferencesSave" type="submit" disabled>Salvar notificações</button>
+            </form>
+            <div class="notification-locations"><h4>Cidades que recebem avisos</h4><div id="notificationLocations"><p>Nenhuma cidade monitorada.</p></div><small>Use “Parar avisos” para retirar uma cidade do monitoramento.</small></div>
+            <div class="notification-devices"><h4>Dispositivos</h4><div id="notificationDevices"><p>Nenhum dispositivo registrado.</p></div></div>
+          </section>
+          <button id="accountLogout" type="button">Sair da conta</button>
+          <details class="account-delete"><summary>Excluir minha conta</summary>
+            <p>A exclusão é permanente. Remove seu perfil, preferências sincronizadas e inscrições de notificações. A previsão pública continua disponível. Cópias de segurança seguem a retenção do provedor.</p>
+            <p>Por segurança, entre novamente se seu acesso não for recente.</p>
+            <form id="accountDeleteForm"><label>Digite EXCLUIR para confirmar<input id="accountDeleteConfirm" autocomplete="off" spellcheck="false" required pattern="EXCLUIR" maxlength="7" /></label><button id="accountDelete" type="submit">Excluir conta permanentemente</button></form>
+          </details>
+        </div>
+        <p id="accountStatus" role="status" aria-live="polite"></p>
+      </div></dialog>
+      <div id="weatherView" class="initial-loading" aria-busy="true">
+      <p id="locationNotice" class="location-notice" hidden role="status">Mostrando Manaus como referência. <button type="button" id="noticeLocate">Usar minha localização</button> <button type="button" id="noticeChangeCity">Trocar cidade</button></p>
+      <script>try{if(localStorage.getItem("pluvia-city")==null&&!document.querySelector('meta[name="pluvia-city"]'))document.getElementById("locationNotice").hidden=false}catch{}</script>
+      <section class="intro" id="agora">
+        <div>
+          <div class="eyebrow" id="dataStatus"><span class="live-dot" aria-hidden="true"></span><span id="statusText" role="status">Consultando o tempo</span></div>
+          <h1><span id="cityName">Diadema</span> <em>agora.</em></h1>
+          <p id="cityDistance" hidden></p>
+        </div>
+      </section>
+      <section class="dashboard-grid" aria-label="Condições atuais">
+        <article class="current-card weather-hero panel card-primary">
+          <div class="card-topline"><span>CONDIÇÃO ATUAL</span></div>
+          <div class="weather-main">
+            <div class="wx-copy">
+              <div class="temperature"><span id="temperature"><span class="sk sk-temp" aria-hidden="true"></span></span><span class="deg">°</span></div>
+            </div>
+            <p class="condition" id="condition">Consultando o tempo…</p>
+            <p class="hero-range" id="heroRange"><span class="sk sk-line sk-short" aria-hidden="true"></span></p>
+            <p class="rain-answer" id="rainAnswer" data-tone="loading"><span class="sk sk-line" aria-hidden="true"></span></p>
+            <p class="yesterday-note" id="yesterdayNote"><span class="sk sk-line sk-short" aria-hidden="true"></span></p>
+            <button id="alertBanner" class="alert-banner" type="button" hidden aria-haspopup="dialog" aria-controls="alertDetail"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg><span><strong id="alertBannerTitle"></strong><small id="alertBannerTime"></small></span><span class="alert-banner-more" aria-hidden="true">›</span></button>
+            <div class="city-dots" id="cityDots" role="group" aria-label="Trocar entre suas cidades" hidden></div>
+          </div>
+        </article>
+      </section>
+      <section class="alerts-section section-block" id="alertas" data-alert-state="loading">
+        <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg></span><h2>Alertas e saúde</h2></div><p id="alertsCityLabel">Fontes oficiais</p></div>
+        <div class="safety-grid">
+          <article class="source-card panel" id="inmetCard"><div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div><small id="inmetUpdated" class="source-updated">Buscando leitura oficial…</small><div id="inmetContent" class="source-content"></div><a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial</a></article>
+        </div>
+      </section>
+      <section class="tips-section" id="tips" aria-labelledby="tipsTitle" hidden>
+        <h2 id="tipsTitle" class="tips-title">Dicas para as próximas horas</h2>
+        <ul class="tips-list" id="tipsList"></ul>
+      </section>
+      <section class="hourly-peek panel" id="chuva" aria-labelledby="hourlyPeekTitle">
+        <div class="hourly-peek-heading"><div class="heading-with-tip"><h2 id="hourlyPeekTitle">Próximas horas</h2><details class="info-tip"><summary aria-label="Sobre a previsão por hora"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p class="rain-phrase" id="rainPhraseWrap"><small id="rainPhraseMeta">Open-Meteo</small></p><p>Previsão por modelos no ponto de referência do município. A chance de chuva aparece quando passa de 20%; toque num horário para ver sensação, volume e rajadas.</p></div></details></div><a href="#hourlyChartDetails" aria-label="Ver gráfico das próximas 24 horas">Ver gráfico <span aria-hidden="true">›</span></a></div>
+        <p id="hourlyDecision" class="hourly-decision">Toque em um horário para ver sensação, chuva e rajadas.</p>
+        <div class="hourly-peek-list" id="hourlyPeek" role="group" aria-label="Condições nas próximas horas"><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span></div>
+        <p class="dry-window-line"><span>Próxima janela seca</span> <strong id="dryWindow">Calculando…</strong></p>
+        <details class="hourly-chart-details" id="hourlyChartDetails"><summary>Gráfico das próximas 24 horas <span>Tempo, sensação, chuva e vento</span></summary>
+        <div class="hourly-modes" role="group" aria-label="Dado da previsão por hora"><button type="button" data-hourly-mode="conditions" aria-pressed="true">Tempo</button><button type="button" data-hourly-mode="feels" aria-pressed="false">Sensação</button><button type="button" data-hourly-mode="rain" aria-pressed="false">Chuva</button><button type="button" data-hourly-mode="wind" aria-pressed="false">Vento</button></div>
+        <p id="hourlyChartLegend" class="hourly-chart-legend">Barras mostram a temperatura; a sensação aparece abaixo. Horários locais da cidade.</p>
+        <div class="rain-chart panel" id="rainChart" tabindex="0" role="region" aria-label="Previsão por hora"><div class="chart-loading"><span class="sk sk-block" aria-hidden="true"></span></div></div>
+        </details>
+      </section>
+      <section class="quick-metrics" aria-label="Sensação térmica, máxima e mínima">
+        <article class="metric quick-metric panel card-detail" aria-label="Sensação térmica atual"><div class="metric-head"><span>Sensação</span><span data-weather-icon-name="feels-like" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="feelsLike"><span class="sk sk-num" aria-hidden="true"></span></strong><small id="feelsLikeNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
+        <div class="hero-temperature-range" aria-label="Temperaturas máxima e mínima previstas para hoje">
+          <div class="hero-temperature-extreme"><div class="metric-head"><small>Máxima</small><span data-weather-icon-name="temperature-high" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="todayHigh"><span class="sk sk-num" aria-hidden="true"></span></strong></div>
+          <div class="hero-temperature-extreme"><div class="metric-head"><small>Mínima</small><span data-weather-icon-name="temperature-low" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="todayLow"><span class="sk sk-num" aria-hidden="true"></span></strong></div>
+        </div>
+      </section>
+      <section class="metrics" aria-label="Detalhes meteorológicos">
+        <article class="metric metric-sky visibility-metric panel card-detail" aria-label="Visibilidade prevista"><div class="metric-head"><span>VISIBILIDADE</span><span data-weather-icon-name="visibility" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="visibilityValue"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="visibilityNote"><span class="sk sk-line" aria-hidden="true"></span></small><span id="visibilityBadge" class="visibility-badge" hidden>Visibilidade reduzida</span></article>
+        <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>UMIDADE</span><span data-weather-icon-name="humidity" data-weather-icon-style="line"></span></div><strong id="humidity"><span class="sk sk-num" aria-hidden="true"></span></strong><small id="humidityNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
+        <article class="metric metric-sky wind-metric panel card-detail"><div class="metric-head"><span>VENTO</span><span data-weather-icon-name="wind-speed" data-weather-icon-style="line"></span></div><div class="wind-reading"><strong id="wind"><span class="sk sk-num" aria-hidden="true"></span></strong><span class="wind-compass" id="windCompass" role="img" aria-label="Direção do vento indisponível"><svg viewBox="0 0 80 80" aria-hidden="true" focusable="false"><circle class="compass-ring" cx="40" cy="40" r="23"/><g class="compass-labels"><text x="40" y="8">N</text><text x="65" y="16">NE</text><text x="74" y="40">L</text><text x="65" y="65">SE</text><text x="40" y="74">S</text><text x="15" y="65">SO</text><text x="6" y="40">O</text><text x="15" y="16">NO</text></g><g class="compass-needle"><path class="compass-tail" d="M36 40 40 57 44 40Z"/><path class="compass-tip" d="M40 20 34 43 40 40 46 43Z"/></g><circle class="compass-center" cx="40" cy="40" r="3"/></svg></span></div><small id="windNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
+        <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>PRESSÃO</span><span data-weather-icon-name="pressure" data-weather-icon-style="line"></span></div><strong id="pressure"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="pressureNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
+        <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>ÍNDICE UV</span><span data-weather-icon-name="uv-index" data-weather-icon-style="line"></span></div><strong id="uv"><span class="sk sk-num" aria-hidden="true"></span></strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
+        <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>QUALIDADE DO AR</span><span data-weather-icon-name="air-quality" data-weather-icon-style="line"></span><details class="info-tip"><summary aria-label="Sobre a qualidade do ar"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p><small class="air-source">Estimativa regional · Open-Meteo / CAMS<span id="airOutlookNote" hidden> · próximos dias são previsão do modelo e podem mudar</span></small></p><p>O US AQI é um índice; as partículas e gases aparecem em µg/m³ em “Poluentes e origem”. Estimativa regional, não medição no seu endereço.</p></div></details></div><div class="air-reading"><div class="air-index"><b id="airValue"><span class="sk sk-num" aria-hidden="true"></span></b><span>US AQI</span></div><div class="air-description"><strong id="airQuality"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="airNote"><span class="sk sk-line" aria-hidden="true"></span></small><small id="airParticlesNote" hidden></small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div><section class="air-outlook" id="airOutlook" aria-labelledby="airOutlookTitle" hidden><h3 id="airOutlookTitle">Próximos dias</h3><ol id="airOutlookList"></ol></section><details id="airDetails" class="air-details" hidden><summary>Poluentes e origem</summary><p id="airDetailsTime"></p><p id="airParticles" hidden></p><dl id="airPollutants"></dl><p>PM2,5 e PM10 são partículas; ozônio, NO₂ e CO são gases. Concentrações em microgramas por metro cúbico. O US AQI é um índice próprio, não a soma desses valores.</p><p>Estimativa regional do CAMS via Open-Meteo; não é medição no seu endereço nem confirma a origem da poluição.</p></details></article>
+      </section>
+      <section id="nowcastCard" data-enabled="false" class="nowcast-card panel section-block" aria-labelledby="nowcastTitle" hidden>
+        <div class="nowcast-heading"><div><span class="eyebrow">PLUVIA NOWCAST · PILOTO</span><h2 id="nowcastTitle">Observações em Manaus</h2></div><span id="nowcastMock" class="nowcast-dev" hidden>DEV / MOCK DATA</span></div>
+        <p id="nowcastReference" class="nowcast-reference"></p>
+        <p id="nowcastStatus" class="nowcast-status" role="status" aria-live="polite"></p>
+        <div class="nowcast-observations"><span class="eyebrow">OBSERVADO</span><div id="nowcastObserved"></div></div>
+        <div id="nowcastInference" class="nowcast-inference" hidden><span class="eyebrow">INFERÊNCIA · PODE MUDAR</span><p><span id="nowcastArrivalLabel">Possível chegada</span><strong id="nowcastArrival"></strong></p><p id="nowcastMotion"></p></div>
+        <p id="nowcastConfidence" class="nowcast-reference"></p>
+        <details class="nowcast-details"><summary>Fontes e limites</summary><div id="nowcastSourceDetails"></div><p id="nowcastAssumptions" class="nowcast-note"></p><p class="nowcast-note">Boletins de estação descrevem aquele ponto e horário, sem confirmar chuva nos demais bairros. Usamos a referência do município, sem a posição exata do aparelho. A previsão dos modelos continua em “Previsão por hora”. O radar SIPAM ainda não está integrado.</p></details>
+        <div class="nowcast-actions"><button id="nowcastMap" type="button" hidden>Ver observações no mapa</button><button id="nowcastRetry" type="button">Atualizar</button></div>
+      </section>
+      <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
+        <dialog id="radarDialog" class="radar-dialog" aria-labelledby="radarDialogTitle"><div class="radar-dialog-heading"><h2 id="radarDialogTitle">Radar de chuva</h2><button id="closeRadar" type="button" aria-label="Fechar radar ampliado">Fechar <span aria-hidden="true">×</span></button></div><div id="radarDialogContent"></div></dialog>
+        <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
+          <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><div class="heading-with-tip"><h2 id="weatherMapCardTitle">Chuva na região</h2><details class="info-tip"><summary aria-label="Sobre o radar"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p>Radar observado · RainViewer. A cobertura depende dos radares disponíveis e a imagem não é previsão. Toque no mapa ou em “Abrir radar” para animar os últimos horários e ver sua localização.</p></div></details></div><p id="weatherMapCity">Referência do município</p></div>
+          <button id="expandRadar" class="expand-radar" type="button" aria-haspopup="dialog" aria-controls="radarDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg>Abrir radar</button>
+          <div id="radarMapContent"><div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button id="weatherStationsLayer" type="button" data-weather-layer="stations" aria-pressed="false" hidden>Estação</button></div><div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Mapa meteorológico interativo"></div><button id="radarStageOpen" class="radar-stage-open" type="button" tabindex="-1" aria-hidden="true"></button><button id="weatherMapRecenter" class="weather-map-recenter" type="button" aria-label="Mostrar minha localização no mapa" title="Minha localização" data-centered="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle class="recenter-dot" cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg></button><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
+          <div class="weather-timebar">
+            <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
+            <div class="weather-player">
+              <button id="weatherFramePrev" type="button" aria-label="Imagem anterior" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M18 6l-9 6 9 6Z" /></svg></button>
+              <button id="weatherPlay" type="button" aria-label="Reproduzir animação" aria-pressed="false" disabled><svg class="player-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5v13l10-6.5Z" /></svg><svg class="player-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6v12M16 6v12" /></svg></button>
+              <button id="weatherFrameNext" type="button" aria-label="Próxima imagem" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 5v14M6 6l9 6-9 6Z" /></svg></button>
+              <input id="weatherTimeline" type="range" min="0" max="0" value="0" aria-label="Linha do tempo da chuva" disabled />
+            </div>
+            <small id="weatherSourceNote">Radar observado · RainViewer · cobertura depende dos radares disponíveis; não é previsão.</small>
+            <p id="weatherFrameStatus" class="weather-frame-status" role="status" aria-live="polite"></p><button id="weatherMapRetry" class="weather-map-retry" type="button" hidden>Tentar novamente</button>
+          </div></div>
+        </article>
+      </section>
+      <section class="forecast-section section-block" id="previsao">
+        <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 4h2m4 0h2m-8 4h2m4 0h2"/></svg></span><h2>Próximos 7 dias</h2><details class="info-tip"><summary aria-label="Sobre a previsão de 7 dias"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p id="forecastCityLabel">Referência do município</p><p>Toque num dia para ver os detalhes e as horas daquele dia.</p></div></details></div></div>
+        <div class="forecast-list panel" id="forecastList"><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div></div>
+      </section>
+      <section id="notificationPrompt" class="notification-prompt panel" aria-labelledby="notificationPromptTitle" hidden>
+        <div class="notification-prompt-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></svg></div><div><span class="eyebrow">ALERTAS DO PLUVIA</span><h2 id="notificationPromptTitle">Avisos de chuva e do INMET no celular</h2><p id="notificationPromptText">Receba avisos oficiais e previsões de chuva para o município selecionado. O horário pode variar. Previsões e avisos oficiais são identificados na mensagem.</p></div><div class="notification-prompt-actions"><button id="notificationPromptButton" type="button">Ativar alertas</button><button id="notificationPromptDismiss" class="notification-prompt-dismiss" type="button">Agora não</button></div>
+      </section>
+      <section class="sun-section panel" aria-label="Ciclo solar">
+        <div class="sun-copy"><div class="sun-label"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>Ciclo do dia</span></div><strong id="daylight">--h --min de luz</strong><p id="sunPhrase"></p></div>
+        <div class="sun-arc" aria-hidden="true"><svg class="arc-line" viewBox="0 0 100 136" preserveAspectRatio="none"><path d="M9 115 Q50 -65 91 115" /></svg><span class="sun-dot" id="sunDot" hidden><img src="/assets/weather-icons/conditions/clear-day.svg?v=modern-3" width="64" height="64" alt="" /></span><span class="moon-dot" id="moonDot" hidden><svg viewBox="0 0 80 80" focusable="false"><use href="#moonDisc"/></svg></span></div>
+        <div class="sky-pair">
+          <div class="sky-pair-sun"><span class="sky-pair-title">SOL</span>
+          <div class="sun-times"><div><span>Nascer do sol</span><strong id="sunrise">--:--</strong></div><div><span>Pôr do sol</span><strong id="sunset">--:--</strong></div></div>
+          </div>
+          <div class="sky-pair-moon">
+            <div class="moon-inline">
+          <svg class="moon-phase-icon" viewBox="0 0 80 80" aria-hidden="true" focusable="false">
+            <use href="#moonDisc"/>
+          </svg>
+          <span><span class="moon-label">FASE DA LUA </span><strong id="moonPhase">Consultando…</strong><small id="moonIllumination">Iluminação indisponível</small></span>
+        </div>
+          </div>
+        </div>
+        <details class="astronomy-details"><summary>Mais sobre o céu</summary><p class="sunshine-note" id="sunshineNote">Consultando horas de sol previstas…</p><div class="sky-events" id="skyEvents" hidden><h3>No céu</h3><dl><div><dt>Próxima lua nova</dt><dd id="nextNewMoon">—</dd></div><div><dt>Próxima lua cheia</dt><dd id="nextFullMoon">—</dd></div><div class="sky-events-meteor" id="meteorRow" hidden><dt>Chuva de meteoros</dt><dd id="nextMeteor">—</dd><small id="meteorNote"></small></div></dl></div><p id="astronomyDate"></p><dl><div><dt>Amanhecer civil</dt><dd id="civilDawn">—</dd></div><div><dt>Fim do crepúsculo civil</dt><dd id="civilDusk">—</dd></div><div><dt>Hora dourada</dt><dd id="goldenHour">—</dd></div><div><dt>Hora azul</dt><dd id="blueHour">—</dd></div><div><dt>Nascer da Lua</dt><dd id="moonrise">—</dd></div><div><dt>Pôr da Lua</dt><dd id="moonset">—</dd></div></dl><small>Horários aproximados por coordenadas. Amanhecer e crepúsculo civil correspondem ao Sol a 6° abaixo do horizonte. Hora dourada: Sol entre o horizonte e 6° de altura; hora azul: crepúsculo civil, entre 6° abaixo do horizonte e o nascer ou o pôr. Relevo e condições locais podem alterar a visibilidade dos astros.</small></details>
+      </section>
+      </div>
+    </main>
+    <footer class="shell"><div class="footer-brand"><span class="footer-brand-icon" aria-hidden="true"></span><div class="footer-brand-copy"><strong>PLUVIA</strong><span>O céu de cada cidade</span></div></div><div class="footer-details"><button id="openSources" class="footer-link" type="button">Fontes de dados</button><button id="openPrivacy" class="footer-link" type="button">Privacidade</button><button id="openHomeLayout" class="footer-link" type="button" aria-haspopup="dialog" aria-controls="homeLayoutDialog">Personalizar a Home</button></div><!-- capitais:inicio --><nav class="capital-links" aria-label="Previsão nas capitais e em outras cidades"><p class="capital-page-note">Diadema é um município do estado de São Paulo. Horários no fuso America/Sao_Paulo (UTC−3).</p><details><summary>Previsão nas capitais</summary><ul><li><a href="/clima/aracaju-se/">Aracaju</a></li><li><a href="/clima/belem-pa/">Belém</a></li><li><a href="/clima/belo-horizonte-mg/">Belo Horizonte</a></li><li><a href="/clima/boa-vista-rr/">Boa Vista</a></li><li><a href="/clima/brasilia-df/">Brasília</a></li><li><a href="/clima/campo-grande-ms/">Campo Grande</a></li><li><a href="/clima/cuiaba-mt/">Cuiabá</a></li><li><a href="/clima/curitiba-pr/">Curitiba</a></li><li><a href="/clima/florianopolis-sc/">Florianópolis</a></li><li><a href="/clima/fortaleza-ce/">Fortaleza</a></li><li><a href="/clima/goiania-go/">Goiânia</a></li><li><a href="/clima/joao-pessoa-pb/">João Pessoa</a></li><li><a href="/clima/macapa-ap/">Macapá</a></li><li><a href="/clima/maceio-al/">Maceió</a></li><li><a href="/clima/manaus-am/">Manaus</a></li><li><a href="/clima/natal-rn/">Natal</a></li><li><a href="/clima/palmas-to/">Palmas</a></li><li><a href="/clima/porto-alegre-rs/">Porto Alegre</a></li><li><a href="/clima/porto-velho-ro/">Porto Velho</a></li><li><a href="/clima/recife-pe/">Recife</a></li><li><a href="/clima/rio-branco-ac/">Rio Branco</a></li><li><a href="/clima/rio-de-janeiro-rj/">Rio de Janeiro</a></li><li><a href="/clima/salvador-ba/">Salvador</a></li><li><a href="/clima/sao-luis-ma/">São Luís</a></li><li><a href="/clima/sao-paulo-sp/">São Paulo</a></li><li><a href="/clima/teresina-pi/">Teresina</a></li><li><a href="/clima/vitoria-es/">Vitória</a></li></ul></details><details><summary>Outras cidades</summary><ul><li><a href="/clima/ananindeua-pa/">Ananindeua (PA)</a></li><li><a href="/clima/anapolis-go/">Anápolis (GO)</a></li><li><a href="/clima/aparecida-de-goiania-go/">Aparecida de Goiânia (GO)</a></li><li><a href="/clima/bauru-sp/">Bauru (SP)</a></li><li><a href="/clima/belford-roxo-rj/">Belford Roxo (RJ)</a></li><li><a href="/clima/betim-mg/">Betim (MG)</a></li><li><a href="/clima/blumenau-sc/">Blumenau (SC)</a></li><li><a href="/clima/camacari-ba/">Camaçari (BA)</a></li><li><a href="/clima/campinas-sp/">Campinas (SP)</a></li><li><a href="/clima/campos-dos-goytacazes-rj/">Campos dos Goytacazes (RJ)</a></li><li><a href="/clima/canoas-rs/">Canoas (RS)</a></li><li><a href="/clima/carapicuiba-sp/">Carapicuíba (SP)</a></li><li><a href="/clima/cariacica-es/">Cariacica (ES)</a></li><li><a href="/clima/caruaru-pe/">Caruaru (PE)</a></li><li><a href="/clima/cascavel-pr/">Cascavel (PR)</a></li><li><a href="/clima/caucaia-ce/">Caucaia (CE)</a></li><li><a href="/clima/caxias-do-sul-rs/">Caxias do Sul (RS)</a></li><li><a href="/clima/chapeco-sc/">Chapecó (SC)</a></li><li><a href="/clima/coari-am/">Coari (AM)</a></li><li><a href="/clima/contagem-mg/">Contagem (MG)</a></li><li><a href="/clima/diadema-sp/" aria-current="page">Diadema (SP)</a></li><li><a href="/clima/dourados-ms/">Dourados (MS)</a></li><li><a href="/clima/duque-de-caxias-rj/">Duque de Caxias (RJ)</a></li><li><a href="/clima/feira-de-santana-ba/">Feira de Santana (BA)</a></li><li><a href="/clima/foz-do-iguacu-pr/">Foz do Iguaçu (PR)</a></li><li><a href="/clima/franca-sp/">Franca (SP)</a></li><li><a href="/clima/guarulhos-sp/">Guarulhos (SP)</a></li><li><a href="/clima/humaita-am/">Humaitá (AM)</a></li><li><a href="/clima/imperatriz-ma/">Imperatriz (MA)</a></li><li><a href="/clima/iranduba-am/">Iranduba (AM)</a></li><li><a href="/clima/itacoatiara-am/">Itacoatiara (AM)</a></li><li><a href="/clima/itaquaquecetuba-sp/">Itaquaquecetuba (SP)</a></li><li><a href="/clima/jaboatao-dos-guararapes-pe/">Jaboatão dos Guararapes (PE)</a></li><li><a href="/clima/ji-parana-ro/">Ji-Paraná (RO)</a></li><li><a href="/clima/joinville-sc/">Joinville (SC)</a></li><li><a href="/clima/juazeiro-do-norte-ce/">Juazeiro do Norte (CE)</a></li><li><a href="/clima/juiz-de-fora-mg/">Juiz de Fora (MG)</a></li><li><a href="/clima/jundiai-sp/">Jundiaí (SP)</a></li><li><a href="/clima/londrina-pr/">Londrina (PR)</a></li><li><a href="/clima/manacapuru-am/">Manacapuru (AM)</a></li><li><a href="/clima/manicore-am/">Manicoré (AM)</a></li><li><a href="/clima/maraba-pa/">Marabá (PA)</a></li><li><a href="/clima/maringa-pr/">Maringá (PR)</a></li><li><a href="/clima/maua-sp/">Mauá (SP)</a></li><li><a href="/clima/maues-am/">Maués (AM)</a></li><li><a href="/clima/mogi-das-cruzes-sp/">Mogi das Cruzes (SP)</a></li><li><a href="/clima/montes-claros-mg/">Montes Claros (MG)</a></li><li><a href="/clima/mossoro-rn/">Mossoró (RN)</a></li><li><a href="/clima/niteroi-rj/">Niterói (RJ)</a></li><li><a href="/clima/nova-iguacu-rj/">Nova Iguaçu (RJ)</a></li><li><a href="/clima/olinda-pe/">Olinda (PE)</a></li><li><a href="/clima/osasco-sp/">Osasco (SP)</a></li><li><a href="/clima/parauapebas-pa/">Parauapebas (PA)</a></li><li><a href="/clima/parintins-am/">Parintins (AM)</a></li><li><a href="/clima/paulista-pe/">Paulista (PE)</a></li><li><a href="/clima/pelotas-rs/">Pelotas (RS)</a></li><li><a href="/clima/petrolina-pe/">Petrolina (PE)</a></li><li><a href="/clima/petropolis-rj/">Petrópolis (RJ)</a></li><li><a href="/clima/piracicaba-sp/">Piracicaba (SP)</a></li><li><a href="/clima/ponta-grossa-pr/">Ponta Grossa (PR)</a></li><li><a href="/clima/presidente-figueiredo-am/">Presidente Figueiredo (AM)</a></li><li><a href="/clima/ribeirao-preto-sp/">Ribeirão Preto (SP)</a></li><li><a href="/clima/rio-preto-da-eva-am/">Rio Preto da Eva (AM)</a></li><li><a href="/clima/rondonopolis-mt/">Rondonópolis (MT)</a></li><li><a href="/clima/santarem-pa/">Santarém (PA)</a></li><li><a href="/clima/santo-andre-sp/">Santo André (SP)</a></li><li><a href="/clima/santos-sp/">Santos (SP)</a></li><li><a href="/clima/sao-bernardo-do-campo-sp/">São Bernardo do Campo (SP)</a></li><li><a href="/clima/sao-gabriel-da-cachoeira-am/">São Gabriel da Cachoeira (AM)</a></li><li><a href="/clima/sao-goncalo-rj/">São Gonçalo (RJ)</a></li><li><a href="/clima/sao-joao-de-meriti-rj/">São João de Meriti (RJ)</a></li><li><a href="/clima/sao-jose-do-rio-preto-sp/">São José do Rio Preto (SP)</a></li><li><a href="/clima/sao-jose-dos-campos-sp/">São José dos Campos (SP)</a></li><li><a href="/clima/sao-vicente-sp/">São Vicente (SP)</a></li><li><a href="/clima/serra-es/">Serra (ES)</a></li><li><a href="/clima/sorocaba-sp/">Sorocaba (SP)</a></li><li><a href="/clima/tabatinga-am/">Tabatinga (AM)</a></li><li><a href="/clima/tefe-am/">Tefé (AM)</a></li><li><a href="/clima/uberaba-mg/">Uberaba (MG)</a></li><li><a href="/clima/uberlandia-mg/">Uberlândia (MG)</a></li><li><a href="/clima/vila-velha-es/">Vila Velha (ES)</a></li><li><a href="/clima/vitoria-da-conquista-ba/">Vitória da Conquista (BA)</a></li></ul></details></nav><!-- capitais:fim --></footer>
+    </div>
+    <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Sem confirmação atual.</strong><span id="errorMessage"></span></div>
+    <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
+    <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody" class="dialog-scroll"></div></dialog>
+    <dialog id="shareWeatherDialog" class="city-dialog" aria-labelledby="shareWeatherTitle"><div class="dialog-heading"><h2 id="shareWeatherTitle">Compartilhar previsão</h2><button id="shareWeatherClose" class="dialog-close" type="button" aria-label="Fechar compartilhamento">×</button></div><p>Selecione e copie o texto para compartilhar.</p><img id="shareWeatherImage" class="share-weather-image" alt="Imagem da previsão para compartilhar" width="1080" height="1920" hidden><a id="shareWeatherDownload" class="share-weather-download" hidden>Baixar imagem</a><label for="shareWeatherText">Condição meteorológica</label><textarea id="shareWeatherText" readonly rows="7"></textarea></dialog>
+
+    <dialog id="compareDialog" class="city-dialog compare-dialog" aria-labelledby="compareTitle">
+      <div class="dialog-heading"><h2 id="compareTitle">Comparar cidades</h2><button id="compareClose" class="dialog-close" type="button" autofocus aria-label="Fechar comparação">×</button></div>
+      <div class="dialog-scroll">
+        <div class="compare-pick"><label id="compareCityLabel" for="compareCity">Comparar com</label><select id="compareCity"></select></div>
+        <p id="compareStatus" class="compare-status" role="status" aria-live="polite"></p>
+        <div class="compare-table-wrap"><table id="compareTable" class="compare-table"></table></div>
+        <p class="compare-note">Previsão Open-Meteo e qualidade do ar CAMS (Open-Meteo), com as mesmas regras da tela principal. A cidade aberta usa a previsão já carregada.</p>
+      </div>
+    </dialog>
+    <dialog id="homeLayoutDialog" class="city-dialog home-layout-dialog" aria-labelledby="homeLayoutTitle">
+      <div class="dialog-heading"><h2 id="homeLayoutTitle">Personalizar a Home</h2><button id="homeLayoutClose" class="dialog-close" type="button" aria-label="Fechar personalização">×</button></div>
+      <div class="dialog-scroll">
+        <p>Escolha o que aparece abaixo da temperatura e em que ordem. Fica salvo só neste aparelho; cidade, temperatura e avisos oficiais continuam sempre no topo.</p>
+        <ol id="homeLayoutList" class="home-layout-list"></ol>
+        <button id="homeLayoutReset" class="home-layout-reset" type="button">Restaurar padrão</button>
+      </div>
+    </dialog>
+    <dialog id="brazilDialog" class="city-dialog brazil-dialog" aria-labelledby="brazilTitle">
+      <div class="dialog-heading"><h2 id="brazilTitle">Brasil agora</h2><button id="brazilClose" class="dialog-close" type="button" autofocus aria-label="Fechar Brasil agora">×</button></div>
+      <div class="dialog-scroll">
+        <p id="brazilStatus" class="brazil-status" role="status" aria-live="polite"></p>
+        <div id="brazilList" class="brazil-list"></div>
+        <p class="brazil-note">Temperatura atual, condição e máxima/mínima do dia em cada capital, pelo calendário local. Previsão Open-Meteo no ponto de referência do município. Toque numa capital para abrir a previsão completa.</p>
+      </div>
+    </dialog>
+    <dialog id="hourlyDetailDialog" class="city-dialog hourly-detail-dialog" aria-labelledby="hourlyDetailTitle" aria-describedby="hourlyDetailCity">
+      <div class="dialog-heading"><div><h2 id="hourlyDetailTitle">Previsão por hora</h2><p id="hourlyDetailCity"></p></div><button id="hourlyDetailClose" class="dialog-close" type="button" autofocus aria-label="Fechar previsão por hora">×</button></div>
+      <div class="dialog-scroll" tabindex="0" role="region" aria-label="Detalhes do horário">
+        <div class="hourly-detail-weather"><div id="hourlyDetailIcon" aria-hidden="true"></div><strong id="hourlyDetailTemperature">—</strong><p id="hourlyDetailCondition"></p></div>
+        <dl class="hourly-detail-readings"><div><dt>Sensação térmica</dt><dd id="hourlyDetailFeelsLike">—</dd></div><div><dt>Chance de chuva</dt><dd id="hourlyDetailRain">—</dd></div><div><dt>Chuva prevista</dt><dd id="hourlyDetailVolume">—</dd></div><div><dt>Vento</dt><dd id="hourlyDetailWind">—</dd></div><div><dt>Rajadas</dt><dd id="hourlyDetailGust">—</dd></div><div><dt>Umidade</dt><dd id="hourlyDetailHumidity">—</dd></div><div><dt>Direção do vento</dt><dd id="hourlyDetailDirection">—</dd></div><div><dt>Índice UV</dt><dd id="hourlyDetailUv">—</dd></div><div><dt>Pressão</dt><dd id="hourlyDetailPressure">—</dd></div></dl>
+        <p id="hourlyDetailRainInterval" class="hourly-detail-note"></p><p class="hourly-detail-note">Temperatura e vento no horário selecionado; chuva no intervalo que começa nesse horário.</p><small id="hourlyDetailSource"></small>
+      </div>
+      <div class="hourly-detail-navigation"><button id="hourlyDetailPrev" type="button" aria-label="Horário anterior">‹ Anterior</button><button id="hourlyDetailNext" type="button" aria-label="Próximo horário">Próximo ›</button></div>
+    </dialog>
+    <dialog id="dailyDetailDialog" class="city-dialog hourly-detail-dialog" aria-labelledby="dailyDetailTitle" aria-describedby="dailyDetailCity">
+      <div class="dialog-heading"><div><h2 id="dailyDetailTitle">Previsão do dia</h2><p id="dailyDetailCity"></p></div><button id="dailyDetailClose" class="dialog-close" type="button" autofocus aria-label="Fechar previsão diária">×</button></div>
+      <div class="dialog-scroll">
+        <p id="dailyDetailCondition"></p>
+        <dl class="hourly-detail-readings">
+          <div><dt>Mínima</dt><dd id="dailyDetailMin">—</dd></div><div><dt>Máxima</dt><dd id="dailyDetailMax">—</dd></div>
+          <div><dt>Sensação mínima</dt><dd id="dailyDetailFeelsMin">—</dd></div><div><dt>Sensação máxima</dt><dd id="dailyDetailFeelsMax">—</dd></div>
+          <div><dt>Chance de chuva no dia</dt><dd id="dailyDetailProbability">—</dd></div><div><dt>Acumulado previsto no dia</dt><dd id="dailyDetailRain">—</dd></div>
+          <div><dt>Maior vento nos horários disponíveis</dt><dd id="dailyDetailWind">—</dd></div><div><dt>Maior rajada nos horários disponíveis</dt><dd id="dailyDetailGust">—</dd></div>
+          <div><dt>Nascer do sol</dt><dd id="dailyDetailSunrise">—</dd></div><div><dt>Pôr do sol</dt><dd id="dailyDetailSunset">—</dd></div>
+          <div><dt>UV máximo previsto</dt><dd id="dailyDetailUv">—</dd></div>
+        </dl>
+        <p id="dailyDetailSpread" class="hourly-detail-note" hidden></p>
+        <h3>Por hora</h3><p id="dailyDetailHoursNote" class="hourly-detail-note"></p>
+        <div id="dailyDetailHours" class="daily-detail-hours" role="group" aria-label="Horários previstos para este dia"></div>
+        <small id="dailyDetailSource"></small>
+      </div>
+      <div class="hourly-detail-navigation"><button id="dailyDetailPrev" type="button">‹ Dia anterior</button><button id="dailyDetailNext" type="button">Próximo dia ›</button></div>
+    </dialog>
+    <dialog id="installPushDialog" class="city-dialog" aria-labelledby="installPushTitle">
+      <div class="dialog-heading"><h2 id="installPushTitle">Alertas no iPhone</h2><button id="installPushClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
+      <p>Safari no iPhone só entrega Web Push se o PLUVIA estiver na Tela de Início e aberto pelo ícone.</p>
+      <ol class="install-steps">
+        <li>Toque em <strong>Compartilhar</strong> — o quadrado com a seta para cima.</li>
+        <li>Role e toque em <strong>Adicionar à Tela de Início</strong>.</li>
+        <li>Abra o PLUVIA pelo ícone novo, entre na conta e toque em <strong>Ativar alertas</strong>.</li>
+      </ol>
+      <p>O sistema envia avisos oficiais do INMET e previsões de chuva para o município selecionado. A previsão não representa as condições exatas de um endereço.</p>
+      <button id="installPushReload" type="button">Recarregar após a instalação</button>
+    </dialog>
+    <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="privacyTitle"><h3 id="privacyTitle">Privacidade</h3><label for="analyticsConsent"><input id="analyticsConsent" type="checkbox"> Ajudar a melhorar o Pluvia</label><p>Compartilhe contagens de uso e tipos de falha com o PostHog. Não enviamos nomes, e-mail, cidade, coordenadas ou texto pesquisado. Não gravamos sua tela nem vinculamos métricas à sua conta.</p><p id="analyticsChoiceStatus" role="status">Desativado. A previsão funciona sem compartilhar métricas.</p><p>O servidor recebe a conexão de rede; solicitamos que o IP não seja usado para geolocalização. <a href="https://posthog.com/privacy" target="_blank" rel="noreferrer">Política de privacidade do PostHog</a>.</p></section><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
+    <script src="/analytics.js?v=analytics-5" defer></script>
+    <script src="/modules/sources.js?v=panel-24" defer></script>
+    <script src="/modules/dialog-motion.js?v=motion-3" defer></script>
+    <script src="/modules/http-client.js?v=http-2" defer></script>
+    <script src="/modules/weather-services.js?v=core-115" defer></script>
+    <script src="/modules/weather-data-layer.js?v=core-115" defer></script>
+    <script src="/modules/met-merge.js?v=core-111" defer></script>
+    <script src="/modules/weather-extras.js?v=core-109" defer></script>
+    <script src="/modules/weather-insights.js?v=core-71" defer></script>
+    <script src="/modules/radar-probe.js?v=core-70" defer></script>
+    <script src="/modules/weather-icons.js?v=core-50" defer></script>
+    <script src="/modules/weather-icon-system.js?v=modern-5" defer></script>
+    <script src="/capitals.js?v=core-50" defer></script>
+    <script src="/modules/hourly-detail.js?v=detail-6" defer></script>
+    <script src="/modules/daily-detail.js?v=daily-3" defer></script>
+    <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
+    <script src="/app.js?v=panel-76" defer></script>
+    <script src="/p0.js?v=panel-42" defer></script>
+    <script src="/modules/risks.js?v=core-119" defer></script>
+    <script src="/modules/adapters.js?v=core-110" defer></script>
+    <script src="/modules/nowcast.js?v=nowcast-3" defer></script>
+    <script src="/weather-map.js?v=map-12" defer></script>
+    <script src="/modules/account-sync.js?v=sync-1" defer></script>
+    <script src="/modules/social-auth.js?v=oauth-3" defer></script>
+    <script src="/account.js?v=account-10" defer></script>
+    <script src="/favorite-cities.js?v=favorites-8" defer></script>
+    <script src="/modules/share-card.js?v=share-card-2" defer></script>
+    <script src="/modules/share-weather.js?v=share-7" defer></script>
+    <script src="/saved-places.js?v=places-2" defer></script>
+    <script src="/modules/compare-cities.js?v=compare-2" defer></script>
+    <script src="/modules/brazil-now.js?v=brazil-1" defer></script>
+    <script src="/modules/home-layout.js?v=home-layout-1" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-1" defer></script>
+    <script src="/modules/notification-preferences.js?v=preferences-2" defer></script>
+    <script src="/notifications.js?v=panel-26" defer></script>
+  </body>
+</html>

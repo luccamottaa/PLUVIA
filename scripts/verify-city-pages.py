@@ -55,7 +55,7 @@ with sync_playwright() as p:
         assert state['city'] == 'Belém' and state['path'] == '/clima/belem-pa/', (label, state)
         assert state['notice'], (label, 'o aviso de localização não aparece numa página de cidade')
         assert state['canonical'] == 'https://pluviaweather.com.br/clima/belem-pa/', state
-        assert state['links'] == 27 and state['current'] == 'Belém' and 'capital do Pará' in state['note'], state
+        assert state['links'] >= 27 + 80 and state['current'] == 'Belém' and 'capital do Pará' in state['note'], state
         page.wait_for_timeout(1500)
         assert page.evaluate("window.__gpsCalls") == 0, (label, 'a página de cidade não pede localização sozinha')
         assert page.evaluate("location.pathname") == '/clima/belem-pa/' and page.evaluate("document.getElementById('cityName').textContent") == 'Belém', label
@@ -66,6 +66,14 @@ with sync_playwright() as p:
         assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'), label
         page.evaluate("document.querySelector('.capital-links details').open=true")
         page.locator('footer').screenshot(path=str(output / f'{engine}-{label}-footer.png'))
+        # Município fora das capitais: abre pelo registro no HTML, sem baixar o índice de municípios.
+        forecasts.clear()
+        page.goto(preview + '/clima/parintins-am/', wait_until='domcontentloaded')
+        page.wait_for_function("document.getElementById('cityName').textContent==='Parintins' && document.getElementById('temperature').textContent.trim()!=='' && !document.getElementById('weatherView').classList.contains('initial-loading')", timeout=20000)
+        town = page.evaluate("() => ({path:location.pathname, note:document.querySelector('.capital-page-note')?.textContent, current:document.querySelector('.capital-links [aria-current=page]')?.textContent, index:performance.getEntriesByType('resource').some(e => e.name.includes('municipality-index'))})")
+        assert town['path'] == '/clima/parintins-am/' and 'município do estado do Amazonas' in town['note'] and town['current'] == 'Parintins (AM)', (label, town)
+        assert forecasts == ['-2.637'] or forecasts == ['-2.63741'], (label, 'uma consulta, só de Parintins', forecasts)
+        assert not town['index'], (label, 'a página não precisa do índice de municípios')
         assert not missing, (label, missing)
         assert not errors, (label, errors)
         report.append({'case': label, **state, 'forecastRequests': len(forecasts)})

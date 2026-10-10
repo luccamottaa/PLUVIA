@@ -1,6 +1,6 @@
 'use strict';
-// Gera as páginas públicas das capitais (/clima/<nome>-<uf>/), o bloco de links do rodapé
-// e o sitemap a partir do index.html e de capitals.js. Rode depois de mudar o shell:
+// Gera as páginas públicas (/clima/<nome>-<uf>/) das capitais e de PAGE_CITY_IDS, o bloco de
+// links do rodapé e o sitemap a partir do index.html, de capitals.js e de cities/<uf>.js. Rode depois de mudar o shell:
 //   node scripts/generate-city-pages.cjs          (grava)
 //   node scripts/generate-city-pages.cjs --check  (falha se algo estiver desatualizado)
 // As páginas são o mesmo app com a cidade escolhida; o conteúdo próprio de cada uma é
@@ -12,11 +12,32 @@ const START = '<!-- capitais:inicio -->', END = '<!-- capitais:fim -->';
 
 function capitalsApi() {
   const context = vm.createContext({Intl, localStorage:{getItem:() => null, setItem() {}}});
+  context.globalThis = context;
   vm.runInContext(fs.readFileSync(path.join(dist, 'capitals.js'), 'utf8'), context);
-  return vm.runInContext('({CAPITALS, citySlug, cityPagePath, cityPageTitle})', context);
+  const api = vm.runInContext('({CAPITALS, PAGE_CITY_IDS, citySlug, cityPagePath, cityPageTitle, stateNames})', context);
+  // Registro completo (coordenadas e fuso) de cada município com página, da base estadual publicada.
+  const rows = new Map();
+  for (const file of fs.readdirSync(path.join(dist, 'cities'))) vm.runInContext(fs.readFileSync(path.join(dist, 'cities', file), 'utf8'), context);
+  // A base agrupa fusos de mesmo deslocamento (Parintins aparece como America/Porto_Velho); na página
+  // vale o fuso da capital do estado quando o deslocamento é o mesmo em janeiro e julho.
+  const sameOffset = (a, b) => [0, 6].every(month => offsetAt(a, month) === offsetAt(b, month));
+  for (const chunk of Object.values(context.PLUVIA_CITY_CHUNKS)) for (const [id, name, uf, lat, lon, zone] of chunk.rows) {
+    const capital = api.CAPITALS.find(city => city.uf === uf), timezone = chunk.timezones[zone];
+    rows.set(id, {id, name, uf, state:api.stateNames.get(uf), lat, lon, timezone:capital && sameOffset(capital.timezone, timezone) ? capital.timezone : timezone});
+  }
+  api.OTHERS = api.PAGE_CITY_IDS.map(id => {
+    const city = rows.get(id);
+    if (!city?.state || !city.timezone || api.CAPITALS.some(capital => capital.id === id)) throw new Error('PAGE_CITY_IDS inválido: ' + id);
+    return city;
+  });
+  api.PAGES = [...api.CAPITALS, ...api.OTHERS];
+  return api;
 }
 const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const jsonLd = value => JSON.stringify(value).replace(/</g, '\\u003c');
+function offsetAt(timezone, month) {
+  return new Intl.DateTimeFormat('en-US', {timeZone:timezone, timeZoneName:'shortOffset'}).formatToParts(new Date(Date.UTC(2026, month, 15))).find(item => item.type === 'timeZoneName').value;
+}
 function utcOffset(timezone) {
   const part = new Intl.DateTimeFormat('en-US', {timeZone:timezone, timeZoneName:'shortOffset'})
     .formatToParts(new Date(Date.UTC(2026, 0, 15))).find(item => item.type === 'timeZoneName').value;
@@ -25,10 +46,12 @@ function utcOffset(timezone) {
 const description = city => `Previsão do tempo em ${city.name} (${city.uf}) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET.`;
 
 function linksBlock(api, current = null) {
-  const items = api.CAPITALS.map(city => `<li><a href="${api.cityPagePath(city)}"${city.id === current?.id ? ' aria-current="page"' : ''}>${escapeHtml(city.name)}</a></li>`).join('');
-  const where = current?.uf === 'DF' ? 'é a capital federal, no Distrito Federal' : current && `é a capital ${preposition(current)} ${escapeHtml(current.state)}`;
+  const list = cities => cities.map(city => `<li><a href="${api.cityPagePath(city)}"${city.id === current?.id ? ' aria-current="page"' : ''}>${escapeHtml(city.name)}</a></li>`).join('');
+  const others = [...api.OTHERS].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).map(city => `<li><a href="${api.cityPagePath(city)}"${city.id === current?.id ? ' aria-current="page"' : ''}>${escapeHtml(city.name)} (${city.uf})</a></li>`).join('');
+  const capital = current && api.CAPITALS.some(city => city.id === current.id);
+  const where = !current ? '' : current.uf === 'DF' ? 'é a capital federal, no Distrito Federal' : capital ? `é a capital ${preposition(current)} ${escapeHtml(current.state)}` : `é um município do estado ${preposition(current)} ${escapeHtml(current.state)}`;
   const note = current ? `<p class="capital-page-note">${escapeHtml(current.name)} ${where}. Horários no fuso ${escapeHtml(current.timezone)} (${utcOffset(current.timezone)}).</p>` : '';
-  return `${START}<nav class="capital-links" aria-label="Previsão nas capitais">${note}<details><summary>Previsão nas capitais</summary><ul>${items}</ul></details></nav>${END}`;
+  return `${START}<nav class="capital-links" aria-label="Previsão nas capitais e em outras cidades">${note}<details><summary>Previsão nas capitais</summary><ul>${list(api.CAPITALS)}</ul></details><details><summary>Outras cidades</summary><ul>${others}</ul></details></nav>${END}`;
 }
 // "capital do Amazonas", "da Bahia", "de Alagoas"... sem inventar: tabela explícita por UF.
 const ARTICLES = {AC:'do',AL:'de',AP:'do',AM:'do',BA:'da',CE:'do',DF:'do',ES:'do',GO:'de',MA:'do',MT:'de',MS:'de',MG:'de',PA:'do',PB:'da',PR:'do',PE:'de',PI:'do',RJ:'do',RN:'do',RS:'do',RO:'de',RR:'de',SC:'de',SP:'de',SE:'de',TO:'do'};
@@ -53,7 +76,8 @@ function cityPage(template, api, city) {
   const url = SITE + api.cityPagePath(city), title = api.cityPageTitle(city), text = description(city);
   let html = withLinks(template, linksBlock(api, city));
   html = replaceOnce(html, /<title>[^<]*<\/title>/, `<title>${escapeHtml(title)}</title>`);
-  html = replaceOnce(html, /<meta name="description" content="[^"]*" \/>/, `<meta name="description" content="${escapeHtml(text)}" />\n    <meta name="pluvia-city" content="${city.id}" />`);
+  const record = api.CAPITALS.includes(city) ? '' : `\n    <meta name="pluvia-city-record" content="${escapeHtml(JSON.stringify({id:city.id, name:city.name, uf:city.uf, state:city.state, lat:city.lat, lon:city.lon, timezone:city.timezone}))}" />`;
+  html = replaceOnce(html, /<meta name="description" content="[^"]*" \/>/, `<meta name="description" content="${escapeHtml(text)}" />\n    <meta name="pluvia-city" content="${city.id}" />${record}`);
   html = replaceOnce(html, /<link rel="canonical" href="[^"]*" \/>/, `<link rel="canonical" href="${url}" />`);
   html = replaceOnce(html, /<meta property="og:url" content="[^"]*" \/>/, `<meta property="og:url" content="${url}" />`);
   html = replaceOnce(html, /<meta property="og:title" content="[^"]*" \/>/, `<meta property="og:title" content="${escapeHtml(title)}" />`);
@@ -76,16 +100,16 @@ function cityPage(template, api, city) {
 }
 
 function sitemap(api) {
-  const urls = [SITE + '/', ...api.CAPITALS.map(city => SITE + api.cityPagePath(city))];
+  const urls = [[SITE + '/', '1.0'], ...api.CAPITALS.map(city => [SITE + api.cityPagePath(city), '0.8']), ...api.OTHERS.map(city => [SITE + api.cityPagePath(city), '0.6'])];
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    urls.map((loc, index) => `  <url>\n    <loc>${loc}</loc>\n    <changefreq>hourly</changefreq>\n    <priority>${index ? '0.8' : '1.0'}</priority>\n  </url>\n`).join('') + '</urlset>\n';
+    urls.map(([loc, priority]) => `  <url>\n    <loc>${loc}</loc>\n    <changefreq>hourly</changefreq>\n    <priority>${priority}</priority>\n  </url>\n`).join('') + '</urlset>\n';
 }
 
 function build() {
   const api = capitalsApi();
   const index = withLinks(fs.readFileSync(path.join(dist, 'index.html'), 'utf8'), linksBlock(api));
   const files = new Map([['index.html', index], ['sitemap.xml', sitemap(api)]]);
-  for (const city of api.CAPITALS) files.set(path.join('clima', api.citySlug(city), 'index.html'), cityPage(index, api, city));
+  for (const city of api.PAGES) files.set(path.join('clima', api.citySlug(city), 'index.html'), cityPage(index, api, city));
   return {api, files};
 }
 
@@ -99,7 +123,7 @@ if (require.main === module) {
   const orphans = existing.filter(file => !expected.has(file));
   if (check) {
     if (stale.length || orphans.length) { console.error('Páginas das capitais desatualizadas; rode node scripts/generate-city-pages.cjs:', [...stale, ...orphans].join(', ')); process.exit(1); }
-    console.log(`OK: ${expected.size} páginas de capitais, rodapé e sitemap atualizados.`);
+    console.log(`OK: ${expected.size} páginas de cidades, rodapé e sitemap atualizados.`);
   } else {
     for (const file of orphans) fs.rmSync(path.dirname(path.join(dist, file)), {recursive:true});
     for (const file of stale) { fs.mkdirSync(path.dirname(path.join(dist, file)), {recursive:true}); fs.writeFileSync(path.join(dist, file), files.get(file)); }
