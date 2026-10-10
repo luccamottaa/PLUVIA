@@ -1442,6 +1442,7 @@ function updateCityLabels() {
   if (!activeCity) return;
   $("cityName").textContent = activeCity.name;
   renderCityDots();
+  renderFavoriteSuggest();
   $("alertsCityLabel").textContent = "Fontes oficiais e leitura ambiental para " + activeCity.name;
   $("forecastCityLabel").textContent = "Previsão para o ponto de referência de " + activeCity.name + ", não para um endereço específico.";
   const distance = $("cityDistance");
@@ -1466,6 +1467,53 @@ function recentCityIds() {
 function rememberRecentCity(id) {
   if (!/^\d{7}$/.test(String(id))) return;
   try { localStorage.setItem(RECENT_KEY, JSON.stringify([String(id), ...recentCityIds().filter(item => item !== String(id))].slice(0, RECENT_MAX))); } catch {}
+}
+// Sugestão de favoritar: o botão ☆ fica dentro de "Suas cidades" e quase ninguém o achava. Quem abre a
+// mesma cidade em 3 momentos diferentes (com 6 h de intervalo) vê um convite discreto no topo; "Agora não"
+// vale para aquela cidade, só neste aparelho. Ids e contagens, sem nomes nem GPS.
+const VISITS_KEY = "pluvia-city-visits", SUGGEST_DISMISSED_KEY = "pluvia-favorite-suggest-dismissed";
+function readJson(key, fallback) {
+  try { const value = JSON.parse(localStorage.getItem(key) || "null"); return value && typeof value === "object" ? value : fallback; }
+  catch { return fallback; }
+}
+function countCityVisit(id) {
+  if (!/^\d{7}$/.test(String(id))) return;
+  const visits = readJson(VISITS_KEY, {}), now = Date.now(), entry = visits[id];
+  if (entry && now - entry.at >= 0 && now - entry.at < 21600000) return;
+  visits[id] = {n:Math.min((entry?.n || 0) + 1, 99), at:now};
+  const kept = Object.entries(visits).filter(([key, value]) => /^\d{7}$/.test(key) && Number.isFinite(value?.at)).sort((a, b) => b[1].at - a[1].at).slice(0, 20);
+  try { localStorage.setItem(VISITS_KEY, JSON.stringify(Object.fromEntries(kept))); } catch {}
+}
+function favoriteSuggestionFor(city) {
+  if (!city?.id || favorites.has(city.id) || favorites.size >= 30) return false;
+  const dismissed = readJson(SUGGEST_DISMISSED_KEY, []);
+  if (Array.isArray(dismissed) && dismissed.includes(city.id)) return false;
+  return (readJson(VISITS_KEY, {})[city.id]?.n || 0) >= 3;
+}
+let suggestedCityId = null;
+function renderFavoriteSuggest() {
+  const box = $("favoriteSuggest");
+  if (!box) return;
+  const show = favoriteSuggestionFor(activeCity);
+  box.hidden = !show;
+  if (!show) { suggestedCityId = null; return; }
+  $("favoriteSuggestCity").textContent = activeCity.name;
+  if (suggestedCityId !== activeCity.id) { suggestedCityId = activeCity.id; globalThis.pluviaAnalytics?.track('Favorite Suggested'); }
+}
+function setupFavoriteSuggest() {
+  $("favoriteSuggestSave")?.addEventListener("click", () => {
+    if (!activeCity || favorites.has(activeCity.id)) return;
+    if (toggleFavoriteCity()) globalThis.pluviaAnalytics?.track('Favorite Suggestion Accepted');
+    renderFavoriteSuggest();
+  });
+  $("favoriteSuggestDismiss")?.addEventListener("click", () => {
+    if (!activeCity) return;
+    const dismissed = readJson(SUGGEST_DISMISSED_KEY, []);
+    const ids = [activeCity.id, ...(Array.isArray(dismissed) ? dismissed : []).filter(id => id !== activeCity.id && /^\d{7}$/.test(String(id)))].slice(0, 30);
+    try { localStorage.setItem(SUGGEST_DISMISSED_KEY, JSON.stringify(ids)); } catch {}
+    globalThis.pluviaAnalytics?.track('Favorite Suggestion Dismissed');
+    renderFavoriteSuggest();
+  });
 }
 function renderCityOptions() {
   const query = normalizeName(document.getElementById("citySearch").value || "").trim();
@@ -1550,6 +1598,7 @@ function chooseCity(id, locatedCity = null) {
   globalThis.PLUVIA?.radar?.reset?.(city.id);
   globalThis.PLUVIA?.modules.location.reset?.();
   writePreference("pluvia-city", city.id);
+  countCityVisit(city.id);
   syncCityPage(city);
   writePreference("pluvia-city-record", {id:city.id,name:city.name,uf:city.uf,state:city.state,lat:city.lat,lon:city.lon,timezone:city.timezone});
   globalThis.dispatchEvent?.(new CustomEvent('pluvia:city-changed',{detail:{id:city.id}}));
@@ -1617,6 +1666,7 @@ function setupCityPicker() {
   let searchTimer;
   $("citySearch").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(renderCityOptions,120); });
   $("favoriteCity").addEventListener("click", toggleFavoriteCity);
+  setupFavoriteSuggest();
   $("locateCity").addEventListener("click", () => requestLocation('city_picker'));
   $("welcomeLocate").addEventListener("click", () => requestLocation('welcome'));
   $("openCitySearch").addEventListener("click", openCitySearch);

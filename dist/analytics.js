@@ -5,7 +5,7 @@
   const ENDPOINT = 'https://us.i.posthog.com/batch/?ip=0';
   const CHOICE_KEY = 'pluvia-analytics-consent-v1';
   const release = 'vitals-1';
-  const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital']);
+  const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital','Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed']);
   const values = {
     mode:new Set(['login','signup']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker','automatic','notice','city_picker']),
     reason:new Set(['unsupported','permission','timeout','position','catalog']),permission:new Set(['granted','denied','default']),
@@ -139,6 +139,9 @@
     on('openCitySearch','click',()=>track('City Search Opened',{source:'topbar'}));
     on('favoriteCity','click',()=>track('Favorite City Toggled'));
     on('accountButton','click',()=>track('Account Dialog Opened'));
+    on('compareOpen','click',()=>track('Compare Opened'));
+    on('compareCity','change',()=>track('Compare City Changed'));
+    on('brazilOpen','click',()=>track('Brazil Now Opened'));
     on('accountLogin','click',()=>track('Auth Mode Selected',{mode:'login'}));
     on('accountSignup','click',()=>track('Auth Mode Selected',{mode:'signup'}));
     let searchTimer;
@@ -146,6 +149,7 @@
     document.addEventListener('click',event=>{
       if(event.target.closest?.('[data-notice]'))track('Alert Opened',{source:'INMET'});
       if(event.target.closest?.('a[href*="avisos.inmet.gov.br"]'))track('Official Alert Link Opened',{source:'INMET'});
+      if(event.target.closest?.('#brazilDialog [data-city-id]'))track('Brazil Capital Chosen');
     });
   });
 })();

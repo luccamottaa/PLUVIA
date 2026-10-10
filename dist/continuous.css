@@ -1125,6 +1125,14 @@ body[data-ink="dark"] #weatherView {
 #weatherView .hero-range .sk-line { width:min(9rem,50%); }
 #weatherView .weather-hero { padding-bottom:12px; }
 #weatherView .weather-main > .city-dots { margin-top:0; }
+/* Convite para favoritar (3ª visita à mesma cidade): uma linha discreta, alvos de 44 px. */
+#weatherView .favorite-suggest { display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:4px 8px; margin:6px auto 0; }
+#weatherView .favorite-suggest[hidden] { display:none; }
+#weatherView .favorite-suggest button { min-height:44px; padding:0 12px; border:0; border-radius:999px; background:none; font:inherit; font-size:.95rem; cursor:pointer; }
+#weatherView .favorite-suggest-save { color:var(--reading-link); font-weight:600; }
+#weatherView .favorite-suggest-dismiss { color:var(--reading-muted); }
+#weatherView .favorite-suggest-extra { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+#weatherView .favorite-suggest-save { position:relative; }
 :root[data-city-slide] #weatherView #heroRange { view-transition-name:pluvia-range; }
 ::view-transition-group(pluvia-range) { animation-duration:.5s; animation-timing-function:cubic-bezier(.22,1,.36,1); }
 ::view-transition-old(pluvia-range) { animation:pluvia-slide-out .2s cubic-bezier(.4,0,1,1) both; }
