@@ -4,12 +4,12 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const {webcrypto}=require('node:crypto');
 const source=fs.readFileSync('dist/analytics.js','utf8');
-function setup({choice='0',host='pluviaweather.com.br',dnt='0',gpc=false,offline=false,fetchImpl,performanceApi}={}) {
+function setup({choice='0',host='pluviaweather.com.br',dnt='0',gpc=false,offline=false,fetchImpl,performanceApi,release}={}) {
   const calls=[],windows={},documents={},nodes=new Map(),timers=new Map(),storage=new Map([['pluvia-analytics-consent-v1',choice]]);let tick=0;
   const node=id=>{if(!nodes.has(id))nodes.set(id,{checked:false,value:'',addEventListener(type,fn){this[type]=fn;},focus(){this.focused=true;},click(){this.click?.handler?.();}});return nodes.get(id);};
   const navigator={doNotTrack:dnt,globalPrivacyControl:gpc,onLine:!offline,userAgent:'Safari'};
   const window={crypto:webcrypto,addEventListener:(type,fn)=>{windows[type]=fn;},fetch:async(url,options)=>{calls.push({url,options,body:JSON.parse(options.body)});return fetchImpl ? fetchImpl(url,options) : {ok:true};}};
-  const document={visibilityState:'visible',getElementById:node,addEventListener:(type,fn)=>{documents[type]=fn;}};
+  const document={visibilityState:'visible',getElementById:node,addEventListener:(type,fn)=>{documents[type]=fn;},querySelector:selector=>selector==='meta[name="pluvia-release"]'&&release!==undefined?{getAttribute:()=>release}:null};
   vm.runInNewContext(source,{...(performanceApi||{}),window,navigator,location:{hostname:host},document,localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)},AbortController,Uint8Array,Date,setTimeout:fn=>{timers.set(++tick,fn);return tick;},clearTimeout:id=>timers.delete(id)});
   documents.DOMContentLoaded();
   return {api:window.pluviaAnalytics,calls,windows,documents,document,node,navigator,timers,storage};
@@ -119,4 +119,14 @@ test('origem da troca de cidade e dos atalhos da Home usa valores da lista fecha
  const batch=app.calls.flatMap(c=>c.body.batch).filter(e=>e.event!=='PLUVIA Opened');
  assert.deepEqual(batch.map(e=>e.properties.source ?? null),[...sources,null,'home','home']);
  assert.doesNotMatch(JSON.stringify(batch),/Manaus|"AM"/);
+});
+
+test('release vem da meta do shell e só aceita a geração do SW',async()=>{
+ for(const [release,expected] of [['pluvia-panel-153','panel-153'],['<script>alert(1)</script>','unknown'],['pluvia-panel-','unknown'],[undefined,'unknown']]){
+  const app=setup({choice:'1',release});
+  app.api.track('PLUVIA Opened',{});app.document.visibilityState='hidden';app.documents.visibilitychange();await app.api.flush();
+  const sent=app.calls.flatMap(call=>call.body.batch);
+  assert.ok(sent.length,String(release));
+  for(const event of sent)assert.equal(event.properties.release,expected,String(release));
+ }
 });
