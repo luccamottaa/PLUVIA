@@ -55,7 +55,10 @@
     const read = () => { try { return normalize(JSON.parse(root.localStorage.getItem(KEY) || 'null')); } catch { return normalize(null); } };
     const write = layout => { try { root.localStorage.setItem(KEY, JSON.stringify(layout)); } catch {} };
     const nodes = new Map(SECTIONS.map(section => [section.id, view.querySelector(':scope > ' + section.selector) || view.querySelector(section.selector)]));
-    const anchor = view.querySelector(':scope > #tips'), nowcast = doc.getElementById('nowcastCard');
+    // As seções vêm depois do topo fixo: dicas e os convites logo abaixo delas (avisos, compartilhar).
+    // Ancorar só em #tips jogava os convites para o fim da página.
+    const fixed = ['#tips', '#alertNudge', '#shareMoment'].map(selector => view.querySelector(':scope > ' + selector)).filter(Boolean);
+    const anchor = fixed[fixed.length - 1] || null, nowcast = doc.getElementById('nowcastCard');
     const media = root.matchMedia?.(WIDE);
     let layout = read(), wrapper = null;
 

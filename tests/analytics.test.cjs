@@ -130,3 +130,13 @@ test('release vem da meta do shell e só aceita a geração do SW',async()=>{
   for(const event of sent)assert.equal(event.properties.release,expected,String(release));
  }
 });
+test('fechar a busca de cidades diz só o resultado e o tamanho do texto',async()=>{
+ const app=setup();app.api.setConsent(true);
+ app.node('citySearch').value='Xyzzy';app.node('cityDialog').close();
+ app.node('citySearch').value='Re';app.api.track('City Selected',{source:'search'});app.node('cityDialog').close();
+ app.node('citySearch').value='';app.node('cityDialog').close();
+ await app.api.flush();
+ const closed=app.calls.flatMap(call=>call.body.batch).filter(e=>e.event==='City Search Closed').map(e=>[e.properties.outcome,e.properties.query_length]);
+ assert.deepEqual(closed,[['no_results',5],['chosen',2],['empty',undefined]]);
+ assert.doesNotMatch(JSON.stringify(app.calls),/Xyzzy/);
+});

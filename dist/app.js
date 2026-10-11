@@ -604,7 +604,7 @@ function renderSun(daily, at = Date.now(), hourly = null) {
     $("sunrise").textContent = "--:--"; $("sunset").textContent = "--:--";
     $("daylight").textContent = "Ciclo solar indisponível";
     $("sunPhrase").textContent = "";
-    if ($("sunsetGlow")) $("sunsetGlow").textContent = "";
+    if ($("sunsetGlow")) $("sunsetGlow").textContent = ""; if (typeof noteShareMoment === "function") noteShareMoment("glow", false);
     $("sunshineNote").textContent = "Duração prevista de sol indisponível.";
     return;
   }
@@ -621,6 +621,7 @@ function renderSun(daily, at = Date.now(), hourly = null) {
   // Só antes do pôr de hoje: depois dele a frase falaria de um evento que já passou.
   const glow = at >= rise && at < set ? globalThis.PLUVIA?.weatherInsights?.sunsetGlow?.(hourly, set, activeCity) : null;
   if ($("sunsetGlow")) $("sunsetGlow").textContent = glow?.text || "";
+  if (typeof noteShareMoment === "function") noteShareMoment("glow", glow?.tone === "promising");
   const sunshine = daily.sunshine_duration?.[index], daylight = daily.daylight_duration?.[index];
   const sunshineMinutes = Math.round(sunshine / 60), daylightMinutes = Math.round(daylight / 60);
   $("sunshineNote").textContent = Number.isFinite(sunshine) && Number.isFinite(daylight)
@@ -694,7 +695,31 @@ function setRainAnswer(answer) {
   node.textContent = answer.text;
   node.dataset.tone = answer.tone;
   if (typeof noteAlertNudge === "function") noteAlertNudge("rain", answer.tone === "rain" || answer.tone === "storm");
+  if (typeof noteShareMoment === "function") noteShareMoment("storm", answer.tone === "storm");
 }
+// Dia marcante (trovoada no "Vai chover?" ou pôr do sol que promete): um convite para compartilhar
+// abaixo das dicas, que usa o mesmo botão do cabeçalho (o story já fica pronto quando a previsão chega,
+// e o Safari exige share() logo após o toque). Chuva comum não conta: em Manaus seria todo dia.
+function noteShareMoment(moment, active) {
+  const box = $("shareMoment"), text = $("shareMomentText");
+  if (!box?.dataset || !text) return;
+  if (active) box.dataset[moment] = "true"; else delete box.dataset[moment];
+  const current = box.dataset.storm === "true" ? "storm" : box.dataset.glow === "true" ? "glow" : "";
+  const appearing = box.hidden && Boolean(current);
+  box.hidden = !current;
+  if (!current) { delete box.dataset.moment; return; }
+  text.textContent = current === "storm" ? "Dia de trovoada por aqui. Avisa a galera?" : "Pôr do sol promete hoje. Manda pra alguém?";
+  const changed = box.dataset.moment !== current;
+  box.dataset.moment = current;
+  if (appearing) settleBlock(box);
+  if (changed) globalThis.pluviaAnalytics?.track?.("Share Moment Shown", {moment:current});
+}
+$("shareMomentButton")?.addEventListener?.("click", () => {
+  const share = $("shareWeather");
+  if (!share || share.disabled) return;
+  globalThis.pluviaAnalytics?.track?.("Share Moment Tapped", {moment:$("shareMoment")?.dataset?.moment});
+  share.click();
+});
 // Convite de avisos na hora em que ele faz sentido: chuva prevista ("Vai chover?" com chuva ou
 // trovoada) ou aviso do INMET vigente na cidade, enquanto a pessoa não recusou o convite ("Agora não"
 // vale para os dois convites). No iPhone fora da Tela de Início o botão vira "Como ativar" e abre o
@@ -708,7 +733,7 @@ function noteAlertNudge(reason, active) {
 function updateAlertNudge() {
   const box = $("alertNudge"), text = $("alertNudgeText");
   if (!box?.dataset || !text) return;
-  const nudgeRain = box.dataset.rain === "true", nudgeOfficial = box.dataset.official === "true";
+  const nudgeRain = box.dataset.rain === "true", nudgeOfficial = box.dataset.official === "true", nudgeRegular = box.dataset.regular === "true";
   const button = $("alertNudgeEnable"), dismiss = $("alertNudgeDismiss");
   // Logo depois de ativar, o convite vira a confirmação até a troca de cidade ou até os avisos desligarem.
   if (box.dataset.done && (box.dataset.done !== activeCity?.id || globalThis.PLUVIA?.alertOffer?.canOffer?.())) delete box.dataset.done;
@@ -720,17 +745,21 @@ function updateAlertNudge() {
   }
   if (button) button.hidden = false;
   if (dismiss) dismiss.hidden = false;
-  const show = (nudgeRain || nudgeOfficial) && Boolean(globalThis.PLUVIA?.alertOffer?.canOffer?.());
+  const show = (nudgeRain || nudgeOfficial || nudgeRegular) && Boolean(globalThis.PLUVIA?.alertOffer?.canOffer?.());
   const appearing = show && box.hidden;
   box.hidden = !show;
   if (!show) return;
   const install = Boolean(globalThis.PLUVIA?.alertOffer?.needsInstall?.());
-  text.textContent = nudgeOfficial
+  const reason = nudgeOfficial ? "official" : nudgeRain ? "rain" : "regular";
+  text.textContent = reason === "official"
     ? "Tem aviso do INMET valendo agora. Quer receber os próximos no celular?"
-    : "Vai chover por aqui. Quer um aviso no celular quando a chuva estiver chegando?";
+    : reason === "rain"
+      ? "Vai chover por aqui. Quer um aviso no celular quando a chuva estiver chegando?"
+      : `Quer saber antes quando for chover${activeCity?.name ? ` em ${activeCity.name}` : ""}? Te aviso no celular, e às 7h chega o resumo do dia.`;
   if (button) button.textContent = install ? "Como ativar" : "Ativar avisos";
   box.dataset.offer = install ? "install" : "enable";
-  if (appearing) { settleBlock(box); globalThis.pluviaAnalytics?.track?.("Alert Nudge Shown", {offer:box.dataset.offer}); }
+  box.dataset.reason = reason;
+  if (appearing) { settleBlock(box); globalThis.pluviaAnalytics?.track?.("Alert Nudge Shown", {offer:box.dataset.offer, nudge:reason}); }
 }
 globalThis.addEventListener?.("pluvia:alert-offer-changed", updateAlertNudge);
 globalThis.addEventListener?.("pluvia:alerts-enabled", event => {
@@ -740,8 +769,22 @@ globalThis.addEventListener?.("pluvia:alerts-enabled", event => {
   text.textContent = `Pronto: avisos ligados para ${event.detail.label} neste aparelho.`;
   updateAlertNudge();
 });
-$("alertNudgeEnable")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Tapped", {offer:$("alertNudge")?.dataset?.offer}); globalThis.PLUVIA?.alertOffer?.enable?.(); });
-$("alertNudgeDismiss")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Dismissed", {offer:$("alertNudge")?.dataset?.offer}); globalThis.PLUVIA?.alertOffer?.dismiss?.(); updateAlertNudge(); });
+$("alertNudgeEnable")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Tapped", {offer:$("alertNudge")?.dataset?.offer, nudge:$("alertNudge")?.dataset?.reason}); globalThis.PLUVIA?.alertOffer?.enable?.(); });
+$("alertNudgeDismiss")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Dismissed", {offer:$("alertNudge")?.dataset?.offer, nudge:$("alertNudge")?.dataset?.reason}); globalThis.PLUVIA?.alertOffer?.dismiss?.(); updateAlertNudge(); });
+// Quem já abriu o PLUVIA em 3 dias diferentes também recebe o convite, mesmo sem chuva prevista:
+// é quem mais ganha com os avisos. Guarda só a contagem e o último dia (do aparelho), sem cidade.
+const OPEN_DAYS_KEY = "pluvia-open-days";
+function regularVisitor(now = new Date(), storage = globalThis.localStorage) {
+  try {
+    const day = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    const saved = JSON.parse(storage?.getItem?.(OPEN_DAYS_KEY) || "null");
+    const count = Number.isInteger(saved?.count) && saved.count > 0 ? saved.count : 0;
+    const next = saved?.last === day ? count : Math.min(count + 1, 999);
+    if (saved?.last !== day) storage?.setItem?.(OPEN_DAYS_KEY, JSON.stringify({count:next, last:day}));
+    return next >= 3;
+  } catch { return false; }
+}
+if (regularVisitor()) noteAlertNudge("regular", true);
 
 function setYesterdayNote(comparison) {
   const node = $("yesterdayNote");
@@ -1012,7 +1055,7 @@ async function loadWeather(revision = cityRevision) {
       $("hourlyDecision").textContent = "Sem dados recentes para as próximas horas."; $("hourlyDecision").hidden = false;
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
       setDryWindow("Sem dados");
-      $("daylight").textContent = "Ciclo solar indisponível"; $("sunPhrase").textContent = ""; if ($("sunsetGlow")) $("sunsetGlow").textContent = "";
+      $("daylight").textContent = "Ciclo solar indisponível"; $("sunPhrase").textContent = ""; if ($("sunsetGlow")) $("sunsetGlow").textContent = ""; if (typeof noteShareMoment === "function") noteShareMoment("glow", false);
     }
     if (!displayedWeather || !displayedWeather.fromCache || offline) {
       showWeatherError(offline
