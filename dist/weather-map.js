@@ -16,7 +16,6 @@
   let leafletPromise;
   let layerRevision = 0;
   const fading = new Map();
-  let stationSignature='';
   let pendingTimeout=null,radarSnapshot=null,displayedFrameKey=null,pendingFrameKey=null,displayedPartial=false,resizePending=false;
   const lastSize={width:0,height:0};
 
@@ -142,22 +141,8 @@
     radarSnapshot={data,at:cached ? radarSnapshot.at : Date.now()};
     setFrames(frames,frames.length-1); renderFrame();
   }
-  function loadStations() {
-    const data=globalThis.PLUVIA?.nowcast?.get();
-    stationSignature=JSON.stringify(data?.stations || []);
-    if (!data?.stations?.length) throw new Error('Sem boletim recente da estação. Atualize o card Nowcast.');
-    const marks=data.stations.map(station=>{
-      const tooltip=document.createElement('span');
-      tooltip.textContent=`${station.name} · ${zoneTime(station.observedAt/1000)} · ${globalThis.PLUVIA.nowcast.stationText?.(station) || station.source}`;
-      return L.circleMarker([station.lat,station.lon],{radius:8,color:'#fff',weight:2,fillColor:'#25a38d',fillOpacity:.9}).bindTooltip(tooltip);
-    });
-    state.overlay=L.layerGroup(marks).addTo(state.map);setFrames([],0);
-    $('weatherFrameTime').textContent=zoneTime(data.stations[0].observedAt/1000);
-    $('weatherSourceNote').textContent=`${data.stations[0].source} · observação pontual, sem estimativa de chegada da chuva. A marca azul é a referência do município.`;
-    $('weatherMapLegend').textContent='Estação observada · '+data.stations.map(station=>station.name).join(', ');
-  }
   async function selectLayer(name) {
-    if (!['rain','stations'].includes(name)) return;
+    if (name !== 'rain') return;
     if (!state.map) {
       state.layer = name;
       if (!initializing) showMap();
@@ -166,16 +151,14 @@
     const revision = ++layerRevision;
     stop(); setError(''); httpClient?.abortAll(); removeOverlay(); state.layer = name;
     setFrames([],0);
-    document.querySelectorAll('[data-weather-layer]').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.weatherLayer===name)));
-    $('weatherLayerName').textContent = name === 'stations' ? 'Estação' : 'Chuva';
+    $('weatherLayerName').textContent = 'Chuva';
     $('weatherFrameTime').textContent = 'Carregando…'; $('weatherFrameTime').removeAttribute?.('data-state'); $('weatherSourceNote').textContent = 'Consultando a fonte escolhida…';
     frameStatus(true,'Consultando a fonte escolhida…');
     try {
-      if (name === 'rain') await loadRain(revision); else loadStations();
-      if (revision===layerRevision && name==='stations') frameStatus(false,'Observação carregada.');
+      await loadRain(revision);
     } catch (error) {
       if (revision !== layerRevision) return;
-      source(name === 'rain' ? 'radar' : name,{status:'error'}); setFrames([],0); setError('Esta camada está temporariamente indisponível. Tente novamente.');
+      source('radar',{status:'error'}); setFrames([],0); setError('Esta camada está temporariamente indisponível. Tente novamente.');
       frameStatus(false,'Não foi possível carregar esta camada.',true);
       $('weatherFrameTime').textContent = 'Indisponível'; $('weatherFrameTime').setAttribute?.('data-state','error'); $('weatherSourceNote').textContent = error?.message || 'Dados temporariamente indisponíveis.';
     }
@@ -323,7 +306,6 @@
     },{rootMargin:'240px'});
     observer.observe(mapCard);
   } else { mapVisible = true; showMap(); }
-  document.querySelectorAll('[data-weather-layer]').forEach(button => button.addEventListener('click',() => selectLayer(button.dataset.weatherLayer)));
   $('weatherFramePrev').addEventListener('click',() => step(-1)); $('weatherFrameNext').addEventListener('click',() => step(1));
   $('weatherTimeline').addEventListener('input',event => { stop(); state.index=Number(event.target.value); renderFrame(); });
   $('weatherPlay').addEventListener('click',() => {
@@ -332,7 +314,6 @@
     state.timer=setInterval(() => step(1),1400);
   });
   const sourceEntries = [
-    ['NOAA Aviation Weather Center','Observação METAR','Boletim do aeroporto Eduardo Gomes (SBEG), com horário da observação. Descreve a estação, sem confirmar chuva nos demais bairros.'],
     ['INMET','Dado oficial','Avisos meteorológicos vigentes e previstos para o município.'],
     ['Open-Meteo','Estimativa meteorológica','Tempo, chuva e qualidade do ar no ponto do município.'],
     ['MET Norway','Previsão meteorológica','Fonte principal de temperatura, vento e precipitação. Quando indisponível, usamos Open-Meteo. Dados CC BY 4.0.'],
@@ -367,12 +348,7 @@
   globalThis.PLUVIA.modules['weather-layers'].cityChanged = () => {
     if (state.cityId === city()?.id) return;
     ++layerRevision; httpClient?.abortAll(); stop(); removeOverlay(); setFrames([],0);
-    if (state.layer==='stations' && !globalThis.PLUVIA?.nowcast?.regionFor?.(city())) state.layer='rain';
     if (mapVisible || radarDialog?.open) showMap();
   };
   globalThis.PLUVIA.modules['weather-layers'].selectLayer=selectLayer;
-  globalThis.addEventListener?.('pluvia:nowcast-updated',()=>{
-    if ($('weatherStationsLayer')) $('weatherStationsLayer').hidden=!globalThis.PLUVIA?.nowcast?.regionFor?.(city());
-    if (state.map && state.layer==='stations' && JSON.stringify(globalThis.PLUVIA?.nowcast?.get()?.stations || [])!==stationSignature) selectLayer('stations');
-  });
 })();

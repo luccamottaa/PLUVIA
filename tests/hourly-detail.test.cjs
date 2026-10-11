@@ -1,6 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {detail,rainCopy,mount}=require('../dist/modules/hourly-detail.js');
-const hourlyOutlook=require('../dist/modules/hourly-outlook.js');
+const {detail,mount}=require('../dist/modules/hourly-detail.js');
 const hourly={time:['2026-09-30T23:00','2026-10-01T00:00','2026-10-01T01:00'],temperature_2m:[27,26,25],apparent_temperature:[31,30,29],weather_code:[3,61,3],precipitation_probability:[99,80,0],precipitation:[9,2,0],wind_speed_10m:[0,10,null],wind_gusts_10m:[0,25,30],relative_humidity_2m:[75,80,85]};
 test('detalhe combina leituras instantâneas com chuva no intervalo seguinte',()=>{
  const first=detail(hourly,0);
@@ -22,19 +21,12 @@ test('detalhe inclui UV, pressão e direção meteorológica sem coercão de aus
  const absent=detail({...hourly,uv_index:[null],pressure_msl:['1010'],wind_direction_10m:[361]},0);
  assert.equal(absent.uv,null);assert.equal(absent.pressure,null);assert.equal(absent.direction,null);
 });
-test('texto da janela cruza meia-noite sem esconder os dados parciais',()=>{
- const copy=rainCopy(hourlyOutlook.build(hourly,1),hourly.time[0]);
- assert.match(copy.title,/23:00 às 00:00 de amanhã/);assert.match(copy.text,/Dados parciais/);assert.match(copy.text,/2,0 mm nessa faixa/);
- const low=rainCopy(hourlyOutlook.build(hourly,2),hourly.time[1]);
- assert.equal(low.title,'Baixa chance nos horários disponíveis');assert.match(low.text,/volume indisponível/);
- assert.match(rainCopy(null).title,/indisponível/);
-});
 function screen() {
  const nodes=new Map(),events={},clicks={};
  const el=id=>{if(id.startsWith('heroRain'))return null;if(!nodes.has(id)) nodes.set(id,{id,textContent:'',innerHTML:'',dataset:{},disabled:false,open:false,addEventListener(type,fn){clicks[id+':'+type]=fn;}});return nodes.get(id);};
  const dialog=el('hourlyDetailDialog');
  dialog.showModal=()=>{dialog.open=true;};dialog.close=()=>{dialog.open=false;clicks['hourlyDetailDialog:close']?.();};
- const root={PLUVIA:{hourlyDetail:{},hourlyOutlook},document:{getElementById:el,addEventListener(type,fn){events['document:'+type]=fn;}},addEventListener(type,fn){events[type]=fn;}};
+ const root={PLUVIA:{hourlyDetail:{}},document:{getElementById:el,addEventListener(type,fn){events['document:'+type]=fn;}},addEventListener(type,fn){events[type]=fn;}};
  mount(root);
  const update=city=>root.PLUVIA.hourlyDetail.update({hourly,start:0,city:city||{id:'1302603',name:'Manaus',uf:'AM'},fromCache:true});
  update();let focused=0;

@@ -571,11 +571,10 @@ body.city-dialog-open { overflow:hidden; } /* classe em vez de :has(): o Safari 
 .weather-map-card{margin-top:0;padding:20px;display:grid;gap:14px;overflow:hidden}
 .weather-map-copy { min-width:0; }
 .weather-map-card h2{margin:6px 0 5px;font-size:1.26rem;letter-spacing:-.025em;line-height:1.2}.weather-map-card p{margin:0;color:var(--muted);max-width:42ch;font-size:.9rem;line-height:1.42}
-.weather-layer-chips button,.weather-player button{border:1px solid #2f6bff55;background:#fff;color:var(--blue);font:750 .88rem var(--font-ui);cursor:pointer}
+.weather-player button{border:1px solid #2f6bff55;background:#fff;color:var(--blue);font:750 .88rem var(--font-ui);cursor:pointer}
 .weather-map-dialog{width:min(1040px,calc(100vw - 28px));height:min(820px,calc(100dvh - 28px));padding:0;border:1px solid #2f6bff33;border-radius:28px;background:var(--panel);color:var(--text);box-shadow:0 30px 100px #10234055;overflow:hidden}
 .weather-map-dialog::backdrop{background:#071224aa;backdrop-filter:blur(12px)}
 
-.weather-layer-chips{padding:0;display:flex;gap:8px;overflow-x:auto}.weather-layer-chips button{min-height:42px;padding:8px 16px;border-radius:999px}.weather-layer-chips button[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 8px 24px #2f6bff33}
 .weather-map-stage{position:relative;height:clamp(300px,48vw,480px);min-width:0;border-radius:18px;overflow:hidden;background:#dceaff}.weather-map-stage #weatherMap{height:100%;width:100%;z-index:1}.weather-map-stage .leaflet-control-attribution{font-size:9px}.weather-map-stage .leaflet-control-zoom a{color:#173d91}
 .weather-map-error{position:absolute;z-index:500;inset:16px 16px auto;margin:0;padding:11px 14px;border-radius:14px;background:#fff;color:#8a2d12;box-shadow:0 12px 30px #10234033;font-weight:700}
 .weather-map-legend{position:absolute;z-index:400;right:14px;bottom:14px;display:flex;align-items:center;gap:7px;max-width:min(390px,calc(100% - 28px));padding:8px 11px;border:1px solid #ffffff99;border-radius:999px;background:#ffffffe8;color:#19304f;font-size:.72rem;box-shadow:0 8px 22px #1023402b;backdrop-filter:blur(12px)}
@@ -589,7 +588,7 @@ body.city-dialog-open { overflow:hidden; } /* classe em vez de :has(): o Safari 
 .official-observations{border-top:1px solid #2f6bff33;padding-top:12px}.official-observations h3{margin:6px 0}.official-observations p{color:var(--muted);line-height:1.45}.official-observations a{display:block;color:var(--blue);font-weight:750;padding:8px 0;text-decoration:underline}
 .alert-preferences{margin-top:18px;padding-top:16px;border-top:1px solid #2f6bff22}.alert-preferences fieldset{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:0 0 9px;padding:0;border:0}.alert-preferences legend{margin-bottom:10px;font-weight:800}.alert-preferences label{display:flex!important;align-items:center;gap:7px;font-size:.9rem}.alert-preferences input{width:auto!important;margin:0;accent-color:var(--blue)}.alert-preferences small{display:block;margin-bottom:10px;color:var(--muted);line-height:1.4}
 @media(max-width:640px){.weather-map-card{gap:14px;padding:18px}.weather-map-card h2{font-size:1.2rem}.weather-map-stage{height:330px;min-height:0}.weather-timebar{grid-template-columns:1fr;gap:8px}.weather-player{grid-template-columns:42px 46px 42px minmax(0,1fr)}.weather-map-legend{left:12px;right:auto;bottom:12px}.alert-preferences fieldset{grid-template-columns:1fr}}
-@media(prefers-color-scheme:dark){.weather-layer-chips button,.weather-player button{background:#101e33;color:#a9c5ff}.weather-layer-chips button[aria-pressed="true"]{background:#2f6bff;color:#fff}.weather-map-error,.weather-map-legend{background:#101e33eb;color:#e7efff}.sources-list article{background:#183252}.weather-map-stage{background:#0c1d38}}
+@media(prefers-color-scheme:dark){.weather-player button{background:#101e33;color:#a9c5ff}.weather-map-error,.weather-map-legend{background:#101e33eb;color:#e7efff}.sources-list article{background:#183252}.weather-map-stage{background:#0c1d38}}
 @media(prefers-reduced-motion:reduce){.weather-map-dialog *{scroll-behavior:auto!important;transition:none!important}}
 @media(max-width:600px) { .city-dialog { width:calc(100% - 24px); padding:16px; border-radius:22px; } .dialog-heading h2 { font-size:1.1rem; } }
 

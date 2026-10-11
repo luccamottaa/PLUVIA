@@ -474,8 +474,6 @@ html body .quick-metrics .hero-temperature-range { border-radius:0 24px 24px 0 !
 .weather-map-card h2 { font-size:1.3rem; letter-spacing:-.025em; }
 .weather-map-card .eyebrow { font-size:.65rem; letter-spacing:.12em; color:#90a8c4; }
 
-[data-weather-layer] { border-radius:12px !important; border:1px solid transparent !important; background:#071a2e !important; color:#aebfd4 !important; box-shadow:none !important; }
-[data-weather-layer][aria-pressed=true] { background:#377eef !important; color:#fff !important; }
 
 .weather-map-legend { border:1px solid #accbf325; border-radius:12px; background:#0d2038ed; color:#cfdef0; font-size:.65rem; backdrop-filter:none; }
 #weatherSourceNote { color:#99aec9; font-size:.74rem; line-height:1.5; }

@@ -1111,7 +1111,6 @@ function showWeatherError(message) {
 
 async function refreshAll() {
   if (!activeCity) return false;
-  globalThis.PLUVIA?.nowcast?.refresh(activeCity);
   if (refreshInFlight) return refreshInFlight;
   const revision = cityRevision;
   refreshInFlight = Promise.allSettled([loadWeather(revision), loadInmetAlerts(revision)]).then(results => {

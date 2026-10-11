@@ -55,8 +55,6 @@ Depois, abra `http://localhost:8080`.
 
 Cada cidade usa seu próprio fuso. Os dados são referência do ponto municipal, não da rua do visitante.
 
-O Resumo Inteligente cruza previsão, vento, calor, UV, qualidade do ar e avisos oficiais. Ele expõe os fatores usados em “Por que está assim?” e não cria eventos sem dados suficientes.
-
 ## Documentação
 
 - [Evolução: inventário, recursos e limites de dados](docs/PRODUCT-EVOLUTION.md)
@@ -66,7 +64,7 @@ O Resumo Inteligente cruza previsão, vento, calor, UV, qualidade do ar e avisos
 - [Auditoria de produto](docs/PRODUCT-AUDIT.md)
 - [Design System PLUVIA](docs/DESIGN-SYSTEM.md)
 - [Notificações Web Push](docs/PUSH-NOTIFICATIONS.md)
-- [Resumo Inteligente, responsividade e WeatherIcons](docs/SMART-SUMMARY-WEATHERICONS.md)
+- [Ícones meteorológicos](docs/WEATHER-ICONS.md)
 
 Ao atualizar `dist/municipalities.js`, regenere os arquivos menores com:
 

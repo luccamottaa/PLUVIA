@@ -43,7 +43,6 @@ jobs:
           python scripts/verify-auth-redirects.py
           python scripts/verify-visual.py
           python scripts/verify-clouds.py
-          python scripts/verify-nowcast.py
           python scripts/verify-daily-planning.py
           python scripts/verify-daily-detail.py
           python scripts/verify-contrast.py
