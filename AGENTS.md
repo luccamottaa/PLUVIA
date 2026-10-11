@@ -146,7 +146,7 @@ Por solicitação explícita do usuário, o PWA instalado bloqueia zoom da pági
 
 ## PWA e publicação
 
-`sw.js` guarda o shell e assets estáticos, nunca APIs externas/Auth. Ao mudar JS/CSS publicado, atualize **juntos** as versões de referência no HTML, preload quando existir, `PRECACHE` e a geração `CACHE`. Testes de contrato travam essas referências e devem acompanhar a nova versão. Não apagar o fallback offline ou a atualização quando o usuário estiver digitando.
+`sw.js` guarda o shell e assets estáticos, nunca APIs externas/Auth. Ao mudar JS/CSS publicado, atualize **juntos** as versões de referência no HTML, preload quando existir, `PRECACHE` e a geração `CACHE`. Testes de contrato travam essas referências e devem acompanhar a nova versão. Não apagar o fallback offline ou a atualização quando o usuário estiver digitando. A versão nova (controllerchange) só recarrega a página quando ela vai para o fundo (`visibilitychange` hidden ou `pagehide`), nunca com o app na frente: a recarga ~1,5 s depois de abrir pintava tudo duas vezes, cortava consultas e coincidiu com o iPhone encerrando a página ("Um problema ocorreu repetidamente", outubro/2026). Quem abre logo após um deploy usa a versão anterior naquela visita.
 
 Durante fetch, registrar `waitUntil` de forma síncrona e esperar as gravações do cache sem bloquear a entrega da resposta. Erros HTTP nunca são guardados como shell válido.
 
