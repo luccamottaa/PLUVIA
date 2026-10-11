@@ -301,3 +301,14 @@ A pedido do usuário, Minha conta, Suas cidades e Fontes de dados ganharam um vi
 ## Faxina da Home (outubro/2026, 3)
 
 A pedido do usuário: rótulos dos blocos de leitura em caixa normal ("Umidade", "Índice UV", "Qualidade do ar"), pequenos e cinza; UV na Home é inteiro (`fmt(uv, 0)`) e a classificação usa o mesmo valor arredondado; a nota do ar não repete o número ("AQI 35 · ar limpo" virou uma frase de orientação por faixa, sem atribuir causa). Sem alertas, a linha do INMET fica cinza e sem o selo azul. No radar da Home o nome "Chuva" fica só para leitores de tela, "Carregando…" some (o mapa já mostra) e a imagem pronta recebe `data-state="ready"` e aparece como "Imagem de radar das HH:MM". Comparar/Brasil agora são dois blocos com ícone no fim dos 7 dias (o botão mostra "Comparar", rótulo acessível "Comparar cidades"). O puxar para atualizar (`setupPullToRefresh`, já existente) ganhou chip escuro com indicador que gira só ao consultar.
+
+## Pôr do sol, bolinha do app, voz e correções (outubro/2026)
+
+"Pôr do sol bonito hoje?": a consulta principal traz `cloud_cover_low/mid/high`; `weatherInsights.sunsetGlow(hourly, set, city)` lê a hora mais próxima do pôr (cobertura instantânea; chance de chuva em i+1) e devolve promete (médias/altas 25–85% e baixas < 40%), nuvens baixas (≥ 60%), chuva (código ≥ 51 ou ≥ 50%) ou céu limpo; fora disso, camada ausente (cache antigo, previsão reduzida MET) ou depois do pôr, `#sunsetGlow` fica vazio. É heurística qualitativa, não previsão de cor. Teste: `tests/sunset-glow.test.cjs`.
+
+Bolinha no ícone: `syncAppBadge` (app.js) marca com aviso INMET vigente da cidade aberta em leitura atual e limpa sem ele; leitura anterior não mexe. O SW continua marcando ao chegar push; abrir o app reconcilia (antes a bolinha nunca saía).
+
+Busca por voz: `modules/voice-search.js` mostra `#voiceSearch` só com `SpeechRecognition`/`webkitSpeechRecognition`; uma frase em pt-BR por toque, sem escuta contínua, texto entra no campo como `input`; fechar o diálogo aborta. A privacidade menciona que o reconhecimento é do navegador (no Chrome, Google). Teste: `tests/voice-search.test.cjs`.
+
+Avisos sem conta, correções: só a inscrição criada sem conta (`pluvia-push-anon`) leva a cidade aberta para a conta ao entrar; renovações comuns registram sem cidade (recarregar depois de "Parar avisos" não religa nada). `push-subscription-changed` e `?push_delivery=` resolvem a sessão anônima sob demanda (`ensurePushUser({create:false})`); o parâmetro sai da URL antes da resposta. A confirmação "Pronto: avisos ligados" some ao trocar de cidade ou quando o convite volta a valer. "Agora não" vale em memória com storage bloqueado. "Organizar" favoritos devolve o foco à mesma seta depois de repintar. Teste: `tests/push-account-migration.test.cjs`.
+

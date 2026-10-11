@@ -89,6 +89,33 @@
     return {total:round(total, 1), text:`Choveu cerca de ${mm.toLocaleString("pt-BR")} mm nas últimas 24 h, pelo modelo.`};
   }
 
+  // Pôr do sol colorido costuma vir com nuvens médias/altas espalhadas e horizonte sem nuvens baixas.
+  // Usa a cobertura por camada do modelo na hora mais próxima do pôr (valor instantâneo); a chance de
+  // chuva é a do intervalo que começa nessa hora (i+1). É heurística qualitativa: ausência não vira frase.
+  function sunsetGlow(hourly, setAt, city) {
+    const times = hourly?.time;
+    if (!Array.isArray(times) || !finite(setAt) || typeof time?.parse !== "function") return null;
+    let index = -1, best = Infinity;
+    for (let i = 0; i < times.length; i += 1) {
+      const stamp = time.parse(times[i], city);
+      if (!finite(stamp)) continue;
+      const gap = Math.abs(stamp - setAt);
+      if (gap < best) { best = gap; index = i; }
+    }
+    if (index < 0 || best > 3600000) return null;
+    const layer = key => { const value = number(hourly[key]?.[index]); return value !== null && value >= 0 && value <= 100 ? value : null; };
+    const low = layer("cloud_cover_low"), mid = layer("cloud_cover_mid"), high = layer("cloud_cover_high");
+    if (low === null || mid === null || high === null) return null;
+    const code = number(hourly.weather_code?.[index]);
+    const chance = number(hourly.precipitation_probability?.[index + 1]);
+    if ((code !== null && code >= 51) || (chance !== null && chance >= 50)) return {tone:"rain", text:"Chuva pode atrapalhar o pôr do sol."};
+    if (low >= 60) return {tone:"hidden", text:"Nuvens baixas devem esconder o pôr do sol."};
+    const upper = Math.max(mid, high);
+    if (upper >= 25 && upper <= 85 && low < 40) return {tone:"promising", text:"Pôr do sol promete: nuvens altas podem ganhar cor."};
+    if (low < 15 && upper < 15) return {tone:"clear", text:"Céu limpo no pôr do sol, com pouca nuvem para colorir."};
+    return null;
+  }
+
   function feelsLike(current) {
     const temperature = number(current?.temperature_2m);
     const apparent = number(current?.apparent_temperature);
@@ -355,5 +382,5 @@
     };
   }
 
-  return {currentIndex, yesterday, pastRain, feelsLike, uv, pressure, rain, rainAnswer, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
+  return {currentIndex, yesterday, pastRain, sunsetGlow, feelsLike, uv, pressure, rain, rainAnswer, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
 });
