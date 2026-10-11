@@ -21,7 +21,7 @@ test('cada cidade com página tem título, descrição, canonical e dados estrut
   assert.match(html,new RegExp(`<link rel="canonical" href="${url}" />`));
   assert.match(html,new RegExp(`<meta property="og:url" content="${url}" />`));
   assert.match(html,new RegExp(`<meta name="pluvia-city" content="${city.id}" />`));
-  assert.match(html,new RegExp(`<span id="cityName">${city.name}</span>`));
+  assert.ok(html.includes(`<span id="cityName">${city.name.replace(/'/g,'&#39;')}</span>`),file);
   assert.ok(html.includes(`<a href="${api.cityPagePath(city)}" aria-current="page">`),file);
   const data=JSON.parse(html.match(/<script type="application\/ld\+json">([^<]*)<\/script>/)[1]);
   const page=data['@graph'].find(node=>node['@type']==='WebPage');
@@ -35,11 +35,12 @@ test('cada cidade com página tem título, descrição, canonical e dados estrut
  assert.ok(!canonicals.has('https://pluviaweather.com.br/'));
 });
 
-test('a Home mantém canonical próprio e lista todas as cidades com página sem marcar nenhuma',()=>{
+test('a Home mantém canonical próprio e lista capitais e polos sem marcar nenhuma',()=>{
  const home=files.get('index.html');
  assert.match(home,/<link rel="canonical" href="https:\/\/pluviaweather\.com\.br\/" \/>/);
  assert.doesNotMatch(home,/<meta name="pluvia-city"/);assert.doesNotMatch(home,/aria-current="page"/);
- assert.equal((home.match(/<li><a href="\/clima\//g)||[]).length,api.PAGES.length);
+ assert.equal((home.match(/<li><a href="\/clima\//g)||[]).length,api.CAPITALS.length+api.FEATURED.length);
+ assert.ok(api.PAGES.length>600,'páginas extras ficam fora do rodapé da Home');
  assert.doesNotMatch(home,/capital-page-note/);
 });
 
@@ -71,11 +72,11 @@ test('na página de cidade a URL acompanha a cidade escolhida; na Home nunca mud
   const calls=[];const context=vm.createContext({document:{querySelectorAll:()=>[]},Intl,localStorage:{getItem:()=>null,setItem(){}},location:{pathname,hash:''},history:{state:null,replaceState:(s,t,url)=>calls.push(url)}});
   context.globalThis=context;
   vm.runInContext(fs.readFileSync(path.join(dist,'capitals.js'),'utf8')+'\n'+source,context);
-  return {calls,sync:id=>vm.runInContext(`syncCityPage(cityById.get(${JSON.stringify(id)}) || {id:${JSON.stringify(id)},name:${JSON.stringify(({'1300102':'Anori','1303403':'Parintins'})[id]||'')},uf:'AM'})`,context)};
+  return {calls,sync:id=>vm.runInContext(`syncCityPage(cityById.get(${JSON.stringify(id)}) || {id:${JSON.stringify(id)},name:${JSON.stringify(({'2400109':'Acari','1303403':'Parintins'})[id]||'')},uf:${JSON.stringify(id.startsWith('24')?'RN':'AM')}})`,context)};
  };
  let page=run('/clima/manaus-am/');page.sync('1501402');assert.deepEqual(page.calls,['/clima/belem-pa/']);
  page=run('/clima/manaus-am/');page.sync('1302603');assert.deepEqual(page.calls,[],'mesma cidade não reescreve');
- page=run('/clima/manaus-am/');page.sync('1300102');assert.deepEqual(page.calls,['/'],'município sem página volta para a Home');
+ page=run('/clima/manaus-am/');page.sync('2400109');assert.deepEqual(page.calls,['/'],'município sem página volta para a Home');
  page=run('/clima/manaus-am/');page.sync('1303403');assert.deepEqual(page.calls,['/clima/parintins-am/'],'Parintins tem página');
  page=run('/');page.sync('1501402');assert.deepEqual(page.calls,[],'a Home não muda de endereço');
 });

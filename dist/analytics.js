@@ -5,7 +5,7 @@
   const ENDPOINT = 'https://us.i.posthog.com/batch/?ip=0';
   const CHOICE_KEY = 'pluvia-analytics-consent-v1';
   const release = 'vitals-1';
-  const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital','Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed','Alert Nudge Shown','Alert Nudge Tapped','Alert Nudge Dismissed']);
+  const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital','Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed','Alert Nudge Shown','Alert Nudge Tapped','Alert Nudge Dismissed','Rain Report Sent','Install Prompt Shown','Install Prompt Tapped','Install Prompt Dismissed','App Installed']);
   const values = {
     mode:new Set(['login','signup']),offer:new Set(['install','enable']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker','automatic','notice','city_picker','swipe','dots','search','favorite','saved_place','brazil','startup','other','home']),
     reason:new Set(['unsupported','permission','timeout','position','catalog']),permission:new Set(['granted','denied','default']),
@@ -13,7 +13,7 @@
     component:new Set(['application','asset','weather','air-quality','alerts','met-norway','ensemble','account','radar','lightning']),
     error_code:new Set(['timeout','network_error','invalid_response','rate_limited','provider_unavailable','http_error','client_unavailable','unexpected','resource_error']),
     error_type:new Set(['Error','TypeError','ReferenceError','SyntaxError','RangeError','RequestError']),
-    metric:new Set(['LCP','INP','CLS','FCP','TTFB']),rating:new Set(['good','needs-improvement','poor'])
+    kind:new Set(['dry','drizzle','rain','heavy']),metric:new Set(['LCP','INP','CLS','FCP','TTFB']),rating:new Set(['good','needs-improvement','poor'])
   };
   let consent = false, timer = null, inFlight = null, controller = null, generation = 0, visitId = null, sent = 0;
   const queue = [], failures = new Set();
