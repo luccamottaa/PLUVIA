@@ -31,12 +31,20 @@ export async function authenticatedUser(req: Request, requestTimeout?: number) {
   return data.user;
 }
 
+// Logo depois de uma partida a frio a primeira consulta ao banco às vezes falha (outubro/2026:
+// push_secrets_unavailable e config_lookup_failed ~0,7 s após o boot, e a mesma ação funcionava em
+// seguida). Leituras repetem uma vez, depois de uma pausa curta; escritas não passam por aqui.
+export const retryPause = (ms = 300) => new Promise(resolve => setTimeout(resolve, ms));
+
 export async function pushSecrets(admin = adminClient()) {
-  const { data, error } = await admin.rpc("pluvia_push_secret_bundle");
-  const value = data?.[0];
-  if (error || !value?.vapid_public_key || !value?.vapid_private_key || !value?.vapid_subject || !value?.cron_secret) {
-    throw new Error("push_secrets_unavailable");
+  for (let attempt = 0; ; attempt++) {
+    const { data, error } = await admin.rpc("pluvia_push_secret_bundle");
+    const value = data?.[0];
+    if (!error && value?.vapid_public_key && value?.vapid_private_key && value?.vapid_subject && value?.cron_secret) {
+      return value as { vapid_public_key: string; vapid_private_key: string; vapid_subject: string; cron_secret: string };
+    }
+    if (attempt >= 1) throw new Error("push_secrets_unavailable");
+    await retryPause();
   }
-  return value as { vapid_public_key: string; vapid_private_key: string; vapid_subject: string; cron_secret: string };
 }
 
