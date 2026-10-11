@@ -1224,6 +1224,9 @@ body[data-ink="dark"] #weatherView {
 #weatherView .sun-section .sun-copy .sun-summary { margin:6px 0 0; font-size:.95rem; line-height:1.45; }
 #weatherView .sun-section .sun-copy .sun-summary strong { display:inline; margin:0; color:var(--reading-ink); font-size:inherit; font-weight:500; letter-spacing:0; line-height:inherit; }
 #weatherView .sun-section #sunPhrase:not(:empty)::before { content:" · "; }
+/* "Pôr do sol promete" etc.: estimativa pelas nuvens por camada; some quando não há leitura. */
+#weatherView .sun-section .sunset-glow { margin:4px 0 0; color:var(--reading-muted); font-size:.875rem; line-height:1.4; }
+#weatherView .sun-section .sunset-glow:empty { display:none; }
 #weatherView .sun-section .sun-ends { display:flex; justify-content:space-between; gap:12px; width:100%; margin-top:-22px; border:0; }
 #weatherView .sun-section .sun-ends div { display:grid; gap:2px; min-width:0; padding:0; border:0; text-align:left; }
 #weatherView .sun-section .sun-ends div + div { text-align:right; }
@@ -1384,6 +1387,21 @@ html body #cityDialog #citySearch {
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a9b8d0' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
   background-repeat:no-repeat; background-position:18px 50%; background-size:20px;
 }
+/* Microfone dentro da pílula de busca (só aparece com reconhecimento de fala disponível). */
+html body #cityDialog .city-search-field { position:relative; }
+html body #cityDialog .city-search-field:has(.voice-search:not([hidden])) #citySearch { padding-right:56px; }
+html body #cityDialog #voiceSearch {
+  position:absolute; top:50%; right:26px; width:44px; height:44px; min-height:44px; margin-top:-27px; padding:0; border:0; border-radius:999px;
+  background:transparent; color:#a9b8d0;
+}
+html body #cityDialog .voice-search::before {
+  content:""; display:block; width:22px; height:22px; margin:auto; background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='3' width='6' height='11' rx='3'/%3E%3Cpath d='M5 11a7 7 0 0 0 14 0M12 18v3'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='3' width='6' height='11' rx='3'/%3E%3Cpath d='M5 11a7 7 0 0 0 14 0M12 18v3'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+html body #cityDialog #voiceSearch[data-listening] { background:var(--brand-blue); color:#fff; }
+@media (forced-colors:active){ html body #cityDialog .voice-search::before { background:ButtonText; } }
+@media (max-width:600px){ html body #cityDialog #voiceSearch { right:22px; margin-top:-26px; } }
 html body #cityDialog .city-picker { gap:22px; }
 html body #cityDialog .city-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
 html body #cityDialog .city-actions > button {

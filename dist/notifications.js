@@ -3,7 +3,12 @@
   const el = id => document.getElementById(id);
   // "Agora não" esconde o convite da Home neste aparelho; os alertas continuam na conta.
   const DISMISS_KEY = "pluvia-notification-prompt-dismissed";
-  const promptDismissed = () => { try { return localStorage.getItem(DISMISS_KEY) === "1"; } catch { return false; } };
+  // Guardado também em memória: com o storage bloqueado, "Agora não" ainda vale nesta visita.
+  let dismissedNow = false;
+  const promptDismissed = () => { if (dismissedNow) return true; try { return localStorage.getItem(DISMISS_KEY) === "1"; } catch { return false; } };
+  // Marca que a inscrição deste aparelho nasceu sem conta: só ela leva a cidade aberta para a conta ao entrar.
+  const ANON_KEY = "pluvia-push-anon";
+  const anonDevice = value => { try { if (value === undefined) return localStorage.getItem(ANON_KEY) === "1"; if (value) localStorage.setItem(ANON_KEY, "1"); else localStorage.removeItem(ANON_KEY); } catch {} return false; };
   const toggle = el("notificationToggle"), testButton = el("notificationTest"), statusBadge = el("notificationStatusBadge");
   const supportNote = el("notificationSupportNote"), diagnosticsNode = el("notificationDiagnostics"), form = el("notificationPreferencesForm"), devicesNode = el("notificationDevices"), locationsNode = el("notificationLocations");
   const installDialog = el("installPushDialog"), continueNote = el("notificationContinueNote");
@@ -284,6 +289,7 @@
       let subscription = await registration.pushManager.getSubscription();
       if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: publicKeyBytes(config.publicKey) });
       await register(subscription, currentLocation());
+      anonDevice(!currentUser());
       setPendingEnable(false);
       track("Push Enabled", { platform: deviceInfo().platform, city: currentLocation()?.cityId || "" });
       window.dispatchEvent(new CustomEvent("pluvia:alerts-enabled", { detail: { cityId: currentLocation()?.cityId || "", label: cityLabel() } }));
@@ -299,7 +305,7 @@
       const id = localSubscriptionId(), subscription = await browserSubscription();
       if (id) await invoke("push-subscriptions", { action: "remove", subscriptionId: id }).catch(() => {});
       if (subscription) await subscription.unsubscribe();
-      saveSubscriptionId(""); config = null; track("Push Disabled", { platform: deviceInfo().platform });
+      saveSubscriptionId(""); anonDevice(false); config = null; track("Push Disabled", { platform: deviceInfo().platform });
       message("Alertas desativados neste dispositivo.");
       if (currentUser()) await loadConfig();
     } finally { busy = false; await paintState(); }
@@ -308,6 +314,15 @@
   async function toggleNotifications() {
     const active = supported && Notification.permission === "granted" && Boolean(await browserSubscription().catch(() => null));
     return active ? disable() : enable();
+  }
+
+  // Toque numa notificação abre ./?push_delivery=<id>: registra a abertura uma vez (com conta ou sessão
+  // anônima) e tira o parâmetro do endereço logo, antes da resposta.
+  function reportOpened() {
+    const url = new URL(location.href), deliveryId = url.searchParams.get("push_delivery");
+    if (!deliveryId) return;
+    url.searchParams.delete("push_delivery"); history.replaceState(history.state, "", url.pathname + url.search + url.hash);
+    invoke("push-subscriptions", { action: "opened", deliveryId }).catch(() => {});
   }
 
   async function beforeLogout() {
@@ -323,7 +338,7 @@
     canOffer: () => !promptDismissed() && ((isIOS && !standalone) || (pushActive === false && supported && Notification.permission !== "denied")),
     needsInstall: () => isIOS && !standalone,
     enable,
-    dismiss: () => { try { localStorage.setItem(DISMISS_KEY, "1"); } catch {} window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed")); },
+    dismiss: () => { dismissedNow = true; try { localStorage.setItem(DISMISS_KEY, "1"); } catch {} window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed")); },
   };
   toggle.addEventListener("click", toggleNotifications);
   el("anonPushOff")?.addEventListener("click", disable);
@@ -382,23 +397,32 @@
     if(owner!==configOwner || !owner) {
       config=null;configOwner=owner;paintPreferences(null);paintDevices([]);paintLocations([]);paintCityChoices();el('notificationPreferencesSave').disabled=true;
     }
-    if (!owner) { setPendingEnable(false); await paintState(); return; }
+    if (!owner) { setPendingEnable(false); reportOpened(); await paintState(); return; }
     try {
       const loaded=await loadConfig();if(!loaded) return;
       const subscription = supported && Notification.permission === "granted" ? await browserSubscription() : null;
-      // Avisos ligados sem conta passam para a conta; sem cidades na conta, leva a cidade aberta.
-      if (subscription) await register(subscription, loaded.locations?.length ? null : currentLocation());
+      // Renova o aparelho na conta. Só a inscrição criada sem conta leva a cidade aberta (se a conta não tem
+      // cidades): sem essa marca, recarregar depois de "Parar avisos" religaria a cidade em silêncio.
+      const fromAnonymous = anonDevice();
+      if (subscription) await register(subscription, fromAnonymous && !loaded.locations?.length ? currentLocation() : null);
+      if (fromAnonymous) anonDevice(false);
       if (pendingEnable) {
         message("Conta conectada. Toque em “Ativar alertas” para o sistema pedir permissão.");
         el("notificationToggle")?.focus?.();
         el("notificationSettings")?.scrollIntoView?.({ block: "nearest" });
       }
-      const deliveryId = new URL(location.href).searchParams.get("push_delivery");
-      if (deliveryId) { await invoke("push-subscriptions", { action: "opened", deliveryId }).catch(() => {}); const url = new URL(location.href); url.searchParams.delete("push_delivery"); history.replaceState({}, "", url.pathname + url.search + url.hash); }
+      reportOpened();
     } catch (error) { message(error.message || "As notificações estão temporariamente indisponíveis."); }
     await paintState();
   });
-  navigator.serviceWorker?.addEventListener("message", event => { if (event.data?.type === "push-subscription-changed" && pushUser()) loadConfig().then(async () => { const subscription = await browserSubscription(); if (subscription) await register(subscription); }).catch(() => {}); });
+  // Na abertura só com sessão anônima o SDK não carrega (pushUser vazio): a sessão é lida aqui, sem criar outra.
+  navigator.serviceWorker?.addEventListener("message", event => {
+    if (event.data?.type !== "push-subscription-changed") return;
+    Promise.resolve(pushUser() || window.pluviaAccount?.ensurePushUser?.({ create: false }))
+      .then(user => user ? loadConfig() : null)
+      .then(async loaded => { if (!loaded) return; const subscription = await browserSubscription(); if (subscription) await register(subscription); })
+      .catch(() => {});
+  });
   window.addEventListener("pluvia:city-changed", () => { const checkbox = form.elements.namedItem("monitor_current_city"); if (checkbox) checkbox.checked = false; paintCityChoices();paintTimezones();paintState().catch(() => {}); });
   window.addEventListener('pluvia:favorites-changed',paintCityChoices);
   window.addEventListener('pluvia:favorites-loaded',paintCityChoices);

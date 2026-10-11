@@ -101,7 +101,13 @@
       if(values.length<2) editing=false;
       if(organize) {organize.hidden=values.length<2;organize.textContent=editing ? 'Pronto' : 'Organizar';organize.setAttribute('aria-pressed',String(editing));}
       const list=el('dialogFavoriteList');
-      if(editing) {list.dataset.editing='true';list.replaceChildren(...values.map((id,index)=>orderRow(id,index,values.length)));return;}
+      if(editing) {
+        // Repintar (relógio, clima, conta) recria as linhas: o foco volta à mesma seta da mesma cidade.
+        const active=doc.activeElement,row=active?.closest?.('[data-order-id]')?.dataset.orderId,dir=active?.dataset?.move;
+        list.dataset.editing='true';list.replaceChildren(...values.map((id,index)=>orderRow(id,index,values.length)));
+        if(row) {const again=[...list.children].find(item=>item.dataset.orderId===row);(again?.querySelector(`[data-move="${dir}"]:not(:disabled)`) || again?.querySelector('[data-move]:not(:disabled)'))?.focus({preventScroll:true});}
+        return;
+      }
       delete list.dataset.editing;
       list.replaceChildren(...values.map(card));
       for(const button of list.children) {

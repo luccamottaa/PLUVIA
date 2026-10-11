@@ -274,6 +274,16 @@ function setAlertBanner(item = null, index = -1, others = 0) {
   $("alertBannerTime").textContent = (Number.isFinite(item.end) ? `Vigente até ${until}` : "Vigência no aviso oficial") + more;
 }
 
+// Bolinha no ícone do app instalado: acompanha o aviso INMET vigente da cidade aberta (leitura atual).
+// O SW marca a bolinha ao chegar um push; sem aviso vigente ela sai quando o app abre. Sem a API, nada.
+function syncAppBadge(active) {
+  try {
+    const nav = globalThis.navigator;
+    const pending = active ? nav?.setAppBadge?.() : nav?.clearAppBadge?.();
+    pending?.catch?.(() => {});
+  } catch {}
+}
+
 function renderInmetAlerts(raw, stale = false) {
   globalThis.PLUVIA?.modules.alerts.receive?.(raw, stale);
   const state = $("inmetState"); const content = $("inmetContent");
@@ -282,6 +292,7 @@ function renderInmetAlerts(raw, stale = false) {
   $("inmetCard").dataset.severity = stale ? "unknown" : activeOfficial?.severity.className || "none";
   const bannerItem = !stale && activeOfficial?.severity?.rank >= 1 ? activeOfficial : null;
   setAlertBanner(bannerItem, bannerItem ? alerts.indexOf(bannerItem) : -1, bannerItem ? alerts.length - 1 : 0);
+  if (!stale) syncAppBadge(Boolean(bannerItem));
   // Sem aviso, a seção vira uma linha discreta abaixo do topo. Com aviso vigente na faixa do topo, o cartão
   // some (repetia a faixa); avisos só previstos, a confirmar ou de leitura anterior continuam no cartão.
   setAlertState(stale ? "unavailable" : bannerItem ? "banner" : alerts.length ? "alerts" : "clear");
@@ -362,7 +373,7 @@ function updateClock() {
     const day = globalThis.PLUVIA.time.dayKey(now.getTime(),activeCity);
     const air = weatherData.cachedAir({data:{air:saved.air},airAt:saved.airAt},now.getTime()).air;
     if (hour !== saved.hour || day !== saved.day || air !== saved.air || atmosphere?.phase && atmosphere.phase !== saved.phase) render(saved.forecast,air,saved.fromCache,saved.cacheAt,{weatherAt:saved.weatherAt,airAt:saved.airAt,freshAir:saved.freshAir});
-    else renderSun(saved.forecast.daily,now.getTime());
+    else renderSun(saved.forecast.daily,now.getTime(),saved.forecast.hourly);
   }
 }
 
@@ -553,7 +564,7 @@ function renderSkyEvents(at) {
   box.hidden=false;
 }
 
-function renderSun(daily, at = Date.now()) {
+function renderSun(daily, at = Date.now(), hourly = null) {
   const astronomy=globalThis.PLUVIA?.sky?.astronomyAt?.(at);
   const astronomyFields={civilDawn:astronomy?.dawn,civilDusk:astronomy?.dusk,moonrise:astronomy?.moonRise,moonset:astronomy?.moonSet};
   for(const [id,stamp] of Object.entries(astronomyFields)) {
@@ -593,6 +604,7 @@ function renderSun(daily, at = Date.now()) {
     $("sunrise").textContent = "--:--"; $("sunset").textContent = "--:--";
     $("daylight").textContent = "Ciclo solar indisponível";
     $("sunPhrase").textContent = "";
+    if ($("sunsetGlow")) $("sunsetGlow").textContent = "";
     $("sunshineNote").textContent = "Duração prevista de sol indisponível.";
     return;
   }
@@ -606,6 +618,9 @@ function renderSun(daily, at = Date.now()) {
   // Uma linha só (a duração do dia e o que falta); os horários ficam nas pontas do arco.
   const untilRise = Number.isFinite(nextRise) && nextRise > at ? `nasce em ${duration(nextRise - at)}` : "";
   $("sunPhrase").textContent = at < rise || at >= set ? untilRise : `restam ${duration(set - at)}`;
+  // Só antes do pôr de hoje: depois dele a frase falaria de um evento que já passou.
+  const glow = at >= rise && at < set ? globalThis.PLUVIA?.weatherInsights?.sunsetGlow?.(hourly, set, activeCity) : null;
+  if ($("sunsetGlow")) $("sunsetGlow").textContent = glow?.text || "";
   const sunshine = daily.sunshine_duration?.[index], daylight = daily.daylight_duration?.[index];
   const sunshineMinutes = Math.round(sunshine / 60), daylightMinutes = Math.round(daylight / 60);
   $("sunshineNote").textContent = Number.isFinite(sunshine) && Number.isFinite(daylight)
@@ -695,8 +710,9 @@ function updateAlertNudge() {
   if (!box?.dataset || !text) return;
   const nudgeRain = box.dataset.rain === "true", nudgeOfficial = box.dataset.official === "true";
   const button = $("alertNudgeEnable"), dismiss = $("alertNudgeDismiss");
-  // Logo depois de ativar, o convite vira a confirmação até a troca de cidade.
-  if (box.dataset.done && box.dataset.done === activeCity?.id) {
+  // Logo depois de ativar, o convite vira a confirmação até a troca de cidade ou até os avisos desligarem.
+  if (box.dataset.done && (box.dataset.done !== activeCity?.id || globalThis.PLUVIA?.alertOffer?.canOffer?.())) delete box.dataset.done;
+  if (box.dataset.done) {
     box.hidden = false; box.dataset.offer = "done";
     if (button) button.hidden = true;
     if (dismiss) dismiss.hidden = true;
@@ -912,7 +928,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   globalThis.PLUVIA?.hourlyDetail?.update?.({hourly:data.hourly,daily:day,start,city:activeCity,fromCache,cacheAt,isDayAt:time=>forecastIsDay(time,day)});
   globalThis.PLUVIA?.dailyDetail?.update?.({hourly:data.hourly,daily:day,city:activeCity,fromCache,cacheAt,at:Date.now(),isDayAt:time=>forecastIsDay(time,day),dayAt:stamp=>globalThis.PLUVIA.sky.dayAt(stamp)});
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
-  renderForecast(day, current.temperature_2m); renderSun(day);
+  renderForecast(day, current.temperature_2m); renderSun(day, Date.now(), data.hourly);
   displayedWeather = {forecast:data,air,fromCache,cacheAt,weatherAt:metadata.weatherAt || cacheAt || Date.now(),hour:start,phase:atmosphere?.phase,day:globalThis.PLUVIA.time.dayKey(Date.now(),activeCity),airAt:metadata.airAt,freshAir:metadata.freshAir === true};
   globalThis.dispatchEvent?.(new CustomEvent("pluvia:weather-updated",{detail:{cityId:activeCity.id}}));
 }
@@ -996,7 +1012,7 @@ async function loadWeather(revision = cityRevision) {
       $("hourlyDecision").textContent = "Sem dados recentes para as próximas horas."; $("hourlyDecision").hidden = false;
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
       setDryWindow("Sem dados");
-      $("daylight").textContent = "Ciclo solar indisponível"; $("sunPhrase").textContent = "";
+      $("daylight").textContent = "Ciclo solar indisponível"; $("sunPhrase").textContent = ""; if ($("sunsetGlow")) $("sunsetGlow").textContent = "";
     }
     if (!displayedWeather || !displayedWeather.fromCache || offline) {
       showWeatherError(offline
@@ -1209,7 +1225,7 @@ function setupScrollAnimations() {
 }
 
 
-const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","condition","heroRange","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","dryWindow","daylight","sunPhrase","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate"].filter(id=>$(id));
+const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","condition","heroRange","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","dryWindow","daylight","sunPhrase","sunsetGlow","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate"].filter(id=>$(id));
 let emptyCityContent;
 // Deslizar entre cidades (como no Apple Weather): a cidade aberta e os favoritos, na ordem salva.
 // As bolinhas são botões (clique/teclado); no toque, arrastar o topo para o lado troca de cidade.
