@@ -850,6 +850,17 @@ html body #compareDialog .compare-status:empty { display:block; }
 html body #brazilDialog .brazil-status { min-height:1.2em; margin:0 0 8px; font-size:.8rem; line-height:1.5; }
 html body #brazilDialog .brazil-status:empty { display:block; }
 html body #brazilDialog .brazil-note { font-size:.8rem; line-height:1.5; }
+/* Brasil agora em mapa: contorno estático, pontos nas capitais e etiquetas com a temperatura. Sem animação. */
+.brazil-map { position:relative; width:100%; max-width:520px; margin:4px auto 18px; aspect-ratio:640 / 560; }
+.brazil-map[hidden] { display:none; }
+.brazil-map svg { display:block; width:100%; height:100%; }
+.brazil-land { fill:#aac7e51f; stroke:#aac7e573; stroke-width:1.2; stroke-linejoin:round; }
+.brazil-leader { stroke:#aac7e573; stroke-width:1; }
+.brazil-dot { fill:#e8f0ff; stroke:#0b1430; stroke-width:1; }
+.brazil-chip { position:absolute; transform:translate(-50%,-50%); padding:1px 6px; border-radius:999px; background:var(--chip,#8a96ad); color:#0b1430; font-size:.8125rem; font-weight:600; line-height:1.4; font-variant-numeric:tabular-nums; white-space:nowrap; cursor:pointer; box-shadow:0 0 0 1px #0b143040; }
+.brazil-chip[data-missing] { background:#8a96ad; }
+@media (max-width:360px) { .brazil-chip { padding:0 3px; letter-spacing:-.02em; } }
+@media (forced-colors:active) { .brazil-chip { forced-color-adjust:none; border:1px solid CanvasText; } .brazil-land { stroke:CanvasText; } }
 .brazil-list section + section { margin-top:18px; }
 html body #brazilDialog .brazil-list h3 { margin:0 0 4px; color:var(--dialog-muted); font-size:.75rem; font-weight:500; letter-spacing:.09em; text-transform:uppercase; }
 .brazil-list ul { margin:0; padding:0; list-style:none; }
@@ -875,6 +886,16 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 /* "Previsão por hora" agora mora em Próximas horas: janela seca numa linha, gráfico recolhido logo abaixo. */
 #weatherView .dry-window-line { margin:14px 0 0; color:var(--reading-muted); font-size:.875rem; line-height:1.45; }
 #weatherView .dry-window-line strong { color:var(--reading-ink); font-weight:600; }
+/* "Tá chovendo aí?": pílulas de resposta e a linha do resumo com altura reservada (sem empurrar a página). */
+#weatherView .rain-report[hidden] { display:none; }
+#weatherView .rain-report { margin:16px 0 0; padding-top:14px; border-top:1px solid var(--card-border, #aac7e526); }
+#weatherView .rain-report-question { margin:0 0 10px; color:var(--reading-ink); font-size:.9375rem; font-weight:600; }
+#weatherView .rain-report-options { display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:8px; }
+#weatherView .rain-report-options button { min-height:44px; padding:0 12px; border:1px solid var(--card-border, #aac7e540); border-radius:999px; background:transparent; color:var(--reading-ink); font:inherit; font-size:.875rem; font-weight:500; cursor:pointer; }
+#weatherView .rain-report-options button[aria-pressed="true"] { border-color:var(--brand-blue); background:var(--brand-blue); color:#fff; }
+#weatherView .rain-report-options button:disabled:not([aria-pressed="true"]) { opacity:.55; cursor:default; }
+#weatherView .rain-report-summary { min-height:1.45em; margin:10px 0 0; color:var(--reading-muted); font-size:.8125rem; line-height:1.45; }
+@media (forced-colors:active) { #weatherView .rain-report-options button { border-color:ButtonText; } #weatherView .rain-report-options button[aria-pressed="true"] { forced-color-adjust:none; background:Highlight; color:HighlightText; } }
 #weatherView .hourly-peek .hourly-chart-details { margin-top:12px; }
 #weatherView .hourly-peek .rain-phrase { margin:10px 0 0; padding:0; border:0; background:none; box-shadow:none; }
 #weatherView .hourly-peek .rain-phrase small { color:var(--reading-muted); font-size:.8125rem; }
@@ -1317,6 +1338,15 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 #weatherView .alert-nudge-actions { display:flex; gap:4px; }
 #weatherView .alert-nudge button { min-height:44px; padding:0 10px; border:0; background:none; color:var(--reading-link); font:inherit; font-size:.9375rem; font-weight:600; cursor:pointer; }
 #weatherView .alert-nudge .alert-nudge-dismiss { color:var(--reading-muted); font-weight:400; }
+/* Convite para instalar (só navegador do celular): linha discreta no fim dos 7 dias, ícone da marca. */
+#weatherView .install-card { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; margin:14px 0 0; padding:12px 0 0; border-top:1px solid var(--card-border, #aac7e526); color:var(--reading-ink); }
+#weatherView .install-card[hidden] { display:none; }
+#weatherView .install-card-icon { flex:0 0 40px; width:40px; height:40px; border-radius:10px; background:url("/icon-192.png") center / cover no-repeat; }
+#weatherView .install-card p { flex:1 1 180px; margin:0; font-size:.875rem; line-height:1.4; color:var(--reading-muted); }
+#weatherView .install-card p strong { display:block; color:var(--reading-ink); font-size:.9375rem; font-weight:600; }
+#weatherView .install-card-actions { display:flex; gap:4px; margin-left:auto; }
+#weatherView .install-card button { min-height:44px; padding:0 10px; border:0; background:none; color:var(--reading-link); font:inherit; font-size:.9375rem; font-weight:600; cursor:pointer; }
+#weatherView .install-card .install-card-dismiss { color:var(--reading-muted); font-weight:400; }
 /* Nascer/pôr como coluna própria entre as horas (horário, símbolo, nome), nas mesmas linhas das horas:
    dentro da coluna da hora ele abria uma linha vazia embaixo de todas as outras. */
 #weatherView .hourly-solar-item { cursor:default; color:var(--reading-link); }

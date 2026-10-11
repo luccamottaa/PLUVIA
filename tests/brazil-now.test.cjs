@@ -37,3 +37,21 @@ test('agrupa por região na ordem Norte → Sul, com capitais em ordem alfabéti
   const all = new Set(brazil.REGIONS.flatMap(([, ufs]) => ufs));
   assert.equal(all.size, 27, 'as 27 unidades federativas têm região');
 });
+
+test('mapa: cores de temperatura, ausente sem cor e etiquetas dentro do quadro sem se sobrepor', () => {
+  assert.equal(brazil.tempColor(null), null);
+  assert.equal(brazil.tempColor(NaN), null);
+  assert.equal(brazil.tempColor(-3), brazil.tempColor(5), 'abaixo da escala fica no azul');
+  assert.notEqual(brazil.tempColor(20), brazil.tempColor(34));
+  const fs = require('node:fs'), vm = require('node:vm');
+  const context = vm.createContext({Intl, localStorage:{getItem:() => null, setItem() {}}}); context.globalThis = context;
+  vm.runInContext(fs.readFileSync(__dirname + '/../dist/capitals.js', 'utf8'), context);
+  const capitals = vm.runInContext('CAPITALS', context);
+  const points = capitals.map(city => brazil.LABELS[city.uf] || brazil.project(city.lat, city.lon));
+  for (const [x, y] of points) assert.ok(x > 20 && x < brazil.MAP.width - 20 && y > 15 && y < brazil.MAP.height - 15, `${x},${y}`);
+  // Etiqueta ~60×34 unidades no celular de 390 px: centros precisam de folga mínima.
+  for (let i = 0; i < points.length; i++) for (let j = i + 1; j < points.length; j++) {
+    const [a, b] = [points[i], points[j]];
+    assert.ok(Math.abs(a[0] - b[0]) >= 56 || Math.abs(a[1] - b[1]) >= 34, `${capitals[i].uf} × ${capitals[j].uf}`);
+  }
+});

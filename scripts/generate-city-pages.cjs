@@ -14,7 +14,7 @@ function capitalsApi() {
   const context = vm.createContext({Intl, localStorage:{getItem:() => null, setItem() {}}});
   context.globalThis = context;
   vm.runInContext(fs.readFileSync(path.join(dist, 'capitals.js'), 'utf8'), context);
-  const api = vm.runInContext('({CAPITALS, PAGE_CITY_IDS, citySlug, cityPagePath, cityPageTitle, stateNames})', context);
+  const api = vm.runInContext('({CAPITALS, PAGE_CITY_IDS, MORE_PAGE_CITY_IDS, citySlug, cityPagePath, cityPageTitle, stateNames})', context);
   // Registro completo (coordenadas e fuso) de cada município com página, da base estadual publicada.
   const rows = new Map();
   for (const file of fs.readdirSync(path.join(dist, 'cities'))) vm.runInContext(fs.readFileSync(path.join(dist, 'cities', file), 'utf8'), context);
@@ -25,11 +25,14 @@ function capitalsApi() {
     const capital = api.CAPITALS.find(city => city.uf === uf), timezone = chunk.timezones[zone];
     rows.set(id, {id, name, uf, state:api.stateNames.get(uf), lat, lon, timezone:capital && sameOffset(capital.timezone, timezone) ? capital.timezone : timezone});
   }
-  api.OTHERS = api.PAGE_CITY_IDS.map(id => {
+  api.OTHERS = [...api.PAGE_CITY_IDS, ...api.MORE_PAGE_CITY_IDS].map(id => {
     const city = rows.get(id);
     if (!city?.state || !city.timezone || api.CAPITALS.some(capital => capital.id === id)) throw new Error('PAGE_CITY_IDS inválido: ' + id);
     return city;
   });
+  if (new Set(api.OTHERS.map(city => city.id)).size !== api.OTHERS.length) throw new Error('PAGE_CITY_IDS repetido');
+  // Rodapé da Home: capitais e os polos de PAGE_CITY_IDS; as demais aparecem nas páginas do mesmo estado.
+  api.FEATURED = api.OTHERS.slice(0, api.PAGE_CITY_IDS.length);
   api.PAGES = [...api.CAPITALS, ...api.OTHERS];
   return api;
 }
@@ -47,7 +50,8 @@ const description = city => `Previsão do tempo em ${city.name} (${city.uf}) ago
 
 function linksBlock(api, current = null) {
   const list = cities => cities.map(city => `<li><a href="${api.cityPagePath(city)}"${city.id === current?.id ? ' aria-current="page"' : ''}>${escapeHtml(city.name)}</a></li>`).join('');
-  const others = [...api.OTHERS].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).map(city => `<li><a href="${api.cityPagePath(city)}"${city.id === current?.id ? ' aria-current="page"' : ''}>${escapeHtml(city.name)} (${city.uf})</a></li>`).join('');
+  const nearby = current ? api.OTHERS.filter(city => city.uf === current.uf && !api.FEATURED.includes(city)) : [];
+  const others = [...api.FEATURED, ...nearby].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).map(city => `<li><a href="${api.cityPagePath(city)}"${city.id === current?.id ? ' aria-current="page"' : ''}>${escapeHtml(city.name)} (${city.uf})</a></li>`).join('');
   const capital = current && api.CAPITALS.some(city => city.id === current.id);
   const where = !current ? '' : current.uf === 'DF' ? 'é a capital federal, no Distrito Federal' : capital ? `é a capital ${preposition(current)} ${escapeHtml(current.state)}` : `é um município do estado ${preposition(current)} ${escapeHtml(current.state)}`;
   const note = current ? `<p class="capital-page-note">${escapeHtml(current.name)} ${where}. Horários no fuso ${escapeHtml(current.timezone)} (${utcOffset(current.timezone)}).</p>` : '';
