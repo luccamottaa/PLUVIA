@@ -1,6 +1,6 @@
 # Solicitação de acesso ao radar de Manaus
 
-Rascunho preparado em 03/10/2026. **Não enviado.** Preencha a assinatura e confirme os contatos antes de encaminhar. A publicação do piloto METAR não depende deste pedido; radar quantitativo e estimativas de chegada dependem de acesso autorizado e validação regional.
+Rascunho preparado em 03/10/2026. **Não enviado.** O piloto Nowcast que motivou o pedido foi aposentado em outubro/2026; o rascunho fica só como referência. Preencha a assinatura e confirme os contatos antes de encaminhar. A publicação do piloto METAR não depende deste pedido; radar quantitativo e estimativas de chegada dependem de acesso autorizado e validação regional.
 
 ## Canal institucional confirmado
 
@@ -45,4 +45,4 @@ PLUVIA — https://pluviaweather.com.br
 
 ## Após a resposta
 
-Registrar documentação e autorização em `docs/NOWCAST.md`, sem versionar tokens. Confirmar contratos com um payload autorizado, preservar timestamps/unidades/qualidade e adicionar o adaptador ao provider existente. Não habilitar ETA ou camada SIPAM apenas por receber um link de visualização: aplicar os critérios de validação regional descritos naquele documento.
+Registrar documentação e autorização num documento próprio (o antigo `docs/NOWCAST.md` saiu com o Nowcast, aposentado em outubro/2026), sem versionar tokens. Confirmar contratos com um payload autorizado, preservar timestamps/unidades/qualidade e adicionar o adaptador ao provider existente. Não habilitar ETA ou camada SIPAM apenas por receber um link de visualização: aplicar os critérios de validação regional descritos naquele documento.

@@ -20,7 +20,7 @@ Os settings públicos do Supabase ainda indicaram Google e Apple desativados na 
 
 Web Push já tem teste voluntário e registro de abertura por `push_delivery`; aceitação pelo serviço não prova entrega. A validação física em iPhone/PWA/background continua necessária. Nenhum teste foi enviado a usuários nesta etapa. WebKit automatizado não equivale a iPhone real.
 
-Nowcast brasileiro com início em minutos continua sem fonte validada. Open-Meteo horário, MET e radar observado não justificam promessas de 15 minutos. A avaliação e critérios de Xweather minutelyprecip estão em `NOWCAST-EVALUATION.md`; o orçamento de raios não foi usado para avaliar outra API.
+Nowcast brasileiro com início em minutos continua sem fonte validada. Open-Meteo horário, MET e radar observado não justificam promessas de 15 minutos. A avaliação de Xweather minutelyprecip ficava em `NOWCAST-EVALUATION.md`, removido com o Nowcast (aposentado em outubro/2026); o orçamento de raios não foi usado para avaliar outra API.
 
 ## Validação
 

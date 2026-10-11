@@ -29,7 +29,7 @@ self.addEventListener("fetch", event => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return; // Never cache external APIs or Auth.
-  if (url.pathname.startsWith('/api/')) return; // Local API/dev observations are never shell assets.
+  if (url.pathname.startsWith('/api/')) return; // Local API/dev endpoints are never shell assets.
   const writes = [];
   function remember(key, response) {
     if (response.ok) {

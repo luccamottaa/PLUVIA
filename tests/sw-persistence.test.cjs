@@ -28,7 +28,7 @@ test('SW usa shell salvo offline e nunca guarda APIs externas/Auth',async()=>{
  const req=w.request('https://pluviaweather.com.br/','navigate');assert.equal(await (await req.response).text(),'offline shell');await req.lifetime;
  const missing=w.request('https://pluviaweather.com.br/app.js');assert.equal((await missing.response).type,'error');await missing.lifetime;
  const foreign=w.request('https://dszyyrcvwrpyiypwyvxe.supabase.co/auth/v1/token');assert.equal(foreign.response,undefined);assert.equal(foreign.synchronous,0);
- const api=w.request('https://pluviaweather.com.br/api/nowcast?region=manaus');assert.equal(api.response,undefined);assert.equal(api.synchronous,0);
+ const api=w.request('https://pluviaweather.com.br/api/local-dev?x=1');assert.equal(api.response,undefined);assert.equal(api.synchronous,0);
 });
 test('página de Termos fica em cache na própria URL, sem substituir o shell da Home',async()=>{
  const w=worker();const page=w.request('https://pluviaweather.com.br/termos/','navigate');await page.response;await page.lifetime;

@@ -1,5 +1,7 @@
 # Fundação e alertas — 10/09/2026
 
+> Nota (outubro/2026): Resumo Inteligente (`smart-summary`), PLUVIA Nowcast, Planejar ao ar livre e o painel `hourly-outlook` foram aposentados a pedido do dono e removidos do repositório; os trechos abaixo que os citam são históricos.
+
 ## Organização compatível
 
 `dist/modules/sources.js` define PLUVIA.modules e o registro compartilhado. `adapters.js` oferece fachadas weather, alerts, location, air-quality, disasters, auth, map, weather-layers e ui, reaproveitando as funções de app.js/p0.js. O estado continua único; não há segunda instância de autenticação ou clima. `risks.js` contém regras puras, apresentação de riscos e detalhes de avisos. `account.js` mantém Supabase isolado. Não há nova biblioteca nem build obrigatório.

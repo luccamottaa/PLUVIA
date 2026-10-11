@@ -1,6 +1,6 @@
 """Deterministic QA for hourly details, astronomy and alert settings.
 Uses the real bundled SDK with fake sessions; never registers or sends Push.
-All weather, METAR and Auth requests are intercepted inside this process.
+All weather and Auth requests are intercepted inside this process.
 """
 import base64,datetime,json,os,shutil,subprocess,tempfile,time
 from pathlib import Path
@@ -27,7 +27,6 @@ def service(body):
  fixture.stdin.write(json.dumps(body)+'\n');fixture.stdin.flush();return json.loads(fixture.stdout.readline())
 def route(r):
  url=r.request.url
- if 'functions/v1/smart-summary' in url:forbidden.append('removed-smart-summary');r.abort();return
  if '/auth/v1/user' in url:r.fulfill(json=user);return
  if 'functions/v1/account-preferences' in url:
   result=service(r.request.post_data_json);status=result.pop('status');r.fulfill(status=status,json=result);return

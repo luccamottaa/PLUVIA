@@ -1,5 +1,7 @@
 # Auditoria de estabilidade do PLUVIA — 2026-10-01
 
+> Nota (outubro/2026): Resumo Inteligente (`smart-summary`), PLUVIA Nowcast, Planejar ao ar livre e o painel `hourly-outlook` foram aposentados a pedido do dono e removidos do repositório; os trechos abaixo que os citam são históricos.
+
 ## Escopo e base estudada
 
 Base: `main` em `ab0070e6766d7f8554ce32d31066aa074b94ea3b`. Trabalho local na branch `audit/pluvia-stability`. O repositório foi lido antes das alterações: entrada HTML, scripts/módulos, catálogo e carregamento de cidades, estilos finais, PWA, testes, workflows, funções e migrations Supabase, documentação e histórico recente.
