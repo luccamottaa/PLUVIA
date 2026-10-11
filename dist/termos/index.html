@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function () {
+        var host = location.hostname;
+        if (host === "luccamottaa.github.io" || host === "www.pluviaweather.com.br") {
+          var path = location.pathname.replace(/^\/PLUVIA\/?/, "/");
+          location.replace("https://pluviaweather.com.br" + (path || "/") + location.search + location.hash);
+        }
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#080f22" />
+    <title>Termos de Uso · PLUVIA</title>
+    <meta name="description" content="Termos de Uso do PLUVIA, painel meteorológico informativo." />
+    <link rel="canonical" href="https://pluviaweather.com.br/termos/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png" />
+    <link rel="stylesheet" href="/fonts.css" />
+    <style>
+      :root { --bg:#080f22; --ink:#e8eefc; --muted:#a9b6d3; --line:#ffffff1f; --brand:#2f6bff; --link:#7aa7ff; }
+      * { box-sizing:border-box; }
+      html { -webkit-text-size-adjust:100%; }
+      body { margin:0; min-height:100svh; background:linear-gradient(180deg,#10233f 0,var(--bg) 420px) no-repeat,var(--bg); color:var(--ink); font:400 1rem/1.65 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+      .page { max-width:760px; margin:0 auto; padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left)); }
+      .brand { display:inline-flex; align-items:center; gap:2px; min-height:44px; color:var(--brand); text-decoration:none; font:900 1.6rem/1 Nunito,Inter,system-ui,sans-serif; letter-spacing:.01em; }
+      .brand img { width:34px; height:34px; }
+      h1 { margin:28px 0 8px; font-size:clamp(1.7rem,6vw,2.2rem); font-weight:600; line-height:1.2; }
+      h2 { margin:36px 0 8px; font-size:1.3rem; font-weight:600; line-height:1.3; }
+      p, li { color:var(--ink); }
+      ul, ol { padding-left:1.3rem; }
+      li + li { margin-top:6px; }
+      a { color:var(--link); text-underline-offset:3px; }
+      .meta { margin:16px 0 0; padding:14px 16px; border:1px solid var(--line); border-radius:16px; background:#ffffff08; color:var(--muted); font-size:.95rem; }
+      .meta p { margin:0; color:inherit; }
+      .meta p + p { margin-top:4px; }
+      .notice { margin:24px 0 0; padding:14px 16px; border-left:3px solid var(--brand); border-radius:0 12px 12px 0; background:#2f6bff14; }
+      .notice p { margin:0; }
+      .ph { color:#ffd479; font-variant-numeric:tabular-nums; }
+      footer { margin-top:48px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:.9rem; }
+      footer a { display:inline-flex; align-items:center; min-height:44px; }
+      :focus-visible { outline:2px solid var(--link); outline-offset:3px; border-radius:4px; }
+      @media (forced-colors:active) { .brand { color:LinkText; } }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <a class="brand" href="/" aria-label="PLUVIA, voltar para a previsão"><img src="/logo-mark.png" alt="" width="34" height="34" />PLUVIA</a>
+
+      <h1>Termos de Uso</h1>
+      <div class="meta">
+        <p>Responsável: Lucca Coelho Motta Queiroz</p>
+        <p>Contato: <a href="mailto:lukamotta06@gmail.com">lukamotta06@gmail.com</a></p>
+        <p>Última atualização: 10 de outubro de 2026</p>
+      </div>
+
+      <div class="notice">
+        <p><strong>O PLUVIA é um serviço informativo.</strong> Ele não substitui os alertas e orientações oficiais. Em situação de risco, siga a Defesa Civil (telefone 199), os avisos do INMET e, no mar e em rios navegáveis, os avisos de mau tempo da Marinha do Brasil.</p>
+      </div>
+
+      <h2>1. Aceitação</h2>
+      <p>Estes Termos regulam o uso do site, do aplicativo instalável (PWA) e dos avisos do PLUVIA (o “Serviço”), oferecidos por Lucca Coelho Motta Queiroz. Ao usar o Serviço, você concorda com estes Termos. Se não concordar, não use o Serviço.</p>
+
+      <h2>2. O que é o Serviço</h2>
+      <p>O PLUVIA reúne previsões de modelos meteorológicos, qualidade do ar, radar e avisos oficiais publicados por terceiros e os apresenta por município. Previsões são estimativas de modelos e podem errar, atrasar ou divergir do que acontece no local. As informações têm caráter geral e não constituem orientação profissional para decisões de segurança, navegação, aviação, agricultura, saúde ou atividades de risco.</p>
+      <p>O Serviço não é canal oficial de alerta. Avisos do INMET exibidos no PLUVIA são reproduzidos da fonte e podem chegar com atraso ou ficar indisponíveis; a ausência de aviso no PLUVIA não significa ausência de risco.</p>
+
+      <h2>3. Uso permitido</h2>
+      <p>O PLUVIA é público e gratuito: qualquer pessoa pode usá-lo sem custo, inclusive no trabalho ou na escola. Você pode consultar a previsão, salvar cidades, criar conta, ativar avisos e compartilhar resumos e links pelos recursos do próprio Serviço.</p>
+      <p>Usar o Serviço de graça não autoriza copiar o PLUVIA. O código-fonte pode estar visível no GitHub, mas essa visibilidade não concede licença para copiar, modificar, redistribuir ou publicar o código, o layout ou o design, nem para criar versões derivadas ou concorrentes. Revender, incorporar ou republicar as informações do Serviço em outro produto também depende de autorização prévia e por escrito.</p>
+
+      <h2>4. Condutas proibidas</h2>
+      <p>Ao usar o Serviço, você não pode:</p>
+      <ul>
+        <li>extrair dados de forma automatizada (scraping, crawling, bots ou scripts), exceto a indexação comum de mecanismos de busca que respeite o <code>robots.txt</code>;</li>
+        <li>enviar requisições em volume ou frequência capazes de sobrecarregar, degradar ou interromper o Serviço ou seus fornecedores, nem contornar limites de uso;</li>
+        <li>copiar, reproduzir ou imitar o layout, a interface, o design visual, os textos ou o código do Serviço, no todo ou em parte;</li>
+        <li>fazer engenharia reversa do Serviço, exceto quando a lei expressamente permitir;</li>
+        <li>usar a marca “PLUVIA” ou sinais semelhantes sem autorização;</li>
+        <li>tentar acessar contas, dados ou áreas restritas de outras pessoas, explorar falhas de segurança ou interferir em autenticação e avisos;</li>
+        <li>enviar respostas falsas em massa a recursos colaborativos (como “Tá chovendo aí?”) ou usar o Serviço para fins ilícitos.</li>
+      </ul>
+
+      <h2>5. Conta e avisos</h2>
+      <p>A conta é opcional. Você é responsável pelo sigilo do seu acesso e pelas atividades feitas com ele. Os avisos por notificação dependem do navegador, do sistema operacional, da conexão e de serviços de terceiros, e podem atrasar, falhar ou ser silenciados pelo aparelho. Você pode desligá-los ou excluir a conta a qualquer momento pelo próprio Serviço.</p>
+
+      <h2>6. Propriedade intelectual</h2>
+      <p>O código, o layout, a interface, o design visual, as ilustrações, os ícones, os textos e a marca “PLUVIA” pertencem a Lucca Coelho Motta Queiroz e são protegidos pelas Leis nº 9.609/1998 (software), nº 9.610/1998 (direitos autorais) e nº 9.279/1996 (propriedade industrial). O uso do Serviço não transfere nenhum desses direitos a você. Dados e componentes de terceiros continuam sujeitos às licenças de seus titulares, indicadas em “Fontes de dados”, no rodapé do site.</p>
+
+      <h2>7. Privacidade e LGPD</h2>
+      <p>O tratamento de dados pessoais segue a Lei Geral de Proteção de Dados (Lei nº 13.709/2018). A seção “Privacidade”, no rodapé do site, descreve o que é coletado: dados da conta, quando você cria uma; a inscrição de avisos; métricas de uso, apenas se você ativá-las; e respostas ao “Tá chovendo aí?”. Para exercer seus direitos de titular (confirmação, acesso, correção, eliminação, entre outros), escreva para <a href="mailto:lukamotta06@gmail.com">lukamotta06@gmail.com</a>.</p>
+
+      <h2>8. Dados de terceiros</h2>
+      <p>O Serviço depende de fontes externas, como Open-Meteo, MET Norway, Copernicus (CAMS), INMET e RainViewer. Não controlamos essas fontes e não garantimos sua disponibilidade, continuidade, exatidão ou atualização. Uma fonte pode mudar, falhar ou deixar de ser oferecida sem aviso.</p>
+
+      <h2>9. Disponibilidade e alterações do Serviço</h2>
+      <p>O Serviço é gratuito e oferecido conforme disponível. Recursos podem ser alterados, suspensos ou encerrados, temporária ou definitivamente, inclusive para manutenção, segurança ou por indisponibilidade de fornecedores.</p>
+
+      <h2>10. Limitação de responsabilidade</h2>
+      <p>Na máxima extensão permitida pela lei, o Serviço é fornecido “como está”, e Lucca Coelho Motta Queiroz não responde por danos decorrentes de decisões tomadas com base nas informações exibidas, de imprecisão de previsões, de atrasos ou falhas de avisos, de indisponibilidade do Serviço ou de fontes de terceiros. Nada nestes Termos exclui ou limita direitos que não possam ser afastados por lei, inclusive os garantidos pelo Código de Defesa do Consumidor (Lei nº 8.078/1990).</p>
+
+      <h2>11. Alterações destes Termos</h2>
+      <p>Estes Termos podem ser atualizados. A data da versão vigente aparece no topo desta página. Mudanças relevantes serão informadas no Serviço. Continuar a usá-lo depois da atualização significa concordar com a nova versão.</p>
+
+      <h2>12. Lei aplicável e foro</h2>
+      <p>Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro da Comarca de Manaus, Estado do Amazonas, ressalvado o direito do consumidor de propor ação no foro do seu domicílio, nos termos do Código de Defesa do Consumidor.</p>
+
+      <h2>13. Contato</h2>
+      <p>Dúvidas, pedidos de autorização e solicitações sobre dados pessoais: <a href="mailto:lukamotta06@gmail.com">lukamotta06@gmail.com</a>.</p>
+
+      <footer>
+        <a href="/">Voltar para a previsão</a>
+      </footer>
+    </main>
+  </body>
+</html>
