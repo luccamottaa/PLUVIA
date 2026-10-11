@@ -195,6 +195,8 @@ Raios (função servidor `lightning`, hoje sem chamada do app): preservar teto a
 
 Contador anônimo de aparelhos por dia (pedido do usuário, outubro/2026): `modules/visit-counter.js` chama `pluvia_count_visit` (migration `daily_visits`) uma vez por dia por aparelho, guardando só a data em `pluvia-visit-day`; a tabela tem apenas dia (Brasília) e total. Fora do PostHog porque não depende de participação: nada de identificador, cidade, conta, texto ou IP guardado. Só no domínio público, respeita DNT/GPC, sem storage não conta, falha nunca aparece. É estimativa (qualquer um pode chamar a RPC; dois navegadores no mesmo aparelho contam dois). A Privacidade descreve. Teste: `tests/visit-counter.test.cjs`.
 
+Sentry (somente funções Supabase): `_shared/error-report.js` envia por envelope, sem SDK, apenas componente e código (slug validado; o resto vira `unexpected`), nunca mensagem bruta, stack, usuário, cidade, endpoint, token ou IP. DSN só pela secret `SENTRY_DSN`, host restrito ao ingest do Sentry. Dedupe de 5 min por instância, timeout 2 s, `EdgeRuntime.waitUntil` e nunca lança: falha no envio não muda a resposta. `push-process` reporta uma falha agregada por rodada (`source_failures` com contagem), não uma por local. Não adicionar Sentry no frontend (PostHog já cobre). Testes que rodam funções em VM injetam `report`. Teste: `tests/error-report.test.cjs`.
+
 PostgREST `return=minimal`: upsert confirmado pode responder 200/201/204 sem corpo. Não chamar `.json()` para esse contrato nem transformar cache persistido em falha. Requests que exigem resposta, como a reserva booleana, continuam validando JSON. Diagnóstico de banco pode incluir estágio fixo, status HTTP e código PostgREST allowlisted; nunca mensagem/bruto/URL.
 
 ## Login social

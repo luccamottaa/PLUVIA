@@ -5,7 +5,7 @@ const city={cityId:'1302603',cityName:'Manaus',uf:'AM',latitude:-3.1,longitude:-
 function server({user={id:'owner'},errors={}}={}) {
  let handler;const writes=[],reads=[];
  const admin={from(table){const chain={select(){return chain;},eq(field,value){reads.push({table,field,value});return chain;},order(){return chain;},maybeSingle(){return chain;},single(){return chain;},upsert(values,options){writes.push({table,values,options});return chain;},then(resolve,reject){return Promise.resolve({data:table==='notification_preferences'?{official_alerts:false}:[],error:errors[table]||null}).then(resolve,reject);}};return chain;}};
- vm.runInNewContext(source,{Deno:{serve:fn=>handler=fn},adminClient:()=>admin,authenticatedUser:async()=>user,pushSecrets:async()=>({vapid_public_key:'public'}),readJson:async req=>req.body,preflight:()=>({status:204}),json:(req,body,status=200)=>({body,status}),console:{error(){}},allowedPushEndpoint:require('../supabase/functions/_shared/push-endpoint.ts').allowedPushEndpoint});
+ vm.runInNewContext(source,{Deno:{serve:fn=>handler=fn},adminClient:()=>admin,authenticatedUser:async()=>user,pushSecrets:async()=>({vapid_public_key:'public'}),readJson:async req=>req.body,preflight:()=>({status:204}),json:(req,body,status=200)=>({body,status}),console:{error(){}},report:()=>{},allowedPushEndpoint:require('../supabase/functions/_shared/push-endpoint.ts').allowedPushEndpoint});
  return {writes,reads,request:body=>handler({method:'POST',body})};
 }
 test('salvar vários municípios preserva falsos e atribui todas as linhas ao usuário autenticado',async()=>{

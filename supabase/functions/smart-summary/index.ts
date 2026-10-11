@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { report } from "../_shared/error-report.js";
 import { adminClient, authenticatedUser } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 
@@ -160,6 +161,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     const code = error instanceof Error ? error.message : "unknown";
     console.error("smart-summary failed", { code });
+    report("smart-summary", code);
     const reason = code === "provider_401" ? "provider_auth_failed"
       : code === "provider_429" ? "provider_rate_limited"
       : code === "provider_400" ? "provider_request_invalid"
