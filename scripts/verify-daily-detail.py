@@ -69,7 +69,6 @@ with sync_playwright() as p:
  page.evaluate("dispatchEvent(new CustomEvent('pluvia:city-changed'))")
  assert not page.locator('#dailyDetailDialog').evaluate('el=>el.open') and not page.locator('#hourlyDetailDialog').evaluate('el=>el.open')
  assert not errors,errors
- assert not any('/functions/v1/nowcast' in url or '/api/nowcast' in url or 'smart-summary' in url for url in requests),requests
  (output/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
  print(json.dumps({'dailyDetail':True,'viewports':len(report),'timezone':'Asia/Tokyo','sharedHourly':True,'partialAndSavedData':True,'errors':errors}))
  browser.close()

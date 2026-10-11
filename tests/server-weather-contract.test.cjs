@@ -1,14 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{stripTypeScriptTypes}=require('node:module');
-const frontend=require('../dist/modules/smart-summary.js'),{forecast,city}=require('./support/forecast.cjs');
-const edge=fs.readFileSync('supabase/functions/smart-summary/index.ts','utf8');
-const summary=vm.runInNewContext(stripTypeScriptTypes(edge.slice(edge.indexOf('const finite ='),edge.indexOf('async function serverHash(')))+';({cleanContext,clientHash})');
-test('hash do cliente e da função concordam e dados ausentes não viram zero no servidor',()=>{
- const context=frontend.buildContext(forecast(),null,1,city),clean=summary.cleanContext(context);
- assert.equal(summary.clientHash(clean),frontend.contextHash(context));
- for(const change of [data=>data.next3h.probability=null,data=>data.next6h.precipitation='0',data=>data.next3h.codes.pop(),data=>data.uv=null]) {
-  const data=structuredClone(context);change(data);assert.throws(()=>summary.cleanContext(data),/invalid_context/);
- }
-});
+const {city}=require('./support/forecast.cjs');
 const push=fs.readFileSync('supabase/functions/push-process/index.ts','utf8');
 const purePush=stripTypeScriptTypes(push.replace(/^import .*;\n/gm,''));
 const functions=vm.runInNewContext(purePush.slice(0,purePush.indexOf('Deno.serve('))+';({inmetForLocation,weatherUrl,detectWeather})',{URL,URLSearchParams,Intl,Date});

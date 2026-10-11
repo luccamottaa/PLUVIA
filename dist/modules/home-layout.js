@@ -58,7 +58,7 @@
     // As seções vêm depois do topo fixo: dicas e os convites logo abaixo delas (avisos, compartilhar).
     // Ancorar só em #tips jogava os convites para o fim da página.
     const fixed = ['#tips', '#alertNudge', '#shareMoment'].map(selector => view.querySelector(':scope > ' + selector)).filter(Boolean);
-    const anchor = fixed[fixed.length - 1] || null, nowcast = doc.getElementById('nowcastCard');
+    const anchor = fixed[fixed.length - 1] || null;
     const media = root.matchMedia?.(WIDE);
     let layout = read(), wrapper = null;
 
@@ -86,14 +86,9 @@
           const node = nodes.get(id); if (!node) continue;
           if (reference) after(node, reference); else if (view.lastElementChild !== node) view.append(node);
           reference = node;
-          // Os acompanhantes entram no mesmo passo (sem mover a seção seguinte duas vezes).
-          const companion = id === 'details' ? nowcast : null;
-          if (companion) { after(companion, node); reference = companion; }
         }
         wrapper?.remove(); wrapper = null;
       }
-      // O Nowcast pausado fica junto das leituras.
-      if (nowcast && nodes.get('details')) after(nowcast, nodes.get('details'));
       for (const [id, node] of nodes) {
         const hide = layout.hidden.includes(id);
         if (node && node.hasAttribute('data-home-hidden') !== hide) node.toggleAttribute('data-home-hidden', hide);

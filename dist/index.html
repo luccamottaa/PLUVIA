@@ -15,7 +15,7 @@
     <script src="./modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-156" />
+    <meta name="pluvia-release" content="pluvia-panel-157" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -104,8 +104,8 @@
       try { localStorage.removeItem("pluvia-boot-pending"); localStorage.removeItem("pluvia-safe-until"); } catch (e) {}
     </script>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="./styles.css?v=core-127" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <noscript><link rel="stylesheet" href="./styles.css?v=core-127" /></noscript>
+    <link rel="stylesheet" href="./styles.css?v=core-128" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <noscript><link rel="stylesheet" href="./styles.css?v=core-128" /></noscript>
   </head>
   <body>
     <svg class="moon-definitions" width="0" height="0" aria-hidden="true" focusable="false">
@@ -166,8 +166,8 @@
     </script>
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
-    <link rel="stylesheet" href="./redesign.css?v=panel-41" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-82" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-42" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-83" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -349,22 +349,12 @@
         <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>Índice UV</span><span data-weather-icon-name="uv-index" data-weather-icon-style="line"></span></div><strong id="uv"><span class="sk sk-num" aria-hidden="true"></span></strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
         <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>Qualidade do ar</span><span data-weather-icon-name="air-quality" data-weather-icon-style="line"></span><details class="info-tip"><summary aria-label="Sobre a qualidade do ar"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p><small class="air-source">Estimativa regional · Open-Meteo / CAMS<span id="airOutlookNote" hidden> · próximos dias são previsão do modelo e podem mudar</span></small></p><p>O US AQI é um índice; as partículas e gases aparecem em µg/m³ em “Poluentes e origem”. Estimativa regional, não medição no seu endereço.</p></div></details></div><div class="air-reading"><div class="air-index"><b id="airValue"><span class="sk sk-num" aria-hidden="true"></span></b><span>US AQI</span></div><div class="air-description"><strong id="airQuality"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="airNote"><span class="sk sk-line" aria-hidden="true"></span></small><small id="airParticlesNote" hidden></small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div><section class="air-outlook" id="airOutlook" aria-labelledby="airOutlookTitle" hidden><h3 id="airOutlookTitle">Próximos dias</h3><ol id="airOutlookList"></ol></section><details id="airDetails" class="air-details" hidden><summary>Poluentes e origem</summary><p id="airDetailsTime"></p><p id="airParticles" hidden></p><dl id="airPollutants"></dl><p>PM2,5 e PM10 são partículas; ozônio, NO₂ e CO são gases. Concentrações em microgramas por metro cúbico. O US AQI é um índice próprio, não a soma desses valores.</p><p>Estimativa regional do CAMS via Open-Meteo; não é medição no seu endereço nem confirma a origem da poluição.</p></details></article>
       </section>
-      <section id="nowcastCard" data-enabled="false" class="nowcast-card panel section-block" aria-labelledby="nowcastTitle" hidden>
-        <div class="nowcast-heading"><div><span class="eyebrow">PLUVIA NOWCAST · PILOTO</span><h2 id="nowcastTitle">Observações em Manaus</h2></div><span id="nowcastMock" class="nowcast-dev" hidden>DEV / MOCK DATA</span></div>
-        <p id="nowcastReference" class="nowcast-reference"></p>
-        <p id="nowcastStatus" class="nowcast-status" role="status" aria-live="polite"></p>
-        <div class="nowcast-observations"><span class="eyebrow">OBSERVADO</span><div id="nowcastObserved"></div></div>
-        <div id="nowcastInference" class="nowcast-inference" hidden><span class="eyebrow">INFERÊNCIA · PODE MUDAR</span><p><span id="nowcastArrivalLabel">Possível chegada</span><strong id="nowcastArrival"></strong></p><p id="nowcastMotion"></p></div>
-        <p id="nowcastConfidence" class="nowcast-reference"></p>
-        <details class="nowcast-details"><summary>Fontes e limites</summary><div id="nowcastSourceDetails"></div><p id="nowcastAssumptions" class="nowcast-note"></p><p class="nowcast-note">Boletins de estação descrevem aquele ponto e horário, sem confirmar chuva nos demais bairros. Usamos a referência do município, sem a posição exata do aparelho. A previsão dos modelos continua em “Previsão por hora”. O radar SIPAM ainda não está integrado.</p></details>
-        <div class="nowcast-actions"><button id="nowcastMap" type="button" hidden>Ver observações no mapa</button><button id="nowcastRetry" type="button">Atualizar</button></div>
-      </section>
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
         <dialog id="radarDialog" class="radar-dialog" aria-labelledby="radarDialogTitle"><div class="radar-dialog-heading"><h2 id="radarDialogTitle">Radar de chuva</h2><button id="closeRadar" type="button" aria-label="Fechar radar ampliado">Fechar <span aria-hidden="true">×</span></button></div><div id="radarDialogContent"></div></dialog>
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
           <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><div class="heading-with-tip"><h2 id="weatherMapCardTitle">Chuva na região</h2><details class="info-tip"><summary aria-label="Sobre o radar"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p>Radar observado · RainViewer. A cobertura depende dos radares disponíveis e a imagem não é previsão. A marca azul é o ponto de referência do município. Toque no mapa ou em “Abrir radar” para animar os últimos horários e ver sua localização.</p></div></details></div><p id="weatherMapCity"></p></div>
           <button id="expandRadar" class="expand-radar" type="button" aria-haspopup="dialog" aria-controls="radarDialog" aria-label="Abrir radar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg><span class="expand-radar-verb">Abrir </span>radar</button>
-          <div id="radarMapContent"><div class="weather-layer-chips" role="group" aria-label="Camada do mapa"><button type="button" data-weather-layer="rain" aria-pressed="true">Chuva</button><button id="weatherStationsLayer" type="button" data-weather-layer="stations" aria-pressed="false" hidden>Estação</button></div><div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Mapa meteorológico interativo"></div><button id="radarStageOpen" class="radar-stage-open" type="button" tabindex="-1" aria-hidden="true"></button><button id="weatherMapRecenter" class="weather-map-recenter" type="button" aria-label="Mostrar minha localização no mapa" title="Minha localização" data-centered="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle class="recenter-dot" cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg></button><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
+          <div id="radarMapContent"><div class="weather-map-stage"><div id="weatherMap" role="region" aria-label="Mapa meteorológico interativo"></div><button id="radarStageOpen" class="radar-stage-open" type="button" tabindex="-1" aria-hidden="true"></button><button id="weatherMapRecenter" class="weather-map-recenter" type="button" aria-label="Mostrar minha localização no mapa" title="Minha localização" data-centered="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle class="recenter-dot" cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg></button><p id="weatherMapError" class="weather-map-error" hidden role="status"></p><div class="weather-map-legend" id="weatherMapLegend"></div></div>
           <div class="weather-timebar">
             <div><strong id="weatherLayerName">Chuva</strong><span id="weatherFrameTime">Carregando…</span></div>
             <div class="weather-player">
@@ -472,7 +462,7 @@
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="privacyTitle"><h3 id="privacyTitle">Privacidade</h3><label for="analyticsConsent"><input id="analyticsConsent" type="checkbox"> Ajudar a melhorar o Pluvia</label><p>Compartilhe contagens de uso e tipos de falha com o PostHog. Não enviamos nomes, e-mail, cidade, coordenadas ou texto pesquisado. Não gravamos sua tela nem vinculamos métricas à sua conta.</p><p id="analyticsChoiceStatus" role="status">Desativado. A previsão funciona sem compartilhar métricas.</p><p>O servidor recebe a conexão de rede; solicitamos que o IP não seja usado para geolocalização. <a href="https://posthog.com/privacy" target="_blank" rel="noreferrer">Política de privacidade do PostHog</a>.</p><p>A busca por voz usa o reconhecimento de fala do próprio navegador (no Chrome, o áudio é processado pelo Google). O PLUVIA não recebe nem guarda o áudio.</p><p>Quando você responde “Tá chovendo aí?”, guardamos por 2 dias a resposta, a cidade e o horário, com um código aleatório deste aparelho (só para evitar respostas repetidas). Sem conta, nome ou localização.</p><p>Para sabermos quantos aparelhos abrem o PLUVIA por dia, cada aparelho soma +1 num contador uma vez por dia. Só o total do dia fica guardado: nada de identificador, cidade, conta ou endereço de internet. Com “Do Not Track” ou GPC ligado, este aparelho não é contado.</p></section><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
     <script src="./analytics.js?v=analytics-12" defer></script>
-    <script src="./modules/sources.js?v=panel-24" defer></script>
+    <script src="./modules/sources.js?v=panel-25" defer></script>
     <script src="./modules/dialog-motion.js?v=motion-3" defer></script>
     <script src="./modules/http-client.js?v=http-4" defer></script>
     <script src="./modules/weather-services.js?v=core-116" defer></script>
@@ -484,15 +474,14 @@
     <script src="./modules/weather-icons.js?v=core-50" defer></script>
     <script src="./modules/weather-icon-system.js?v=modern-5" defer></script>
     <script src="./capitals.js?v=core-51" defer></script>
-    <script src="./modules/hourly-detail.js?v=detail-6" defer></script>
+    <script src="./modules/hourly-detail.js?v=detail-7" defer></script>
     <script src="./modules/daily-detail.js?v=daily-3" defer></script>
     <script src="./modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="./app.js?v=panel-90" defer></script>
+    <script src="./app.js?v=panel-91" defer></script>
     <script src="./p0.js?v=panel-46" defer></script>
     <script src="./modules/risks.js?v=core-120" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
-    <script src="./modules/nowcast.js?v=nowcast-3" defer></script>
-    <script src="./weather-map.js?v=map-15" defer></script>
+    <script src="./weather-map.js?v=map-16" defer></script>
     <script src="./modules/account-sync.js?v=sync-1" defer></script>
     <script src="./modules/social-auth.js?v=oauth-3" defer></script>
     <script src="./account.js?v=account-11" defer></script>
@@ -502,7 +491,7 @@
     <script src="./saved-places.js?v=places-2" defer></script>
     <script src="./modules/compare-cities.js?v=compare-2" defer></script>
     <script src="./modules/brazil-now.js?v=brazil-2" defer></script>
-    <script src="./modules/home-layout.js?v=home-layout-3" defer></script>
+    <script src="./modules/home-layout.js?v=home-layout-4" defer></script>
     <script src="./modules/pwa-shortcuts.js?v=shortcuts-1" defer></script><script src="./modules/voice-search.js?v=voice-1" defer></script><script src="./modules/rain-reports.js?v=rain-reports-1" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-1" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-2" defer></script>
     <script src="./notifications.js?v=panel-32" defer></script>

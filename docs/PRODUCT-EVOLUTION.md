@@ -1,5 +1,7 @@
 # Evolução do PLUVIA — 01/10/2026
 
+> Nota (outubro/2026): Resumo Inteligente (`smart-summary`), PLUVIA Nowcast, Planejar ao ar livre e o painel `hourly-outlook` foram aposentados a pedido do dono e removidos do repositório; os trechos abaixo que os citam são históricos.
+
 ## Inventário antes das alterações
 
 A análise parte do commit `7b1713e` (auditoria anterior, PR #99 ainda não publicado), dos scripts e consumidores de `dist/`, testes, migrations e funções Supabase. A stack é estática, sem bundler. Fonte normalizada: `weather-data-layer`; estado/refresh: `app.js` + extensões `p0.js`; tempo municipal: `city-time`; astronomia: `sky-atmosphere` + SunCalc. O backend publicado foi consultado separadamente: seis funções usadas pelo repositório estão ativas; há ainda `xweather-map-probe` fora do fluxo do produto.

@@ -26,17 +26,6 @@
       pressure:number(hourly.pressure_msl?.[index],100,1200),
       humidity:number(hourly.relative_humidity_2m?.[index],0,100)};
   }
-  function rainCopy(outlook,reference) {
-    if(!outlook || outlook.kind==='unavailable') return {title:'Previsão de chuva indisponível',text:'Tente novamente nas próximas horas.'};
-    const partial=outlook.complete ? '' : 'Dados parciais · ';
-    if(outlook.kind==='low') return {title:outlook.complete ? 'Baixa chance de chuva nas próximas 12h' : 'Baixa chance nos horários disponíveis',
-      text:`${partial}Até ${Math.round(outlook.probability)}% de chance${outlook.volume===null ? ' · volume indisponível' : ' · '+format(outlook.volume,1)+' mm no período'}`};
-    const firstDay=outlook.start?.slice(0,10),lastDay=outlook.end?.slice(0,10),today=reference?.slice(0,10);
-    const timing=firstDay!==today ? 'Amanhã, ' : '';
-    const endDay=firstDay!==lastDay ? ' de amanhã' : '';
-    return {title:`${timing}${timing ? 'maior' : 'Maior'} chance das ${clock(outlook.start)} às ${clock(outlook.end)}${endDay}`,
-      text:`${partial}${Math.round(outlook.probability)}% de chance · ${outlook.windowVolume===null ? 'volume indisponível' : format(outlook.windowVolume,1)+' mm nessa faixa'}`};
-  }
   function mount(root) {
     const doc=root.document,el=id=>doc.getElementById(id),dialog=el('hourlyDetailDialog');
     if(!dialog) return;
@@ -108,5 +97,5 @@
     });
     root.PLUVIA.hourlyDetail.update=update;
   }
-  return {detail,rainCopy,mount};
+  return {detail,mount};
 });

@@ -1,5 +1,7 @@
 # PLUVIA Design System
 
+> Nota (outubro/2026): Resumo Inteligente (`smart-summary`), PLUVIA Nowcast, Planejar ao ar livre e o painel `hourly-outlook` foram aposentados a pedido do dono e removidos do repositório; os trechos abaixo que os citam são históricos.
+
 ## Princípios
 
 1. A informação meteorológica vem antes do efeito visual.

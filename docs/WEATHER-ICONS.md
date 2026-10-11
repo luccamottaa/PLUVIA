@@ -22,3 +22,7 @@ Versões dos assets, módulo, referência HTML e precache precisam avançar junt
 ## Ícones em traço nos blocos de leitura (outubro/2026)
 
 Pedido do usuário: os ícones de sensação, máxima, mínima, visibilidade, umidade, vento, pressão, UV e qualidade do ar devem seguir o estilo do relógio de “Previsão por hora”. Esses nove spans recebem `data-weather-icon-style="line"`; `hydrate` injeta um SVG inline de `LINE_METRICS` (grade 24px, sem cor própria, `aria-hidden` e `focusable=false`), e `continuous.css` aplica `--graphic-blue`, traço 2 e pontas arredondadas, como os ícones de seção. Sem nova requisição: os glifos ficam no módulo já carregado. Os SVGs coloridos de `metrics` continuam no catálogo para os outros consumidores (probabilidade de chuva nas listas e no detalhe). `verify-alignment.py` mede os ícones em traço do resumo.
+
+## Assets legados WeatherIcons
+
+Os SVGs em `dist/vendor/weathericons/` vêm do projeto [kickstandapps/WeatherIcons](https://github.com/kickstandapps/WeatherIcons) e permanecem sob SIL Open Font License 1.1; a cópia da licença acompanha os assets. `dist/modules/weather-icons.js` era a camada de mapeamento `código WMO → condição normalizada → dia/noite → SVG local` desses arquivos e continua disponível para shells antigos; a interface atual usa o catálogo original descrito acima. (Este trecho veio de `SMART-SUMMARY-WEATHERICONS.md`, removido junto com o Resumo Inteligente em outubro/2026.)
