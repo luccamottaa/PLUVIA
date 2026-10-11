@@ -772,7 +772,9 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 #weatherView .sk-row { display:grid; grid-template-columns:minmax(0,5rem) 30px minmax(0,1fr); align-items:center; justify-items:start; gap:14px; min-height:52px; padding:0 4px; border-bottom:1px solid var(--reading-line); }
 #weatherView .sk-row .sk-bar { justify-self:end; }
 #weatherView.initial-loading :is(.temperature,.current-bottom strong,.metric strong) { animation:none; }
-#weatherView.initial-loading .temperature .deg { visibility:hidden; }
+/* Sem o número, o grau sai do layout: invisível ele ainda ocupava espaço e o esqueleto ficava à
+   esquerda do eixo da cidade. Com o número, o conjunto número + grau volta a ser centralizado. */
+#weatherView.initial-loading .temperature .deg { display:none; }
 @keyframes pluvia-skeleton { to { transform:translateX(100%); } }
 @media (prefers-reduced-motion:reduce) { #weatherView .sk::after { animation:none; display:none; } }
 
