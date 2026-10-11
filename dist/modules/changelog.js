@@ -11,6 +11,9 @@
   "use strict";
   const SEEN_KEY = "pluvia-seen-version";
   const VERSIONS = [
+    {version:"1.0.1", date:"2026-10-11", title:"Aviso previsto mais discreto", items:[
+      "Aviso do INMET que ainda vai começar aparece numa linha discreta no topo, em vez do cartão grande. Quando ele começa a valer, vira a faixa colorida.",
+    ]},
     {version:"1.0", date:"2026-10-11", title:"O PLUVIA ganhou número de versão", items:[
       "Previsão por hora e para 7 dias, com “Vai chover?” no topo e a chuva das próximas horas.",
       "Avisos oficiais do INMET para a sua cidade e avisos no celular, até sem conta, com resumo do dia às 7h.",
