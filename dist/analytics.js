@@ -4,7 +4,14 @@
   const PROJECT_TOKEN = "phc_yxT3ZC8brv4uP5EngDqbsvr4uMi8NacXJTZXGcTiX3bk";
   const ENDPOINT = 'https://us.i.posthog.com/batch/?ip=0';
   const CHOICE_KEY = 'pluvia-analytics-consent-v1';
-  const release = 'vitals-1';
+  // Versão publicada = geração do service worker, lida da meta do shell (ex.: "panel-153").
+  // Sem ela (página antiga ou teste), "unknown"; nunca texto livre.
+  const release = (() => {
+    try {
+      const value = document.querySelector('meta[name="pluvia-release"]')?.getAttribute('content') || '';
+      return /^pluvia-panel-\d{1,6}$/.test(value) ? value.slice(7) : 'unknown';
+    } catch { return 'unknown'; }
+  })();
   const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital','Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed','Alert Nudge Shown','Alert Nudge Tapped','Alert Nudge Dismissed','Rain Report Sent','Install Prompt Shown','Install Prompt Tapped','Install Prompt Dismissed','App Installed']);
   const values = {
     mode:new Set(['login','signup']),offer:new Set(['install','enable']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker','automatic','notice','city_picker','swipe','dots','search','favorite','saved_place','brazil','startup','other','home']),
