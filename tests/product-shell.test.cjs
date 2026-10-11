@@ -63,7 +63,7 @@ assert.match(styles, /footer \{ margin-top: 48px; padding-block: 28px/);
 assert.match(styles, /footer \{ margin-top: 28px; align-items:start;/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-panel-153/);
+assert.match(sw, /pluvia-panel-154/);
 assert.match(html, /redesign\.css\?v=panel-41/);
 assert.match(sw, /assets\/sky-cloud-veil\.webp/);
 assert.match(html, /id="weatherView" class="initial-loading" aria-busy="true"/);
@@ -94,7 +94,7 @@ assert.match(html, /apple-mobile-web-app-status-bar-style" content="black-transl
 assert.match(html, /modules\/weather-data-layer\.js\?v=core-115/);
 assert.match(html, /modules\/met-merge\.js\?v=core-111/);
 assert.match(sw, /modules\/met-merge\.js\?v=core-111/);
-assert.match(html, /modules\/http-client\.js\?v=http-3/);
+assert.match(html, /modules\/http-client\.js\?v=http-4/);
 assert.match(html, /modules\/weather-services\.js\?v=core-116/);
 assert.match(html, /modules\/weather-insights\.js\?v=core-72/);
 assert.match(html, /app\.js\?v=panel-89/);

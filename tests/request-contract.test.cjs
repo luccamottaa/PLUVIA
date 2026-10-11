@@ -116,3 +116,16 @@ test('falha de rede com o app em segundo plano não vira telemetria nem repetiç
   assert.deepEqual(events,[{component:'weather',error_code:'network_error',status:0,error_type:'RequestError'}]);
  } finally {delete global.pluviaAnalytics;delete global.document;}
 });
+
+test('consulta cortada pela recarga da atualização não vira telemetria',async()=>{
+ const events=[];global.pluviaAnalytics={reportFailure:props=>events.push(props)};
+ try {
+  global.PLUVIA={...(global.PLUVIA||{}),reloading:true};
+  const client=createClient({fetchImpl:async()=>{throw new TypeError('Load failed');}});
+  await assert.rejects(client.getJson('https://dszyyrcvwrpyiypwyvxe.supabase.co/functions/v1/met-forecast'),error=>error.code==='network_error' && error.background===true);
+  assert.equal(events.length,0);
+  global.PLUVIA.reloading=false;
+  await assert.rejects(client.getJson('https://api.open-meteo.com/v1/forecast'),error=>error.code==='network_error' && !error.background);
+  assert.equal(events.length,1);
+ } finally {delete global.pluviaAnalytics;delete global.PLUVIA;}
+});
