@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { report } from "../_shared/error-report.js";
 import { adminClient, authenticatedUser, pushSecrets } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 import { allowedPushEndpoint } from "../_shared/push-endpoint.ts";
@@ -127,6 +128,7 @@ Deno.serve(async (req) => {
     const code = error instanceof Error ? error.message : "request_failed";
     if (["invalid_subscription", "invalid_location", "payload_too_large"].includes(code)) return json(req, { error: "Os dados enviados não são válidos." }, 400);
     console.error("push-subscriptions failed", { code });
+    report("push-subscriptions", code);
     return json(req, { error: "Não foi possível salvar as notificações agora." }, 503);
   }
 });

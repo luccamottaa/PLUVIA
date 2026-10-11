@@ -11,6 +11,8 @@ Plugins do ChatGPT fornecem ferramentas ao agente. Isso não disponibiliza autom
 | GitHub | Repositório, CI e Pages existentes | Revisão, checks e publicação pelo fluxo existente. |
 | Vercel | Ferramentas e skills de navegador/deploy disponíveis | QA de navegador é útil; manter Pages, sem migração de hospedagem ou criação de projeto Vercel. |
 | Amplitude | Conexão de análise e projeto, mas nenhuma chave pública configurada no código | Não ativar segundo coletor equivalente ao PostHog. |
+| Sentry | Org `pluvia-gt`, projeto `pluvia-functions` (11/10/2026) | Só nas funções Supabase, sem SDK: `_shared/error-report.js` manda componente + código fixo (slug) por envelope, com dedupe de 5 min por instância, timeout 2 s e `waitUntil`. Sem stack, mensagem bruta, usuário, cidade, endpoint ou IP. `push-process` manda uma falha por rodada com a contagem. DSN em `SENTRY_DSN` (secret das funções); sem ele nada é enviado. Frontend fora: PostHog já cobre falhas do app, e um SDK no navegador custaria peso e privacidade. |
+| Resend | Domínio `pluviaweather.com.br` verificado (sa-east-1, sem rastreio) | SMTP do Supabase Auth. Remetente precisa estar no domínio verificado (ver `ACCOUNT-EMAILS.md`). |
 | Railway, Neon, Base44, Sites | Infraestrutura/construção alternativa ao stack já usado | Não criar outra base, backend ou hospedagem sem problema que justifique manutenção e custo adicionais. Vínculo Sites existente preservado. |
 | Figma, Canva, Adobe, Miro, Mobbin | Design e assets | Úteis em futuro trabalho de design autorizado; sem redesign ou dependência runtime nesta etapa. |
 | Linear, Notion, Drive/Docs/Sheets/Slides | Gestão e documentação | Documentação técnica fica versionada no repositório; não duplicar conteúdo em espaços pessoais sem necessidade. |

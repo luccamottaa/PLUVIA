@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { adminClient, authenticatedUser } from "../_shared/supabase.ts";
 import { json, preflight, readJson, allowedOrigin } from "../_shared/http.ts";
+import { report } from "../_shared/error-report.js";
 import { recentAuthentication, deleteOwnAccount } from "../_shared/account-deletion.js";
 
 Deno.serve(async req => {
@@ -22,7 +23,10 @@ Deno.serve(async req => {
     return json(req,{deleted:true});
   } catch(error) {
     const invalid=error instanceof SyntaxError || ["empty_payload","payload_too_large"].includes(error instanceof Error ? error.message : "");
-    if(!invalid) console.warn("account deletion unavailable",{code:"account_delete_failed"});
+    if(!invalid) {
+      console.warn("account deletion unavailable",{code:"account_delete_failed"});
+      report("account-delete",error instanceof Error ? error.message : "account_delete_failed");
+    }
     return json(req,{error:invalid ? "Confirmação inválida." : "Não foi possível confirmar a exclusão. Tente novamente.",code:invalid ? "invalid_request" : "service_unavailable"},invalid ? 400 : 503);
   }
 });
