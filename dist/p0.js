@@ -85,10 +85,15 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
   let hadController = Boolean(navigator.serviceWorker.controller);
   let reloadingForUpdate = false;
   let pendingReload = false;
+  // A versão nova entra quando o app vai para o fundo, nunca na frente da pessoa: recarregar
+  // logo depois de abrir pintava a página duas vezes em ~3 s (o iPhone chegou a encerrar a página
+  // por memória) e cortava as consultas em andamento. Busca/formulário abertos esperam.
   const reloadWhenIdle = () => {
-    if (!pendingReload || reloadingForUpdate || document.visibilityState === 'hidden' ||
+    if (!pendingReload || reloadingForUpdate || document.visibilityState !== 'hidden' ||
       document.querySelector?.('dialog[open], input:focus, textarea:focus, [contenteditable]:focus')) return;
     reloadingForUpdate = true;
+    // As consultas cortadas por esta recarga não são falha da fonte (http-client).
+    (globalThis.PLUVIA = globalThis.PLUVIA || {}).reloading = true;
     location.reload();
   };
   navigator.serviceWorker.addEventListener("controllerchange", () => {
@@ -98,9 +103,8 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
       reloadWhenIdle();
     }
   });
-  document.addEventListener('close', reloadWhenIdle, true);
-  document.addEventListener('focusout', () => setTimeout(reloadWhenIdle,0));
   document.addEventListener('visibilitychange',reloadWhenIdle);
+  window.addEventListener('pagehide', reloadWhenIdle);
   let registration;
   let checking;
   let lastCheck = -Infinity;

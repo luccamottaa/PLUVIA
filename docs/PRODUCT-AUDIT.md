@@ -1,5 +1,7 @@
 # Auditoria de produto — 10/09/2026
 
+> Nota (outubro/2026): Resumo Inteligente (`smart-summary`), PLUVIA Nowcast, Planejar ao ar livre e o painel `hourly-outlook` foram aposentados a pedido do dono e removidos do repositório; os trechos abaixo que os citam são históricos.
+
 > Atualização core-72 (21/09/2026): o modo escuro passou a usar preto puro `#000000` no canvas e na abertura, incluindo os estados atmosféricos. Cards e controles mantêm superfícies azul-escuras para preservar contraste e hierarquia visual em telas OLED.
 
 > Atualização core-70 (21/09/2026): o card PLUVIA Sinal citado nas rodadas históricas abaixo foi removido por duplicar o Resumo Inteligente. A Home agora possui uma única leitura contextual, com explicação dos fatores e prioridade para avisos oficiais do INMET.

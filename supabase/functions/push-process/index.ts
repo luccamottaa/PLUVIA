@@ -3,6 +3,7 @@ import { adminClient, pushSecrets } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 import { pushErrorCode, sendWebPush } from "../_shared/webpush.ts";
 import { selectCandidates, isRepeat } from "../_shared/notification-policy.js";
+import { report } from "../_shared/error-report.js";
 
 type Location = { id: string; user_id: string; city_id: string; city_name: string; uf: string; latitude: number; longitude: number; timezone: string };
 type Preference = Record<string, any> & { user_id: string };
@@ -346,7 +347,10 @@ Deno.serve(async (req) => {
     for (const subscription of subscriptions || []) subscriptionsByUser.set(subscription.user_id, [...(subscriptionsByUser.get(subscription.user_id) || []), subscription]);
     let inmetAlerts: any[] = [];
     if ([...preferencesByUser.values()].some((preference: any) => preference.notifications_enabled && preference.official_alerts)) {
-      try { inmetAlerts = normalizeInmet(await fetchJson(INMET_URL)); } catch (error) { console.warn("INMET unavailable", { code: error instanceof Error ? error.message : "unknown" }); }
+      try { inmetAlerts = normalizeInmet(await fetchJson(INMET_URL)); } catch (error) {
+        console.warn("INMET unavailable", { code: error instanceof Error ? error.message : "unknown" });
+        report("push-process", "inmet_unavailable", { level: "warning" });
+      }
     }
     let created = 0, accepted = 0, sourceFailures = 0, processed = 0;
     const sources = new Map<string, Promise<any>>();
@@ -400,12 +404,15 @@ Deno.serve(async (req) => {
       processed++;
     }
 
+    // Uma falha por rodada, com a contagem: cidade e usuário nunca saem daqui.
+    if (sourceFailures) report("push-process", "source_failures", { level: "warning", count: sourceFailures });
     if (Date.now() < deadline) await admin.from("push_subscriptions").delete().eq("enabled", false).lt("updated_at", new Date(Date.now() - 30 * 86_400_000).toISOString());
     if (Date.now() < deadline) await admin.from("notification_events").delete().lt("expires_at", new Date(Date.now() - 90 * 86_400_000).toISOString());
     return json(req, { ok: true, locations: processed, selected: locations.length, budgetExhausted: processed < locations.length, events: created, accepted, sourceFailures });
   } catch (error) {
     const code = error instanceof Error ? error.message : "worker_failed";
     console.error("push-process failed", { code });
+    report("push-process", code);
     return json(req, { error: "Processamento temporariamente indisponível.", diagnostic_code: text(code, 80) }, 503);
   } finally {
     if (token) {

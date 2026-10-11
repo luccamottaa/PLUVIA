@@ -17,7 +17,7 @@ const context = {
   AbortController, URLSearchParams, setTimeout, clearTimeout, clearInterval,
   requestAnimationFrame:fn=>fn(),
   IntersectionObserver:class { constructor(callback){observeVisibility=callback;} observe(){} disconnect(){} },
-  L:{tileLayer:(url,options)=>{const layer={url,options,opacity:null,events:{},on(name,fn){this.events[name]=fn;return this;},addTo(){return this;},setOpacity(value){this.opacity=value;}};layers.push(layer);return layer;},layerGroup:()=>({addTo(){return this}})}
+  L:{tileLayer:(url,options)=>{const layer={url,options,opacity:null,events:{},on(name,fn){this.events[name]=fn;return this;},addTo(){return this;},setOpacity(value){this.opacity=value;}};layers.push(layer);return layer;}}
 };
 let code = fs.readFileSync('dist/weather-map.js','utf8');
 code = code.replace('  let leafletPromise;', '  globalThis.testMap = {selectLayer, state, fadeTileLayer};\n  let leafletPromise;');
@@ -27,13 +27,17 @@ context.testMap.state.map = {removeLayer(layer){removed.push(layer);},setMaxZoom
 const response = body => ({ok:true,json:async()=>body,text:async()=>body});
 const latest = Math.floor(Date.now()/600000)*600000;
 (async()=>{
+  // Uma consulta nova do radar invalida a anterior: a falha da antiga não pinta "Indisponível" por cima.
   const old = context.testMap.selectLayer('rain');
-  await context.testMap.selectLayer('stations');
+  const current = context.testMap.selectLayer('rain');
   const shown = node('weatherFrameTime').textContent;
   requests[0].reject(new Error('Cancelled old request'));
   await old;
-  assert.equal(node('weatherFrameTime').textContent,shown,'resposta cancelada da camada anterior não sobrescreve a atual');
-  assert.equal(shown,'Indisponível');
+  assert.equal(node('weatherFrameTime').textContent,shown,'resposta cancelada da consulta anterior não sobrescreve a atual');
+  assert.equal(shown,'Carregando…');
+  requests[1].resolve(response({host:'https://radar.test',radar:{past:[]}}));
+  await current;
+  assert.equal(node('weatherFrameTime').textContent,'Indisponível');
   const first=context.L.tileLayer('first');
   context.testMap.fadeTileLayer(first,.76);
   first.events.tileload();first.events.load();
@@ -45,7 +49,7 @@ const latest = Math.floor(Date.now()/600000)*600000;
   second.events.tileload();second.events.load();
   assert.equal(context.testMap.state.overlay,second,'swap only after new tiles load');
   const missing = context.testMap.selectLayer('rain');
-  requests[1].resolve(response({host:'https://radar.test',radar:{past:[]}}));
+  requests[2].resolve(response({host:'https://radar.test',radar:{past:[]}}));
   await missing;
   assert.equal(node('weatherFrameTime').textContent,'Indisponível');
   assert.equal(context.testMap.state.frames.length,0);
@@ -54,7 +58,7 @@ const latest = Math.floor(Date.now()/600000)*600000;
   context.testMap.state.cityId=context.activeCity.id;
   context.activeCity={id:'4106902',lat:-25,lon:-49,timezone:'America/Sao_Paulo'};
   context.PLUVIA.modules['weather-layers'].cityChanged();
-  requests[2].resolve(response({host:'https://radar.test',radar:{past:[{path:'/old',time:latest/1000}]}}));
+  requests[3].resolve(response({host:'https://radar.test',radar:{past:[{path:'/old',time:latest/1000}]}}));
   await pendingCity;
   assert.equal(context.testMap.state.frames.length,0,'resposta da cidade anterior é invalidada mesmo fora da tela');
   assert.equal(context.testMap.state.overlay,null);

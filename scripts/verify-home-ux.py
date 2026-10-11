@@ -139,7 +139,10 @@ with sync_playwright() as p:
 
         # Buscas recentes: a cidade aberta pela busca aparece primeiro, identificada.
         page.click('#openCitySearch'); page.wait_for_function("document.getElementById('cityDialog').open")
-        page.fill('#citySearch', 'Recife'); page.wait_for_selector('.city-result[data-id="2611606"]', timeout=5000)
+        page.fill('#citySearch', 'Recife')
+        # A busca redesenha a lista 120 ms depois de digitar; Recife já está na lista inicial (capital), então
+        # esperar só o botão clicava na lista antiga bem quando ela era trocada. Espera a lista filtrada.
+        page.wait_for_function("document.getElementById('cityDialog').hasAttribute('data-searching') && document.querySelector('#cityResults .city-result')?.dataset.id === '2611606'", timeout=5000)
         page.click('.city-result[data-id="2611606"]')
         page.wait_for_function("document.getElementById('cityName').textContent.includes('Recife')", timeout=10000)
         # A ativa não aparece como recente: volta a uma favorita (bolinha) antes de reabrir a busca.
@@ -149,7 +152,10 @@ with sync_playwright() as p:
         page.fill('#citySearch', ''); page.dispatch_event('#citySearch', 'input')
         recent = page.evaluate("(() => { const b = document.querySelector('.city-result'); return [b?.dataset.id, b?.querySelector('small')?.textContent]; })()")
         assert recent[0] == '2611606' and recent[1].startswith('Recente'), recent
-        page.fill('#citySearch', 'Manaus'); page.wait_for_selector('.city-result[data-id="1302603"]', timeout=5000)
+        page.fill('#citySearch', 'Manaus')
+        # A busca redesenha a lista 120 ms depois de digitar; Manaus já está na lista inicial (capital), então
+        # esperar só o botão clicava na lista antiga bem quando ela era trocada. Espera a lista filtrada.
+        page.wait_for_function("document.getElementById('cityDialog').hasAttribute('data-searching') && document.querySelector('#cityResults .city-result')?.dataset.id === '1302603'", timeout=5000)
         page.click('.city-result[data-id="1302603"]')
         page.wait_for_function("document.getElementById('cityName').textContent.includes('Manaus') && document.getElementById('temperature').textContent.trim()==='30'", timeout=10000)
 

@@ -25,7 +25,7 @@ errors=[];forbidden=[];reports=[]
 
 def route(r):
  url=r.request.url
- if any(path in url for path in ['/functions/v1/smart-summary','/functions/v1/nowcast','/api/nowcast','/functions/v1/push-']):
+ if any(path in url for path in ['/functions/v1/push-']):
   forbidden.append(urlparse(url).path);r.abort();return
  if 'api.open-meteo.com/v1/forecast' in url:
   data=json.loads(json.dumps(base))

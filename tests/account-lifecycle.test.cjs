@@ -17,7 +17,7 @@ test('revoga sessões antes de excluir apenas o proprietário; falha não produz
 function endpoint({user={id:'owner'},amr=claims.amr,origin='https://pluviaweather.com.br',failure=false}={}){
  let handler;const calls=[];const source=stripTypeScriptTypes(fs.readFileSync('supabase/functions/account-delete/index.ts','utf8').replace(/^import .*;\n/gm,''));
  const token='header.'+Buffer.from(JSON.stringify({...claims,amr})).toString('base64url')+'.signature';
- vm.runInNewContext(source,{Deno:{serve:fn=>handler=fn},authenticatedUser:async()=>user,readJson:async req=>req.body,json:(_,body,status=200)=>({body,status}),preflight:()=>({status:204}),allowedOrigin:()=> 'https://pluviaweather.com.br',atob,Error,SyntaxError,JSON,Date,recentAuthentication,adminClient:()=>({}),deleteOwnAccount:async(_,token,id)=>{calls.push(id);if(failure)throw Error('failure');},console:{warn(){}}});
+ vm.runInNewContext(source,{Deno:{serve:fn=>handler=fn},authenticatedUser:async()=>user,readJson:async req=>req.body,json:(_,body,status=200)=>({body,status}),preflight:()=>({status:204}),allowedOrigin:()=> 'https://pluviaweather.com.br',atob,Error,SyntaxError,JSON,Date,recentAuthentication,adminClient:()=>({}),deleteOwnAccount:async(_,token,id)=>{calls.push(id);if(failure)throw Error('failure');},console:{warn(){}},report:()=>{}});
  return {calls,invoke:body=>handler({method:'POST',headers:new Headers({origin,authorization:'Bearer '+token}),body})};
 }
 test('endpoint bloqueia anônimo, outra conta, origem, confirmação e login antigo sem excluir',async()=>{

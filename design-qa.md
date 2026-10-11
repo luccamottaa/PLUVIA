@@ -1,5 +1,7 @@
 # Design QA — nuvens do Pluvia
 
+> Nota (outubro/2026): Resumo Inteligente (`smart-summary`), PLUVIA Nowcast, Planejar ao ar livre e o painel `hourly-outlook` foram aposentados a pedido do dono e removidos do repositório; os trechos abaixo que os citam são históricos.
+
 Result: **passed**
 
 Escopo: trocar a aparência das nuvens existentes, seguindo a direção visual do céu da referência Apple Weather enviada pelo usuário. A referência não solicita copiar os cards, a tipografia ou a navegação da Apple. Não há mudança de arquitetura meteorológica.

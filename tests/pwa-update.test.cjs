@@ -7,13 +7,16 @@ const p0 = fs.readFileSync('dist/p0.js', 'utf8');
 const update = p0.slice(p0.indexOf('if ("serviceWorker" in navigator'), p0.indexOf('(function setupDialogViewport()'));
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
+// Vários listeners do mesmo evento são chamados em ordem, como no navegador.
+const chain = (previous, fn) => previous ? (...args) => { previous(...args); fn(...args); } : fn;
+
 function boot(controlled = true) {
   const events = {}, documentEvents = {}, workerEvents = {};
   let now = 0, checks = 0, reloads = 0, options;
   const registration = { update: async () => { checks++; } };
   const context = {
-    document: { visibilityState: 'visible', addEventListener: (name, fn) => { documentEvents[name] = fn; } },
-    window: { isSecureContext: true, addEventListener: (name, fn) => { events[name] = fn; } },
+    document: { visibilityState: 'visible', addEventListener: (name, fn) => { documentEvents[name] = chain(documentEvents[name], fn); } },
+    window: { isSecureContext: true, addEventListener: (name, fn) => { events[name] = chain(events[name], fn); } },
     navigator: { onLine: true, serviceWorker: {
       controller: controlled ? {} : null,
       addEventListener: (name, fn) => { workerEvents[name] = fn; },
@@ -48,7 +51,11 @@ test('PWA verifica versões ao retornar do segundo plano sem esperar outro load'
   assert.equal(app.checks(), 2);
   app.workerEvents.controllerchange();
   app.workerEvents.controllerchange();
-  assert.equal(app.reloads(), 1, 'aplica o novo documento uma única vez');
+  assert.equal(app.reloads(), 0, 'com o app na frente, a versão nova espera');
+  app.context.document.visibilityState = 'hidden';
+  app.documentEvents.visibilitychange();
+  app.documentEvents.visibilitychange();
+  assert.equal(app.reloads(), 1, 'aplica o novo documento uma única vez, quando o app vai para o fundo');
 });
 
 test('primeira instalação não recarrega; offline e falhas de atualização permitem nova tentativa', async () => {
@@ -57,7 +64,11 @@ test('primeira instalação não recarrega; offline e falhas de atualização pe
   app.workerEvents.controllerchange();
   assert.equal(app.reloads(), 0);
   app.workerEvents.controllerchange();
+  assert.equal(app.reloads(), 0);
+  app.context.document.visibilityState = 'hidden';
+  app.events.pagehide();
   assert.equal(app.reloads(), 1, 'uma atualização posterior à primeira instalação recarrega a versão');
+  app.context.document.visibilityState = 'visible';
   app.advance(31000);
   app.context.navigator.onLine = false;
   app.events.interval();
@@ -79,7 +90,9 @@ test('versão nova aguarda a busca ou formulário fechar para não apagar a digi
   let interacting=true;
   app.context.document.querySelector=()=>interacting ? {} : null;
   app.workerEvents.controllerchange();assert.equal(app.reloads(),0);
-  interacting=false;app.documentEvents.close();assert.equal(app.reloads(),1);
+  app.context.document.visibilityState='hidden';app.documentEvents.visibilitychange();assert.equal(app.reloads(),0,'busca aberta no fundo também espera');
+  interacting=false;app.context.document.visibilityState='visible';app.documentEvents.visibilitychange();assert.equal(app.reloads(),0);
+  app.context.document.visibilityState='hidden';app.documentEvents.visibilitychange();assert.equal(app.reloads(),1);
   app.workerEvents.controllerchange();assert.equal(app.reloads(),1);
 });
 

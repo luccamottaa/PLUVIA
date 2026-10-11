@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { report } from "../_shared/error-report.js";
 import { adminClient, authenticatedUser } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 import { snapshot, operationsInput, applyOperations } from "../_shared/account-preferences.js";
@@ -38,7 +39,10 @@ Deno.serve(async req => {
   } catch(error) {
     const code=error instanceof Error ? error.message : "preference_failed";
     const invalid=["invalid_operations","empty_payload","payload_too_large"].includes(code) || error instanceof SyntaxError;
-    if(!invalid) console.warn("account preferences unavailable",{code:"preference_service_failed"});
+    if(!invalid) {
+      console.warn("account preferences unavailable",{code:"preference_service_failed"});
+      report("account-preferences",code);
+    }
     return json(req,{error:invalid ? "Não foi possível validar esta alteração." : "Não foi possível sincronizar agora. Tente novamente.",code:invalid ? "invalid_operations" : "service_unavailable"},invalid ? 400 : 503);
   }
 });

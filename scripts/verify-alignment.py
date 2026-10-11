@@ -25,7 +25,7 @@ errors=[];forbidden=[];reports=[]
 
 def route(r):
  url=r.request.url
- if any(path in url for path in ['/functions/v1/smart-summary','/functions/v1/nowcast','/api/nowcast','/functions/v1/push-']):
+ if any(path in url for path in ['/functions/v1/push-']):
   forbidden.append(urlparse(url).path);r.abort();return
  if 'api.open-meteo.com/v1/forecast' in url:
   data=json.loads(json.dumps(base))
@@ -150,7 +150,7 @@ with sync_playwright() as p:
   # Radar compacto: na Home só a miniatura (sem player); o player alinhado é medido no radar ampliado.
   assert not boxes('.weather-map-card .weather-player > *'),(width,'player só no radar ampliado')
   # Rodapé compacto: links lado a lado (quebram quando não cabem), cada linha centralizada e sem sobreposição.
-  links=boxes('footer .footer-link');assert len(links)==3,links
+  links=boxes('footer .footer-link');assert len(links)==5,links
   center=page.evaluate("(()=>{const r=document.querySelector('footer .footer-details').getBoundingClientRect();return r.x+r.width/2})()")
   for row_y in {round(b['y']) for b in links}:
    row=sorted([b for b in links if round(b['y'])==row_y],key=lambda b:b['x'])

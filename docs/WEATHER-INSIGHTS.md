@@ -1,5 +1,7 @@
 # Contexto meteorológico inteligente
 
+> Nota (outubro/2026): Resumo Inteligente (`smart-summary`), PLUVIA Nowcast, Planejar ao ar livre e o painel `hourly-outlook` foram aposentados a pedido do dono e removidos do repositório; os trechos abaixo que os citam são históricos.
+
 O módulo `dist/modules/weather-insights.js` transforma os dados já recebidos do Open-Meteo em contexto curto e verificável. Ele não cria previsão e não chama IA.
 
 ## Comparação com ontem

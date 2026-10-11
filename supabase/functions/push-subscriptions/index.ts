@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { adminClient, authenticatedUser, pushSecrets } from "../_shared/supabase.ts";
+import { report } from "../_shared/error-report.js";
+import { adminClient, authenticatedUser, pushSecrets, retryPause } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 import { allowedPushEndpoint } from "../_shared/push-endpoint.ts";
 
@@ -57,13 +58,15 @@ Deno.serve(async (req) => {
     const action = clean(body?.action, 32);
 
     if (action === "config") {
-      const [preferenceResult, deviceResult, locationResult, secrets] = await Promise.all([
+      const lookup = () => Promise.all([
         admin.from("notification_preferences").select("*").eq("user_id", user.id).maybeSingle(),
         admin.from("push_subscriptions").select("id,device_name,platform,browser,last_seen_at,enabled").eq("user_id", user.id).order("last_seen_at", { ascending: false }),
         admin.from("notification_locations").select("id,city_id,city_name,uf,timezone,source,enabled").eq("user_id", user.id).order("updated_at", { ascending: false }),
-        pushSecrets(admin),
       ]);
-      if (preferenceResult.error || deviceResult.error || locationResult.error) throw new Error("config_lookup_failed");
+      const failed = (results: any[]) => results.some(result => result.error);
+      const [readings, secrets] = await Promise.all([lookup().then(async results => failed(results) ? (await retryPause(), lookup()) : results), pushSecrets(admin)]);
+      const [preferenceResult, deviceResult, locationResult] = readings;
+      if (failed(readings)) throw new Error("config_lookup_failed");
       const preferences=preferenceResult.data,devices=deviceResult.data,locations=locationResult.data;
       return json(req, { publicKey: secrets.vapid_public_key, preferences, devices: devices || [], locations: locations || [] });
     }
@@ -127,6 +130,7 @@ Deno.serve(async (req) => {
     const code = error instanceof Error ? error.message : "request_failed";
     if (["invalid_subscription", "invalid_location", "payload_too_large"].includes(code)) return json(req, { error: "Os dados enviados não são válidos." }, 400);
     console.error("push-subscriptions failed", { code });
+    report("push-subscriptions", code);
     return json(req, { error: "Não foi possível salvar as notificações agora." }, 503);
   }
 });

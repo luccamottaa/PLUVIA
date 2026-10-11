@@ -4,17 +4,27 @@
   const PROJECT_TOKEN = "phc_yxT3ZC8brv4uP5EngDqbsvr4uMi8NacXJTZXGcTiX3bk";
   const ENDPOINT = 'https://us.i.posthog.com/batch/?ip=0';
   const CHOICE_KEY = 'pluvia-analytics-consent-v1';
-  const release = 'vitals-1';
-  const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital','Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed','Alert Nudge Shown','Alert Nudge Tapped','Alert Nudge Dismissed','Rain Report Sent','Install Prompt Shown','Install Prompt Tapped','Install Prompt Dismissed','App Installed']);
+  // Versão publicada = geração do service worker, lida da meta do shell (ex.: "panel-153").
+  // Sem ela (página antiga ou teste), "unknown"; nunca texto livre.
+  const release = (() => {
+    try {
+      const value = document.querySelector('meta[name="pluvia-release"]')?.getAttribute('content') || '';
+      return /^pluvia-panel-\d{1,6}$/.test(value) ? value.slice(7) : 'unknown';
+    } catch { return 'unknown'; }
+  })();
+  const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital','Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed','Alert Nudge Shown','Alert Nudge Tapped','Alert Nudge Dismissed','Rain Report Sent','Install Prompt Shown','Install Prompt Tapped','Install Prompt Dismissed','App Installed','City Search Closed','Share Moment Shown','Share Moment Tapped','Changelog Opened']);
   const values = {
-    mode:new Set(['login','signup']),offer:new Set(['install','enable']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker','automatic','notice','city_picker','swipe','dots','search','favorite','saved_place','brazil','startup','other','home']),
-    reason:new Set(['unsupported','permission','timeout','position','catalog']),permission:new Set(['granted','denied','default']),
+    mode:new Set(['login','signup']),offer:new Set(['install','enable']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker','automatic','notice','city_picker','swipe','dots','search','favorite','saved_place','brazil','startup','other','home','footer','update_note']),
+    reason:new Set(['unsupported','permission','timeout','position','catalog']),nudge:new Set(['official','rain','regular']),permission:new Set(['granted','denied','default']),
     layer:new Set(['rain','clouds','lightning']),platform:new Set(['ios','android','desktop','other']),
     component:new Set(['application','asset','weather','air-quality','alerts','met-norway','ensemble','account','radar','lightning']),
     error_code:new Set(['timeout','network_error','invalid_response','rate_limited','provider_unavailable','http_error','client_unavailable','unexpected','resource_error']),
     error_type:new Set(['Error','TypeError','ReferenceError','SyntaxError','RangeError','RequestError']),
-    kind:new Set(['dry','drizzle','rain','heavy']),metric:new Set(['LCP','INP','CLS','FCP','TTFB']),rating:new Set(['good','needs-improvement','poor'])
+    kind:new Set(['dry','drizzle','rain','heavy']),metric:new Set(['LCP','INP','CLS','FCP','TTFB']),rating:new Set(['good','needs-improvement','poor']),
+    outcome:new Set(['chosen','typed','no_results','empty']),moment:new Set(['storm','glow'])
   };
+  // Busca abandonada: uma escolha durante o diálogo de cidades vira "chosen" no fechamento.
+  let searchChose = false;
   let consent = false, timer = null, inFlight = null, controller = null, generation = 0, visitId = null, sent = 0;
   const queue = [], failures = new Set();
   try {consent=localStorage.getItem(CHOICE_KEY)==='1';} catch {}
@@ -55,6 +65,7 @@
     paintChoice();if(enabled())track('PLUVIA Opened',{standalone:installed()});
   }
   function track(name,properties={}) {
+    if(name==='City Selected')searchChose=true;
     if(!enabled() || !events.has(name) || sent>=100 || queue.length>=50 || !id())return;
     sent++;
     const agent=navigator.userAgent || '',browser=/Firefox/i.test(agent) ? 'firefox' : /Chrome|Chromium|CriOS|Edg/i.test(agent) ? 'chromium' : /Safari/i.test(agent) ? 'safari' : 'other';
@@ -149,6 +160,17 @@
     on('accountLogin','click',()=>track('Auth Mode Selected',{mode:'login'}));
     on('accountSignup','click',()=>track('Auth Mode Selected',{mode:'signup'}));
     let searchTimer;
+    // Ao fechar a busca: escolheu, digitou e desistiu (com ou sem resultados) ou nem digitou.
+    // Só o resultado e o tamanho do texto saem; nunca o texto nem a cidade.
+    const cityDialog=document.getElementById('cityDialog');
+    if(cityDialog){
+      if(typeof MutationObserver==='function')new MutationObserver(()=>{if(cityDialog.open)searchChose=false;}).observe(cityDialog,{attributes:true,attributeFilter:['open']});
+      cityDialog.addEventListener('close',()=>{
+        const length=(document.getElementById('citySearch')?.value || '').trim().length;
+        const outcome=searchChose ? 'chosen' : length<2 ? 'empty' : document.querySelector('#cityResults .city-result') ? 'typed' : 'no_results';
+        track('City Search Closed',{outcome,query_length:length});searchChose=false;
+      });
+    }
     on('citySearch','input',event=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>track('City Searched',{query_length:event.target.value.trim().length}),500);});
     document.addEventListener('click',event=>{
       if(event.target.closest?.('[data-notice]'))track('Alert Opened',{source:'INMET'});

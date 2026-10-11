@@ -1,14 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{stripTypeScriptTypes}=require('node:module');
-const frontend=require('../dist/modules/smart-summary.js'),{forecast,city}=require('./support/forecast.cjs');
-const edge=fs.readFileSync('supabase/functions/smart-summary/index.ts','utf8');
-const summary=vm.runInNewContext(stripTypeScriptTypes(edge.slice(edge.indexOf('const finite ='),edge.indexOf('async function serverHash(')))+';({cleanContext,clientHash})');
-test('hash do cliente e da função concordam e dados ausentes não viram zero no servidor',()=>{
- const context=frontend.buildContext(forecast(),null,1,city),clean=summary.cleanContext(context);
- assert.equal(summary.clientHash(clean),frontend.contextHash(context));
- for(const change of [data=>data.next3h.probability=null,data=>data.next6h.precipitation='0',data=>data.next3h.codes.pop(),data=>data.uv=null]) {
-  const data=structuredClone(context);change(data);assert.throws(()=>summary.cleanContext(data),/invalid_context/);
- }
-});
+const {city}=require('./support/forecast.cjs');
 const push=fs.readFileSync('supabase/functions/push-process/index.ts','utf8');
 const purePush=stripTypeScriptTypes(push.replace(/^import .*;\n/gm,''));
 const functions=vm.runInNewContext(purePush.slice(0,purePush.indexOf('Deno.serve('))+';({inmetForLocation,weatherUrl,detectWeather})',{URL,URLSearchParams,Intl,Date});
@@ -45,7 +36,7 @@ test('falha da previsão mantém processamento independente dos avisos oficiais'
  const preferences={user_id:'owner',notifications_enabled:true,official_alerts:true,heavy_rain:true};
  const admin={rpc:async(name,args)=>({data:name==='pluvia_push_claim'?[{cursor_id:null}]:true}),from(table){const chain={select(){return chain;},eq(){return chain;},in(){return chain;},limit(){return chain;},order(){return chain;},delete(){return chain;},lt(){return chain;},then(resolve){return Promise.resolve({data:table==='notification_locations'?[row]:table==='notification_preferences'?[preferences]:table==='push_subscriptions'?[{id:'subscription',user_id:'owner'}]:[]}).then(resolve);}};return chain;}};
  const current=new Date('2026-10-01T12:00-04:00');
- const ctx=vm.createContext({Deno:{serve:fn=>handler=fn},adminClient:()=>admin,pushSecrets:async()=>({cron_secret:'test'}),readJson:async()=>({action:'process'}),preflight(){},json:(req,body,status=200)=>({body,status}),selectCandidates:values=>values,crypto:require("node:crypto").webcrypto,TextEncoder,URL,URLSearchParams,Intl,Date:class extends Date{constructor(value){super(value??current);}static now(){return current.getTime();}},console:{warn(){},error(){}}});
+ const ctx=vm.createContext({Deno:{serve:fn=>handler=fn},adminClient:()=>admin,pushSecrets:async()=>({cron_secret:'test'}),readJson:async()=>({action:'process'}),preflight(){},json:(req,body,status=200)=>({body,status}),selectCandidates:values=>values,report:()=>{},crypto:require("node:crypto").webcrypto,TextEncoder,URL,URLSearchParams,Intl,Date:class extends Date{constructor(value){super(value??current);}static now(){return current.getTime();}},console:{warn(){},error(){}}});
  vm.runInContext(purePush,ctx);
  ctx.fetchJson=async url=>{if(url.includes('inmet'))return [alert];throw Error('weather offline');};
  ctx.createEvent=async(admin,location,candidate)=>{candidates.push(candidate);return {...candidate,created:true};};

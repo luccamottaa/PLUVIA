@@ -257,8 +257,10 @@
 
   async function saveAlertSetup(location) {
     const existing = config?.preferences;
+    // Primeira ativação (nada salvo ainda): o resumo das 7h vem ligado, como o convite promete.
+    // Quem já tem preferências salvas mantém a própria escolha.
     const preferences = {
-      ...allAlertPreferences(existing),notifications_enabled:true,
+      ...allAlertPreferences(existing),...(existing ? {} : {daily_summary:true}),notifications_enabled:true,
       timezone: existing?.timezone || location?.timezone || "America/Manaus"
     };
     await invoke("push-subscriptions", { action: "preferences", preferences, location });
@@ -293,7 +295,7 @@
       setPendingEnable(false);
       track("Push Enabled", { platform: deviceInfo().platform, city: currentLocation()?.cityId || "" });
       window.dispatchEvent(new CustomEvent("pluvia:alerts-enabled", { detail: { cityId: currentLocation()?.cityId || "", label: cityLabel() } }));
-      message(currentUser() ? `Alertas ligados para ${cityLabel()}. INMET e chuva nas próximas horas. Envie um teste se quiser conferir.` : `Avisos ligados para ${cityLabel()} neste aparelho. Para escolher os tipos de aviso e outras cidades, entre na conta.`);
+      message(currentUser() ? `Alertas ligados para ${cityLabel()}. INMET, chuva nas próximas horas e o resumo do dia às 7h (dá para mudar nas preferências). Envie um teste se quiser conferir.` : `Avisos ligados para ${cityLabel()} neste aparelho. Para escolher os tipos de aviso e outras cidades, entre na conta.`);
     } catch (error) { message(error.message || "Não foi possível ativar os alertas."); }
     finally { busy = false; await paintState(); }
   }

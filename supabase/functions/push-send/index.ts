@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { adminClient, authenticatedUser, pushSecrets } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
+import { report } from "../_shared/error-report.js";
 import { pushErrorCode, sendWebPush } from "../_shared/webpush.ts";
 
 Deno.serve(async (req) => {
@@ -43,6 +44,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     const code = error instanceof Error ? error.message : "test_failed";
     console.error("push-send failed", { code });
+    report("push-send", code);
     return json(req, { error: "Não foi possível concluir o teste agora." }, 503);
   }
 });

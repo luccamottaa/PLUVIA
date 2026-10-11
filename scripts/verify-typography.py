@@ -26,7 +26,7 @@ with sync_playwright() as p:
   def route(r):
    url=r.request.url;host=urlparse(url).hostname
    if 'fonts.googleapis.com' in url or 'fonts.gstatic.com' in url:forbidden.append(host);r.abort();return
-   if any(path in url for path in ['/functions/v1/push-','/functions/v1/nowcast','/functions/v1/smart-summary']):forbidden.append(urlparse(url).path);r.abort();return
+   if any(path in url for path in ['/functions/v1/push-']):forbidden.append(urlparse(url).path);r.abort();return
    if host in ['127.0.0.1','localhost']:
     if fallback and urlparse(url).path.endswith('.woff2'):r.abort();return
     r.continue_();return

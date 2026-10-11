@@ -4,8 +4,8 @@ const source=stripTypeScriptTypes(fs.readFileSync('supabase/functions/push-subsc
 const city={cityId:'1302603',cityName:'Manaus',uf:'AM',latitude:-3.1,longitude:-60,timezone:'America/Manaus',source:'saved_city'};
 function server({user={id:'owner'},errors={}}={}) {
  let handler;const writes=[],reads=[];
- const admin={from(table){const chain={select(){return chain;},eq(field,value){reads.push({table,field,value});return chain;},order(){return chain;},maybeSingle(){return chain;},single(){return chain;},upsert(values,options){writes.push({table,values,options});return chain;},then(resolve,reject){return Promise.resolve({data:table==='notification_preferences'?{official_alerts:false}:[],error:errors[table]||null}).then(resolve,reject);}};return chain;}};
- vm.runInNewContext(source,{Deno:{serve:fn=>handler=fn},adminClient:()=>admin,authenticatedUser:async()=>user,pushSecrets:async()=>({vapid_public_key:'public'}),readJson:async req=>req.body,preflight:()=>({status:204}),json:(req,body,status=200)=>({body,status}),console:{error(){}},allowedPushEndpoint:require('../supabase/functions/_shared/push-endpoint.ts').allowedPushEndpoint});
+ const admin={from(table){const chain={select(){return chain;},eq(field,value){reads.push({table,field,value});return chain;},order(){return chain;},maybeSingle(){return chain;},single(){return chain;},upsert(values,options){writes.push({table,values,options});return chain;},then(resolve,reject){return Promise.resolve({data:table==='notification_preferences'?{official_alerts:false}:[],error:(typeof errors[table]==='function'?errors[table]():errors[table])||null}).then(resolve,reject);}};return chain;}};
+ vm.runInNewContext(source,{Deno:{serve:fn=>handler=fn},adminClient:()=>admin,authenticatedUser:async()=>user,pushSecrets:async()=>({vapid_public_key:'public'}),retryPause:async()=>{},readJson:async req=>req.body,preflight:()=>({status:204}),json:(req,body,status=200)=>({body,status}),console:{error(){}},report:()=>{},allowedPushEndpoint:require('../supabase/functions/_shared/push-endpoint.ts').allowedPushEndpoint});
  return {writes,reads,request:body=>handler({method:'POST',body})};
 }
 test('salvar vários municípios preserva falsos e atribui todas as linhas ao usuário autenticado',async()=>{
@@ -35,4 +35,9 @@ test('sem autenticação, preferências não podem ser lidas ou alteradas',async
 test('cadastro rejeita endpoint arbitrário antes de qualquer escrita',async()=>{
  const s=server();const response=await s.request({action:'register',subscription:{endpoint:'https://127.0.0.1/private',keys:{p256dh:'A'.repeat(60),auth:'B'.repeat(24)}}});
  assert.equal(response.status,400);assert.equal(s.writes.length,0);
+});
+test('config repete uma vez quando a leitura falha logo depois de a função acordar',async()=>{
+ let fails=1;const s=server({errors:{notification_preferences:()=>fails-->0?{message:'cold start'}:null}});
+ const response=await s.request({action:'config'});assert.equal(response.status,200);assert.equal(s.reads.length,6);
+ const twice=server({errors:{notification_preferences:()=>({message:'still down'})}});assert.equal((await twice.request({action:'config'})).status,503);assert.equal(twice.reads.length,6,'só uma repetição');
 });

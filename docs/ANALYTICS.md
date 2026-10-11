@@ -29,3 +29,11 @@ Em 01/10/2026 foram enviados cinco eventos sintéticos `environment=validation`;
 Testes cobrem opt-in, DNT/GPC, allowlist, identidade transitória, limites, offline, revogação antes/durante envio e entre abas, falhas e cancelamento. QA Chromium/WebKit verifica o controle de privacidade e os fluxos existentes com fixtures. Alterar referência versionada e geração do SW junto com qualquer atualização deste arquivo.
 
 Referências: [API de ingestão](https://posthog.com/docs/api/capture), [eventos anônimos](https://posthog.com/docs/data/anonymous-vs-identified-events), [controles de coleta](https://posthog.com/docs/privacy/data-collection).
+
+## Versão publicada (`release`)
+
+Desde a geração `pluvia-panel-153`, `release` identifica o deploy: é a geração do service worker sem o prefixo (`panel-153`), lida de `<meta name="pluvia-release">` no shell. Antes disso o valor ficou fixo em `vitals-1` desde 06/10/2026 e não separava deploys. Ao mudar `CACHE` em `sw.js`, a meta muda junto (o teste `cache-contract` confere) e as páginas de cidade são regeneradas. Valor fora do formato, ou página sem a meta, vira `unknown`. Serve para comparar falhas e Web Vitals antes e depois de uma correção.
+
+## Contador anônimo de aparelhos por dia
+
+Como a participação no PostHog começa desligada, ele não diz quantas pessoas usam o app. `dist/modules/visit-counter.js` soma +1 por aparelho por dia na tabela `public.daily_visits` (dia em Brasília → total), pela RPC `pluvia_count_visit` (migration `20261011030000_daily_visits.sql`). O aparelho guarda só a data da última contagem (`pluvia-visit-day`). Não vai identificador, cidade, conta ou texto, e a tabela não guarda IP. Conta só em `pluviaweather.com.br`, respeita DNT/GPC e, sem storage, não conta. O número é uma estimativa: o mesmo aparelho em dois navegadores conta dois, e a RPC é pública. Leitura: `select * from public.daily_visits order by day desc`.
