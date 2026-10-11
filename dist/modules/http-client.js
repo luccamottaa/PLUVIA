@@ -60,6 +60,7 @@
         const response = await fetchImpl(url, {
           cache: requestOptions.cache || "default",
           headers: requestOptions.headers,
+          ...(requestOptions.method ? {method: requestOptions.method, body: requestOptions.body} : {}),
           signal: controller.signal
         });
         if (!response.ok) {

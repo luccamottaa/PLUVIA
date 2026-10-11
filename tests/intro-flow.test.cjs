@@ -13,7 +13,7 @@ test('a intro recebe estilo e cor do tema antes dos recursos externos', () => {
   assert.match(html, /\.pluvia-intro \{[\s\S]*?background:var\(--sky-color/);
   assert.ok(html.indexOf('src="./modules/sky-atmosphere.js') < html.indexOf('<body>'));
   assert.ok(html.indexOf('href="./sky.css') < html.indexOf('<body>'));
-  assert.match(html, /rel="stylesheet" href="\.\/styles\.css\?v=core-126" media="print"/);
+  assert.match(html, /rel="stylesheet" href="\.\/styles\.css\?v=core-127" media="print"/);
   assert.match(fs.readFileSync(path.join(__dirname, '../dist/fonts.css'), 'utf8'), /font-display:swap/);
 });
 
