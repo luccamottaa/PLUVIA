@@ -18,12 +18,16 @@
 
   // O Safari suspende a página em segundo plano e derruba as consultas em andamento ("Load failed").
   // Isso não é a fonte fora do ar: a falha recebe `background` e não entra na telemetria.
-  let doc = null, hiddenAt = -Infinity;
+  // O mesmo vale para a página que está saindo (recarga da atualização do SW, navegação): o
+  // navegador corta as consultas em andamento. `PLUVIA.reloading` é marcado antes do reload.
+  let doc = null, hiddenAt = -Infinity, leftAt = -Infinity;
   function watchVisibility() {
     if (doc || !runtime.document?.addEventListener) return;
     doc = runtime.document;
     doc.addEventListener("visibilitychange", () => { if (doc.hidden) hiddenAt = Date.now(); });
+    runtime.addEventListener?.("pagehide", () => { leftAt = Date.now(); });
   }
+  const leaving = startedAt => runtime.PLUVIA?.reloading === true || leftAt >= startedAt;
 
   function createClient(options = {}) {
     watchVisibility();
@@ -88,7 +92,7 @@
           retryable: error instanceof TypeError,
           code: "network_error"
         });
-        if ((failure.code === "network_error" || failure.code === "timeout") && (doc?.hidden === true || hiddenAt >= startedAt)) failure.background = true;
+        if ((failure.code === "network_error" || failure.code === "timeout") && (doc?.hidden === true || hiddenAt >= startedAt || leaving(startedAt))) failure.background = true;
         if (failure.code !== 'cancelled' && !failure.background) {
           try {
             const address = new URL(url), host = address.hostname;

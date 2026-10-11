@@ -89,6 +89,8 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
     if (!pendingReload || reloadingForUpdate || document.visibilityState === 'hidden' ||
       document.querySelector?.('dialog[open], input:focus, textarea:focus, [contenteditable]:focus')) return;
     reloadingForUpdate = true;
+    // As consultas cortadas por esta recarga não são falha da fonte (http-client).
+    (globalThis.PLUVIA = globalThis.PLUVIA || {}).reloading = true;
     location.reload();
   };
   navigator.serviceWorker.addEventListener("controllerchange", () => {
