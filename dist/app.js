@@ -252,26 +252,30 @@ function settleBlock(node) {
   if (typeof dropIn === "function" && dropMotion() && node?.dataset?.drop !== "wait" && onScreen(node)) dropIn([node]);
 }
 
-// Faixa no topo para aviso INMET vigente na cidade (leitura atual): amarelo numa versão discreta,
-// laranja/vermelho em destaque. Severidade desconhecida não sobe. Leitura anterior,
-// falha ou aviso só previsto nunca aparecem aqui; o card completo continua na seção de alertas.
+// Faixa no topo para aviso INMET da cidade (leitura atual): vigente em amarelo discreto ou
+// laranja/vermelho em destaque; só previsto numa linha translúcida ("Previsto a partir de…"), que vira a
+// faixa colorida quando começa a valer. Severidade desconhecida não sobe. Leitura anterior, falha ou
+// aviso a confirmar nunca aparecem aqui; o card completo continua na seção de alertas.
 function setAlertBanner(item = null, index = -1, others = 0) {
   const banner = $("alertBanner");
   if (typeof banner?.setAttribute !== "function" || typeof banner.removeAttribute !== "function") return;
   const show = Boolean(item) && item.severity?.rank >= 1, appearing = show && banner.hidden;
+  const future = show && item.stage === "future";
   banner.hidden = !show;
-  if (typeof noteAlertNudge === "function") noteAlertNudge("official", show);
+  if (typeof noteAlertNudge === "function") noteAlertNudge("official", show && !future);
   // A faixa que chega depois da troca (leitura nova do INMET) desce no lugar em vez de surgir de vez.
   if (appearing && typeof dropIn === "function" && dropMotion()) dropIn([banner]);
-  if (!show) { banner.removeAttribute("data-severity"); banner.removeAttribute("data-notice"); return; }
+  if (!show) { banner.removeAttribute("data-severity"); banner.removeAttribute("data-notice"); banner.removeAttribute("data-stage"); return; }
   const title = decodeHtml(String(firstValue(item.alert, ["descricao", "evento", "titulo", "tipo"], "Aviso meteorológico")));
   const until = Number.isFinite(item.end) ? (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:activeCity.timezone, day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(item.end)) : "";
   banner.setAttribute("data-severity", item.severity.className);
   banner.setAttribute("data-notice", String(index));
-  $("alertBannerTitle").textContent = `${item.severity.label} do INMET · ${title}`;
+  if (future) banner.setAttribute("data-stage", "future"); else banner.removeAttribute("data-stage");
+  $("alertBannerTitle").textContent = future ? `${item.severity.label} previsto · ${title}` : `${item.severity.label} do INMET · ${title}`;
   // Os demais avisos da região ficam no detalhe (a faixa substitui o cartão completo).
   const more = others > 0 ? ` · +${others} aviso${others > 1 ? "s" : ""} na região` : "";
-  $("alertBannerTime").textContent = (Number.isFinite(item.end) ? `Vigente até ${until}` : "Vigência no aviso oficial") + more;
+  const from = future ? (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:activeCity.timezone, weekday:"short", day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(item.start)) : "";
+  $("alertBannerTime").textContent = (future ? `INMET · a partir de ${from}` : Number.isFinite(item.end) ? `Vigente até ${until}` : "Vigência no aviso oficial") + more;
 }
 
 // Bolinha no ícone do app instalado: acompanha o aviso INMET vigente da cidade aberta (leitura atual).
@@ -290,11 +294,16 @@ function renderInmetAlerts(raw, stale = false) {
   const alerts = selectInmetAlerts(raw);
   const activeOfficial = alerts.find(item => item.stage === "active" && item.area === activeCity.name);
   $("inmetCard").dataset.severity = stale ? "unknown" : activeOfficial?.severity.className || "none";
-  const bannerItem = !stale && activeOfficial?.severity?.rank >= 1 ? activeOfficial : null;
+  // Sem vigente, o aviso previsto mais grave da cidade ocupa a faixa na versão translúcida.
+  const upcoming = alerts.filter(item => item.stage === "future" && item.area === activeCity.name && Number.isFinite(item.start))
+    .sort((a, b) => b.severity.rank - a.severity.rank || a.start - b.start)[0];
+  const candidate = activeOfficial?.severity?.rank >= 1 ? activeOfficial : upcoming;
+  const bannerItem = !stale && candidate?.severity?.rank >= 1 ? candidate : null;
   setAlertBanner(bannerItem, bannerItem ? alerts.indexOf(bannerItem) : -1, bannerItem ? alerts.length - 1 : 0);
-  if (!stale) syncAppBadge(Boolean(bannerItem));
-  // Sem aviso, a seção vira uma linha discreta abaixo do topo. Com aviso vigente na faixa do topo, o cartão
-  // some (repetia a faixa); avisos só previstos, a confirmar ou de leitura anterior continuam no cartão.
+  if (!stale) syncAppBadge(bannerItem?.stage === "active");
+  // Sem aviso, a seção vira uma linha discreta abaixo do topo. Com aviso vigente ou previsto da cidade na
+  // faixa do topo, o cartão some (repetia a faixa; os outros avisos ficam no detalhe); avisos a confirmar,
+  // só de outra área ou de leitura anterior continuam no cartão.
   setAlertState(stale ? "unavailable" : bannerItem ? "banner" : alerts.length ? "alerts" : "clear");
   if (!alerts.length) {
     state.className = "source-state"; state.innerHTML = `<i></i>${stale ? "Consulta indisponível" : "Nenhum aviso identificado"}`;

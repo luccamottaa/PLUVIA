@@ -110,8 +110,11 @@ async function test(label, fn) {await fn(); checks++; console.log(`PASS ${label}
     // A notice in force goes to the top banner and the full card hides (it repeated the banner).
     context.renderInmetAlerts({hoje:[aviso()],futuro:[]});
     assert.equal(section.dataset.alertState,"banner");
-    // Only forecast or unconfirmed notices keep the full card.
+    // A forecast notice for the city takes the banner in its translucent version.
     context.renderInmetAlerts({hoje:[],futuro:[aviso({data_inicio:'2026-09-09',data_fim:'2026-09-10'})]});
+    assert.equal(section.dataset.alertState,"banner");
+    // Unconfirmed notices keep the full card.
+    context.renderInmetAlerts({hoje:[aviso({data_inicio:null,inicio:null,data_fim:null,fim:null})],futuro:[]});
     assert.equal(section.dataset.alertState,"alerts");
     // A previous reading (with or without notices) never compacts into "no alerts".
     context.renderInmetAlerts({hoje:[],futuro:[]},true);
