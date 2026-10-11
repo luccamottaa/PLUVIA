@@ -1284,6 +1284,8 @@ body[data-ink="dark"] #weatherView {
 #weatherView .air-scale i { top:50%; width:12px; height:12px; border:2px solid var(--panel-strong); border-radius:50%; background:var(--text); box-shadow:0 0 0 1px var(--text); transform:translate(-50%,-50%); }
 /* Rodapé compacto: links lado a lado (quebram quando não cabem); uma lista aberta ocupa a linha toda. */
 footer.shell .footer-details { display:flex; flex-wrap:wrap; justify-content:center; gap:0 20px; }
+/* Termos de uso é um link de verdade (página /termos/): mesmo alvo de 44px e alinhamento dos botões vizinhos. */
+footer.shell .footer-details a.footer-link { display:inline-flex; align-items:center; }
 footer.shell .capital-links { display:flex; flex-wrap:wrap; justify-content:center; column-gap:20px; margin-top:-24px; }
 footer.shell .capital-links > details[open] { flex-basis:100%; }
 /* Celular: "Chuva na região" numa linha só; o botão vira "Radar" (o nome acessível continua "Abrir radar"). */

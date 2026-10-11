@@ -1,0 +1,97 @@
+PLUVIA — LICENÇA PROPRIETÁRIA
+Todos os direitos reservados. / All rights reserved.
+
+Copyright (c) 2026 [SEU NOME COMPLETO]
+
+1. TITULARIDADE
+
+Este repositório e todo o seu conteúdo — incluindo, sem limitação, o
+código-fonte e o código publicado, scripts, folhas de estilo, layout,
+interface, design visual, ilustrações, ícones, textos, documentação e
+a organização e seleção desses elementos (o "Software") — são de
+titularidade exclusiva de [SEU NOME COMPLETO] (o "Titular") e estão
+protegidos pela Lei nº 9.609/1998 (Lei do Software), pela Lei
+nº 9.610/1998 (Lei de Direitos Autorais) e pelos tratados
+internacionais aplicáveis.
+
+O acesso público ao repositório ou ao site não implica cessão,
+licença ou renúncia de qualquer direito. Nenhuma licença é concedida,
+expressa ou implicitamente, além do que estiver previsto por escrito
+pelo Titular.
+
+2. CONDUTAS PROIBIDAS
+
+Salvo autorização prévia, expressa e por escrito do Titular, é
+proibido, no todo ou em parte:
+
+a) copiar, reproduzir ou armazenar o Software, exceto a cópia
+   transitória feita automaticamente pelo navegador para exibir o
+   site;
+b) modificar, adaptar, traduzir ou criar obras derivadas do Software;
+c) distribuir, publicar, transmitir, vender, alugar, emprestar ou
+   disponibilizar o Software a terceiros;
+d) sublicenciar, ceder ou transferir quaisquer direitos sobre o
+   Software;
+e) usar o código, o layout, a interface ou o design visual do
+   Software, ou elementos substancialmente semelhantes, para
+   desenvolver, treinar, alimentar ou operar produto ou serviço
+   concorrente;
+f) realizar engenharia reversa, descompilar ou desmontar o Software,
+   exceto na medida em que a lei aplicável expressamente permitir,
+   não obstante esta limitação;
+g) remover, ocultar ou alterar avisos de direitos autorais, marcas ou
+   esta licença.
+
+3. MARCA
+
+"PLUVIA", o símbolo da gota e os demais sinais distintivos do
+Software são de uso exclusivo do Titular. Nada nesta licença concede
+direito de uso desses sinais. É vedado utilizá-los, ou sinais
+semelhantes capazes de causar confusão, para identificar produtos,
+serviços ou domínios de terceiros, sem autorização prévia e por
+escrito.
+
+4. COMPONENTES DE TERCEIROS
+
+Componentes de terceiros incluídos no repositório (por exemplo,
+bibliotecas em dist/vendor/, fontes em dist/assets/fonts/ e o
+catálogo de municípios) continuam regidos por suas próprias licenças,
+indicadas nos respectivos arquivos e nos créditos do site. Esta
+licença não restringe direitos que essas licenças concedem sobre
+esses componentes.
+
+5. AUSÊNCIA DE GARANTIA
+
+O SOFTWARE É FORNECIDO "COMO ESTÁ" ("AS IS"), SEM GARANTIAS DE
+QUALQUER NATUREZA, EXPRESSAS OU IMPLÍCITAS, INCLUSIVE DE
+COMERCIALIZAÇÃO, ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA, EXATIDÃO,
+DISPONIBILIDADE OU NÃO VIOLAÇÃO, NA MÁXIMA EXTENSÃO PERMITIDA PELA
+LEI.
+
+6. LIMITAÇÃO DE RESPONSABILIDADE
+
+NA MÁXIMA EXTENSÃO PERMITIDA PELA LEI, O TITULAR NÃO SERÁ RESPONSÁVEL
+POR QUAISQUER DANOS DIRETOS, INDIRETOS, INCIDENTAIS, ESPECIAIS,
+EMERGENTES OU LUCROS CESSANTES DECORRENTES DO USO OU DA
+IMPOSSIBILIDADE DE USO DO SOFTWARE, AINDA QUE AVISADO DA
+POSSIBILIDADE DE TAIS DANOS. NADA NESTA LICENÇA EXCLUI OU LIMITA
+RESPONSABILIDADE QUE NÃO POSSA SER EXCLUÍDA OU LIMITADA POR LEI,
+INCLUSIVE NOS TERMOS DO CÓDIGO DE DEFESA DO CONSUMIDOR.
+
+7. VIOLAÇÃO
+
+O descumprimento desta licença encerra automaticamente qualquer
+permissão eventualmente concedida e sujeita o infrator às medidas
+civis e penais cabíveis.
+
+8. LEI APLICÁVEL E FORO
+
+Esta licença é regida pelas leis da República Federativa do Brasil.
+Fica eleito o foro da Comarca de Manaus, Estado do Amazonas, para
+dirimir quaisquer controvérsias dela decorrentes, com renúncia a
+qualquer outro, por mais privilegiado que seja, ressalvadas as
+hipóteses em que a lei assegure foro diverso.
+
+9. CONTATO
+
+Pedidos de autorização: [E-MAIL DE CONTATO]

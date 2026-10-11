@@ -55,7 +55,7 @@ assert.doesNotMatch(html, /MODELO DE PRECIPITAÇÃO|Pulso de chuva no município
 assert.doesNotMatch(app, /rainPulse|rainMapLocations|getPrecipitationGrid|Comparando nove pontos ao redor/);
 assert.doesNotMatch(html, /DEFESA CIVIL|canais nacionais da Defesa Civil|id="defesaCard"/);
 assert.doesNotMatch(app, /loadDefesaAlerts|civilDefense|DEFESA_NACIONAL/);
-assert.match(html, /class="footer-details"><button id="openSources"[^>]*>Fontes de dados<\/button><button id="openPrivacy"[^>]*>Privacidade<\/button><button id="openHomeLayout"[^>]*>Personalizar a Home<\/button><\/div><!-- capitais:inicio --><nav class="capital-links"[^]*?<!-- capitais:fim --><\/footer>/);
+assert.match(html, /class="footer-details"><button id="openSources"[^>]*>Fontes de dados<\/button><button id="openPrivacy"[^>]*>Privacidade<\/button><a class="footer-link" href="\/termos\/">Termos de uso<\/a><button id="openHomeLayout"[^>]*>Personalizar a Home<\/button><\/div><!-- capitais:inicio --><nav class="capital-links"[^]*?<!-- capitais:fim --><\/footer>/);
 assert.match(html, /rel="icon" type="image\/png" sizes="192x192" href="\/icon-192\.png"/);
 assert.match(html, /id="sourceCreditsTitle">Créditos e licenças/);
 assert.match(html, /MET Norway[\s\S]*?CC BY 4\.0[\s\S]*?SunCalc[\s\S]*?WeatherIcons[\s\S]*?SIL OFL 1\.1/);
@@ -63,7 +63,7 @@ assert.match(styles, /footer \{ margin-top: 48px; padding-block: 28px/);
 assert.match(styles, /footer \{ margin-top: 28px; align-items:start;/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-panel-153/);
+assert.match(sw, /pluvia-panel-154/);
 assert.match(html, /redesign\.css\?v=panel-41/);
 assert.match(sw, /assets\/sky-cloud-veil\.webp/);
 assert.match(html, /id="weatherView" class="initial-loading" aria-busy="true"/);
