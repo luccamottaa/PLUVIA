@@ -1,4 +1,4 @@
-const CACHE = "pluvia-panel-154";
+const CACHE = "pluvia-panel-155";
 const SHELL = "./index.html";
 const PRECACHE = [
     "./", SHELL, "./fonts.css?v=type-1", "./assets/fonts/inter-latin-v20.woff2", "./assets/fonts/nunito-wordmark-v32.woff2", "./modules/pwa-gestures.js?v=pwa-1", "./modules/city-time.js?v=time-2", "./sky.css?v=sky-32", "./modules/sky-atmosphere.js?v=sky-17", "./modules/sky-events.js?v=sky-events-2", "./modules/moon-view.js?v=moon-4", "./assets/sky-sun.svg?v=sun-2", "./assets/moon-surface.webp", "./assets/sky-cloud-veil.webp?v=clouds-5", "./assets/sky-cloud-volume.webp?v=clouds-5", "./assets/sky-stars.svg?v=stars-2", "./assets/sky-stars-shimmer.svg?v=stars-2", "./analytics.js?v=analytics-11", "./styles.css?v=core-127", "./redesign.css?v=panel-41", "./continuous.css?v=layout-82", "./capitals.js?v=core-51", "./app.js?v=panel-89", "./p0.js?v=panel-46", "./modules/account-sync.js?v=sync-1", "./modules/social-auth.js?v=oauth-3", "./account.js?v=account-11", "./saved-places.js?v=places-2", "./modules/compare-cities.js?v=compare-2", "./modules/brazil-now.js?v=brazil-2", "./modules/home-layout.js?v=home-layout-2", "./modules/pwa-shortcuts.js?v=shortcuts-1", "./modules/voice-search.js?v=voice-1", "./modules/rain-reports.js?v=rain-reports-1", "./modules/visit-counter.js?v=visits-1", "./modules/install-prompt.js?v=install-1", "./modules/push-style.js?v=push-style-1", "./assets/notifications/rain.png", "./assets/notifications/heavy-rain.png", "./assets/notifications/storm.png", "./assets/notifications/wind.png", "./assets/notifications/heat.png", "./assets/notifications/air.png", "./assets/notifications/change.png", "./assets/notifications/daily.png", "./assets/notifications/alert-2.png", "./assets/notifications/alert-3.png", "./assets/notifications/alert-4.png", "./notifications.js?v=panel-31", "./weather-map.js?v=map-15", "./modules/nowcast.js?v=nowcast-3",
@@ -46,9 +46,9 @@ self.addEventListener("fetch", event => {
   }
   const fallback = key => caches.match(key).then(hit => hit || Response.error());
   if (req.mode === "navigate") {
-    // City pages (/clima/<nome>-<uf>/) are cached under their own URL: storing one as the
-    // shell would make the offline Home open that city instead of the visitor's own.
-    const key = /^\/clima\/[a-z0-9-]+\/?$/.test(url.pathname) ? req : SHELL;
+    // City pages (/clima/<nome>-<uf>/) and the Terms page (/termos/) are cached under their own
+    // URL: storing one as the shell would make the offline Home open that page instead.
+    const key = /^\/(?:clima\/[a-z0-9-]+|termos)\/?$/.test(url.pathname) ? req : SHELL;
     respond(fetch(req,{cache:"no-cache"}).then(res => remember(key,res)).catch(() => caches.match(key).then(hit => hit || fallback(SHELL))));
     return;
   }
