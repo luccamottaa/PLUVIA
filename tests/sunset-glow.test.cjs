@@ -42,5 +42,5 @@ test('bolinha do app acompanha o aviso vigente e não quebra sem a API',()=>{
   assert.deepEqual(calls,['set','clear']);
   const bare=vm.createContext({globalThis:{navigator:{}}});vm.runInContext(source,bare);
   assert.doesNotThrow(()=>bare.syncAppBadge(true));
-  assert.match(app,/if \(!stale\) syncAppBadge\(Boolean\(bannerItem\)\)/,'leitura anterior não mexe na bolinha');
+  assert.match(app,/if \(!stale\) syncAppBadge\(bannerItem\?\.stage === \"active\"\)/,'leitura anterior não mexe na bolinha; aviso só previsto não marca');
 });

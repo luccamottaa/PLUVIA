@@ -39,3 +39,24 @@ test('com outros avisos na região, a faixa diz quantos (eles ficam no detalhe) 
   assert.match(risks,/Outros avisos na região[\s\S]*data-notice="\$\{i\}"/);
   assert.match(risks,/if \(!\$\('alertDetail'\)\.open\) \$\('alertDetail'\)\.showModal\(\)/,'trocar de aviso com o diálogo aberto não reabre o modal');
 });
+
+test('aviso só previsto da cidade vai para a faixa em linha translúcida e vira a faixa colorida ao valer',()=>{
+  const item={alert:{descricao:'Chuvas Intensas'},severity:severity.yellow,stage:'future',
+    start:Date.parse('2026-10-13T23:01:00-04:00'),end:Date.parse('2026-10-14T23:01:00-04:00')};
+  const {banner,attrs,title}=run(item);
+  assert.equal(banner.hidden,false);
+  assert.equal(attrs['data-stage'],'future');
+  assert.equal(title,'Alerta amarelo previsto · Chuvas Intensas');
+  assert.match(attrs.time,/^INMET · a partir de ter\.?,? 13\/10,? 23:01$/);
+  const active=run({...item,stage:'active'});
+  assert.equal(active.attrs['data-stage'],undefined);
+  assert.match(active.title,/^Alerta amarelo do INMET · /);
+  assert.match(css,/#weatherView \.alert-banner\[data-stage="future"\] \{ min-height:44px; [^}]*box-shadow:none; \}/);
+  // Seleção: vigente vence previsto; previsto só da cidade, nunca de leitura anterior; bolinha só com vigente.
+  const render=app.slice(app.indexOf('function renderInmetAlerts('),app.indexOf('function updateInmetTimestamp('));
+  assert.match(render,/item\.stage === "future" && item\.area === activeCity\.name/);
+  assert.match(render,/activeOfficial\?\.severity\?\.rank >= 1 \? activeOfficial : upcoming/);
+  assert.match(render,/!stale && candidate/);
+  assert.match(render,/syncAppBadge\(bannerItem\?\.stage === "active"\)/);
+  assert.match(source,/noteAlertNudge\("official", show && !future\)/);
+});
