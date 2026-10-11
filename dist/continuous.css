@@ -1590,3 +1590,13 @@ html body #sourcesDialog .source-credits p { margin:10px 4px 0; font-size:.8125r
 .pull-refresh::before { content:""; flex:none; width:16px; height:16px; border:2px solid #ffffff40; border-top-color:#8fb4ff; border-radius:50%; }
 .pull-refresh.loading::before { animation:spin .9s linear infinite; }
 @media (prefers-reduced-motion:reduce){ .pull-refresh.loading::before { animation:none; } }
+
+/* Novidades do PLUVIA: lista de versões no diálogo (sempre escuro). Novidade no azul da marca, correção em cinza. */
+.changelog-intro { margin:0 0 12px; color:rgba(255,255,255,.72); font-size:.875rem; }
+.changelog-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:20px; }
+.changelog-entry h3 { display:flex; align-items:center; gap:8px; margin:0; font-size:1.0625rem; font-weight:600; }
+.changelog-badge { padding:2px 8px; border-radius:999px; background:var(--brand-blue,#2f6bff); color:#fff; font-size:.8125rem; font-weight:600; }
+.changelog-entry[data-kind="fix"] .changelog-badge { background:rgba(255,255,255,.16); }
+.changelog-date { margin:2px 0 0; color:rgba(255,255,255,.64); font-size:.8125rem; }
+.changelog-title { margin:8px 0 0; font-weight:600; }
+.changelog-entry ul { margin:6px 0 0; padding-left:1.15em; display:flex; flex-direction:column; gap:4px; color:rgba(255,255,255,.86); }
