@@ -150,7 +150,7 @@ with sync_playwright() as p:
   # Radar compacto: na Home só a miniatura (sem player); o player alinhado é medido no radar ampliado.
   assert not boxes('.weather-map-card .weather-player > *'),(width,'player só no radar ampliado')
   # Rodapé compacto: links lado a lado (quebram quando não cabem), cada linha centralizada e sem sobreposição.
-  links=boxes('footer .footer-link');assert len(links)==3,links
+  links=boxes('footer .footer-link');assert len(links)==4,links
   center=page.evaluate("(()=>{const r=document.querySelector('footer .footer-details').getBoundingClientRect();return r.x+r.width/2})()")
   for row_y in {round(b['y']) for b in links}:
    row=sorted([b for b in links if round(b['y'])==row_y],key=lambda b:b['x'])
