@@ -11,6 +11,9 @@
   "use strict";
   const SEEN_KEY = "pluvia-seen-version";
   const VERSIONS = [
+    {version:"1.3.1", date:"2026-10-12", title:"Janelas mais firmes", items:[
+      "Uma janela que reabria logo depois de fechar (a da conta, por exemplo) às vezes sumia sozinha no iPhone. Não some mais.",
+    ]},
     {version:"1.3", date:"2026-10-12", title:"Resumo da noite", items:[
       "Novo aviso opcional à noite com a previsão de amanhã: máxima, mínima e chance de chuva, no horário que você escolher (20h por padrão).",
       "Liga em Minha conta, na parte de avisos, junto do resumo da manhã.",
