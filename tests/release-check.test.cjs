@@ -26,3 +26,10 @@ test('network failure and timeout remain explicit',async()=>{
  const result=await check({url:'sw.js',hash:'unused'},'https://site.test/',async()=>{throw new DOMException('Slow','TimeoutError');});
  assert.equal(result.ok,false);assert.equal(result.code,'timeout');
 });
+test('arquivos sem versão escapam do cache de borda; os versionados vão como estão',async()=>{
+ const seen=[];const fetchImpl=async url=>{seen.push(String(url));return new Response('x');};
+ await check({url:'sw.js',hash:digest('x')},'https://site.test/',fetchImpl);
+ await check({url:'',hash:digest('x')},'https://site.test/',fetchImpl);
+ await check({url:'./app.js?v=panel-1',hash:digest('x')},'https://site.test/',fetchImpl);
+ assert.deepEqual(seen,[`https://site.test/sw.js?release-check=${digest('x').slice(0,12)}`,`https://site.test/?release-check=${digest('x').slice(0,12)}`,'https://site.test/app.js?v=panel-1']);
+});
