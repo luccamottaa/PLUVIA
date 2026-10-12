@@ -17,6 +17,9 @@ begin
   if not public.pluvia_account_patch(owner_id,latest,'{"name":"New fixture"}') then raise exception 'name patch failed'; end if;
   select raw_user_meta_data into latest from auth.users where id=owner_id;
   if latest->>'primary_city_id' <> '4106902' or jsonb_array_length(latest->'favorite_city_ids') <> 2 then raise exception 'name overwrote preferences'; end if;
+  if not public.pluvia_account_patch(owner_id,latest,'{"avatar_id":"lua"}') then raise exception 'avatar patch failed'; end if;
+  select raw_user_meta_data into latest from auth.users where id=owner_id;
+  if latest->>'avatar_id' <> 'lua' or latest->>'name' <> 'New fixture' then raise exception 'avatar overwrote profile'; end if;
   if has_function_privilege('anon','public.pluvia_account_patch(uuid,jsonb,jsonb)','EXECUTE')
     or has_function_privilege('authenticated','public.pluvia_account_patch(uuid,jsonb,jsonb)','EXECUTE')
     then raise exception 'public mutation allowed'; end if;

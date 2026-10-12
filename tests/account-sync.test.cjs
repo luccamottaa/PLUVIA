@@ -25,3 +25,10 @@ test('conflito aplica snapshot mais recente e mantém erro compreensível',async
   const sync=model.create({getUser:()=>user,getClient:async()=>({functions:{invoke:async()=>({error:{context:{json:async()=>({error:'Confira a lista.',code:'preference_conflict',snapshot})}}})}}),onSnapshot:value=>published.push(value)});
   sync.setUser(user);await assert.rejects(sync.apply({}),error=>error.code==='preference_conflict');assert.equal(published.length,1);
 });
+test('foto de perfil vem no snapshot: string ou null; servidor antigo sem o campo deixa undefined',async()=>{
+  const user={id:'a'};
+  for(const [value,expected] of [['lua','lua'],[null,null],[undefined,undefined],[42,undefined]]){
+    const sync=model.create({getUser:()=>user,getClient:async()=>({functions:{invoke:async()=>({data:{snapshot:{...snapshot,...(value===undefined?{}:{avatar:value})}}})}})});
+    sync.setUser(user);await sync.load();assert.equal(sync.getSnapshot().avatar,expected);
+  }
+});

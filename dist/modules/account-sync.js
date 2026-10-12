@@ -34,7 +34,9 @@
           if(details?.snapshot){
             const value=details.snapshot;
             if(!Array.isArray(value.favoriteCityIds) || !Array.isArray(value.namedPlaces)) throw Error('Resposta de sincronização inválida.');
-            cached={displayName:typeof value.displayName==='string' ? value.displayName : undefined,favoriteCityIds:ids(value.favoriteCityIds),primaryCityId:/^\d{7}$/.test(value.primaryCityId || '') ? value.primaryCityId : null,namedPlaces:value.namedPlaces};
+            cached={displayName:typeof value.displayName==='string' ? value.displayName : undefined,favoriteCityIds:ids(value.favoriteCityIds),primaryCityId:/^\d{7}$/.test(value.primaryCityId || '') ? value.primaryCityId : null,namedPlaces:value.namedPlaces,
+              // Foto de perfil: string ou null; ausente (servidor antigo) fica undefined e o app usa a deste aparelho.
+              avatar:typeof value.avatar==='string' || value.avatar===null ? value.avatar : undefined};
             loadedAt=now();onSnapshot?.({ownerId,snapshot:cached,failed:!!error});
           }
           if(error) throw Object.assign(new Error(details?.error || 'Não foi possível sincronizar agora. Tente novamente.'),{code:details?.code || 'service_unavailable'});

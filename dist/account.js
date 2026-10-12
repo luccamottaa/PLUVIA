@@ -13,7 +13,7 @@
   const strongPassword=value=>value.length>=12 && /[a-z]/.test(value) && /[A-Z]/.test(value) && /\d/.test(value) && /[^A-Za-z0-9]/.test(value);
   let favoriteView = localFavoriteIds();
   const preferenceSync = syncModel.create({getClient,getUser:()=>currentUser,onSnapshot:receivePreferences});
-  let pendingPreferences = {}, inFlightPreferences = null;
+  let pendingPreferences = {}, inFlightPreferences = null, avatarPending = null;
   const message = text => { el('accountStatus').textContent = text; };
   const track = (name,properties) => window.pluviaAnalytics?.track(name,properties);
   // Sessão anônima (Supabase signInAnonymously) existe só para os avisos no celular sem conta:
@@ -56,7 +56,7 @@
     const label = user ? (name ? `Olá, ${name}` : 'Minha conta') : 'Entrar / cadastrar';
     const accountButton = el('accountButton');
     // Foto de perfil escolhida neste aparelho (modules/avatars.js); sem ela, o ícone de pessoa e a inicial.
-    const avatars = window.PLUVIA?.avatars, avatar = user ? avatars?.get?.(user.id) : null;
+    const avatars = window.PLUVIA?.avatars, avatar = resolveAvatar(user);
     accountButton.textContent = label;
     if (accountButton.ownerDocument) {
       const text = document.createElement('span'); text.className = 'account-label'; text.textContent = label;
@@ -77,6 +77,18 @@
   }
   // Escolha da foto em "Minha conta": a inicial (sem foto) e os desenhos de tempo. Botões nativos com
   // aria-pressed; os nomes vêm da lista fixa do módulo, nunca de dado da conta.
+  // Foto da conta: a escolha em andamento, senão a do servidor (account-preferences, a mesma em todos os
+  // aparelhos; também fica guardada aqui para a próxima abertura), senão a última guardada neste aparelho.
+  function resolveAvatar(user) {
+    const avatars = window.PLUVIA?.avatars;
+    if (!user || !avatars) return null;
+    if (avatarPending?.ownerId === user.id) return avatars.find(avatarPending.id);
+    const synced = preferenceSync.getSnapshot()?.avatar;
+    if (synced === undefined) return avatars.get(user.id);
+    const avatar = avatars.find(synced);
+    if ((avatars.get(user.id)?.id || null) !== (avatar?.id || null)) avatars.set(user.id, avatar?.id || null);
+    return avatar;
+  }
   function renderAvatarOptions(selected, initial) {
     const box = el('avatarOptions'), avatars = window.PLUVIA?.avatars;
     if (!box || !avatars || !box.ownerDocument) return;
@@ -88,10 +100,22 @@
         face.className = 'avatar-face'; face.setAttribute('aria-hidden','true');
         if (avatar.id) avatars.paint(face, avatar); else face.dataset.initial = 'true';
         button.append(face);
-        button.addEventListener('click', () => {
+        // Aparece na hora e vai para a conta (account-preferences); se o servidor recusar, volta à anterior.
+        button.addEventListener('click', async () => {
           if (!currentUser) return;
-          avatars.set(currentUser.id, avatar.id || null);
-          paintIdentity(currentUser);
+          const ownerId = currentUser.id, revision = accountRevision, id = avatar.id || null;
+          const active = () => currentUser?.id === ownerId && revision === accountRevision;
+          const previous = resolveAvatar(currentUser)?.id || null;
+          if (previous === id) return;
+          avatarPending = {ownerId, id};
+          avatars.set(ownerId, id); paintIdentity(currentUser);
+          try { await preferenceSync.apply({avatar:id}, ownerId); if (active()) message(''); }
+          catch (error) {
+            if (active() && avatarPending?.id === id) { avatars.set(ownerId, previous); message(error?.message || 'Não foi possível salvar a foto agora. Tente novamente.'); }
+          } finally {
+            if (avatarPending?.ownerId === ownerId && avatarPending.id === id) avatarPending = null;
+            if (active()) paintIdentity(currentUser);
+          }
         });
         box.append(button);
       });

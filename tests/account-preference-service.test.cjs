@@ -74,3 +74,13 @@ test('nome é validado e gravação concorrente preserva favoritos e locais',asy
   assert.equal(response.status,200);assert.equal(response.body.snapshot.displayName,'Depois');assert.equal(service.writes,2);
   assert.deepEqual(service.metadata.favorite_city_ids,['3550308']);assert.deepEqual(service.metadata.named_places_v1,[place]);
 });
+
+test('foto de perfil: só desenhos conhecidos ou null, e o mesmo conjunto do app',()=>{
+  const {AVATAR_IDS}=require('../supabase/functions/_shared/account-preferences.js');
+  assert.deepEqual([...AVATAR_IDS],require('../dist/modules/avatars.js').AVATARS.map(a=>a.id),'servidor e app aceitam as mesmas fotos');
+  assert.equal(snapshot({}).avatar,null);assert.equal(snapshot({avatar_id:'lua'}).avatar,'lua');assert.equal(snapshot({avatar_id:'<img>'}).avatar,null);
+  assert.deepEqual(applyOperations({name:'Nome'},operationsInput({avatar:'sol'})),{avatar_id:'sol'});
+  assert.deepEqual(applyOperations({avatar_id:'sol'},operationsInput({avatar:null})),{avatar_id:null},'voltar à inicial');
+  assert.deepEqual(applyOperations({avatar_id:'sol'},operationsInput({avatar:'sol'})),{},'repetir não grava');
+  for(const value of [{avatar:'x'},{avatar:1},{avatar:''},{avatar:'https://evil.test/a.png'}]) assert.throws(()=>operationsInput(value),/invalid_operations/);
+});
