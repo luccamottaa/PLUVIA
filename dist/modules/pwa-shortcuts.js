@@ -1,4 +1,4 @@
-/* Atalhos do PWA (manifest "shortcuts"): /?abrir=cidades|comparar|radar.
+/* Atalhos do PWA (manifest "shortcuts"): /?abrir=cidades|radar.
    Remove o parâmetro do endereço na hora, para um reload não reabrir o diálogo, e só age
    depois da intro e da primeira previsão. Sem o parâmetro, não faz nada. */
 (function(root, factory) {
@@ -8,7 +8,7 @@
   if (root.document && root.location) api.run(root);
 })(typeof globalThis !== 'undefined' ? globalThis : this, function() {
   'use strict';
-  const ACTIONS = ['cidades', 'comparar', 'radar'];
+  const ACTIONS = ['cidades', 'radar'];
   const WAIT_MS = 15000;
 
   // Ação pedida e o endereço sem o parâmetro (os demais parâmetros e o hash continuam).
@@ -38,7 +38,6 @@
       done = true; root.clearTimeout(timer); observer?.disconnect();
       root.removeEventListener('pluvia:weather-updated', check);
       if (action === 'cidades' && typeof openCitySearch === 'function') openCitySearch();
-      else if (action === 'comparar') root.PLUVIA?.compare?.open?.();
       else if (action === 'radar') el('expandRadar')?.click();
     }
     function check() { if (ready()) act(); }

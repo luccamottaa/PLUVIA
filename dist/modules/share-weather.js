@@ -44,7 +44,7 @@
       const token=++cardToken,cards=root.PLUVIA?.shareCard;card=null;
       if(!cards || !snapshot || typeof root.File!=='function') return;
       const night=root.document.body?.dataset?.phase==='night';
-      const box=el('shareMoment'),moment=box && !box.hidden ? box.dataset?.moment || null : null;
+      const moment=root.PLUVIA?.shareMoment?.() || null;
       const data=cards.model(snapshot,{condition:conditionLabel(),night,moment});
       if(!data) return;
       const idle=root.requestIdleCallback ? fn=>root.requestIdleCallback(fn,{timeout:2000}) : fn=>root.setTimeout(fn,300);
@@ -69,7 +69,7 @@
     root.addEventListener('pluvia:weather-updated',event=>{
       snapshot=root.PLUVIA?.weatherData?.get(event.detail?.cityId);button.disabled=!build(snapshot);status('');prepareCard();
     });
-    // O selo de dia marcante acompanha o convite da Home: muda raramente (trovoada some, pôr do sol passa).
+    // O selo de dia marcante muda raramente (trovoada some, pôr do sol passa): refaz o story só então.
     root.addEventListener('pluvia:share-moment',()=>{if(snapshot) prepareCard();});
     root.addEventListener('pluvia:city-changed',()=>{
       revision++;cardToken++;snapshot=null;card=null;button.disabled=true;status('');if(dialog.open) dialog.close();

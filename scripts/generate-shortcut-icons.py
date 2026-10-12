@@ -19,15 +19,6 @@ def cities(draw):  # lupa
     draw.ellipse((104, 96, 248, 240), outline=WHITE, width=W)
     draw.line((230, 222, 290, 282), fill=WHITE, width=W + 6)
 
-def compare(draw):  # balança: duas cidades pesadas lado a lado
-    draw.line((192, 96, 192, 288), fill=WHITE, width=W)
-    draw.line((118, 288, 266, 288), fill=WHITE, width=W)
-    draw.line((92, 130, 292, 130), fill=WHITE, width=W)
-    for x in (110, 274):
-        draw.line((x, 130, x - 34, 214), fill=WHITE, width=W - 8)
-        draw.line((x, 130, x + 34, 214), fill=WHITE, width=W - 8)
-        draw.chord((x - 46, 176, x + 46, 252), 0, 180, fill=WHITE)
-
 def radar(draw):  # tela de radar: anéis, varredura e um eco
     cx = cy = 192
     for r in (112, 60):
@@ -37,7 +28,7 @@ def radar(draw):  # tela de radar: anéis, varredura e um eco
     draw.ellipse((cx - 70, cy + 20, cx - 38, cy + 52), fill=WHITE)
 
 OUT.mkdir(parents=True, exist_ok=True)
-for name, glyph in (('cidades', cities), ('comparar', compare), ('radar', radar)):
+for name, glyph in (('cidades', cities), ('radar', radar)):
     image, draw = base(); glyph(draw)
     image.resize((96, 96), Image.LANCZOS).save(OUT / f'{name}.png', optimize=True)
     print(name, (OUT / f'{name}.png').stat().st_size, 'bytes')

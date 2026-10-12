@@ -489,16 +489,16 @@ body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60
 
 /* Painéis entram de cima e saem para baixo; somente transform/opacity. */
 @media (prefers-reduced-motion:no-preference) {
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open] { animation:pluvia-dialog-enter .4s cubic-bezier(.22,1,.36,1); }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing { animation:pluvia-dialog-exit .28s cubic-bezier(.4,0,1,1) forwards; }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing::backdrop { animation:pluvia-backdrop-exit .28s ease-in forwards; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open] { animation:pluvia-dialog-enter .4s cubic-bezier(.22,1,.36,1); }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing { animation:pluvia-dialog-exit .28s cubic-bezier(.4,0,1,1) forwards; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open].pluvia-dialog-closing::backdrop { animation:pluvia-backdrop-exit .28s ease-in forwards; }
   @keyframes pluvia-dialog-enter { from { opacity:0; transform:translateY(-100dvh); } to { opacity:1; transform:translateY(0); } }
   @keyframes pluvia-dialog-exit { from { opacity:var(--pluvia-exit-opacity,1); transform:var(--pluvia-exit-from,none); } to { opacity:0; transform:translateY(var(--pluvia-exit-distance,100dvh)); } }
   @keyframes pluvia-backdrop-enter { from { opacity:0; } to { opacity:1; } }
   @keyframes pluvia-backdrop-exit { from { opacity:1; } to { opacity:0; } }
 }
-@media (prefers-reduced-motion:reduce) { html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open],html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:none !important; } }
+@media (prefers-reduced-motion:reduce) { html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open],html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation:none !important; } }
 /* <details> abrem/fecham pela altura (dialog-motion.js): só layout, sem transform/opacity. */
 details > .details-motion { display:grid; grid-template-rows:1fr; transition:grid-template-rows .34s cubic-bezier(.22,1,.36,1); }
 details > .details-motion[data-collapsed] { grid-template-rows:0fr; }
@@ -702,38 +702,6 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 #weatherView .tips-list li { display:flex; align-items:flex-start; gap:10px; color:var(--reading-ink); font-size:.95rem; line-height:1.4; }
 #weatherView .tip-icon { flex:none; width:22px; height:22px; margin-top:1px; color:var(--graphic-blue); }
 
-/* Comparar cidades: tabela nativa (linhas alinhadas entre as duas colunas, cabeçalhos para leitor de tela). */
-/* Comparar e Brasil agora dividem a segunda linha das ações. */
-#cityDialog :is(#compareOpen,#brazilOpen) { grid-column:auto; }
-.compare-pick { display:grid; gap:6px; }
-.compare-pick label { color:var(--dialog-muted); font-size:.85rem; }
-.compare-pick select { min-height:44px; width:100%; padding:0 12px; border:1px solid var(--dialog-line); border-radius:12px; color:var(--dialog-text); background:var(--dialog-surface); font:inherit; }
-.compare-status { min-height:1.2em; margin:10px 0 0; color:var(--dialog-muted); font-size:.85rem; }
-.compare-table-wrap { overflow-x:auto; }
-.compare-table { width:100%; border-collapse:collapse; font-size:.92rem; }
-.compare-table caption { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-.compare-table :is(th,td) { padding:12px 8px; border-bottom:1px solid var(--dialog-line); text-align:left; vertical-align:top; overflow-wrap:break-word; }
-.compare-table thead th { color:var(--brand-blue); font-weight:600; font-size:1rem; }
-.compare-table thead td { width:26%; }
-.compare-table tbody th { color:var(--dialog-muted); font-weight:400; font-size:.85rem; }
-.compare-table td strong { display:block; font-weight:500; font-variant-numeric:tabular-nums; }
-.compare-table :is(td,th) small { display:block; margin-top:3px; color:var(--dialog-muted); font-size:.78rem; font-weight:400; }
-.compare-note { margin:14px 0 0; color:var(--dialog-muted); font-size:.78rem; }
-/* Comparar usa o mesmo diálogo dos outros: o parágrafo geral de 1rem não vale para status e nota, e a
-   coluna de rótulos começa na mesma borda do seletor acima. */
-html body #compareDialog :is(.compare-status,.compare-note) { font-size:.8rem; line-height:1.5; }
-html body #compareDialog .compare-status:empty { display:block; }
-.compare-table :is(th,td):first-child { padding-left:0; }
-@media(max-width:520px) { .compare-table :is(th,td) { padding:10px 5px; } .compare-table { font-size:.86rem; } .compare-table tbody th { font-size:.8rem; } }
-/* Telas estreitas: o rótulo ocupa a linha e as duas cidades ficam lado a lado embaixo.
-   Os papéis ARIA explícitos (no JS) mantêm a tabela para leitores de tela apesar do display:grid. */
-@media(max-width:380px) {
-  .compare-table, .compare-table :is(thead,tbody) { display:block; }
-  .compare-table tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:10px; border-bottom:1px solid var(--dialog-line); padding-block:8px; }
-  .compare-table :is(th,td) { border:0; padding:2px 0; }
-  .compare-table thead td { display:none; }
-  .compare-table tbody th { grid-column:1 / -1; padding-bottom:4px; }
-}
 
 /* Ar nos próximos dias: três colunas compactas (dia, categoria, AQI máximo previsto), cor da categoria
    pelo mesmo --aqi-accent do card; a nota de previsão do modelo fica junto da fonte. */
@@ -866,7 +834,7 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 /* Letra mínima de leitura ~13px (0,8125rem) para textos corridos e notas que estavam em 11–12px;
    rótulos curtos em caixa alta continuam em 12px. A coluna fixa de chuva dos 7 dias no celular mantém 12px. */
 #weatherView :is(.hour-solar-event,.hour-temp small,.rain-chart .rain-chance,.air-outlook li > small,.air-outlook li > span,.sky-events small,.inmet-stage,.inmet-alert-meta dt),
-.moon-inline #moonIllumination,.favorite-city-card small,.daily-hour > small,.compare-table :is(td,th) small,.compare-note { font-size:.8125rem; }
+.moon-inline #moonIllumination,.favorite-city-card small,.daily-hour > small { font-size:.8125rem; }
 #weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) #inmetUpdated { font-size:.8125rem; }
 @media(max-width:720px) {
   #weatherView .forecast-day > span { font-size:.8125rem; }
@@ -1190,7 +1158,7 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
    centralizam debaixo do ícone, como no Apple Weather. */
 #weatherView .hourly-peek-item > strong { white-space:nowrap; }
 #weatherView .hourly-peek-item > strong .peek-deg { margin-right:-.46em; }
-/* Atalhos da Home para Comparar e Brasil agora (antes só dentro de "Suas cidades"). */
+/* Atalhos da Home para Brasil agora e Últimos 30 dias. */
 #weatherView .home-shortcuts { display:flex; flex-wrap:wrap; gap:0 24px; margin-top:6px; padding:6px 0 0; border:0; border-top:1px solid var(--reading-line); border-radius:0; background:none; box-shadow:none; }
 #weatherView .home-shortcut { min-height:44px; padding:0; border:0; background:none; color:var(--reading-link); font:inherit; font-size:.9375rem; font-weight:600; cursor:pointer; }
 #weatherView .home-shortcut span { margin-left:2px; }
@@ -1261,18 +1229,18 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
    Folha no estilo de listas agrupadas: cabeçalho leve, grupos em cartões com linhas finas,
    botões em pílula e interruptores no lugar das caixas de seleção. Só pintura: sem blur,
    sem transform/z-index em blocos; o motion de entrada/saída continua em dialog-motion.js. */
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) {
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) {
   --dialog-bg:#0b1830; --dialog-surface:#ffffff0d; --dialog-surface-2:#ffffff17; --dialog-line:#ffffff14;
   --dialog-text:#f2f6ff; --dialog-muted:#a9b8d0; --sheet-radius:22px;
   border-color:#ffffff1a; border-radius:32px;
   background:linear-gradient(180deg,#14284a 0,#0b1830 240px) #0b1830;
   box-shadow:0 30px 90px #000a,inset 0 1px 0 #ffffff14;
 }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-heading {
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-heading {
   padding:20px 16px 10px 24px; border-bottom:0; background:transparent;
 }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-heading h2 { font-size:1.5rem; font-weight:650; letter-spacing:-.025em; }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-close {
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-heading h2 { font-size:1.5rem; font-weight:650; letter-spacing:-.025em; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-close {
   width:44px; height:44px; border-radius:50%; background:#ffffff14; color:var(--dialog-text); font-size:24px; font-weight:300;
 }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) .dialog-scroll { padding:8px 20px 28px; }
@@ -1328,7 +1296,7 @@ html body #cityDialog #voiceSearch[data-listening] { background:var(--brand-blue
 @media (forced-colors:active){ html body #cityDialog .voice-search::before { background:ButtonText; } }
 @media (max-width:600px){ html body #cityDialog #voiceSearch { right:22px; margin-top:-26px; } }
 html body #cityDialog .city-picker { gap:22px; }
-html body #cityDialog .city-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+html body #cityDialog .city-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
 html body #cityDialog .city-actions > button {
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:84px; padding:12px 2px; border:0;
   border-radius:20px; background:var(--dialog-surface); color:var(--dialog-text); font-size:.75rem; font-weight:600; line-height:1.2; text-align:center;
@@ -1343,9 +1311,7 @@ html body #cityDialog #favoriteCity { --action-icon:url("data:image/svg+xml,%3Cs
 html body #cityDialog #favoriteCity[aria-pressed=true] { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' stroke='black' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z'/%3E%3C/svg%3E"); }
 html body #cityDialog #favoriteCity[aria-pressed=true]::before { background:#ffd166; }
 html body #cityDialog #locateCity { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='7'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3Cpath d='M12 2v3m0 14v3M2 12h3m14 0h3'/%3E%3C/svg%3E"); }
-html body #cityDialog #compareOpen { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8h14m-4-4 4 4-4 4M20 16H6m4-4-4 4 4 4'/%3E%3C/svg%3E"); }
 html body #cityDialog #brazilOpen { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z'/%3E%3C/svg%3E"); }
-@media (max-width:359px) { html body #cityDialog .city-actions { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 html body #cityDialog .favorite-heading { padding:0 0 0 4px; }
 html body #cityDialog .favorite-heading h3 { margin:0; padding:0; }
 html body #cityDialog .favorite-organize { color:#8fb4ff; font-size:.875rem; }
@@ -1477,8 +1443,8 @@ html body #sourcesDialog .source-credits { margin:28px 0 0; }
 html body #sourcesDialog .source-credits label[for=analyticsConsent] { display:flex; flex-direction:row-reverse; align-items:center; justify-content:space-between; gap:14px; min-height:56px; padding:12px 16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); color:var(--dialog-text); font-size:.9375rem; cursor:pointer; }
 html body #sourcesDialog .source-credits p { margin:10px 4px 0; font-size:.8125rem; line-height:1.55; }
 @media (max-width:600px) {
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) { border-radius:28px; }
-  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#compareDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-heading { padding:18px 14px 8px 20px; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) { border-radius:28px; }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog) .dialog-heading { padding:18px 14px 8px 20px; }
   html body :is(#cityDialog,#accountDialog,#sourcesDialog) .dialog-scroll { padding:6px 16px 24px; }
   html body #cityDialog .city-search-field { padding:4px 16px 12px; }
 }
@@ -1505,7 +1471,6 @@ html body #sourcesDialog .source-credits p { margin:10px 4px 0; font-size:.8125r
   content:""; flex:none; width:20px; height:20px; background:currentColor;
   -webkit-mask:var(--shortcut-icon) center/contain no-repeat; mask:var(--shortcut-icon) center/contain no-repeat;
 }
-#weatherView #homeCompare { --shortcut-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8h14m-4-4 4 4-4 4M20 16H6m4-4-4 4 4 4'/%3E%3C/svg%3E"); }
 #weatherView #homeBrazil { --shortcut-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z'/%3E%3C/svg%3E"); }
 @media (forced-colors:active) { #weatherView .home-shortcut::before { background:ButtonText; } }
 /* Puxar para atualizar: chip escuro com indicador que gira só enquanto consulta. */
@@ -1526,8 +1491,7 @@ html body #sourcesDialog .source-credits p { margin:10px 4px 0; font-size:.8125r
 
 /* Últimos 30 dias: terceiro atalho da Home (linha inteira no celular, três colunas com espaço) e o
    diálogo com os números do mês, mais barras estáticas de chuva por dia. Sem animação. */
-#weatherView #homeMonth { grid-column:1/-1; --shortcut-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='2.5'/%3E%3Cpath d='M3.5 10h17M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2'/%3E%3C/svg%3E"); }
-@media (min-width:560px) { #weatherView .home-shortcuts:has(#homeMonth) { grid-template-columns:repeat(3,minmax(0,1fr)); } #weatherView #homeMonth { grid-column:auto; } }
+#weatherView #homeMonth { --shortcut-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='2.5'/%3E%3Cpath d='M3.5 10h17M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2'/%3E%3C/svg%3E"); }
 html body #monthDialog .dialog-heading p { margin:2px 0 0; color:var(--dialog-muted, #b8c3d6); font-size:.875rem; }
 html body #monthDialog .month-status { min-height:1.2em; margin:0 0 10px; font-size:.8rem; line-height:1.5; }
 html body #monthDialog .month-lead { margin:0 0 14px; font-size:1rem; line-height:1.5; }
@@ -1544,3 +1508,65 @@ html body #monthDialog .month-chart-axis { display:flex; justify-content:space-b
 html body #monthDialog .month-chart-axis .month-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 html body #monthDialog .month-note { font-size:.8rem; line-height:1.5; }
 @media (forced-colors:active) { html body #monthDialog .month-bar { fill:CanvasText; } }
+/* Nome da cidade fixo ao lado da marca do radar (weather-map.js): pequeno, sem seta, legível sobre o mapa claro. */
+#weatherMap .leaflet-tooltip.pluvia-city-label { padding:2px 8px; border:0; border-radius:999px; background:#0b1830e6; color:#fff; font:600 .8125rem/1.4 var(--font-ui,system-ui,sans-serif); box-shadow:0 1px 4px #0003; }
+#weatherMap .leaflet-tooltip.pluvia-city-label::before { display:none; }
+/* Fotos de perfil (modules/avatars.js): desenho de tempo sobre círculo colorido, no botão da conta,
+   no topo de "Minha conta" e na escolha. Só pintura, sem transform/z-index. */
+.topbar .account-trigger .account-avatar { display:grid; place-items:center; width:32px; height:32px; border-radius:50%; overflow:hidden; background:var(--avatar-bg,var(--brand-blue)); box-shadow:0 0 0 2px var(--brand-blue); }
+.topbar .account-trigger .account-avatar img,html body #accountDialog .profile-avatar[data-avatar] img,#accountDialog .avatar-face img { width:78%; height:78%; object-fit:contain; }
+html body #accountDialog .profile-avatar[data-avatar] { overflow:hidden; background:var(--avatar-bg); }
+#accountDialog .avatar-picker { margin:4px 0 18px; padding:0; border:0; min-width:0; }
+#accountDialog .avatar-picker legend { margin-bottom:10px; padding:0; color:var(--dialog-muted); font-size:.9375rem; }
+#accountDialog .avatar-picker small { display:block; margin-top:8px; color:var(--dialog-muted); font-size:.8125rem; }
+#accountDialog .avatar-options { display:grid; grid-template-columns:repeat(auto-fill,minmax(48px,1fr)); gap:10px; }
+html body #accountDialog #avatarOptions button.avatar-option { display:grid; place-items:center; width:100%; min-width:44px; min-height:48px; aspect-ratio:1; margin:0; padding:3px; border:2px solid transparent; border-radius:50%; background:transparent; box-shadow:none; }
+html body #accountDialog #avatarOptions button.avatar-option[aria-pressed="true"] { border-color:var(--brand-blue); }
+#accountDialog .avatar-face { display:grid; place-items:center; width:100%; height:100%; border-radius:50%; overflow:hidden; background:var(--avatar-bg,var(--brand-blue)); color:#fff; font-size:1.25rem; font-weight:600; }
+@media (forced-colors:active) { html body #accountDialog #avatarOptions button.avatar-option[aria-pressed="true"] { border-color:Highlight; } }
+
+/* ===== Diálogos claros de dia (pedido do usuário, outubro/2026) =====
+   Com tinta escura (body[data-ink="dark"], o céu claro do dia), as folhas trocam o azul-noite por um
+   off-white quente com cartões brancos e texto azul-marinho; à noite e com chuva forte/trovoada
+   (tinta clara) continuam escuras. Mesmos tokens --dialog-*; só cores, sem blur/transform/z-index.
+   Contraste medido por verify-contrast.py. */
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#radarDialog) {
+  --dialog-bg:#f7f5f0; --dialog-surface:#ffffff; --dialog-surface-2:#0b18300d; --dialog-line:#0b183017;
+  --dialog-text:#13233d; --dialog-muted:#556479; --dialog-link:#1f56d6;
+  --text:#13233d; --muted:#556479; --line:#0b18301f; --panel:#fff; --panel-strong:#fff; --panel-subtle:#0b18300a;
+  color-scheme:light; color:var(--dialog-text); border-color:#0b183014;
+  background:#f7f5f0; box-shadow:0 30px 90px #0b183040,inset 0 1px 0 #ffffffcc;
+}
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#radarDialog)::backdrop { background:#0b18304d; }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#radarDialog) :is(.dialog-heading,.dialog-heading h2,h3,strong,label,legend,summary) { color:var(--dialog-text); }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#radarDialog) :is(p,small,dt,.dialog-subtitle) { color:var(--dialog-muted); }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#radarDialog) .dialog-close { background:#0b18300f; color:var(--dialog-text); }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#radarDialog) a { color:var(--dialog-link); }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog) :is(input:not([type=checkbox]),select) { border-color:#0b18301f; background:#fff; color:var(--dialog-text); }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#monthDialog,#brazilDialog) input::placeholder { color:#5d6c81; }
+html body[data-ink="dark"] :is(#accountDialog,#sourcesDialog) input[type=checkbox] { background:#0b183026; }
+html body[data-ink="dark"] :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked { background:var(--brand-blue); }
+html body[data-ink="dark"] #cityDialog #citySearch { background-color:#fff; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23556479' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E"); }
+html body[data-ink="dark"] #cityDialog #voiceSearch { color:#556479; }
+html body[data-ink="dark"] #cityDialog .city-actions > button::before,html body[data-ink="dark"] #cityDialog .favorite-organize { background-color:var(--brand-blue); }
+html body[data-ink="dark"] #cityDialog .favorite-organize { background:none; color:var(--dialog-link); }
+html body[data-ink="dark"] #cityDialog #locateCity::before { background:#fff; }
+html body[data-ink="dark"] #cityDialog #favoriteCity[aria-pressed=true]::before { background:#e0a400; }
+html body[data-ink="dark"] #cityDialog :is(.city-result[data-current=true],.favorite-city-card[aria-current=true]) { background:#2f6bff14; }
+html body[data-ink="dark"] #accountDialog .account-tabs { background:#0b18300d; }
+html body[data-ink="dark"] #accountDialog #accountTabs button[aria-pressed=true] { background:#fff; color:var(--dialog-text); box-shadow:0 1px 3px #0b183026; }
+html body[data-ink="dark"] #accountDialog .profile-identity { background:radial-gradient(120% 100% at 50% 0,#2f6bff1f,transparent 70%),#fff; }
+html body[data-ink="dark"] #accountDialog #notificationPreferencesSave:disabled { background:#2f6bff40; color:#ffffffd9; }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog) :is(#accountSubmit,#profileSave,#notificationPreferencesSave,#savedPlaceSave,#accountRecoverySave,#locateCity) { color:#fff; }
+html body[data-ink="dark"] .changelog-intro,html body[data-ink="dark"] .changelog-date { color:var(--dialog-muted); }
+html body[data-ink="dark"] .changelog-entry ul { color:var(--dialog-text); }
+html body[data-ink="dark"] .changelog-entry[data-kind="fix"] .changelog-badge { background:#0b183014; color:var(--dialog-text); }
+html body[data-ink="dark"] #brazilDialog .brazil-row:hover { background:#0b18300a; }
+html body[data-ink="dark"] :is(#changelogDialog,#installDialog,#radarDialog) .dialog-close { border-radius:50%; }
+html body[data-ink="dark"] #changelogDialog .changelog-title { color:var(--dialog-text); }
+html body[data-ink="dark"] #sourcesDialog .sources-list b { color:#1f56d6; }
+html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=official] b { color:#0f7a52; }
+html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=observation] b { color:#5b3fc4; }
+html body[data-ink="dark"] #sourcesDialog .sources-list article::before { background-color:#2f6bff26; }
+html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=official]::before { background-color:#12a06a29; }
+html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=observation]::before { background-color:#7c5cf029; }

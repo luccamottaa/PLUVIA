@@ -55,6 +55,20 @@
     clearInterval(state.timer); state.timer = null;
     $('weatherPlay').setAttribute('aria-pressed','false'); $('weatherPlay').setAttribute('aria-label','Reproduzir animação');
   }
+  function play() {
+    if (state.timer || state.frames.length < 2) return;
+    $('weatherPlay').setAttribute('aria-pressed','true'); $('weatherPlay').setAttribute('aria-label','Pausar animação');
+    state.timer=setInterval(() => step(1),1400);
+  }
+  // O radar ampliado já abre passando as últimas imagens (a chuva andando é o que se procura nele);
+  // começa pela imagem mais recente e segue em loop até pausar ou fechar. Reduzir movimento abre parado.
+  let autoplayPending = false;
+  function autoplay() {
+    if (!autoplayPending || !radarDialog?.open || state.frames.length < 2) return;
+    autoplayPending = false;
+    if (globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    play();
+  }
   function cancelPending() {
     clearTimeout(pendingTimeout);pendingTimeout=null;pendingFrameKey=null;
     if (state.nextOverlay) state.map?.removeLayer(state.nextOverlay);
@@ -139,7 +153,7 @@
     if (typeof data?.host!=='string' || !/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(data.host)) throw new Error('O radar enviou uma referência inválida.');
     if (!frames.length) throw new Error('O radar não enviou frames recentes.');
     radarSnapshot={data,at:cached ? radarSnapshot.at : Date.now()};
-    setFrames(frames,frames.length-1); renderFrame();
+    setFrames(frames,frames.length-1); renderFrame(); autoplay();
   }
   async function selectLayer(name) {
     if (name !== 'rain') return;
@@ -232,7 +246,8 @@
       setInteractive(Boolean(radarDialog?.open));
     } else state.map.setView([selectedCity.lat,selectedCity.lon],7);
     if (state.marker) state.map.removeLayer(state.marker);
-    state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:7,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(`${selectedCity.name}/${selectedCity.uf}`);
+    // O nome fica sempre ao lado da marca: no radar ampliado, achar a própria cidade era o primeiro passo.
+    state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:8,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(selectedCity.name,{permanent:true,direction:'right',offset:[10,0],className:'pluvia-city-label'});
     state.cityId = selectedCity.id; $('weatherMapCity').textContent = `${selectedCity.name}/${selectedCity.uf}`;
     const recenterButton = $('weatherMapRecenter');
     if (recenterButton) { recenterButton.hidden = false; recenterButton.setAttribute('aria-label','Mostrar minha localização no mapa'); recenterButton.title = 'Minha localização'; }
@@ -279,12 +294,13 @@
     $('radarDialogContent').appendChild(radarContent);
     radarDialog.showModal(); document.body.style.overflow='hidden';
     setInteractive(true);
-    mapVisible=true; if (!state.map || state.cityId !== city()?.id) showMap();
+    autoplayPending = true;
+    mapVisible=true; if (!state.map || state.cityId !== city()?.id) showMap(); else autoplay();
     resizeMap(); $('closeRadar').focus();
   });
   $('closeRadar')?.addEventListener('click',() => globalThis.PLUVIA?.dialogs?.close(radarDialog) ?? radarDialog.close());
   radarDialog?.addEventListener('close',() => {
-    stop(); radarHome?.appendChild(radarContent); document.body.style.overflow=previousOverflow;
+    autoplayPending = false; stop(); radarHome?.appendChild(radarContent); document.body.style.overflow=previousOverflow;
     setInteractive(false);
     resizeMap(); $('expandRadar')?.focus();
   });
@@ -308,11 +324,7 @@
   } else { mapVisible = true; showMap(); }
   $('weatherFramePrev').addEventListener('click',() => step(-1)); $('weatherFrameNext').addEventListener('click',() => step(1));
   $('weatherTimeline').addEventListener('input',event => { stop(); state.index=Number(event.target.value); renderFrame(); });
-  $('weatherPlay').addEventListener('click',() => {
-    if (state.timer) { stop(); return; }
-    $('weatherPlay').setAttribute('aria-pressed','true'); $('weatherPlay').setAttribute('aria-label','Pausar animação');
-    state.timer=setInterval(() => step(1),1400);
-  });
+  $('weatherPlay').addEventListener('click',() => { if (state.timer) stop(); else play(); });
   const sourceEntries = [
     ['INMET','Dado oficial','Avisos meteorológicos vigentes e previstos para o município.'],
     ['Open-Meteo','Estimativa meteorológica','Tempo, chuva e qualidade do ar no ponto do município.'],

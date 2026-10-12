@@ -707,31 +707,18 @@ function setRainAnswer(answer) {
   if (typeof noteAlertNudge === "function") noteAlertNudge("rain", answer.tone === "rain" || answer.tone === "storm");
   if (typeof noteShareMoment === "function") noteShareMoment("storm", answer.tone === "storm");
 }
-// Dia marcante (trovoada no "Vai chover?" ou pôr do sol que promete): um convite para compartilhar
-// abaixo das dicas, que usa o mesmo botão do cabeçalho (o story já fica pronto quando a previsão chega,
-// e o Safari exige share() logo após o toque). Chuva comum não conta: em Manaus seria todo dia.
+// Dia marcante (trovoada no "Vai chover?" ou pôr do sol que promete): vira selo no topo do story
+// compartilhado. O convite visível na Home saiu (outubro/2026: 17 exibições e nenhum toque em 30 dias);
+// o estado fica só aqui e o story é refeito quando o momento muda.
 function noteShareMoment(moment, active) {
-  const box = $("shareMoment"), text = $("shareMomentText");
-  if (!box?.dataset || !text) return;
-  if (active) box.dataset[moment] = "true"; else delete box.dataset[moment];
-  const current = box.dataset.storm === "true" ? "storm" : box.dataset.glow === "true" ? "glow" : "";
-  const appearing = box.hidden && Boolean(current), previous = box.dataset.moment || "";
-  box.hidden = !current;
-  // O story pronto leva o selo do dia marcante: refaz a imagem só quando o momento muda.
-  if (previous !== current) globalThis.dispatchEvent?.(new CustomEvent("pluvia:share-moment", {detail:{moment:current}}));
-  if (!current) { delete box.dataset.moment; return; }
-  text.textContent = current === "storm" ? "Dia de trovoada por aqui. Avisa a galera?" : "Pôr do sol promete hoje. Manda pra alguém?";
-  const changed = box.dataset.moment !== current;
-  box.dataset.moment = current;
-  if (appearing) settleBlock(box);
-  if (changed) globalThis.pluviaAnalytics?.track?.("Share Moment Shown", {moment:current});
+  const state = noteShareMoment.state ||= {storm:false, glow:false, current:""};
+  state[moment] = Boolean(active);
+  const current = state.storm ? "storm" : state.glow ? "glow" : "";
+  if (current === state.current) return;
+  state.current = current;
+  globalThis.dispatchEvent?.(new CustomEvent("pluvia:share-moment", {detail:{moment:current}}));
 }
-$("shareMomentButton")?.addEventListener?.("click", () => {
-  const share = $("shareWeather");
-  if (!share || share.disabled) return;
-  globalThis.pluviaAnalytics?.track?.("Share Moment Tapped", {moment:$("shareMoment")?.dataset?.moment});
-  share.click();
-});
+if (globalThis.PLUVIA) globalThis.PLUVIA.shareMoment = () => noteShareMoment.state?.current || null;
 // Convite de avisos na hora em que ele faz sentido: chuva prevista ("Vai chover?" com chuva ou
 // trovoada) ou aviso do INMET vigente na cidade, enquanto a pessoa não recusou o convite ("Agora não"
 // vale para os dois convites). No iPhone fora da Tela de Início o botão vira "Como ativar" e abre o
@@ -783,7 +770,7 @@ globalThis.addEventListener?.("pluvia:alerts-enabled", event => {
 });
 $("alertNudgeEnable")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Tapped", {offer:$("alertNudge")?.dataset?.offer, nudge:$("alertNudge")?.dataset?.reason}); globalThis.PLUVIA?.alertOffer?.enable?.(); });
 $("alertNudgeDismiss")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Dismissed", {offer:$("alertNudge")?.dataset?.offer, nudge:$("alertNudge")?.dataset?.reason}); globalThis.PLUVIA?.alertOffer?.dismiss?.(); updateAlertNudge(); });
-// Quem já abriu o PLUVIA em 3 dias diferentes também recebe o convite, mesmo sem chuva prevista:
+// Quem já abriu o PLUVIA em 2 dias diferentes também recebe o convite, mesmo sem chuva prevista:
 // é quem mais ganha com os avisos. Guarda só a contagem e o último dia (do aparelho), sem cidade.
 const OPEN_DAYS_KEY = "pluvia-open-days";
 function regularVisitor(now = new Date(), storage = globalThis.localStorage) {
@@ -793,7 +780,7 @@ function regularVisitor(now = new Date(), storage = globalThis.localStorage) {
     const count = Number.isInteger(saved?.count) && saved.count > 0 ? saved.count : 0;
     const next = saved?.last === day ? count : Math.min(count + 1, 999);
     if (saved?.last !== day) storage?.setItem?.(OPEN_DAYS_KEY, JSON.stringify({count:next, last:day}));
-    return next >= 3;
+    return next >= 2;
   } catch { return false; }
 }
 if (regularVisitor()) noteAlertNudge("regular", true);
@@ -1809,7 +1796,6 @@ function setupCityPicker() {
   $("favoriteCity").addEventListener("click", toggleFavoriteCity);
   setupFavoriteSuggest();
   // Atalhos da Home: os mesmos diálogos de "Suas cidades", onde quase ninguém os achava.
-  $("homeCompare")?.addEventListener("click", () => globalThis.PLUVIA?.compare?.open?.());
   $("homeBrazil")?.addEventListener("click", () => globalThis.PLUVIA?.brazilNow?.open?.());
   $("locateCity").addEventListener("click", () => requestLocation('city_picker'));
   $("welcomeLocate").addEventListener("click", () => requestLocation('welcome'));

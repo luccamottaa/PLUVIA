@@ -1,11 +1,23 @@
 (() => {
   "use strict";
   const el = id => document.getElementById(id);
-  // "Agora não" esconde o convite da Home neste aparelho; os alertas continuam na conta.
-  const DISMISS_KEY = "pluvia-notification-prompt-dismissed";
+  // "Agora não" esconde o convite da Home neste aparelho por 30 dias (antes era para sempre); os alertas
+  // continuam na conta. Guarda o horário; o antigo "1" passa a contar a partir da primeira leitura.
+  const DISMISS_KEY = "pluvia-notification-prompt-dismissed", DISMISS_DAYS = 30;
   // Guardado também em memória: com o storage bloqueado, "Agora não" ainda vale nesta visita.
   let dismissedNow = false;
-  const promptDismissed = () => { if (dismissedNow) return true; try { return localStorage.getItem(DISMISS_KEY) === "1"; } catch { return false; } };
+  const promptDismissed = (now = Date.now()) => {
+    if (dismissedNow) return true;
+    try {
+      const value = localStorage.getItem(DISMISS_KEY);
+      if (value === "1") { localStorage.setItem(DISMISS_KEY, String(now)); return true; }
+      const at = Number(value);
+      if (!value || !Number.isFinite(at)) return false;
+      if (at <= now && now - at < DISMISS_DAYS * 864e5) return true;
+      localStorage.removeItem(DISMISS_KEY);
+      return false;
+    } catch { return false; }
+  };
   // Marca que a inscrição deste aparelho nasceu sem conta: só ela leva a cidade aberta para a conta ao entrar.
   const ANON_KEY = "pluvia-push-anon";
   const anonDevice = value => { try { if (value === undefined) return localStorage.getItem(ANON_KEY) === "1"; if (value) localStorage.setItem(ANON_KEY, "1"); else localStorage.removeItem(ANON_KEY); } catch {} return false; };
@@ -340,7 +352,7 @@
     canOffer: () => !promptDismissed() && ((isIOS && !standalone) || (pushActive === false && supported && Notification.permission !== "denied")),
     needsInstall: () => isIOS && !standalone,
     enable,
-    dismiss: () => { dismissedNow = true; try { localStorage.setItem(DISMISS_KEY, "1"); } catch {} window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed")); },
+    dismiss: () => { dismissedNow = true; try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch {} window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed")); },
   };
   toggle.addEventListener("click", toggleNotifications);
   el("anonPushOff")?.addEventListener("click", disable);

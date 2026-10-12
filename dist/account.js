@@ -55,17 +55,51 @@
     // Sempre o ícone de pessoa (azul quando logado); o texto (saudação ou "Entrar") fica para leitores de tela.
     const label = user ? (name ? `Olá, ${name}` : 'Minha conta') : 'Entrar / cadastrar';
     const accountButton = el('accountButton');
+    // Foto de perfil escolhida neste aparelho (modules/avatars.js); sem ela, o ícone de pessoa e a inicial.
+    const avatars = window.PLUVIA?.avatars, avatar = user ? avatars?.get?.(user.id) : null;
     accountButton.textContent = label;
     if (accountButton.ownerDocument) {
       const text = document.createElement('span'); text.className = 'account-label'; text.textContent = label;
-      accountButton.innerHTML = ACCOUNT_ICON; accountButton.append(text);
+      if (avatar) {
+        const face = document.createElement('span'); face.className = 'account-avatar'; face.setAttribute('aria-hidden','true');
+        avatars.paint(face, avatar); accountButton.replaceChildren(face, text);
+      } else { accountButton.innerHTML = ACCOUNT_ICON; accountButton.append(text); }
     }
     accountButton.setAttribute?.('data-signed-in', String(Boolean(user)));
     accountButton.title = label;
-    el('profileAvatar').textContent = (name || 'P').slice(0,1).toUpperCase();
+    const profileAvatar = el('profileAvatar');
+    if (avatar) avatars.paint(profileAvatar, avatar);
+    else { avatars?.paint?.(profileAvatar, null); profileAvatar.textContent = (name || 'P').slice(0,1).toUpperCase(); }
+    renderAvatarOptions(avatar?.id || '', (name || 'P').slice(0,1).toUpperCase());
     el('profileDisplayName').textContent = fullName || 'Sua conta';
     if(force || document.activeElement!==el('profileName'))el('profileName').value = fullName;
     el('profileNameHint').textContent = name ? 'Esse nome aparece na sua conta.' : 'Falta seu nome. Salve abaixo para a conta mostrar como chamar você.';
+  }
+  // Escolha da foto em "Minha conta": a inicial (sem foto) e os desenhos de tempo. Botões nativos com
+  // aria-pressed; os nomes vêm da lista fixa do módulo, nunca de dado da conta.
+  function renderAvatarOptions(selected, initial) {
+    const box = el('avatarOptions'), avatars = window.PLUVIA?.avatars;
+    if (!box || !avatars || !box.ownerDocument) return;
+    if (!box.childElementCount) {
+      [{id:'', label:'Inicial do nome'}, ...avatars.AVATARS].forEach(avatar => {
+        const button = document.createElement('button'), face = document.createElement('span');
+        button.type = 'button'; button.className = 'avatar-option'; button.dataset.avatarId = avatar.id;
+        button.setAttribute('aria-label', avatar.label); button.title = avatar.label;
+        face.className = 'avatar-face'; face.setAttribute('aria-hidden','true');
+        if (avatar.id) avatars.paint(face, avatar); else face.dataset.initial = 'true';
+        button.append(face);
+        button.addEventListener('click', () => {
+          if (!currentUser) return;
+          avatars.set(currentUser.id, avatar.id || null);
+          paintIdentity(currentUser);
+        });
+        box.append(button);
+      });
+    }
+    for (const button of box.querySelectorAll('.avatar-option')) {
+      button.setAttribute('aria-pressed', String(button.dataset.avatarId === selected));
+      if (!button.dataset.avatarId) button.firstChild.textContent = initial;
+    }
   }
   function localFavoriteIds() {
     try { return JSON.parse(localStorage.getItem('pluvia-favorites') || '[]').filter(id=>/^\d{7}$/.test(String(id))); } catch { return []; }
