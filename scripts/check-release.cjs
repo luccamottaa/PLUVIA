@@ -16,9 +16,17 @@ function manifest(directory) {
  }
  return assets.map(asset=>({...asset,hash:hash(fs.readFileSync(path.join(directory,asset.file)))}));
 }
+// Arquivos sem ?v= (o HTML e o sw.js) passam pelo cache de borda da Cloudflare com o max-age de 10 min
+// do GitHub Pages: logo depois do deploy a borda ainda entregava o sw.js anterior (deploy do #217).
+// Um parâmetro próprio do hash esperado vira outra chave de cache na borda; o Pages ignora a query.
+function requestUrl(asset,origin) {
+ const url=new URL(asset.url,origin);
+ if(!url.search && asset.hash)url.searchParams.set('release-check',asset.hash.slice(0,12));
+ return url;
+}
 async function check(asset,origin,fetchImpl=fetch) {
  try {
-  const response=await fetchImpl(new URL(asset.url,origin),{signal:AbortSignal.timeout(12000),cache:'no-store',redirect:'error'});
+  const response=await fetchImpl(requestUrl(asset,origin),{signal:AbortSignal.timeout(12000),cache:'no-store',redirect:'error'});
   if(!response.ok)return {...asset,ok:false,code:'http_'+response.status};
   const ok=hash(Buffer.from(await response.arrayBuffer()))===asset.hash;
   return {...asset,ok,code:ok ? 'matched' : 'content_mismatch'};

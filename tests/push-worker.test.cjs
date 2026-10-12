@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const {stripTypeScriptTypes}=require('node:module');
 const source=stripTypeScriptTypes(fs.readFileSync('supabase/functions/push-process/index.ts','utf8').replace(/^import .*;\n/gm,''));
-const pure=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({detectWeather,detectAirQuality,dailySummaryCandidate})',{Intl,Date,URL,URLSearchParams});
+const pure=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({detectWeather,detectAirQuality,dailySummaryCandidate,eveningSummaryCandidate})',{Intl,Date,URL,URLSearchParams});
 const location={city_id:'1302603',city_name:'Manaus',uf:'AM',latitude:-3.1,longitude:-60,timezone:'America/Manaus'};
 const now=new Date('2026-10-01T11:00Z'),at=now.getTime()/1000;
 function weather(){return {current:{time:at,temperature_2m:30,apparent_temperature:32,precipitation:0,weather_code:2,wind_gusts_10m:20},hourly:{time:Array.from({length:7},(_,i)=>at+i*3600),temperature_2m:Array(7).fill(30),precipitation:Array(7).fill(0),precipitation_probability:Array(7).fill(0),weather_code:Array(7).fill(2),wind_gusts_10m:Array(7).fill(20)},daily:{time:[Date.parse('2026-10-01T00:00-04:00')/1000],temperature_2m_max:[34],temperature_2m_min:[25],precipitation_probability_max:[40]}};}
@@ -57,6 +57,36 @@ test('resumo escolhe o dia municipal correto e exige extremos e probabilidade re
   }
   data.daily.time.unshift(at-86400);data.daily.temperature_2m_max.unshift(1);data.daily.temperature_2m_min.unshift(0);data.daily.precipitation_probability_max.unshift(0);
   assert.match(pure.dailySummaryCandidate(data,location,preference,now).body,/34 °C.*25 °C.*40%/);
+});
+test('resumo da noite usa o amanhã municipal, o horário escolhido e não inventa chuva',()=>{
+  // 20:00 em Manaus (UTC-4): o dia de hoje ainda vem na previsão e não pode virar "amanhã".
+  const evening=new Date('2026-10-02T00:00Z'),t=evening.getTime()/1000;
+  const data=()=>{const d=weather();d.current.time=t;d.daily={time:[Date.parse('2026-10-01T00:00-04:00')/1000,Date.parse('2026-10-02T00:00-04:00')/1000],
+    temperature_2m_max:[34,31.6],temperature_2m_min:[25,23.4],precipitation_probability_max:[10,70],precipitation_sum:[0,6.4]};return d;};
+  const preference={evening_summary:true,evening_summary_time:'20:00'};
+  const event=pure.eveningSummaryCandidate(data(),location,preference,evening);
+  assert.equal(event.type,'evening_summary');assert.equal(event.metadata.day,'2026-10-02');
+  assert.match(event.title,/Manaus amanhã/);assert.match(event.body,/^Leve guarda-chuva: até 70% de chance de chuva \(6 mm\)\. Máxima de 32 °C e mínima de 23 °C\.$/);
+  assert.equal(event.fingerprintSeed,'evening_summary|1302603|2026-10-02');
+  // Chance alta com volume abaixo de 1 mm não pede guarda-chuva nem mostra "0 mm".
+  const drizzle=data();drizzle.daily.precipitation_sum[1]=0.3;
+  assert.equal(pure.eveningSummaryCandidate(drizzle,location,preference,evening).body,'Máxima de 32 °C, mínima de 23 °C e até 70% de chance de chuva.');
+  // Sem a soma de chuva, a chance continua valendo sozinha.
+  const noSum=data();delete noSum.daily.precipitation_sum;
+  assert.match(pure.eveningSummaryCandidate(noSum,location,preference,evening).body,/^Leve guarda-chuva: até 70% de chance de chuva\. /);
+  assert.equal(pure.eveningSummaryCandidate(data(),location,{evening_summary:false,evening_summary_time:'20:00'},evening),null);
+  assert.equal(pure.eveningSummaryCandidate(data(),location,{evening_summary:true,evening_summary_time:'21:00'},evening),null);
+  assert.ok(pure.eveningSummaryCandidate(data(),location,{evening_summary:true,evening_summary_time:'19:57'},evening));
+  for(const field of ['temperature_2m_max','temperature_2m_min','precipitation_probability_max']){
+    const missing=data();missing.daily[field][1]=null;
+    assert.equal(pure.eveningSummaryCandidate(missing,location,preference,evening),null);
+  }
+  const inverted=data();inverted.daily.temperature_2m_min[1]=40;
+  assert.equal(pure.eveningSummaryCandidate(inverted,location,preference,evening),null);
+  const onlyToday=data();for(const key of Object.keys(onlyToday.daily)) onlyToday.daily[key]=onlyToday.daily[key].slice(0,1);
+  assert.equal(pure.eveningSummaryCandidate(onlyToday,location,preference,evening),null);
+  const stale=data();stale.current.time=t-5401;
+  assert.equal(pure.eveningSummaryCandidate(stale,location,preference,evening),null);
 });
 
 function worker({count=205,failWeather=false}={}){

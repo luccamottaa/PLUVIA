@@ -44,6 +44,13 @@ evita uma resposta guardada antes de uma mudança na regra).
 
 ## Cuidados
 
+- A borda guarda também os arquivos **sem** versão que o Cloudflare cacheia por extensão (o `sw.js`) pelos
+  10 min do GitHub Pages. Logo depois de um deploy ela ainda entrega o `sw.js` anterior: a atualização do
+  service worker chega a quem abre o app com até 10 min de atraso, e o `check-release.cjs` do deploy #217
+  acusou `content_mismatch`. O `check-release.cjs` agora pede esses arquivos com `?release-check=<hash>`
+  (outra chave de cache). Para a borda nunca segurar o `sw.js`, criar uma Cache Rule **antes** de
+  "Arquivos versionados": *URI Path* igual a `/sw.js` → **Bypass cache**.
+
 - O certificado HTTPS do GitHub Pages ("Enforce HTTPS") continua ligado; com o modo Full o Cloudflare fala com ele
   em HTTPS.
 - Se um JS/CSS publicado mudar **sem** trocar o `?v=`, o Cloudflare (e o navegador) vão servir a versão antiga por

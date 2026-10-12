@@ -56,7 +56,7 @@ assert.match(sender, /sendWebPush/);
 assert.match(sender, /subscriptionId/);
 assert.match(processor, /error\?\.code === "23505"[\s\S]+notification_events/,
   'evento compartilhado precisa continuar sendo entregue a usuários diferentes');
-assert.match(processor, /event\.type !== "daily_summary"/);
+assert.match(processor, /!\["daily_summary", "evening_summary"\]\.includes\(event\.type\) && event\.severity < /);
 assert.match(processor, /air-quality-api\.open-meteo\.com/);
 assert.match(processor, /INMET · alerta oficial/);
 assert.match(processor, /severityLabel[\s\S]+válido até[\s\S]+Fonte: INMET/);

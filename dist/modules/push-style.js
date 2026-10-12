@@ -19,6 +19,7 @@
     air_quality:      {icon:'air', action:'Ver qualidade do ar', fallback:'Qualidade do ar em atenção'},
     weather_change:   {icon:'change', action:'Ver previsão', fallback:'Mudança no tempo'},
     daily_summary:    {icon:'daily', action:'Ver previsão do dia', fallback:'Previsão de hoje'},
+    evening_summary:  {icon:'daily', action:'Ver previsão de amanhã', fallback:'Previsão de amanhã'},
     official_alert:   {icon:'alert', action:'Ver aviso oficial', fallback:'Aviso meteorológico'},
     test:             {icon:null, action:'Abrir o PLUVIA', fallback:'Notificações ativas'}
   };

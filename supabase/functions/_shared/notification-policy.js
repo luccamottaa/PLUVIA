@@ -9,14 +9,14 @@ export function selectCandidates(candidates) {
   const picked=new Map(), independent=[];
   const rank={storm:3,heavy_rain:2,rain_approaching:1};
   for(const candidate of candidates) {
-    if(['official_alert','daily_summary'].includes(candidate.type)) {independent.push(candidate);continue;}
+    if(['official_alert','daily_summary','evening_summary'].includes(candidate.type)) {independent.push(candidate);continue;}
     const group=eventGroup(candidate), previous=picked.get(group);
     if(!previous || candidate.severity>previous.severity || candidate.severity===previous.severity && (rank[candidate.type] || 0)>(rank[previous.type] || 0)) picked.set(group,candidate);
   }
   return [...independent,...picked.values()].sort((a,b)=>b.severity-a.severity);
 }
 export function isRepeat(candidate,deliveries,now=Date.now()) {
-  if(['official_alert','daily_summary'].includes(candidate.type)) return false;
+  if(['official_alert','daily_summary','evening_summary'].includes(candidate.type)) return false;
   return deliveries.some(delivery=>{
     const prior=delivery.notification_events;
     if(!prior || prior.city_id!==candidate.cityId || eventGroup(prior)!==eventGroup(candidate) || prior.severity<candidate.severity) return false;

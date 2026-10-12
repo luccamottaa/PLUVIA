@@ -11,6 +11,11 @@
   "use strict";
   const SEEN_KEY = "pluvia-seen-version";
   const VERSIONS = [
+    {version:"1.3", date:"2026-10-12", title:"Resumo da noite", items:[
+      "Novo aviso opcional à noite com a previsão de amanhã: máxima, mínima e chance de chuva, no horário que você escolher (20h por padrão).",
+      "Liga em Minha conta, na parte de avisos, junto do resumo da manhã.",
+      "A foto de perfil volta a aparecer nas páginas das cidades.",
+    ]},
     {version:"1.2.1", date:"2026-10-12", title:"Foto de perfil em todos os aparelhos", items:[
       "A foto de perfil agora acompanha a sua conta: escolha num aparelho e ela aparece nos outros.",
     ]},
