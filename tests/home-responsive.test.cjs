@@ -24,7 +24,6 @@ test('a cascata final força uma coluna e corrige a margem do gráfico', () => {
   assert.match(finalContract, /@media \(max-width:720px\)[\s\S]*?\.rain-chart\s*\{\s*margin-inline:0/);
   assert.doesNotMatch(css, /overflow-x\s*:\s*hidden/);
   assert.match(css, /\.card-topline > \*[^}]*min-width:0/);
-  assert.match(css, /\.insight-card \.signal\s*\{[^}]*white-space:normal/);
   assert.match(css, /margin-left:max\(14px,env\(safe-area-inset-left\)\)/);
   assert.match(css, /margin-right:max\(14px,env\(safe-area-inset-right\)\)/);
 });

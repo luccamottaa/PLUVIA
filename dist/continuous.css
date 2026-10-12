@@ -122,8 +122,7 @@ body[data-ink="dark"] #weatherView {
   --reading-line:#12345730;
 }
 /* Specific to the home so no old day/night card variant can repaint a box. */
-#weatherView .panel,
-#weatherView .hero-temperature-range {
+#weatherView .panel {
   border:0 !important;
   border-radius:0 !important;
   background:transparent !important;
@@ -186,24 +185,7 @@ body[data-ink="dark"] #weatherView {
 #weatherView .hourly-peek-item.is-now { border-bottom:2px solid var(--reading-link); background:none; }
 #weatherView :is(.peek-time,.peek-rain,.peek-temp) { color:var(--reading-ink); }
 #weatherView .hourly-peek-item.is-now .peek-time { color:var(--reading-link); }
-#weatherView .quick-metrics { padding:20px 0; border-top:1px solid var(--reading-line); grid-template-columns:minmax(0,1fr) minmax(0,2fr); }
-html body #weatherView .quick-metrics > .quick-metric:first-child { min-height:0; padding:0 8px; gap:8px; border-radius:0 !important; }
-#weatherView .quick-metrics > .quick-metric:first-child .metric-head,
-#weatherView .hero-temperature-extreme > .metric-head { display:flex; flex-direction:column-reverse; align-items:center; justify-content:center; gap:4px; }
-#weatherView .quick-metrics > .quick-metric:first-child .metric-head > span:first-child { color:var(--reading-muted); font-size:.8rem; }
-#weatherView .quick-metrics > .quick-metric:first-child .metric-head > [data-weather-icon-name],
-#weatherView .hero-temperature-extreme .metric-head > [data-weather-icon-name] { display:block; width:28px; height:28px; flex:none; margin:0; }
-#weatherView .quick-metrics > .quick-metric:first-child .metric-weather-icon,
-#weatherView .hero-temperature-extreme .metric-head .metric-weather-icon { width:28px; height:28px; }
-html body #weatherView .hero-temperature-range { border-radius:0 !important; }
-#weatherView .hero-temperature-extreme { padding:0 8px; gap:8px; border-left:1px solid var(--reading-line); }
-#weatherView .hero-temperature-extreme + .hero-temperature-extreme { border-color:var(--reading-line); }
-#weatherView .hero-temperature-extreme small { color:var(--reading-muted); }
-#weatherView .hero-temperature-extreme strong { color:var(--reading-ink); }
 #weatherView :is(.hero-temperature-extreme small,.quick-metric:first-child .metric-head > span:first-child) { font-size:.8rem; line-height:1.35; }
-#weatherView .quick-metrics > .quick-metric:last-child { grid-column:1/-1; margin-top:20px; padding:20px 0 0; border-top:1px solid var(--reading-line) !important; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 16px; min-height:0; }
-#weatherView .quick-metrics > .quick-metric:last-child > strong { grid-column:2; grid-row:1; margin:0; font-size:1.45rem; }
-#weatherView .quick-metrics > .quick-metric:last-child > small { grid-column:1/-1; color:var(--reading-muted); }
 #weatherView .metrics { display:grid; grid-template-columns:minmax(0,1fr); gap:0; }
 #weatherView .metrics .metric { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 20px; min-height:0; padding:20px 0; border-top:1px solid var(--reading-line) !important; }
 #weatherView .metric-head { align-items:center; gap:8px; color:var(--reading-muted) !important; }
@@ -238,28 +220,11 @@ body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-leve
 body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="poor"] { --aqi-accent:#98283b; }
 body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="very-poor"] { --aqi-accent:#62398c; }
 body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="hazardous"] { --aqi-accent:#7a2653; }
-#weatherView .insight-card .card-topline { flex-wrap:wrap; }
-#weatherView .insight-card :is(#attentionText,#attentionBasis,.context-highlights li) { color:var(--reading-muted); }
-#weatherView .insight-card .context-highlights { border-color:var(--reading-line); }
-#weatherView .insight-card .context-highlights li + li { border-color:var(--reading-line); }
-#weatherView .insight-card .signal { background:none; padding:0; color:var(--reading-link); }
-#weatherView .insight-card.warning .signal { color:#dfae52; }
-#weatherView .insight-card.danger .signal { color:#ffabb9; }
-body[data-ink="dark"] #weatherView .insight-card.warning .signal { color:#76500a; }
-body[data-ink="dark"] #weatherView .insight-card.danger .signal { color:#92213b; }
-#weatherView .notification-prompt { padding:24px 0; border-top:1px solid var(--reading-line) !important; }
 #weatherView :is(.source-card,.weather-map-card) { padding:0; }
 #weatherView .source-content { padding:20px 0; }
 #weatherView .source-content p { color:var(--reading-muted); }
 #weatherView .rain-phrase { padding:0; margin-bottom:16px; }
-#weatherView .hourly-modes { padding:0; gap:18px; border:0; border-radius:0; background:none; }
-#weatherView .hourly-modes button { min-width:0; min-height:44px; padding:8px 0; border-radius:0; background:none; color:var(--reading-muted); }
-#weatherView .hourly-modes button[aria-pressed="true"] { border-bottom:2px solid var(--reading-link); color:var(--reading-ink); box-shadow:none; }
 html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:auto; }
-#weatherView .hour-column { animation:none; }
-#weatherView .hour-column.now { background:none; border:0; border-radius:0; box-shadow:none; }
-#weatherView .hour-column.now .hour-time { color:var(--reading-link); font-weight:900; }
-#weatherView .rain-bar::after { color:var(--reading-muted); }
 #weatherView .weather-map-copy .eyebrow,#weatherView #weatherSourceNote { color:var(--reading-muted); }
 #weatherView .weather-map-stage { border-radius:12px; background:var(--map-background); }
 #weatherView .forecast-row { padding:20px 0; border-color:var(--reading-line); background:none; box-shadow:none; animation:none; }
@@ -391,9 +356,6 @@ html body #weatherView #inmetCard { min-height:0; }
 #alertDetail .inmet-detail-other small { grid-column:1; color:var(--dialog-muted); font-size:.8125rem; }
 #alertDetail .inmet-detail-other > span { grid-column:2; grid-row:1 / span 2; font-size:1.2rem; }
 #weatherView .temp-track .temp-fill { background:linear-gradient(90deg,var(--range-cool),var(--range-warm),var(--range-hot)); }
-#weatherView .rain-chart .rain-bar { background:linear-gradient(180deg,var(--chart-rain-top),var(--chart-rain-bottom)); }
-#weatherView .rain-chart .temp-bar { background:linear-gradient(180deg,var(--range-warm),var(--range-hot)); }
-#weatherView .rain-chart .wind-bar { background:linear-gradient(180deg,var(--chart-wind-top),var(--chart-wind-bottom)); }
 #weatherView .rain-chart .wind-direction { color:var(--graphic-blue); }
 #weatherView .sun-label :is(span,svg) { color:var(--graphic-blue); }
 /* Darker daytime rain/storm skies need deeper ink than the clear-sky palette. */
@@ -426,13 +388,11 @@ footer.shell .capital-links summary { display:inline-flex; align-items:center; j
 footer.shell .capital-links ul { display:flex; flex-wrap:wrap; justify-content:center; gap:0 14px; margin:4px 0 0; padding:0; list-style:none; }
 footer.shell .capital-links a, footer.shell .capital-links a:hover { display:inline-flex; align-items:center; min-height:32px; padding:0; border-radius:0; background:none; box-shadow:none; transform:none; font-size:inherit; font-weight:400; color:var(--intro-ink); text-decoration:underline; text-decoration-color:color-mix(in srgb,currentColor 35%,transparent); text-underline-offset:3px; }
 footer.shell .capital-links a[aria-current="page"] { font-weight:600; text-decoration:none; }
-footer.shell .capital-page-note { margin:0 0 6px; color:var(--intro-ink); }
 body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60; }
 #sourcesDialog :is(.sources-list b,a),#alertDetailBody a { color:#7aa7ff; } /* azul da marca clareado: os diálogos são sempre escuros e #2f6bff dava 3,6:1 */
 .weather-map-section,body[data-phase="night"] .weather-map-section { --map-link:var(--brand-blue); }
 
 .hourly-decision { margin:0 0 18px; font-size:.95rem; font-weight:700; line-height:1.55; color:var(--reading-ink); }
-#weatherView .hourly-peek-item .peek-volume { font-size:.75rem; color:var(--reading-muted); white-space:nowrap; }
 #weatherView .hourly-peek-item { min-height:170px; }
 /* The picker is one vertical column. Inherited flex wrapping sizes its entire
    column to the favorites' intrinsic width and clips buttons/results on phones. */
@@ -469,9 +429,7 @@ body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60
 /* Rain timing belongs to the hourly forecast, below its chart. */
 
 #weatherView :is(.hourly-peek-item,.hour-column) { color:var(--reading-ink); font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
-#weatherView .hour-column { padding:0; border:0; border-radius:0; background:transparent; }
 
-#weatherView .hour-temp small { display:block; margin-top:4px; font-size:.75rem; font-weight:500; color:var(--reading-muted); }
 #weatherView .hour-solar-event { display:block; max-width:100%; font-size:.7rem; line-height:1.4; color:var(--reading-link); white-space:normal; }
 
 #weatherView .air-details { grid-column:1/-1; margin-top:12px; font-size:.8rem; line-height:1.5; color:var(--reading-muted); }
@@ -559,11 +517,6 @@ details > .details-motion[data-moving] > .details-motion-inner { overflow:hidden
 #cityDialog .favorite-alert[data-severity="red"] { color:#ffada5; }
 
 /* Chance e volume são grandezas separadas, inclusive quando o volume falta. */
-#weatherView .hourly-modes { flex-wrap:wrap; }
-#weatherView .hourly-chart-legend { color:var(--reading-muted); font-size:.8125rem; line-height:1.5; margin:12px 0 0; }
-#weatherView .rain-chart .rain-bar { min-height:0; }
-#weatherView .rain-chart .rain-bar::after { content:none; }
-#weatherView .rain-chart .rain-chance { display:block; color:var(--reading-muted); font-size:.75rem; line-height:1.2; }
 
 /* Recentralizar no município, como o botão de localização dos apps de mapa. */
 #radarMapContent .weather-map-recenter { position:absolute; z-index:500; top:12px; right:12px; display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--map-line); border-radius:50%; background:var(--map-surface); color:var(--brand-blue); box-shadow:0 6px 18px #10234033; cursor:pointer; }
@@ -679,16 +632,9 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 }
 
 /* Gráfico por hora recolhido: a faixa "Próximas horas" já mostra a mesma leitura resumida. */
-#weatherView .hourly-chart-details > summary { display:flex; flex-wrap:wrap; align-items:center; gap:2px 10px; min-height:44px; cursor:pointer; list-style:none; color:var(--reading-link); font-weight:600; }
-#weatherView .hourly-chart-details > summary::-webkit-details-marker { display:none; }
-#weatherView .hourly-chart-details > summary::after { content:"›"; margin-left:auto; font-size:1.4rem; line-height:1; transition:transform .2s ease; }
-#weatherView .hourly-chart-details[open]:not([data-closing]) > summary::after { transform:rotate(90deg); }
-#weatherView .hourly-chart-details > summary > span { color:var(--reading-muted); font-size:.8rem; font-weight:400; }
-#weatherView .hourly-chart-details .details-motion-inner::before { content:""; display:block; height:12px; }
 
 /* 7 dias: uma linha por dia; a frase só aparece quando acrescenta algo. */
 #weatherView .forecast-row { padding-block:14px; }
-#weatherView .forecast-row > .forecast-uv[hidden] { display:none; }
 #weatherView .forecast-day .weekend-note { display:none; }
 #weatherView .forecast-rain-values { display:flex; gap:.35em; white-space:nowrap; }
 #weatherView .forecast-rain-volume::before { content:"· "; }
@@ -733,7 +679,6 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 #weatherView .sk-short { width:3.5rem; }
 #weatherView .sk-icon { width:30px; height:30px; border-radius:50%; }
 #weatherView .sk-bar { width:min(9rem,45%); height:.6em; border-radius:6px; }
-#weatherView .sk-block { display:block; width:100%; height:150px; border-radius:16px; }
 /* Same box and rows as the real hourly item, so the first render does not resize the list. */
 #weatherView .sk-peek { cursor:default; }
 #weatherView .sk-peek .sk-short { width:2.6rem; }
@@ -866,12 +811,9 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 #weatherView .rain-report-options button:disabled:not([aria-pressed="true"]) { opacity:.55; cursor:default; }
 #weatherView .rain-report-summary { min-height:1.45em; margin:10px 0 0; color:var(--reading-muted); font-size:.8125rem; line-height:1.45; }
 @media (forced-colors:active) { #weatherView .rain-report-options button { border-color:ButtonText; } #weatherView .rain-report-options button[aria-pressed="true"] { forced-color-adjust:none; background:Highlight; color:HighlightText; } }
-#weatherView .hourly-peek .hourly-chart-details { margin-top:12px; }
 #weatherView .hourly-peek .rain-phrase { margin:10px 0 0; padding:0; border:0; background:none; box-shadow:none; }
 #weatherView .hourly-peek .rain-phrase small { color:var(--reading-muted); font-size:.8125rem; }
 /* Convite de alertas: "Ativar" principal e "Agora não" discreto, que esconde o convite neste aparelho. */
-.notification-prompt-actions { display:grid; gap:6px; justify-items:stretch; }
-#weatherView .notification-prompt .notification-prompt-dismiss { border-color:transparent; background:none; color:var(--reading-link); }
 @media(max-width:640px) { .notification-prompt-actions { grid-column:1 / -1; } }
 /* Radar compacto na Home: título com "Abrir radar" ao lado, miniatura baixa e só o horário da imagem.
    Player, zoom e localização ficam no radar ampliado (o mesmo #radarMapContent, movido ao diálogo). */
@@ -889,19 +831,6 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 .radar-dialog .radar-stage-open { display:none; }
 /* Ciclo do dia compacto: arco em cima; embaixo Sol (nascer/pôr) | Lua (fase e iluminação) lado a lado.
    "No céu", horas de sol previstas e horários finos ficam em "Mais sobre o céu". */
-#weatherView .sky-pair { grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; padding-top:16px; border-top:1px solid var(--reading-line); text-align:left; }
-#weatherView .sky-pair > div { min-width:0; }
-#weatherView .sky-pair-moon { padding-left:16px; border-left:1px solid var(--reading-line); }
-#weatherView .sky-pair-sun { padding-right:16px; }
-#weatherView .sky-pair-title { display:block; margin-bottom:8px; color:var(--reading-muted); font-size:.75rem; font-weight:500; letter-spacing:.09em; }
-#weatherView .sky-pair .sun-times { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; width:100%; }
-#weatherView .sky-pair .sun-times div { display:flex; align-items:baseline; justify-content:space-between; gap:8px; text-align:left; }
-#weatherView .sky-pair .sun-times div + div { border-left:0; }
-#weatherView .sky-pair .sun-times span { font-size:.875rem; }
-#weatherView .sky-pair .sun-times strong { font-size:1.15rem; }
-#weatherView .sky-pair .moon-inline { justify-content:flex-start; gap:12px; width:auto; padding:0; border-top:0; }
-#weatherView .sky-pair .moon-phase-icon { width:52px; height:52px; flex:0 0 52px; }
-#weatherView .sky-pair .moon-inline strong { font-size:1.05rem; }
 #weatherView .astronomy-details .sunshine-note { margin:12px 0 0; text-align:center; }
 #weatherView .astronomy-details .sky-events { margin-top:16px; }
 @media(max-width:380px) {
@@ -950,15 +879,6 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 .metric-head .info-tip-body,.section-heading .info-tip-body { left:auto; }
 #weatherView .hourly-peek-list:not([data-rain="some"]) .peek-rain { display:none; }
 /* Bloco da Lua simétrico ao do Sol: rótulo no topo, disco e fase lado a lado, texto sem espaçamento de rótulo. */
-#weatherView .sky-pair .moon-inline { display:grid; grid-template-columns:52px minmax(0,1fr); grid-template-areas:"label label" "disc text"; align-items:center; column-gap:12px; row-gap:8px; }
-#weatherView .sky-pair .moon-inline > svg { grid-area:disc; }
-#weatherView .sky-pair .moon-inline > span { display:contents; }
-#weatherView .sky-pair .moon-label { grid-area:label; color:var(--reading-muted); font-size:.75rem; font-weight:500; letter-spacing:.09em; }
-#weatherView .sky-pair .moon-inline strong { grid-area:text; align-self:start; margin:0; }
-#weatherView .sky-pair .moon-inline #moonIllumination { grid-column:2; margin:-2px 0 0; letter-spacing:0; line-height:1.4; }
-#weatherView .sky-pair .moon-inline strong { grid-row:2; }
-#weatherView .sky-pair .moon-inline #moonIllumination { grid-row:3; }
-#weatherView .sky-pair .moon-inline > svg { grid-row:2 / span 2; }
 /* Banner de aviso INMET laranja/vermelho vigente: faixa sólida logo abaixo do "Vai chover?".
    Cores sólidas com contraste próprio (não dependem do céu); toque abre o detalhe oficial. */
 #weatherView .alert-banner { display:flex; align-items:center; gap:12px; width:min(100%,32rem); min-height:56px; margin:14px auto 0; padding:10px 14px; border:0; border-radius:16px; font:inherit; text-align:left; cursor:pointer; box-shadow:0 6px 18px #10234033; }
@@ -1037,9 +957,8 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
    (mais de 720 px) elas voltavam a rodar sobre o céu animado; cada card animado vira uma camada do
    tamanho da página no Safari do iPhone, e girar a tela travava o app. */
 @media (hover:none), (pointer:coarse) {
-  .intro > div:first-child, .clock-wrap, .dashboard-grid > .panel, .metrics > .metric, .hour-column, .rain-bar, .forecast-row { animation:none; }
-  .reveal-on-scroll { opacity:1; transform:none; transition:none; }
-}
+  .intro > div:first-child, .dashboard-grid > .panel, .metrics > .metric, .forecast-row { animation:none; }
+  }
 /* Toque (celular/tablet): esqueletos parados, sem o brilho deslizante. Cada barrinha com o brilho
    em transform virava uma camada própria sobre o céu animado (13 → 72 camadas ao trocar de cidade
    ou abrir sem dado salvo), o padrão que derrubava o Safari do iPhone. A barra cinza continua. */
@@ -1178,7 +1097,6 @@ body[data-ink="dark"] #weatherView {
 #weatherView .forecast-list > :first-child { border-top:0 !important; }
 #weatherView .forecast-list > .forecast-row:last-child { padding-bottom:0; }
 #weatherView .forecast-list > .forecast-row:first-child { padding-top:4px; }
-#weatherView .quick-metrics > .quick-metric:last-child { padding-bottom:0; }
 @media(min-width:721px) {
   #weatherView .metrics .metric-sky:nth-child(-n+4) { border-top:0 !important; padding-top:0; }
   #weatherView :is(#alertas,#tips,#chuva,.quick-metrics,.metrics,.weather-map-section,#previsao,#notificationPrompt,.sun-section) { padding:22px 24px !important; }
@@ -1196,10 +1114,7 @@ body[data-ink="dark"] #weatherView {
 #weatherView .sun-section .sun-label svg { display:none; }
 #weatherView .sun-section .sun-label span { color:var(--reading-ink); font-size:1.3rem; font-weight:600; letter-spacing:-.02em; line-height:1.25; }
 #weatherView .sun-section .sun-copy strong { margin-top:10px; font-size:clamp(1.9rem,7vw,2.6rem); font-weight:600; }
-#weatherView .notification-prompt h2 { margin:0 0 6px; color:var(--reading-ink); font-size:1.3rem; font-weight:600; letter-spacing:-.02em; line-height:1.25; }
 /* Sino em traço, da mesma família dos ícones de leitura (antes era um emoji). */
-#weatherView .notification-prompt-icon { color:var(--graphic-blue,var(--brand-blue)); background:color-mix(in srgb,var(--brand-blue) 14%,transparent); }
-#weatherView .notification-prompt-icon svg { width:26px; height:26px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
 
 /* 7 dias no celular: dia da semana sozinho (a data continua no detalhe e no rótulo do botão). */
 @media(max-width:720px) {
@@ -1218,7 +1133,6 @@ body[data-ink="dark"] #weatherView {
   #weatherView .sky-pair-moon { padding:14px 0 0; border-left:0; border-top:1px solid var(--reading-line); }
   #weatherView .sky-pair-sun { padding-right:0; }
 }
-#weatherView .sky-pair .moon-inline strong { overflow-wrap:normal; word-break:normal; }
 /* Ciclo do dia enxuto: uma linha (duração · o que falta), o arco com os horários nas pontas e a Lua
    numa linha. Antes o número grande, a frase, o arco e a tabela repetiam a mesma informação. */
 #weatherView .sun-section { gap:14px; }

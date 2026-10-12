@@ -32,7 +32,6 @@ assert.match(app, /class="hourly-peek-item/);
 assert.match(app, /Sem alertas meteorológicos ativos/);
 assert.doesNotMatch(html, /id="yesterdayComparison"/, 'a comparação com ontem pertence apenas ao resumo');
 assert.doesNotMatch(html, /id="weatherExplanation"/);
-assert.match(css, /\.context-highlights \{[\s\S]*display:flex;[\s\S]*max-width:100%/);
 assert.match(css, /@media \(max-width:380px\)/);
 assert.match(css, /@media \(max-width:720px\)/);
 assert.match(css, /@media \(prefers-color-scheme: dark\)/);
@@ -41,7 +40,7 @@ assert.match(css, /--canvas-text: #10233f;/, 'títulos sobre o fundo claro devem
 assert.match(css, /@media \(prefers-color-scheme: dark\) \{[\s\S]*?:root \{\s*--bg: #10233f;\s*--canvas-text: #f1f6ff;/, 'o modo escuro deve preservar o azul original');
 assert.match(html, /name="theme-color" content="#041936"/);
 assert.match(css, /\.intro, \.section-heading \{ color: var\(--canvas-text\); \}/, 'cidade, relógio e títulos externos devem contrastar com o fundo');
-assert.match(css, /\.intro \.eyebrow,[\s\S]*\.dry-window span,[\s\S]*footer \{ color: var\(--canvas-muted\); \}/, 'rótulos externos devem permanecer legíveis nos dois modos');
+assert.match(css, /\.intro \.eyebrow,[\s\S]*footer \{ color: var\(--canvas-muted\); \}/, 'rótulos externos devem permanecer legíveis nos dois modos');
 assert.match(html, /id="uvScale"[^>]*aria-hidden="true" hidden/);
 assert.match(css, /\.uv-scale \{[^}]*linear-gradient/);
 assert.match(css, /\.temp-track \.temp-now/);
@@ -51,7 +50,6 @@ assert.doesNotMatch(html, /id="outingWindow"|id="agreementValue"/);
 assert.doesNotMatch(html, /gerada pelo modelo Open-Meteo/);
 assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 assert.match(css, /\.metric:hover \{ transform:none; box-shadow:none; \}/);
-assert.match(css, /\.rain-chart \.hour-column \{[\s\S]*grid-template-rows:26px 28px 155px 30px 46px/);
 assert.match(css, /\.error-toast \{[\s\S]*visibility:hidden;[\s\S]*translateY\(calc\(100% \+ 80px\)\)/);
 
 console.log('PASS Design System: tokens, hierarchy, atmosphere, wind, hourly temperature, dark mode, mobile and reduced motion.');

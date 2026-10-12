@@ -133,6 +133,11 @@ html,body { background:var(--sky-base); }
 /* Camadas invisíveis também saem da composição (visibility depois do fade): no iPhone cada uma
    ocupava dezenas de MB de memória de vídeo mesmo com opacidade zero. */
 :root:is([data-weather="sun"],[data-weather="unknown"]) .sky-clouds { animation-play-state:paused; visibility:hidden; transition:opacity 4s ease,visibility 0s 4s; }
+/* Primeira abertura sem previsão salva: a intro já pinta um véu leve (decorativo) em vez de esperar a previsão
+   para mostrar a nuvem do fundo (o LCP do PageSpeed esperava ~2 s por ela). Com a previsão, a condição real assume
+   pela mesma transição de 4 s; a Home, ainda escondida atrás da intro, não recebe o véu. */
+:root[data-weather="unknown"] .intro-sky { --cloud-opacity:.55; }
+:root[data-weather="unknown"] .intro-sky .sky-clouds-back { visibility:visible; animation-play-state:running; }
 .intro-sky .sky-clouds { top:-30px; }
 .intro-sky .sky-clouds-front { top:36%; }
 /* Mainly clear (WMO 1): an elliptical mask, repeated twice per texture tile, reveals one
