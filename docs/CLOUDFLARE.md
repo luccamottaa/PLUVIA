@@ -11,6 +11,8 @@ Nada disso muda o repositório nem o deploy: o GitHub Pages continua publicando 
 
 Configurado e medido: HTML, `sw.js`, `manifest.webmanifest`, páginas `/clima/` e arquivos sem `?v=` saem com
 `max-age=600`; JS/CSS/imagens com `?v=` e as fontes saem com `max-age=31536000` e `cf-cache-status: HIT`.
+O `/sw.js` tem a regra "Service worker sem cache" (Bypass) e sai com `cf-cache-status: DYNAMIC`: a borda nunca
+segura uma versão antiga do service worker depois de um deploy.
 Conferir de novo com `curl -sI "https://pluviaweather.com.br/app.js?v=<versão>&x=$RANDOM"` (o parâmetro extra
 evita uma resposta guardada antes de uma mudança na regra).
 
@@ -48,8 +50,10 @@ evita uma resposta guardada antes de uma mudança na regra).
   10 min do GitHub Pages. Logo depois de um deploy ela ainda entrega o `sw.js` anterior: a atualização do
   service worker chega a quem abre o app com até 10 min de atraso, e o `check-release.cjs` do deploy #217
   acusou `content_mismatch`. O `check-release.cjs` agora pede esses arquivos com `?release-check=<hash>`
-  (outra chave de cache). Para a borda nunca segurar o `sw.js`, criar uma Cache Rule **antes** de
-  "Arquivos versionados": *URI Path* igual a `/sw.js` → **Bypass cache**.
+  (outra chave de cache). Para a borda nunca segurar o `sw.js` existe a Cache Rule "Service worker sem cache":
+  expressão `(http.request.uri.path eq "/sw.js")` → **Ignorar cache** (Bypass). A posição na lista não importa
+  (a regra dos versionados só casa com `?v=` e fontes). Atenção: a ação precisa ser "Ignorar cache"; com
+  "Qualificado para cache" a regra fica ativa e não muda nada.
 
 - O certificado HTTPS do GitHub Pages ("Enforce HTTPS") continua ligado; com o modo Full o Cloudflare fala com ele
   em HTTPS.
