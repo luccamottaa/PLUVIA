@@ -12,7 +12,7 @@
       return /^pluvia-panel-\d{1,6}$/.test(value) ? value.slice(7) : 'unknown';
     } catch { return 'unknown'; }
   })();
-  const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital','Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed','Alert Nudge Shown','Alert Nudge Tapped','Alert Nudge Dismissed','Rain Report Sent','Install Prompt Shown','Install Prompt Tapped','Install Prompt Dismissed','App Installed','City Search Closed','Share Moment Shown','Share Moment Tapped','Changelog Opened']);
+  const events = new Set(['PLUVIA Opened','City Search Opened','City Searched','City Selected','Favorite City Toggled','Weather Map Viewed','Alert Opened','Official Alert Link Opened','Location Requested','Location Authorized','Location Denied','Location Unavailable','Account Dialog Opened','Auth Mode Selected','Auth Started','Auth Completed','Signup Confirmation Requested','Profile Name Saved','Push Permission Result','Push Enabled','Push Disabled','Push Test Accepted','Push Preferences Saved','App Failure','Web Vital','Compare Opened','Compare City Changed','Brazil Now Opened','Brazil Capital Chosen','Favorite Suggested','Favorite Suggestion Accepted','Favorite Suggestion Dismissed','Alert Nudge Shown','Alert Nudge Tapped','Alert Nudge Dismissed','Rain Report Sent','Install Prompt Shown','Install Prompt Tapped','Install Prompt Dismissed','App Installed','City Search Closed','Share Moment Shown','Share Moment Tapped','Changelog Opened','Month Recap Opened']);
   const values = {
     mode:new Set(['login','signup']),offer:new Set(['install','enable']),source:new Set(['welcome','topbar','INMET','location','picker_or_saved','picker','automatic','notice','city_picker','swipe','dots','search','favorite','saved_place','brazil','startup','other','home','footer','update_note']),
     reason:new Set(['unsupported','permission','timeout','position','catalog']),nudge:new Set(['official','rain','regular']),permission:new Set(['granted','denied','default']),
@@ -157,6 +157,7 @@
     on('compareCity','change',()=>track('Compare City Changed'));
     on('brazilOpen','click',()=>track('Brazil Now Opened',{source:'city_picker'}));
     on('homeBrazil','click',()=>track('Brazil Now Opened',{source:'home'}));
+    on('homeMonth','click',()=>track('Month Recap Opened',{source:'home'}));
     on('accountLogin','click',()=>track('Auth Mode Selected',{mode:'login'}));
     on('accountSignup','click',()=>track('Auth Mode Selected',{mode:'signup'}));
     let searchTimer;

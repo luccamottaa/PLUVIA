@@ -715,8 +715,10 @@ function noteShareMoment(moment, active) {
   if (!box?.dataset || !text) return;
   if (active) box.dataset[moment] = "true"; else delete box.dataset[moment];
   const current = box.dataset.storm === "true" ? "storm" : box.dataset.glow === "true" ? "glow" : "";
-  const appearing = box.hidden && Boolean(current);
+  const appearing = box.hidden && Boolean(current), previous = box.dataset.moment || "";
   box.hidden = !current;
+  // O story pronto leva o selo do dia marcante: refaz a imagem só quando o momento muda.
+  if (previous !== current) globalThis.dispatchEvent?.(new CustomEvent("pluvia:share-moment", {detail:{moment:current}}));
   if (!current) { delete box.dataset.moment; return; }
   text.textContent = current === "storm" ? "Dia de trovoada por aqui. Avisa a galera?" : "Pôr do sol promete hoje. Manda pra alguém?";
   const changed = box.dataset.moment !== current;

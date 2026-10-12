@@ -28,3 +28,11 @@ test('quebra de linha respeita a largura e corta com reticências',()=>{
   assert.deepEqual(card.wrap(ctx,'Leve guarda-chuva: chuva moderada a partir das 14h.',200,2),['Leve guarda-chuva:','chuva moderada a…']);
   assert.deepEqual(card.wrap(ctx,'Curto',200),['Curto']);
 });
+
+test('dia marcante vira selo no story; sem momento ou valor desconhecido, nenhum selo',()=>{
+  const snapshot=data.normalizeOpenMeteo(forecast(),null,city,{checkedAt:now});
+  assert.equal(card.model(snapshot,{now,moment:'storm'}).badge,'Dia de trovoada');
+  assert.equal(card.model(snapshot,{now,moment:'glow'}).badge,'Pôr do sol promete hoje');
+  assert.equal(card.model(snapshot,{now}).badge,null);
+  assert.equal(card.model(snapshot,{now,moment:'toString'}).badge,null);
+});

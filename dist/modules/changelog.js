@@ -11,6 +11,11 @@
   "use strict";
   const SEEN_KEY = "pluvia-seen-version";
   const VERSIONS = [
+    {version:"1.1", date:"2026-10-12", title:"Últimos 30 dias", items:[
+      "Novo atalho no fim dos 7 dias: quanto choveu na sua cidade no último mês, em quantos dias, o dia mais chuvoso, o mais quente e a noite mais fria.",
+      "Os números são estimativas do modelo para o município, não medições de estação.",
+      "Em dia de trovoada ou de pôr do sol bonito, a imagem compartilhada ganha um selo destacando o momento.",
+    ]},
     {version:"1.0.1", date:"2026-10-11", title:"Aviso previsto mais discreto", items:[
       "Aviso do INMET que ainda vai começar aparece numa linha discreta no topo, em vez do cartão grande. Quando ele começa a valer, vira a faixa colorida.",
     ]},
