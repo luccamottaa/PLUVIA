@@ -1268,11 +1268,16 @@ function setupScrollAnimations() {
     shown.forEach(node => observer.unobserve(node));
     dropIn(shown, 0, 90);
   }, {rootMargin: "0px 0px -6% 0px"});
-  dropBlocks(DROP_BLOCKS.slice(2)).forEach(node => {
-    if (onScreen(node)) return;
-    node.setAttribute("data-drop", "wait");
-    observer.observe(node);
-  });
+  // Quem está na tela vem da primeira leitura de um observador sem margem, não de getBoundingClientRect:
+  // medir aqui, na abertura, forçava um reflow da página inteira (PageSpeed, ~36 ms). O que já aparece
+  // fica como está; o resto espera a rolagem.
+  const first = new IntersectionObserver(entries => entries.forEach(({target, isIntersecting}) => {
+    first.unobserve(target);
+    if (isIntersecting || target.dataset.drop) return;
+    target.setAttribute("data-drop", "wait");
+    observer.observe(target);
+  }));
+  dropBlocks(DROP_BLOCKS.slice(2)).forEach(node => first.observe(node));
 }
 
 

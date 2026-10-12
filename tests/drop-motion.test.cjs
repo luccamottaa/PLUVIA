@@ -43,8 +43,12 @@ test('rolagem: blocos abaixo da dobra esperam e descem uma vez quando aparecem, 
   const {setupScrollAnimations,observers,ctx,listeners}=load({blocks});
   setupScrollAnimations();
   assert.doesNotMatch(ctx.selector,/yesterdayNote|alertBanner/,'textos do topo não esperam rolagem');
+  const [io,first]=observers;
+  assert.equal(first.opts,undefined,'a primeira leitura usa a tela inteira, sem margem');
+  assert.deepEqual(blocks.map(b=>b.attrs['data-drop']),[undefined,undefined,undefined],'nada é medido nem escondido na abertura');
+  first.cb(blocks.map((b,i)=>({isIntersecting:i===0,target:b})));
+  assert.equal(first.seen.size,0,'cada bloco é lido uma vez');
   assert.deepEqual(blocks.map(b=>b.attrs['data-drop']),[undefined,'wait','wait'],'o que já está na tela não some');
-  const [io]=observers;
   assert.deepEqual([...io.seen].map(b=>b.name),['meio','fim']);
   io.cb([{isIntersecting:true,target:blocks[2],boundingClientRect:{top:900}},{isIntersecting:true,target:blocks[1],boundingClientRect:{top:500}},{isIntersecting:false,target:blocks[0],boundingClientRect:{top:0}}]);
   assert.deepEqual([blocks[1],blocks[2]].map(b=>[b.attrs['data-drop'],b.props['--drop-delay']]),[['go','0ms'],['go','90ms']],'de cima para baixo');
@@ -54,6 +58,16 @@ test('rolagem: blocos abaixo da dobra esperam e descem uma vez quando aparecem, 
   assert.equal(blocks[1].props['--drop-delay'],undefined);
   listeners.animationend({animationName:'outra',target:blocks[2]});
   assert.equal(blocks[2].attrs['data-drop'],'go','outras animações não encerram a cascata');
+});
+test('abertura não mede o layout (reflow forçado) e não esconde bloco que já desceu',()=>{
+  const blocks=[block('meio',{top:1200})];
+  blocks[0].getBoundingClientRect=()=>{throw Error('reflow forçado');};
+  const {setupScrollAnimations,observers}=load({blocks});
+  setupScrollAnimations();
+  blocks[0].attrs['data-drop']='go';
+  observers[1].cb([{isIntersecting:false,target:blocks[0]}]);
+  assert.equal(blocks[0].attrs['data-drop'],'go');
+  assert.equal(observers[0].seen.size,0);
 });
 test('sem IntersectionObserver nada fica escondido',()=>{
   const blocks=[block('meio',{top:1200})];
