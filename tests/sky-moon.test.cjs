@@ -16,7 +16,7 @@ test('intro, céu e card compartilham um disco e uma textura lunar',()=>{
   assert.equal([...html.matchAll(/id="moonIcon"/g)].length,1);
   // Reutilizações do mesmo disco: intro, céu, card da fase e arco do Ciclo do dia (à noite).
   assert.equal([...html.matchAll(/href="#moonDisc"/g)].length,4);
-  assert.equal([...html.matchAll(/href="\.\/assets\/moon-surface\.webp"/g)].length,1);
+  assert.equal([...html.matchAll(/href="\.\/assets\/moon-surface\.webp\?v=moon-1"/g)].length,1);
   assert.ok(html.indexOf('modules/moon-view.js?v=')<html.indexOf('modules/sky-atmosphere.js?v='));
 });
 

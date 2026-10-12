@@ -96,7 +96,7 @@ test('a lua texturizada acompanha as oito fases e desaparece sem dados', () => {
   assert.equal(elements.moonIcon.d,'');
   assert.equal(elements.moonDisc.visibility,'hidden');
   assert.match(html,/<svg class="moon-phase-icon"[^>]*>[\s\S]*?<use href="#moonDisc"/);
-  assert.match(html,/href="\.\/assets\/moon-surface\.webp"/);
+  assert.match(html,/href="\.\/assets\/moon-surface\.webp\?v=moon-1"/);
 });
 
 test('a iluminação varia dentro da mesma fase e respeita os quartos e extremos', () => {

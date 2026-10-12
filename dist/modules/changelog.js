@@ -11,6 +11,10 @@
   "use strict";
   const SEEN_KEY = "pluvia-seen-version";
   const VERSIONS = [
+    {version:"1.1.1", date:"2026-10-12", title:"Primeira abertura mais rápida", items:[
+      "Logo, Lua e efeitos de chuva ficam guardados no aparelho por mais tempo, e a primeira abertura baixa menos coisa de novo.",
+      "A Privacidade agora diz quem entrega o site (Cloudflare) e que o PLUVIA não usa a medição de visitas dela.",
+    ]},
     {version:"1.1", date:"2026-10-12", title:"Últimos 30 dias", items:[
       "Novo atalho no fim dos 7 dias: quanto choveu na sua cidade no último mês, em quantos dias, o dia mais chuvoso, o mais quente e a noite mais fria.",
       "Os números são estimativas do modelo para o município, não medições de estação.",

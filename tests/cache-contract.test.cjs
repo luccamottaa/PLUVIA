@@ -37,11 +37,11 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-165"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-166"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
-  assert.match(html, /styles\.css\?v=core-129/);
-  assert.match(html, /redesign\.css\?v=panel-44/);
+  assert.match(html, /styles\.css\?v=core-130/);
+  assert.match(html, /redesign\.css\?v=panel-45/);
   assert.doesNotMatch(sw, /glass\.js/);
   assert.match(html, /app\.js\?v=panel-95/);
   assert.ok(!sw.includes('"./assets/panel-night-sky.webp"'), 'não baixa a antiga foto sem uso no cache inicial');
@@ -64,7 +64,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for(const asset of stormAssets) assert.ok(sw.includes(`./assets/${asset}`),'efeito disponível offline: '+asset);
   assert.ok(stormAssets.reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<15000,'efeitos vetoriais mantêm orçamento pequeno');
   assert.ok(!sw.includes('"./assets/rain-drops.svg"'),'asset antigo fica disponível para shells legados, sem precache novo');
-  assert.ok(sw.includes('./assets/moon-surface.webp'),'textura lunar disponível no modo offline');
+  assert.ok(sw.includes('./assets/moon-surface.webp?v=moon-1'),'textura lunar disponível no modo offline');
   assert.ok(fs.statSync(path.join(root,'assets/moon-surface.webp')).size < 30000,'textura leve para mobile');
 });
 
