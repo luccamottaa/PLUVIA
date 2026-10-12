@@ -9,7 +9,7 @@ function setup({reduce=false}={}) {
   const motion=new EventTarget();motion.matches=reduce;
   const timers=new Map();let clock=0;
   const scope={document:{querySelectorAll:()=>[dialog]},matchMedia:()=>motion,innerHeight:844,visualViewport:{height:500,offsetTop:200},getComputedStyle:()=>({transform:'matrix(1, 0, 0, 1, 0, -120)',opacity:'.7'}),setTimeout(fn){timers.set(++clock,fn);return clock;},clearTimeout(id){timers.delete(id);}};
-  return {api:create(scope),dialog,motion,classes,timers,resolve:(name='pluvia-dialog-exit')=>{const event=new Event('animationend');event.animationName=name;dialog.dispatchEvent(event);},styles};
+  return {scope,api:create(scope),dialog,motion,classes,timers,resolve:(name='pluvia-dialog-exit')=>{const event=new Event('animationend');event.animationName=name;dialog.dispatchEvent(event);},styles};
 }
 test('downward exit keeps modal open, starts at current entrance position and deduplicates',async()=>{
   const s=setup();s.api.close(s.dialog);s.api.close(s.dialog);
@@ -35,4 +35,17 @@ test('changing motion preference finishes exit without trapping focus',async()=>
 });
 test('unrelated animation events do not close modal and missing frames cannot trap it',async()=>{
   const s=setup();s.api.close(s.dialog);s.resolve('pluvia-dialog-enter');assert.equal(s.dialog.open,true);[...s.timers.values()][0]();await Promise.resolve();assert.equal(s.dialog.closes,1);assert.equal(s.timers.size,0);
+});
+test('close + reopen in the same task survives a late close event (WebKit order)',async()=>{
+  // WebKit can run the replayed exit animation before dispatching "close"; the open attribute change
+  // (MutationObserver, a microtask) must cancel the pending exit first.
+  const s=setup(),observers=new Set();
+  s.dialog.close=()=>{s.dialog.open=false;s.dialog.closes++;queueMicrotask(()=>observers.forEach(o=>o.cb([])));setTimeout(()=>s.dialog.dispatchEvent(new Event('close')),20);};
+  s.dialog.showModal=()=>{s.dialog.open=true;};
+  const api=create({...s.scope,MutationObserver:class{constructor(cb){this.cb=cb;}observe(){observers.add(this);}disconnect(){observers.delete(this);}}});
+  api.close(s.dialog);s.dialog.close();s.dialog.showModal();
+  await Promise.resolve();
+  s.resolve();await Promise.resolve();
+  assert.equal(s.dialog.open,true);assert.equal(s.dialog.closes,1);assert.equal(s.classes.size,0);assert.equal(s.timers.size,0);assert.equal(observers.size,0);
+  await new Promise(resolve=>setTimeout(resolve,30));assert.equal(s.dialog.open,true);
 });

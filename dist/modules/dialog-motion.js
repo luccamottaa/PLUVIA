@@ -18,7 +18,7 @@
     dialog.classList.add('pluvia-dialog-closing');
     function cleanup() {
       if(pending.get(dialog)!==token) return;
-      pending.delete(dialog);scope.clearTimeout(token.timer);
+      pending.delete(dialog);scope.clearTimeout(token.timer);token.watcher?.disconnect();
       dialog.removeEventListener('close',cleanup);
       dialog.removeEventListener('animationend',ended);
       motion?.removeEventListener?.('change',finish);
@@ -33,6 +33,13 @@
       if(event.target===dialog && event.animationName==='pluvia-dialog-exit') finish();
     }
     dialog.addEventListener('close',cleanup);
+    // A native close (or close + showModal in the same task) also shows up as a change of the open
+    // attribute, seen in a microtask before the next frame. WebKit can dispatch "close" only after the
+    // reopened dialog replayed the exit, which then closed the new dialog.
+    if(typeof scope.MutationObserver==='function') {
+      token.watcher=new scope.MutationObserver(cleanup);
+      token.watcher.observe(dialog,{attributes:true,attributeFilter:['open']});
+    }
     dialog.addEventListener('animationend',ended);
     motion?.addEventListener?.('change',finish);
     // Native close (city invalidation) cancels the pending exit; absent frames cannot trap a modal.
