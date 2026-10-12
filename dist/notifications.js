@@ -26,7 +26,7 @@
   const installDialog = el("installPushDialog"), continueNote = el("notificationContinueNote");
   if (!toggle || !form) return;
 
-  const boolFields = ["official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary"];
+  const boolFields = ["official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary", "evening_summary"];
   let config = null, busy = false, pendingEnable = false, configRevision = 0, configOwner = null, pushActive = null;
   const preferencesModel=window.PLUVIA.notificationPreferences;
   try { pendingEnable = sessionStorage.getItem("pluvia-push-pending-enable") === "1"; } catch {}
@@ -130,7 +130,7 @@
       const input = form.elements.namedItem(field);
       if (input) input.checked = Boolean(preferences[field]);
     }
-    for (const field of ["minimum_severity", "quiet_start", "quiet_end", "daily_summary_time"]) {
+    for (const field of ["minimum_severity", "quiet_start", "quiet_end", "daily_summary_time", "evening_summary_time"]) {
       const input = form.elements.namedItem(field);
       if (input) input.value = preferences[field] == null ? field==='quiet_start' ? '22:00' : field==='quiet_end' ? '07:00' : '' : field === "minimum_severity" ? String(preferences[field]) : String(preferences[field]).slice(0, 5);
     }
@@ -139,6 +139,7 @@
     paintTimezones(preferences.timezone || currentLocation()?.timezone || 'America/Manaus');
     paintQuietFields();
     el('notificationSummaryTimeField').hidden=!form.elements.namedItem('daily_summary')?.checked;
+    if(el('notificationEveningTimeField')) el('notificationEveningTimeField').hidden=!form.elements.namedItem('evening_summary')?.checked;
   }
 
   function paintTimezones(selected=form.elements.namedItem('timezone')?.value) {
@@ -389,6 +390,7 @@
     finally { busy = false; button.disabled = !currentUser() || !config; }
   });
   form.elements.namedItem('daily_summary')?.addEventListener('change',()=>{el('notificationSummaryTimeField').hidden=!form.elements.namedItem('daily_summary').checked;});
+  form.elements.namedItem('evening_summary')?.addEventListener('change',()=>{el('notificationEveningTimeField').hidden=!form.elements.namedItem('evening_summary').checked;});
   form.elements.namedItem('quiet_enabled')?.addEventListener('change',paintQuietFields);
   devicesNode.addEventListener("click", async event => {
     const button = event.target.closest("[data-remove-subscription]"); if (!button || busy) return;

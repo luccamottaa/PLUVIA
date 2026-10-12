@@ -8,8 +8,10 @@ test('fotos usam desenhos do app que existem e estão no precache',()=>{
  assert.equal(new Set(avatars.AVATARS.map(a=>a.id)).size,avatars.AVATARS.length);
  for(const a of avatars.AVATARS){
   assert.ok(a.label);assert.match(a.bg,/^linear-gradient\(/);
+  // Caminho da raiz: as páginas /clima/<cidade>/ resolveriam um caminho relativo dentro delas (404).
+  assert.match(a.src,/^\/assets\//);
   assert.ok(fs.existsSync(path.join(dist,a.src.replace(/\?.*$/,''))),a.src);
-  assert.ok(sw.includes(`"${a.src}"`),'precache: '+a.src);
+  assert.ok(sw.includes(`".${a.src}"`),'precache: '+a.src);
  }
 });
 test('escolha fica por conta, neste aparelho, e some quando removida',()=>{

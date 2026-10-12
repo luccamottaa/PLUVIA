@@ -31,14 +31,14 @@ function locationInput(raw: any) {
 }
 
 function preferencesInput(raw: any) {
-  const fields = ["notifications_enabled", "official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary"];
+  const fields = ["notifications_enabled", "official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary", "evening_summary"];
   const next: Record<string, unknown> = {};
   for (const field of fields) if (typeof raw?.[field] === "boolean") next[field] = raw[field];
   const severity = Number(raw?.minimum_severity);
   if (Number.isInteger(severity) && severity >= 1 && severity <= 4) next.minimum_severity = severity;
-  for (const field of ["quiet_start", "quiet_end", "daily_summary_time"]) {
+  for (const field of ["quiet_start", "quiet_end", "daily_summary_time", "evening_summary_time"]) {
     const value = raw?.[field];
-    if (value === null && field !== "daily_summary_time") next[field] = null;
+    if (value === null && !field.endsWith("_summary_time")) next[field] = null;
     else if (timePattern.test(String(value || ""))) next[field] = value;
   }
   const timezone = clean(raw?.timezone, 64);

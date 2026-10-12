@@ -13,7 +13,7 @@ const INMET_URL = "https://apiprevmet3.inmet.gov.br/avisos/ativos";
 const preferenceFor: Record<string, string> = {
   official_alert: "official_alerts", rain_approaching: "rain_approaching", heavy_rain: "heavy_rain", storm: "storms",
   lightning: "lightning", strong_wind: "strong_wind", extreme_heat: "extreme_heat", air_quality: "air_quality",
-  weather_change: "weather_changes", daily_summary: "daily_summary",
+  weather_change: "weather_changes", daily_summary: "daily_summary", evening_summary: "evening_summary",
 };
 const asArray = (value: any) => Array.isArray(value) ? value : [];
 const text = (value: unknown, max = 500) => String(value ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
@@ -58,7 +58,7 @@ function weatherUrl(location: Location) {
     latitude: String(location.latitude), longitude: String(location.longitude), timezone: location.timezone, timeformat: "unixtime", forecast_days: "2",
     current: "temperature_2m,apparent_temperature,precipitation,weather_code,wind_gusts_10m",
     hourly: "temperature_2m,precipitation_probability,precipitation,weather_code,wind_gusts_10m",
-    daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+    daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum",
   }).toString();
   return url.toString();
 }
@@ -240,6 +240,37 @@ function dailySummaryCandidate(data: any, location: Location, preference: Prefer
   return { type: "daily_summary", severity: 1, title: `☀️ ${location.city_name} hoje`, body: `Máxima de ${max} °C, mínima de ${min} °C e até ${rain}% de chance de chuva.`, source: "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 6 * 3_600_000), url: "./#previsao", fingerprintSeed: `daily_summary|${location.city_id}|${localDay}`, metadata: { max_c: max, min_c: min, rain_probability: rain, confidence: "moderate" } } satisfies EventCandidate;
 }
 
+// Resumo da noite: a previsão de amanhã no calendário da cidade, no horário escolhido (20:00 por padrão).
+// Mesmas regras do resumo da manhã: janela de 4 min do cron, leitura atual recente, valores finitos.
+// O volume só entra quando veio do modelo; ausente nunca vira "sem chuva".
+function eveningSummaryCandidate(data: any, location: Location, preference: Preference, now = new Date()) {
+  if (!preference.evening_summary) return null;
+  const target = String(preference.evening_summary_time || "20:00").slice(0, 5);
+  const [hour, minute] = target.split(":").map(Number), current = localMinutes(location.timezone, now);
+  if (Math.abs(current - (hour * 60 + minute)) > 4) return null;
+  if (!freshCurrent(data, now)) return null;
+  const dayKey = (date: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: location.timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+  const today = dayKey(now);
+  // Amanhã municipal: o primeiro dia da previsão depois de hoje no fuso da cidade (horário de verão incluído).
+  const day = asArray(data?.daily?.time).findIndex((at: unknown) => {
+    const unix = observed(at, 1);
+    return unix !== null && dayKey(new Date(unix * 1000)) > today;
+  });
+  if (day < 0) return null;
+  const tomorrow = dayKey(new Date(observed(data.daily.time[day], 1)! * 1000));
+  const high = observed(data?.daily?.temperature_2m_max?.[day], -100, 65), low = observed(data?.daily?.temperature_2m_min?.[day], -100, 65);
+  const chance = observed(data?.daily?.precipitation_probability_max?.[day], 0, 100);
+  if (high === null || low === null || chance === null || low > high) return null;
+  const total = observed(data?.daily?.precipitation_sum?.[day], 0, 2000);
+  const max = Math.round(high), min = Math.round(low), rain = Math.round(chance);
+  const volume = total !== null && total >= 1 ? ` (${Math.round(total)} mm)` : "";
+  const wet = rain >= 50 && (total === null || total >= 1);
+  const body = wet
+    ? `Leve guarda-chuva: até ${rain}% de chance de chuva${volume}. Máxima de ${max} °C e mínima de ${min} °C.`
+    : `Máxima de ${max} °C, mínima de ${min} °C e até ${rain}% de chance de chuva${volume}.`;
+  return { type: "evening_summary", severity: 1, title: `🌙 ${location.city_name} amanhã`, body, source: "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 12 * 3_600_000), url: "./#previsao", fingerprintSeed: `evening_summary|${location.city_id}|${tomorrow}`, metadata: { day: tomorrow, max_c: max, min_c: min, rain_probability: rain, rain_mm: total === null ? null : Math.round(total * 10) / 10, confidence: "moderate" } } satisfies EventCandidate;
+}
+
 async function createEvent(admin: any, location: Location, candidate: EventCandidate) {
   const fingerprint = await sha256(candidate.fingerprintSeed);
   const { data, error } = await admin.from("notification_events").insert({
@@ -259,14 +290,14 @@ async function createEvent(admin: any, location: Location, candidate: EventCandi
 
 async function deliver(admin: any, event: any, preference: Preference, subscriptions: any[], userId: string, vapid: any, deadline = Infinity) {
   const flag = preferenceFor[event.type];
-  const belowMinimum = event.type !== "daily_summary" && event.severity < Number(preference.minimum_severity || 1);
+  const belowMinimum = !["daily_summary", "evening_summary"].includes(event.type) && event.severity < Number(preference.minimum_severity || 1);
   if (!preference.notifications_enabled || (flag && !preference[flag]) || belowMinimum || inQuietHours(preference, event.severity)) return { accepted: 0, skipped: subscriptions.length };
   let accepted = 0, skipped = 0;
   for (const subscription of subscriptions) {
     if (Date.now() >= deadline) return { accepted, skipped, deferred: true };
     // Fingerprints already deduplicate the same event. This also covers bucket
     // boundaries and related model signals, but lets severity increases through.
-    if (!['official_alert','daily_summary'].includes(event.type)) {
+    if (!['official_alert','daily_summary','evening_summary'].includes(event.type)) {
       const {data:recent,error:recentError} = await admin.from('notification_deliveries')
         .select('status,sent_at,created_at,notification_events!inner(event_type,severity,city_id,metadata)')
         .eq('subscription_id',subscription.id).eq('notification_events.city_id',event.cityId)
@@ -368,13 +399,15 @@ Deno.serve(async (req) => {
       }
       try {
         const candidates: EventCandidate[] = inmetForLocation(inmetAlerts, location);
-        const needsWeather = ["rain_approaching", "heavy_rain", "storms", "strong_wind", "extreme_heat", "weather_changes", "daily_summary"].some(key => preference[key]);
+        const needsWeather = ["rain_approaching", "heavy_rain", "storms", "strong_wind", "extreme_heat", "weather_changes", "daily_summary", "evening_summary"].some(key => preference[key]);
         if (needsWeather) try {
           const weather = await source(weatherUrl(location));
           if (!freshCurrent(weather, new Date())) throw new Error("source_invalid_current");
           candidates.push(...detectWeather(weather, location));
           const summary = dailySummaryCandidate(weather, location, preference);
           if (summary) candidates.push(summary);
+          const evening = eveningSummaryCandidate(weather, location, preference);
+          if (evening) candidates.push(evening);
         } catch (error) {
           sourceFailures++;
           console.warn("weather source unavailable", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" });
