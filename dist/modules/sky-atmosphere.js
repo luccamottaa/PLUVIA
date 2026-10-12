@@ -126,7 +126,9 @@
     // getAnimations() also forces a style pass over the page: on a city change it cost ~240 ms
     // (4× CPU). It only runs when the rate actually changes or when CSS creates new cloud
     // animations (animationstart: first load, safe/reduced motion leaving), never on every tick.
-    let ratePending = false, appliedRate = null, rateDirty = true;
+    // New CSS animations start at playbackRate 1, so at rate 1 (no wind reading yet, as on the first
+    // load) there is nothing to read: the PageSpeed trace showed this forced style pass at startup.
+    let ratePending = false, appliedRate = 1, rateDirty = false;
     function applyCloudRate() {
       ratePending = false;
       const rate = cloudRate(wind);
@@ -147,7 +149,7 @@
     }
     document?.addEventListener?.('animationstart',event => {
       if (!String(event?.animationName || '').startsWith('clouds-')) return;
-      rateDirty = true; syncCloudRate();
+      rateDirty = rateDirty || cloudRate(wind) !== 1; syncCloudRate();
     });
     // Custom properties are inherited: written on <html>/<body>, each change recalculated the style
     // of every element on the page (70–100 ms per write on a 4× slower CPU, several per city change).

@@ -59,6 +59,16 @@ test('ritmo das nuvens só consulta getAnimations quando muda ou quando o CSS cr
   assert.equal(s.reads(),3);assert.equal(s.animations[0].playbackRate,.7,'animação recriada recebe o vento atual');
 });
 
+test('sem leitura de vento (abertura) as nuvens novas já estão no ritmo 1: nada de getAnimations',()=>{
+  const s=sceneDocument();
+  const sky=create({document:s.document});
+  sky.apply(3,1,null,city,at,null);
+  s.listeners.animationstart({animationName:'clouds-back'});
+  assert.equal(s.reads(),0,'nenhum recálculo de estilo forçado na abertura');
+  sky.apply(3,1,null,city,at,20);
+  assert.equal(s.reads(),1);assert.equal(s.animations[0].playbackRate,1.6);
+});
+
 class Element {
   constructor(tag,className='') {this.localName=tag;this.className=className;this.childNodes=[];this.dataset={};this.parent=null;}
   append(...nodes) {for(const node of nodes) {if(node.parent) node.parent.childNodes.splice(node.parent.childNodes.indexOf(node),1);node.parent=this;this.childNodes.push(node);}}
