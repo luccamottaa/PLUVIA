@@ -139,6 +139,9 @@ html,body { background:var(--sky-base); }
 :root[data-weather="unknown"] .intro-sky { --cloud-opacity:.55; }
 :root[data-weather="unknown"] .intro-sky .sky-clouds-back { visibility:visible; animation-play-state:running; }
 .intro-sky .sky-clouds { top:-30px; }
+/* LCP: o véu da intro aparece no primeiro paint e precisa ser a maior pintura; com a mesma altura,
+   a camada da frente (inteira na tela) roubava a LCP ao chegar a previsão, vários segundos depois. */
+.intro-sky .sky-clouds-back { --cloud-height:calc(clamp(440px,min(70vw,113vh),640px) * 1.08); }
 .intro-sky .sky-clouds-front { top:36%; }
 /* Mainly clear (WMO 1): an elliptical mask, repeated twice per texture tile, reveals one
    bank of the same opaque texture every half tile; mask and texture drift together, so each
