@@ -8,6 +8,8 @@
 const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
 const dist = path.resolve(__dirname, '../dist');
 const SITE = 'https://pluviaweather.com.br';
+// Mesmo valor de OG_VERSION em scripts/generate-og-cities.py.
+const OG_VERSION = 'v1';
 const START = '<!-- capitais:inicio -->', END = '<!-- capitais:fim -->';
 
 function capitalsApi() {
@@ -88,6 +90,19 @@ function cityPage(template, api, city) {
   html = replaceOnce(html, /<meta property="og:description" content="[^"]*" \/>/, `<meta property="og:description" content="${escapeHtml(text)}" />`);
   html = replaceOnce(html, /<meta name="twitter:title" content="[^"]*" \/>/, `<meta name="twitter:title" content="${escapeHtml(title)}" />`);
   html = replaceOnce(html, /<meta name="twitter:description" content="[^"]*" \/>/, `<meta name="twitter:description" content="${escapeHtml(text)}" />`);
+  // Capitais têm prévia social própria (scripts/generate-og-cities.py, arte estática sem previsão);
+  // as demais cidades mantêm a arte geral do PLUVIA.
+  const og = `og/${api.cityPagePath(city).split('/').filter(Boolean).pop()}-${OG_VERSION}.jpg`;
+  if (api.CAPITALS.includes(city)) {
+    if (!fs.existsSync(path.join(dist, og))) throw new Error('Prévia ausente: ' + og + ' (rode scripts/generate-og-cities.py)');
+    const image = `${SITE}/${og}`, alt = escapeHtml(`Assinatura azul do PLUVIA e o texto Previsão do tempo em ${city.name}/${city.uf} sobre céu noturno com nuvens.`);
+    html = replaceOnce(html, /<meta property="og:image" content="[^"]*" \/>/, `<meta property="og:image" content="${image}" />`);
+    html = replaceOnce(html, /<meta property="og:image:width" content="[^"]*" \/>/, '<meta property="og:image:width" content="1200" />');
+    html = replaceOnce(html, /<meta property="og:image:height" content="[^"]*" \/>/, '<meta property="og:image:height" content="630" />');
+    html = replaceOnce(html, /<meta property="og:image:alt" content="[^"]*" \/>/, `<meta property="og:image:alt" content="${alt}" />`);
+    html = replaceOnce(html, /<meta name="twitter:image" content="[^"]*" \/>/, `<meta name="twitter:image" content="${image}" />`);
+    html = replaceOnce(html, /<meta name="twitter:image:alt" content="[^"]*" \/>/, `<meta name="twitter:image:alt" content="${alt}" />`);
+  }
   const graph = {'@context':'https://schema.org','@graph':[
     {'@type':'WebPage','@id':url,url,name:title,description:text,inLanguage:'pt-BR',isPartOf:{'@type':'WebSite',name:'PLUVIA',url:SITE + '/'},
       about:{'@type':'City',name:city.name,containedInPlace:{'@type':'AdministrativeArea',name:city.state},geo:{'@type':'GeoCoordinates',latitude:city.lat,longitude:city.lon}}},

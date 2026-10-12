@@ -140,3 +140,14 @@ test('fechar a busca de cidades diz só o resultado e o tamanho do texto',async(
  assert.deepEqual(closed,[['no_results',5],['chosen',2],['empty',undefined]]);
  assert.doesNotMatch(JSON.stringify(app.calls),/Xyzzy/);
 });
+test('PLUVIA Opened leva só a faixa de dias de uso do aparelho, nunca a contagem ou a data',async()=>{
+ const cases=[[null,undefined],[{count:1,last:'2026-10-12'},'1'],[{count:3,last:'x'},'2-3'],[{count:7},'4-7'],[{count:14},'8-14'],[{count:40},'15+'],[{count:0},undefined],[{count:'9'},undefined],['{',undefined]];
+ for(const [saved,expected] of cases) {
+  const app=setup();
+  if(saved!==null)app.storage.set('pluvia-open-days',typeof saved==='string' ? saved : JSON.stringify(saved));
+  app.api.setConsent(true);await app.api.flush();
+  const opened=app.calls.flatMap(c=>c.body.batch).find(e=>e.event==='PLUVIA Opened');
+  assert.equal(opened.properties.visit_days,expected,JSON.stringify(saved));
+  assert.doesNotMatch(JSON.stringify(opened.properties),/2026-10-12|"count"|last/);
+ }
+});
