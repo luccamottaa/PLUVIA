@@ -28,6 +28,29 @@ test('próxima chuva de meteoros respeita a data municipal e a altura do radiant
   assert.equal(events.nextShower('2026-08-01', -30).id, 'ORI', 'Perseidas (+58°) quase não aparecem a 30°S');
   assert.equal(events.nextShower('2026-12-23', -3.1).night, '2027-01-03', 'virada do ano: Quadrântidas de 2027');
   assert.equal(events.nextShower('2027-10-01', -3.1).night, '2027-10-21');
-  assert.equal(events.nextShower('2028-01-01', -3.1), null, 'sem a tabela do ano, nada de meteoros');
+  const computed = events.nextShower('2028-01-01', -3.1);
+  assert.equal(computed.id, 'QUA');assert.equal(computed.night, '2028-01-03');assert.equal(computed.computed, true, 'depois da tabela, o pico vem da longitude solar');
+  assert.equal(events.nextShower('2027-12-23', -3.1).night, '2028-01-03', 'virada para um ano sem tabela');
   assert.equal(events.nextShower('ontem', -3.1), null);
+});
+
+test('longitude solar reproduz o calendário IMO: no máximo uma noite de diferença, só em picos diurnos', () => {
+  let same = 0;
+  for (const shower of events.SHOWERS) {
+    const peak = events.solarLongitudeTime(+shower.night.slice(0, 4), events.PEAKS[shower.id]);
+    const night = new Date(peak - 15 * 3600000).toISOString().slice(0, 10);
+    const days = Math.abs(Date.parse(night) - Date.parse(shower.night)) / 86400000;
+    assert.ok(days <= 1, `${shower.id} ${shower.night}: ${night}`);
+    if (days === 0) same++;
+    else { const hour = (new Date(peak).getUTCHours() + 21) % 24; assert.ok(hour >= 7 && hour <= 18, `${shower.id}: diferença só com pico de dia no Brasil (${hour}h)`); }
+  }
+  assert.ok(same >= 15, `${same} de ${events.SHOWERS.length}`);
+  const years = [2028, 2031, 2035].map(year => events.showersFor(year));
+  for (const list of years) { assert.equal(list.length, 9); for (const shower of list) assert.match(shower.night, /^\d{4}-\d{2}-\d{2}$/); }
+  // Datas habituais de cada chuva: anos futuros ficam a no máximo um dia delas.
+  const usual = {QUA:'01-03', LYR:'04-22', ETA:'05-05', SDA:'07-30', PER:'08-12', ORI:'10-21', LEO:'11-17', GEM:'12-13', URS:'12-22'};
+  for (const shower of events.showersFor(2031)) {
+    const days = Math.abs(Date.parse(shower.night) - Date.parse(`2031-${usual[shower.id]}`)) / 86400000;
+    assert.ok(days <= 1, `${shower.id} 2031: ${shower.night}`);
+  }
 });
