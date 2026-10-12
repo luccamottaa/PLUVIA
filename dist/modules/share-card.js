@@ -11,11 +11,12 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(deps) {
   'use strict';
   const WIDTH = 1080, HEIGHT = 1920;
+  const BADGES = {storm:'Dia de trovoada', glow:'Pôr do sol promete hoje'};
   const finite = value => typeof value === 'number' && Number.isFinite(value) ? value : null;
 
   // Conteúdo do card a partir do snapshot normalizado (mesmas regras da Home: i+1 para chuva,
   // dia municipal para máx./mín., ausentes nunca viram zero). Leitura com mais de 36 h: nada.
-  function model(snapshot, {condition = 'Condição prevista', night = false, now = Date.now()} = {}) {
+  function model(snapshot, {condition = 'Condição prevista', night = false, now = Date.now(), moment = null} = {}) {
     const city = snapshot?.location, current = snapshot?.current, checked = snapshot?.source?.checkedAt;
     if (!city?.id || !city.timezone || finite(current?.temperature) === null || !Number.isFinite(checked) || now < checked || now - checked > 36 * 3600000) return null;
     const at = deps.time?.parse(current.time, city);
@@ -36,6 +37,8 @@
       low:index >= 0 && finite(daily.temperature_2m_min?.[index]) !== null ? Math.round(daily.temperature_2m_min[index]) : null,
       rain:rain?.text && rain.tone !== 'unknown' ? rain.text : null,
       night:Boolean(night),
+      // Dia marcante (o mesmo convite da Home): selo no topo do story. Outro valor não vira selo.
+      badge:Object.hasOwn(BADGES, String(moment)) ? BADGES[moment] : null,
       stamp:`${saved ? 'Leitura salva de' : 'Atualizado em'} ${stamp} · horário local`,
       source:snapshot.source.weather === 'met-norway+open-meteo' ? 'Previsão por modelos · MET Norway / Open-Meteo' : 'Previsão por modelos · Open-Meteo'
     };
@@ -100,6 +103,14 @@
     ctx.fillStyle = brand; ctx.font = '900 64px Nunito, Inter, sans-serif'; ctx.textAlign = 'left';
     ctx.fillText('PLUVIA', WIDTH / 2 - 66, 192);
     ctx.textAlign = 'center';
+    if (data.badge) {
+      ctx.font = '600 44px Inter, sans-serif';
+      const width = ctx.measureText(data.badge).width + 88, x = (WIDTH - width) / 2, y = 268, h = 84;
+      ctx.fillStyle = brand; ctx.beginPath();
+      if (typeof ctx.roundRect === 'function') ctx.roundRect(x, y, width, h, h / 2); else ctx.rect(x, y, width, h);
+      ctx.fill();
+      ctx.fillStyle = data.night ? '#0b1830' : '#ffffff'; ctx.fillText(data.badge, WIDTH / 2, y + 57);
+    }
     ctx.fillStyle = ink; ctx.font = '600 84px Inter, sans-serif';
     // Bloco central um pouco abaixo do meio-alto: equilibra com a fonte no rodapé e foge da barra do story.
     const top = 110;

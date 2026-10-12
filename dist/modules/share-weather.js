@@ -44,7 +44,8 @@
       const token=++cardToken,cards=root.PLUVIA?.shareCard;card=null;
       if(!cards || !snapshot || typeof root.File!=='function') return;
       const night=root.document.body?.dataset?.phase==='night';
-      const data=cards.model(snapshot,{condition:conditionLabel(),night});
+      const box=el('shareMoment'),moment=box && !box.hidden ? box.dataset?.moment || null : null;
+      const data=cards.model(snapshot,{condition:conditionLabel(),night,moment});
       if(!data) return;
       const idle=root.requestIdleCallback ? fn=>root.requestIdleCallback(fn,{timeout:2000}) : fn=>root.setTimeout(fn,300);
       // Fora da abertura: espera o primeiro toque/rolagem/tecla (ou 6 s), para o canvas não disputar a CPU
@@ -68,6 +69,8 @@
     root.addEventListener('pluvia:weather-updated',event=>{
       snapshot=root.PLUVIA?.weatherData?.get(event.detail?.cityId);button.disabled=!build(snapshot);status('');prepareCard();
     });
+    // O selo de dia marcante acompanha o convite da Home: muda raramente (trovoada some, pôr do sol passa).
+    root.addEventListener('pluvia:share-moment',()=>{if(snapshot) prepareCard();});
     root.addEventListener('pluvia:city-changed',()=>{
       revision++;cardToken++;snapshot=null;card=null;button.disabled=true;status('');if(dialog.open) dialog.close();
     });
