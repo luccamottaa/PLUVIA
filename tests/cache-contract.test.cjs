@@ -23,19 +23,27 @@ test('fontes locais leves têm formato válido e estão disponíveis no precache
   for (const name of ['INTER', 'NUNITO']) assert.match(fs.readFileSync(path.join(root, `assets/fonts/${name}-OFL.txt`), 'utf8'), /SIL OPEN FONT LICENSE/);
 });
 
+test('fonts.css vai inline no shell (sem folha bloqueante) com o mesmo texto do arquivo', () => {
+  const css = fs.readFileSync(path.join(root, 'fonts.css'), 'utf8').trim();
+  assert.ok(html.includes(css), 'o @font-face inline divergiu de fonts.css');
+  assert.doesNotMatch(html, /<link rel="stylesheet" href="\.\/fonts\.css/);
+  assert.match(html, /<link rel="preconnect" href="https:\/\/api\.open-meteo\.com" crossorigin \/>/);
+  assert.match(html, /<link rel="preload" href="\.\/assets\/sky-cloud-veil\.webp\?v=clouds-5" as="image" type="image\/webp" fetchpriority="high" \/>/);
+});
+
 test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   const htmlRefs = [...html.matchAll(/src="(\.\/(?:modules\/)?[^"]+\.js\?v=[^"]+)"/g), ...html.matchAll(/href="(\.\/[^"?]+\.css\?v=[^"]+)"/g)].map(m => m[1]);
   assert.ok(htmlRefs.length >= 10);
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-160"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-161"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
   assert.match(html, /styles\.css\?v=core-128/);
   assert.match(html, /redesign\.css\?v=panel-42/);
   assert.doesNotMatch(sw, /glass\.js/);
-  assert.match(html, /app\.js\?v=panel-92/);
+  assert.match(html, /app\.js\?v=panel-93/);
   assert.ok(!sw.includes('"./assets/panel-night-sky.webp"'), 'não baixa a antiga foto sem uso no cache inicial');
   for (const asset of ['sky-sun.svg','sky-cloud-veil.webp','sky-cloud-volume.webp']) assert.ok(sw.includes(`./assets/${asset}`));
   assert.ok(['sky-cloud-veil.webp','sky-cloud-volume.webp'].reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<360*1024,'texturas das nuvens mantêm orçamento do shell mobile');
