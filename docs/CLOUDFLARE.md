@@ -7,6 +7,13 @@ para isso é preciso um CDN na frente. O plano gratuito do Cloudflare resolve.
 
 Nada disso muda o repositório nem o deploy: o GitHub Pages continua publicando `dist/` no push para `main`.
 
+## Estado em produção (12/10/2026)
+
+Configurado e medido: HTML, `sw.js`, `manifest.webmanifest`, páginas `/clima/` e arquivos sem `?v=` saem com
+`max-age=600`; JS/CSS/imagens com `?v=` e as fontes saem com `max-age=31536000` e `cf-cache-status: HIT`.
+Conferir de novo com `curl -sI "https://pluviaweather.com.br/app.js?v=<versão>&x=$RANDOM"` (o parâmetro extra
+evita uma resposta guardada antes de uma mudança na regra).
+
 ## Passo a passo (quem tem acesso ao domínio)
 
 1. Criar conta em cloudflare.com → **Add a site** → `pluviaweather.com.br` → plano **Free**.
@@ -17,20 +24,29 @@ Nada disso muda o repositório nem o deploy: o GitHub Pages continua publicando 
 3. No **registro.br**, trocar os servidores DNS do domínio pelos dois que o Cloudflare mostrar. A troca pode levar
    algumas horas.
 4. **SSL/TLS → Overview**: modo **Full**. (Com "Flexible" o GitHub Pages entra em loop de redirecionamento.)
-5. **Caching → Cache Rules → Create rule** "Arquivos versionados":
-   - Quando: *URI Query String* contém `v=` **ou** *URI Path* começa com `/assets/fonts/`
+5. **Caching → Configuration → Browser Cache TTL**: **Respect Existing Headers**. O padrão da zona (4 horas)
+   passa por cima dos 10 min do GitHub em tudo, inclusive `sw.js` e arquivos sem versão.
+6. **Caching → Cache Rules → Create rule** "Arquivos versionados", em **Edit expression**, com esta expressão
+   (não colar no campo "Valor" de uma condição *URI Full / wildcard*: a regra fica "Ativa" e não casa com nada):
+   ```
+   (http.request.uri.query contains "v=") or starts_with(http.request.uri.path, "/assets/fonts/")
+   ```
    - Então: *Eligible for cache*; **Edge TTL** = ignorar o cabeçalho, 1 ano; **Browser TTL** = sobrescrever, 1 ano.
    - Só esses arquivos: a URL muda quando o conteúdo muda (a regra do `?v=` no AGENTS.md), então guardar por um
      ano é seguro. HTML, `sw.js`, `manifest.webmanifest` e páginas `/clima/` continuam com os 10 min do GitHub.
-6. **Speed → Optimization**: deixar **Rocket Loader desligado** (ele reordena os scripts e quebra a ordem de
+7. **Web Analytics / Real User Monitoring: desligado.** Ligado, a Cloudflare injeta `beacon.min.js` em toda página,
+   para todo visitante, sem o consentimento que o PostHog exige; a Privacidade diz que ele fica desligado, e o
+   beacon também derrubava o PageSpeed (0,92 → 0,71 numa rodada com ele).
+8. **Speed → Optimization**: deixar **Rocket Loader desligado** (ele reordena os scripts e quebra a ordem de
    carregamento do PLUVIA). **Scrape Shield → Email Address Obfuscation desligado** (muda o HTML e faz o
    `check-release.cjs` do deploy acusar arquivo diferente).
-7. Depois da troca de DNS: rodar o PageSpeed de novo. O aviso de cache deve sumir para os arquivos com `?v=`.
+9. Depois da troca de DNS: rodar o PageSpeed de novo. O aviso de cache deve sumir para os arquivos com `?v=`.
 
 ## Cuidados
 
 - O certificado HTTPS do GitHub Pages ("Enforce HTTPS") continua ligado; com o modo Full o Cloudflare fala com ele
   em HTTPS.
 - Se um JS/CSS publicado mudar **sem** trocar o `?v=`, o Cloudflare (e o navegador) vão servir a versão antiga por
-  até um ano. Os testes de contrato já travam as versões; nunca contorne isso.
+  até um ano. Os testes de contrato já travam as versões; nunca contorne isso. Vale também para imagens e SVGs
+  referenciados por CSS/HTML (logo, Lua, chuva, raios já levam `?v=`): trocar o arquivo exige trocar a versão.
 - Para desfazer: voltar os servidores DNS antigos no registro.br. Nada no código depende do Cloudflare.

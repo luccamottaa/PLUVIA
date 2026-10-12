@@ -162,8 +162,8 @@ html,body { background:var(--sky-base); }
 }
 /* Independent fine/distant and longer/near streaks. A whole 480px tile moves
    vertically, so looping has no seam; intensity never comes from probability. */
-.sky-rain { display:block; position:absolute; z-index:4; inset:-480px 0 0; background:url("./assets/rain-near.svg") 17px 0 / var(--rain-width,380px) 480px repeat; opacity:var(--rain-opacity); animation:sky-rain-fall var(--rain-speed,2.2s) linear infinite; animation-delay:-.7s; transition:opacity 2s ease,visibility 0s; }
-.sky-rain-back { z-index:3; background-image:url("./assets/rain-far.svg"); background-size:var(--rain-back-width,640px) 480px; background-position:83px 37px; opacity:var(--rain-back-opacity); animation-duration:var(--rain-back-speed,4.3s); animation-delay:-2.1s; }
+.sky-rain { display:block; position:absolute; z-index:4; inset:-480px 0 0; background:url("./assets/rain-near.svg?v=rain-1") 17px 0 / var(--rain-width,380px) 480px repeat; opacity:var(--rain-opacity); animation:sky-rain-fall var(--rain-speed,2.2s) linear infinite; animation-delay:-.7s; transition:opacity 2s ease,visibility 0s; }
+.sky-rain-back { z-index:3; background-image:url("./assets/rain-far.svg?v=rain-1"); background-size:var(--rain-back-width,640px) 480px; background-position:83px 37px; opacity:var(--rain-back-opacity); animation-duration:var(--rain-back-speed,4.3s); animation-delay:-2.1s; }
 :root:not([data-weather="rain"]):not([data-weather="storm"]) .sky-rain { opacity:0; animation-play-state:paused; visibility:hidden; transition:opacity 2s ease,visibility 0s 2s; }
 /* Branched filaments that light the cloud deck and the sky around each strike.
    This is storm decoration, independent of real lightning detections on the map. */
@@ -174,8 +174,8 @@ html,body { background:var(--sky-base); }
    gaps. One shared 29s cycle; each strike is a flash and one re-strike, then darkness: at most two
    flashes within a second, never a full-screen white flash. */
 .sky-lightning::before,.sky-lightning::after { content:""; position:absolute; left:0; right:0; top:-30px; height:clamp(460px,72svh,820px); opacity:0; background-repeat:no-repeat; pointer-events:none; animation:storm-flash-near 29s linear infinite; animation-delay:-2s; }
-.sky-lightning::before { z-index:3; mix-blend-mode:screen; background-image:url("./assets/lightning-near.svg"),radial-gradient(ellipse 58% 44% at 80% 22%,#dce8ffa6,#9fb4f05c 34%,#5c70b01c 58%,transparent 76%); background-position:right -10% top 20px,center; background-size:auto clamp(240px,34svh,380px),100% 100%; }
-.sky-lightning::after { z-index:1; background-image:url("./assets/lightning-far.svg"),radial-gradient(ellipse 60% 48% at 20% 30%,#d3e0ffe0,#8ea4e47a 38%,transparent 76%); background-position:left 6% top 60px,center; background-size:auto clamp(200px,30svh,340px),100% 100%; animation-name:storm-flash-far; }
+.sky-lightning::before { z-index:3; mix-blend-mode:screen; background-image:url("./assets/lightning-near.svg?v=lightning-1"),radial-gradient(ellipse 58% 44% at 80% 22%,#dce8ffa6,#9fb4f05c 34%,#5c70b01c 58%,transparent 76%); background-position:right -10% top 20px,center; background-size:auto clamp(240px,34svh,380px),100% 100%; }
+.sky-lightning::after { z-index:1; background-image:url("./assets/lightning-far.svg?v=lightning-1"),radial-gradient(ellipse 60% 48% at 20% 30%,#d3e0ffe0,#8ea4e47a 38%,transparent 76%); background-position:left 6% top 60px,center; background-size:auto clamp(200px,30svh,340px),100% 100%; animation-name:storm-flash-far; }
 :root[data-weather="storm"] .sky-lightning { display:block; }
 .sky-effects { -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); }
 @keyframes clouds-back { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-1 * var(--cloud-tile)),0,0); } }

@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-165" />
+    <meta name="pluvia-release" content="pluvia-panel-166" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -54,7 +54,7 @@
     <link rel="preload" href="/vendor/suncalc.js?v=sky-3" as="script" />
     <link rel="preload" href="/modules/moon-view.js?v=moon-4" as="script" />
     <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-18" as="script" />
-    <link rel="preload" href="/sky.css?v=sky-33" as="style" />
+    <link rel="preload" href="/sky.css?v=sky-34" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       /* fonts.css inline (o mesmo texto do arquivo, conferido por teste): era uma folha bloqueante a mais na cadeia crítica. */
@@ -106,7 +106,7 @@
 .pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; pointer-events:none; }
 .intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; gap:2px; color:var(--brand-blue,#2f6bff); font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; animation:intro-mark-in .8s ease-out .2s both; }
 .intro-wordmark strong { font-family:var(--font-brand,"Nunito",ui-rounded,system-ui,sans-serif); font-weight:900; }
-.intro-drop { display:block; width:clamp(42px,11vw,70px); height:clamp(55px,14vw,88px); background:currentColor; -webkit-mask:url("/logo-mark.webp") center / contain no-repeat; mask:url("/logo-mark.webp") center / contain no-repeat; }
+.intro-drop { display:block; width:clamp(42px,11vw,70px); height:clamp(55px,14vw,88px); background:currentColor; -webkit-mask:url("/logo-mark.webp?v=logo-1") center / contain no-repeat; mask:url("/logo-mark.webp?v=logo-1") center / contain no-repeat; }
 .pluvia-intro .intro-tagline { position:relative; z-index:1; margin:16px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.2rem); letter-spacing:.08em; animation:intro-caption-in .65s ease-out .5s both; }
 .pluvia-intro .intro-kicker { position:absolute; bottom:calc(65px + env(safe-area-inset-bottom)); color:#e1ebf5; font-size:.65rem; font-weight:750; letter-spacing:.24em; text-transform:uppercase; }
 .pluvia-intro .intro-copy { display:none; }
@@ -123,14 +123,14 @@
     <script src="/modules/moon-view.js?v=moon-4"></script>
     <script src="/modules/sky-atmosphere.js?v=sky-18"></script>
     <script src="/modules/sky-events.js?v=sky-events-2" defer></script>
-    <link rel="stylesheet" href="/sky.css?v=sky-33" />
+    <link rel="stylesheet" href="/sky.css?v=sky-34" />
     <script>
       /* O antigo modo seguro (céu parado depois de uma queda) saiu a pedido: limpa as marcas que ele deixou. */
       try { localStorage.removeItem("pluvia-boot-pending"); localStorage.removeItem("pluvia-safe-until"); } catch (e) {}
     </script>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="/styles.css?v=core-129" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <noscript><link rel="stylesheet" href="/styles.css?v=core-129" /></noscript>
+    <link rel="stylesheet" href="/styles.css?v=core-130" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <noscript><link rel="stylesheet" href="/styles.css?v=core-130" /></noscript>
   </head>
   <body>
     <svg class="moon-definitions" width="0" height="0" aria-hidden="true" focusable="false">
@@ -139,7 +139,7 @@
         <filter id="pluviaMoonSoftEdge" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation=".6"/></filter>
         <mask id="pluviaMoonPhase" maskUnits="userSpaceOnUse" x="0" y="0" width="80" height="80"><path id="moonIcon" fill="white" filter="url(#pluviaMoonSoftEdge)" d=""/></mask>
         <radialGradient id="pluviaMoonRim"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset=".88" stop-color="#000" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></radialGradient>
-        <image id="pluviaMoonSurface" href="/assets/moon-surface.webp" x="6" y="6" width="68" height="68"/>
+        <image id="pluviaMoonSurface" href="/assets/moon-surface.webp?v=moon-1" x="6" y="6" width="68" height="68"/>
         <g id="moonDisc" visibility="hidden" clip-path="url(#pluviaMoonDisc)">
           <circle cx="40" cy="40" r="34" fill="#60758e" opacity=".08"/>
           <use href="#pluviaMoonSurface" opacity=".14"/>
@@ -191,7 +191,7 @@
     </script>
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
-    <link rel="stylesheet" href="/redesign.css?v=panel-44" />
+    <link rel="stylesheet" href="/redesign.css?v=panel-45" />
     <link rel="stylesheet" href="/continuous.css?v=layout-87" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
@@ -498,7 +498,7 @@
       <p>Depois é só abrir pelo ícone novo: o PLUVIA abre em tela cheia, direto na sua cidade.</p>
       <button id="installDone" type="button">Entendi</button>
     </dialog>
-    <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="privacyTitle"><h3 id="privacyTitle">Privacidade</h3><label for="analyticsConsent"><input id="analyticsConsent" type="checkbox"> Ajudar a melhorar o Pluvia</label><p>Compartilhe contagens de uso e tipos de falha com o PostHog. Não enviamos nomes, e-mail, cidade, coordenadas ou texto pesquisado. Não gravamos sua tela nem vinculamos métricas à sua conta.</p><p id="analyticsChoiceStatus" role="status">Desativado. A previsão funciona sem compartilhar métricas.</p><p>O servidor recebe a conexão de rede; solicitamos que o IP não seja usado para geolocalização. <a href="https://posthog.com/privacy" target="_blank" rel="noreferrer">Política de privacidade do PostHog</a>.</p><p>A busca por voz usa o reconhecimento de fala do próprio navegador (no Chrome, o áudio é processado pelo Google). O PLUVIA não recebe nem guarda o áudio.</p><p>Quando você responde “Tá chovendo aí?”, guardamos por 2 dias a resposta, a cidade e o horário, com um código aleatório deste aparelho (só para evitar respostas repetidas). Sem conta, nome ou localização.</p><p>Para sabermos quantos aparelhos abrem o PLUVIA por dia, cada aparelho soma +1 num contador uma vez por dia. Só o total do dia fica guardado: nada de identificador, cidade, conta ou endereço de internet. Com “Do Not Track” ou GPC ligado, este aparelho não é contado.</p></section><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
+    <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="privacyTitle"><h3 id="privacyTitle">Privacidade</h3><label for="analyticsConsent"><input id="analyticsConsent" type="checkbox"> Ajudar a melhorar o Pluvia</label><p>Compartilhe contagens de uso e tipos de falha com o PostHog. Não enviamos nomes, e-mail, cidade, coordenadas ou texto pesquisado. Não gravamos sua tela nem vinculamos métricas à sua conta.</p><p id="analyticsChoiceStatus" role="status">Desativado. A previsão funciona sem compartilhar métricas.</p><p>O servidor recebe a conexão de rede; solicitamos que o IP não seja usado para geolocalização. <a href="https://posthog.com/privacy" target="_blank" rel="noreferrer">Política de privacidade do PostHog</a>.</p><p>A busca por voz usa o reconhecimento de fala do próprio navegador (no Chrome, o áudio é processado pelo Google). O PLUVIA não recebe nem guarda o áudio.</p><p>Quando você responde “Tá chovendo aí?”, guardamos por 2 dias a resposta, a cidade e o horário, com um código aleatório deste aparelho (só para evitar respostas repetidas). Sem conta, nome ou localização.</p><p>Para sabermos quantos aparelhos abrem o PLUVIA por dia, cada aparelho soma +1 num contador uma vez por dia. Só o total do dia fica guardado: nada de identificador, cidade, conta ou endereço de internet. Com “Do Not Track” ou GPC ligado, este aparelho não é contado.</p><p>O site é entregue pela Cloudflare, que recebe a conexão como qualquer serviço de hospedagem e guarda cópias dos arquivos do app para abrir mais rápido. A medição de visitas da Cloudflare fica desligada.</p></section><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
     <script src="/analytics.js?v=analytics-15" defer></script>
     <script src="/modules/sources.js?v=panel-25" defer></script>
     <script src="/modules/dialog-motion.js?v=motion-3" defer></script>
@@ -531,7 +531,7 @@
     <script src="/modules/brazil-now.js?v=brazil-2" defer></script>
     <script src="/modules/month-recap.js?v=month-1" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-5" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-1" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-3" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-1" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-4" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-2" defer></script>
     <script src="/notifications.js?v=panel-32" defer></script>
   </body>
