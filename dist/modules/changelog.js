@@ -11,6 +11,12 @@
   "use strict";
   const SEEN_KEY = "pluvia-seen-version";
   const VERSIONS = [
+    {version:"1.2", date:"2026-10-12", title:"Fotos de perfil e janelas claras de dia", items:[
+      "Em Minha conta, escolha uma foto de perfil com um desenho do tempo: sol, lua, chuva, trovoada e outros.",
+      "De dia, as janelas (conta, busca de cidades, novidades e as outras) ficam claras; à noite continuam escuras.",
+      "O radar ampliado já abre mostrando a chuva se mexer, com o nome da sua cidade no mapa.",
+      "Saíram o Comparar cidades e o convite para compartilhar o dia, que quase ninguém usava.",
+    ]},
     {version:"1.1.2", date:"2026-10-12", title:"Rolagem sem cortes", items:[
       "Descer a página não mostra mais as seções cortadas pela metade: elas já aparecem inteiras.",
     ]},

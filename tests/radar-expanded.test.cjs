@@ -27,3 +27,29 @@ test('falha ao inicializar mapa antigo não dispara um ciclo infinito de tentati
  await context.testMap.showMap();await new Promise(resolve=>setImmediate(resolve));
  assert.equal(attempts,1);assert.match(node('weatherMapError').textContent,/map library unavailable/);
 });
+
+test('radar ampliado já abre animado (não com reduzir movimento) e para ao fechar',()=>{
+ for(const reduced of [false,true]){
+  const nodes=new Map();let intervals=0;
+  const home={appendChild(child){child.parentElement=this;}};
+  const node=id=>{
+   if(!nodes.has(id)) nodes.set(id,{parentElement:home,hidden:false,attrs:{},events:{},style:{},
+    addEventListener(type,fn){this.events[type]=fn;},setAttribute(key,value){this.attrs[key]=value;},
+    appendChild(child){child.parentElement=this;},focus(){},showModal(){this.open=true;},close(){this.open=false;this.events.close?.();}});
+   return nodes.get(id);
+  };
+  const context={document:{body:{style:{}},getElementById:node,querySelector:()=>({}),querySelectorAll:()=>[],addEventListener(){}},
+   PLUVIA:{modules:{'weather-layers':{}}},activeCity:{id:'1302603'},IntersectionObserver:class{observe(){}},
+   matchMedia:q=>({matches:reduced&&/reduce/.test(q)}),
+   requestAnimationFrame:fn=>fn(),setInterval:()=>++intervals,clearInterval(){},URL,addEventListener(){}};
+  context.globalThis=context;
+  const code=fs.readFileSync('dist/weather-map.js','utf8').replace('  let leafletPromise;','  globalThis.testState=state;\n  let leafletPromise;');
+  vm.runInNewContext(code,context);
+  Object.assign(context.testState,{map:{getContainer(){return {clientWidth:390,clientHeight:600};},invalidateSize(){}},cityId:'1302603',frames:[{time:1},{time:2}],index:1,timer:null});
+  node('expandRadar').events.click();
+  if(reduced){assert.equal(context.testState.timer,null,'reduzir movimento abre parado');continue;}
+  assert.equal(intervals,1,'animação começa ao ampliar');assert.equal(node('weatherPlay').attrs['aria-pressed'],'true');
+  node('closeRadar').events.click();
+  assert.equal(context.testState.timer,null,'fechar para a animação');assert.equal(node('weatherPlay').attrs['aria-pressed'],'false');
+ }
+});

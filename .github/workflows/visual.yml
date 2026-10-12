@@ -48,7 +48,6 @@ jobs:
           python scripts/verify-contrast.py
           python scripts/verify-resilience.py
           python scripts/verify-city-pages.py
-          python scripts/verify-compare.py
           python scripts/verify-brazil.py
           python scripts/verify-month.py
           python scripts/verify-home-ux.py

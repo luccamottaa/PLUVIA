@@ -162,9 +162,6 @@
     on('openCitySearch','click',()=>track('City Search Opened',{source:'topbar'}));
     on('favoriteCity','click',()=>track('Favorite City Toggled'));
     on('accountButton','click',()=>track('Account Dialog Opened'));
-    on('compareOpen','click',()=>track('Compare Opened',{source:'city_picker'}));
-    on('homeCompare','click',()=>track('Compare Opened',{source:'home'}));
-    on('compareCity','change',()=>track('Compare City Changed'));
     on('brazilOpen','click',()=>track('Brazil Now Opened',{source:'city_picker'}));
     on('homeBrazil','click',()=>track('Brazil Now Opened',{source:'home'}));
     on('homeMonth','click',()=>track('Month Recap Opened',{source:'home'}));
