@@ -10,8 +10,10 @@
 
   // Calendários IMO 2026 e 2027 (picos e taxas ideais ZHR) e declinação do radiante. `night` é a
   // data da noite do pico no Brasil (a madrugada seguinte faz parte dela): um pico às 05h UT do dia 4
-  // cai na madrugada do dia 4 aqui, noite do dia 3. Atualizar a tabela a cada ano: sem dados do
-  // ano, o card simplesmente não mostra meteoros.
+  // cai na madrugada do dia 4 aqui, noite do dia 3. Nos anos depois da tabela, o pico é calculado
+  // pela longitude solar da IMO (PEAKS): bate com 15 das 18 noites de 2026–2027; as outras 3 são
+  // picos de dia no Brasil, que caem uma noite antes ou depois. Ao publicar um calendário IMO novo,
+  // vale acrescentá-lo aqui (ZHR do ano e o desempate dos picos diurnos).
   const SHOWERS = [
     {id:'QUA', name:'Quadrântidas', night:'2026-01-03', zhr:80, dec:49},
     {id:'LYR', name:'Líridas', night:'2026-04-22', zhr:18, dec:33},
@@ -32,6 +34,9 @@
     {id:'GEM', name:'Geminídeas', night:'2027-12-13', zhr:150, dec:33},
     {id:'URS', name:'Ursídeas', night:'2027-12-22', zhr:10, dec:75}
   ];
+  // Longitude solar do pico (J2000, calendário IMO) e taxa típica de cada chuva, para os anos sem tabela.
+  const PEAKS = {QUA:283.15, LYR:32.32, ETA:45.5, SDA:127, PER:140.0, ORI:208, LEO:235.27, GEM:262.2, URS:270.7};
+  const LAST_TABLE_YEAR = Math.max(...SHOWERS.map(shower => +shower.night.slice(0, 4)));
   // Radiante abaixo disso na sua altura máxima: poucos meteoros visíveis daquela latitude.
   const MIN_RADIANT_ALTITUDE = 20;
 
@@ -73,11 +78,40 @@
     return result;
   }
 
+  // Longitude verdadeira do Sol referida a J2000 (Meeus, cap. 25; erro ~0,01°, uns 15 minutos).
+  function solarLongitude(jd) {
+    const T = (jd - 2451545) / 36525;
+    const L0 = 280.46646 + 36000.76983 * T + .0003032 * T * T;
+    const M = (357.52911 + 35999.05029 * T - .0001537 * T * T) * rad;
+    const C = (1.914602 - .004817 * T - .000014 * T * T) * Math.sin(M) + (.019993 - .000101 * T) * Math.sin(2 * M) + .000289 * Math.sin(3 * M);
+    return ((L0 + C - 1.397 * T) % 360 + 360) % 360;
+  }
+  // Instante (ms UT) em que o Sol passa pela longitude `lambda` no ano dado.
+  function solarLongitudeTime(year, lambda) {
+    let jd = Date.UTC(year, 0, 1) / 86400000 + 2440587.5;
+    jd += ((lambda - solarLongitude(jd)) % 360 + 360) % 360 / .98564736;
+    for (let i = 0; i < 5; i++) jd += (((lambda - solarLongitude(jd)) % 360 + 540) % 360 - 180) / .98564736;
+    return Math.round((jd - 69 / 86400 - 2440587.5) * 86400000);
+  }
+  // Chuvas de um ano: a tabela IMO quando existe; senão, o pico pela longitude solar, na noite
+  // brasileira (UTC−3) que termina na madrugada do pico.
+  function showersFor(year) {
+    if (year <= LAST_TABLE_YEAR) return SHOWERS.filter(shower => shower.night.startsWith(year + '-'));
+    const typical = new Map(SHOWERS.filter(shower => shower.night.startsWith(LAST_TABLE_YEAR + '-')).map(shower => [shower.id, shower]));
+    return Object.entries(PEAKS).map(([id, lambda]) => {
+      const {name, zhr, dec} = typical.get(id);
+      const night = new Date(solarLongitudeTime(year, lambda) - 15 * 3600000).toISOString().slice(0, 10);
+      return {id, name, night, zhr, dec, computed:true};
+    });
+  }
+
   // Próxima chuva de meteoros a partir da data municipal `today` (inclui a noite de hoje),
   // visível da latitude: altura máxima do radiante = 90° − |lat − dec|.
-  function nextShower(today, latitude, {showers = SHOWERS} = {}) {
+  function nextShower(today, latitude, {showers} = {}) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(today || '')) || !Number.isFinite(latitude)) return null;
-    for (const shower of [...showers].sort((a, b) => a.night.localeCompare(b.night))) {
+    const year = +today.slice(0, 4);
+    const candidates = showers || [...showersFor(year), ...showersFor(year + 1)];
+    for (const shower of [...candidates].sort((a, b) => a.night.localeCompare(b.night))) {
       if (shower.night < today) continue;
       const altitude = 90 - Math.abs(latitude - shower.dec);
       if (altitude < MIN_RADIANT_ALTITUDE) continue;
@@ -86,5 +120,5 @@
     return null;
   }
 
-  return {nextPhases, phaseTime, nextShower, SHOWERS, MIN_RADIANT_ALTITUDE};
+  return {nextPhases, phaseTime, nextShower, showersFor, solarLongitudeTime, SHOWERS, PEAKS, MIN_RADIANT_ALTITUDE};
 });
