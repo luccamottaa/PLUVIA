@@ -14,7 +14,7 @@ function block(name,{top=0,height=100,hidden=false}={}){
 }
 function load({reduced=false,blocks=[],io=true}={}){
   const listeners={},observers=[];
-  class IO{constructor(cb,opts){this.cb=cb;this.opts=opts;this.seen=new Set();observers.push(this);}observe(n){this.seen.add(n);}unobserve(n){this.seen.delete(n);}}
+  class IO{constructor(cb,opts){this.cb=cb;this.opts=opts;this.seen=new Set();observers.push(this);}observe(n){this.seen.add(n);}unobserve(n){this.seen.delete(n);}disconnect(){this.seen.clear();}}
   const g={matchMedia:q=>({matches:reduced&&/reduce/.test(q)}),getComputedStyle:()=>({top:'0px'}),innerHeight:800};
   if(io) g.IntersectionObserver=IO;
   const ctx={globalThis:g,IntersectionObserver:IO,document:{querySelectorAll:selector=>{ctx.selector=selector;return blocks;},addEventListener:(t,f)=>{listeners[t]=f;}}};
@@ -24,9 +24,13 @@ function load({reduced=false,blocks=[],io=true}={}){
 test('troca de cidade: só os blocos à vista descem, em ordem, depois dos textos do topo',()=>{
   const blocks=[block('banner',{top:300}),block('alertas',{top:420}),block('escondido',{top:500,hidden:true}),block('esperando',{top:600}),block('abaixo',{top:900}),block('vazio',{top:700,height:0})];
   blocks[3].attrs['data-drop']='wait';
-  const {dropCityContent,ctx}=load({blocks});
+  const {dropCityContent,ctx,observers}=load({blocks});
   dropCityContent();
   assert.match(ctx.selector,/^#weatherView #yesterdayNote,#weatherView #alertBanner,#weatherView #alertas/);
+  assert.equal(blocks.filter(b=>b.attrs['data-drop']==='go').length,0,'nada é medido no mesmo quadro (reflow forçado)');
+  const [io]=observers;
+  assert.deepEqual([...io.seen].map(b=>b.name),['banner','alertas','abaixo','vazio'],'quem espera a rolagem nem é observado');
+  io.cb([...io.seen].map(b=>({target:b,isIntersecting:b.name!=='abaixo',intersectionRect:{height:b.name==='vazio'?0:50}})).reverse());
   assert.deepEqual(blocks.filter(b=>b.attrs['data-drop']==='go').map(b=>[b.name,b.props['--drop-delay']]),[['banner','240ms'],['alertas','310ms']]);
   assert.equal(blocks[3].attrs['data-drop'],'wait','bloco que ainda espera a rolagem continua esperando');
   assert.equal(blocks[4].attrs['data-drop'],undefined,'fora da tela não anima');
@@ -95,7 +99,7 @@ test('dado que chega depois desce no lugar: alertas saindo de "Consultando", dic
   const source=[pick('function setAlertState(','// Faixa no topo'),pick('function renderTips(','function setRainAnswer('),pick('function setYesterdayNote(','function clearWeatherInsights(')].join('\n');
   const dropped=[];
   const els={alertas:{dataset:{alertState:'loading'}},tips:{hidden:true,dataset:{}},tipsList:{replaceChildren(){},set textContent(v){}},yesterdayNote:{textContent:'',dataset:{}}};
-  const ctx={$:id=>els[id],dropIn:list=>dropped.push(...list.map(n=>Object.keys(els).find(k=>els[k]===n))),dropMotion:()=>true,onScreen:()=>true,
+  const ctx={$:id=>els[id],dropIn:list=>dropped.push(...list.map(n=>Object.keys(els).find(k=>els[k]===n))),dropMotion:()=>true,onScreen:()=>true,whenOnScreen:(nodes,done)=>done(nodes),
     TIP_ICONS:{},weatherIcons:null,document:{createElement:()=>({dataset:{},setAttribute(){},append(){},className:'',innerHTML:'',textContent:''})}};
   const api=vm.runInNewContext(`${source}\n({setAlertState,renderTips,setYesterdayNote})`,ctx);
   api.setAlertState('alerts');api.setAlertState('clear');

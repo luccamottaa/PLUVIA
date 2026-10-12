@@ -249,7 +249,7 @@ function setAlertState(state) {
 }
 // Bloco que aparece ou muda depois que a página já está à vista desce no lugar (cascata "descendo").
 function settleBlock(node) {
-  if (typeof dropIn === "function" && dropMotion() && node?.dataset?.drop !== "wait" && onScreen(node)) dropIn([node]);
+  if (typeof dropIn === "function" && dropMotion() && node?.dataset?.drop !== "wait") whenOnScreen([node], dropIn);
 }
 
 // Faixa no topo para aviso INMET da cidade (leitura atual): vigente em amarelo discreto ou
@@ -456,7 +456,8 @@ function renderHourly(hourly, start, daily) {
   if (peek) {
     // As 24 horas ficam na mesma fileira, arrastando para o lado (antes eram 6 e o resto só no gráfico).
     // Cidade nova volta ao começo; uma atualização da mesma cidade mantém a posição da rolagem.
-    if (peek.dataset.city !== activeCity?.id) { peek.scrollLeft = 0; peek.dataset.city = activeCity?.id || ""; }
+    // Na primeira pintura a fileira já está no começo: escrever scrollLeft ali forçava um reflow (PageSpeed).
+    if (peek.dataset.city !== activeCity?.id) { if (peek.dataset.city) peek.scrollLeft = 0; peek.dataset.city = activeCity?.id || ""; }
     peek.innerHTML = indices.map((i, p) => {
       const time = p === 0 ? "Agora" : shortTime(hourly.time[i]);
       const temperature = readings.get(i).temperature;
@@ -1249,11 +1250,25 @@ function onScreen(node) {
   const rect = node.getBoundingClientRect?.();
   return Boolean(rect) && rect.height > 0 && rect.bottom > 0 && rect.top < (globalThis.innerHeight || 0);
 }
+// Quais blocos estão na tela, sem medir na hora: logo depois de pintar os dados, getBoundingClientRect
+// forçava um reflow da página inteira (PageSpeed, ~40 ms). Um observador de uso único responde no
+// próximo quadro, na ordem original; sem IntersectionObserver, a medição direta.
+function whenOnScreen(nodes, done) {
+  if (!nodes.length) return;
+  if (!("IntersectionObserver" in globalThis)) return done(nodes.filter(onScreen));
+  const visible = new Set();
+  const observer = new IntersectionObserver(entries => {
+    observer.disconnect();
+    entries.forEach(entry => { if (entry.isIntersecting && entry.intersectionRect?.height !== 0) visible.add(entry.target); });
+    done(nodes.filter(node => visible.has(node) && node.dataset.drop !== "wait"));
+  });
+  nodes.forEach(node => observer.observe(node));
+}
 // Chamado junto com chooseCity (dentro da View Transition, quando há): os blocos da cidade nova à vista
 // descem logo depois do nome, da temperatura, da condição e do "Vai chover?".
 function dropVisibleBlocks(delay) {
   if (!dropMotion()) return;
-  dropIn(dropBlocks(DROP_BLOCKS).filter(node => node.dataset.drop !== "wait" && onScreen(node)), delay, 70);
+  whenOnScreen(dropBlocks(DROP_BLOCKS).filter(node => node.dataset.drop !== "wait"), list => dropIn(list, delay, 70));
 }
 function dropCityContent() { dropVisibleBlocks(240); }
 document.addEventListener?.("animationend", event => {
