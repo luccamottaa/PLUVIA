@@ -21,7 +21,7 @@
     error_code:new Set(['timeout','network_error','invalid_response','rate_limited','provider_unavailable','http_error','client_unavailable','unexpected','resource_error']),
     error_type:new Set(['Error','TypeError','ReferenceError','SyntaxError','RangeError','RequestError']),
     kind:new Set(['dry','drizzle','rain','heavy']),metric:new Set(['LCP','INP','CLS','FCP','TTFB']),rating:new Set(['good','needs-improvement','poor']),
-    outcome:new Set(['chosen','typed','no_results','empty']),moment:new Set(['storm','glow'])
+    outcome:new Set(['chosen','typed','no_results','empty']),moment:new Set(['storm','glow']),visit_days:new Set(['1','2-3','4-7','8-14','15+'])
   };
   // Busca abandonada: uma escolha durante o diálogo de cidades vira "chosen" no fechamento.
   let searchChose = false;
@@ -57,12 +57,22 @@
     if(input){input.checked=consent && !protectedBrowser();input.disabled=protectedBrowser();}
     if(status)status.textContent=protectedBrowser() ? 'Seu navegador pede privacidade; a coleta está desativada.' : consent ? 'Participação ativada neste dispositivo. Você pode desativar a qualquer momento.' : 'Desativado. A previsão funciona sem compartilhar métricas.';
   }
+  // Em quantos dias diferentes este aparelho já abriu o PLUVIA, em faixas: mede retorno sem
+  // identificador (a contagem fica só no aparelho, em pluvia-open-days, escrita por app.js).
+  function visitDays() {
+    try {
+      const count=JSON.parse(localStorage.getItem('pluvia-open-days') || 'null')?.count;
+      if(!Number.isInteger(count) || count<1)return undefined;
+      return count===1 ? '1' : count<=3 ? '2-3' : count<=7 ? '4-7' : count<=14 ? '8-14' : '15+';
+    } catch { return undefined; }
+  }
+  const opened=()=>({standalone:installed(),visit_days:visitDays()});
   // Aberto pelo ícone da Tela de Início: no iPhone é o que permite receber avisos.
   const installed = () => window.matchMedia?.('(display-mode: standalone)').matches===true || navigator.standalone===true;
   function setConsent(value) {
     clear();consent=value===true && !protectedBrowser();
     try{localStorage.setItem(CHOICE_KEY,consent ? '1' : '0');}catch{}
-    paintChoice();if(enabled())track('PLUVIA Opened',{standalone:installed()});
+    paintChoice();if(enabled())track('PLUVIA Opened',opened());
   }
   function track(name,properties={}) {
     if(name==='City Selected')searchChose=true;
@@ -147,7 +157,7 @@
     const on=(id,event,fn)=>document.getElementById(id)?.addEventListener(event,fn);
     paintChoice();on('analyticsConsent','change',event=>setConsent(event.target.checked));
     on('openPrivacy','click',()=>{document.getElementById('openSources')?.click();document.getElementById('analyticsConsent')?.focus();});
-    track('PLUVIA Opened',{standalone:installed()});
+    track('PLUVIA Opened',opened());
     on('welcomeSearch','click',()=>track('City Search Opened',{source:'welcome'}));
     on('openCitySearch','click',()=>track('City Search Opened',{source:'topbar'}));
     on('favoriteCity','click',()=>track('Favorite City Toggled'));

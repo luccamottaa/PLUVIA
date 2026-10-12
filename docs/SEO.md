@@ -47,3 +47,7 @@ node scripts/generate-city-pages.cjs --check  # falha se algo estiver desatualiz
 - O QA (`verify-city-pages.py`) usa fixtures. Ele não mede indexação, posição em buscas nem Search Console.
 - Depois de publicar, vale enviar o sitemap no Search Console. Isso é feito pelo dono do domínio, fora do repositório.
 - Expandir para outros municípios exige decidir critério e conteúdo próprio, para evitar milhares de páginas quase iguais (conteúdo fino).
+
+## Prévias sociais das capitais
+
+As 27 capitais têm imagem Open Graph própria em `dist/og/<slug>-v1.jpg` (1200×630, ~60 KB), gerada por `python scripts/generate-og-cities.py` a partir das camadas do céu do app, com a assinatura e "Previsão do tempo em <Cidade>/<UF>". A arte é estática, sem temperatura ou condição, porque WhatsApp e afins guardam a prévia por dias. Depois de gerar, rode `node scripts/generate-city-pages.cjs`, que coloca `og:image`/`twitter:image` só nas capitais (falha se a imagem faltar). Arte nova: troque `OG_VERSION` nos dois scripts para não reaproveitar o cache externo. As demais cidades continuam com `og-pluvia-v2.png`.
