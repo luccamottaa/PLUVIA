@@ -249,7 +249,7 @@ function setAlertState(state) {
 }
 // Bloco que aparece ou muda depois que a página já está à vista desce no lugar (cascata "descendo").
 function settleBlock(node) {
-  if (typeof dropIn === "function" && dropMotion() && node?.dataset?.drop !== "wait") whenOnScreen([node], dropIn);
+  if (typeof dropIn === "function" && dropMotion()) whenOnScreen([node], dropIn);
 }
 
 // Faixa no topo para aviso INMET da cidade (leitura atual): vigente em amarelo discreto ou
@@ -1225,10 +1225,10 @@ function setupPullToRefresh() {
 document.querySelectorAll("nav a").forEach(link => link.addEventListener("click", () => { document.querySelectorAll("nav a").forEach(a => a.classList.remove("active")); link.classList.add("active"); }));
 
 // Cascata "descendo": na troca de cidade os blocos à vista entram um depois do outro, de cima para
-// baixo, e ao rolar cada bloco desce quando aparece. O bloco desce 18 px (top, em position:relative)
-// enquanto é revelado de cima para baixo (clip-path); CSS em continuous.css. Só pintura: transform e
-// opacity nos blocos viravam camadas do tamanho da página sobre o céu animado e derrubavam o Safari do
-// iPhone (girar a tela relançava tudo). Cada bloco revela uma vez ao rolar; girar não reanima.
+// baixo. O bloco desce 18 px (top, em position:relative) enquanto é revelado de cima para baixo
+// (clip-path); CSS em continuous.css. Só pintura: transform e opacity nos blocos viravam camadas do
+// tamanho da página sobre o céu animado e derrubavam o Safari do iPhone. Ao rolar nada é escondido:
+// revelar o bloco só quando ele entrava na tela, com a página subindo, parecia um corte (outubro/2026).
 const DROP_BLOCKS = ["#yesterdayNote", "#alertBanner", "#alertas", "#tips", ".hourly-peek", ".metrics", ".air-outlook", ".weather-map-section", ".forecast-section", ".sun-section"];
 function dropMotion() {
   return !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
@@ -1262,7 +1262,7 @@ function whenOnScreen(nodes, done) {
   const observer = new IntersectionObserver(entries => {
     observer.disconnect();
     entries.forEach(entry => { if (entry.isIntersecting && entry.intersectionRect?.height !== 0) visible.add(entry.target); });
-    done(nodes.filter(node => visible.has(node) && node.dataset.drop !== "wait"));
+    done(nodes.filter(node => visible.has(node)));
   });
   nodes.forEach(node => observer.observe(node));
 }
@@ -1270,7 +1270,7 @@ function whenOnScreen(nodes, done) {
 // descem logo depois do nome, da temperatura, da condição e do "Vai chover?".
 function dropVisibleBlocks(delay) {
   if (!dropMotion()) return;
-  whenOnScreen(dropBlocks(DROP_BLOCKS).filter(node => node.dataset.drop !== "wait"), list => dropIn(list, delay, 70));
+  whenOnScreen(dropBlocks(DROP_BLOCKS), list => dropIn(list, delay, 70));
 }
 function dropCityContent() { dropVisibleBlocks(240); }
 document.addEventListener?.("animationend", event => {
@@ -1278,24 +1278,6 @@ document.addEventListener?.("animationend", event => {
   event.target.removeAttribute("data-drop");
   event.target.style.removeProperty("--drop-delay");
 });
-function setupScrollAnimations() {
-  if (!dropMotion() || !("IntersectionObserver" in globalThis)) return;
-  const observer = new IntersectionObserver(entries => {
-    const shown = entries.filter(entry => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top).map(entry => entry.target);
-    shown.forEach(node => observer.unobserve(node));
-    dropIn(shown, 0, 90);
-  }, {rootMargin: "0px 0px -6% 0px"});
-  // Quem está na tela vem da primeira leitura de um observador sem margem, não de getBoundingClientRect:
-  // medir aqui, na abertura, forçava um reflow da página inteira (PageSpeed, ~36 ms). O que já aparece
-  // fica como está; o resto espera a rolagem.
-  const first = new IntersectionObserver(entries => entries.forEach(({target, isIntersecting}) => {
-    first.unobserve(target);
-    if (isIntersecting || target.dataset.drop) return;
-    target.setAttribute("data-drop", "wait");
-    observer.observe(target);
-  }));
-  dropBlocks(DROP_BLOCKS.slice(2)).forEach(node => first.observe(node));
-}
 
 
 const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","condition","heroRange","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","dryWindow","daylight","sunPhrase","sunsetGlow","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate"].filter(id=>$(id));
@@ -1990,7 +1972,6 @@ document.addEventListener("keydown", event => {
 });
 // A faixa tem data-notice: o detalhe abre pelo mesmo clique delegado dos cartões (risks.js).
 setupCitySwipe();
-setupScrollAnimations();
 setupPullToRefresh();
 updateClock();
 setInterval(updateClock, 30000);

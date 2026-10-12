@@ -2,8 +2,8 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const app=fs.readFileSync(path.join(__dirname,'..','dist','app.js'),'utf8');
 const css=fs.readFileSync(path.join(__dirname,'..','dist','continuous.css'),'utf8');
-// Cascata "descendo" (troca de cidade e rolagem): blocos à vista descem em ordem, os de baixo esperam
-// aparecer ao rolar; só top/clip-path, nada de camadas.
+// Cascata "descendo" (troca de cidade): blocos à vista descem em ordem; ao rolar nada fica escondido
+// (revelar ao entrar na tela parecia um corte no iPhone); só top/clip-path, nada de camadas.
 const source=app.slice(app.indexOf('const DROP_BLOCKS'),app.indexOf('const cityResetIds'));
 function block(name,{top=0,height=100,hidden=false}={}){
   const attrs={},props={};
@@ -18,73 +18,50 @@ function load({reduced=false,blocks=[],io=true}={}){
   const g={matchMedia:q=>({matches:reduced&&/reduce/.test(q)}),getComputedStyle:()=>({top:'0px'}),innerHeight:800};
   if(io) g.IntersectionObserver=IO;
   const ctx={globalThis:g,IntersectionObserver:IO,document:{querySelectorAll:selector=>{ctx.selector=selector;return blocks;},addEventListener:(t,f)=>{listeners[t]=f;}}};
-  const api=vm.runInNewContext(`${source}\n({dropIn,dropCityContent,setupScrollAnimations,DROP_BLOCKS})`,ctx);
+  const api=vm.runInNewContext(`${source}\n({dropIn,dropCityContent,DROP_BLOCKS})`,ctx);
   return {...api,ctx,listeners,observers};
 }
 test('troca de cidade: só os blocos à vista descem, em ordem, depois dos textos do topo',()=>{
-  const blocks=[block('banner',{top:300}),block('alertas',{top:420}),block('escondido',{top:500,hidden:true}),block('esperando',{top:600}),block('abaixo',{top:900}),block('vazio',{top:700,height:0})];
-  blocks[3].attrs['data-drop']='wait';
+  const blocks=[block('banner',{top:300}),block('alertas',{top:420}),block('escondido',{top:500,hidden:true}),block('abaixo',{top:900}),block('vazio',{top:700,height:0})];
   const {dropCityContent,ctx,observers}=load({blocks});
   dropCityContent();
   assert.match(ctx.selector,/^#weatherView #yesterdayNote,#weatherView #alertBanner,#weatherView #alertas/);
   assert.equal(blocks.filter(b=>b.attrs['data-drop']==='go').length,0,'nada é medido no mesmo quadro (reflow forçado)');
   const [io]=observers;
-  assert.deepEqual([...io.seen].map(b=>b.name),['banner','alertas','abaixo','vazio'],'quem espera a rolagem nem é observado');
+  assert.deepEqual([...io.seen].map(b=>b.name),['banner','alertas','abaixo','vazio']);
   io.cb([...io.seen].map(b=>({target:b,isIntersecting:b.name!=='abaixo',intersectionRect:{height:b.name==='vazio'?0:50}})).reverse());
   assert.deepEqual(blocks.filter(b=>b.attrs['data-drop']==='go').map(b=>[b.name,b.props['--drop-delay']]),[['banner','240ms'],['alertas','310ms']]);
-  assert.equal(blocks[3].attrs['data-drop'],'wait','bloco que ainda espera a rolagem continua esperando');
-  assert.equal(blocks[4].attrs['data-drop'],undefined,'fora da tela não anima');
+  assert.equal(blocks[3].attrs['data-drop'],undefined,'fora da tela não anima nem fica escondido');
+  assert.equal(blocks[4].attrs['data-drop'],undefined,'bloco sem altura não anima');
 });
-test('reduzir movimento: nada desce nem espera',()=>{
+test('reduzir movimento: nada desce',()=>{
   const blocks=[block('a',{top:100}),block('b',{top:1200})];
-  const {dropCityContent,setupScrollAnimations,observers}=load({reduced:true,blocks});
-  dropCityContent();setupScrollAnimations();
+  const {dropCityContent,observers}=load({reduced:true,blocks});
+  dropCityContent();
   assert.deepEqual(blocks.map(b=>b.attrs['data-drop']),[undefined,undefined]);
   assert.equal(observers.length,0);
 });
-test('rolagem: blocos abaixo da dobra esperam e descem uma vez quando aparecem, em ordem',()=>{
-  const blocks=[block('visivel',{top:200}),block('meio',{top:1200}),block('fim',{top:1600})];
-  const {setupScrollAnimations,observers,ctx,listeners}=load({blocks});
-  setupScrollAnimations();
-  assert.doesNotMatch(ctx.selector,/yesterdayNote|alertBanner/,'textos do topo não esperam rolagem');
-  const [io,first]=observers;
-  assert.equal(first.opts,undefined,'a primeira leitura usa a tela inteira, sem margem');
-  assert.deepEqual(blocks.map(b=>b.attrs['data-drop']),[undefined,undefined,undefined],'nada é medido nem escondido na abertura');
-  first.cb(blocks.map((b,i)=>({isIntersecting:i===0,target:b})));
-  assert.equal(first.seen.size,0,'cada bloco é lido uma vez');
-  assert.deepEqual(blocks.map(b=>b.attrs['data-drop']),[undefined,'wait','wait'],'o que já está na tela não some');
-  assert.deepEqual([...io.seen].map(b=>b.name),['meio','fim']);
-  io.cb([{isIntersecting:true,target:blocks[2],boundingClientRect:{top:900}},{isIntersecting:true,target:blocks[1],boundingClientRect:{top:500}},{isIntersecting:false,target:blocks[0],boundingClientRect:{top:0}}]);
-  assert.deepEqual([blocks[1],blocks[2]].map(b=>[b.attrs['data-drop'],b.props['--drop-delay']]),[['go','0ms'],['go','90ms']],'de cima para baixo');
-  assert.equal(io.seen.size,0,'revela uma vez: girar a tela não reanima');
-  listeners.animationend({animationName:'pluvia-drop',target:blocks[1]});
-  assert.equal(blocks[1].attrs['data-drop'],undefined);
-  assert.equal(blocks[1].props['--drop-delay'],undefined);
-  listeners.animationend({animationName:'outra',target:blocks[2]});
-  assert.equal(blocks[2].attrs['data-drop'],'go','outras animações não encerram a cascata');
-});
-test('abertura não mede o layout (reflow forçado) e não esconde bloco que já desceu',()=>{
+test('rolar não esconde nem revela seções: o bloco abaixo da dobra já está inteiro (sem o "corte")',()=>{
+  const code=app.replace(/\/\/.*$/gm,'');
+  assert.doesNotMatch(code,/setupScrollAnimations|data-drop", "wait"|drop === "wait"/);
+  assert.doesNotMatch(css,/\[data-drop="wait"\]/);
   const blocks=[block('meio',{top:1200})];
-  blocks[0].getBoundingClientRect=()=>{throw Error('reflow forçado');};
-  const {setupScrollAnimations,observers}=load({blocks});
-  setupScrollAnimations();
-  blocks[0].attrs['data-drop']='go';
-  observers[1].cb([{isIntersecting:false,target:blocks[0]}]);
-  assert.equal(blocks[0].attrs['data-drop'],'go');
-  assert.equal(observers[0].seen.size,0);
-});
-test('sem IntersectionObserver nada fica escondido',()=>{
-  const blocks=[block('meio',{top:1200})];
-  const {setupScrollAnimations}=load({blocks,io:false});
-  setupScrollAnimations();
-  assert.equal(blocks[0].attrs['data-drop'],undefined);
+  const {observers,listeners}=load({blocks});
+  assert.equal(observers.length,0,'abrir a página não observa a rolagem');
+  {
+    const b=block('x');b.attrs['data-drop']='go';b.props['--drop-delay']='70ms';
+    listeners.animationend({animationName:'pluvia-drop',target:b});
+    assert.equal(b.attrs['data-drop'],undefined);assert.equal(b.props['--drop-delay'],undefined);
+    const c=block('y');c.attrs['data-drop']='go';
+    listeners.animationend({animationName:'outra',target:c});
+    assert.equal(c.attrs['data-drop'],'go','outras animações não encerram a cascata');
+  }
 });
 test('CSS: desce só por top e clip-path (sem camadas) e reduced-motion mostra tudo parado',()=>{
   const keyframes=css.match(/@keyframes pluvia-drop \{[^\n]*\}/)[0];
   assert.match(keyframes,/from \{ top:-18px; clip-path:inset\(0 0 100% 0\); \}/);
   assert.doesNotMatch(keyframes,/transform|translate|opacity|scale|filter/);
   assert.match(css,/#weatherView \[data-drop="go"\] \{ position:relative; animation:pluvia-drop [^}]*var\(--drop-delay,0ms\) both; \}/);
-  assert.match(css,/#weatherView \[data-drop="wait"\] \{ clip-path:inset\(0 0 100% 0\); \}/);
   assert.match(css,/@media \(prefers-reduced-motion:reduce\) \{ #weatherView \[data-drop\] \{ clip-path:none; animation:none; \} \}/);
   assert.doesNotMatch(source.replace(/\/\/.*$/gm,''),/transform|opacity|z-?index/i);
 });

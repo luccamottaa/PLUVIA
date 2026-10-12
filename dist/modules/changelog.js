@@ -11,6 +11,9 @@
   "use strict";
   const SEEN_KEY = "pluvia-seen-version";
   const VERSIONS = [
+    {version:"1.1.2", date:"2026-10-12", title:"Rolagem sem cortes", items:[
+      "Descer a página não mostra mais as seções cortadas pela metade: elas já aparecem inteiras.",
+    ]},
     {version:"1.1.1", date:"2026-10-12", title:"Primeira abertura mais rápida", items:[
       "Logo, Lua e efeitos de chuva ficam guardados no aparelho por mais tempo, e a primeira abertura baixa menos coisa de novo.",
       "A Privacidade agora diz quem entrega o site (Cloudflare) e que o PLUVIA não usa a medição de visitas dela.",

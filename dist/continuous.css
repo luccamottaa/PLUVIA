@@ -994,8 +994,7 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 @media (prefers-reduced-motion:reduce) { .night-stage > .sky-fade { display:none; } }
 /* Cascata "descendo" (app.js dropIn): o bloco desce 18 px enquanto é revelado de cima para baixo.
    Só top (position:relative) e clip-path: pintura, sem camada; transform/opacity em blocos derrubavam
-   o Safari do iPhone. "wait" esconde o bloco abaixo da dobra até ele aparecer ao rolar. */
-#weatherView [data-drop="wait"] { clip-path:inset(0 0 100% 0); }
+   o Safari do iPhone. Só na troca de cidade, com o bloco parado na tela: nada espera a rolagem. */
 #weatherView [data-drop="go"] { position:relative; animation:pluvia-drop .62s cubic-bezier(.22,1,.36,1) var(--drop-delay,0ms) both; }
 @keyframes pluvia-drop { from { top:-18px; clip-path:inset(0 0 100% 0); } to { top:0; clip-path:inset(-40px); } }
 @media (prefers-reduced-motion:reduce) { #weatherView [data-drop] { clip-path:none; animation:none; } }
