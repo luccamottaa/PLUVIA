@@ -11,6 +11,9 @@
   "use strict";
   const SEEN_KEY = "pluvia-seen-version";
   const VERSIONS = [
+    {version:"1.2.1", date:"2026-10-12", title:"Foto de perfil em todos os aparelhos", items:[
+      "A foto de perfil agora acompanha a sua conta: escolha num aparelho e ela aparece nos outros.",
+    ]},
     {version:"1.2", date:"2026-10-12", title:"Fotos de perfil e janelas claras de dia", items:[
       "Em Minha conta, escolha uma foto de perfil com um desenho do tempo: sol, lua, chuva, trovoada e outros.",
       "De dia, as janelas (conta, busca de cidades, novidades e as outras) ficam claras; à noite continuam escuras.",

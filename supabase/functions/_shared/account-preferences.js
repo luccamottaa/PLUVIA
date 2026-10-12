@@ -3,6 +3,9 @@ const cityPattern = /^\d{7}$/;
 const idPattern = /^[A-Za-z0-9-]{1,64}$/;
 const clean = (value, limit) => typeof value === 'string' ? value.replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,limit) : '';
 const version = value => Number.isSafeInteger(value) && value >= 0 ? value : 0;
+// Fotos de perfil: só os desenhos de dist/modules/avatars.js (conferido por teste); null volta à inicial.
+export const AVATAR_IDS = Object.freeze(['sol','lua','nuvem','chuva','trovoada','neve','vento','neblina']);
+const avatarId = value => AVATAR_IDS.includes(value) ? value : null;
 export function snapshot(metadata = {}) {
   const favoriteCityIds = [...new Set(Array.isArray(metadata.favorite_city_ids) ? metadata.favorite_city_ids.filter(id=>typeof id==='string' || Number.isInteger(id)).map(String).filter(id=>cityPattern.test(id)) : [])].slice(0,30);
   const namedPlaces = [], seen = new Set();
@@ -14,11 +17,15 @@ export function snapshot(metadata = {}) {
     seen.add(place.id);namedPlaces.push(place);
     if(namedPlaces.length===40) break;
   }
-  return {displayName:[metadata.name,metadata.full_name,metadata.display_name].map(value=>clean(value,60)).find(Boolean) || '',favoriteCityIds,primaryCityId:cityPattern.test(String(metadata.primary_city_id || '')) ? String(metadata.primary_city_id) : null,namedPlaces};
+  return {displayName:[metadata.name,metadata.full_name,metadata.display_name].map(value=>clean(value,60)).find(Boolean) || '',favoriteCityIds,primaryCityId:cityPattern.test(String(metadata.primary_city_id || '')) ? String(metadata.primary_city_id) : null,namedPlaces,avatar:avatarId(metadata.avatar_id)};
 }
 export function operationsInput(raw) {
-  if(!raw || typeof raw!=='object' || Array.isArray(raw) || Object.keys(raw).some(key=>!['favoriteChanges','primaryCityId','placeChanges','displayName'].includes(key))) throw Error('invalid_operations');
+  if(!raw || typeof raw!=='object' || Array.isArray(raw) || Object.keys(raw).some(key=>!['favoriteChanges','primaryCityId','placeChanges','displayName','avatar'].includes(key))) throw Error('invalid_operations');
   const result={};
+  if(raw.avatar!==undefined){
+    if(raw.avatar!==null && !AVATAR_IDS.includes(raw.avatar))throw Error('invalid_operations');
+    result.avatar=raw.avatar;
+  }
   if(raw.displayName!==undefined){
     if(typeof raw.displayName!=='string' || !clean(raw.displayName,60))throw Error('invalid_operations');
     result.displayName=clean(raw.displayName,60);
@@ -57,6 +64,7 @@ export function operationsInput(raw) {
 export function applyOperations(metadata, operations, now=Date.now()) {
   const state=snapshot(metadata), patch={};
   if(operations.displayName!==undefined)patch.name=operations.displayName;
+  if(operations.avatar!==undefined && avatarId(metadata.avatar_id)!==operations.avatar)patch.avatar_id=operations.avatar;
   if(operations.favoriteChanges?.length) {
     const favorites=new Set(state.favoriteCityIds);
     for(const item of operations.favoriteChanges) item.enabled ? favorites.add(item.cityId) : favorites.delete(item.cityId);
