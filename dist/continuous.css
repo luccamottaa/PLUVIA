@@ -726,6 +726,21 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 #weatherView .sky-events dd { margin:4px 0 0; color:var(--reading-ink); font-size:1rem; font-weight:600; }
 #weatherView .sky-events .sky-events-meteor { grid-column:1/-1; }
 #weatherView .sky-events .sky-events-meteor[hidden] { display:none; }
+/* Ilustração dos eclipses (aria-hidden, só pintura dentro do SVG): a Lua desliza sobre o Sol até a fração
+   encoberta na cidade, ou a sombra da Terra sobre a Lua; toca ao abrir "Mais sobre o céu". */
+#weatherView .eclipse-figure { display:block; width:64px; height:64px; margin:0 auto 8px; overflow:visible; }
+#weatherView .eclipse-figure .eclipse-sun { fill:#ffc94a; }
+#weatherView .eclipse-figure .eclipse-glow { fill:#ffc94a; opacity:.22; }
+#weatherView .eclipse-figure[data-tone="total"] .eclipse-glow { fill:#f2f5ff; opacity:.45; }
+#weatherView .eclipse-figure .eclipse-moon-rim { fill:none; stroke:#ffffff26; stroke-width:1; }
+#weatherView .eclipse-figure .eclipse-mover { transform:translateX(var(--eclipse-to)); }
+#weatherView .eclipse-figure .eclipse-moon { fill:#141b2e; }
+#weatherView .eclipse-figure .eclipse-umbra { fill:#2a1512; opacity:.8; }
+#weatherView .eclipse-figure[data-tone="total"] .eclipse-umbra { fill:#9a3b22; opacity:.72; }
+#weatherView .eclipse-figure[data-play] .eclipse-mover { animation:pluvia-eclipse 3.2s cubic-bezier(.25,.6,.2,1) .25s both; }
+@keyframes pluvia-eclipse { from { transform:translateX(var(--eclipse-from)); } to { transform:translateX(var(--eclipse-to)); } }
+@media (prefers-reduced-motion:reduce) { #weatherView .eclipse-figure[data-play] .eclipse-mover { animation:none; } }
+#weatherView .sky-events dd small { color:var(--reading-muted); font-weight:400; }
 #weatherView .sky-events small { display:block; max-width:34rem; margin:4px auto 0; font-size:.78rem; line-height:1.5; }
 
 /* Brasil agora: capitais por região; cada linha é um botão (ícone, nome, temperatura, máx/mín)
@@ -889,7 +904,7 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 /* Bolinhas das cidades (deslizar o topo troca de cidade): alvo de 44px de altura, ponto de 8px. */
 #weatherView .city-dots { display:flex; justify-content:center; flex-wrap:wrap; gap:0; margin:10px auto 0; }
 #weatherView .city-dots[hidden] { display:none; }
-#weatherView .city-dot { display:grid; place-items:center; width:22px; height:44px; padding:0; border:0; background:none; cursor:pointer; }
+#weatherView .city-dot { display:grid; place-items:center; width:24px; height:44px; padding:0; border:0; background:none; cursor:pointer; }
 #weatherView .city-dot::before { content:""; width:8px; height:8px; border-radius:4px; background:var(--reading-ink); opacity:.3; transition:width .32s cubic-bezier(.22,1,.36,1), opacity .32s ease; }
 #weatherView .city-dot[aria-current="true"]::before { width:18px; opacity:1; }
 #weatherView .city-dot:focus-visible { outline:2px solid var(--brand-blue); outline-offset:-10px; border-radius:12px; }
@@ -1509,7 +1524,9 @@ html body #sourcesDialog .source-credits p { margin:10px 4px 0; font-size:.8125r
 #whatsNewList > .changelog-entry:only-child .changelog-date { margin:0; }
 .whats-new-actions { display:flex; flex-direction:column; gap:6px; margin-top:22px; }
 .whats-new-actions button { min-height:44px; border:0; border-radius:999px; font:inherit; font-weight:600; cursor:pointer; }
-.whats-new-ok { background:var(--brand-blue,#2f6bff); color:#fff; }
+/* Branco sobre o azul da marca fica em 4,49:1: o texto do botão principal é grande e forte (≥ 18,7 px bold),
+   onde o mínimo é 3:1. */
+.whats-new-ok { background:var(--brand-blue,#2f6bff); color:#fff; font-size:1.1875rem !important; font-weight:700 !important; }
 .whats-new-all { background:none; color:#7aa7ff; font-weight:500 !important; }
 html body[data-ink="dark"] .whats-new-all { color:var(--dialog-link,#1f56d6); }
 .whats-new-actions button:focus-visible { outline:3px solid var(--brand-blue,#2f6bff); outline-offset:3px; }

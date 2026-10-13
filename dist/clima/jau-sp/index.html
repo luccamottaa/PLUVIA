@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-175" />
+    <meta name="pluvia-release" content="pluvia-panel-176" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -122,7 +122,7 @@
     <script src="/vendor/suncalc.js?v=sky-3"></script>
     <script src="/modules/moon-view.js?v=moon-4"></script>
     <script src="/modules/sky-atmosphere.js?v=sky-18"></script>
-    <script src="/modules/sky-events.js?v=sky-events-3" defer></script><script src="/modules/eclipses.js?v=eclipses-1" defer></script>
+    <script src="/modules/sky-events.js?v=sky-events-3" defer></script><script src="/modules/eclipses.js?v=eclipses-2" defer></script>
     <link rel="stylesheet" href="/sky.css?v=sky-35" />
     <script>
       /* O antigo modo seguro (céu parado depois de uma queda) saiu a pedido: limpa as marcas que ele deixou. */
@@ -192,7 +192,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="/redesign.css?v=panel-46" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-90" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-91" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -404,7 +404,7 @@
         <div class="sun-arc" aria-hidden="true"><svg class="arc-line" viewBox="0 0 100 136" preserveAspectRatio="none"><path d="M9 115 Q50 -65 91 115" /></svg><span class="sun-dot" id="sunDot" hidden><img src="/assets/weather-icons/conditions/clear-day.svg?v=modern-3" width="64" height="64" alt="" /></span><span class="moon-dot" id="moonDot" hidden><svg viewBox="0 0 80 80" focusable="false"><use href="#moonDisc"/></svg></span></div>
         <div class="sun-times sun-ends"><div><span>Nascer do sol</span><strong id="sunrise">--:--</strong></div><div><span>Pôr do sol</span><strong id="sunset">--:--</strong></div></div>
         <div class="moon-inline moon-line"><svg class="moon-phase-icon" viewBox="0 0 80 80" aria-hidden="true" focusable="false"><use href="#moonDisc"/></svg><span><span class="moon-label">Lua: </span><strong id="moonPhase">Consultando…</strong> <small id="moonIllumination">Iluminação indisponível</small></span></div>
-        <details class="astronomy-details"><summary>Mais sobre o céu</summary><p class="sunshine-note" id="sunshineNote">Consultando horas de sol previstas…</p><div class="sky-events" id="skyEvents" hidden><h3>No céu</h3><dl><div><dt>Próxima lua nova</dt><dd id="nextNewMoon">—</dd></div><div><dt>Próxima lua cheia</dt><dd id="nextFullMoon">—</dd></div><div class="sky-events-meteor" id="meteorRow" hidden><dt>Chuva de meteoros</dt><dd id="nextMeteor">—</dd><small id="meteorNote"></small></div><div class="sky-events-meteor" id="solarEclipseRow" hidden><dt>Próximo eclipse do Sol daqui</dt><dd id="nextSolarEclipse">—</dd><small id="solarEclipseNote"></small></div><div class="sky-events-meteor" id="lunarEclipseRow" hidden><dt>Próximo eclipse da Lua daqui</dt><dd id="nextLunarEclipse">—</dd><small id="lunarEclipseNote"></small></div></dl></div><p id="astronomyDate"></p><dl><div><dt>Amanhecer civil</dt><dd id="civilDawn">—</dd></div><div><dt>Fim do crepúsculo civil</dt><dd id="civilDusk">—</dd></div><div><dt>Hora dourada</dt><dd id="goldenHour">—</dd></div><div><dt>Hora azul</dt><dd id="blueHour">—</dd></div><div><dt>Nascer da Lua</dt><dd id="moonrise">—</dd></div><div><dt>Pôr da Lua</dt><dd id="moonset">—</dd></div></dl><small>Horários aproximados por coordenadas. Amanhecer e crepúsculo civil correspondem ao Sol a 6° abaixo do horizonte. Hora dourada: Sol entre o horizonte e 6° de altura; hora azul: crepúsculo civil, entre 6° abaixo do horizonte e o nascer ou o pôr. Relevo e condições locais podem alterar a visibilidade dos astros.</small></details>
+        <details class="astronomy-details"><summary>Mais sobre o céu</summary><p class="sunshine-note" id="sunshineNote">Consultando horas de sol previstas…</p><div class="sky-events" id="skyEvents" hidden><h3>No céu</h3><dl><div><dt>Próxima lua nova</dt><dd id="nextNewMoon">—</dd></div><div><dt>Próxima lua cheia</dt><dd id="nextFullMoon">—</dd></div><div class="sky-events-meteor" id="meteorRow" hidden><dt>Chuva de meteoros</dt><dd><span id="nextMeteor">—</span><small id="meteorNote"></small></dd></div><div class="sky-events-meteor" id="solarEclipseRow" hidden><dt>Próximo eclipse do Sol daqui</dt><dd><span id="nextSolarEclipse">—</span><small id="solarEclipseNote"></small></dd></div><div class="sky-events-meteor" id="lunarEclipseRow" hidden><dt>Próximo eclipse da Lua daqui</dt><dd><span id="nextLunarEclipse">—</span><small id="lunarEclipseNote"></small></dd></div></dl></div><p id="astronomyDate"></p><dl><div><dt>Amanhecer civil</dt><dd id="civilDawn">—</dd></div><div><dt>Fim do crepúsculo civil</dt><dd id="civilDusk">—</dd></div><div><dt>Hora dourada</dt><dd id="goldenHour">—</dd></div><div><dt>Hora azul</dt><dd id="blueHour">—</dd></div><div><dt>Nascer da Lua</dt><dd id="moonrise">—</dd></div><div><dt>Pôr da Lua</dt><dd id="moonset">—</dd></div></dl><small>Horários aproximados por coordenadas. Amanhecer e crepúsculo civil correspondem ao Sol a 6° abaixo do horizonte. Hora dourada: Sol entre o horizonte e 6° de altura; hora azul: crepúsculo civil, entre 6° abaixo do horizonte e o nascer ou o pôr. Relevo e condições locais podem alterar a visibilidade dos astros.</small></details>
       </section>
       </div>
     </main>
@@ -510,7 +510,7 @@
     <script src="/modules/hourly-detail.js?v=detail-7" defer></script>
     <script src="/modules/daily-detail.js?v=daily-3" defer></script>
     <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="/app.js?v=panel-99" defer></script>
+    <script src="/app.js?v=panel-100" defer></script>
     <script src="/p0.js?v=panel-46" defer></script>
     <script src="/modules/risks.js?v=core-120" defer></script>
     <script src="/modules/adapters.js?v=core-110" defer></script>
@@ -526,7 +526,7 @@
     <script src="/modules/brazil-now.js?v=brazil-2" defer></script>
     <script src="/modules/month-recap.js?v=month-1" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-11" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-12" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/notifications.js?v=panel-34" defer></script>
   </body>

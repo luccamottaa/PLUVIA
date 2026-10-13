@@ -2,6 +2,7 @@ const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
+const path = require('node:path');
 const eclipses = require('../dist/modules/eclipses.js');
 const A = require('../dist/vendor/astronomy-2.1.19.min.js');
 
@@ -60,7 +61,38 @@ test('biblioteca carrega uma vez, sob demanda, pelo caminho da raiz; falha permi
 test('a biblioteca não entra na abertura nem no precache; o módulo e a licença acompanham', () => {
   const html = fs.readFileSync('dist/index.html', 'utf8'), sw = fs.readFileSync('dist/sw.js', 'utf8');
   assert.doesNotMatch(html, /astronomy-2\.1\.19/);assert.doesNotMatch(sw, /astronomy-2\.1\.19/);
-  assert.match(html, /modules\/eclipses\.js\?v=eclipses-1/);assert.match(sw, /modules\/eclipses\.js\?v=eclipses-1/);
+  assert.match(html, /modules\/eclipses\.js\?v=eclipses-2/);assert.match(sw, /modules\/eclipses\.js\?v=eclipses-2/);
   assert.match(fs.readFileSync('dist/vendor/astronomy-LICENSE', 'utf8'), /MIT License/);
   assert.match(html, /Astronomy Engine<\/a> \(MIT\)/);
+});
+
+test('ilustração: a Lua cobre exatamente a fração calculada e o anular vira anel no centro',()=>{
+  const e=require('../dist/modules/eclipses.js');
+  for(const f of [.01,.075,.5,.83,.99]){const d=e.distanceFor(f,1);assert.ok(Math.abs(e.overlapFraction(d,1)-f)<1e-4,f);}
+  assert.equal(e.overlapFraction(3,1),0);
+  assert.equal(e.overlapFraction(0,.9),.81);
+  const annular=e.figureModel('solar',{kind:'annular',obscuration:.85});
+  assert.equal(annular.to,0);assert.ok(Math.abs(annular.r*annular.r-.85)<1e-9);
+  assert.deepEqual(e.figureModel('solar',{kind:'total',obscuration:1}).to,0);
+  const partial=e.figureModel('solar',{kind:'partial',obscuration:.075});
+  assert.ok(Math.abs(e.overlapFraction(-partial.to,1)-.075)<1e-4);
+  assert.ok(partial.from<partial.to,'entra pela esquerda e para na fração');
+  const lunar=e.figureModel('lunar',{kind:'partial',obscuration:.3});
+  assert.ok(Math.abs(e.overlapFraction(-lunar.to,2.6)-.3)<1e-4);
+  assert.equal(e.figureModel('lunar',{kind:'total'}).tone,'total');
+});
+test('ilustração: SVG aria-hidden, sem HTML montado, com o ponto inicial e final no estilo',()=>{
+  const e=require('../dist/modules/eclipses.js');
+  const node=name=>({name,attrs:{},children:[],style:{props:{},setProperty(k,v){this.props[k]=v;}},setAttribute(k,v){this.attrs[k]=v;},append(...c){this.children.push(...c);}});
+  const doc={createElementNS:(ns,name)=>{assert.equal(ns,'http://www.w3.org/2000/svg');return node(name);}};
+  const svg=e.figure(doc,'lunar',{kind:'total',obscuration:1});
+  assert.equal(svg.attrs['aria-hidden'],'true');assert.equal(svg.attrs['data-tone'],'total');
+  const all=[];(function walk(n){all.push(n);n.children.forEach(walk);})(svg);
+  assert.ok(all.some(n=>n.name==='use'&&n.attrs.href==='#pluviaMoonSurface'),'reaproveita a textura da Lua');
+  const mover=all.find(n=>String(n.attrs.class).includes('eclipse-mover'));
+  assert.match(mover.style.props['--eclipse-from'],/^-\d+\.\d+px$/);assert.match(mover.style.props['--eclipse-to'],/^-\d+\.\d+px$/);
+  const css=fs.readFileSync(path.join(__dirname,'..','dist','continuous.css'),'utf8');
+  assert.match(css,/@media \(prefers-reduced-motion:reduce\) \{ #weatherView \.eclipse-figure\[data-play\] \.eclipse-mover \{ animation:none; \} \}/);
+  const app=fs.readFileSync(path.join(__dirname,'..','dist','app.js'),'utf8');
+  assert.match(app,/if\(row\.dataset\.figure===key\) return;/,'o relógio não refaz a ilustração');
 });
