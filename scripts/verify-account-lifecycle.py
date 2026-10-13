@@ -36,7 +36,7 @@ with sync_playwright() as p:
   if '127.0.0.1' in url or 'localhost' in url:r.continue_();return
   r.abort()
  context.route('**/*',route)
- context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-13'}));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});")
+ context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-13'}));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});window.turnstile={render(s,o){this.o=o;return 'qa'},reset(){},remove(){},execute(){setTimeout(()=>this.o.callback('qa-captcha-token'),0)}};")
  page=context.new_page();page.on('pageerror',lambda e: None if blocked_load(str(e)) else errors.append(str(e)))
  page.goto(preview,wait_until='domcontentloaded');page.locator('#accountButton').click();page.locator('#accountForgot').click();page.locator('#accountEmail').fill('fixture@example.test');page.locator('#accountSubmit').click()
  page.wait_for_function("document.getElementById('accountStatus').textContent.includes('serviço do Pluvia')")
@@ -47,6 +47,7 @@ with sync_playwright() as p:
  assert len(recover)==2 and recover[0]['email']=='fixture@example.test'
  assert 'password' not in recover[0]
  page.locator('#accountSubmit').click();assert len(recover)==2
+ assert all((body or {}).get('gotrue_meta_security',{}).get('captcha_token')=='qa-captcha-token' for body in recover),recover
  page.goto(preview+'/?auth_recovery=1#access_token='+token+'&refresh_token=fixture&expires_in=3600&token_type=bearer&type=recovery',wait_until='domcontentloaded')
  page.locator('#accountNewPassword').wait_for(state='visible',timeout=20000)
  assert page.locator('#accountProfile').is_hidden()

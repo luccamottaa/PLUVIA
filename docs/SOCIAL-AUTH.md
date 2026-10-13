@@ -4,6 +4,8 @@
 
 Em 03/10/2026, GET público /auth/v1/settings do projeto dszyyrcvwrpyiypwyvxe respondeu HTTP 200: Google false, Apple false, e-mail true. Integração do frontend pronta; não confundir botões implementados com provedores habilitados. Não há ferramenta de configuração Auth nem credenciais Google/Apple disponíveis nesta sessão.
 
+Em 13/10/2026 o Google foi habilitado pelo proprietário: /auth/v1/settings responde google true, e o authorize redireciona para accounts.google.com com o callback do Supabase. A tela de consentimento do Google mostra o domínio do projeto Supabase (dszyyrcvwrpyiypwyvxe.supabase.co); trocar exige domínio personalizado do Supabase (pago) ou outro fluxo. No mesmo dia o CAPTCHA (Cloudflare Turnstile) foi ligado no Supabase Auth; OAuth não usa token de CAPTCHA, os fluxos por e-mail e a sessão anônima de avisos sim (`modules/captcha.js`, ver AGENTS.md).
+
 O app reutiliza Supabase Auth e o SDK local 2.116.0. Primeiro login social cria a conta automaticamente; seguintes acessam a mesma identidade conforme vinculação do Supabase. Não há cadastro paralelo, nova tabela ou senha local para conta social. Não vincular contas manualmente pelo texto do e-mail; Apple pode entregar e-mail privado relay.
 
 modules/social-auth.js concentra descoberta, allowlist Google/Apple, destino de retorno, validação do endpoint authorize e limpeza de callback. Descoberta usa cliente HTTP próprio, timeout 6s, deduplicação e freshness 5min. Cada provider é confirmado independentemente por booleano true; um campo ausente/inválido não oculta o outro provider confirmado. Resposta parcial/falha revalida em nova abertura após 10s, sem polling. Não autentica por flags locais.

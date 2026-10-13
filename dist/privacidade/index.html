@@ -70,6 +70,7 @@
         <li><strong>Supabase</strong> (banco de dados, login e funções do servidor; servidores nos EUA): conta, avisos e respostas ao “Tá chovendo aí?”.</li>
         <li><strong>Resend</strong> (envio dos e-mails de confirmação e recuperação de senha): seu e-mail.</li>
         <li><strong>Google e Apple</strong>, só se você entrar com eles.</li>
+        <li><strong>Cloudflare Turnstile</strong> (verificação contra robôs ao entrar, criar conta, recuperar a senha e ligar avisos sem conta): recebe o endereço IP e sinais técnicos do navegador só para essa verificação, sem cookies de rastreamento; o resultado é conferido pelo Supabase.</li>
         <li><strong>Serviços de notificação do seu navegador</strong> (Apple, Google, Mozilla ou Microsoft): o conteúdo do aviso, entregue pela inscrição do aparelho.</li>
         <li><strong>PostHog</strong> (métricas, EUA), só com as métricas ativadas.</li>
         <li><strong>Sentry</strong> (erros do servidor): apenas componente e código do erro, sem dados pessoais.</li>
