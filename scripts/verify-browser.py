@@ -40,7 +40,7 @@ with sync_playwright() as p:
   if 'localhost' in url or '127.0.0.1' in url:r.continue_();return
   r.abort()
  context.route('**/*',route)
- context.add_init_script("Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(success,error){error({code:1});}}});sessionStorage.setItem('pluvia-intro-seen','1');")
+ context.add_init_script("Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(success,error){error({code:1});}}});sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-10'}));")
  page.goto(preview,wait_until='domcontentloaded')
  page.wait_for_function("document.getElementById('temperature').textContent==='30'",timeout=20000)
  page.wait_for_function("document.getElementById('pluviaIntro').hidden")
@@ -182,7 +182,7 @@ with sync_playwright() as p:
  for signal in ['display-mode','apple-standalone']:
   app_context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,service_workers='block')
   app_context.route('**/*',route)
-  app_context.add_init_script("Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(success,error){error({code:1});}}});sessionStorage.setItem('pluvia-intro-seen','1');")
+  app_context.add_init_script("Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(success,error){error({code:1});}}});sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-10'}));")
   if signal=='apple-standalone':app_context.add_init_script("Object.defineProperty(navigator,'standalone',{value:true});")
   else:app_context.add_init_script("const nativeMatchMedia=window.matchMedia.bind(window);window.matchMedia=q=>{if(q!=='(display-mode: standalone)')return nativeMatchMedia(q);const mode=new EventTarget();mode.matches=true;return mode;};")
   app_page=app_context.new_page();app_page.on('pageerror',lambda err: None if str(err).endswith(RAINVIEWER_CANCELLED) else errors.append(str(err)))

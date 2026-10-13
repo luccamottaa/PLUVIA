@@ -55,7 +55,7 @@ with sync_playwright() as p:
         # Só na primeira abertura: semeia cidade e favoritos; as próximas abas conservam o que o app gravou.
         context.add_init_script("if(!localStorage.getItem('pluvia-qa-seeded')){localStorage.setItem('pluvia-qa-seeded','1');"
                                 "localStorage.setItem('pluvia-city',JSON.stringify('1302603'));localStorage.setItem('pluvia-favorites',JSON.stringify(['1501402','3550308']));}"
-                                "sessionStorage.setItem('pluvia-intro-seen','1');"
+                                "sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-10'}));"
                                 "Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1})}}});")
         errors = []
         # Relógio fixo uma vez no contexto: no WebKit, set_fixed_time numa aba nova (about:blank) falha.

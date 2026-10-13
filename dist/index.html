@@ -15,7 +15,7 @@
     <script src="./modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-178" />
+    <meta name="pluvia-release" content="pluvia-panel-179" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -190,7 +190,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="./redesign.css?v=panel-46" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-93" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-94" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -244,6 +244,7 @@
         <div id="accountSocial" class="account-social" role="group" aria-label="Outras formas de entrar ou criar conta" hidden>
           <button id="accountGoogle" class="account-provider" type="button" hidden disabled><svg class="account-provider-icon" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65Z"/><path fill="#FBBC05" d="M10.53 28.59A14.41 14.41 0 0 1 9.75 24c0-1.59.28-3.13.78-4.59l-7.98-6.19A23.89 23.89 0 0 0 0 24c0 3.87.93 7.53 2.56 10.78l7.97-6.19Z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"/></svg><span>Continuar com Google</span></button>
           <button id="accountApple" class="account-provider" type="button" hidden disabled><svg class="account-provider-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.05 12.54c.03 3.3 2.89 4.4 2.92 4.42-.02.08-.46 1.58-1.51 3.13-.91 1.34-1.85 2.67-3.34 2.7-1.46.03-1.93-.87-3.6-.87-1.67 0-2.19.84-3.58.9-1.44.05-2.53-1.45-3.45-2.78C2.62 17.3 1.2 12.3 3.13 8.95c.96-1.67 2.67-2.73 4.52-2.76 1.41-.03 2.74.95 3.6.95.86 0 2.47-1.18 4.17-1.01.71.03 2.7.29 3.99 2.18-.1.06-2.38 1.39-2.36 4.23M14.3 4.33C15.06 3.4 15.58 2.1 15.44.8c-1.1.05-2.42.74-3.21 1.67-.71.82-1.33 2.14-1.16 3.4 1.22.1 2.47-.62 3.23-1.54"/></svg><span>Continuar com Apple</span></button>
+          <small class="terms-social-note">Ao continuar com Google ou Apple, você aceita os <a href="/termos/" target="_blank" rel="noopener">Termos de uso</a> e a <a href="/termos/#privacidade" target="_blank" rel="noopener">Política de privacidade</a>.</small>
           <span class="account-email-separator">ou com e-mail</span>
         </div>
         <form id="accountForm">
@@ -251,6 +252,7 @@
           <label>E-mail<input id="accountEmail" type="email" autocomplete="email" required maxlength="254" /></label>
           <label id="accountPasswordField">Senha<input id="accountPassword" type="password" autocomplete="current-password" required maxlength="128" /></label>
           <small id="accountPasswordHint" hidden>Use 12 ou mais caracteres, com maiúscula, minúscula, número e símbolo.</small>
+          <label id="accountTermsField" class="terms-check" hidden><input id="accountTerms" type="checkbox"><span>Li e aceito os <a href="/termos/" target="_blank" rel="noopener">Termos de uso</a> e a <a href="/termos/#privacidade" target="_blank" rel="noopener">Política de privacidade</a></span></label>
           <button id="accountSubmit" type="submit">Entrar</button>
           <button id="accountForgot" class="account-text-action" type="button">Esqueci minha senha</button>
         </form>
@@ -485,6 +487,13 @@
       <div class="dialog-heading"><h2 id="changelogTitle">Novidades do PLUVIA</h2><button id="changelogClose" class="dialog-close" type="button" aria-label="Fechar novidades">×</button></div>
       <div class="dialog-scroll"><p class="changelog-intro">Versões 1.1, 1.2… trazem novidades; 1.1.1, 1.1.2… são correções.</p><ol id="changelogList" class="changelog-list"></ol></div>
     </dialog>
+    <dialog id="termsDialog" class="city-dialog terms-dialog" aria-labelledby="termsTitle">
+      <div class="dialog-heading"><h2 id="termsTitle">Antes de ligar os avisos</h2><button id="termsClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
+      <div class="dialog-scroll"><p>Para mandar avisos ao seu celular, o PLUVIA guarda a inscrição deste aparelho e as cidades que você escolher. Dá para desligar quando quiser.</p><p>As previsões são estimativas e podem errar. Em situação de risco, siga a Defesa Civil (199) e o INMET.</p>
+        <label class="terms-check"><input id="termsCheck" type="checkbox" autofocus><span>Li e aceito os <a href="/termos/" target="_blank" rel="noopener">Termos de uso</a> e a <a href="/termos/#privacidade" target="_blank" rel="noopener">Política de privacidade</a></span></label>
+        <div class="whats-new-actions"><button id="termsAccept" class="whats-new-ok" type="button" disabled>Aceitar e ligar avisos</button><button id="termsCancel" class="whats-new-all" type="button">Agora não</button></div></div>
+    </dialog>
+    <div class="terms-notice" id="termsNotice" role="region" aria-label="Termos de uso" hidden><p>Ao usar o PLUVIA, você concorda com os <a href="/termos/" target="_blank" rel="noopener">Termos de uso</a> e a <a href="/termos/#privacidade" target="_blank" rel="noopener">Política de privacidade</a>.</p><button id="termsNoticeOk" type="button">OK</button></div>
     <dialog id="whatsNewDialog" class="city-dialog changelog-dialog whats-new-dialog" aria-labelledby="whatsNewTitle">
       <div class="dialog-heading"><h2 id="whatsNewTitle">Novidades do PLUVIA</h2><button id="whatsNewClose" class="dialog-close" type="button" aria-label="Fechar novidades">×</button></div>
       <div class="dialog-scroll"><ol id="whatsNewList" class="changelog-list"></ol><div class="whats-new-actions"><button id="whatsNewOk" class="whats-new-ok" type="button" autofocus>Entendi</button><button id="whatsNewAll" class="whats-new-all" type="button">Ver todas as versões</button></div></div>
@@ -531,7 +540,8 @@
     <script src="./modules/account-sync.js?v=sync-2" defer></script>
     <script src="./modules/social-auth.js?v=oauth-3" defer></script>
     <script src="./modules/avatars.js?v=avatars-2" defer></script>
-    <script src="./account.js?v=account-14" defer></script>
+    <script src="./modules/terms.js?v=terms-1" defer></script>
+    <script src="./account.js?v=account-15" defer></script>
     <script src="./favorite-cities.js?v=favorites-10" defer></script>
     <script src="./modules/share-card.js?v=share-card-3" defer></script>
     <script src="./modules/share-weather.js?v=share-9" defer></script>
@@ -540,9 +550,9 @@
     <script src="./modules/month-recap.js?v=month-1" defer></script>
     <script src="./modules/station-now.js?v=station-1" defer></script>
     <script src="./modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="./modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="./modules/voice-search.js?v=voice-1" defer></script><script src="./modules/rain-reports.js?v=rain-reports-1" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-1" defer></script><script src="./modules/changelog.js?v=changelog-14" defer></script>
+    <script src="./modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="./modules/voice-search.js?v=voice-1" defer></script><script src="./modules/rain-reports.js?v=rain-reports-1" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-1" defer></script><script src="./modules/changelog.js?v=changelog-15" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="./modules/account-summary.js?v=account-summary-1" defer></script>
-    <script src="./notifications.js?v=panel-35" defer></script>
+    <script src="./notifications.js?v=panel-36" defer></script>
   </body>
 </html>

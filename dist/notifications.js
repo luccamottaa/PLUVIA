@@ -289,6 +289,9 @@
     if (busy) return;
     if (isIOS && !standalone) { showInstall(); await paintState(); return; }
     if (!supported) { await paintState(); return; }
+    // Ligar avisos exige aceitar os Termos e a Privacidade; o aceite chama enable() no mesmo toque.
+    const terms = globalThis.PLUVIA?.terms;
+    if (terms?.ask && !terms.accepted()) { terms.ask(() => enable()); return; }
     busy = true; toggle.disabled = true;
     try {
       // A permissão vem primeiro, ainda dentro do toque (o iPhone exige); depois a sessão.

@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.6.2", date:"2026-10-13", title:"Termos de uso", items:[
+      "Termos de uso: no primeiro acesso aparece um aviso curto, e criar conta ou ligar os avisos pede que você marque “Li e aceito os Termos de uso e a Política de privacidade”.",
+      "O aviso não bloqueia a previsão: é só tocar em OK.",
+    ]},
     {version:"1.6.1", date:"2026-10-13", title:"Minha conta mais curta", items:[
       "Minha conta agora é organizada em cartões que abrem e fecham, cada um mostrando como está: tipos de aviso, resumos, intensidade e silêncio, cidades e aparelhos. Dá para ver tudo sem rolar a tela inteira.",
     ]},

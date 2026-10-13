@@ -40,12 +40,12 @@ with sync_playwright() as p:
  def context():
   ctx=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,service_workers='block')
   ctx.route('**/*',route)
-  ctx.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});")
+  ctx.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-10'}));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});")
   return ctx
  for source,dest in [(public+'/',public+'/'),(preview+'/index.html?next=https://other.test#agora',public+'/'),('http://127.0.0.1:4173/','http://127.0.0.1:4173/')]:
   ctx=context();page=ctx.new_page();page.on('pageerror',lambda e: None if str(e).endswith(RAINVIEWER_CANCELLED) else errors.append(str(e)))
   page.goto(source,wait_until='domcontentloaded');page.locator('#accountButton').click();page.locator('#accountSignup').click()
-  page.locator('#accountName').fill('Teste');page.locator('#accountEmail').fill('fixture@example.test');page.locator('#accountPassword').fill('Fixture-password1!');page.locator('#accountSubmit').click()
+  page.locator('#accountName').fill('Teste');page.locator('#accountEmail').fill('fixture@example.test');page.locator('#accountPassword').fill('Fixture-password1!');page.locator('#accountTerms').check();page.locator('#accountSubmit').click()
   page.wait_for_function("document.getElementById('accountStatus').textContent.includes('confirmar')")
   assert signup[-1]==dest,(signup[-1],dest)
   assert page.locator('#accountProfile').is_hidden()

@@ -42,7 +42,7 @@ test('cadastro e recuperação iniciados no preview solicitam retorno ao domíni
   let signup,recovery;
   app.client.auth.signUp=async args=>{signup=args;return {data:{session:null}};};
   app.client.auth.resetPasswordForEmail=async(email,options)=>{recovery={email,options};return {error:null};};
-  app.nodes.get('accountSignup').events.click();app.context.document.getElementById('accountName').value='Fixture';
+  app.nodes.get('accountSignup').events.click();app.context.document.getElementById('accountTerms').checked=true;app.context.document.getElementById('accountName').value='Fixture';
   app.context.document.getElementById('accountEmail').value='fixture@example.test';app.nodes.get('accountPassword').value='Fixture-password1!';
   await app.nodes.get('accountForm').events.submit({preventDefault(){}});
   assert.equal(signup.options.emailRedirectTo,'https://pluviaweather.com.br/');
@@ -82,7 +82,7 @@ test('erros do servidor, limite e rede preservam mensagens distintas',async()=>{
  for(const [error,expected] of [[{status:503},/serviço do Pluvia/],[{code:'over_email_send_rate_limit',status:429},/Muitas tentativas/],[{code:'email_address_not_authorized',status:400},/liberado/],[{name:'AuthRetryableFetchError',status:0},/conexão/]]){
    app.client.auth.resetPasswordForEmail=async()=>({error});await app.nodes.get('accountForm').events.submit({preventDefault(){}});assert.match(app.nodes.get('accountStatus').textContent,expected);
  }
- app.nodes.get('accountSignup').events.click();app.nodes.get('accountName').value='Fixture';app.nodes.get('accountPassword').value='Fixture-password1!';
+ app.nodes.get('accountSignup').events.click();app.context.document.getElementById('accountTerms').checked=true;app.nodes.get('accountName').value='Fixture';app.nodes.get('accountPassword').value='Fixture-password1!';
  app.client.auth.signUp=async()=>({error:{code:'unexpected_failure',status:500}});await app.nodes.get('accountForm').events.submit({preventDefault(){}});
  assert.match(app.nodes.get('accountStatus').textContent,/concluir o cadastro/);assert.doesNotMatch(app.nodes.get('accountStatus').textContent,/conexão/);
 });
