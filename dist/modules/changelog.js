@@ -11,6 +11,10 @@
   "use strict";
   const SEEN_KEY = "pluvia-seen-version";
   const VERSIONS = [
+    {version:"1.4", date:"2026-10-12", title:"Eclipses no céu", items:[
+      "Em “Mais sobre o céu”: o próximo eclipse do Sol e o próximo eclipse da Lua que dá para ver da sua cidade, com data, horário e quanto do Sol fica encoberto.",
+      "Os cálculos são feitos no próprio aparelho para as coordenadas do município.",
+    ]},
     {version:"1.3.1", date:"2026-10-12", title:"Janelas mais firmes", items:[
       "Uma janela que reabria logo depois de fechar (a da conta, por exemplo) às vezes sumia sozinha no iPhone. Não some mais.",
     ]},
