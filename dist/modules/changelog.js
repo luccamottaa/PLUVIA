@@ -1,6 +1,6 @@
 // Versões do PLUVIA para as pessoas: 1.1, 1.2… trazem novidades; 1.1.1, 1.1.2… só correções.
 // A lista é escrita à mão a cada publicação que muda algo visível (a mais nova primeiro).
-// Depois de uma versão de novidades, quem já usava vê uma vez a linha "PLUVIA 1.x chegou".
+// Depois de uma versão de novidades, quem já usava vê uma vez a janela "O PLUVIA 1.x chegou".
 // Correções não avisam: ficam só na lista. Primeiro acesso não avisa nada.
 (function (root, factory) {
   const api = factory(root);
@@ -10,7 +10,13 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (runtime) {
   "use strict";
   const SEEN_KEY = "pluvia-seen-version";
+  const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.5", date:"2026-10-13", title:"Abertura sem pulos", items:[
+      "Ao abrir o app, a faixa de aviso do INMET já guarda o lugar enquanto a consulta termina: a página não pula mais quando o aviso chega.",
+      "A linha “Consultando” do INMET não fica mais com textos um em cima do outro no celular.",
+      "Depois de cada atualização, uma janela como esta mostra o que mudou, só na primeira vez que você abre.",
+    ]},
     {version:"1.4", date:"2026-10-12", title:"Eclipses no céu", items:[
       "Em “Mais sobre o céu”: o próximo eclipse do Sol e o próximo eclipse da Lua que dá para ver da sua cidade, com data, horário e quanto do Sol fica encoberto.",
       "Os cálculos são feitos no próprio aparelho para as coordenadas do município.",
@@ -96,6 +102,26 @@
     catch { return iso; }
   };
 
+  // Versões depois da última vista (novidades e correções), a mais nova primeiro, no máximo `limit`.
+  function since(seen, limit = 3, versions = VERSIONS) {
+    if (!parse(seen)) return [];
+    return versions.filter(entry => compare(entry.version, seen) > 0).slice(0, limit);
+  }
+
+  function entryNode(doc, entry) {
+    const item = doc.createElement("li"); item.className = "changelog-entry"; item.dataset.kind = entry.kind;
+    const head = doc.createElement("h3");
+    const badge = doc.createElement("span"); badge.className = "changelog-badge"; badge.textContent = entry.kind === "fix" ? "Correção" : "Novidade";
+    head.append(`Versão ${entry.version}`, badge);
+    const when = doc.createElement("p"); when.className = "changelog-date"; when.textContent = dateText(entry.date);
+    item.append(head, when);
+    if (entry.title) { const title = doc.createElement("p"); title.className = "changelog-title"; title.textContent = entry.title; item.append(title); }
+    const points = doc.createElement("ul");
+    points.append(...entry.items.map(text => { const point = doc.createElement("li"); point.textContent = text; return point; }));
+    item.append(points);
+    return item;
+  }
+
   function mount(doc = runtime.document) {
     const el = id => doc.getElementById(id);
     const dialog = el("changelogDialog"), body = el("changelogList"), opener = el("openChangelog");
@@ -103,40 +129,66 @@
     const storage = runtime.localStorage;
     opener.textContent = `Novidades · v${current()}`;
     const track = source => runtime.pluviaAnalytics?.track?.("Changelog Opened", {source});
-    const close = () => runtime.PLUVIA?.dialogs?.close?.(dialog) ?? dialog.close();
-    function render() {
-      body.replaceChildren(...list().map(entry => {
-        const item = doc.createElement("li"); item.className = "changelog-entry"; item.dataset.kind = entry.kind;
-        const head = doc.createElement("h3");
-        const badge = doc.createElement("span"); badge.className = "changelog-badge"; badge.textContent = entry.kind === "fix" ? "Correção" : "Novidade";
-        head.append(`Versão ${entry.version}`, badge);
-        const when = doc.createElement("p"); when.className = "changelog-date"; when.textContent = dateText(entry.date);
-        item.append(head, when);
-        if (entry.title) { const title = doc.createElement("p"); title.className = "changelog-title"; title.textContent = entry.title; item.append(title); }
-        const points = doc.createElement("ul");
-        points.append(...entry.items.map(text => { const point = doc.createElement("li"); point.textContent = text; return point; }));
-        item.append(points);
-        return item;
-      }));
-    }
+    const closeDialog = target => runtime.PLUVIA?.dialogs?.close?.(target) ?? target.close();
     function open(source) {
-      render(); remember(storage); hideNote();
+      body.replaceChildren(...list().map(entry => entryNode(doc, entry)));
+      remember(storage);
       if (!dialog.open) dialog.showModal();
       dialog.querySelector(".dialog-scroll")?.scrollTo?.(0, 0);
       track(source);
     }
-    const note = el("updateNote"), noteText = el("updateNoteText");
-    function hideNote() { if (note) note.hidden = true; }
-    const next = announce(storage);
-    if (next && note && noteText) {
-      noteText.textContent = `PLUVIA ${next.version} chegou: ${next.title}.`;
-      note.hidden = false;
-    }
     opener.addEventListener("click", () => open("footer"));
-    el("updateNoteOpen")?.addEventListener("click", () => open("update_note"));
-    el("updateNoteDismiss")?.addEventListener("click", () => { remember(storage); hideNote(); });
-    el("changelogClose")?.addEventListener("click", close);
-    dialog.addEventListener("click", event => { if (event.target === dialog) close(); });
+    el("changelogClose")?.addEventListener("click", () => closeDialog(dialog));
+    dialog.addEventListener("click", event => { if (event.target === dialog) closeDialog(dialog); });
+
+    // Janela "O que há de novo": uma vez, na primeira abertura depois de uma versão de novidades, só depois
+    // da intro e da primeira previsão (ou de 20 s sem previsão), sem cobrir outra janela aberta.
+    const seen = read(storage), next = announce(storage);
+    const popup = el("whatsNewDialog"), popupList = el("whatsNewList");
+    if (!next || !popup || !popupList) return;
+    const fresh = since(seen).map(entry => ({...entry, kind:kind(entry.version)}));
+    const close = () => closeDialog(popup);
+    el("whatsNewClose")?.addEventListener("click", close);
+    el("whatsNewOk")?.addEventListener("click", close);
+    el("whatsNewAll")?.addEventListener("click", () => { closeDialog(popup); open("update_note"); });
+    popup.addEventListener("click", event => { if (event.target === popup) close(); });
+    let shown = false, observer = null, timer = 0, settle = 0;
+    const started = Date.now();
+    function ready() {
+      const intro = el("pluviaIntro");
+      if (intro && !intro.hidden) return false;
+      if (doc.visibilityState === "hidden" || doc.querySelector("dialog[open]")) return false;
+      const weather = typeof displayedWeather !== "undefined" && displayedWeather;
+      return Boolean(weather) || Date.now() - started >= WAIT_MS;
+    }
+    function stop() {
+      observer?.disconnect(); runtime.clearTimeout(timer); runtime.clearTimeout(settle);
+      runtime.removeEventListener?.("pluvia:weather-updated", check);
+      doc.removeEventListener("visibilitychange", check);
+      doc.removeEventListener("close", check, true);
+    }
+    function show() {
+      settle = 0;
+      if (shown || !ready()) return;
+      shown = true; stop();
+      el("whatsNewTitle").textContent = `O PLUVIA ${next.version} chegou`;
+      popupList.replaceChildren(...fresh.map(entry => entryNode(doc, entry)));
+      remember(storage);
+      popup.showModal();
+      popup.querySelector(".dialog-scroll")?.scrollTo?.(0, 0);
+    }
+    // Um respiro depois de a página assentar, para a janela não surgir junto com a previsão.
+    function check() { if (!shown && !settle && ready()) settle = runtime.setTimeout(show, SETTLE_MS); }
+    runtime.addEventListener?.("pluvia:weather-updated", check);
+    doc.addEventListener("visibilitychange", check);
+    doc.addEventListener("close", check, true);
+    const intro = el("pluviaIntro");
+    if (intro && runtime.MutationObserver) {
+      observer = new runtime.MutationObserver(check);
+      observer.observe(intro, {attributes:true, attributeFilter:["hidden"]});
+    }
+    timer = runtime.setTimeout(check, WAIT_MS);
+    check();
   }
 
   if (runtime.document) {
@@ -144,5 +196,5 @@
     else mount();
   }
 
-  return {VERSIONS, SEEN_KEY, parse, compare, kind, current, list, pending, announce, mount};
+  return {VERSIONS, SEEN_KEY, parse, compare, kind, current, list, pending, since, announce, mount};
 });

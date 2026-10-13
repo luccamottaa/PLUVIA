@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-174" />
+    <meta name="pluvia-release" content="pluvia-panel-175" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -191,7 +191,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="/redesign.css?v=panel-46" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-89" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-90" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -355,7 +355,6 @@
         <ul class="tips-list" id="tipsList"></ul>
       </section>
       <div class="alert-nudge" id="alertNudge" role="region" aria-label="Avisos no celular" hidden><p id="alertNudgeText"></p><div class="alert-nudge-actions"><button id="alertNudgeEnable" type="button">Ativar avisos</button><button id="alertNudgeDismiss" class="alert-nudge-dismiss" type="button">Agora não</button></div></div>
-      <div class="alert-nudge update-note" id="updateNote" role="region" aria-label="Novidades do PLUVIA" hidden><p id="updateNoteText"></p><div class="alert-nudge-actions"><button id="updateNoteOpen" type="button">Ver novidades</button><button id="updateNoteDismiss" class="alert-nudge-dismiss" type="button">Fechar</button></div></div>
       <section class="hourly-peek panel" id="chuva" aria-labelledby="hourlyPeekTitle">
         <div class="hourly-peek-heading"><div class="heading-with-tip"><h2 id="hourlyPeekTitle">Próximas horas</h2><details class="info-tip"><summary aria-label="Sobre a previsão por hora"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p class="rain-phrase" id="rainPhraseWrap"><small id="rainPhraseMeta">Open-Meteo</small></p><p>Previsão por modelos no ponto de referência do município. A chance de chuva aparece quando passa de 20%; toque num horário para ver sensação, volume e rajadas.</p></div></details></div></div>
         <p id="hourlyDecision" class="hourly-decision">Toque em um horário para ver sensação, chuva e rajadas.</p>
@@ -472,6 +471,10 @@
       <div class="dialog-heading"><h2 id="changelogTitle">Novidades do PLUVIA</h2><button id="changelogClose" class="dialog-close" type="button" aria-label="Fechar novidades">×</button></div>
       <div class="dialog-scroll"><p class="changelog-intro">Versões 1.1, 1.2… trazem novidades; 1.1.1, 1.1.2… são correções.</p><ol id="changelogList" class="changelog-list"></ol></div>
     </dialog>
+    <dialog id="whatsNewDialog" class="city-dialog changelog-dialog whats-new-dialog" aria-labelledby="whatsNewTitle">
+      <div class="dialog-heading"><h2 id="whatsNewTitle">Novidades do PLUVIA</h2><button id="whatsNewClose" class="dialog-close" type="button" aria-label="Fechar novidades">×</button></div>
+      <div class="dialog-scroll"><ol id="whatsNewList" class="changelog-list"></ol><div class="whats-new-actions"><button id="whatsNewOk" class="whats-new-ok" type="button" autofocus>Entendi</button><button id="whatsNewAll" class="whats-new-all" type="button">Ver todas as versões</button></div></div>
+    </dialog>
     <dialog id="installPushDialog" class="city-dialog" aria-labelledby="installPushTitle">
       <div class="dialog-heading"><h2 id="installPushTitle">Alertas no iPhone</h2><button id="installPushClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
       <p>No iPhone, os avisos só chegam com o PLUVIA na Tela de Início. Leva uns 10 segundos:</p>
@@ -506,7 +509,7 @@
     <script src="/modules/hourly-detail.js?v=detail-7" defer></script>
     <script src="/modules/daily-detail.js?v=daily-3" defer></script>
     <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="/app.js?v=panel-98" defer></script>
+    <script src="/app.js?v=panel-99" defer></script>
     <script src="/p0.js?v=panel-46" defer></script>
     <script src="/modules/risks.js?v=core-120" defer></script>
     <script src="/modules/adapters.js?v=core-110" defer></script>
@@ -521,8 +524,8 @@
     <script src="/saved-places.js?v=places-2" defer></script>
     <script src="/modules/brazil-now.js?v=brazil-2" defer></script>
     <script src="/modules/month-recap.js?v=month-1" defer></script>
-    <script src="/modules/home-layout.js?v=home-layout-6" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-10" defer></script>
+    <script src="/modules/home-layout.js?v=home-layout-7" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-11" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/notifications.js?v=panel-34" defer></script>
   </body>

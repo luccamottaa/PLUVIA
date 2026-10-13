@@ -27,3 +27,61 @@ test('aviso só para quem já usava e só em versão de novidades',()=>{
  const first=store();assert.equal(changelog.announce(first),null);assert.equal(first.map.get(changelog.SEEN_KEY),changelog.current());
  const same=store(changelog.current());assert.equal(changelog.announce(same),null);
 });
+
+test('janela de novidades: versões depois da última vista, mais nova primeiro, no máximo três',()=>{
+ const versions=[{version:'1.3'},{version:'1.2.1'},{version:'1.2'},{version:'1.1'},{version:'1.0'}];
+ assert.deepEqual(changelog.since('1.1',3,versions).map(e=>e.version),['1.3','1.2.1','1.2']);
+ assert.deepEqual(changelog.since('1.2.1',3,versions).map(e=>e.version),['1.3']);
+ assert.deepEqual(changelog.since(null,3,versions),[]);
+});
+
+// DOM mínimo para o mount: só o que changelog.js usa.
+function fakeDom({introHidden=true,openDialog=false}={}){
+ const listeners={},docListeners={};
+ const node=(id)=>({id,hidden:false,open:false,textContent:'',dataset:{},children:[],listeners:{},
+  addEventListener(t,f){(this.listeners[t]||=[]).push(f);},append(...c){this.children.push(...c);},replaceChildren(...c){this.children=c;},
+  querySelector:()=>null,showModal(){this.open=true;this.shown=(this.shown||0)+1;},close(){this.open=false;}});
+ const els=Object.fromEntries(['changelogDialog','changelogList','openChangelog','changelogClose','whatsNewDialog','whatsNewList','whatsNewTitle','whatsNewClose','whatsNewOk','whatsNewAll','pluviaIntro'].map(id=>[id,node(id)]));
+ els.pluviaIntro.hidden=introHidden;
+ const doc={visibilityState:'visible',getElementById:id=>els[id]||null,createElement:()=>node('x'),
+  querySelector:sel=>sel==='dialog[open]'&&openDialog?{}:null,
+  addEventListener(t,f){(docListeners[t]||=[]).push(f);},removeEventListener(t,f){docListeners[t]=(docListeners[t]||[]).filter(g=>g!==f);}};
+ const timers=[];
+ const runtime={addEventListener(t,f){(listeners[t]||=[]).push(f);},removeEventListener(t,f){listeners[t]=(listeners[t]||[]).filter(g=>g!==f);},
+  setTimeout(f,ms){timers.push({f,ms});return timers.length;},clearTimeout(i){if(timers[i-1])timers[i-1].f=null;}};
+ const flush=(max=1000)=>{for(const t of timers.splice(0)) if(t.f && t.ms<=max) t.f();};
+ return {els,doc,runtime,timers,flush,docListeners,listeners,setOpen(v){openDialog=v;}};
+}
+function mountWith(seen,dom,weather=true){
+ const code=require('node:fs').readFileSync(require('node:path').join(__dirname,'..','dist','modules','changelog.js'),'utf8');
+ const vm=require('node:vm'),storage=store(seen);
+ const ctx={globalThis:null,module:undefined,Date,Intl,JSON,Number,String,Array,Object,Map,Set,Boolean,Math};
+ Object.assign(dom.runtime,{localStorage:storage,PLUVIA:{},MutationObserver:class{observe(){}disconnect(){}}});
+ ctx.globalThis=dom.runtime;ctx.displayedWeather=weather?{}:null;
+ vm.runInNewContext(code.replace('typeof globalThis !== "undefined" ? globalThis : this','globalThis'),ctx);
+ dom.runtime.PLUVIA.changelog.mount(dom.doc);
+ return storage;
+}
+test('janela de novidades aparece uma vez, depois da intro e da previsão, sem cobrir outra janela',()=>{
+ const previous=changelog.VERSIONS.find(e=>changelog.kind(e.version)==='feature'&&e.version!==changelog.current()).version;
+ const dom=fakeDom();const storage=mountWith(previous,dom);
+ assert.equal(dom.els.whatsNewDialog.shown,undefined,'espera um respiro antes de abrir');
+ dom.flush();
+ assert.equal(dom.els.whatsNewDialog.shown,1);
+ assert.equal(dom.els.whatsNewTitle.textContent,`O PLUVIA ${changelog.current()} chegou`);
+ assert.ok(dom.els.whatsNewList.children.length>=1);
+ assert.equal(storage.map.get(changelog.SEEN_KEY),changelog.current(),'abrir já marca como vista');
+ // Próxima abertura: nada.
+ const again=fakeDom();mountWith(changelog.current(),again);again.flush();
+ assert.equal(again.els.whatsNewDialog.shown,undefined);
+ // Primeiro acesso: nada.
+ const first=fakeDom();mountWith(null,first);first.flush();
+ assert.equal(first.els.whatsNewDialog.shown,undefined);
+ // Intro à mostra ou outra janela aberta: espera.
+ const busy=fakeDom({introHidden:false});mountWith(previous,busy);busy.flush();
+ assert.equal(busy.els.whatsNewDialog.shown,undefined);
+ const covered=fakeDom({openDialog:true});mountWith(previous,covered);covered.flush();
+ assert.equal(covered.els.whatsNewDialog.shown,undefined);
+ covered.setOpen(false);covered.docListeners.close.forEach(f=>f());covered.flush();
+ assert.equal(covered.els.whatsNewDialog.shown,1,'abre quando a outra janela fecha');
+});

@@ -245,7 +245,7 @@ function setAlertState(state) {
   const before = section.dataset.alertState;
   section.dataset.alertState = state;
   // A leitura que chega depois (Consultando → avisos/sem avisos) desce no lugar, sem surgir de vez.
-  if (before === "loading" && state !== "loading") settleBlock(section);
+  if ((before === "loading" || before === "pending") && state !== "loading" && state !== "pending" && state !== "banner") settleBlock(section);
 }
 // Bloco que aparece ou muda depois que a página já está à vista desce no lugar (cascata "descendo").
 function settleBlock(node) {
@@ -259,6 +259,8 @@ function settleBlock(node) {
 function setAlertBanner(item = null, index = -1, others = 0) {
   const banner = $("alertBanner");
   if (typeof banner?.setAttribute !== "function" || typeof banner.removeAttribute !== "function") return;
+  // A faixa vazia que guardava o lugar (holdAlertBanner) vira a leitura no mesmo lugar, sem descer de novo.
+  if (banner.hasAttribute?.("data-pending")) { banner.removeAttribute("data-pending"); banner.removeAttribute("aria-hidden"); banner.disabled = false; }
   const show = Boolean(item) && item.severity?.rank >= 1, appearing = show && banner.hidden;
   const future = show && item.stage === "future";
   banner.hidden = !show;
@@ -276,6 +278,46 @@ function setAlertBanner(item = null, index = -1, others = 0) {
   const more = others > 0 ? ` · +${others} aviso${others > 1 ? "s" : ""} na região` : "";
   const from = future ? (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:activeCity.timezone, weekday:"short", day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).format(new Date(item.start)) : "";
   $("alertBannerTime").textContent = (future ? `INMET · a partir de ${from}` : Number.isFinite(item.end) ? `Vigente até ${until}` : "Vigência no aviso oficial") + more;
+}
+
+// Formato da última faixa de cada cidade (só o formato, nunca o aviso, a severidade ou o texto): ao abrir o
+// app ou trocar de cidade, enquanto o INMET responde, uma faixa vazia do mesmo tamanho guarda o lugar, e a
+// leitura não empurra a página quando chega. Vale 12 h; sem faixa na última leitura, nada é reservado.
+const ALERT_SHAPE_KEY = "pluvia-alert-shape", ALERT_SHAPE_KINDS = ["future", "yellow", "strong"], ALERT_SHAPE_MAX_AGE = 12 * 3600e3;
+function alertShapeKind(item) {
+  if (!item || !(item.severity?.rank >= 1)) return "";
+  return item.stage === "future" ? "future" : item.severity.className === "yellow" ? "yellow" : "strong";
+}
+function readAlertShapes() {
+  try { const shapes = JSON.parse(globalThis.localStorage?.getItem(ALERT_SHAPE_KEY) || "{}"); return shapes && typeof shapes === "object" && !Array.isArray(shapes) ? shapes : {}; }
+  catch { return {}; }
+}
+function rememberAlertShape(id, item, now = Date.now()) {
+  if (!id) return;
+  try {
+    const shapes = readAlertShapes(), kind = alertShapeKind(item);
+    delete shapes[id];
+    if (kind) shapes[id] = {kind, at:now};
+    const kept = Object.keys(shapes).filter(key => ALERT_SHAPE_KINDS.includes(shapes[key]?.kind) && Number.isFinite(shapes[key]?.at))
+      .sort((a, b) => shapes[b].at - shapes[a].at).slice(0, 20);
+    globalThis.localStorage?.setItem(ALERT_SHAPE_KEY, JSON.stringify(Object.fromEntries(kept.map(key => [key, shapes[key]]))));
+  } catch {}
+}
+function expectedAlertShape(id, now = Date.now()) {
+  const entry = id ? readAlertShapes()[id] : null, age = now - entry?.at;
+  return entry && ALERT_SHAPE_KINDS.includes(entry.kind) && age >= 0 && age < ALERT_SHAPE_MAX_AGE ? entry.kind : "";
+}
+function holdAlertBanner(kind) {
+  const banner = $("alertBanner");
+  if (!kind || typeof banner?.setAttribute !== "function") return false;
+  for (const name of ["data-severity", "data-notice", "data-stage"]) banner.removeAttribute(name);
+  banner.setAttribute("data-pending", kind);
+  banner.setAttribute("aria-hidden", "true");
+  banner.disabled = true;
+  $("alertBannerTitle").textContent = " ";
+  $("alertBannerTime").textContent = " ";
+  banner.hidden = false;
+  return true;
 }
 
 // Bolinha no ícone do app instalado: acompanha o aviso INMET vigente da cidade aberta (leitura atual).
@@ -299,6 +341,7 @@ function renderInmetAlerts(raw, stale = false) {
     .sort((a, b) => b.severity.rank - a.severity.rank || a.start - b.start)[0];
   const candidate = activeOfficial?.severity?.rank >= 1 ? activeOfficial : upcoming;
   const bannerItem = !stale && candidate?.severity?.rank >= 1 ? candidate : null;
+  if (!stale) rememberAlertShape(activeCity?.id, bannerItem);
   setAlertBanner(bannerItem, bannerItem ? alerts.indexOf(bannerItem) : -1, bannerItem ? alerts.length - 1 : 0);
   if (!stale) syncAppBadge(bannerItem?.stage === "active");
   // Sem aviso, a seção vira uma linha discreta abaixo do topo. Com aviso vigente ou previsto da cidade na
@@ -1792,8 +1835,10 @@ function chooseCity(id, locatedCity = null) {
     $("inmetState").innerHTML = "<i></i>Consultando";
     $("inmetContent").innerHTML = "<h3>Consultando " + escapeHtml(city.name) + "</h3><p>Buscando informações para a cidade selecionada.</p>";
     $("inmetCard").dataset.severity = "unknown";
-    setAlertBanner(null);
-    setAlertState("loading");
+    // Se a última leitura desta cidade tinha faixa, uma faixa vazia do mesmo tamanho guarda o lugar.
+    const held = holdAlertBanner(expectedAlertShape(city.id));
+    if (!held) setAlertBanner(null);
+    setAlertState(held ? "pending" : "loading");
   }
   $("citySearch").value = "";
   renderCityOptions(); updateCityLabels();

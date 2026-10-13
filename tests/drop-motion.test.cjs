@@ -69,7 +69,7 @@ test('troca de cidade reaproveita a leitura nacional do INMET com menos de 5 min
   const choose=app.slice(app.indexOf('function chooseCity('),app.indexOf('function toggleFavoriteCity('));
   assert.match(choose,/const inmetFresh = Boolean\(lastInmetAvailable && lastInmetResponse\) && inmetAge >= 0 && inmetAge < 300000;/);
   assert.match(choose,/if \(!inmetFresh\) \{ lastInmetResponse = null; lastInmetReadAt = 0; \}/);
-  assert.match(choose,/if \(inmetFresh\) \{ renderInmetAlerts\(lastInmetResponse\); updateInmetTimestamp\(\); \}\n  else \{[\s\S]*setAlertState\("loading"\);\n  \}/);
+  assert.match(choose,/if \(inmetFresh\) \{ renderInmetAlerts\(lastInmetResponse\); updateInmetTimestamp\(\); \}\n  else \{[\s\S]*setAlertState\(held \? "pending" : "loading"\);\n  \}/);
 });
 test('dado que chega depois desce no lugar: alertas saindo de "Consultando", dicas e nota de ontem que surgem',()=>{
   const pick=(start,end)=>app.slice(app.indexOf(start),app.indexOf(end));
