@@ -571,7 +571,41 @@ function renderSkyEvents(at) {
     const moonText=Number.isFinite(moon) ? moon>=.5 ? ` A Lua ${Math.round(moon*100)}% iluminada atrapalha.` : ` Lua favorável (${Math.round(moon*100)}% iluminada).` : '';
     $('meteorNote').textContent=`Até ~${shower.zhr} meteoros por hora em céu muito escuro; na cidade se vê bem menos. Melhor depois da meia-noite, longe das luzes.${moonText}`;
   }
+  renderEclipses(at, box);
   box.hidden=false;
+}
+
+// Próximos eclipses visíveis da cidade (modules/eclipses.js). A biblioteca astronômica só é baixada
+// com "Mais sobre o céu" aberto; o resultado fica guardado por cidade e dia, e o relógio só relê.
+function renderEclipses(at, box) {
+  const eclipses=globalThis.PLUVIA?.eclipses, solarRow=$('solarEclipseRow'), lunarRow=$('lunarEclipseRow');
+  if(!eclipses || !solarRow || !lunarRow) return;
+  const city=activeCity, found=eclipses.peek(city,at);
+  if(found===undefined) {
+    solarRow.hidden=true; lunarRow.hidden=true;
+    if(box.closest('details')?.open) eclipses.request(city,at).then(()=>{ if(activeCity===city) renderSkyEvents(Date.now()); }).catch(()=>{});
+    return;
+  }
+  const format=options=>(globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:city.timezone,...options});
+  const when=stamp=>format({weekday:'short',day:'numeric',month:'short',year:'numeric'}).format(stamp)+', '+format({hour:'2-digit',minute:'2-digit'}).format(stamp);
+  const hour=stamp=>format({hour:'2-digit',minute:'2-digit'}).format(stamp);
+  const span=(begin,end)=>Number.isFinite(begin) && Number.isFinite(end) ? ` das ${hour(begin)} às ${hour(end)}` : '';
+  const solar=found?.solar, lunar=found?.lunar;
+  solarRow.hidden=!solar;
+  if(solar) {
+    const kind={total:'Total',annular:'Anular',partial:'Parcial'}[solar.kind] || 'Parcial';
+    const here={total:'Daqui ele é total',annular:'Daqui ele é anular (anel de fogo)',partial:'Daqui ele é parcial'}[solar.kind] || 'Daqui ele é parcial';
+    const low=solar.peakAltitude<10 ? ' O Sol fica baixo, perto do horizonte.' : '';
+    $('nextSolarEclipse').textContent=`${kind} · ${when(solar.peak)}`;
+    $('solarEclipseNote').textContent=`${here}, com até ${Math.max(1,Math.round(solar.obscuration*100))}% do Sol encoberto${span(solar.begin,solar.end)}.${low} Nunca olhe para o Sol sem óculos de eclipse certificados.`;
+  }
+  lunarRow.hidden=!lunar;
+  if(lunar) {
+    $('nextLunarEclipse').textContent=`${lunar.kind==='total' ? 'Total' : 'Parcial'} · ${when(lunar.peak)}`;
+    $('lunarEclipseNote').textContent=lunar.kind==='total'
+      ? `A Lua fica avermelhada por cerca de ${lunar.totalMinutes} min, dentro da fase de sombra${span(lunar.begin,lunar.end)}. Pode olhar a olho nu.`
+      : `Parte da Lua escurece${span(lunar.begin,lunar.end)}. Pode olhar a olho nu.`;
+  }
 }
 
 function renderSun(daily, at = Date.now(), hourly = null) {
@@ -770,6 +804,8 @@ globalThis.addEventListener?.("pluvia:alerts-enabled", event => {
 });
 $("alertNudgeEnable")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Tapped", {offer:$("alertNudge")?.dataset?.offer, nudge:$("alertNudge")?.dataset?.reason}); globalThis.PLUVIA?.alertOffer?.enable?.(); });
 $("alertNudgeDismiss")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Dismissed", {offer:$("alertNudge")?.dataset?.offer, nudge:$("alertNudge")?.dataset?.reason}); globalThis.PLUVIA?.alertOffer?.dismiss?.(); updateAlertNudge(); });
+// Abrir "Mais sobre o céu" pede os eclipses na hora, sem esperar o próximo tique do relógio.
+document.querySelector?.(".astronomy-details")?.addEventListener?.("toggle", event => { if(event.target.open && activeCity?.timezone) renderSkyEvents(Date.now()); });
 // Quem já abriu o PLUVIA em 2 dias diferentes também recebe o convite, mesmo sem chuva prevista:
 // é quem mais ganha com os avisos. Guarda só a contagem e o último dia (do aparelho), sem cidade.
 const OPEN_DAYS_KEY = "pluvia-open-days";
