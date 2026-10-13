@@ -37,7 +37,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-181"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-182"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
   assert.match(html, /styles\.css\?v=core-130/);
@@ -60,7 +60,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   const starAssets=['sky-stars.svg','sky-stars-shimmer.svg'];
   for(const asset of starAssets) assert.ok(sw.includes(`./assets/${asset}`),'céu noturno disponível offline: '+asset);
   assert.ok(starAssets.reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<16000,'campo estelar mantém orçamento leve');
-  const stormAssets=['rain-near.svg','rain-far.svg','lightning-near.svg','lightning-far.svg'];
+  const stormAssets=['rain-near.svg','rain-far.svg','lightning-bolt.svg'];
   for(const asset of stormAssets) assert.ok(sw.includes(`./assets/${asset}`),'efeito disponível offline: '+asset);
   assert.ok(stormAssets.reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<15000,'efeitos vetoriais mantêm orçamento pequeno');
   assert.ok(!sw.includes('"./assets/rain-drops.svg"'),'asset antigo fica disponível para shells legados, sem precache novo');

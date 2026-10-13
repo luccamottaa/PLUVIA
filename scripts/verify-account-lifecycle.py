@@ -5,6 +5,11 @@ from playwright.sync_api import sync_playwright
 # WebKit relata como pageerror (sem stack) a consulta do RainViewer cancelada por navegação/recarga;
 # o radar compacto da Home inicia cedo no desktop. Só esta mensagem de rede é ignorada; exceções JS falham.
 RAINVIEWER_CANCELLED='/api.rainviewer.com/public/weather-maps.json due to access control checks.'
+# O WebKit às vezes informa como pageerror uma consulta que o próprio teste aborta (sem stack, termina em
+# "due to access control checks."). Este teste aborta também a previsão do Open-Meteo; só essas fontes
+# bloqueadas aqui são ignoradas, exceções do app continuam falhando.
+def blocked_load(message):
+ return message.endswith(' due to access control checks.') and any(host in message for host in ('/api.rainviewer.com/','/api.open-meteo.com/','/air-quality-api.open-meteo.com/'))
 preview=os.environ.get('PLUVIA_PREVIEW_URL','http://127.0.0.1:4173')
 owner='00000000-0000-4000-8000-000000000001'
 user={'id':owner,'email':'fixture@example.test','app_metadata':{'provider':'email','providers':['email']},'user_metadata':{'name':'Teste'},'aud':'authenticated','role':'authenticated'}
@@ -32,7 +37,7 @@ with sync_playwright() as p:
   r.abort()
  context.route('**/*',route)
  context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-13'}));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});")
- page=context.new_page();page.on('pageerror',lambda e: None if str(e).endswith(RAINVIEWER_CANCELLED) else errors.append(str(e)))
+ page=context.new_page();page.on('pageerror',lambda e: None if blocked_load(str(e)) else errors.append(str(e)))
  page.goto(preview,wait_until='domcontentloaded');page.locator('#accountButton').click();page.locator('#accountForgot').click();page.locator('#accountEmail').fill('fixture@example.test');page.locator('#accountSubmit').click()
  page.wait_for_function("document.getElementById('accountStatus').textContent.includes('serviço do Pluvia')")
  assert 'conexão' not in page.locator('#accountStatus').inner_text()

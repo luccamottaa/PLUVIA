@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.7", date:"2026-10-13", title:"Raios de verdade", items:[
+      "Em dia de trovoada, os raios agora descem do alto da tela, com ramos, um clarão que ilumina o céu e as nuvens inteiras e o brilho apagando devagar, cada vez num lugar diferente.",
+      "Quem prefere menos movimento no celular continua sem raios.",
+    ]},
     {version:"1.6.4", date:"2026-10-13", title:"Política de Privacidade", items:[
       "Nova página de Política de Privacidade, com o que é guardado, para quê, por quanto tempo, com quem é compartilhado e como pedir acesso, correção ou exclusão dos seus dados.",
       "Termos de uso e Privacidade ficam claros de dia e escuros à noite, conforme o céu da cidade aberta no app.",
