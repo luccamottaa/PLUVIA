@@ -60,3 +60,52 @@ test('aviso só previsto da cidade vai para a faixa em linha translúcida e vira
   assert.match(render,/syncAppBadge\(bannerItem\?\.stage === "active"\)/);
   assert.match(source,/noteAlertNudge\("official", show && !future\)/);
 });
+
+test('abertura: faixa vazia do mesmo formato guarda o lugar enquanto o INMET responde (só o formato fica salvo)',()=>{
+  const shapeSource=app.slice(app.indexOf('const ALERT_SHAPE_KEY'),app.indexOf('// Bolinha no ícone'));
+  const map=new Map();
+  const localStorage={getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v)};
+  const attrs={},els={alertBannerTitle:{textContent:'x'},alertBannerTime:{textContent:'y'}};
+  const banner={hidden:true,disabled:false,setAttribute:(k,v)=>{attrs[k]=v;},removeAttribute:k=>{delete attrs[k];},hasAttribute:k=>k in attrs};
+  els.alertBanner=banner;
+  const ctx={$:id=>els[id],globalThis:{localStorage},Date,JSON,Number,Object,Array};
+  vm.runInNewContext(`${shapeSource}\nthis.api={rememberAlertShape,expectedAlertShape,holdAlertBanner,alertShapeKind}`,ctx);
+  const {rememberAlertShape,expectedAlertShape,holdAlertBanner,alertShapeKind}=ctx.api;
+  const now=Date.parse('2026-10-13T12:00:00Z');
+  assert.equal(alertShapeKind({severity:severity.yellow,stage:'future'}),'future');
+  assert.equal(alertShapeKind({severity:severity.yellow,stage:'active'}),'yellow');
+  assert.equal(alertShapeKind({severity:severity.red,stage:'active'}),'strong');
+  assert.equal(alertShapeKind({severity:severity.unknown}),'');
+  rememberAlertShape('1302603',{severity:severity.orange,stage:'active',alert:{descricao:'Acumulado de chuva'}},now);
+  const stored=map.get('pluvia-alert-shape');
+  assert.ok(!/Acumulado|orange|laranja/.test(stored),'nunca guarda o aviso ou a severidade');
+  assert.equal(expectedAlertShape('1302603',now+3600e3),'strong');
+  assert.equal(expectedAlertShape('1302603',now+13*3600e3),'','vale 12 h');
+  assert.equal(expectedAlertShape('1302603',now-1),'','relógio que voltou não reserva');
+  assert.equal(expectedAlertShape('3550308',now),'');
+  rememberAlertShape('1302603',null,now);
+  assert.equal(expectedAlertShape('1302603',now),'','leitura sem faixa apaga o formato');
+  for(let i=0;i<25;i++) rememberAlertShape(String(1000000+i),{severity:severity.yellow,stage:'future'},now+i);
+  assert.equal(Object.keys(JSON.parse(map.get('pluvia-alert-shape'))).length,20,'no máximo 20 cidades');
+  assert.equal(holdAlertBanner(''),false);
+  assert.equal(holdAlertBanner('future'),true);
+  assert.equal(banner.hidden,false);
+  assert.equal(banner.disabled,true);
+  assert.equal(attrs['data-pending'],'future');
+  assert.equal(attrs['aria-hidden'],'true');
+  assert.equal(els.alertBannerTitle.textContent,' ');
+  // A leitura troca a faixa vazia no mesmo lugar: sem descer de novo e de volta ao alcance do toque.
+  const sourceBanner=app.slice(app.indexOf('function setAlertBanner('),app.indexOf('// Formato da última faixa'));
+  vm.runInNewContext(`${sourceBanner}\nsetAlertBanner(item,0,0)`,Object.assign(ctx,{activeCity:{timezone:'America/Manaus'},Intl,String,
+    decodeHtml:v=>v,firstValue:(o,keys,fallback)=>keys.map(k=>o?.[k]).find(Boolean)??fallback,dropIn:()=>{throw new Error('não deve descer');},dropMotion:()=>true,
+    item:{alert:{descricao:'Chuvas Intensas'},severity:severity.yellow,stage:'active',end:now+3600e3}}));
+  assert.equal(attrs['data-pending'],undefined);
+  assert.equal(attrs['aria-hidden'],undefined);
+  assert.equal(banner.disabled,false);
+  assert.equal(attrs['data-severity'],'yellow');
+  // Linha "Consultando": some da tela com a faixa vazia; o link oficial não sobrepõe a frase no celular.
+  assert.match(css,/#weatherView #alertas\[data-alert-state="pending"\] \{ position:absolute !important;/);
+  assert.match(css,/@media\(max-width:420px\) \{[^}]*:is\(\[data-alert-state="clear"\],\[data-alert-state="loading"\]\) \.source-link \{ display:none; \}/);
+  assert.match(app,/const held = holdAlertBanner\(expectedAlertShape\(city\.id\)\);/);
+  assert.match(app,/if \(!stale\) rememberAlertShape\(activeCity\?\.id, bannerItem\);/);
+});
