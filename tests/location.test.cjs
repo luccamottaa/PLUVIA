@@ -12,8 +12,10 @@ const nodes=new Map([...html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g)].map(([tag,
 }]));
 const requests=[];
 const storage=new Map([['pluvia-city','"2611101"']]); // Old saved city must not be displayed on arrival.
-const context=vm.createContext({document:{body:{dataset:{}},getElementById:id=>nodes.get(id),querySelectorAll:()=>[]},
-  navigator:{geolocation:{getCurrentPosition(success,error){requests.push({success,error});}}},
+const docEvents={},tracked=[];
+const context=vm.createContext({document:{body:{dataset:{}},hidden:false,addEventListener:(k,fn)=>{(docEvents[k]||=[]).push(fn);},getElementById:id=>nodes.get(id),querySelectorAll:()=>[]},
+  pluviaAnalytics:{track:(name,props)=>tracked.push([name,props])},
+  navigator:{geolocation:{getCurrentPosition(success,error,options){requests.push({success,error,options});}}},
   localStorage:{getItem:key=>storage.get(key),setItem:(k,v)=>storage.set(k,v)},
   Intl,Date,URL,AbortController,setTimeout,clearTimeout,
   DOMParser:class{parseFromString(text){return {documentElement:{textContent:text}};}}
@@ -25,12 +27,13 @@ assert.equal(run('activeCity'),null);
 context.setupCityPicker();
 let refreshes=0;
 context.refreshAll=async()=>{refreshes++;return true;};
-context.requestLocation();
-assert.equal(requests.length,1);assert.equal(refreshes,0);assert.equal(nodes.get('weatherView').hidden,false);
+context.requestLocation('city_picker');
+assert.equal(requests.length,1);assert.equal(refreshes,0);
+assert.deepEqual({...requests[0].options},{enableHighAccuracy:false,timeout:4000,maximumAge:600000});assert.equal(nodes.get('weatherView').hidden,false);
 requests[0].error({code:1});
 assert.equal(run('activeCity'),null);assert.equal(nodes.get('weatherView').hidden,false);
 assert(nodes.get('locationStatus').textContent.includes('não autorizada'));
-context.requestLocation();requests[1].error({code:3});
+context.requestLocation('city_picker');requests[1].error({code:3});
 assert.equal(run('activeCity'),null);assert.equal(refreshes,0);
 context.requestLocation();
 context.openCitySearch();
@@ -49,6 +52,23 @@ assert.equal(run('activeCity.name'),'Manaus');assert.equal(nodes.get('weatherVie
 assert.equal(nodes.get('locationWelcome').hidden,true);
 assert.equal(nodes.get('welcomeLocate').disabled,false);
 assert.equal(refreshes,2);
+// Automática (permissão já concedida): espera mais, aceita posição recente e falha em silêncio.
+nodes.get('locationStatus').textContent='antes';
+context.requestLocation('automatic');
+assert.deepEqual({...requests[4].options},{enableHighAccuracy:false,timeout:10000,maximumAge:600000});
+assert.equal(nodes.get('locationStatus').textContent,'antes','automatic request must not ask to tap Allow');
+requests[4].error({code:3});
+assert.equal(nodes.get('locationStatus').textContent,'antes','automatic timeout must stay silent');
+assert.equal(nodes.get('welcomeLocate').disabled,false);
+// Página para o fundo com consulta pendente: um único registro de interrupção.
+context.requestLocation('automatic');
+context.document.hidden=true;
+docEvents.visibilitychange.forEach(fn=>fn());docEvents.visibilitychange.forEach(fn=>fn());
+assert.deepEqual(tracked.filter(([name,p])=>p?.reason==='interrupted').map(([,p])=>({...p})),[{reason:'interrupted',source:'automatic'}]);
+context.document.hidden=false;
+requests[5].success({coords:{latitude:-3.119,longitude:-60.022}});
+context.document.hidden=true;docEvents.visibilitychange.forEach(fn=>fn());context.document.hidden=false;
+assert.equal(tracked.filter(([name,p])=>p?.reason==='interrupted').length,1,'a finished request is not interrupted');
 const fallbackNotice=nodes.get('locationNotice');
 fallbackNotice.hidden=false;fallbackNotice.textContent='Sem localização — mostrando Manaus';
 context.chooseCity('1303403');
