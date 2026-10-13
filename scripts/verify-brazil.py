@@ -46,7 +46,7 @@ with sync_playwright() as p:
             if (urlparse(url).scheme, urlparse(url).netloc) == origin: r.continue_(); return
             r.abort()
         context.route('**/*', route)
-        context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-10'}));localStorage.setItem('pluvia-city',JSON.stringify('1302603'));"
+        context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-13'}));localStorage.setItem('pluvia-city',JSON.stringify('1302603'));"
                                 "Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1})}}});")
         page = context.new_page(); errors = []
         page.on('pageerror', lambda error: None if str(error).endswith(RAINVIEWER_CANCELLED) else errors.append(str(error)))

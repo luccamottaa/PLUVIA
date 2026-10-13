@@ -48,12 +48,47 @@ test('QA semeia o aviso dos Termos com a versão atual (o aviso fixo bloquearia 
   }
 });
 
-test('página dos Termos: X no alto volta ao app, com entrada suave e sem movimento em reduced-motion',()=>{
-  const page=fs.readFileSync('dist/termos/index.html','utf8');
-  assert.match(page,/<body>\s*<a class="close" id="termsClose" href="\/" aria-label="Fechar e voltar ao PLUVIA" data-leave>/,'X antes de .page (fixed fora do elemento animado)');
-  assert.match(page,/\.close \{ position:fixed;[^}]*width:44px; height:44px;/);
-  assert.match(page,/\.page, \.close \{ animation:terms-enter [^}]*backwards; \}/,'fill backwards: a saída por transição funciona depois da entrada');
-  assert.match(page,/@media \(prefers-reduced-motion:reduce\) \{ \.page, \.close \{ animation:none; \}/);
-  assert.match(page,/if \(app && history\.length > 1\) \{ history\.back\(\); return; \}/,'volta ao app sem recarregar');
-  assert.equal((page.match(/data-leave/g)||[]).length,4,'X, marca, "Voltar para a previsão" e o seletor do script');
+test('páginas legais: X no alto volta ao app, entrada suave e mesmo visual nas duas',()=>{
+  const css=fs.readFileSync('dist/legal.css','utf8'),js=fs.readFileSync('dist/modules/legal-page.js','utf8');
+  for(const file of ['dist/termos/index.html','dist/privacidade/index.html']){
+    const page=fs.readFileSync(file,'utf8');
+    assert.match(page,/<body>\s*<header><a class="close" id="\w+" href="\/" aria-label="Fechar e voltar ao PLUVIA" data-leave>/,file+': X antes de .page (fixed fora do elemento animado)');
+    assert.match(page,/<link rel="stylesheet" href="\/legal\.css\?v=legal-\d+" \/>\s*<script src="\/modules\/legal-page\.js\?v=legal-\d+"><\/script>/,file+': tema escrito no <head>, antes do primeiro desenho');
+    assert.doesNotMatch(page,/<style>/,file+': estilos só em legal.css');
+    const m=/Última atualização:\s*(\d{1,2}) de outubro de (\d{4})/.exec(page);
+    assert.equal(m&&`${m[2]}-10-${m[1].padStart(2,'0')}`,terms.VERSION,file+': a caixinha aceita as duas páginas, na mesma versão');
+  }
+  assert.match(css,/\.close \{ position:fixed;[^}]*width:44px; height:44px;/);
+  assert.match(css,/\.page, \.close \{ animation:legal-enter [^}]*backwards; \}/,'fill backwards: a saída por transição funciona depois da entrada');
+  assert.match(css,/@media \(prefers-reduced-motion:reduce\) \{ \.page, \.close \{ animation:none; \}/);
+  assert.match(css,/:root\[data-theme="day"\] \{ color-scheme:light;/);
+  assert.match(js,/if \(app && runtime\.history\.length > 1\) \{ runtime\.history\.back\(\); return; \}/,'volta ao app sem recarregar');
+});
+
+test('tema das páginas legais: claro com Sol acima do horizonte na cidade aberta, escuro à noite',()=>{
+  const legal=require('../dist/modules/legal-page.js');
+  const manaus={lat:-3.119,lon:-60.022};
+  assert.equal(legal.theme(Date.parse('2026-10-13T12:00:00-04:00'),manaus),'day');
+  assert.equal(legal.theme(Date.parse('2026-10-13T05:00:00-04:00'),manaus),'night','antes do nascer');
+  assert.equal(legal.theme(Date.parse('2026-10-13T18:40:00-04:00'),manaus),'night','depois do pôr');
+  // Porto Alegre às 7h é dia; em Manaus, 7h de Brasília (6h locais) ainda é dia; Tóquio no mesmo instante é noite.
+  const at=Date.parse('2026-10-13T07:00:00-03:00');
+  assert.equal(legal.theme(at,{lat:-30.03,lon:-51.23}),'day');
+  assert.equal(legal.theme(at,{lat:35.68,lon:139.69}),'night');
+  const store=values=>({getItem:k=>values[k]??null});
+  assert.deepEqual(legal.place(store({'pluvia-city':'"4314902"','pluvia-city-record':'{"id":"4314902","lat":-30.03,"lon":-51.23}'})),{lat:-30.03,lon:-51.23});
+  assert.deepEqual(legal.place(store({'pluvia-city':'"1302603"','pluvia-city-record':'{"id":"4314902","lat":-30.03,"lon":-51.23}'})),manaus,'registro de outra cidade não vale');
+  assert.deepEqual(legal.place({getItem(){throw new Error('bloqueado');}}),manaus);
+});
+
+test('Política de Privacidade cobre o que a LGPD pede (art. 9º) e o app aponta para ela',()=>{
+  const page=fs.readFileSync('dist/privacidade/index.html','utf8'),html=fs.readFileSync('dist/index.html','utf8'),termos=fs.readFileSync('dist/termos/index.html','utf8'),sw=fs.readFileSync('dist/sw.js','utf8');
+  for(const id of ['controlador','dados','aparelho','compartilhamento','internacional','retencao','direitos','seguranca','criancas','alteracoes']) assert.match(page,new RegExp(`<h2 id="${id}">`),id);
+  for(const base of ['art. 7º, V','art. 7º, I','art. 7º, IX','art. 18','art. 19, II','art. 33','art. 48','art. 14, § 1º']) assert.ok(page.includes(base),base);
+  assert.match(page,/Respostas ao “Tá chovendo aí\?”:<\/strong> 2 dias/,'mesmo prazo da migration rain_reports');
+  assert.match(page,/<strong>Inscrição de avisos desligada:<\/strong> apagada em até 30 dias/,'mesmo prazo do push-process');
+  assert.equal((html.match(/href="\/privacidade\/"/g)||[]).length,5,'caixinhas, nota social e seção Privacidade');
+  assert.doesNotMatch(html,/termos\/#privacidade/);
+  assert.match(termos,/<a href="\/privacidade\/">Política de Privacidade<\/a> explica/);
+  assert.match(sw,/termos\|privacidade\)\\\/\?\$/,'SW guarda a página legal na própria URL, nunca como shell');
 });

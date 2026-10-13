@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function () {
+        var host = location.hostname;
+        if (host === "luccamottaa.github.io" || host === "www.pluviaweather.com.br") {
+          var path = location.pathname.replace(/^\/PLUVIA\/?/, "/");
+          location.replace("https://pluviaweather.com.br" + (path || "/") + location.search + location.hash);
+        }
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#080f22" />
+    <title>Política de Privacidade · PLUVIA</title>
+    <meta name="description" content="Política de Privacidade do PLUVIA: quais dados são tratados, para quê, por quanto tempo e como exercer seus direitos pela LGPD." />
+    <link rel="canonical" href="https://pluviaweather.com.br/privacidade/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png" />
+    <link rel="stylesheet" href="/fonts.css" />
+    <link rel="stylesheet" href="/legal.css?v=legal-1" />
+    <script src="/modules/legal-page.js?v=legal-1"></script>
+  </head>
+  <body>
+    <header><a class="close" id="legalClose" href="/" aria-label="Fechar e voltar ao PLUVIA" data-leave><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></a></header>
+    <main class="page">
+      <a class="brand" href="/" aria-label="PLUVIA, voltar para a previsão" data-leave><img src="/logo-mark.png" alt="" width="34" height="34" />PLUVIA</a>
+
+      <h1>Política de Privacidade</h1>
+      <div class="meta">
+        <p>Controlador: Lucca Coelho Motta Queiroz (pessoa física, Manaus/AM)</p>
+        <p>Contato para dados pessoais: <a href="mailto:lukamotta06@gmail.com">lukamotta06@gmail.com</a></p>
+        <p>Última atualização: 13 de outubro de 2026</p>
+      </div>
+
+      <div class="notice">
+        <p><strong>Em resumo:</strong> a previsão funciona sem cadastro e sem enviar sua localização. Só tratamos dados pessoais quando você cria uma conta, liga os avisos, responde “Tá chovendo aí?” ou ativa as métricas de uso. Não vendemos dados, não temos publicidade e não montamos perfis de comportamento.</p>
+      </div>
+
+      <h2 id="controlador">1. Quem cuida dos seus dados</h2>
+      <p>O PLUVIA é mantido por Lucca Coelho Motta Queiroz, controlador dos dados pessoais tratados no Serviço, nos termos da Lei Geral de Proteção de Dados (LGPD, Lei nº 13.709/2018). Como agente de tratamento de pequeno porte, não há encarregado (DPO) formalmente indicado (Resolução CD/ANPD nº 2/2022); o canal para titulares e para a Autoridade Nacional de Proteção de Dados (ANPD) é o e-mail <a href="mailto:lukamotta06@gmail.com">lukamotta06@gmail.com</a>.</p>
+
+      <h2 id="dados">2. Quais dados, para quê e com qual base legal</h2>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Dados tratados, finalidades e bases legais">
+        <table>
+          <thead><tr><th scope="col">Quando</th><th scope="col">Dados</th><th scope="col">Para quê</th><th scope="col">Base legal (LGPD)</th></tr></thead>
+          <tbody>
+            <tr><td data-label="Quando">Consultar a previsão</td><td data-label="Dados">Nenhum dado pessoal guardado por nós. Seu navegador pede os dados meteorológicos com as coordenadas de referência do município (não as suas).</td><td data-label="Para quê">Mostrar a previsão</td><td data-label="Base legal">Não há tratamento pelo PLUVIA</td></tr>
+            <tr><td data-label="Quando">Usar minha localização</td><td data-label="Dados">Posição do aparelho, usada só dentro dele para achar o município mais próximo. Não é enviada nem guardada.</td><td data-label="Para quê">Escolher a cidade</td><td data-label="Base legal">Não sai do aparelho</td></tr>
+            <tr><td data-label="Quando">Criar conta</td><td data-label="Dados">E-mail, senha (guardada pelo provedor de autenticação só em forma de hash, que não permite ler a senha), nome, foto de perfil escolhida entre os desenhos do app, cidades favoritas, cidade principal, nomes que você dá às cidades e a versão dos Termos aceita, com data</td><td data-label="Para quê">Manter a conta e sincronizar suas preferências entre aparelhos</td><td data-label="Base legal">Execução do contrato a seu pedido (art. 7º, V)</td></tr>
+            <tr><td data-label="Quando">Entrar com Google ou Apple</td><td data-label="Dados">E-mail, nome e identificador da conta no provedor, enviados por ele com sua autorização</td><td data-label="Para quê">Entrar sem senha</td><td data-label="Base legal">Execução do contrato (art. 7º, V)</td></tr>
+            <tr><td data-label="Quando">Ligar os avisos</td><td data-label="Dados">Inscrição de notificação do navegador (endereço técnico e chaves), tipo de aparelho e navegador, cidades escolhidas, horários, fuso e preferências; registro de cada aviso enviado (enviado, aberto ou com falha). Sem conta, criamos uma sessão anônima só para isso.</td><td data-label="Para quê">Enviar os avisos que você pediu, evitar repetição e corrigir falhas de entrega</td><td data-label="Base legal">Execução do contrato (art. 7º, V)</td></tr>
+            <tr><td data-label="Quando">Responder “Tá chovendo aí?”</td><td data-label="Dados">Cidade, resposta, horário e um código aleatório deste aparelho, guardado no servidor em forma de resumo (hash)</td><td data-label="Para quê">Mostrar o que as pessoas estão vendo e evitar respostas repetidas</td><td data-label="Base legal">Execução do recurso que você usou (art. 7º, V)</td></tr>
+            <tr><td data-label="Quando">Métricas de uso (desligadas até você ativar)</td><td data-label="Dados">Eventos de uso e tipos de falha, com faixa de dias de uso; sem nome, e-mail, cidade, coordenadas, texto digitado ou vínculo com a conta</td><td data-label="Para quê">Entender o uso e corrigir falhas</td><td data-label="Base legal">Consentimento (art. 7º, I), que pode ser retirado no mesmo botão</td></tr>
+            <tr><td data-label="Quando">Segurança e funcionamento</td><td data-label="Dados">Endereço IP e dados técnicos da conexão, nos registros dos provedores, e contagem temporária de pedidos por IP</td><td data-label="Para quê">Proteger o Serviço contra abuso e manter a disponibilidade</td><td data-label="Base legal">Legítimo interesse (art. 7º, IX), com o mínimo necessário</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>O contador de aberturas por dia guarda apenas o total do dia, sem identificador, e respeita “Do Not Track” e GPC. A busca por voz usa o reconhecimento de fala do próprio navegador (no Chrome, o áudio é processado pelo Google); o PLUVIA não recebe nem guarda o áudio. Não tomamos decisões automatizadas que afetem seus interesses (art. 20).</p>
+
+      <h2 id="aparelho">3. O que fica guardado no seu aparelho</h2>
+      <p>O PLUVIA não usa cookies de publicidade nem de rastreamento. Ele guarda no armazenamento local do navegador o que precisa para funcionar: cidade aberta, favoritas e a ordem delas, buscas recentes, previsões salvas para abrir sem internet, preferências da Home, dicas já vistas, versão das Novidades e dos Termos aceita e, com conta, a sessão de login. Esses dados ficam só neste aparelho; você pode apagá-los limpando os dados do site no navegador.</p>
+
+      <h2 id="compartilhamento">4. Com quem os dados são compartilhados</h2>
+      <p>Não vendemos nem alugamos dados pessoais. Para o Serviço funcionar, alguns fornecedores tratam dados em nosso nome ou recebem a conexão do seu navegador:</p>
+      <ul>
+        <li><strong>Supabase</strong> (banco de dados, login e funções do servidor; servidores nos EUA): conta, avisos e respostas ao “Tá chovendo aí?”.</li>
+        <li><strong>Resend</strong> (envio dos e-mails de confirmação e recuperação de senha): seu e-mail.</li>
+        <li><strong>Google e Apple</strong>, só se você entrar com eles.</li>
+        <li><strong>Serviços de notificação do seu navegador</strong> (Apple, Google, Mozilla ou Microsoft): o conteúdo do aviso, entregue pela inscrição do aparelho.</li>
+        <li><strong>PostHog</strong> (métricas, EUA), só com as métricas ativadas.</li>
+        <li><strong>Sentry</strong> (erros do servidor): apenas componente e código do erro, sem dados pessoais.</li>
+        <li><strong>Cloudflare e GitHub Pages</strong> (entrega do site) e as fontes meteorológicas e de mapas que seu navegador consulta diretamente (Open-Meteo, MET Norway, INMET, RainViewer e OpenStreetMap): recebem o endereço IP da conexão, como qualquer site.</li>
+      </ul>
+      <p>Dados também podem ser fornecidos a autoridades quando houver obrigação legal ou ordem judicial.</p>
+
+      <h2 id="internacional">5. Transferência internacional</h2>
+      <p>Alguns desses fornecedores guardam ou processam dados fora do Brasil, principalmente nos Estados Unidos. A transferência ocorre para executar o serviço que você pediu (art. 33, IX, da LGPD) ou, nas métricas, com o seu consentimento específico (art. 33, VIII), e os fornecedores adotam garantias contratuais e de segurança próprias.</p>
+
+      <h2 id="retencao">6. Por quanto tempo guardamos</h2>
+      <ul>
+        <li><strong>Conta:</strong> enquanto ela existir. Ao excluir a conta em “Minha conta”, ela e tudo o que está ligado a ela (avisos, cidades, inscrições e registros de envio) são apagados.</li>
+        <li><strong>Inscrição de avisos desligada:</strong> apagada em até 30 dias.</li>
+        <li><strong>Avisos enviados e seus registros:</strong> apagados cerca de 90 dias depois do fim da validade do aviso.</li>
+        <li><strong>Respostas ao “Tá chovendo aí?”:</strong> 2 dias.</li>
+        <li><strong>Avisos ligados sem conta:</strong> as preferências da sessão anônima ficam guardadas para você poder religar os avisos e são apagadas a pedido pelo e-mail de contato.</li>
+        <li><strong>Métricas e registros técnicos dos provedores:</strong> pelo prazo de retenção de cada provedor; as métricas não identificam você.</li>
+      </ul>
+
+      <h2 id="direitos">7. Seus direitos</h2>
+      <p>Pela LGPD (art. 18), você pode pedir a qualquer momento: confirmação de que tratamos seus dados; acesso a eles; correção de dados incompletos, inexatos ou desatualizados; anonimização, bloqueio ou eliminação de dados desnecessários ou tratados em desconformidade; portabilidade; eliminação dos dados tratados com consentimento; informação sobre com quem compartilhamos; informação sobre a possibilidade de não consentir e suas consequências; e a revogação do consentimento.</p>
+      <p>Muita coisa você faz sozinho no app: editar nome e foto, mudar ou desligar avisos, desativar as métricas e excluir a conta em “Minha conta”. Para o resto, escreva para <a href="mailto:lukamotta06@gmail.com">lukamotta06@gmail.com</a> a partir do e-mail da conta (ou dizendo como identificar os dados). Pedidos de acesso completo são respondidos em até 15 dias (art. 19, II). Se achar que seu pedido não foi atendido, você pode reclamar à <a href="https://www.gov.br/anpd/" rel="noopener">ANPD</a>.</p>
+
+      <h2 id="seguranca">8. Segurança</h2>
+      <p>Usamos conexão cifrada (HTTPS), controle de acesso por usuário no banco de dados, senhas guardadas só em forma de hash pelo provedor de autenticação, chaves administrativas apenas no servidor e coleta mínima. Nenhum sistema é totalmente imune a falhas; se ocorrer um incidente de segurança que possa trazer risco ou dano relevante, comunicaremos a ANPD e as pessoas afetadas (art. 48).</p>
+
+      <h2 id="criancas">9. Crianças e adolescentes</h2>
+      <p>O PLUVIA não é direcionado a crianças, não tem publicidade, não cria perfis de comportamento e não tem mensagens nem perfis públicos. As métricas começam desligadas para todos. Crianças (menores de 12 anos) só devem criar conta ou ligar avisos com o consentimento de um dos pais ou do responsável legal (art. 14, § 1º), que pode pedir a exclusão dos dados a qualquer momento pelo contato acima.</p>
+
+      <h2 id="alteracoes">10. Alterações desta Política</h2>
+      <p>Esta Política pode ser atualizada. A data da versão vigente aparece no topo; mudanças relevantes serão avisadas no app e, quando necessário, pediremos um novo aceite.</p>
+
+      <footer>
+        <a href="/" data-leave>Voltar para a previsão</a>
+        <a href="/termos/">Termos de Uso</a>
+      </footer>
+    </main>
+  </body>
+</html>

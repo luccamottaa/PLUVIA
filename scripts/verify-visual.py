@@ -41,7 +41,7 @@ with sync_playwright() as p:
   if (urlparse(url).scheme,urlparse(url).netloc)==preview_origin:r.continue_();return
   r.abort()
  context.route('**/*',route)
- context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-10'}));localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(success,error){error({code:1});}}});")
+ context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-13'}));localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(success,error){error({code:1});}}});")
  page.clock.set_fixed_time(fixed)
  def goto(**options):
   # The public smoke reaches the real domain: a dropped connection before any
