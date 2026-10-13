@@ -40,8 +40,8 @@ with sync_playwright() as p:
    page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden")
    page.wait_for_function("!document.documentElement.classList.contains('awaiting-styles')")
    page.locator('#temperature').wait_for(state='visible',timeout=20000)
-   decoded=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp','rain-near.svg','rain-far.svg','lightning-near.svg','lightning-far.svg','sky-stars.svg','sky-stars-shimmer.svg'].map(async name=>{const i=new Image();i.src='./assets/'+name;await i.decode();return [i.naturalWidth,i.naturalHeight];}))""")
-   assert decoded==[[2112,704],[2112,704],[320,480],[480,480],[270,400],[270,400],[900,1100],[1040,1280]],decoded
+   decoded=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp','rain-near.svg','rain-far.svg','lightning-bolt.svg','sky-stars.svg','sky-stars-shimmer.svg'].map(async name=>{const i=new Image();i.src='./assets/'+name;await i.decode();return [i.naturalWidth,i.naturalHeight];}))""")
+   assert decoded==[[2112,704],[2112,704],[320,480],[480,480],[440,800],[900,1100],[1040,1280]],decoded
    # Transparência contínua: com 16 níveis as bordas das nuvens viravam degraus visíveis quando esticadas.
    alpha_levels=page.evaluate("""async()=>Promise.all(['sky-cloud-veil.webp','sky-cloud-volume.webp','sky-cloud-overcast.webp','sky-cloud-rain.webp','sky-cloud-storm.webp','sky-cloud-fog.webp'].map(async name=>{const i=new Image();i.src='./assets/'+name;await i.decode();const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;const x=c.getContext('2d');x.drawImage(i,0,0);const d=x.getImageData(0,0,c.width,c.height).data;const seen=new Set();for(let k=3;k<d.length;k+=4)seen.add(d[k]);return seen.size;}))""")
    assert all(levels>=48 for levels in alpha_levels),alpha_levels
@@ -264,26 +264,27 @@ with sync_playwright() as p:
    page.wait_for_function("document.body.dataset.weather==='storm' && document.querySelector('.sky-effects').dataset.motion==='running' && parseFloat(getComputedStyle(document.querySelector('.sky-effects > .sky-rain:not(.sky-rain-back)')).opacity)>.5")
    page.wait_for_function("(()=>{for(let el=document.getElementById('temperature');el;el=el.parentElement)if(+getComputedStyle(el).opacity<.99)return false;return true;})()")
    assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>getComputedStyle(el).display")=='block'
+   # Primeira queda do ciclo de 39 s: pico do canal e do clarão do céu logo depois do re-strike.
    sample=page.evaluate("""()=>{
      const scene=document.querySelector('.sky-effects');
-     window.stormAnimations=scene.getAnimations({subtree:true}).filter(a=>['sky-rain-fall','storm-flash-near','storm-flash-far'].includes(a.animationName));
-     for(const a of stormAnimations){const t=a.effect.getTiming();a.pause();a.currentTime=t.delay+t.duration*(1+(a.animationName==='storm-flash-near'?.30:a.animationName==='storm-flash-far'?.5:.55));}
+     window.stormAnimations=scene.getAnimations({subtree:true}).filter(a=>['sky-rain-fall','storm-bolt','storm-glow'].includes(a.animationName));
+     for(const a of stormAnimations){const t=a.effect.getTiming();a.pause();a.currentTime=a.animationName.startsWith('storm-')?t.delay+t.duration+4680+250:t.delay+t.duration*1.55;}
      const l=scene.querySelector('.sky-lightning');
-     return {names:stormAnimations.map(a=>a.animationName),near:+getComputedStyle(l,'::before').opacity,far:+getComputedStyle(l,'::after').opacity,
+     return {names:stormAnimations.map(a=>a.animationName),bolt:+getComputedStyle(l,'::after').opacity,glow:+getComputedStyle(l,'::before').opacity,
        drops:[...scene.querySelectorAll('.sky-rain')].map(el=>new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)};
    }""")
-   assert sorted(sample['names'])==['sky-rain-fall','sky-rain-fall','storm-flash-far','storm-flash-near'],sample
-   assert 0<sample['near']<=.9 and sample['far']==0 and all(abs(y-264)<1 for y in sample['drops']),sample
-   page.screenshot(path=str(output/(str(width)+'-lightning-'+phase+'-near.png')))
-   page.evaluate("""()=>{for(const a of stormAnimations){const t=a.effect.getTiming();if(a.animationName.startsWith('storm-flash'))a.currentTime=t.delay+t.duration*(a.animationName==='storm-flash-far'?.67:.5);}}""")
-   assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>+getComputedStyle(el,'::after').opacity>0 && +getComputedStyle(el,'::before').opacity===0")
-   page.screenshot(path=str(output/(str(width)+'-lightning-'+phase+'-far.png')))
-   lightning.append({'viewport':width,'phase':phase,'localizedPeak':sample['near']})
+   assert sorted(sample['names'])==['sky-rain-fall','sky-rain-fall','storm-bolt','storm-glow'],sample
+   assert 0<sample['bolt']<=.9 and 0<sample['glow']<=.9 and all(abs(y-264)<1 for y in sample['drops']),sample
+   page.screenshot(path=str(output/(str(width)+'-lightning-'+phase+'-strike.png')))
+   # Entre quedas, nada aceso.
+   page.evaluate("""()=>{for(const a of stormAnimations){const t=a.effect.getTiming();if(a.animationName.startsWith('storm-'))a.currentTime=t.delay+t.duration*1.3;}}""")
+   assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>+getComputedStyle(el,'::after').opacity===0 && +getComputedStyle(el,'::before').opacity===0")
+   lightning.append({'viewport':width,'phase':phase,'boltPeak':sample['bolt'],'glowPeak':sample['glow']})
  # Visibility pause includes both pseudo-elements, not just the rain nodes.
  # Reload removes play-state overrides used only to inspect individual frames.
  page.goto(preview,wait_until='domcontentloaded');page.locator('#temperature').wait_for(state='visible',timeout=20000)
  page.wait_for_function("document.body.dataset.weather==='storm' && document.querySelector('.sky-effects').dataset.motion==='running'")
- page.evaluate("window.stormAnimations=document.querySelector('.sky-effects').getAnimations({subtree:true}).filter(a=>['sky-rain-fall','storm-flash-near','storm-flash-far'].includes(a.animationName));document.body.classList.add('page-hidden')")
+ page.evaluate("window.stormAnimations=document.querySelector('.sky-effects').getAnimations({subtree:true}).filter(a=>['sky-rain-fall','storm-bolt','storm-glow'].includes(a.animationName));document.body.classList.add('page-hidden')")
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>['::before','::after'].every(p=>getComputedStyle(el,p).animationPlayState==='paused')")
  assert page.evaluate("stormAnimations.every(a=>a.playState==='paused')")
  page.evaluate("document.body.classList.remove('page-hidden');window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})")
