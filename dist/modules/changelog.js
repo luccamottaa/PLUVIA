@@ -12,7 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.6", date:"2026-10-13", title:"Eclipses animados", items:[
+    {version:"1.6", date:"2026-10-13", title:"Temperatura medida e eclipses animados", items:[
+      "Novo: “Medido agora”, no fim das leituras, mostra a última medição da estação automática do INMET mais perto da sua cidade: temperatura, umidade e chuva da última hora, com o horário. Aparece quando a medição tem menos de 2h30.",
       "Em “Mais sobre o céu”, cada eclipse ganhou uma ilustração animada: a Lua passa na frente do Sol até cobrir a parte que dá para ver da sua cidade (no anular, vira um anel), e a sombra da Terra cobre a Lua, que fica avermelhada no eclipse total.",
       "Suas cidades favoritas e as buscadas há pouco também abrem sem a página pular quando chega o aviso do INMET.",
       "Ajustes de acessibilidade: bolinhas das cidades com área de toque maior, botão “Entendi” mais legível e textos do céu organizados para leitores de tela.",

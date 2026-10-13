@@ -626,7 +626,8 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 #weatherView .metrics .metric-sky > .wind-reading { justify-content:flex-start; gap:10px; }
 #weatherView .metrics .metric-sky > small { grid-column:1; grid-row:3; margin-top:6px; white-space:normal; overflow:visible; text-overflow:clip; }
 #weatherView .metrics .metric-sky > .visibility-badge { grid-column:1; grid-row:4; justify-self:start; margin-top:8px; }
-#weatherView .metrics :is(.uv-metric,.air-metric) { grid-column:1 / -1; }
+#weatherView .metrics :is(.uv-metric,.air-metric,.station-metric) { grid-column:1 / -1; }
+#weatherView .metrics .station-metric[hidden] { display:none; }
 @media(min-width:721px) {
   #weatherView .metrics { grid-template-columns:repeat(4,minmax(0,1fr)); column-gap:24px; }
 }

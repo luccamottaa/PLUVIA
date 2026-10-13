@@ -1620,6 +1620,8 @@ function fadeIn(nodes, duration, stagger = 0) {
 }
 // Os detalhes por hora/dia usam o mesmo fade ao navegar entre horários/dias.
 if (globalThis.PLUVIA) globalThis.PLUVIA.fadeText = fadeIn;
+// Blocos de módulos que surgem depois (ex.: "Medido agora") descem no lugar como os do app.
+if (globalThis.PLUVIA) globalThis.PLUVIA.settleBlock = settleBlock;
 function animateCityText() {
   fadeIn([$("cityName"), $("temperature"), $("condition"), $("heroRange"), $("rainAnswer")], 420, 90);
 }

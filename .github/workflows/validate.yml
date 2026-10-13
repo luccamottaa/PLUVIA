@@ -21,4 +21,4 @@ jobs:
         with:
           deno-version: v2.5.0
       - name: Verificar tipos das funções Supabase
-        run: deno check supabase/functions/*/index.ts supabase/functions/met-forecast/index.js supabase/functions/lightning/index.js
+        run: deno check supabase/functions/*/index.ts supabase/functions/met-forecast/index.js supabase/functions/station-now/index.js supabase/functions/lightning/index.js

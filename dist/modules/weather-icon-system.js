@@ -151,6 +151,7 @@
   // The colourful metric assets stay available for every other consumer.
   const THERMOMETER = '<path d="M7.5 13.6V5.5a2 2 0 0 1 4 0v8.1a4 4 0 1 1-4 0Z"/><path d="M9.5 17V9"/>';
   const LINE_METRICS = Object.freeze({
+    "temperature": THERMOMETER,
     "feels-like": THERMOMETER + '<path d="M15.5 5.5c1.2 1 1.2 2 0 3s-1.2 2 0 3m4-6c1.2 1 1.2 2 0 3s-1.2 2 0 3"/>',
     "temperature-high": THERMOMETER + '<path d="M18 11V3.5m-3 3 3-3 3 3"/>',
     "temperature-low": THERMOMETER + '<path d="M18 3.5V11m-3-3 3 3 3-3"/>',
