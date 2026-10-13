@@ -311,8 +311,12 @@
     message(result.error==='cancelled' ? 'Você cancelou o acesso. Pode tentar novamente ou entrar com e-mail.' : 'Não foi possível concluir o acesso. Tente novamente ou entre com e-mail.');
     loadProviders().catch(()=>{});
   }
+  // Turnstile (modules/captcha.js): o Supabase exige o token em cadastro, login por senha, recuperação e
+  // sessão anônima; sem o módulo, a chamada segue sem token e o servidor responde captcha_failed.
+  function getCaptchaToken(){ return globalThis.PLUVIA?.captcha?.token?.() ?? Promise.resolve(undefined); }
   function authError(error, action = 'account') {
     const code = error?.code;
+    if (/^captcha_/.test(code || '')) return globalThis.PLUVIA?.captcha?.message?.(error) || 'A verificação de segurança falhou. Tente novamente.';
     if(['provider_disabled','unsupported_provider','oauth_provider_not_supported'].includes(code))return 'Essa opção de acesso está indisponível no momento. Use e-mail ou tente novamente mais tarde.';
     if(['access_denied','user_cancelled_authorize','user_cancelled_login'].includes(code))return 'Você cancelou o acesso. Pode tentar novamente ou entrar com e-mail.';
     if (code === 'invalid_credentials') return 'E-mail ou senha incorretos. Confira os dados e tente novamente.';
@@ -390,8 +394,8 @@
       const email=el('accountEmail').value.trim();
       setBusy(true);message('Solicitando link…');
       try {
-        const client=await getClient();
-        const result=await client.auth.resetPasswordForEmail(email,{redirectTo:social.redirectTo(location,'recovery')});
+        const [client,captchaToken]=await Promise.all([getClient(),getCaptchaToken()]);
+        const result=await client.auth.resetPasswordForEmail(email,{redirectTo:social.redirectTo(location,'recovery'),captchaToken});
         if(result.error)throw result.error;
         recoverySentAt=Date.now();message('Se houver uma conta disponível para esse e-mail, você receberá um link. Confira também o spam.');
       } catch(error){message(authError(error,'reset'));}
@@ -407,10 +411,10 @@
     }
     setBusy(true); message('Só um instante…'); track('Auth Started',{mode});
     try {
-      const client = await getClient();
+      const [client,captchaToken] = await Promise.all([getClient(),getCaptchaToken()]);
       const result = mode === 'signup'
-        ? await client.auth.signUp({email,password,options:{data:{name,terms_version:globalThis.PLUVIA?.terms?.VERSION || null,terms_accepted_at:new Date().toISOString()},emailRedirectTo:social.redirectTo(location,'confirmation')}})
-        : await client.auth.signInWithPassword({email,password});
+        ? await client.auth.signUp({email,password,options:{data:{name,terms_version:globalThis.PLUVIA?.terms?.VERSION || null,terms_accepted_at:new Date().toISOString()},emailRedirectTo:social.redirectTo(location,'confirmation'),captchaToken}})
+        : await client.auth.signInWithPassword({email,password,options:{captchaToken}});
       if(result.error) throw result.error;
       if(mode === 'signup') globalThis.PLUVIA?.terms?.accept?.('signup');
       el('accountPassword').value = '';
@@ -496,7 +500,7 @@
     const {data}=await client.auth.getSession();
     if(data?.session?.user){paint(data.session.user);return pushUser;}
     if(!create)return null;
-    const result=await client.auth.signInAnonymously();
+    const result=await client.auth.signInAnonymously({options:{captchaToken:await getCaptchaToken()}});
     if(result.error || !result.data?.user)throw result.error || new Error('anonymous_unavailable');
     paint(result.data.user);
     return pushUser;

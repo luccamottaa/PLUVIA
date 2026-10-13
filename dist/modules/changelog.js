@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.7.2", date:"2026-10-13", title:"Login mais protegido", items:[
+      "Entrar, criar conta, recuperar a senha e ligar avisos sem conta agora passam por uma verificação de segurança contra robôs. Quase sempre ela é invisível; se aparecer uma caixinha, é só confirmar.",
+    ]},
     {version:"1.7.1", date:"2026-10-13", title:"Localização mais certeira", items:[
       "Quem já liberou a localização tem a própria cidade aberta com mais frequência: o app espera um pouco mais pelo GPS e aproveita a posição recente do aparelho, sem mostrar erro quando ele não responde.",
     ]},

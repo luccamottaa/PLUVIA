@@ -16,7 +16,7 @@ owner='00000000-0000-4000-8000-000000000001'
 user={'id':owner,'email':'fixture@example.test','app_metadata':{'provider':'email','providers':['email']},'user_metadata':{'name':'Teste'},'aud':'authenticated','role':'authenticated'}
 def encoded(value):return base64.urlsafe_b64encode(json.dumps(value).encode()).decode().rstrip('=')
 token=encoded({'alg':'HS256','typ':'JWT'})+'.'+encoded({'sub':owner,'exp':int(time.time())+3600,'role':'authenticated'})+'.fixture'
-signup=[];recovery=[];errors=[]
+signup=[];recovery=[];captchas=[];errors=[]
 with sync_playwright() as p:
  browser=p.webkit.launch() if os.environ.get('PLUVIA_BROWSER')=='webkit' else p.chromium.launch(args=['--no-sandbox'],**({'executable_path':shutil.which('chromium')} if shutil.which('chromium') else {}))
  def route(r):
@@ -24,9 +24,11 @@ with sync_playwright() as p:
   if url.hostname=='dszyyrcvwrpyiypwyvxe.supabase.co':
    if url.path=='/auth/v1/signup':
     signup.append(parse_qs(url.query).get('redirect_to',[None])[0])
+    captchas.append((r.request.post_data_json or {}).get('gotrue_meta_security',{}).get('captcha_token'))
     r.fulfill(json=user);return
    if url.path=='/auth/v1/recover':
     recovery.append(parse_qs(url.query).get('redirect_to',[None])[0])
+    captchas.append((r.request.post_data_json or {}).get('gotrue_meta_security',{}).get('captcha_token'))
     r.fulfill(json={});return
    if url.path=='/auth/v1/user':r.fulfill(json=user);return
    if url.path=='/auth/v1/settings':r.fulfill(json={'external':{'email':True,'google':False,'apple':False}});return
@@ -40,7 +42,7 @@ with sync_playwright() as p:
  def context():
   ctx=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,service_workers='block')
   ctx.route('**/*',route)
-  ctx.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-13'}));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});")
+  ctx.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-13'}));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(s,e){e({code:1})}}});window.turnstile={render(s,o){this.o=o;return 'qa'},reset(){},remove(){},execute(){setTimeout(()=>this.o.callback('qa-captcha-token'),0)}};")
   return ctx
  for source,dest in [(public+'/',public+'/'),(preview+'/index.html?next=https://other.test#agora',public+'/'),('http://127.0.0.1:4173/','http://127.0.0.1:4173/')]:
   ctx=context();page=ctx.new_page();page.on('pageerror',lambda e: None if str(e).endswith(RAINVIEWER_CANCELLED) else errors.append(str(e)))
@@ -60,5 +62,6 @@ with sync_playwright() as p:
  assert urlparse(page.url).netloc=='pluviaweather.com.br' and not urlparse(page.url).fragment
  page.locator('#accountButton').click();assert page.locator('#accountProfile').is_visible()
  assert not errors,errors
+ assert len(captchas)==6 and all(c=='qa-captcha-token' for c in captchas),captchas
  print(json.dumps({'signupRedirects':signup,'recoveryRedirects':recovery,'confirmationOnAnotherSession':True,'realAccountMutations':False,'errors':errors}))
  ctx.close();browser.close()
