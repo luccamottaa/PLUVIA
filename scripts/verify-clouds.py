@@ -95,14 +95,18 @@ with sync_playwright() as p:
     page.evaluate("intro=>{document.getElementById('pluviaIntro').hidden=!intro}",scene=='intro')
     # Os estilos do teste desligam a transição: com reduced-motion ela dura 0,01 ms, mas no Chromium
     # headless só termina quando algo força a atualização, e a captura via o texto ainda à mostra.
-    decor=page.add_style_tag(content=".night-stage > :not(.sky-effects):not(.sky-twilight-page),.pluvia-intro > :not(.intro-sky){visibility:hidden!important}:is(.night-stage > :not(.sky-effects):not(.sky-twilight-page),.pluvia-intro > :not(.intro-sky)),:is(.night-stage > :not(.sky-effects):not(.sky-twilight-page),.pluvia-intro > :not(.intro-sky)) *{transition:none!important}:is(.sky-effects,.intro-sky) > :is(.sky-sun,.sky-moon,.sky-stars){display:none!important}")
+    decor=page.add_style_tag(content=".night-stage > :not(.sky-effects):not(.sky-twilight-page),.pluvia-intro > :not(.intro-sky){visibility:hidden!important}:is(.night-stage > :not(.sky-effects):not(.sky-twilight-page),.pluvia-intro > :not(.intro-sky)),:is(.night-stage > :not(.sky-effects):not(.sky-twilight-page),.pluvia-intro > :not(.intro-sky)) *{transition:none!important}:is(.sky-effects,.intro-sky) > :is(.sky-sun,.sky-moon,.sky-stars){display:none!important}:is(.sky-effects,.intro-sky) > .sky-clouds{transition:none!important}")
     fractions={}
     for code in [1,2]:
+     # Cobertura em repouso: sem transição nas nuvens (o reaparecer depois da captura "sem nuvens" ainda
+     # podia estar no meio no WebKit e medir o parcial com 6% de céu coberto) e dois quadros depois de aplicar.
      page.evaluate("code=>PLUVIA.sky.apply(code,null,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})",code)
+     page.evaluate("()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)))")
      clip={'x':0,'y':0,'width':width,'height':min(height,650)}
      painted=base64.b64encode(page.screenshot(clip=clip)).decode()
      hidden=page.add_style_tag(content='.sky-clouds{opacity:0!important;transition:none!important}')
      clear=base64.b64encode(page.screenshot(clip=clip)).decode();hidden.evaluate('el=>el.remove()')
+     page.evaluate("()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)))")
      fractions[code]=page.evaluate("""async images=>{
        const data=await Promise.all(images.map(async image=>{const im=new Image();im.src='data:image/png;base64,'+image;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d');ctx.drawImage(im,0,0);return ctx.getImageData(0,0,c.width,c.height).data;}));
        let painted=0;for(let i=0;i<data[0].length;i+=4)if(Math.abs(data[0][i]-data[1][i])+Math.abs(data[0][i+1]-data[1][i+1])+Math.abs(data[0][i+2]-data[1][i+2])>12)painted++;

@@ -53,8 +53,8 @@ test('aviso só previsto da cidade vai para a faixa em linha translúcida e vira
   assert.match(active.title,/^Alerta amarelo do INMET · /);
   assert.match(css,/#weatherView \.alert-banner\[data-stage="future"\] \{ min-height:44px; [^}]*box-shadow:none; \}/);
   // Seleção: vigente vence previsto; previsto só da cidade, nunca de leitura anterior; bolinha só com vigente.
-  const render=app.slice(app.indexOf('function renderInmetAlerts('),app.indexOf('function updateInmetTimestamp('));
-  assert.match(render,/item\.stage === "future" && item\.area === activeCity\.name/);
+  const render=app.slice(app.indexOf('function alertBannerFor('),app.indexOf('function updateInmetTimestamp('));
+  assert.match(render,/item\.stage === "future" && item\.area === city\.name/);
   assert.match(render,/activeOfficial\?\.severity\?\.rank >= 1 \? activeOfficial : upcoming/);
   assert.match(render,/!stale && candidate/);
   assert.match(render,/syncAppBadge\(bannerItem\?\.stage === "active"\)/);
@@ -108,4 +108,23 @@ test('abertura: faixa vazia do mesmo formato guarda o lugar enquanto o INMET res
   assert.match(css,/@media\(max-width:420px\) \{[^}]*:is\(\[data-alert-state="clear"\],\[data-alert-state="loading"\]\) \.source-link \{ display:none; \}/);
   assert.match(app,/const held = holdAlertBanner\(expectedAlertShape\(city\.id\)\);/);
   assert.match(app,/if \(!stale\) rememberAlertShape\(activeCity\?\.id, bannerItem\);/);
+});
+
+test('a mesma leitura nacional guarda o formato da faixa das favoritas e buscas recentes (sem a cidade aberta)',()=>{
+  const pick=(a,b)=>app.slice(app.indexOf(a),app.indexOf(b));
+  const source=[pick('const ALERT_SHAPE_KEY','function holdAlertBanner('),pick('function alertBannerFor(','function renderInmetAlerts(')].join('\n');
+  const map=new Map(),localStorage={getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v)};
+  const cities=new Map([['1302603',{id:'1302603',name:'Manaus'}],['1501402',{id:'1501402',name:'Belém'}],['3550308',{id:'3550308',name:'São Paulo'}],['4314902',{id:'4314902',name:'Porto Alegre'}]]);
+  const now=Date.parse('2026-10-13T12:00:00Z');
+  const alertsFor={Belém:[{stage:'active',area:'Belém',severity:severity.orange,start:now-1,end:now+3600e3}],
+    'São Paulo':[{stage:'future',area:'São Paulo',severity:severity.yellow,start:now+3600e3,end:now+7200e3}],'Porto Alegre':[]};
+  const ctx={globalThis:{localStorage},Date,JSON,Number,Object,Array,Set,activeCity:{id:'1302603',name:'Manaus'},cityById:cities,
+    swipeCities:()=>['1302603','1501402','3550308'],recentCityIds:()=>['4314902','9999999'],
+    selectInmetAlerts:(raw,at,city)=>alertsFor[city.name]||[]};
+  vm.runInNewContext(`${source}\nrememberNearbyAlertShapes({},${now});this.out={expectedAlertShape}`,ctx);
+  assert.equal(ctx.out.expectedAlertShape('1501402',now),'strong');
+  assert.equal(ctx.out.expectedAlertShape('3550308',now),'future');
+  assert.equal(ctx.out.expectedAlertShape('4314902',now),'');
+  assert.equal(ctx.out.expectedAlertShape('1302603',now),'','a cidade aberta fica com a leitura dela');
+  assert.match(app,/renderInmetAlerts\(raw\);\n    updateInmetTimestamp\(\);\n    rememberNearbyAlertShapes\(raw\);/);
 });

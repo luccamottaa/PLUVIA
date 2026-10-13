@@ -292,12 +292,17 @@ function readAlertShapes() {
   try { const shapes = JSON.parse(globalThis.localStorage?.getItem(ALERT_SHAPE_KEY) || "{}"); return shapes && typeof shapes === "object" && !Array.isArray(shapes) ? shapes : {}; }
   catch { return {}; }
 }
-function rememberAlertShape(id, item, now = Date.now()) {
-  if (!id) return;
+function rememberAlertShape(id, item, now = Date.now()) { rememberAlertShapes([[id, item]], now); }
+function rememberAlertShapes(entries, now = Date.now()) {
+  if (!entries.length) return;
   try {
-    const shapes = readAlertShapes(), kind = alertShapeKind(item);
-    delete shapes[id];
-    if (kind) shapes[id] = {kind, at:now};
+    const shapes = readAlertShapes();
+    for (const [id, item] of entries) {
+      if (!id) continue;
+      const kind = alertShapeKind(item);
+      delete shapes[id];
+      if (kind) shapes[id] = {kind, at:now};
+    }
     const kept = Object.keys(shapes).filter(key => ALERT_SHAPE_KINDS.includes(shapes[key]?.kind) && Number.isFinite(shapes[key]?.at))
       .sort((a, b) => shapes[b].at - shapes[a].at).slice(0, 20);
     globalThis.localStorage?.setItem(ALERT_SHAPE_KEY, JSON.stringify(Object.fromEntries(kept.map(key => [key, shapes[key]]))));
@@ -330,16 +335,36 @@ function syncAppBadge(active) {
   } catch {}
 }
 
+// Aviso da faixa no topo: o vigente da cidade; sem vigente, o previsto mais grave da cidade (versão translúcida).
+function alertBannerFor(alerts, city = activeCity) {
+  const activeOfficial = alerts.find(item => item.stage === "active" && item.area === city.name);
+  const upcoming = alerts.filter(item => item.stage === "future" && item.area === city.name && Number.isFinite(item.start))
+    .sort((a, b) => b.severity.rank - a.severity.rank || a.start - b.start)[0];
+  const candidate = activeOfficial?.severity?.rank >= 1 ? activeOfficial : upcoming;
+  return {activeOfficial, candidate:candidate?.severity?.rank >= 1 ? candidate : null};
+}
+
+// A mesma leitura nacional já diz o formato da faixa das outras cidades do aparelho (favoritas e buscas
+// recentes): guardado agora, a primeira abertura de cada uma também não pula. Só formato, como na cidade aberta.
+function rememberNearbyAlertShapes(raw, now = Date.now()) {
+  if (typeof cityById === "undefined") return;
+  const ids = [...new Set([...(typeof swipeCities === "function" ? swipeCities() : []), ...(typeof recentCityIds === "function" ? recentCityIds() : [])])]
+    .filter(id => id !== activeCity?.id).slice(0, 19);
+  const entries = [];
+  for (const id of ids) {
+    const city = cityById.get(id);
+    if (!city?.name) continue;
+    try { entries.push([id, alertBannerFor(selectInmetAlerts(raw, now, city), city).candidate]); } catch {}
+  }
+  rememberAlertShapes(entries, now - 1);
+}
+
 function renderInmetAlerts(raw, stale = false) {
   globalThis.PLUVIA?.modules.alerts.receive?.(raw, stale);
   const state = $("inmetState"); const content = $("inmetContent");
   const alerts = selectInmetAlerts(raw);
-  const activeOfficial = alerts.find(item => item.stage === "active" && item.area === activeCity.name);
+  const {activeOfficial, candidate} = alertBannerFor(alerts);
   $("inmetCard").dataset.severity = stale ? "unknown" : activeOfficial?.severity.className || "none";
-  // Sem vigente, o aviso previsto mais grave da cidade ocupa a faixa na versão translúcida.
-  const upcoming = alerts.filter(item => item.stage === "future" && item.area === activeCity.name && Number.isFinite(item.start))
-    .sort((a, b) => b.severity.rank - a.severity.rank || a.start - b.start)[0];
-  const candidate = activeOfficial?.severity?.rank >= 1 ? activeOfficial : upcoming;
   const bannerItem = !stale && candidate?.severity?.rank >= 1 ? candidate : null;
   if (!stale) rememberAlertShape(activeCity?.id, bannerItem);
   setAlertBanner(bannerItem, bannerItem ? alerts.indexOf(bannerItem) : -1, bannerItem ? alerts.length - 1 : 0);
@@ -398,6 +423,7 @@ async function loadInmetAlerts(revision = cityRevision) {
     globalThis.PLUVIA?.sources.set("alerts",{status:"ready",checkedAt:lastInmetReadAt,dataAt:null});
     renderInmetAlerts(raw);
     updateInmetTimestamp();
+    rememberNearbyAlertShapes(raw);
   } catch {
     if (revision !== cityRevision) return;
     globalThis.PLUVIA?.sources.set("alerts",{status:lastInmetResponse ? "stale" : "error"});
@@ -620,6 +646,27 @@ function renderSkyEvents(at) {
 
 // Próximos eclipses visíveis da cidade (modules/eclipses.js). A biblioteca astronômica só é baixada
 // com "Mais sobre o céu" aberto; o resultado fica guardado por cidade e dia, e o relógio só relê.
+// Ilustração do eclipse no rótulo (aria-hidden): refeita só quando o eclipse muda, não a cada tique do relógio.
+function placeEclipseFigure(row, type, info) {
+  const label=row.querySelector?.('dt'), build=globalThis.PLUVIA?.eclipses?.figure;
+  if(!label || typeof build!=='function') return;
+  const key=info ? `${info.kind}|${Math.round((info.obscuration ?? -1)*1000)}` : '';
+  if(row.dataset.figure===key) return;
+  row.dataset.figure=key;
+  label.querySelector('.eclipse-figure')?.remove();
+  if(!info) return;
+  const figure=build(document,type,info);
+  figure.setAttribute('data-play','');
+  label.prepend(figure);
+}
+// Reabrir "Mais sobre o céu" repete a animação (atributo tirado e recolocado em quadros diferentes).
+function replayEclipseFigures() {
+  const figures=[...document.querySelectorAll('.astronomy-details .eclipse-figure')];
+  if(!figures.length) return;
+  figures.forEach(figure=>figure.removeAttribute('data-play'));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>figures.forEach(figure=>figure.setAttribute('data-play',''))));
+}
+
 function renderEclipses(at, box) {
   const eclipses=globalThis.PLUVIA?.eclipses, solarRow=$('solarEclipseRow'), lunarRow=$('lunarEclipseRow');
   if(!eclipses || !solarRow || !lunarRow) return;
@@ -634,6 +681,7 @@ function renderEclipses(at, box) {
   const hour=stamp=>format({hour:'2-digit',minute:'2-digit'}).format(stamp);
   const span=(begin,end)=>Number.isFinite(begin) && Number.isFinite(end) ? ` das ${hour(begin)} às ${hour(end)}` : '';
   const solar=found?.solar, lunar=found?.lunar;
+  placeEclipseFigure(solarRow,'solar',solar); placeEclipseFigure(lunarRow,'lunar',lunar);
   solarRow.hidden=!solar;
   if(solar) {
     const kind={total:'Total',annular:'Anular',partial:'Parcial'}[solar.kind] || 'Parcial';
@@ -848,7 +896,7 @@ globalThis.addEventListener?.("pluvia:alerts-enabled", event => {
 $("alertNudgeEnable")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Tapped", {offer:$("alertNudge")?.dataset?.offer, nudge:$("alertNudge")?.dataset?.reason}); globalThis.PLUVIA?.alertOffer?.enable?.(); });
 $("alertNudgeDismiss")?.addEventListener?.("click", () => { globalThis.pluviaAnalytics?.track?.("Alert Nudge Dismissed", {offer:$("alertNudge")?.dataset?.offer, nudge:$("alertNudge")?.dataset?.reason}); globalThis.PLUVIA?.alertOffer?.dismiss?.(); updateAlertNudge(); });
 // Abrir "Mais sobre o céu" pede os eclipses na hora, sem esperar o próximo tique do relógio.
-document.querySelector?.(".astronomy-details")?.addEventListener?.("toggle", event => { if(event.target.open && activeCity?.timezone) renderSkyEvents(Date.now()); });
+document.querySelector?.(".astronomy-details")?.addEventListener?.("toggle", event => { if(event.target.open && activeCity?.timezone) { renderSkyEvents(Date.now()); replayEclipseFigures(); } });
 // Quem já abriu o PLUVIA em 2 dias diferentes também recebe o convite, mesmo sem chuva prevista:
 // é quem mais ganha com os avisos. Guarda só a contagem e o último dia (do aparelho), sem cidade.
 const OPEN_DAYS_KEY = "pluvia-open-days";
@@ -1572,6 +1620,8 @@ function fadeIn(nodes, duration, stagger = 0) {
 }
 // Os detalhes por hora/dia usam o mesmo fade ao navegar entre horários/dias.
 if (globalThis.PLUVIA) globalThis.PLUVIA.fadeText = fadeIn;
+// Blocos de módulos que surgem depois (ex.: "Medido agora") descem no lugar como os do app.
+if (globalThis.PLUVIA) globalThis.PLUVIA.settleBlock = settleBlock;
 function animateCityText() {
   fadeIn([$("cityName"), $("temperature"), $("condition"), $("heroRange"), $("rainAnswer")], 420, 90);
 }

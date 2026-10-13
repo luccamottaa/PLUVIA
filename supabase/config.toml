@@ -13,6 +13,10 @@ verify_jwt = false
 verify_jwt = false
 entrypoint = "./functions/met-forecast/index.js"
 
+[functions.station-now]
+verify_jwt = false
+entrypoint = "./functions/station-now/index.js"
+
 [functions.lightning]
 verify_jwt = false
 entrypoint = "./functions/lightning/index.js"
