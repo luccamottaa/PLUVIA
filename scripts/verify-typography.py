@@ -41,7 +41,7 @@ with sync_playwright() as p:
   # Na fase offline as APIs externas falham na própria página: no WebKit, páginas controladas
   # pelo service worker escapam do context.route e chegariam à API real (resultado aleatório).
   context.add_init_script("if(sessionStorage.getItem('pluvia-qa-offline')==='1'){const nativeFetch=fetch;window.fetch=(input,init)=>{const url=new URL(typeof input==='string'?input:input.url,location.href);return url.origin===location.origin?nativeFetch(input,init):Promise.reject(new TypeError('Failed to fetch'));};}")
-  context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-10'}));localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
+  context.add_init_script("sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-13'}));localStorage.setItem('pluvia-city',JSON.stringify('1302603'));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
   def page_error(error):
    # WebKit also emits stackless resource-load failures as pageerror. During
    # the deliberate outage, retain these separately; JS exceptions still fail.

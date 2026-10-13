@@ -9,8 +9,8 @@
   if (root.document && typeof module !== 'object') api.mount(root.document);
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (runtime) {
   'use strict';
-  // Data da "Última atualização" em /termos/. Mudou o texto de forma relevante, mude aqui.
-  const VERSION = '2026-10-10';
+  // Data da "Última atualização" em /termos/ e /privacidade/. Mudou o texto de forma relevante, mude aqui.
+  const VERSION = '2026-10-13';
   const KEY = 'pluvia-terms', NOTICE_KEY = 'pluvia-terms-notice';
   const VIA = ['push', 'signup', 'social'];
   let memory = null, noticeMemory = null;

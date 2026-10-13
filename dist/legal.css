@@ -1,0 +1,52 @@
+/* Páginas legais (/termos/, /privacidade/): mesmo visual, claro de dia e escuro à noite na cidade
+   aberta no app (data-theme escrito por modules/legal-page.js antes do primeiro desenho). */
+:root { color-scheme:dark; --bg:#080f22; --sky:#10233f; --ink:#e8eefc; --muted:#a9b6d3; --line:#ffffff1f; --brand:#2f6bff; --link:#7aa7ff; --card:#ffffff08; --notice:#2f6bff14; --close-bg:#10233fe6; --shadow:#0006; --mark:#ffd479; }
+:root[data-theme="day"] { color-scheme:light; --bg:#f5f7fb; --sky:#cfe2ff; --ink:#13233d; --muted:#4f5d72; --line:#13233d24; --link:#1f56d6; --card:#ffffffb8; --notice:#2f6bff12; --close-bg:#ffffffeb; --shadow:#13233d26; --mark:#8a5a00; }
+* { box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; background:var(--bg); }
+body { margin:0; min-height:100svh; background:linear-gradient(180deg,var(--sky) 0,var(--bg) 420px) no-repeat,var(--bg); color:var(--ink); font:400 1rem/1.65 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+.page { max-width:760px; margin:0 auto; padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left)); }
+.brand { display:inline-flex; align-items:center; gap:2px; min-height:44px; margin-right:56px; color:var(--brand); text-decoration:none; font:900 1.6rem/1 Nunito,Inter,system-ui,sans-serif; letter-spacing:.01em; }
+.brand img { width:34px; height:34px; }
+h1 { margin:28px 0 8px; font-size:clamp(1.7rem,6vw,2.2rem); font-weight:600; line-height:1.2; }
+h2 { margin:36px 0 8px; font-size:1.3rem; font-weight:600; line-height:1.3; }
+h3 { margin:20px 0 4px; font-size:1.05rem; font-weight:600; }
+p, li { color:var(--ink); }
+ul, ol { padding-left:1.3rem; }
+li + li { margin-top:6px; }
+a { color:var(--link); text-underline-offset:3px; }
+.meta { margin:16px 0 0; padding:14px 16px; border:1px solid var(--line); border-radius:16px; background:var(--card); color:var(--muted); font-size:.95rem; }
+.meta p { margin:0; color:inherit; }
+.meta p + p { margin-top:4px; }
+.notice { margin:24px 0 0; padding:14px 16px; border-left:3px solid var(--brand); border-radius:0 12px 12px 0; background:var(--notice); }
+.notice p { margin:0; }
+.table-wrap { overflow-x:auto; margin:12px 0; border:1px solid var(--line); border-radius:14px; background:var(--card); }
+table { width:100%; border-collapse:collapse; font-size:.94rem; line-height:1.5; }
+th, td { padding:10px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+tr:last-child > * { border-bottom:0; }
+th { font-weight:600; }
+/* Celular: cada linha da tabela vira um cartão com os rótulos ao lado dos valores. */
+@media (max-width:640px) {
+  .table-wrap { overflow:visible; border:0; background:none; }
+  table, tbody, tr, td { display:block; }
+  thead { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  tr { margin:0 0 12px; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--card); }
+  td { padding:4px 0; border:0; }
+  td::before { content:attr(data-label); display:block; color:var(--muted); font-size:.8125rem; font-weight:600; }
+  td:first-child { font-weight:600; font-size:1rem; }
+  td:first-child::before { content:none; }
+}
+.ph { color:var(--mark); font-variant-numeric:tabular-nums; }
+footer { margin-top:48px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:.9rem; display:flex; flex-wrap:wrap; gap:0 20px; }
+footer a { display:inline-flex; align-items:center; min-height:44px; }
+:focus-visible { outline:2px solid var(--link); outline-offset:3px; border-radius:4px; }
+/* Fechar: fixo no alto, fora de .page (a animação de entrada move .page e prenderia o fixed). */
+.close { position:fixed; top:max(24px,env(safe-area-inset-top)); right:max(16px,env(safe-area-inset-right)); z-index:2; display:grid; place-items:center; width:44px; height:44px; border:1px solid var(--line); border-radius:50%; background:var(--close-bg); color:var(--ink); text-decoration:none; box-shadow:0 6px 18px var(--shadow); }
+.close svg { width:18px; height:18px; }
+/* Entrada suave e saída antes de voltar ao app. */
+@keyframes legal-enter { from { opacity:0; transform:translateY(18px); } }
+.page, .close { animation:legal-enter .44s cubic-bezier(.2,.8,.2,1) backwards; }
+.close { animation-delay:.08s; }
+html.leaving :is(.page,.close) { opacity:0; transform:translateY(12px); transition:opacity .18s ease-in, transform .18s ease-in; }
+@media (prefers-reduced-motion:reduce) { .page, .close { animation:none; } html.leaving :is(.page,.close) { transition:none; } }
+@media (forced-colors:active) { .brand { color:LinkText; } .close { border-color:ButtonText; } }

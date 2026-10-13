@@ -54,7 +54,7 @@ try:
   for _ in range(2):
    context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,service_workers='block')
    context.route('**/*',route)
-   context.add_init_script("if(!sessionStorage.getItem('account-fixture-seeded')){localStorage.setItem('sb-dszyyrcvwrpyiypwyvxe-auth-token',"+json.dumps(json.dumps(session))+" );sessionStorage.setItem('account-fixture-seeded','1');}sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-10'}));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
+   context.add_init_script("if(!sessionStorage.getItem('account-fixture-seeded')){localStorage.setItem('sb-dszyyrcvwrpyiypwyvxe-auth-token',"+json.dumps(json.dumps(session))+" );sessionStorage.setItem('account-fixture-seeded','1');}sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-13'}));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
    page=context.new_page();page.on('pageerror',lambda error: None if str(error).endswith(RAINVIEWER_CANCELLED) else errors.append(str(error)));page.goto(preview,wait_until='domcontentloaded')
    page.wait_for_function("window.pluviaAccount?.getPreferences()?.namedPlaces?.length===1 && document.getElementById('pluviaIntro').hidden",timeout=20000)
    pages.append(page)
