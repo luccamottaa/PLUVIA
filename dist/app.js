@@ -999,15 +999,20 @@ function currentObservedRain() {
   return api.pick({station:observedRainState.stationCity === id ? observedRainState.station : null,
     radar:observedRainState.radar?.cityId === id ? observedRainState.radar : null, now:Date.now()});
 }
-function withObservedRain(current) {
-  const observed = current ? currentObservedRain() : null;
+// Com o CAPE da hora atual: chuva medida em ar muito instável vira trovoada provável (raios no céu).
+function observedRainFor(data) {
+  const observed = data?.current ? currentObservedRain() : null;
+  return observed ? globalThis.PLUVIA.observedRain.withStorm(observed, data.hourly?.cape?.[selectCurrentHour(data.hourly?.time || [])]) : null;
+}
+function withObservedRain(data) {
+  const current = data?.current, observed = observedRainFor(data);
   if (!observed) return {current, observed:null, replaced:false};
   const code = globalThis.PLUVIA.observedRain.merge(current.weather_code, observed);
   return code === current.weather_code ? {current, observed, replaced:false} : {current:{...current, weather_code:code}, observed, replaced:true};
 }
 // Condição escrita e céu do topo, com a chuva observada quando houver.
 function paintCurrentCondition(data) {
-  const {current, observed, replaced} = withObservedRain(data.current);
+  const {current, observed, replaced} = withObservedRain(data);
   const [condition] = weather(current.weather_code);
   const heatGap = current.apparent_temperature - current.temperature_2m;
   const atmosphere = applyWeatherAtmosphere(current.weather_code, current.is_day, data.daily, current.wind_speed_10m);
@@ -1023,20 +1028,20 @@ function syncNowHourIcon(data) {
   const slot = globalThis.document?.querySelector?.("#hourlyPeek .hourly-peek-item.is-now .peek-icon");
   const start = selectCurrentHour(data.hourly?.time || []);
   if (!slot || !(start >= 0)) return;
-  const {current, replaced} = withObservedRain(data.current);
+  const {current, replaced} = withObservedRain(data);
   const code = replaced ? current.weather_code : data.hourly.weather_code?.[start];
   slot.innerHTML = weatherIcons.markup(code, forecastIsDay(data.hourly.time[start], data.daily), {className:"hourly-weather-icon", decorative:true});
 }
 function rainAnswerFor(data, start) {
-  const {current, observed} = withObservedRain(data.current);
+  const {current, observed} = withObservedRain(data);
   const time = at => (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR",{hour:"2-digit",minute:"2-digit",timeZone:activeCity.timezone}).format(at);
   return globalThis.PLUVIA?.observedRain?.answer?.(observed, {time, number:mm => fmt(mm, 1)})
     || weatherInsights?.rainAnswer?.(data.hourly, start, {current}) || {tone:"unknown",text:"Previsão de chuva indisponível."};
 }
 // Uma leitura nova (ou vencida) repinta só a condição, o céu e o "Vai chover?", sem refazer a Home.
 function refreshObservedRain() {
-  const key = globalThis.PLUVIA?.observedRain?.key?.(currentObservedRain()) || "";
   const shown = displayedWeather?.forecast;
+  const key = globalThis.PLUVIA?.observedRain?.key?.(observedRainFor(shown)) || "";
   if (key === observedRainState.key || !shown?.current || !shown.hourly?.time) return;
   paintCurrentCondition(shown);
   try { setRainAnswer(rainAnswerFor(shown, selectCurrentHour(shown.hourly.time))); syncNowHourIcon(shown); } catch {}

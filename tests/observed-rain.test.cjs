@@ -56,6 +56,25 @@ test('radar recente com eco em cima da cidade diz só "Chuva", sem inventar inte
   assert.equal(observed.key(null), '');
 });
 
+test('chuva medida em ar muito instável vira trovoada provável e liga os raios', () => {
+  // CAPE de Manaus em 13/10/2026 ao meio-dia: 2.330 J/kg.
+  const now = at + 20 * 60_000;
+  const storm = observed.withStorm(observed.pick({station, now}), 2330);
+  assert.equal(storm.code, 95);
+  assert.equal(storm.storm, true);
+  assert.equal(observed.merge(51, storm), 95, 'garoa do modelo vira trovoada');
+  assert.equal(observed.merge(65, storm), 95);
+  assert.equal(observed.label(storm, 'Trovoadas'), 'Chuva com trovoada');
+  const answer = observed.answer(storm, {time, number});
+  assert.equal(answer.tone, 'storm');
+  assert.match(answer.text, /5,0 mm medidos pela estação do INMET \(11:00–12:00\)\. Ar muito instável: trovoada provável\.$/);
+  assert.notEqual(observed.key(storm), observed.key(observed.pick({station, now})), 'virar trovoada repinta o topo');
+  // Ar estável, CAPE ausente ou sem chuva medida: nada de trovoada inventada.
+  assert.equal(observed.withStorm(observed.pick({station, now}), 900).code, 63);
+  assert.equal(observed.withStorm(observed.pick({station, now}), null).code, 63);
+  assert.equal(observed.withStorm(null, 4600), null);
+});
+
 test('o app carrega o módulo antes de app.js e só repinta condição, céu e "Vai chover?"', () => {
   const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
   const sw = fs.readFileSync(path.join(__dirname, '../dist/sw.js'), 'utf8');

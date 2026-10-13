@@ -14,6 +14,7 @@
   const VERSIONS = [
     {version:"1.8", date:"2026-10-13", title:"Chuva de verdade no topo", items:[
       "Quando a estação do INMET mais próxima mede chuva, ou o radar mostra chuva em cima da cidade, o topo do app passa a dizer que está chovendo, mesmo que a previsão diga nublado. O “Vai chover?” mostra quanto choveu e de onde veio a medição.",
+      "Chuva medida com o ar muito instável aparece como chuva com trovoada, com os raios no céu do app. É uma estimativa pelo ar instável, não detecção de raios.",
       "A previsão não troca mais garoa ou chuva por “parcialmente nublado” ao juntar as duas fontes de dados.",
     ]},
     {version:"1.7.2", date:"2026-10-13", title:"Login mais protegido", items:[
