@@ -3,11 +3,12 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-function runtime({fetchImpl,setTimeoutImpl=setTimeout,clearTimeoutImpl=clearTimeout} = {}) {
-  const sourceStates = [];
+function runtime({fetchImpl,setTimeoutImpl=setTimeout,clearTimeoutImpl=clearTimeout,pixels=new Uint8ClampedArray([0,0,0,255,0,0,0,255,0,0,0,255])} = {}) {
+  const sourceStates = [], images = [];
   class FakeImage {
     set src(value) {
       this._src = value;
+      if (value) images.push(value);
       if (value) queueMicrotask(() => this.onload?.());
     }
     get src() { return this._src; }
@@ -23,14 +24,14 @@ function runtime({fetchImpl,setTimeoutImpl=setTimeout,clearTimeoutImpl=clearTime
     queueMicrotask,
     Image: FakeImage,
     fetch: fetchImpl || (async () => ({ok:true,json:async()=>({host:'https://tiles.example',radar:{past:[{path:'/frame',time:123}]}})})),
-    document: {createElement: () => ({getContext: () => ({drawImage(){},getImageData:()=>({data:new Uint8ClampedArray([0,0,0,255,0,0,0,255,0,0,0,255])})})})},
+    document: {createElement: () => ({getContext: () => ({drawImage(){},getImageData:()=>({data:pixels})})})},
     PLUVIA: {sources:{set:(id,value)=>sourceStates.push({id,...value})}}
   };
   context.globalThis = context;
   vm.createContext(context);
   vm.runInContext(fs.readFileSync('dist/modules/http-client.js', 'utf8'), context);
   vm.runInContext(fs.readFileSync('dist/modules/radar-probe.js', 'utf8'), context);
-  return {radar:context.PLUVIA.radar,sourceStates};
+  return {radar:context.PLUVIA.radar,sourceStates,images};
 }
 
 test('converte lat/lon em tile sem tratar ausência de eco como céu seco', () => {
@@ -93,4 +94,16 @@ test('timeout aborta a consulta e publica estado distinto de erro comum', async 
   const result = await radar.probe({id:'1302603',lat:-3.119,lon:-60.021});
   assert.equal(result.status, 'unavailable');
   assert.equal(sourceStates.at(-1).status, 'timeout');
+});
+
+test('lê o tile no zoom 7 (limite do RainViewer público) e exige eco em um quarto da janela', async () => {
+  const window = wet => { const data = new Uint8ClampedArray(81 * 4); for (let i = 0; i < wet; i++) data[i * 4 + 3] = 200; return data; };
+  const city = {id:'1302603',lat:-3.119,lon:-60.021};
+  const sparse = runtime({pixels:window(10)});
+  const few = await sparse.radar.probe(city);
+  assert.match(sparse.images[0], /\/256\/7\/\d+\/\d+\/2\/1_1\.png$/);
+  assert.equal(few.precipitating, false, 'pixels soltos (ruído) não são chuva em cima da cidade');
+  assert.equal(few.frameAt, 123000, 'o horário da imagem acompanha a leitura');
+  const covered = await runtime({pixels:window(25)}).radar.probe(city);
+  assert.equal(covered.precipitating, true);
 });

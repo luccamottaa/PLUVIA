@@ -57,10 +57,13 @@
         number:(n, digits) => time?.numberFormat?.('pt-BR', {minimumFractionDigits:digits, maximumFractionDigits:digits})?.format(n) ?? n.toFixed(digits)
       };
     };
-    function hide() { card.hidden = true; value.textContent = ''; note.textContent = ''; delete card.dataset.city; }
+    // A leitura também alimenta a chuva observada do topo (observed-rain.js, via app.js).
+    const announce = (cityId, item) => root.dispatchEvent?.(new CustomEvent('pluvia:station-reading', {detail:{cityId, reading:item}}));
+    function hide() { card.hidden = true; value.textContent = ''; note.textContent = ''; delete card.dataset.city; announce(null, null); }
     function show(city, data) {
       const item = reading(data);
       if (!item) { hide(); return; }
+      announce(String(city.id), item);
       const text = describe(item, city, helpers());
       const appearing = card.hidden;
       value.textContent = text.value; note.textContent = text.note;

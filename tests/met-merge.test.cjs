@@ -57,3 +57,22 @@ test('ícones traduzem os códigos do MET sem transformar noite em dia', () => {
   assert.equal(weatherCode('rainshowers_night'),81);
   assert.equal(weatherCode('unknown_code'),undefined);
 });
+
+test('o símbolo do MET não seca uma hora em que o Open-Meteo prevê precipitação (Manaus, 13/10/2026)', () => {
+  const forecast = openMeteo();
+  forecast.current.weather_code = 51;
+  forecast.hourly.weather_code = [51,51,61];
+  forecast.daily.weather_code = [63];
+  const dry = {source:'MET Norway',hourly:[hour(10,28,{symbol:'partlycloudy_day'}),hour(11,29,{symbol:'fair_day'})]};
+  const result = merge(forecast,dry,'America/Manaus',Date.parse('2026-09-25T14:10:00Z'));
+  assert.equal(result.forecast.current.weather_code,51,'garoa continua garoa');
+  assert.equal(result.forecast.current.temperature_2m,28,'os outros campos do MET continuam entrando');
+  assert.deepEqual(result.forecast.hourly.weather_code,[51,51,61]);
+  assert.equal(result.fields.includes('weather_code'),false);
+  // O contrário vale: MET com chuva onde o Open-Meteo previa tempo seco.
+  const wetter = merge(openMeteo(),{source:'MET Norway',hourly:[hour(10,28,{symbol:'heavyrainshowers_day'})]},'America/Manaus',Date.parse('2026-09-25T14:10:00Z'));
+  assert.equal(wetter.forecast.current.weather_code,82);
+  // Chuva → outra chuva também troca (o MET continua decidindo o tipo de precipitação).
+  const rainy = openMeteo(); rainy.current.weather_code = 61;
+  assert.equal(merge(rainy,{source:'MET Norway',hourly:[hour(10,28,{symbol:'rainandthunder_day'})]},'America/Manaus',Date.parse('2026-09-25T14:10:00Z')).forecast.current.weather_code,95);
+});
