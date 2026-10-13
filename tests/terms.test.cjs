@@ -47,3 +47,13 @@ test('QA semeia o aviso dos Termos com a versão atual (o aviso fixo bloquearia 
     for(const [,version] of source.matchAll(/pluvia-terms-notice',JSON\.stringify\(\{version:'([^']+)'\}\)/g)) assert.equal(version,VERSION,file);
   }
 });
+
+test('página dos Termos: X no alto volta ao app, com entrada suave e sem movimento em reduced-motion',()=>{
+  const page=fs.readFileSync('dist/termos/index.html','utf8');
+  assert.match(page,/<body>\s*<a class="close" id="termsClose" href="\/" aria-label="Fechar e voltar ao PLUVIA" data-leave>/,'X antes de .page (fixed fora do elemento animado)');
+  assert.match(page,/\.close \{ position:fixed;[^}]*width:44px; height:44px;/);
+  assert.match(page,/\.page, \.close \{ animation:terms-enter [^}]*backwards; \}/,'fill backwards: a saída por transição funciona depois da entrada');
+  assert.match(page,/@media \(prefers-reduced-motion:reduce\) \{ \.page, \.close \{ animation:none; \}/);
+  assert.match(page,/if \(app && history\.length > 1\) \{ history\.back\(\); return; \}/,'volta ao app sem recarregar');
+  assert.equal((page.match(/data-leave/g)||[]).length,4,'X, marca, "Voltar para a previsão" e o seletor do script');
+});

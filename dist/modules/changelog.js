@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.6.3", date:"2026-10-13", title:"Termos mais fáceis de fechar", items:[
+      "A página dos Termos de uso ganhou um X no alto para voltar ao PLUVIA de onde você parou, e agora abre e fecha com uma animação suave.",
+    ]},
     {version:"1.6.2", date:"2026-10-13", title:"Termos de uso", items:[
       "Termos de uso: no primeiro acesso aparece um aviso curto, e criar conta ou ligar os avisos pede que você marque “Li e aceito os Termos de uso e a Política de privacidade”.",
       "O aviso não bloqueia a previsão: é só tocar em OK.",
