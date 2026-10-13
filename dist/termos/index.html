@@ -45,11 +45,23 @@
       footer a { display:inline-flex; align-items:center; min-height:44px; }
       :focus-visible { outline:2px solid var(--link); outline-offset:3px; border-radius:4px; }
       @media (forced-colors:active) { .brand { color:LinkText; } }
+      /* Fechar: fixo no alto, fora de .page (a animação de entrada move .page e prenderia o fixed). */
+      .close { position:fixed; top:max(24px,env(safe-area-inset-top)); right:max(16px,env(safe-area-inset-right)); z-index:2; display:grid; place-items:center; width:44px; height:44px; border:1px solid var(--line); border-radius:50%; background:#10233fe6; color:var(--ink); text-decoration:none; box-shadow:0 6px 18px #0006; }
+      .close svg { width:18px; height:18px; }
+      .page > .brand { margin-right:56px; }
+      /* Entrada suave (pedido do usuário: a página aparecia de forma abrupta) e saída antes de voltar ao app. */
+      @keyframes terms-enter { from { opacity:0; transform:translateY(18px); } }
+      .page, .close { animation:terms-enter .44s cubic-bezier(.2,.8,.2,1) backwards; }
+      .close { animation-delay:.08s; }
+      html.leaving :is(.page,.close) { opacity:0; transform:translateY(12px); transition:opacity .18s ease-in, transform .18s ease-in; }
+      @media (prefers-reduced-motion:reduce) { .page, .close { animation:none; } html.leaving :is(.page,.close) { transition:none; } }
+      @media (forced-colors:active) { .close { border-color:ButtonText; } }
     </style>
   </head>
   <body>
+    <a class="close" id="termsClose" href="/" aria-label="Fechar e voltar ao PLUVIA" data-leave><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
     <main class="page">
-      <a class="brand" href="/" aria-label="PLUVIA, voltar para a previsão"><img src="/logo-mark.png" alt="" width="34" height="34" />PLUVIA</a>
+      <a class="brand" href="/" aria-label="PLUVIA, voltar para a previsão" data-leave><img src="/logo-mark.png" alt="" width="34" height="34" />PLUVIA</a>
 
       <h1>Termos de Uso</h1>
       <div class="meta">
@@ -113,8 +125,37 @@
       <p>Dúvidas, pedidos de autorização e solicitações sobre dados pessoais: <a href="mailto:lukamotta06@gmail.com">lukamotta06@gmail.com</a>.</p>
 
       <footer>
-        <a href="/">Voltar para a previsão</a>
+        <a href="/" data-leave>Voltar para a previsão</a>
       </footer>
     </main>
+    <script>
+      // Voltar ao app: com o app logo atrás no histórico, volta para ele (mantém cidade e rolagem);
+      // aberto numa aba nova, tenta fechar a aba; senão abre a previsão. Saída curta antes de sair.
+      (function () {
+        var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+        function fromApp() {
+          try { var ref = new URL(document.referrer); return ref.origin === location.origin && ref.pathname.indexOf("/termos") !== 0; } catch (e) { return false; }
+        }
+        function leave(go) {
+          if (reduce) { go(); return; }
+          document.documentElement.classList.add("leaving");
+          setTimeout(go, 180);
+        }
+        document.querySelectorAll("[data-leave]").forEach(function (link) {
+          link.addEventListener("click", function (event) {
+            if (event.defaultPrevented || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            var app = fromApp();
+            leave(function () {
+              if (app && history.length > 1) { history.back(); return; }
+              if (app) { window.close(); setTimeout(function () { location.href = link.href; }, 150); return; }
+              location.href = link.href;
+            });
+          });
+        });
+        // Voltou para cá pelo histórico (cache de página): sem o estado de saída.
+        addEventListener("pageshow", function () { document.documentElement.classList.remove("leaving"); });
+      })();
+    </script>
   </body>
 </html>

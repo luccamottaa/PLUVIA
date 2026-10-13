@@ -72,7 +72,8 @@ with sync_playwright() as p:
   page.keyboard.press('Escape');page.evaluate('document.activeElement.blur()')
  def form_edges(selector):
   aligned(selector+' input:visible,'+selector+' button:visible','x')
-  aligned(selector+' input:visible,'+selector+' button:visible','right')
+  # A caixinha dos Termos alinha à esquerda; o texto ao lado ocupa o resto da linha.
+  aligned(selector+' input:not([type=checkbox]):visible,'+selector+' button:visible','right')
  def screenshot(name,selector):
   page.locator(selector).screenshot(path=str(output/(name+'.png')))
  def city_bounds(width):
