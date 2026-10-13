@@ -1944,6 +1944,15 @@ function setupCityPicker() {
 
 let locationAttempt = 0;
 let locationPending = false;
+let locationSource = null;
+// O iPhone congela a página em segundo plano: uma consulta pendente nessa hora fica sem
+// resposta naquela visita, e o funil mostrava pedidos sem nenhum desfecho. Uma vez por consulta.
+let locationInterrupted = 0;
+document.addEventListener?.("visibilitychange", () => {
+  if (!document.hidden || !locationPending || locationInterrupted === locationAttempt) return;
+  locationInterrupted = locationAttempt;
+  globalThis.pluviaAnalytics?.track('Location Unavailable',{reason:'interrupted',source:locationSource});
+});
 let cityChoiceAttempt = 0;
 function locationMessage(text) {
   $("locationStatus").textContent = text;
@@ -1999,10 +2008,16 @@ function requestLocation(source = 'automatic') {
     locationMessage("A localização não está disponível neste navegador. Selecione uma cidade pelo nome.");
     return;
   }
+  // A consulta automática só roda com a permissão já concedida e a pessoa já vê uma
+  // cidade: nada de "toque em Permitir" nem de erro na tela, e ela pode esperar mais
+  // e aceitar a posição que o aparelho já tem (a cidade não muda em 10 min). Com 4 s
+  // e posição de até 1 min, 3 de 9 respostas automáticas eram timeout (PostHog, out/2026).
+  const automatic = source === 'automatic';
   const attempt = ++locationAttempt;
   locationPending = true;
+  locationSource = source;
   locationButtons(true);
-  locationMessage("Usamos só a cidade mais próxima, nunca o endereço. Toque em Permitir no aviso do aparelho.");
+  if (!automatic) locationMessage("Usamos só a cidade mais próxima, nunca o endereço. Toque em Permitir no aviso do aparelho.");
   navigator.geolocation.getCurrentPosition(position => {
     if (attempt !== locationAttempt) return;
     const applyLocation = () => {
@@ -2017,7 +2032,7 @@ function requestLocation(source = 'automatic') {
       if (attempt !== locationAttempt) return;
       locationPending = false; locationButtons(false);
       globalThis.pluviaAnalytics?.track('Location Unavailable',{reason:'catalog'});
-      locationMessage("Não foi possível identificar a cidade. Selecione-a pelo nome.");
+      if (!automatic) locationMessage("Não foi possível identificar a cidade. Selecione-a pelo nome.");
     };
     if (municipalitiesReady) applyLocation();
     else ensureMunicipalities().then(applyLocation).catch(failLocation);
@@ -2025,6 +2040,7 @@ function requestLocation(source = 'automatic') {
     if (attempt !== locationAttempt) return;
     locationPending = false; locationButtons(false);
     globalThis.pluviaAnalytics?.track(error.code === 1 ? 'Location Denied' : 'Location Unavailable',{reason:error.code === 1 ? 'permission' : error.code === 3 ? 'timeout' : 'position'});
+    if (automatic) return;
     locationMessage(error.code === 1 ? "Localização não autorizada. Selecione uma cidade sem compartilhar sua posição." : "Não foi possível obter a localização. Tente novamente ou selecione uma cidade.");
     // Pelo aviso da Home, quem não liberou cai direto na busca, com o motivo logo abaixo do campo.
     if (source === "notice" && !$("cityDialog")?.open) {
@@ -2032,7 +2048,7 @@ function requestLocation(source = 'automatic') {
       $("cityPickerStatus").textContent = error.code === 1 ? "Sem problema: digite o nome da sua cidade." : "A localização não respondeu. Digite o nome da sua cidade.";
       $("citySearch")?.focus?.();
     }
-  }, {enableHighAccuracy:false,timeout:4000,maximumAge:60000});
+  }, {enableHighAccuracy:false,timeout:automatic ? 10000 : 4000,maximumAge:600000});
 }
 
 setupCityPicker();
