@@ -1573,18 +1573,18 @@ html body #accountDialog #avatarOptions button.avatar-option[aria-pressed="true"
    off-white quente com cartões brancos e texto azul-marinho; à noite e com chuva forte/trovoada
    (tinta clara) continuam escuras. Mesmos tokens --dialog-*; só cores, sem blur/transform/z-index.
    Contraste medido por verify-contrast.py. */
-html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#radarDialog) {
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#termsDialog,#radarDialog) {
   --dialog-bg:#f7f5f0; --dialog-surface:#ffffff; --dialog-surface-2:#0b18300d; --dialog-line:#0b183017;
   --dialog-text:#13233d; --dialog-muted:#556479; --dialog-link:#1f56d6;
   --text:#13233d; --muted:#556479; --line:#0b18301f; --panel:#fff; --panel-strong:#fff; --panel-subtle:#0b18300a;
   color-scheme:light; color:var(--dialog-text); border-color:#0b183014;
   background:#f7f5f0; box-shadow:0 30px 90px #0b183040,inset 0 1px 0 #ffffffcc;
 }
-html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#radarDialog)::backdrop { background:#0b18304d; }
-html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#radarDialog) :is(.dialog-heading,.dialog-heading h2,h3,strong,label,legend,summary) { color:var(--dialog-text); }
-html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#radarDialog) :is(p,small,dt,.dialog-subtitle) { color:var(--dialog-muted); }
-html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#radarDialog) .dialog-close { background:#0b18300f; color:var(--dialog-text); }
-html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#radarDialog) a { color:var(--dialog-link); }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#termsDialog,#radarDialog)::backdrop { background:#0b18304d; }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#termsDialog,#radarDialog) :is(.dialog-heading,.dialog-heading h2,h3,strong,label,legend,summary) { color:var(--dialog-text); }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#termsDialog,#radarDialog) :is(p,small,dt,.dialog-subtitle) { color:var(--dialog-muted); }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#termsDialog,#radarDialog) .dialog-close { background:#0b18300f; color:var(--dialog-text); }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#termsDialog,#radarDialog) a { color:var(--dialog-link); }
 html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog) :is(input:not([type=checkbox]),select) { border-color:#0b18301f; background:#fff; color:var(--dialog-text); }
 html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#monthDialog,#brazilDialog) input::placeholder { color:#5d6c81; }
 html body[data-ink="dark"] :is(#accountDialog,#sourcesDialog) input[type=checkbox] { background:#0b183026; }
@@ -1605,7 +1605,7 @@ html body[data-ink="dark"] .changelog-intro,html body[data-ink="dark"] .changelo
 html body[data-ink="dark"] .changelog-entry ul { color:var(--dialog-text); }
 html body[data-ink="dark"] .changelog-entry[data-kind="fix"] .changelog-badge { background:#0b183014; color:var(--dialog-text); }
 html body[data-ink="dark"] #brazilDialog .brazil-row:hover { background:#0b18300a; }
-html body[data-ink="dark"] :is(#changelogDialog,#whatsNewDialog,#installDialog,#radarDialog) .dialog-close { border-radius:50%; }
+html body[data-ink="dark"] :is(#changelogDialog,#whatsNewDialog,#termsDialog,#installDialog,#radarDialog) .dialog-close { border-radius:50%; }
 html body[data-ink="dark"] :is(#changelogDialog,#whatsNewDialog) .changelog-title { color:var(--dialog-text); }
 html body[data-ink="dark"] #sourcesDialog .sources-list b { color:#1f56d6; }
 html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=official] b { color:#0f7a52; }
@@ -1660,3 +1660,24 @@ html body[data-ink="dark"] #accountDialog #accountLogout { color:var(--dialog-li
    (fuso, horários) e passa da janela no celular. */
 html body #accountDialog .account-group,html body #accountDialog .account-group > .details-motion,html body #accountDialog .account-group .details-motion-inner { min-width:0; max-width:100%; }
 html body #accountDialog .account-group :is(select,input:not([type=checkbox])) { max-width:100%; min-width:0; }
+
+/* --- Termos (outubro/2026): caixinha ao criar conta e ao ligar avisos; aviso discreto no primeiro acesso --- */
+html body .terms-check { display:flex; align-items:flex-start; gap:12px; margin:14px 0 4px; color:var(--dialog-text, #e8eefc); font-size:.9375rem; line-height:1.45; cursor:pointer; }
+html body .terms-check input[type=checkbox] { flex:none; width:22px; height:22px; margin:1px 0 0; accent-color:var(--brand-blue,#2f6bff); }
+html body .terms-check[hidden] { display:none; }
+html body :is(.terms-check,.terms-social-note,.terms-notice) a { color:#9cc0ff; text-decoration:underline; text-underline-offset:2px; }
+html body[data-ink="dark"] :is(#accountDialog,#termsDialog) :is(.terms-check,.terms-social-note) a { color:var(--dialog-link,#1f56d6); }
+html body #accountDialog .terms-social-note { display:block; margin:2px 4px 6px; color:var(--dialog-muted); font-size:.8125rem; line-height:1.45; text-align:center; }
+html body #termsDialog p { margin:0 0 12px; color:var(--dialog-text); line-height:1.5; }
+html body #termsDialog #termsAccept:disabled { opacity:.45; cursor:not-allowed; }
+/* Aviso do primeiro acesso: cartão fixo embaixo, sem cobrir a leitura principal; some com "OK". */
+.terms-notice { position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:30; display:flex; align-items:center; gap:12px; max-width:34rem; margin:0 auto; padding:12px 12px 12px 16px; border-radius:18px; background:#0b1830f2; color:#fff; box-shadow:0 10px 30px #0006; font-size:.875rem; line-height:1.45; }
+.terms-notice[hidden] { display:none; }
+.terms-notice p { flex:1; min-width:0; margin:0; }
+.terms-notice button { flex:none; min-width:64px; min-height:44px; padding:0 16px; border:0; border-radius:999px; background:var(--brand-blue,#2f6bff); color:#fff; font:inherit; font-weight:700; font-size:1.1875rem; cursor:pointer; }
+.terms-notice button:focus-visible { outline:3px solid #9cc0ff; outline-offset:2px; }
+/* Na conta, o aceite é caixinha de marcar (não interruptor), ao lado do texto. */
+html body #accountDialog #accountForm .terms-check { display:flex!important; flex-direction:row; align-items:flex-start; gap:12px; margin:6px 0 4px; color:var(--dialog-text); font-size:.9375rem; }
+html body #accountDialog #accountForm .terms-check[hidden] { display:none!important; }
+html body #accountDialog .terms-check input[type=checkbox] { -webkit-appearance:auto; appearance:auto; width:22px!important; height:22px!important; margin:1px 0 0!important; border-radius:4px; background:none; accent-color:var(--brand-blue,#2f6bff); }
+html body #accountDialog .terms-check input[type=checkbox]::before { content:none; display:none; }

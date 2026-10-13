@@ -9,11 +9,16 @@ const context={setTimeout,clearTimeout,document:{getElementById:get,createElemen
 vm.runInNewContext(fs.readFileSync('dist/account.js','utf8'),context);
 (async()=>{
 get('accountSignup').events.click();get('accountName').value='Lucca Motta';get('accountEmail').value='test@example.com';get('accountPassword').value='fraca';
+// Sem marcar os Termos, o cadastro não sai.
+assert.equal(get('accountTermsField').hidden,false);assert.equal(get('accountTerms').required,true);
+await get('accountForm').events.submit({preventDefault(){}});
+assert.equal(signupArgs,undefined);assert.match(get('accountStatus').textContent,/aceite os Termos de uso/);
+get('accountTerms').checked=true;
 await get('accountForm').events.submit({preventDefault(){}});
 assert.equal(signupArgs,undefined);assert.match(get('accountStatus').textContent,/12 ou mais caracteres/);
 get('accountPassword').value='Example-password1!';
 await get('accountForm').events.submit({preventDefault(){}});
-assert.equal(signupArgs.options.data.name,'Lucca Motta');assert.match(get('accountStatus').textContent,/confirmar/);assert.doesNotMatch(get('accountButton').textContent,/Olá/);
+assert.equal(signupArgs.options.data.name,'Lucca Motta');assert.match(signupArgs.options.data.terms_version||'',/^\d{4}-\d{2}-\d{2}$|^$/);assert.match(get('accountStatus').textContent,/confirmar/);assert.doesNotMatch(get('accountButton').textContent,/Olá/);
 assert.equal(signupArgs.options.emailRedirectTo,'https://pluviaweather.com.br/');
 get('accountLogin').events.click();get('accountPassword').value='example-password';await get('accountForm').events.submit({preventDefault(){}});
 assert.equal(get('accountButton').textContent,'Olá, Lucca');assert.equal(get('accountPassword').value,'');

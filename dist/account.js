@@ -246,6 +246,8 @@
     el('accountPassword').autocomplete = signup ? 'new-password' : 'current-password';
     el('accountPassword').value = '';
     el('accountPasswordHint').hidden = !signup;
+    // Criar conta exige aceitar os Termos e a Privacidade (caixinha só nesse modo).
+    if (el('accountTermsField')) { el('accountTermsField').hidden = !signup; el('accountTerms').required = signup; }
     el('accountSubmit').textContent = reset ? 'Enviar link de recuperação' : signup ? 'Criar minha conta' : 'Entrar';
     el('accountSignup').setAttribute('aria-pressed',String(signup));
     el('accountLogin').setAttribute('aria-pressed',String(mode==='login'));
@@ -281,6 +283,8 @@
     if(busy || recoveryActive || currentUser || !social?.providers.includes(provider) || !availableProviders[provider])return;
     setBusy(true);message('Abrindo '+(provider==='google' ? 'Google' : 'Apple')+'…');
     track('Auth Started',{mode});
+    // Quem entra pela primeira vez com Google/Apple cria a conta ali; a nota acima dos botões diz que é aceite.
+    globalThis.PLUVIA?.terms?.accept?.('social');
     let redirecting=false;
     try{
       const client=await getClient();
@@ -397,6 +401,7 @@
     const name = el('accountName').value.trim();
     if(mode === 'signup' && !name) { message('Informe um nome para exibição.'); return; }
     const email = el('accountEmail').value.trim(), password = el('accountPassword').value;
+    if(mode === 'signup' && el('accountTerms') && !el('accountTerms').checked) { message('Para criar a conta, aceite os Termos de uso e a Política de privacidade.'); el('accountTerms').focus(); return; }
     if(mode === 'signup' && !strongPassword(password)) {
       message('Crie uma senha com 12 ou mais caracteres, incluindo maiúscula, minúscula, número e símbolo.'); return;
     }
@@ -404,9 +409,10 @@
     try {
       const client = await getClient();
       const result = mode === 'signup'
-        ? await client.auth.signUp({email,password,options:{data:{name},emailRedirectTo:social.redirectTo(location,'confirmation')}})
+        ? await client.auth.signUp({email,password,options:{data:{name,terms_version:globalThis.PLUVIA?.terms?.VERSION || null,terms_accepted_at:new Date().toISOString()},emailRedirectTo:social.redirectTo(location,'confirmation')}})
         : await client.auth.signInWithPassword({email,password});
       if(result.error) throw result.error;
+      if(mode === 'signup') globalThis.PLUVIA?.terms?.accept?.('signup');
       el('accountPassword').value = '';
       if(result.data.session) {
         paint(result.data.session.user); track('Auth Completed',{mode}); window.pluviaAnalytics?.identify(result.data.session.user.id);

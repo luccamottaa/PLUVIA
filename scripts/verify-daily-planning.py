@@ -52,7 +52,7 @@ try:
   browser=p.webkit.launch() if os.environ.get('PLUVIA_BROWSER')=='webkit' else p.chromium.launch(args=['--no-sandbox'],executable_path=shutil.which('chromium'))
   context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,timezone_id='Asia/Tokyo',service_workers='block',reduced_motion='reduce')
   context.route('**/*',route)
-  context.add_init_script("if(!sessionStorage.getItem('daily-fixture')){localStorage.setItem('sb-dszyyrcvwrpyiypwyvxe-auth-token',"+json.dumps(json.dumps(session))+" );sessionStorage.setItem('daily-fixture','1');}sessionStorage.setItem('pluvia-intro-seen','1');Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
+  context.add_init_script("if(!sessionStorage.getItem('daily-fixture')){localStorage.setItem('sb-dszyyrcvwrpyiypwyvxe-auth-token',"+json.dumps(json.dumps(session))+" );sessionStorage.setItem('daily-fixture','1');}sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-10'}));Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1});}}});")
   page=context.new_page();errors=[];page.on('pageerror',lambda e: None if str(e).endswith(RAINVIEWER_CANCELLED) else errors.append(str(e)));page.clock.set_fixed_time(fixed)
   page.goto(preview,wait_until='domcontentloaded');page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden",timeout=20000)
   assert page.locator('#outdoorPlan').count()==0
