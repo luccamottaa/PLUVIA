@@ -15,7 +15,7 @@
     <script src="./modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-177" />
+    <meta name="pluvia-release" content="pluvia-panel-178" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -190,7 +190,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="./redesign.css?v=panel-46" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-92" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-93" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -263,16 +263,18 @@
         </form>
         <div id="accountProfile" hidden>
           <div class="profile-identity"><span id="profileAvatar" class="profile-avatar" aria-hidden="true">P</span><div><strong id="profileDisplayName">Sua conta</strong><p id="accountIdentity"></p></div></div>
-          <fieldset class="avatar-picker"><legend>Foto do perfil</legend><div id="avatarOptions" class="avatar-options"></div><small>Fica guardada neste aparelho.</small></fieldset>
+          <details class="account-group" id="accountProfileEdit"><summary><span class="account-group-title">Editar perfil</span><small class="account-group-value">Foto e nome</small></summary>
+          <fieldset class="avatar-picker"><legend>Foto do perfil</legend><div id="avatarOptions" class="avatar-options"></div></fieldset>
           <form id="profileForm"><label>Seu nome<input id="profileName" autocomplete="given-name" required maxlength="60" aria-describedby="profileNameHint" /></label><small id="profileNameHint"></small><button id="profileSave" type="submit">Salvar nome</button></form>
+          </details>
           <section id="notificationSettings" class="notification-settings" aria-labelledby="notificationSettingsTitle">
-            <div class="notification-settings-head"><div><span class="eyebrow">CONFIGURAÇÕES</span><h3 id="notificationSettingsTitle">Notificações</h3></div><span id="notificationStatusBadge" class="notification-status is-off">Alertas desativados</span></div>
+            <div class="notification-settings-head"><div><h3 id="notificationSettingsTitle">Avisos no celular</h3></div><span id="notificationStatusBadge" class="notification-status is-off">Alertas desativados</span></div>
             <p id="notificationSupportNote" role="status" aria-live="polite">Verificando compatibilidade deste dispositivo…</p>
-            <details class="notification-checks"><summary>Compatibilidade deste dispositivo</summary><ul id="notificationDiagnostics" class="notification-diagnostics" aria-label="Diagnóstico de notificações"></ul></details>
             <p id="notificationContinueNote" class="notification-continue" hidden>Conta conectada. Toque em <strong>Ativar alertas</strong> para solicitar permissão no iPhone.</p>
             <div class="notification-actions"><button id="notificationToggle" type="button">Ativar alertas</button><button id="notificationTest" type="button" hidden>Enviar notificação de teste</button></div>
             <form id="notificationPreferencesForm" class="alert-preferences">
-              <fieldset class="notification-types"><legend>Quais avisos você quer receber?</legend>
+              <details class="account-group" id="notificationTypesGroup"><summary><span class="account-group-title">Tipos de aviso</span><small class="account-group-value" data-account-summary="types"></small></summary>
+              <fieldset class="notification-types"><legend class="visually-hidden">Quais avisos você quer receber?</legend>
                 <label><input name="official_alerts" type="checkbox" checked><span><strong>Avisos oficiais do INMET</strong><small>Inclui os avisos amarelos, laranjas e vermelhos.</small></span></label>
                 <label><input name="rain_approaching" type="checkbox" checked><span><strong>Chuva se aproximando</strong><small>Maior chance de chuva nas próximas horas.</small></span></label>
                 <label><input name="heavy_rain" type="checkbox" checked><span><strong>Chuva forte</strong></span></label>
@@ -281,31 +283,43 @@
                 <label><input name="extreme_heat" type="checkbox" checked><span><strong>Calor intenso</strong></span></label>
                 <label><input name="air_quality" type="checkbox" checked><span><strong>Qualidade do ar ruim</strong></span></label>
                 <label><input name="weather_changes" type="checkbox" checked><span><strong>Mudanças importantes no tempo</strong></span></label>
+              </fieldset>
+              <small class="account-group-note">A mesma condição prevista não se repete por 6 horas; se piorar, chega um aviso novo.</small>
+              </details>
+              <details class="account-group" id="notificationSummariesGroup"><summary><span class="account-group-title">Resumos</span><small class="account-group-value" data-account-summary="summaries"></small></summary>
+              <fieldset class="notification-types notification-summaries"><legend class="visually-hidden">Resumos do dia</legend>
                 <label><input name="daily_summary" type="checkbox"><span><strong>Resumo diário</strong><small>Uma previsão por cidade no horário escolhido.</small></span></label>
                 <label id="notificationSummaryTimeField" class="notification-summary-time" hidden>Horário do resumo<input name="daily_summary_time" type="time" value="07:00"></label>
                 <label><input name="evening_summary" type="checkbox"><span><strong>Resumo da noite</strong><small>A previsão de amanhã, à noite, para você se planejar.</small></span></label>
                 <label id="notificationEveningTimeField" class="notification-summary-time" hidden>Horário do resumo da noite<input name="evening_summary_time" type="time" value="20:00"></label>
               </fieldset>
-              <small>Previsões e avisos oficiais são identificados na mensagem. A mesma condição prevista não se repete por 6 horas; um aumento de severidade gera novo aviso.</small>
-              <fieldset class="notification-timing"><legend>Intensidade e horários</legend>
+              <small class="account-group-note">Cada resumo usa o horário local da cidade.</small>
+              </details>
+              <details class="account-group" id="notificationTimingGroup"><summary><span class="account-group-title">Intensidade e silêncio</span><small class="account-group-value" data-account-summary="timing"></small></summary>
+              <fieldset class="notification-timing"><legend class="visually-hidden">Intensidade e horários</legend>
                 <label>Nível mínimo dos avisos<select name="minimum_severity"><option value="1">Todos os níveis</option><option value="2">A partir de atenção</option><option value="3">A partir de perigo</option><option value="4">Somente severidade máxima</option></select></label>
-                <small>O filtro vale para os tipos escolhidos, inclusive INMET. O resumo diário segue sua própria opção.</small>
                 <label class="notification-quiet-toggle"><input name="quiet_enabled" type="checkbox"><span>Silenciar em um horário</span></label>
                 <div id="notificationQuietTimes" class="notification-time-pair" hidden><label>Início<input name="quiet_start" type="time" value="22:00" disabled></label><label>Fim<input name="quiet_end" type="time" value="07:00" disabled></label></div>
                 <label>Fuso do horário de silêncio<select name="timezone"><option value="America/Manaus">America/Manaus</option></select></label>
-                <small>Avisos de severidade máxima podem interromper o silêncio. O resumo diário usa o horário local de cada cidade; se cair no silêncio, não será enviado.</small>
+                <small>O nível vale para todos os tipos, inclusive INMET. Avisos de severidade máxima furam o silêncio; resumos que caem no silêncio não são enviados.</small>
               </fieldset>
-              <fieldset class="notification-city-choices"><legend>Adicionar cidades aos avisos</legend>
+              </details>
+              <details class="account-group" id="notificationCitiesGroup"><summary><span class="account-group-title">Adicionar cidades</span><small class="account-group-value" data-account-summary="cities"></small></summary>
+              <fieldset class="notification-city-choices"><legend class="visually-hidden">Adicionar cidades aos avisos</legend>
                 <label class="notification-location"><input name="monitor_current_city" type="checkbox"><span id="notificationCurrentCityLabel">Receber alertas para a cidade aberta</span></label>
                 <div id="notificationFavoriteChoices"></div>
-                <small>Cidade aberta e favoritas disponíveis para adicionar. As opções só são aplicadas ao salvar.</small>
               </fieldset>
-              <p class="notification-help">Os tipos escolhidos valem para todas as cidades monitoradas. Buscar ou favoritar uma cidade não ativa notificações.</p>
-              <small id="notificationPrivacy">Usamos somente as cidades que você escolher para enviar alertas meteorológicos relevantes. Não monitoramos GPS em segundo plano.</small>
-              <button id="notificationPreferencesSave" type="submit" disabled>Salvar notificações</button>
+              <small id="notificationPrivacy" class="account-group-note">Só as cidades que você escolher recebem avisos, e o app não usa GPS em segundo plano. Favoritar uma cidade não liga avisos.</small>
+              </details>
+              <button id="notificationPreferencesSave" type="submit" disabled>Salvar avisos</button>
             </form>
-            <div class="notification-locations"><h4>Cidades que recebem avisos</h4><div id="notificationLocations"><p>Nenhuma cidade monitorada.</p></div><small>Use “Parar avisos” para retirar uma cidade do monitoramento.</small></div>
-            <div class="notification-devices"><h4>Dispositivos</h4><div id="notificationDevices"><p>Nenhum dispositivo registrado.</p></div></div>
+            <details class="account-group" id="notificationLocationsGroup"><summary><span class="account-group-title">Cidades que recebem avisos</span><small class="account-group-value" data-account-summary="locations"></small></summary>
+            <div class="notification-locations"><div id="notificationLocations"><p>Nenhuma cidade monitorada.</p></div></div>
+            </details>
+            <details class="account-group" id="notificationDevicesGroup"><summary><span class="account-group-title">Aparelhos</span><small class="account-group-value" data-account-summary="devices"></small></summary>
+            <div class="notification-devices"><div id="notificationDevices"><p>Nenhum dispositivo registrado.</p></div></div>
+            <details class="notification-checks"><summary>Compatibilidade deste aparelho</summary><ul id="notificationDiagnostics" class="notification-diagnostics" aria-label="Diagnóstico de notificações"></ul></details>
+            </details>
           </section>
           <button id="accountLogout" type="button">Sair da conta</button>
           <details class="account-delete"><summary>Excluir minha conta</summary>
@@ -517,7 +531,7 @@
     <script src="./modules/account-sync.js?v=sync-2" defer></script>
     <script src="./modules/social-auth.js?v=oauth-3" defer></script>
     <script src="./modules/avatars.js?v=avatars-2" defer></script>
-    <script src="./account.js?v=account-13" defer></script>
+    <script src="./account.js?v=account-14" defer></script>
     <script src="./favorite-cities.js?v=favorites-10" defer></script>
     <script src="./modules/share-card.js?v=share-card-3" defer></script>
     <script src="./modules/share-weather.js?v=share-9" defer></script>
@@ -526,8 +540,9 @@
     <script src="./modules/month-recap.js?v=month-1" defer></script>
     <script src="./modules/station-now.js?v=station-1" defer></script>
     <script src="./modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="./modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="./modules/voice-search.js?v=voice-1" defer></script><script src="./modules/rain-reports.js?v=rain-reports-1" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-1" defer></script><script src="./modules/changelog.js?v=changelog-13" defer></script>
+    <script src="./modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="./modules/voice-search.js?v=voice-1" defer></script><script src="./modules/rain-reports.js?v=rain-reports-1" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-1" defer></script><script src="./modules/changelog.js?v=changelog-14" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-3" defer></script>
-    <script src="./notifications.js?v=panel-34" defer></script>
+    <script src="./modules/account-summary.js?v=account-summary-1" defer></script>
+    <script src="./notifications.js?v=panel-35" defer></script>
   </body>
 </html>
