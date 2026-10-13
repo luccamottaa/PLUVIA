@@ -14,7 +14,7 @@
   else (root.PLUVIA = root.PLUVIA || {}).captcha = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (runtime) {
   'use strict';
-  const SITEKEY = '0x4AAAAAAB_SITEKEY_PENDENTE';
+  const SITEKEY = '0x4AAAAAAFWEHBm1Kqy0jUaX';
   const SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
   const TIMEOUT_MS = 90000;
   let scriptPromise = null, widget = null, pending = null;
