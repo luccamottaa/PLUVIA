@@ -74,6 +74,9 @@
     el('profileDisplayName').textContent = fullName || 'Sua conta';
     if(force || document.activeElement!==el('profileName'))el('profileName').value = fullName;
     el('profileNameHint').textContent = name ? 'Esse nome aparece na sua conta.' : 'Falta seu nome. Salve abaixo para a conta mostrar como chamar você.';
+    // Sem nome (ex.: Apple não mandou), o cartão "Editar perfil" já abre com o campo à vista.
+    const edit = el('accountProfileEdit');
+    if (edit && !name) edit.open = true;
   }
   // Escolha da foto em "Minha conta": a inicial (sem foto) e os desenhos de tempo. Botões nativos com
   // aria-pressed; os nomes vêm da lista fixa do módulo, nunca de dado da conta.

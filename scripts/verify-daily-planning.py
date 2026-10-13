@@ -61,6 +61,8 @@ try:
   for selector in ['#civilDawn','#civilDusk','#moonrise','#moonset']:assert ':' in page.locator(selector).inner_text(),selector
   assert '4 de outubro' in page.locator('#astronomyDate').inner_text()
   page.locator('#accountButton').click();page.wait_for_function("!document.getElementById('notificationPreferencesSave').disabled")
+  # Minha conta em cartões: nível e silêncio ficam no cartão "Intensidade e silêncio".
+  page.evaluate("document.getElementById('notificationTimingGroup').open=true")
   assert page.locator('[name=minimum_severity]').input_value()=='3'
   assert page.locator('[name=quiet_enabled]').is_checked();assert page.locator('[name=quiet_start]').input_value()=='22:00'
   page.locator('[name=minimum_severity]').select_option('4');page.locator('[name=quiet_start]').fill('23:15');page.locator('[name=quiet_end]').fill('07:45')

@@ -76,7 +76,7 @@ try:
   a.locator('#savedPlaceSave').click();a.wait_for_function("document.getElementById('savedPlacesStatus').innerText.includes('outro dispositivo')")
   assert 'Casa B' in a.locator('#savedPlacesList').inner_text()
   a.locator('#closeCitySearch').click()
-  a.locator('#accountButton').click();a.locator('#profileName').fill('Nome Novo');a.locator('#profileSave').click()
+  a.locator('#accountButton').click();a.evaluate("document.getElementById('accountProfileEdit').open=true");a.locator('#profileName').fill('Nome Novo');a.locator('#profileSave').click()
   wait_server(a,lambda state:state['displayName']=='Nome Novo')
   a.wait_for_function("document.getElementById('accountButton').textContent==='Olá, Nome'")
   a.locator('#accountButton').click()

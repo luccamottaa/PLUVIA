@@ -140,7 +140,10 @@
     paintQuietFields();
     el('notificationSummaryTimeField').hidden=!form.elements.namedItem('daily_summary')?.checked;
     if(el('notificationEveningTimeField')) el('notificationEveningTimeField').hidden=!form.elements.namedItem('evening_summary')?.checked;
+    paintSummary();
   }
+  // Valor ao lado do título de cada cartão de "Minha conta" (account-summary.js).
+  function paintSummary() { globalThis.PLUVIA?.accountSummary?.paint?.(form, document); }
 
   function paintTimezones(selected=form.elements.namedItem('timezone')?.value) {
     const input=form.elements.namedItem('timezone');if(!input) return;
@@ -177,13 +180,14 @@
       name.textContent=city ? `${city.name}/${city.uf} · favorita` : 'Cidade favorita';label.append(input,name);choices.append(label);
       if(!city && typeof ensureCityDetails==='function') ensureCityDetails(id).then(city=>{if(city && name.isConnected) name.textContent=`${city.name}/${city.uf} · favorita`;}).catch(()=>{});
     }
+    paintSummary();
   }
 
   function paintDevices(devices = []) {
     devicesNode.replaceChildren();
-    if (!devices.length) { const empty = document.createElement("p"); empty.textContent = "Nenhum dispositivo registrado."; devicesNode.appendChild(empty); return; }
+    if (!devices.length) { const empty = document.createElement("p"); empty.textContent = "Nenhum dispositivo registrado."; devicesNode.appendChild(empty); paintSummary(); return; }
     for (const device of devices) {
-      const row = document.createElement("div"); row.className = "notification-device";
+      const row = document.createElement("div"); row.className = "notification-device"; row.dataset.enabled = String(Boolean(device.enabled));
       const copy = document.createElement("div"), name = document.createElement("strong"), seen = document.createElement("small"), remove = document.createElement("button");
       name.textContent = `${device.platform?.includes("iOS") ? "📱" : "💻"} ${device.device_name}`;
       const date = new Date(device.last_seen_at);
@@ -191,12 +195,13 @@
       remove.type = "button"; remove.dataset.removeSubscription = device.id; remove.textContent = "Remover"; remove.setAttribute("aria-label", `Remover ${device.device_name}`);
       copy.append(name, seen); row.append(copy, remove); devicesNode.appendChild(row);
     }
+    paintSummary();
   }
 
   function paintLocations(locations = []) {
     if (!locationsNode) return;
     locationsNode.replaceChildren();
-    if (!locations.length) { const empty = document.createElement("p"); empty.textContent = "Nenhuma cidade monitorada."; locationsNode.appendChild(empty); return; }
+    if (!locations.length) { const empty = document.createElement("p"); empty.textContent = "Nenhuma cidade monitorada."; locationsNode.appendChild(empty); paintSummary(); return; }
     for (const location of locations) {
       const row = document.createElement("div"); row.className = "notification-location-row";
       const copy = document.createElement("div"), name = document.createElement("strong"), detail = document.createElement("small"), remove = document.createElement("button");
@@ -205,6 +210,7 @@
       remove.type = "button"; remove.dataset.removeLocation = location.id; remove.textContent = "Parar avisos"; remove.setAttribute("aria-label", `Parar avisos para ${location.city_name}`);
       copy.append(name, detail); row.append(copy, remove); locationsNode.appendChild(row);
     }
+    paintSummary();
   }
 
   async function paintState() {
@@ -392,6 +398,8 @@
   form.elements.namedItem('daily_summary')?.addEventListener('change',()=>{el('notificationSummaryTimeField').hidden=!form.elements.namedItem('daily_summary').checked;});
   form.elements.namedItem('evening_summary')?.addEventListener('change',()=>{el('notificationEveningTimeField').hidden=!form.elements.namedItem('evening_summary').checked;});
   form.elements.namedItem('quiet_enabled')?.addEventListener('change',paintQuietFields);
+  form.addEventListener('input',paintSummary);
+  form.addEventListener('change',paintSummary);
   devicesNode.addEventListener("click", async event => {
     const button = event.target.closest("[data-remove-subscription]"); if (!button || busy) return;
     busy = true; button.disabled = true;

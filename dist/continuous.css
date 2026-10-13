@@ -1613,3 +1613,50 @@ html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=observ
 html body[data-ink="dark"] #sourcesDialog .sources-list article::before { background-color:#2f6bff26; }
 html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=official]::before { background-color:#12a06a29; }
 html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=observation]::before { background-color:#7c5cf029; }
+
+/* --- Minha conta em cartões (outubro/2026, a pedido: a janela era uma rolagem longa demais) ---
+   Cada assunto vira um cartão que abre e fecha (<details>, mesma animação de altura dos outros), com o valor
+   atual ao lado do título, como nos Ajustes do iPhone. O cartão é a superfície; as linhas de dentro ficam
+   transparentes com divisórias. Só cor e layout: sem blur, z-index ou animação além da altura. */
+.visually-hidden { position:absolute!important; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+html body #accountDialog .account-group { margin:0 0 8px; padding:0 16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog .account-group > summary { display:flex; align-items:center; gap:12px; min-height:54px; cursor:pointer; list-style:none; color:var(--dialog-text); font-size:.9375rem; font-weight:500; }
+html body #accountDialog .account-group > summary::-webkit-details-marker { display:none; }
+html body #accountDialog .account-group > summary::after { content:""; flex:none; width:7px; height:7px; margin:0 3px 3px 2px; border-right:2px solid var(--dialog-muted); border-bottom:2px solid var(--dialog-muted); transform:rotate(45deg); }
+html body #accountDialog .account-group[open]:not([data-closing]) > summary::after { margin:4px 3px 0 2px; transform:rotate(-135deg); }
+html body #accountDialog .account-group-title { flex:1; min-width:0; }
+html body #accountDialog .account-group-value { flex:none; max-width:55%; overflow:hidden; color:var(--dialog-muted); font-size:.8125rem; font-weight:400; text-overflow:ellipsis; white-space:nowrap; }
+html body #accountDialog .account-group-value:empty { display:none; }
+html body #accountDialog .account-group .details-motion-inner > :last-child { margin-bottom:12px; }
+html body #accountDialog .account-group :is(.notification-types,.notification-timing,.notification-city-choices) { margin:0; border-top:1px solid var(--dialog-line); }
+html body #accountDialog .account-group :is(.notification-types label:not(.notification-summary-time),form .notification-types .notification-summary-time,.notification-timing > label:not(.notification-quiet-toggle),.notification-timing > .notification-time-pair,form .notification-timing .notification-quiet-toggle,.notification-city-choices .notification-location) {
+  margin:0; padding-inline:0; border-radius:0!important; background:transparent; border-bottom:1px solid var(--dialog-line);
+}
+html body #accountDialog .account-group :is(.notification-types,.notification-timing) > label:last-of-type,html body #accountDialog .account-group .notification-city-choices .notification-location:last-child { border-bottom:0; }
+html body #accountDialog .account-group .notification-types:has(.notification-summary-time:not([hidden])) > label:nth-last-of-type(2) { border-bottom:1px solid var(--dialog-line); }
+html body #accountDialog .account-group .notification-summaries > label:has(+ .notification-summary-time[hidden]) { border-bottom:1px solid var(--dialog-line); }
+html body #accountDialog .account-group .notification-summaries > label:nth-last-of-type(2):has(+ .notification-summary-time[hidden]) { border-bottom:0; }
+html body #accountDialog .account-group .notification-timing > small { padding:10px 0 0; }
+html body #accountDialog .account-group .account-group-note { display:block; margin:0; padding:10px 0 0; color:var(--dialog-muted); font-size:.8125rem; line-height:1.45; }
+html body #accountDialog .account-group :is(.notification-locations,.notification-devices) { margin:0; border-top:1px solid var(--dialog-line); }
+html body #accountDialog .account-group :is(.notification-locations,.notification-devices) > div { padding:0; border-radius:0; background:transparent; }
+html body #accountDialog .account-group .notification-checks { margin:0; padding:0; border-top:1px solid var(--dialog-line); border-radius:0; background:transparent; }
+html body #accountDialog .account-group .notification-checks > summary { color:var(--dialog-muted); font-size:.875rem; }
+html body #accountDialog #accountProfileEdit .avatar-picker { margin:0; padding-top:12px; border-top:1px solid var(--dialog-line); }
+html body #accountDialog #accountProfileEdit #profileForm { margin-top:14px; padding:0; background:transparent; }
+html body #accountDialog .profile-identity { margin-bottom:14px; padding:20px 16px 18px; }
+html body #accountDialog .notification-settings { margin-top:22px; }
+html body #accountDialog .notification-settings-head { margin-bottom:2px; }
+html body #accountDialog #notificationSupportNote { margin:6px 4px 12px; }
+html body #accountDialog .notification-actions { margin-bottom:14px; }
+html body #accountDialog .alert-preferences { gap:0; }
+html body #accountDialog #notificationPreferencesSave { margin:6px 0 8px; }
+html body #accountDialog #accountLogout { margin-top:18px; }
+html body #accountDialog .account-group > summary .account-group-value { display:block; align-self:center; margin:0!important; padding:0!important; line-height:1.3; }
+html body #accountDialog .account-group :is(.notification-types,.notification-timing,.notification-city-choices) { border-radius:0; }
+html body #accountDialog .account-group #notificationPrivacy { margin:0; padding:10px 0 0; }
+html body[data-ink="dark"] #accountDialog #accountLogout { color:var(--dialog-link,#1f56d6); }
+/* O invólucro da animação de altura é grade: sem min-width:0 o cartão cresce até o campo mais largo
+   (fuso, horários) e passa da janela no celular. */
+html body #accountDialog .account-group,html body #accountDialog .account-group > .details-motion,html body #accountDialog .account-group .details-motion-inner { min-width:0; max-width:100%; }
+html body #accountDialog .account-group :is(select,input:not([type=checkbox])) { max-width:100%; min-width:0; }

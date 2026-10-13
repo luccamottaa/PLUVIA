@@ -63,12 +63,13 @@ function mountWith(seen,dom,weather=true){
  return storage;
 }
 test('janela de novidades aparece uma vez, depois da intro e da previsão, sem cobrir outra janela',()=>{
- const previous=changelog.VERSIONS.find(e=>changelog.kind(e.version)==='feature'&&e.version!==changelog.current()).version;
+ const features=changelog.VERSIONS.filter(e=>changelog.kind(e.version)==='feature').map(e=>e.version);
+ const newest=features[0],previous=features[1];
  const dom=fakeDom();const storage=mountWith(previous,dom);
  assert.equal(dom.els.whatsNewDialog.shown,undefined,'espera um respiro antes de abrir');
  dom.flush();
  assert.equal(dom.els.whatsNewDialog.shown,1);
- assert.equal(dom.els.whatsNewTitle.textContent,`O PLUVIA ${changelog.current()} chegou`);
+ assert.equal(dom.els.whatsNewTitle.textContent,`O PLUVIA ${newest} chegou`);
  assert.ok(dom.els.whatsNewList.children.length>=1);
  assert.equal(storage.map.get(changelog.SEEN_KEY),changelog.current(),'abrir já marca como vista');
  // Próxima abertura: nada.
