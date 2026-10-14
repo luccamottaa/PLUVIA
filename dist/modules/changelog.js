@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.9.3", date:"2026-10-14", title:"Ajustes na tela", items:[
+      "A janela de Novidades ficou com o mesmo visual das outras janelas.",
+      "“Últimos 30 dias” não quebra mais em duas linhas, e em telas pequenas a barra de mínima e máxima dos 7 dias ficou maior.",
+      "No detalhe do dia, a condição sobe para perto da data, e a linha “INMET · Sem alertas” usa um tamanho só de letra."]},
     {version:"1.9.2", date:"2026-10-14", title:"Conta organizada", items:[
       "Personalizar a Home, Novidades, Fontes de dados, Privacidade e Termos de uso saíram do rodapé e agora ficam em “Mais do PLUVIA”, no fim de Minha conta.",
     ]},
