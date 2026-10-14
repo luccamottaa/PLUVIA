@@ -150,14 +150,10 @@ with sync_playwright() as p:
   assert wind_parts['unitLeft']>=wind_parts['numberRight']-1 and wind_parts['numberTop']<=wind_parts['unitCenterY']<=wind_parts['numberBottom'],(width,wind_parts)
   # Radar compacto: na Home só a miniatura (sem player); o player alinhado é medido no radar ampliado.
   assert not boxes('.weather-map-card .weather-player > *'),(width,'player só no radar ampliado')
-  # Rodapé compacto: os dois grupos de cidades lado a lado (quebram quando não cabem), cada linha centralizada.
-  # Os atalhos (Fontes, Privacidade, Termos, Personalizar, Novidades) ficam em "Mais do PLUVIA", na conta.
-  links=boxes('footer .capital-links summary');assert len(links)==2,links
-  center=page.evaluate("(()=>{const r=document.querySelector('footer .capital-links').getBoundingClientRect();return r.x+r.width/2})()")
-  for row_y in {round(b['y']) for b in links}:
-   row=sorted([b for b in links if round(b['y'])==row_y],key=lambda b:b['x'])
-   assert abs((row[0]['x']+row[-1]['right'])/2-center)<=2,(width,row,center)
-   assert all(a['right']<=b['x'] for a,b in zip(row,row[1:])),row
+  # Rodapé só com a marca: os links das páginas de cidade e os atalhos (Fontes, Privacidade, Termos,
+  # Personalizar, Novidades) ficam em "Mais do PLUVIA", na janela da conta.
+  assert not boxes('footer .capital-links, footer a'),(width,'rodapé sem links')
+  assert page.evaluate("document.querySelectorAll('#accountDialog .capital-links a').length")>=27,(width,'links das cidades na conta')
   rows=page.evaluate("""()=>[...document.querySelectorAll('.forecast-row')].map(el=>{
    const box=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,centerY:r.y+r.height/2}};
    return {geometry:Object.fromEntries([...el.children].filter(c=>c.getClientRects().length).map(c=>[c.className,box(c)])),condition:box(el.querySelector('.forecast-condition')),text:box(el.querySelector('.forecast-condition > span'))};

@@ -57,7 +57,7 @@ function linksBlock(api, current = null) {
   const capital = current && api.CAPITALS.some(city => city.id === current.id);
   const where = !current ? '' : current.uf === 'DF' ? 'é a capital federal, no Distrito Federal' : capital ? `é a capital ${preposition(current)} ${escapeHtml(current.state)}` : `é um município do estado ${preposition(current)} ${escapeHtml(current.state)}`;
   const note = current ? `<p class="capital-page-note">${escapeHtml(current.name)} ${where}. Horários no fuso ${escapeHtml(current.timezone)} (${utcOffset(current.timezone)}).</p>` : '';
-  return `${START}<nav class="capital-links" aria-label="Previsão nas capitais e em outras cidades">${note}<details><summary>Previsão nas capitais</summary><ul>${list(api.CAPITALS)}</ul></details><details><summary>Outras cidades</summary><ul>${others}</ul></details></nav>${END}`;
+  return `${START}<nav class="capital-links" aria-labelledby="capitalLinksTitle"><h3 id="capitalLinksTitle">Previsão por cidade</h3>${note}<details><summary>Previsão nas capitais</summary><ul>${list(api.CAPITALS)}</ul></details><details><summary>Outras cidades</summary><ul>${others}</ul></details></nav>${END}`;
 }
 // "capital do Amazonas", "da Bahia", "de Alagoas"... sem inventar: tabela explícita por UF.
 const ARTICLES = {AC:'do',AL:'de',AP:'do',AM:'do',BA:'da',CE:'do',DF:'do',ES:'do',GO:'de',MA:'do',MT:'de',MS:'de',MG:'de',PA:'do',PB:'da',PR:'do',PE:'de',PI:'do',RJ:'do',RN:'do',RS:'do',RO:'de',RR:'de',SC:'de',SP:'de',SE:'de',TO:'do'};

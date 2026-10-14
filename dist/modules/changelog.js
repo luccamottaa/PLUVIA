@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.9.6", date:"2026-10-14", title:"Cartões mais firmes e rodapé limpo", items:[
+      "Os cartões da tela inicial ficaram menos transparentes, de dia e de noite, e a leitura ficou mais firme sobre o céu.",
+      "Os links “Previsão nas capitais” e “Outras cidades” saíram do rodapé e agora ficam em “Previsão por cidade”, no fim de Minha conta.",
+    ]},
     {version:"1.9.5", date:"2026-10-14", title:"Abertura com tudo pronto", items:[
       "A abertura do PLUVIA espera a previsão nova e os avisos do INMET chegarem, então a tela inicial já aparece atualizada, sem o “Atualizando…”. Com internet lenta, ela não segura mais que alguns segundos.",
       "O botão “Excluir minha conta” virou um cartão como os outros da conta, sem o contorno torto e sem o retângulo desalinhado ao tocar.",
