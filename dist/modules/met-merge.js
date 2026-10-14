@@ -18,6 +18,11 @@
     snowandthunder:95, sleetandthunder:95
   };
   const weatherCode = symbol => symbols[typeof symbol === 'string' ? symbol.replace(/_(day|night|polartwilight)$/, '') : ''];
+  // Códigos WMO de precipitação (garoa, chuva, neve, pancadas, trovoada). O símbolo do MET não pode
+  // "secar" uma hora em que o Open-Meteo prevê precipitação: em Manaus (13/10/2026) a estação do INMET
+  // mediu 10 mm ao meio-dia enquanto o símbolo dizia parcialmente nublado. Só o contrário é aceito.
+  const wet = code => Number.isFinite(code) && code >= 51;
+  const keepsWet = (previous, next) => Number.isFinite(next) && !(wet(previous) && !wet(next));
   function localParts(date, timezone) {
     return time.localParts(date.getTime(),timezone);
   }
@@ -55,7 +60,7 @@
       write(current,'wind_gusts_10m',currentPoint.gustKmh,0,432);
       write(current,'wind_direction_10m',currentPoint.windDirection,0,360);
       const code = weatherCode(currentPoint.symbol);
-      if (Number.isFinite(code)) {current.weather_code = code; touched.add('weather_code');}
+      if (keepsWet(current.weather_code, code)) {current.weather_code = code; touched.add('weather_code');}
     }
     const updates = {
       temperatureC:['temperature_2m',-90,70], humidity:['relative_humidity_2m',0,100],
@@ -71,7 +76,7 @@
         hourly[key][index] = point[field]; touched.add(`hourly.${key}`);
       }
       const code = weatherCode(point.symbol);
-      if (Number.isFinite(code) && Array.isArray(hourly.weather_code)) {
+      if (Array.isArray(hourly.weather_code) && keepsWet(hourly.weather_code[index], code)) {
         if (hourly.weather_code === forecast.hourly.weather_code) hourly.weather_code = [...hourly.weather_code];
         hourly.weather_code[index] = code; touched.add('hourly.weather_code');
       }
@@ -97,9 +102,12 @@
       const codes = values.map(point => weatherCode(point.symbol));
       if (codes.every(Number.isFinite) && Array.isArray(daily.weather_code)) {
         const severity = code => code >= 95 ? 6 : code >= 80 ? 5 : code >= 51 && code <= 77 ? 4 : code >= 45 ? 3 : code >= 3 ? 2 : code >= 1 ? 1 : 0;
-        if (daily.weather_code === forecast.daily.weather_code) daily.weather_code = [...daily.weather_code];
-        daily.weather_code[index] = codes.reduce((worst,code) => severity(code) > severity(worst) ? code : worst,codes[0]);
-        touched.add('daily.weather_code');
+        const worst = codes.reduce((worst,code) => severity(code) > severity(worst) ? code : worst,codes[0]);
+        if (keepsWet(daily.weather_code[index], worst)) {
+          if (daily.weather_code === forecast.daily.weather_code) daily.weather_code = [...daily.weather_code];
+          daily.weather_code[index] = worst;
+          touched.add('daily.weather_code');
+        }
       }
     });
     return {forecast:{...forecast,current,hourly,daily,pluviaSources:{metNorway:[...touched]}},used:touched.size > 0,fields:[...touched],time:currentPoint.time};

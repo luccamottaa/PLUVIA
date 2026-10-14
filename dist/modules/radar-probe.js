@@ -1,10 +1,13 @@
-/* Radar observado: só eleva cautela se houver eco. Ausência de eco nunca prova céu seco. */
+/* Radar observado: só eleva cautela se houver eco. Ausência de eco nunca prova céu seco.
+   Alimenta a chuva observada do topo (observed-rain.js). O RainViewer público entrega até o zoom 7
+   (o mapa usa maxNativeZoom 7): a 7, um pixel tem ~1,2 km no equador; a janela de 9 × 9 pixels cobre
+   ~11 km em volta do centro do município, e só um quarto dela com eco conta como chuva em cima da cidade. */
 (() => {
   const app = globalThis.PLUVIA = globalThis.PLUVIA || {};
   const PROBE_TTL_MS = 8 * 60 * 1000;
   const REQUEST_TIMEOUT_MS = 8000;
   const metadataClient = app.http?.createClient?.({defaultTimeoutMs:REQUEST_TIMEOUT_MS});
-  const state = { status: "idle", precipitating: false, checkedAt: null, cityId: null };
+  const state = { status: "idle", precipitating: false, checkedAt: null, frameAt: null, cityId: null };
   let activeController = null;
   let inFlight = null;
   let inFlightCityId = null;
@@ -19,7 +22,7 @@
   }
 
   function snapshot() {
-    return { status: state.status, precipitating: state.precipitating, kind: "observation", checkedAt: state.checkedAt, cityId: state.cityId };
+    return { status: state.status, precipitating: state.precipitating, kind: "observation", checkedAt: state.checkedAt, frameAt: state.frameAt, cityId: state.cityId };
   }
 
   function reset(cityId = null) {
@@ -32,6 +35,7 @@
     state.status = "idle";
     state.precipitating = false;
     state.checkedAt = null;
+    state.frameAt = null;
     state.cityId = cityId == null ? null : String(cityId);
     return snapshot();
   }
@@ -75,7 +79,7 @@
       const frame = past[past.length - 1];
       const host = frame?.host || json?.host;
       if (!frame?.path || !host) throw new Error("frame");
-      const z = 9;
+      const z = 7;
       const { tileX, tileY, px, py } = lonLatToPixel(city.lon, city.lat, z);
       const url = `${host}${frame.path}/256/${z}/${tileX}/${tileY}/2/1_1.png`;
       const image = await loadImage(url, controller.signal);
@@ -85,7 +89,7 @@
       canvas.height = image.height;
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
       ctx.drawImage(image, 0, 0);
-      const radius = 6;
+      const radius = 4;
       const sx = Math.max(0, px - radius);
       const sy = Math.max(0, py - radius);
       const sw = Math.min(image.width - sx, radius * 2 + 1);
@@ -93,13 +97,15 @@
       const pixels = ctx.getImageData(sx, sy, sw, sh).data;
       let wet = 0;
       for (let i = 0; i < pixels.length; i += 4) if (pixels[i + 3] > 48) wet++;
-      state.precipitating = wet >= 3;
+      state.precipitating = wet >= pixels.length / 4 / 4; // um quarto dos pixels (RGBA = 4 bytes)
       state.status = "ready";
       state.checkedAt = Date.now();
+      state.frameAt = Number.isFinite(frame.time) ? frame.time * 1000 : null;
       app.sources?.set("radar", { status: "ready", kind: "observation", dataAt: frame.time ? frame.time * 1000 : Date.now(), checkedAt: state.checkedAt });
     } catch (error) {
       if (generation !== requestGeneration || state.cityId !== cityId) return snapshot();
       state.precipitating = false;
+      state.frameAt = null;
       state.status = "unavailable";
       state.checkedAt = Date.now();
       app.sources?.set("radar", { status: timedOut ? "timeout" : "error", checkedAt: state.checkedAt });
@@ -126,6 +132,7 @@
     state.cityId = cityId;
     state.status = "loading";
     state.precipitating = false;
+    state.frameAt = null;
     app.sources?.set("radar", { status: "loading", checkedAt: null, dataAt: null });
     inFlightCityId = cityId;
     const task = executeProbe(city, cityId, requestGeneration, controller).finally(() => {
