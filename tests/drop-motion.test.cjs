@@ -84,5 +84,6 @@ test('dado que chega depois desce no lugar: alertas saindo de "Consultando", dic
   api.setYesterdayNote({text:'2° mais quente que ontem'});api.setYesterdayNote({text:'parecida'});
   assert.deepEqual(dropped,['alertas','tips','yesterdayNote'],'só a primeira chegada de cada bloco desce; atualizações não reanimam');
   const load=app.slice(app.indexOf('async function loadWeather('),app.indexOf('async function refreshAll('));
-  assert.match(load,/if \(fromSkeleton\) \{ animateCityText\(\); dropVisibleBlocks\(120\); \}/,'cidade sem nada salvo: esqueletos viram dados em cascata');
+  assert.match(load,/if \(fromSkeleton && !introCovering\(\)\) \{ animateCityText\(\); dropVisibleBlocks\(120\); \}/,'cidade sem nada salvo: esqueletos viram dados em cascata');
+  assert.match(app,/function introCovering\(\) \{\n  const intro = \$\("pluviaIntro"\);\n  return Boolean\(intro && !intro\.hidden && !intro\.dataset\.done\);/,'com a intro cobrindo a tela a animação é pulada');
 });

@@ -1219,8 +1219,10 @@ async function loadWeather(revision = cityRevision) {
       cache({forecast:original,air:savedAir.air},{weatherAt:Date.now(),airAt:savedAir.at});
       globalThis.PLUVIA?.sources.set('weather',{status:'ready',checkedAt:Date.now(),dataAt:cityDate(original.current.time,city).getTime()});
       $("weatherView")?.classList.remove('initial-loading');
-      // Cidade sem nada salvo: os esqueletos viram dados com o mesmo fade do topo e a cascata.
-      if (fromSkeleton) { animateCityText(); dropVisibleBlocks(120); }
+      // Cidade sem nada salvo: os esqueletos viram dados com o mesmo fade do topo e a cascata. Com a
+      // intro ainda cobrindo a tela ninguém veria a animação: pular poupa ~100 ms de estilo forçado
+      // logo na abertura (a Home já aparece pronta quando a intro sai).
+      if (fromSkeleton && !introCovering()) { animateCityText(); dropVisibleBlocks(120); }
       $("weatherView")?.setAttribute('aria-busy','false');
     }
     const [airResult] = await optional;
@@ -1726,6 +1728,10 @@ function fadeIn(nodes, duration, stagger = 0) {
 if (globalThis.PLUVIA) globalThis.PLUVIA.fadeText = fadeIn;
 // Blocos de módulos que surgem depois (ex.: "Medido agora") descem no lugar como os do app.
 if (globalThis.PLUVIA) globalThis.PLUVIA.settleBlock = settleBlock;
+function introCovering() {
+  const intro = $("pluviaIntro");
+  return Boolean(intro && !intro.hidden && !intro.dataset.done);
+}
 function animateCityText() {
   fadeIn([$("cityName"), $("temperature"), $("condition"), $("heroRange"), $("rainAnswer")], 420, 90);
 }
@@ -1979,6 +1985,9 @@ function chooseCity(id, locatedCity = null) {
     clearWeatherInsights();
     // Por último: o conteúdo inicial (skeleton) não pode ser sobrescrito por textos de "indisponível".
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
+    // A janela seca só aparece com chuva agora ou provável: reservar a linha e tirá-la depois deslocava a página.
+    const dryLine = $("dryWindow")?.closest?.(".dry-window-line");
+    if (dryLine) dryLine.hidden = true;
     $("sunDot").hidden = true;
     if ($("moonDot")) $("moonDot").hidden = true;
     // Fica o "Consultando o tempo…" do conteúdo inicial: com o nome da cidade, a frase quebrava em duas

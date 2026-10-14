@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-194" />
+    <meta name="pluvia-release" content="pluvia-panel-195" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -49,6 +49,7 @@
     <!-- A previsão e o ar começam já na abertura (prefetch): conexão aberta antes do primeiro script. -->
     <link rel="preconnect" href="https://api.open-meteo.com" crossorigin />
     <link rel="preconnect" href="https://air-quality-api.open-meteo.com" crossorigin />
+    <link rel="preconnect" href="https://dszyyrcvwrpyiypwyvxe.supabase.co" crossorigin />
     <!-- Nuvem do fundo da intro: é o LCP do PageSpeed e só seria descoberta depois de sky.css e dos scripts do céu. -->
     <link rel="preload" href="/assets/sky-cloud-veil.webp?v=clouds-5" as="image" type="image/webp" fetchpriority="high" />
     <link rel="preload" href="/vendor/suncalc.js?v=sky-3" as="script" />
@@ -384,7 +385,7 @@
         <div class="hourly-peek-heading"><div class="heading-with-tip"><h2 id="hourlyPeekTitle">Próximas horas</h2><details class="info-tip"><summary aria-label="Sobre a previsão por hora"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p class="rain-phrase" id="rainPhraseWrap"><small id="rainPhraseMeta">Open-Meteo</small></p><p>Previsão por modelos no ponto de referência do município. A chance de chuva aparece quando passa de 20%; toque num horário para ver sensação, volume e rajadas.</p></div></details></div></div>
         <p id="hourlyDecision" class="hourly-decision">Toque em um horário para ver sensação, chuva e rajadas.</p>
         <div class="hourly-peek-list" id="hourlyPeek" role="group" aria-label="Condições nas próximas horas"><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span></div>
-        <p class="dry-window-line"><span>Próxima janela seca</span> <strong id="dryWindow">Calculando…</strong></p>
+        <p class="dry-window-line" hidden><span>Próxima janela seca</span> <strong id="dryWindow">Calculando…</strong></p>
         <div class="rain-report" id="rainReport" hidden>
           <p class="rain-report-question" id="rainReportQuestion">Tá chovendo aí?</p>
           <div class="rain-report-options" role="group" aria-labelledby="rainReportQuestion"><button type="button" data-kind="dry" aria-pressed="false">Sem chuva</button><button type="button" data-kind="drizzle" aria-pressed="false">Garoa</button><button type="button" data-kind="rain" aria-pressed="false">Chuva</button><button type="button" data-kind="heavy" aria-pressed="false">Chuva forte</button></div>
@@ -545,8 +546,8 @@
     <script src="/modules/hourly-detail.js?v=detail-7" defer></script>
     <script src="/modules/daily-detail.js?v=daily-3" defer></script>
     <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="/app.js?v=panel-108" defer></script>
-    <script src="/p0.js?v=panel-46" defer></script>
+    <script src="/app.js?v=panel-109" defer></script>
+    <script src="/p0.js?v=panel-47" defer></script>
     <script src="/modules/risks.js?v=core-120" defer></script>
     <script src="/modules/adapters.js?v=core-110" defer></script>
     <script src="/weather-map.js?v=map-18" defer></script>
@@ -558,14 +559,14 @@
     <script src="/account.js?v=account-16" defer></script>
     <script src="/favorite-cities.js?v=favorites-11" defer></script>
     <script src="/modules/share-card.js?v=share-card-3" defer></script>
-    <script src="/modules/share-weather.js?v=share-9" defer></script>
+    <script src="/modules/share-weather.js?v=share-10" defer></script>
     <script src="/saved-places.js?v=places-2" defer></script>
     <script src="/modules/brazil-now.js?v=brazil-2" defer></script>
     <script src="/modules/month-recap.js?v=month-1" defer></script>
     <script src="/modules/station-now.js?v=station-3" defer></script>
     <script src="/modules/environment-now.js?v=environment-1" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-30" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-31" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-36" defer></script>

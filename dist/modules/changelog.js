@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.10.1", date:"2026-10-14", title:"Abertura mais leve", items:[
+      "O PLUVIA faz menos trabalho ao abrir: a tela responde mais rápido ao primeiro toque, principalmente em celulares mais simples.",
+      "A linha “Próxima janela seca” não ocupa mais espaço enquanto a previsão carrega (ela só aparece quando chove ou pode chover).",
+    ]},
     {version:"1.10", date:"2026-10-14", title:"Rios e focos de calor", items:[
       "Nível do rio: em Manaus, Porto Velho, Santarém, Rio Branco e outras cidades na beira dos grandes rios da Amazônia, a tela inicial mostra a cota medida pela ANA e se o rio subiu ou desceu nas últimas 24 horas.",
       "Focos de calor: quando os satélites do INPE detectam focos a até 50 km da cidade nas últimas 24 horas, aparece quantos são e a que distância está o mais perto.",

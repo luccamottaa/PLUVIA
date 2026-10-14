@@ -34,7 +34,7 @@ with sync_playwright() as p:
   page.set_viewport_size({'width':width,'height':height})
   # A altura útil dos diálogos (--dialog-height, p0.js) acompanha o resize no quadro seguinte; abrir o
   # dia antes disso media a janela com a altura da tela anterior (WebKit, 1366×768 com 992 px de 1024).
-  page.wait_for_function("getComputedStyle(document.documentElement).getPropertyValue('--dialog-height').trim()===`${(visualViewport?.height||innerHeight)}px`")
+  page.wait_for_function("getComputedStyle(document.getElementById('dailyDetailDialog')).getPropertyValue('--dialog-height').trim()===`${(visualViewport?.height||innerHeight)}px`")
   rows=page.locator('#forecastList [data-day-index]');assert rows.count()==7
   forecast_requests=sum('api.open-meteo.com/v1/forecast' in url for url in requests)
   rows.nth(1).focus();page.keyboard.press('Enter');page.locator('#dailyDetailDialog').wait_for(state='visible')
