@@ -1031,15 +1031,15 @@ html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notific
 #weatherView {
   --card-bg:rgba(160,190,240,.08);
   --card-line:rgba(184,212,239,.14);
-  --card-fill:linear-gradient(rgba(150,175,225,.012),rgba(150,175,225,.012)) padding-box;
+  --card-fill:linear-gradient(rgba(150,175,225,.085),rgba(150,175,225,.085)) padding-box;
   --card-rim:linear-gradient(transparent,transparent);
-  --card-border:rgba(190,210,245,.11);
+  --card-border:rgba(190,210,245,.13);
   --card-glow:none;
 }
 body[data-ink="dark"] #weatherView {
   --card-bg:rgba(255,255,255,.3);
   --card-line:rgba(255,255,255,.46);
-  --card-fill:linear-gradient(rgba(255,255,255,.26),rgba(255,255,255,.26)) padding-box;
+  --card-fill:linear-gradient(rgba(255,255,255,.4),rgba(255,255,255,.4)) padding-box;
   --card-rim:linear-gradient(150deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.45) 26%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.45) 76%,rgba(255,255,255,.85) 100%);
   --card-glow:inset 0 1px 0 rgba(255,255,255,.5);
   --card-border:transparent;
@@ -1448,6 +1448,21 @@ html body #accountDialog .account-delete { margin-top:10px; padding:0 16px; bord
 html body #accountDialog .account-delete > summary { display:flex; align-items:center; justify-content:center; min-height:52px; margin:0 -16px; padding:0 16px; border-radius:var(--sheet-radius); color:#ff9d97; font-size:.9375rem; font-weight:500; }
 html body #accountDialog .account-delete[open] > summary { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
 html body #accountDialog .account-delete[open] { padding-bottom:16px; }
+/* Previsão por cidade (pedido do usuário, outubro/2026): os links das páginas de cidade saíram do rodapé e
+   ficam aqui, em "Mais do PLUVIA". Continuam no HTML de todas as páginas para o Google achar as cidades. */
+/* O nav global (abas antigas de styles.css) desenhava uma pílula enorme por trás e pintava o link sob o dedo/mouse. */
+html body #accountDialog .capital-links { display:block; margin:24px 0 0; padding:0; border:0; border-radius:0; background:none; box-shadow:none; }
+html body #accountDialog .capital-links .capital-page-note { margin:0 4px 10px; color:var(--dialog-muted); font-size:.8125rem; line-height:1.5; }
+html body #accountDialog .capital-links details { border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog .capital-links details + details { margin-top:8px; }
+html body #accountDialog .capital-links summary { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:52px; padding:0 16px; border-radius:var(--sheet-radius); color:var(--dialog-text); font-size:1rem; font-weight:500; list-style:none; cursor:pointer; }
+html body #accountDialog .capital-links summary::-webkit-details-marker { display:none; }
+html body #accountDialog .capital-links summary::after { content:"›"; flex:none; color:var(--dialog-muted); font-size:1.4rem; line-height:1; }
+html body #accountDialog .capital-links details[open]:not([data-closing]) > summary::after { rotate:90deg; }
+html body #accountDialog .capital-links ul { display:flex; flex-wrap:wrap; gap:0 16px; margin:0; padding:0 16px 12px; list-style:none; }
+html body #accountDialog .capital-links a, html body #accountDialog .capital-links a:hover { display:inline-flex; align-items:center; min-height:36px; padding:0; border-radius:0; background:none; box-shadow:none; transform:none; color:var(--dialog-link,#7aa7ff); font-size:.9375rem; font-weight:500; text-decoration:none; }
+@media (hover:hover) { html body #accountDialog .capital-links a:hover { text-decoration:underline; } }
+html body #accountDialog .capital-links a[aria-current="page"] { color:var(--dialog-text); font-weight:600; }
 html body[data-ink="dark"] #accountDialog details.account-delete > summary { color:#b42318; }
 html body #accountDialog #accountDelete { border:0; border-radius:999px; background:#d93a3a; color:#fff; }
 

@@ -88,7 +88,7 @@ with sync_playwright() as p:
    (output/(name+'-text.png')).write_bytes(base64.b64decode(encoded))
    page.screenshot(path=str(output/(name+'-viewport.png')))
   assert painted>100,{'state':mode['name'],'viewport':page.viewport_size,'selector':selector,'colour':colour,'paintedPixels':painted}
-  if selector in ['footer .footer-brand-copy span','footer .capital-links details:first-child > summary']:
+  if selector in ['footer .footer-brand-copy span']:
    assert sample['contrast']>=4.5,{'state':mode['name'],'selector':selector,'contrast':sample['contrast']}
   return painted
  report=[]
@@ -119,7 +119,7 @@ with sync_playwright() as p:
    page.screenshot(path=str(output/(str(width)+'-'+name+'.png')),full_page=True);report.append({'viewport':width,'state':name,**state})
    if name in ['sunrise','sunset']:
     assert state['solar']==name,state
-    painted={selector:painted_text(selector) for selector in ['#temperature','#sunrise','#sunset','footer .footer-brand-copy strong','footer .footer-brand-copy span','footer .capital-links details:first-child > summary']}
+    painted={selector:painted_text(selector) for selector in ['#temperature','#sunrise','#sunset','footer .footer-brand-copy strong','footer .footer-brand-copy span']}
     page.screenshot(path=str(output/(str(width)+'-'+name+'-footer.png')))
     footer_paint.append({'viewport':width,'state':name,'paintedPixels':painted})
     # Fontes e Privacidade ficam em "Mais do PLUVIA", na janela da conta.
