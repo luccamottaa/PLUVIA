@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.9.4", date:"2026-10-14", title:"Mais ajustes na tela", items:[
+      "Compartilhar sem o menu do celular: o título não fica mais por cima do texto, e o botão “Baixar imagem” aparece direito de dia.",
+      "A linha “INMET · Sem alertas” ficou alinhada.",
+      "Cidades favoritas atualizadas agora dizem “atualizado agora”, em vez de “há 0 min”."]},
     {version:"1.9.3", date:"2026-10-14", title:"Ajustes na tela", items:[
       "A janela de Novidades ficou com o mesmo visual das outras janelas.",
       "“Últimos 30 dias” não quebra mais em duas linhas, e em telas pequenas a barra de mínima e máxima dos 7 dias ficou maior.",
