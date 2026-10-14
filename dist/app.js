@@ -1971,7 +1971,8 @@ function chooseCity(id, locatedCity = null) {
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
     $("sunDot").hidden = true;
     if ($("moonDot")) $("moonDot").hidden = true;
-    $("condition").textContent = "Consultando as condições em " + city.name + "…";
+    // Fica o "Consultando o tempo…" do conteúdo inicial: com o nome da cidade, a frase quebrava em duas
+    // linhas em nomes longos e a página descia ~60 px até a previsão chegar (e subia de novo).
   }
   if (inmetFresh) { renderInmetAlerts(lastInmetResponse); updateInmetTimestamp(); }
   else {

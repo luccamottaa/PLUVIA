@@ -99,7 +99,7 @@ assert.match(sw, /modules\/met-merge\.js\?v=core-112/);
 assert.match(html, /modules\/http-client\.js\?v=http-4/);
 assert.match(html, /modules\/weather-services\.js\?v=core-118/);
 assert.match(html, /modules\/weather-insights\.js\?v=core-72/);
-assert.match(html, /app\.js\?v=panel-105/);
+assert.match(html, /app\.js\?v=panel-106/);
 assert.match(html, /<title>PLUVIA — O céu do Brasil agora<\/title>/);
 assert.doesNotMatch(app, /document\.title\s*=/);
 assert.match(html, /modules\/radar-probe\.js\?v=core-71/);

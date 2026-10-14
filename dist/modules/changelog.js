@@ -15,7 +15,9 @@
     {version:"1.9.3", date:"2026-10-14", title:"Ajustes na tela", items:[
       "A janela de Novidades ficou com o mesmo visual das outras janelas.",
       "“Últimos 30 dias” não quebra mais em duas linhas, e em telas pequenas a barra de mínima e máxima dos 7 dias ficou maior.",
-      "No detalhe do dia, a condição sobe para perto da data, e a linha “INMET · Sem alertas” usa um tamanho só de letra."]},
+      "No detalhe do dia, a condição sobe para perto da data, e a linha “INMET · Sem alertas” usa um tamanho só de letra.",
+      "A janela de novidades que aparece depois de uma atualização não corta mais o texto e mostra primeiro a novidade principal.",
+      "Ao trocar para uma cidade sem previsão salva, a página não desce mais enquanto a previsão carrega."]},
     {version:"1.9.2", date:"2026-10-14", title:"Conta organizada", items:[
       "Personalizar a Home, Novidades, Fontes de dados, Privacidade e Termos de uso saíram do rodapé e agora ficam em “Mais do PLUVIA”, no fim de Minha conta.",
     ]},
@@ -152,10 +154,15 @@
     catch { return iso; }
   };
 
-  // Versões depois da última vista (novidades e correções), a mais nova primeiro, no máximo `limit`.
+  // Versões depois da última vista, no máximo `limit`: novidades primeiro (é a que o título anuncia),
+  // depois as correções, cada grupo da mais nova para a mais antiga. Com 1.9, 1.9.1, 1.9.2 e 1.9.3 novas,
+  // as três correções escondiam a 1.9.
   function since(seen, limit = 3, versions = VERSIONS) {
     if (!parse(seen)) return [];
-    return versions.filter(entry => compare(entry.version, seen) > 0).slice(0, limit);
+    const fresh = versions.filter(entry => compare(entry.version, seen) > 0);
+    const features = fresh.filter(entry => kind(entry.version) === "feature").slice(0, limit);
+    const fixes = fresh.filter(entry => kind(entry.version) === "fix").slice(0, limit - features.length);
+    return [...features, ...fixes];
   }
 
   function entryNode(doc, entry) {
