@@ -12,9 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.9.1", date:"2026-10-14", title:"Previsão mais coerente e conta organizada", items:[
-      "A previsão agora vem inteira de uma fonte só (Open-Meteo), sem misturar outro modelo hora a hora. O MET Norway fica de reserva para quando a fonte principal cair, e o que está acontecendo agora continua vindo das estações do INMET e dos aeroportos.",
+    {version:"1.9.2", date:"2026-10-14", title:"Conta organizada", items:[
       "Personalizar a Home, Novidades, Fontes de dados, Privacidade e Termos de uso saíram do rodapé e agora ficam em “Mais do PLUVIA”, no fim de Minha conta.",
+    ]},
+    {version:"1.9.1", date:"2026-10-14", title:"Previsão mais coerente", items:[
+      "A previsão agora vem inteira de uma fonte só (Open-Meteo), sem misturar outro modelo hora a hora. O MET Norway fica de reserva para quando a fonte principal cair, e o que está acontecendo agora continua vindo das estações do INMET e dos aeroportos.",
     ]},
     {version:"1.9", date:"2026-10-14", title:"Avisos de chuva de verdade", items:[
       "Novos avisos no celular: “Começou a chover”, quando a estação do INMET mede chuva ou o aeroporto mais próximo relata; “Trovoada agora”, quando o aeroporto relata trovoada; e “Chuva por perto”, quando há chuva ou trovoada nas proximidades. Vêm junto com os avisos de chuva e tempestade, sem precisar ligar nada.",
