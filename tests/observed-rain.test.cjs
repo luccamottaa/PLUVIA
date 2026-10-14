@@ -9,7 +9,7 @@ const observed = require('../dist/modules/observed-rain.js');
 const at = Date.parse('2026-10-13T16:00:00Z');
 const station = {ibge:'1302603', at, temperature:26.3, humidity:90, rainMm:5.0};
 const time = value => new Date(value - 4 * 3600_000).toISOString().slice(11, 16);
-const number = value => value.toFixed(1).replace('.', ',');
+const number = (value, digits = 1) => value.toFixed(digits).replace('.', ',');
 
 test('chuva medida pela estação vira chuva no topo, com intensidade pelo volume', () => {
   const now = at + 20 * 60_000;
@@ -75,12 +75,51 @@ test('chuva medida em ar muito instável vira trovoada provável e liga os raios
   assert.equal(observed.withStorm(null, 4600), null);
 });
 
+test('boletim do aeroporto: trovoada relatada vence tudo; chuva relatada entra depois da estação', () => {
+  // SPECI SBEG 130518Z ... TSRA (01:18 em Manaus) e METAR SBMN 131624Z SHRA.
+  const tsra = {icao:'SBEG', distanceKm:9.5, at:Date.parse('2026-10-13T05:18:00Z'),
+    weather:{rain:'moderate', showers:false, drizzle:false, thunder:true, nearbyShowers:false, nearbyThunder:false}};
+  const storm = observed.pick({airport:tsra, station, now:tsra.at + 10 * 60_000});
+  assert.equal(storm.source, 'airport');
+  assert.equal(storm.code, 95);
+  assert.equal(storm.stormSource, 'airport');
+  assert.equal(observed.label(storm, 'Trovoadas'), 'Chuva com trovoada');
+  assert.equal(observed.answer(storm, {time, number}).text, 'Trovoada com chuva agora, segundo o aeroporto mais próximo (SBEG, a 10 km), às 01:18.');
+  assert.equal(observed.withStorm(storm, 4000), storm, 'confirmada não vira "provável"');
+  const dryThunder = observed.pick({airport:{...tsra, weather:{...tsra.weather, rain:null}}, now:tsra.at});
+  assert.equal(observed.label(dryThunder, 'Trovoadas'), 'Trovoada');
+  const shra = {icao:'SBMN', distanceKm:3, at:Date.parse('2026-10-13T16:24:00Z'),
+    weather:{rain:'moderate', showers:true, drizzle:false, thunder:false, nearbyShowers:false, nearbyThunder:false}};
+  const showers = observed.pick({airport:shra, now:shra.at + 5 * 60_000});
+  assert.equal(showers.code, 81);
+  assert.equal(observed.answer(showers, {time, number}).text, 'Pancadas de chuva agora, segundo o aeroporto mais próximo (SBMN, a 3 km), às 12:24.');
+  // A estação mede no chão: com chuva medida, ela é a fonte (o aeroporto só confirma trovoada).
+  assert.equal(observed.pick({airport:shra, station, now:at + 20 * 60_000}).source, 'station');
+  assert.equal(observed.pick({airport:{...shra, at:shra.at - 80 * 60_000}, now:shra.at}), null, 'boletim velho');
+});
+
+test('trovoada nas proximidades confirma tempestade com chuva medida; sem chuva, só avisa que pode chegar', () => {
+  const vcts = {icao:'SBEG', distanceKm:9.5, at:Date.parse('2026-10-13T16:00:00Z'),
+    weather:{rain:null, showers:false, drizzle:false, thunder:false, nearbyShowers:true, nearbyThunder:true}};
+  const confirmed = observed.pick({station, airport:vcts, now:at + 10 * 60_000});
+  assert.equal(confirmed.code, 95);
+  assert.equal(confirmed.stormSource, 'nearby');
+  assert.match(observed.answer(confirmed, {time, number}).text, /5,0 mm medidos pela estação do INMET \(11:00–12:00\)\. O aeroporto mais próximo \(SBEG, a 10 km\) relatou trovoada nas proximidades às 12:00\.$/);
+  assert.equal(observed.pick({airport:vcts, now:vcts.at}), null, 'nas proximidades não muda a condição');
+  const close = observed.nearby({airport:vcts, now:vcts.at});
+  assert.equal(close.thunder, true);
+  const text = observed.nearbyAnswer(close, {time, number});
+  assert.equal(text.tone, 'maybe');
+  assert.equal(text.text, 'Trovoada nas proximidades: o aeroporto mais próximo (SBEG, a 10 km) relatou às 12:00. A chuva pode chegar.');
+  assert.equal(observed.nearby({airport:{...vcts, weather:{...vcts.weather, nearbyThunder:false, nearbyShowers:false}}, now:vcts.at}), null);
+});
+
 test('o app carrega o módulo antes de app.js e só repinta condição, céu e "Vai chover?"', () => {
   const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
   const sw = fs.readFileSync(path.join(__dirname, '../dist/sw.js'), 'utf8');
-  assert.ok(html.indexOf('modules/observed-rain.js?v=observed-rain-1') > 0);
+  assert.ok(html.indexOf('modules/observed-rain.js?v=observed-rain-2') > 0);
   assert.ok(html.indexOf('modules/observed-rain.js') < html.indexOf('app.js?v='));
-  assert.match(sw, /modules\/observed-rain\.js\?v=observed-rain-1/);
+  assert.match(sw, /modules\/observed-rain\.js\?v=observed-rain-2/);
   const app = fs.readFileSync(path.join(__dirname, '../dist/app.js'), 'utf8');
   const refresh = app.slice(app.indexOf('function refreshObservedRain()'), app.indexOf('globalThis.addEventListener?.("pluvia:station-reading"'));
   assert.doesNotMatch(refresh, /render\(|pluvia:weather-updated/, 'repintar não dispara outra rodada de consultas');

@@ -989,16 +989,24 @@ function renderAirDetails(snapshot) {
   $("airDetailsTime").textContent = `${snapshot.airSource.freshness==='current' ? 'Estimativa de' : 'Leitura anterior de'} ${stamp} · horário de ${activeCity.name}.`;
 }
 
-// Chuva observada no topo (modules/observed-rain.js): a estação do INMET (via station-now.js) ou o
-// radar no ponto da cidade mostram chuva enquanto o modelo diz nublado. Só eleva; nunca seca a previsão.
-// O estado é por cidade; a previsão guardada em displayedWeather continua a do modelo.
-const observedRainState = {station:null, stationCity:null, radar:null, key:""};
-function currentObservedRain() {
-  const api = globalThis.PLUVIA?.observedRain, id = String(activeCity?.id ?? "");
-  if (!api || !id) return null;
-  return api.pick({station:observedRainState.stationCity === id ? observedRainState.station : null,
-    radar:observedRainState.radar?.cityId === id ? observedRainState.radar : null, now:Date.now()});
+// Chuva observada no topo (modules/observed-rain.js): o aeroporto mais próximo e a estação do INMET (via
+// station-now.js) ou o radar no ponto da cidade mostram chuva enquanto o modelo diz nublado. Só eleva;
+// nunca seca a previsão. O estado é por cidade; a previsão em displayedWeather continua a do modelo.
+const observedRainState = {station:null, airport:null, stationCity:null, radar:null, key:""};
+function observedSources() {
+  const id = String(activeCity?.id ?? "");
+  const mine = Boolean(id) && observedRainState.stationCity === id;
+  return {station:mine ? observedRainState.station : null, airport:mine ? observedRainState.airport : null,
+    radar:id && observedRainState.radar?.cityId === id ? observedRainState.radar : null, now:Date.now()};
 }
+function currentObservedRain() {
+  const api = globalThis.PLUVIA?.observedRain;
+  return api && activeCity ? api.pick(observedSources()) : null;
+}
+const observedHelpers = () => ({
+  time:at => (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR",{hour:"2-digit",minute:"2-digit",timeZone:activeCity.timezone}).format(at),
+  number:(value, digits = 1) => fmt(value, digits)
+});
 // Com o CAPE da hora atual: chuva medida em ar muito instável vira trovoada provável (raios no céu).
 function observedRainFor(data) {
   const observed = data?.current ? currentObservedRain() : null;
@@ -1020,7 +1028,7 @@ function paintCurrentCondition(data) {
   const localCondition = replaced ? globalThis.PLUVIA.observedRain.label(observed, condition) : !isDay && current.weather_code === 1 ? "Céu quase limpo" : condition;
   // "Ar abafado" vem da sensação do modelo; com chuva medida agora (que costuma derrubar a temperatura) fica de fora.
   $("condition").textContent = !replaced && heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition;
-  observedRainState.key = globalThis.PLUVIA?.observedRain?.key?.(observed) || "";
+  observedRainState.key = observedRainKey(data);
   return atmosphere;
 }
 // O ícone do "Agora" nas Próximas horas acompanha a chuva medida (e volta ao do modelo quando ela vence).
@@ -1032,22 +1040,32 @@ function syncNowHourIcon(data) {
   const code = replaced ? current.weather_code : data.hourly.weather_code?.[start];
   slot.innerHTML = weatherIcons.markup(code, forecastIsDay(data.hourly.time[start], data.daily), {className:"hourly-weather-icon", decorative:true});
 }
+// "Vai chover?": a observação vence; chuva/trovoada nas proximidades do aeroporto substitui só uma
+// resposta seca ou incerta do modelo (se o modelo já diz chuva, ele continua).
 function rainAnswerFor(data, start) {
+  const api = globalThis.PLUVIA?.observedRain;
   const {current, observed} = withObservedRain(data);
-  const time = at => (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR",{hour:"2-digit",minute:"2-digit",timeZone:activeCity.timezone}).format(at);
-  return globalThis.PLUVIA?.observedRain?.answer?.(observed, {time, number:mm => fmt(mm, 1)})
-    || weatherInsights?.rainAnswer?.(data.hourly, start, {current}) || {tone:"unknown",text:"Previsão de chuva indisponível."};
+  const model = weatherInsights?.rainAnswer?.(data.hourly, start, {current}) || {tone:"unknown",text:"Previsão de chuva indisponível."};
+  if (observed) return api.answer(observed, observedHelpers());
+  const close = api?.nearby?.(observedSources());
+  return close && !["rain","storm"].includes(model.tone) ? api.nearbyAnswer(close, observedHelpers()) : model;
+}
+// Chave do que a observação muda no topo (condição/céu e "Vai chover?").
+function observedRainKey(data) {
+  const api = globalThis.PLUVIA?.observedRain, close = api?.nearby?.(observedSources());
+  return `${api?.key?.(observedRainFor(data)) || ""}|${close ? `${close.icao}:${close.at}:${close.thunder}` : ""}`;
 }
 // Uma leitura nova (ou vencida) repinta só a condição, o céu e o "Vai chover?", sem refazer a Home.
 function refreshObservedRain() {
   const shown = displayedWeather?.forecast;
-  const key = globalThis.PLUVIA?.observedRain?.key?.(observedRainFor(shown)) || "";
+  const key = shown?.current ? observedRainKey(shown) : "";
   if (key === observedRainState.key || !shown?.current || !shown.hourly?.time) return;
   paintCurrentCondition(shown);
   try { setRainAnswer(rainAnswerFor(shown, selectCurrentHour(shown.hourly.time))); syncNowHourIcon(shown); } catch {}
 }
 globalThis.addEventListener?.("pluvia:station-reading", event => {
   observedRainState.station = event.detail?.reading || null;
+  observedRainState.airport = event.detail?.airport || null;
   observedRainState.stationCity = event.detail?.cityId || null;
   refreshObservedRain();
 });
@@ -1062,7 +1080,7 @@ globalThis.addEventListener?.("pluvia:weather-updated", () => {
   }).catch(() => {});
 });
 globalThis.addEventListener?.("pluvia:city-changed", () => {
-  Object.assign(observedRainState, {station:null, stationCity:null, radar:null, key:""});
+  Object.assign(observedRainState, {station:null, airport:null, stationCity:null, radar:null, key:""});
   globalThis.PLUVIA?.radar?.reset?.(activeCity?.id ?? null);
 });
 
