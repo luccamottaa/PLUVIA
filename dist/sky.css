@@ -142,6 +142,10 @@ html,body { background:var(--sky-base); }
 /* LCP: o véu da intro aparece no primeiro paint e precisa ser a maior pintura; com a mesma altura,
    a camada da frente (inteira na tela) roubava a LCP ao chegar a previsão, vários segundos depois. */
 .intro-sky .sky-clouds-back { --cloud-height:calc(clamp(440px,min(70vw,113vh),640px) * 1.08); }
+/* Telas largas: a camada da frente fica mais baixa e mostrava mais área que o véu (cujo tamanho no LCP
+   não cresce além da imagem, 2112 × 704). Quando a previsão chegava, ela virava o LCP do PageSpeed no
+   computador (~1,4 s). Maior, a parte de baixo sai da tela e o LCP fica no primeiro desenho (900 a 3440 px). */
+@media (min-width:900px) { .intro-sky .sky-clouds-front { --cloud-height:calc(clamp(440px,min(70vw,113vh),640px) * 1.25); } }
 .intro-sky .sky-clouds-front { top:36%; }
 /* Mainly clear (WMO 1): an elliptical mask, repeated twice per texture tile, reveals one
    bank of the same opaque texture every half tile; mask and texture drift together, so each
