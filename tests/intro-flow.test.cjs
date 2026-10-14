@@ -18,13 +18,13 @@ test('a intro recebe estilo e cor do tema antes dos recursos externos', () => {
 });
 
 function runIntro({ saved = false, storageBlocked = false, reduced = false, local = null, now = Date.parse('2026-10-09T05:00:00Z') } = {}) {
-  const timers = [];
+  const timers = [], listeners = {};
   const intro = { hidden: false, dataset: {}, classList: { classes: [], add(name) { this.classes.push(name); } } };
   const view = { hidden: true }, welcome = { hidden: false };
   const nodes = { pluviaIntro: intro, locationWelcome: welcome, weatherView: view };
   const context = {
     document: { getElementById: id => nodes[id] },
-    window: { matchMedia: () => ({ matches: reduced }) },
+    window: { matchMedia: () => ({ matches: reduced }), addEventListener: (type, callback) => { listeners[type] = callback; } },
     sessionStorage: {
       getItem() { if (storageBlocked) throw Error('blocked'); return saved ? '1' : null; },
       setItem() { if (storageBlocked) throw Error('blocked'); },
@@ -34,13 +34,17 @@ function runIntro({ saved = false, storageBlocked = false, reduced = false, loca
   };
   if (local) context.localStorage = { getItem: key => key in local ? local[key] : null, setItem: (key, value) => { local[key] = String(value); } };
   vm.runInNewContext(script, context);
-  return { intro, view, welcome, timers };
+  return { intro, view, welcome, timers, listeners, context };
 }
 
 test('a abertura sai sozinha mesmo sem executar o código da previsão', () => {
   const { intro, view, welcome, timers } = runIntro({ storageBlocked: true });
   assert.equal(timers[0].delay, 2600);
   timers[0].callback();
+  assert.deepEqual(intro.classList.classes, [], 'sem a primeira consulta, o tempo mínimo não basta');
+  const cap = timers.find(timer => timer.delay === 4600);
+  assert.ok(cap, 'limite para internet lenta');
+  cap.callback();
   assert.equal(view.hidden, false);
   assert.equal(welcome.hidden, true);
   assert.deepEqual(intro.classList.classes, ['is-leaving']);
@@ -48,10 +52,29 @@ test('a abertura sai sozinha mesmo sem executar o código da previsão', () => {
   assert.equal(intro.hidden, true);
 });
 
+test('a intro espera a primeira consulta para a Home abrir com os dados novos', () => {
+  const early = runIntro();
+  early.listeners['pluvia:refresh-settled']();
+  assert.deepEqual(early.intro.classList.classes, [], 'consulta rápida não encurta o tempo mínimo');
+  early.timers[0].callback();
+  assert.deepEqual(early.intro.classList.classes, ['is-leaving']);
+  const late = runIntro();
+  late.timers[0].callback();
+  assert.deepEqual(late.intro.classList.classes, []);
+  late.listeners['pluvia:refresh-settled']();
+  assert.deepEqual(late.intro.classList.classes, ['is-leaving'], 'consulta depois do mínimo libera na hora');
+  const missed = runIntro();
+  missed.context.PLUVIA = { refreshSettledAt: 1 };
+  missed.timers[0].callback();
+  assert.deepEqual(missed.intro.classList.classes, ['is-leaving'], 'consulta que terminou antes do ouvinte também conta');
+});
+
 test('a saída automática não dispara duas vezes', () => {
-  const { intro, timers } = runIntro();
+  const { intro, timers, listeners } = runIntro();
+  listeners['pluvia:refresh-settled']();
   timers[0].callback();
   timers[0].callback();
+  timers.find(timer => timer.delay === 4600).callback();
   assert.deepEqual(intro.classList.classes, ['is-leaving']);
   timers.find(timer => timer.delay === 450).callback();
   assert.equal(intro.hidden, true);
@@ -61,7 +84,9 @@ test('sessões já vistas ignoram a abertura; movimento reduzido encurta a dura�
   const previous = runIntro({ saved: true });
   assert.equal(previous.intro.hidden, true);
   assert.equal(previous.timers.length, 0);
-  assert.equal(runIntro({ reduced: true }).timers[0].delay, 300);
+  const reduced = runIntro({ reduced: true });
+  assert.equal(reduced.timers[0].delay, 300);
+  assert.ok(reduced.timers.some(timer => timer.delay === 1500));
 });
 
 test('voltar logo depois de o iPhone fechar o app não repete a intro; depois de 3 h ela volta', () => {

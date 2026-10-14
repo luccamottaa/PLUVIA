@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-190" />
+    <meta name="pluvia-release" content="pluvia-panel-191" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -186,7 +186,14 @@
         }
         if (seen) { intro.hidden = true; return; }
         var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        setTimeout(dismiss, reduced ? 300 : 2600);
+        // A intro serve de tela de carregamento: some depois do tempo mínimo e da primeira consulta
+        // (previsão e INMET, com sucesso ou falha), para a Home já abrir com os dados novos. Internet lenta
+        // não prende ninguém: no máximo 4,6 s (ou 1,5 s com movimento reduzido).
+        var minimum = false, settled = false;
+        function settle() { settled = true; if (minimum) dismiss(); }
+        if (window.addEventListener) window.addEventListener("pluvia:refresh-settled", settle, { once: true });
+        setTimeout(function () { minimum = true; if (settled || (globalThis.PLUVIA && globalThis.PLUVIA.refreshSettledAt)) dismiss(); }, reduced ? 300 : 2600);
+        setTimeout(dismiss, reduced ? 1500 : 4600);
       })();
     </script>
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
@@ -536,7 +543,7 @@
     <script src="/modules/hourly-detail.js?v=detail-7" defer></script>
     <script src="/modules/daily-detail.js?v=daily-3" defer></script>
     <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="/app.js?v=panel-106" defer></script>
+    <script src="/app.js?v=panel-107" defer></script>
     <script src="/p0.js?v=panel-46" defer></script>
     <script src="/modules/risks.js?v=core-120" defer></script>
     <script src="/modules/adapters.js?v=core-110" defer></script>
@@ -555,7 +562,7 @@
     <script src="/modules/month-recap.js?v=month-1" defer></script>
     <script src="/modules/station-now.js?v=station-3" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-26" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-27" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-36" defer></script>
