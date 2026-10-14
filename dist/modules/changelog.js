@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.10", date:"2026-10-14", title:"Rios e focos de calor", items:[
+      "Nível do rio: em Manaus, Porto Velho, Santarém, Rio Branco e outras cidades na beira dos grandes rios da Amazônia, a tela inicial mostra a cota medida pela ANA e se o rio subiu ou desceu nas últimas 24 horas.",
+      "Focos de calor: quando os satélites do INPE detectam focos a até 50 km da cidade nas últimas 24 horas, aparece quantos são e a que distância está o mais perto.",
+      "Quem volta ao app com uma previsão salva antiga só vê o “Atualizando…” se a atualização demorar.",
+    ]},
     {version:"1.9.6", date:"2026-10-14", title:"Cartões mais firmes e rodapé limpo", items:[
       "Os cartões da tela inicial ficaram menos transparentes, de dia e de noite, e a leitura ficou mais firme sobre o céu.",
       "Os links “Previsão nas capitais” e “Outras cidades” saíram do rodapé e agora ficam em “Previsão por cidade”, no fim de Minha conta.",
