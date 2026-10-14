@@ -14,6 +14,7 @@
   const VERSIONS = [
     {version:"1.9.5", date:"2026-10-14", title:"Abertura com tudo pronto", items:[
       "A abertura do PLUVIA espera a previsão nova e os avisos do INMET chegarem, então a tela inicial já aparece atualizada, sem o “Atualizando…”. Com internet lenta, ela não segura mais que alguns segundos.",
+      "O botão “Excluir minha conta” virou um cartão como os outros da conta, sem o contorno torto e sem o retângulo desalinhado ao tocar.",
     ]},
     {version:"1.9.4", date:"2026-10-14", title:"Mais ajustes na tela", items:[
       "Compartilhar sem o menu do celular: o título não fica mais por cima do texto, e o botão “Baixar imagem” aparece direito de dia.",

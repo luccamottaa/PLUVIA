@@ -1442,8 +1442,13 @@ html body #accountDialog :is(.notification-location-row,.notification-device) { 
 html body #accountDialog :is(.notification-location-row,.notification-device):last-child { border-bottom:0; }
 html body #accountDialog :is(.notification-location-row,.notification-device) button { min-height:40px; border:0; background:var(--dialog-surface-2); }
 html body #accountDialog #accountLogout { margin-top:30px; border:0; background:var(--dialog-surface); color:var(--brand-blue); color:#8fb4ff; }
-html body #accountDialog .account-delete { margin-top:10px; padding:0 16px; border-radius:var(--sheet-radius); background:transparent; }
-html body #accountDialog .account-delete > summary { display:flex; align-items:center; justify-content:center; min-height:48px; color:#ff9d97; font-size:.9375rem; }
+/* Cartão como os outros grupos da conta. Antes: a linha só em cima (border-top da regra antiga) com cantos
+   de 22 px virava um arco, e o véu de toque do summary era um retângulo sem canto, 16 px mais estreito. */
+html body #accountDialog .account-delete { margin-top:10px; padding:0 16px; border:0; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog .account-delete > summary { display:flex; align-items:center; justify-content:center; min-height:52px; margin:0 -16px; padding:0 16px; border-radius:var(--sheet-radius); color:#ff9d97; font-size:.9375rem; font-weight:500; }
+html body #accountDialog .account-delete[open] > summary { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #accountDialog .account-delete[open] { padding-bottom:16px; }
+html body[data-ink="dark"] #accountDialog details.account-delete > summary { color:#b42318; }
 html body #accountDialog #accountDelete { border:0; border-radius:999px; background:#d93a3a; color:#fff; }
 
 /* --- Fontes de dados --- */
