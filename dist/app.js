@@ -1197,9 +1197,11 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
 async function loadWeather(revision = cityRevision) {
   const city = activeCity;
   $("weatherView")?.setAttribute('aria-busy','true');
+  // O MET Norway é só a reserva (pedido do usuário, outubro/2026): a previsão normal é toda do Open-Meteo,
+  // sem mistura hora a hora (que trocava garoa por "parcialmente nublado" e descasava a hora da máxima do
+  // dia), e o "agora" vem das observações. O MET só é consultado quando o Open-Meteo falha.
   const optional = Promise.allSettled([
-    Promise.resolve().then(() => services.airQuality.getCurrent(city)),
-    Promise.resolve().then(() => services.metNorway.getForecast(city))
+    Promise.resolve().then(() => services.airQuality.getCurrent(city))
   ]);
   try {
     const prefetched = takePrefetchedForecast(city);
@@ -1217,12 +1219,9 @@ async function loadWeather(revision = cityRevision) {
       if (fromSkeleton) { animateCityText(); dropVisibleBlocks(120); }
       $("weatherView")?.setAttribute('aria-busy','false');
     }
-    const [airResult,metResult] = await optional;
+    const [airResult] = await optional;
     if (revision !== cityRevision) return false;
-    let merged = null;
-    try { if (metResult.status === 'fulfilled') merged = globalThis.PLUVIA?.metMerge?.merge(original,metResult.value,city.timezone); } catch { /* Uma fonte não deve ocultar a outra. */ }
-    const data = merged?.used && validForecast(merged.forecast) ? merged.forecast : original;
-    const usingMet = data !== original;
+    const data = original;
     const previous = cached();
     const freshAir = airResult.status === "fulfilled" && weatherData?.validateAirQuality?.(airResult.value).valid === true;
     const savedAir = weatherData?.cachedAir(previous) || {air:null,at:null};
@@ -1231,7 +1230,7 @@ async function loadWeather(revision = cityRevision) {
     render(data,air,false,0,{airAt,freshAir});
     cache({forecast:data,air},{weatherAt:Date.now(),airAt});
     globalThis.PLUVIA?.sources.set("weather",{status:"ready",checkedAt:Date.now(),dataAt:cityDate(data.current.time,city).getTime()});
-    globalThis.PLUVIA?.sources.set('met-norway',{status:usingMet ? 'ready' : 'error',checkedAt:usingMet ? Date.now() : null,dataAt:usingMet ? Date.parse(merged.time) : null});
+    globalThis.PLUVIA?.sources.set('met-norway',{status:'idle',checkedAt:null,dataAt:null});
     globalThis.PLUVIA?.sources.set("air-quality",{status:freshAir ? "ready" : air ? "stale" : "error",checkedAt:freshAir ? Date.now() : airAt,dataAt:air?.current?.time ? cityDate(air.current.time,city).getTime() : null});
     clearTimeout(errorTimer); $("errorToast").classList.remove("show"); $("errorToast").setAttribute("aria-hidden", "true");
     clearTimeout(failureRetryTimer); failureNoticeShown = false;
@@ -1243,7 +1242,10 @@ async function loadWeather(revision = cityRevision) {
     if (error?.background) { retryWhenVisible = true; if (!displayedWeather && cached()) { const saved = cached(); render(saved.data.forecast, weatherData?.cachedAir(saved)?.air, true, saved.weatherAt || saved.at,{airAt:weatherData?.cachedAir(saved)?.at}); } return false; }
     const saved = cached();
     const offline = globalThis.navigator?.onLine === false;
-    const [airResult,metResult] = offline ? [] : await optional;
+    const [airResult] = offline ? [] : await optional;
+    if (revision !== cityRevision) return false;
+    // Só agora, com o Open-Meteo fora, a reserva é consultada (uma vez por falha).
+    const [metResult] = offline ? [] : await Promise.allSettled([Promise.resolve().then(() => services.metNorway.getForecast(city))]);
     if (revision !== cityRevision) return false;
     const reduced = offline ? null : reducedForecast(metResult, city);
     const savedAge = saved ? Date.now() - (saved.weatherAt || saved.at) : Infinity;
