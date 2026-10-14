@@ -45,3 +45,13 @@ test('mensagem de chuva indica previsão, horário no fuso local e números do m
  // 21h and 22h are interval endings: rain covers 20h through 22h locally.
  const rain=events.find(e=>e.type==='rain_approaching');assert.match(rain.body,/20:00.*22:00/);assert.match(rain.body,/80%/);assert.match(rain.body,/2,0 mm\/h/);assert.match(rain.body,/modelo Open-Meteo/);
 });
+test('chuva observada não é repetição da previsão, e "chuva por perto" não segura o aviso de quando ela chega',()=>{
+ const now=Date.parse('2026-10-13T16:30:00Z'),sent=(type,severity,minutes)=>({status:'accepted',sent_at:new Date(now-minutes*60000).toISOString(),notification_events:{event_type:type,severity,city_id:'1302603'}});
+ const rainNow={type:'rain_now',severity:2,cityId:'1302603'};
+ assert.equal(isRepeat(rainNow,[sent('rain_approaching',2,90)],now),false,'previsão de 1h30 atrás');
+ assert.equal(isRepeat(rainNow,[sent('rain_nearby',2,30)],now),false,'chuva por perto antes');
+ assert.equal(isRepeat(rainNow,[sent('rain_now',2,60)],now),true,'mesmo episódio');
+ assert.equal(isRepeat({type:'storm_now',severity:3,cityId:'1302603'},[sent('rain_now',2,20)],now),false,'trovoada sobe a severidade');
+ const picked=selectCandidates([{type:'rain_now',severity:2},{type:'storm_now',severity:3},{type:'rain_approaching',severity:2},{type:'rain_nearby',severity:2}]);
+ assert.deepEqual(picked.map(c=>c.type).sort(),['rain_approaching','rain_nearby','storm_now']);
+});

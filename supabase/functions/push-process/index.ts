@@ -4,6 +4,8 @@ import { json, preflight, readJson } from "../_shared/http.ts";
 import { pushErrorCode, sendWebPush } from "../_shared/webpush.ts";
 import { selectCandidates, isRepeat } from "../_shared/notification-policy.js";
 import { report } from "../_shared/error-report.js";
+import { metarUrl, nearestAirport } from "../_shared/metar.js";
+import { stationUrl, normalizeStation } from "../_shared/inmet-station.js";
 
 type Location = { id: string; user_id: string; city_id: string; city_name: string; uf: string; latitude: number; longitude: number; timezone: string };
 type Preference = Record<string, any> & { user_id: string };
@@ -14,6 +16,8 @@ const preferenceFor: Record<string, string> = {
   official_alert: "official_alerts", rain_approaching: "rain_approaching", heavy_rain: "heavy_rain", storm: "storms",
   lightning: "lightning", strong_wind: "strong_wind", extreme_heat: "extreme_heat", air_quality: "air_quality",
   weather_change: "weather_changes", daily_summary: "daily_summary", evening_summary: "evening_summary",
+  // Observados (estação do INMET e boletim do aeroporto): ligam junto com os avisos de chuva e tempestade.
+  rain_now: "rain_approaching", rain_nearby: "rain_approaching", storm_now: "storms",
 };
 const asArray = (value: any) => Array.isArray(value) ? value : [];
 const text = (value: unknown, max = 500) => String(value ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
@@ -183,6 +187,57 @@ function detectWeather(data: any, location: Location, now = new Date()) {
 function normalizeInmet(raw: any) {
   const rows = Array.isArray(raw) ? raw : raw && (Array.isArray(raw.hoje) || Array.isArray(raw.futuro)) ? [...asArray(raw.hoje), ...asArray(raw.futuro)] : asArray(raw?.avisos || raw?.alerts || raw?.data || raw?.features);
   return rows.map((row: any) => row?.properties || row).filter(Boolean);
+}
+
+// Chuva e trovoada observadas (pedido do usuário, outubro/2026): o modelo erra o horário das pancadas,
+// então o aviso também sai quando a estação do INMET mede chuva que acabou de começar, quando o
+// aeroporto mais próximo relata trovoada ou chuva (METAR/SPECI) ou quando relata chuva ou trovoada
+// nas proximidades. Só observação recente; ausência de leitura nunca vira "sem chuva".
+function detectObserved({ station, airport }: { station: any; airport: any }, location: Location, now = new Date()) {
+  const events: EventCandidate[] = [];
+  const at = (iso: unknown) => typeof iso === "string" ? Date.parse(iso) : NaN;
+  const fresh = (value: number, max: number) => Number.isFinite(value) && now.getTime() - value <= max && value - now.getTime() <= 15 * 60_000;
+  const hour = (value: number) => new Intl.DateTimeFormat("pt-BR", { timeZone: location.timezone, hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+  const bucket = Math.floor(now.getTime() / 10_800_000);
+  const expires = new Date(now.getTime() + 2 * 3_600_000);
+  const airportAt = at(airport?.time), wx = airport?.weather && fresh(airportAt, 75 * 60_000) ? airport.weather : null;
+  const near = wx && typeof airport.distanceKm === "number" ? `, a ${Math.round(airport.distanceKm)} km` : "";
+  const place = wx ? `O aeroporto mais próximo (${text(airport.icao, 4)}${near})` : "";
+  const previous = airport?.previous?.weather || null;
+  const rainName = (weather: any) => weather?.drizzle && !weather?.rain ? "garoa" : `${weather?.showers ? "pancadas de chuva" : "chuva"}${({ light: " fraca", heavy: " forte" } as Record<string, string>)[weather?.rain] || ""}`;
+  if (wx?.thunder === true) events.push({
+    type: "storm_now", severity: 3, title: "⛈️ Trovoada agora",
+    body: `${place} relatou trovoada${wx.rain ? " com chuva" : ""} perto de ${location.city_name} às ${hour(airportAt)}. Procure abrigo e evite áreas abertas.`,
+    source: "Aeroporto · boletim METAR", start: now, expires, url: "./#agora", fingerprintSeed: `storm_now|${location.city_id}|${bucket}`,
+    metadata: { icao: airport.icao, observed_at: new Date(airportAt).toISOString(), confidence: "high" },
+  });
+  const stationAt = at(station?.time), mm = typeof station?.rainMm === "number" ? station.rainMm : null;
+  const before = typeof station?.previousRainMm === "number" ? station.previousRainMm : null;
+  // Começou: ≥ 1 mm na hora que acabou de fechar, com a hora anterior seca ou sem leitura de 1 h.
+  if (station?.station && fresh(stationAt, 45 * 60_000) && mm !== null && mm >= 1 && !(before !== null && before >= 0.2)) {
+    const distance = typeof station.station.distanceKm === "number" && station.station.distanceKm >= 5 ? `, a ${Math.round(station.station.distanceKm)} km` : "";
+    events.push({
+      type: "rain_now", severity: 2, title: "🌧️ Começou a chover",
+      body: `A estação do INMET mais próxima de ${location.city_name}${distance} mediu ${mm.toFixed(1).replace(".", ",")} mm entre ${hour(stationAt - 3_600_000)} e ${hour(stationAt)}.`,
+      source: "INMET · estação automática", start: now, expires, url: "./#agora", fingerprintSeed: `rain_now|${location.city_id}|${bucket}`,
+      metadata: { rain_mm: mm, observed_at: new Date(stationAt).toISOString(), confidence: "high" },
+    });
+  } else if (wx && !wx.thunder && (wx.rain || wx.drizzle) && previous && !previous.rain && !previous.drizzle && !previous.thunder) {
+    events.push({
+      type: "rain_now", severity: 2, title: "🌧️ Começou a chover",
+      body: `${place} relatou ${rainName(wx)} perto de ${location.city_name} às ${hour(airportAt)}.`,
+      source: "Aeroporto · boletim METAR", start: now, expires, url: "./#agora", fingerprintSeed: `rain_now|${location.city_id}|${bucket}`,
+      metadata: { icao: airport.icao, observed_at: new Date(airportAt).toISOString(), confidence: "high" },
+    });
+  }
+  // Por perto: chuva ou trovoada nas proximidades do aeroporto, sem nada no próprio aeroporto nem na estação.
+  if (wx && !wx.thunder && !wx.rain && !wx.drizzle && (wx.nearbyThunder || wx.nearbyShowers) && !(mm !== null && mm >= 0.2 && fresh(stationAt, 45 * 60_000))) events.push({
+    type: "rain_nearby", severity: 2, title: wx.nearbyThunder ? "🌦️ Trovoada por perto" : "🌦️ Chuva por perto",
+    body: `${place} relatou ${wx.nearbyThunder ? "trovoada" : "pancadas de chuva"} nas proximidades às ${hour(airportAt)}. A chuva pode chegar a ${location.city_name} em breve.`,
+    source: "Aeroporto · boletim METAR", start: now, expires, url: "./#chuva", fingerprintSeed: `rain_nearby|${location.city_id}|${bucket}`,
+    metadata: { icao: airport.icao, observed_at: new Date(airportAt).toISOString(), thunder: wx.nearbyThunder === true, confidence: "moderate" },
+  });
+  return events;
 }
 
 function parseInmetDate(alert: any, type: "inicio" | "fim") {
@@ -411,6 +466,20 @@ Deno.serve(async (req) => {
         } catch (error) {
           sourceFailures++;
           console.warn("weather source unavailable", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" });
+        }
+        if (Date.now() >= deadline) throw new Error("worker_budget");
+        if (preference.rain_approaching || preference.storms) {
+          // Estação e aeroporto: um falhar não impede o outro, e nenhum dos dois derruba os demais avisos.
+          const observedAt = Date.now();
+          const [stationResult, airportResult] = await Promise.allSettled([
+            source(stationUrl(location.latitude, location.longitude, observedAt)),
+            source(metarUrl(location.latitude, location.longitude)),
+          ]);
+          let station = null, airport = null;
+          try { if (stationResult.status === "fulfilled") station = normalizeStation(stationResult.value, location.latitude, location.longitude, observedAt); } catch { /* sem estação */ }
+          try { if (airportResult.status === "fulfilled") airport = nearestAirport(airportResult.value, location.latitude, location.longitude, observedAt); } catch { /* sem aeroporto */ }
+          if (stationResult.status === "rejected" && airportResult.status === "rejected") sourceFailures++;
+          candidates.push(...detectObserved({ station, airport }, location));
         }
         if (Date.now() >= deadline) throw new Error("worker_budget");
         if (preference.air_quality) {

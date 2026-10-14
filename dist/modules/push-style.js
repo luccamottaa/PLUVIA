@@ -21,6 +21,10 @@
     daily_summary:    {icon:'daily', action:'Ver previsão do dia', fallback:'Previsão de hoje'},
     evening_summary:  {icon:'daily', action:'Ver previsão de amanhã', fallback:'Previsão de amanhã'},
     official_alert:   {icon:'alert', action:'Ver aviso oficial', fallback:'Aviso meteorológico'},
+    // Observados (estação do INMET, boletim do aeroporto): não são previsão de modelo.
+    rain_now:         {icon:'rain', action:'Ver agora', fallback:'Começou a chover', observed:true},
+    rain_nearby:      {icon:'rain', action:'Ver chuva por hora', fallback:'Chuva por perto', observed:true},
+    storm_now:        {icon:'storm', action:'Ver agora', fallback:'Trovoada agora', observed:true},
     test:             {icon:null, action:'Abrir o PLUVIA', fallback:'Notificações ativas'}
   };
   // Remove emoji/símbolos do começo do título do servidor; o ícone já representa a condição.
@@ -36,7 +40,7 @@
     let body = detail;
     if (type === 'official_alert') title = `INMET · ${title}`;
     // Previsão de modelo continua identificada, sem repetir quando o texto já diz.
-    else if (known?.icon && payload.source && !/modelo/i.test(detail)) body = `${detail} Previsão do modelo; pode mudar.`;
+    else if (known?.icon && !known.observed && payload.source && !/modelo/i.test(detail)) body = `${detail} Previsão do modelo; pode mudar.`;
     let icon = payload.icon && !GENERIC.test(String(payload.icon)) ? payload.icon : './icon-192.png';
     if (known?.icon) icon = ICONS + (known.icon === 'alert' ? `alert-${Math.max(2, Math.min(4, severity))}` : known.icon) + '.png';
     return {

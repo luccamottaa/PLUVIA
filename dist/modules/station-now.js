@@ -2,7 +2,10 @@
    função station-now (o nó WIS2 da OMM não aceita chamadas do navegador). Um pedido por cidade a cada
    10 min, com cliente próprio; a troca de cidade esconde a leitura anterior na hora e descarta respostas
    atrasadas. Leitura com mais de 2h30, futura ou sem temperatura não aparece: o cartão fica escondido
-   (não vira "sem estação" nem zero). Manda só as coordenadas de referência do município, nunca GPS. */
+   (não vira "sem estação" nem zero). Manda só as coordenadas de referência do município, nunca GPS.
+   A mesma resposta traz o boletim (METAR) do aeroporto mais próximo: sem estação do INMET (Aracaju, Boa
+   Vista, Fortaleza, São Luís), o cartão mostra o aeroporto; com estação, o tempo relatado pelo aeroporto
+   (chuva, trovoada, nas proximidades) entra na nota. Os dois seguem para a chuva observada do topo. */
 (function (root, factory) {
   const api = factory(root);
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -12,6 +15,7 @@
   'use strict';
   const ENDPOINT = 'https://dszyyrcvwrpyiypwyvxe.supabase.co/functions/v1/station-now';
   const TTL_MS = 10 * 60_000, MAX_AGE_MS = 150 * 60_000, FUTURE_MS = 15 * 60_000, CACHE_LIMIT = 12;
+  const AIRPORT_MAX_AGE_MS = 75 * 60_000;
 
   const finite = (value, min, max) => typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max ? value : null;
   function requestUrl(city) {
@@ -29,6 +33,38 @@
     if (now - at > MAX_AGE_MS || at - now > FUTURE_MS) return null;
     return {ibge:String(data.station.ibge), distanceKm:finite(data.station.distanceKm, 0, 60), at, temperature,
       humidity:finite(data.humidity, 0, 100), rainMm:finite(data.rainMm, 0, 300)};
+  }
+  // Boletim do aeroporto: recente (METAR horário + folga), sigla ICAO válida; temperatura pode faltar.
+  function airportReading(data, now = Date.now()) {
+    const airport = data?.airport, at = Date.parse(airport?.time), weather = airport?.weather;
+    if (!airport || !/^[A-Z][A-Z0-9]{3}$/.test(String(airport.icao || '')) || !Number.isFinite(at) || !weather || typeof weather !== 'object') return null;
+    if (now - at > AIRPORT_MAX_AGE_MS || at - now > FUTURE_MS) return null;
+    const flag = key => weather[key] === true;
+    const previous = airport.previous?.weather && typeof airport.previous.weather === 'object' ? airport.previous.weather : null;
+    return {icao:airport.icao, distanceKm:finite(airport.distanceKm, 0, 60), at, temperature:finite(airport.temperatureC, -40, 60),
+      humidity:finite(airport.humidity, 0, 100),
+      weather:{rain:['light','moderate','heavy'].includes(weather.rain) ? weather.rain : null, showers:flag('showers'), drizzle:flag('drizzle'),
+        thunder:flag('thunder'), nearbyShowers:flag('nearbyShowers'), nearbyThunder:flag('nearbyThunder')},
+      previousWet:previous ? Boolean(previous.rain || previous.thunder || previous.drizzle) : null};
+  }
+  // O que o aeroporto relata, em poucas palavras ("" quando não há chuva nem trovoada).
+  function weatherPhrase(weather) {
+    if (!weather) return '';
+    const rain = {light:'chuva fraca', moderate:'chuva', heavy:'chuva forte'}[weather.rain];
+    if (weather.thunder) return rain ? 'trovoada com chuva agora' : 'trovoada agora';
+    if (rain) return `${weather.showers ? rain.replace('chuva', 'pancadas de chuva') : rain} agora`;
+    if (weather.drizzle) return 'garoa agora';
+    if (weather.nearbyThunder) return 'trovoada nas proximidades';
+    if (weather.nearbyShowers) return 'pancadas de chuva nas proximidades';
+    return '';
+  }
+  function describeAirport(item, {time, number} = {}) {
+    const far = Number.isFinite(item.distanceKm) ? `, a ${Math.round(item.distanceKm)} km` : '';
+    const parts = [`Aeroporto mais próximo (${item.icao}${far})`, `às ${time(item.at)}`];
+    if (item.humidity !== null) parts.push(`umidade ${Math.round(item.humidity)}%`);
+    const phrase = weatherPhrase(item.weather);
+    if (phrase) parts.push(phrase);
+    return {value:`${number(item.temperature, 0)}°`, note:parts.join(' · ')};
   }
   function describe(item, city, {cityName, time, number} = {}) {
     const here = item.ibge === String(city?.id);
@@ -58,13 +94,16 @@
       };
     };
     // A leitura também alimenta a chuva observada do topo (observed-rain.js, via app.js).
-    const announce = (cityId, item) => root.dispatchEvent?.(new CustomEvent('pluvia:station-reading', {detail:{cityId, reading:item}}));
-    function hide() { card.hidden = true; value.textContent = ''; note.textContent = ''; delete card.dataset.city; announce(null, null); }
+    const announce = (cityId, item, airport) => root.dispatchEvent?.(new CustomEvent('pluvia:station-reading', {detail:{cityId, reading:item, airport}}));
+    function hide() { card.hidden = true; value.textContent = ''; note.textContent = ''; delete card.dataset.city; announce(null, null, null); }
     function show(city, data) {
-      const item = reading(data);
-      if (!item) { hide(); return; }
-      announce(String(city.id), item);
-      const text = describe(item, city, helpers());
+      const item = reading(data), airport = airportReading(data);
+      // Sem estação: o aeroporto ocupa o cartão (se tiver temperatura); sem nenhum dos dois, nada aparece.
+      if (!item && (!airport || airport.temperature === null)) { hide(); announce(String(city.id), null, airport); return; }
+      announce(String(city.id), item, airport);
+      const text = item ? describe(item, city, helpers()) : describeAirport(airport, helpers());
+      const phrase = item && airport ? weatherPhrase(airport.weather) : '';
+      if (phrase) text.note += ` · aeroporto (${airport.icao}): ${phrase}`;
       const appearing = card.hidden;
       value.textContent = text.value; note.textContent = text.note;
       card.dataset.city = String(city.id);
@@ -101,5 +140,5 @@
     root.addEventListener?.('pluvia:weather-updated', refresh);
   }
 
-  return {ENDPOINT, requestUrl, reading, describe, mount};
+  return {ENDPOINT, requestUrl, reading, airportReading, weatherPhrase, describe, describeAirport, mount};
 });

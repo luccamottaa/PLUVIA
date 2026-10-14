@@ -2,12 +2,16 @@
 export function eventGroup(event) {
   const type = event.type || event.event_type;
   if (['rain_approaching','heavy_rain','storm'].includes(type)) return 'rain';
+  // Observados ficam fora do grupo da previsão: "começou a chover" não é repetição de "chuva nas próximas
+  // horas", e "chuva por perto" não impede o aviso de quando ela chega.
+  if (['rain_now','storm_now'].includes(type)) return 'observed';
+  if (type==='rain_nearby') return 'nearby';
   if (type==='weather_change' && event.metadata?.rain_transition && !event.metadata?.wind_transition && Math.abs(event.metadata?.temperature_delta_c || 0)<6) return 'rain';
   return type;
 }
 export function selectCandidates(candidates) {
   const picked=new Map(), independent=[];
-  const rank={storm:3,heavy_rain:2,rain_approaching:1};
+  const rank={storm:3,heavy_rain:2,rain_approaching:1,storm_now:3,rain_now:2,rain_nearby:1};
   for(const candidate of candidates) {
     if(['official_alert','daily_summary','evening_summary'].includes(candidate.type)) {independent.push(candidate);continue;}
     const group=eventGroup(candidate), previous=picked.get(group);

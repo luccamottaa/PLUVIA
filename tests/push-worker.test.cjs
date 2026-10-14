@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const {stripTypeScriptTypes}=require('node:module');
 const source=stripTypeScriptTypes(fs.readFileSync('supabase/functions/push-process/index.ts','utf8').replace(/^import .*;\n/gm,''));
-const pure=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({detectWeather,detectAirQuality,dailySummaryCandidate,eveningSummaryCandidate})',{Intl,Date,URL,URLSearchParams});
+const pure=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({detectWeather,detectAirQuality,dailySummaryCandidate,eveningSummaryCandidate,detectObserved})',{Intl,Date,URL,URLSearchParams});
 const location={city_id:'1302603',city_name:'Manaus',uf:'AM',latitude:-3.1,longitude:-60,timezone:'America/Manaus'};
 const now=new Date('2026-10-01T11:00Z'),at=now.getTime()/1000;
 function weather(){return {current:{time:at,temperature_2m:30,apparent_temperature:32,precipitation:0,weather_code:2,wind_gusts_10m:20},hourly:{time:Array.from({length:7},(_,i)=>at+i*3600),temperature_2m:Array(7).fill(30),precipitation:Array(7).fill(0),precipitation_probability:Array(7).fill(0),weather_code:Array(7).fill(2),wind_gusts_10m:Array(7).fill(20)},daily:{time:[Date.parse('2026-10-01T00:00-04:00')/1000],temperature_2m_max:[34],temperature_2m_min:[25],precipitation_probability_max:[40]}};}
@@ -137,4 +137,40 @@ test('envio interrompido conserva a contagem parcial e não inicia outro disposi
   const result=await context.deliver(admin,{type:'official_alert',severity:3,id:'event',url:'./#alertas',fingerprint:'abc',expires:new Date(now.getTime()+3600000)},
     {notifications_enabled:true,official_alerts:true},[{id:'one'},{id:'two'}],'owner',{},50);
   assert.equal(sent,1);assert.equal(result.accepted,1);assert.equal(result.deferred,true);
+});
+
+test('chuva e trovoada observadas: estação começa a medir, aeroporto relata trovoada ou chuva por perto',()=>{
+  const now=new Date('2026-10-13T16:20:00Z');
+  const station=(rainMm,previousRainMm,time='2026-10-13T16:00:00Z')=>({station:{ibge:'1302603',distanceKm:1.9},time,rainMm,previousRainMm});
+  const airport=(weather,previous={rain:null},time='2026-10-13T16:00:00Z')=>({icao:'SBEG',distanceKm:9.5,time,weather:{rain:null,showers:false,drizzle:false,thunder:false,nearbyShowers:false,nearbyThunder:false,...weather},previous:{weather:previous}});
+  // Estação: 5,0 mm na hora que fechou, hora anterior seca.
+  const started=pure.detectObserved({station:station(5,0),airport:null},location,now);
+  assert.equal(started.length,1);
+  assert.equal(started[0].type,'rain_now');
+  assert.equal(started[0].body,'A estação do INMET mais próxima de Manaus mediu 5,0 mm entre 11:00 e 12:00.');
+  assert.doesNotMatch(started[0].body,/modelo/);
+  // Já chovia na hora anterior: não é começo; menos de 1 mm ou leitura velha também não.
+  assert.equal(pure.detectObserved({station:station(5,2.4),airport:null},location,now).length,0);
+  assert.equal(pure.detectObserved({station:station(0.6,0),airport:null},location,now).length,0);
+  assert.equal(pure.detectObserved({station:station(5,0,'2026-10-13T15:00:00Z'),airport:null},location,now).length,0);
+  // Aeroporto: TSRA (SPECI de 01:18 em Manaus) vira trovoada agora, severidade 3.
+  const night=new Date('2026-10-13T05:25:00Z');
+  const storm=pure.detectObserved({station:null,airport:airport({thunder:true,rain:'moderate'},{nearbyThunder:true},'2026-10-13T05:18:00Z')},location,night);
+  assert.equal(storm[0].type,'storm_now');
+  assert.equal(storm[0].severity,3);
+  assert.equal(storm[0].body,'O aeroporto mais próximo (SBEG, a 10 km) relatou trovoada com chuva perto de Manaus às 01:18. Procure abrigo e evite áreas abertas.');
+  // Chuva no aeroporto depois de um boletim seco: começou a chover.
+  const shra=pure.detectObserved({station:null,airport:airport({rain:'moderate',showers:true})},location,now);
+  assert.equal(shra[0].type,'rain_now');
+  assert.match(shra[0].body,/relatou pancadas de chuva perto de Manaus às 12:00/);
+  assert.equal(pure.detectObserved({station:null,airport:airport({rain:'moderate'},{rain:'light'})},location,now).length,0,'já chovia no boletim anterior');
+  // Nas proximidades (VCTS), sem chuva no aeroporto nem na estação: chuva por perto.
+  const close=pure.detectObserved({station:station(0,0),airport:airport({nearbyThunder:true,nearbyShowers:true})},location,now);
+  assert.equal(close.length,1);
+  assert.equal(close[0].type,'rain_nearby');
+  assert.equal(close[0].title,'🌦️ Trovoada por perto');
+  assert.equal(close[0].body,'O aeroporto mais próximo (SBEG, a 10 km) relatou trovoada nas proximidades às 12:00. A chuva pode chegar a Manaus em breve.');
+  // Boletim velho ou ausente não gera nada.
+  assert.equal(pure.detectObserved({station:null,airport:airport({thunder:true},{},'2026-10-13T14:30:00Z')},location,now).length,0);
+  assert.equal(pure.detectObserved({station:null,airport:null},location,now).length,0);
 });

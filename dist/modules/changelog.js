@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.9", date:"2026-10-14", title:"Avisos de chuva de verdade", items:[
+      "Novos avisos no celular: “Começou a chover”, quando a estação do INMET mede chuva ou o aeroporto mais próximo relata; “Trovoada agora”, quando o aeroporto relata trovoada; e “Chuva por perto”, quando há chuva ou trovoada nas proximidades. Vêm junto com os avisos de chuva e tempestade, sem precisar ligar nada.",
+      "Cidades sem estação do INMET, como Fortaleza, São Luís, Aracaju e Boa Vista, ganham o “Medido agora” pelo boletim do aeroporto mais próximo.",
+      "A trovoada relatada pelo aeroporto também acende os raios no céu do app, e “trovoada nas proximidades” avisa que a chuva pode chegar.",
+    ]},
     {version:"1.8", date:"2026-10-13", title:"Chuva de verdade no topo", items:[
       "Quando a estação do INMET mais próxima mede chuva, ou o radar mostra chuva em cima da cidade, o topo do app passa a dizer que está chovendo, mesmo que a previsão diga nublado. O “Vai chover?” mostra quanto choveu e de onde veio a medição.",
       "Chuva medida com o ar muito instável aparece como chuva com trovoada, com os raios no céu do app. É uma estimativa pelo ar instável, não detecção de raios.",
