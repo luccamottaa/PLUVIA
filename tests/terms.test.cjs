@@ -87,7 +87,7 @@ test('Política de Privacidade cobre o que a LGPD pede (art. 9º) e o app aponta
   for(const base of ['art. 7º, V','art. 7º, I','art. 7º, IX','art. 18','art. 19, II','art. 33','art. 48','art. 14, § 1º']) assert.ok(page.includes(base),base);
   assert.match(page,/Respostas ao “Tá chovendo aí\?”:<\/strong> 2 dias/,'mesmo prazo da migration rain_reports');
   assert.match(page,/<strong>Inscrição de avisos desligada:<\/strong> apagada em até 30 dias/,'mesmo prazo do push-process');
-  assert.equal((html.match(/href="\/privacidade\/"/g)||[]).length,5,'caixinhas, nota social e seção Privacidade');
+  assert.equal((html.match(/href="\/privacidade\/"/g)||[]).length,6,'caixinhas, nota social, seção Privacidade e "Mais do PLUVIA" na conta');
   assert.doesNotMatch(html,/termos\/#privacidade/);
   assert.match(termos,/<a href="\/privacidade\/">Política de Privacidade<\/a> explica/);
   assert.match(sw,/termos\|privacidade\)\\\/\?\$/,'SW guarda a página legal na própria URL, nunca como shell');

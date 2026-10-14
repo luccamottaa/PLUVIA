@@ -88,7 +88,7 @@ with sync_playwright() as p:
    (output/(name+'-text.png')).write_bytes(base64.b64decode(encoded))
    page.screenshot(path=str(output/(name+'-viewport.png')))
   assert painted>100,{'state':mode['name'],'viewport':page.viewport_size,'selector':selector,'colour':colour,'paintedPixels':painted}
-  if selector in ['footer .footer-brand-copy span','#openSources','#openPrivacy']:
+  if selector in ['footer .footer-brand-copy span','footer .capital-links details:first-child > summary']:
    assert sample['contrast']>=4.5,{'state':mode['name'],'selector':selector,'contrast':sample['contrast']}
   return painted
  report=[]
@@ -119,14 +119,16 @@ with sync_playwright() as p:
    page.screenshot(path=str(output/(str(width)+'-'+name+'.png')),full_page=True);report.append({'viewport':width,'state':name,**state})
    if name in ['sunrise','sunset']:
     assert state['solar']==name,state
-    painted={selector:painted_text(selector) for selector in ['#temperature','#sunrise','#sunset','footer .footer-brand-copy strong','footer .footer-brand-copy span','#openSources','#openPrivacy']}
+    painted={selector:painted_text(selector) for selector in ['#temperature','#sunrise','#sunset','footer .footer-brand-copy strong','footer .footer-brand-copy span','footer .capital-links details:first-child > summary']}
     page.screenshot(path=str(output/(str(width)+'-'+name+'-footer.png')))
     footer_paint.append({'viewport':width,'state':name,'paintedPixels':painted})
-    page.locator('#openSources').click();page.locator('#sourcesDialog').wait_for(state='visible')
+    # Fontes e Privacidade ficam em "Mais do PLUVIA", na janela da conta.
+    page.locator('#accountButton').click();page.locator('#accountDialog').wait_for(state='visible');page.locator('#openSources').click();page.locator('#sourcesDialog').wait_for(state='visible')
     page.keyboard.press('Escape');page.locator('#sourcesDialog').wait_for(state='hidden')
     page.locator('#openPrivacy').click();page.locator('#sourcesDialog').wait_for(state='visible')
     assert page.locator('#privacyTitle').is_visible()
     page.keyboard.press('Escape');page.locator('#sourcesDialog').wait_for(state='hidden')
+    page.keyboard.press('Escape');page.locator('#accountDialog').wait_for(state='hidden')
   if public_smoke:continue
   mode.update(name='alert',hour=12,code=95,alert=True);page.clock.set_fixed_time(fixed);goto()
   page.wait_for_function("document.getElementById('inmetCard').dataset.severity==='red'")

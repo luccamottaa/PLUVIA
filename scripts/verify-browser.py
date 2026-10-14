@@ -76,7 +76,8 @@ with sync_playwright() as p:
  point=page.locator('#temperature').bounding_box()
  for _ in range(2):page.touchscreen.tap(point['x']+point['width']/2,point['y']+point['height']/2)
  assert abs(page.evaluate('visualViewport.scale')-scale)<.01
- page.locator('#openPrivacy').click()
+ # Privacidade fica em "Mais do PLUVIA", na janela da conta.
+ page.locator('#accountButton').click();page.locator('#accountDialog').wait_for(state='visible');page.locator('#openPrivacy').click()
  assert page.locator('#sourcesDialog').evaluate('(el)=>el.open')
  assert not page.locator('#analyticsConsent').is_checked()
  assert page.locator('#analyticsConsent').evaluate('(el)=>document.activeElement===el')
@@ -85,6 +86,7 @@ with sync_playwright() as p:
  page.locator('#analyticsConsent').uncheck()
  assert 'Desativado' in page.locator('#analyticsChoiceStatus').inner_text()
  page.keyboard.press('Escape')
+ page.locator('#sourcesDialog').wait_for(state='hidden');page.keyboard.press('Escape');page.locator('#accountDialog').wait_for(state='hidden')
  assert page.locator('#shareWeather').is_visible()
  assert page.locator('#uvScale').is_visible()
  assert page.locator('#uvDayChart').count()==0

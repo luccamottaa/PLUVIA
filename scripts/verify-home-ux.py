@@ -160,6 +160,7 @@ with sync_playwright() as p:
         page.wait_for_function("document.getElementById('cityName').textContent.includes('Manaus') && document.getElementById('temperature').textContent.trim()==='30'", timeout=10000)
 
         # Personalizar a Home: esconder o radar, subir o céu, persistir e restaurar.
+        page.click('#accountButton'); page.wait_for_function("document.getElementById('accountDialog').open", timeout=5000)
         page.click('#openHomeLayout'); page.wait_for_function("document.getElementById('homeLayoutDialog').open", timeout=5000)
         dialog = page.evaluate("""() => { const d = document.getElementById('homeLayoutDialog'), r = d.getBoundingClientRect();
           return {items:document.querySelectorAll('#homeLayoutList li').length, inside:r.left >= 0 && r.right <= innerWidth + 0.5,
@@ -172,15 +173,18 @@ with sync_playwright() as p:
         assert state['radar'] == 0 and state['order'].index('sky') == 3, state
         page.screenshot(path=str(output / f'{engine}-{width}-layout.png'))
         page.keyboard.press('Escape'); page.wait_for_function("!document.getElementById('homeLayoutDialog').open", timeout=5000)
+        page.keyboard.press('Escape'); page.wait_for_function("!document.getElementById('accountDialog').open", timeout=5000)
         page.close(); page = open_page()
         state = page.evaluate("""() => { const sky = document.querySelector('section.sun-section'), week = document.querySelector('section.forecast-section');
           return {radar:document.querySelector('section.weather-map-section').getClientRects().length,
             skyFirst:Boolean(sky.compareDocumentPosition(week) & Node.DOCUMENT_POSITION_FOLLOWING)}; }""")
         assert state['radar'] == 0 and (state['skyFirst'] or width >= 1100), state
+        page.click('#accountButton'); page.wait_for_function("document.getElementById('accountDialog').open", timeout=5000)
         page.click('#openHomeLayout'); page.wait_for_function("document.getElementById('homeLayoutDialog').open", timeout=5000)
         page.click('#homeLayoutReset')
         assert page.evaluate("document.querySelector('section.weather-map-section').getClientRects().length") == 1
         page.keyboard.press('Escape'); page.wait_for_function("!document.getElementById('homeLayoutDialog').open", timeout=5000)
+        page.keyboard.press('Escape'); page.wait_for_function("!document.getElementById('accountDialog').open", timeout=5000)
 
         # Faixa de aviso laranja vigente: aparece no topo e abre o detalhe do aviso.
         mode['alert'] = True
