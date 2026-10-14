@@ -78,7 +78,9 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   }
   const welcome = document.getElementById("locationWelcome");
   if (welcome) welcome.hidden = true;
-  pinTop();
+  // scrollTo força o primeiro layout da página inteira (~130 ms com CPU lenta): no próximo quadro ele
+  // sai da tarefa de abertura e aproveita o layout que o quadro faria de qualquer jeito.
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(pinTop); else pinTop();
   setTimeout(() => { clearTimeout(fallbackTimer); if (!activeCity && fallback) chooseCity(fallback.id); }, 1650);
 })();
 if ("serviceWorker" in navigator && window.isSecureContext) {
@@ -131,23 +133,32 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
 
 // The keyboard shrinks AND pans the visible area on iOS. Keep dialogs inside
 // that area, rather than attaching their bottom edge to the layout viewport.
+// As variáveis vão nas próprias janelas (as únicas que as usam), não em <html>: propriedade herdada
+// na raiz recalculava o estilo da página inteira (~180 ms com CPU lenta, logo na abertura). Valor
+// repetido não é reescrito, e a primeira leitura espera o próximo quadro.
 (function setupDialogViewport() {
   const viewport = window.visualViewport;
-  let scheduled = false;
+  let scheduled = false, last = "";
   const sync = () => {
     scheduled = false;
     const usableViewport = Number.isFinite(viewport?.height) && viewport.height > 0;
     const height = usableViewport ? viewport.height : window.innerHeight;
     const offsetTop = usableViewport ? viewport.offsetTop : 0;
     if (!Number.isFinite(height) || height <= 0) return;
-    const style = document.documentElement.style;
-    style.setProperty('--dialog-height', height + 'px');
-    style.setProperty('--dialog-offset-top', Math.max(0, Number.isFinite(offsetTop) ? offsetTop : 0) + 'px');
+    const top = Math.max(0, Number.isFinite(offsetTop) ? offsetTop : 0);
+    const dialogs = document.querySelectorAll("dialog");
+    const key = height + "/" + top + "/" + dialogs.length;
+    if (key === last) return;
+    last = key;
+    for (const dialog of dialogs) {
+      dialog.style.setProperty('--dialog-height', height + 'px');
+      dialog.style.setProperty('--dialog-offset-top', top + 'px');
+    }
   };
   const schedule = () => {
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(sync);
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(sync); else sync();
   };
   viewport?.addEventListener('resize', schedule, {passive:true});
   viewport?.addEventListener('scroll', schedule, {passive:true});
@@ -155,5 +166,7 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
   window.addEventListener('orientationchange', schedule, {passive:true});
   window.addEventListener('pageshow', schedule);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) schedule(); });
-  sync();
+  // Janela aberta antes do primeiro quadro (atalho do PWA) já recebe a medida.
+  document.addEventListener('toggle', event => { if (event.target?.tagName === 'DIALOG') sync(); }, true);
+  schedule();
 })();

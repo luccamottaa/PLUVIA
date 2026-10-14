@@ -48,9 +48,9 @@
       const data=cards.model(snapshot,{condition:conditionLabel(),night,moment});
       if(!data) return;
       const idle=root.requestIdleCallback ? fn=>root.requestIdleCallback(fn,{timeout:2000}) : fn=>root.setTimeout(fn,300);
-      // Fora da abertura: espera o primeiro toque/rolagem/tecla (ou 6 s), para o canvas não disputar a CPU
-      // com a primeira pintura. Ainda fica pronto antes do toque em Compartilhar na prática.
-      const schedule=fn=>engaged ? idle(fn) : (pendingCard=()=>idle(fn), root.setTimeout(engage,6000));
+      // Fora da abertura: espera o primeiro toque/rolagem/tecla (ou 12 s), para o canvas (~150 ms no
+      // celular) não disputar a CPU com a abertura. Ainda fica pronto antes do toque em Compartilhar na prática.
+      const schedule=fn=>engaged ? idle(fn) : (pendingCard=()=>idle(fn), root.setTimeout(engage,12000));
       schedule(()=>cards.render(data,{document:root.document}).then(blob=>{
         if(token!==cardToken || !blob) return;
         const name=String(snapshot?.location?.name || 'cidade').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
