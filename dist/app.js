@@ -1336,6 +1336,12 @@ async function refreshAll() {
   refreshInFlight = Promise.allSettled([loadWeather(revision), loadInmetAlerts(revision)]).then(results => {
     const success = results[0].status === "fulfilled" && results[0].value === true;
     if (success && revision === cityRevision) lastRefreshAt = Date.now();
+    // A intro espera esta primeira rodada (previsão e INMET, com sucesso ou falha) para sumir já com os
+    // dados novos, sem o "Atualizando…" da previsão salva logo depois dela.
+    if (revision === cityRevision) {
+      (globalThis.PLUVIA = globalThis.PLUVIA || {}).refreshSettledAt = Date.now();
+      globalThis.dispatchEvent?.(new CustomEvent("pluvia:refresh-settled", {detail:{cityId:activeCity?.id, success}}));
+    }
     return success;
   }).finally(() => {
     if (revision === cityRevision) refreshInFlight = null;
