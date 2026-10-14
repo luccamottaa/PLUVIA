@@ -52,7 +52,7 @@
       const value=read(id); reading.className='favorite-reading';summary.className='favorite-summary';
       reading.textContent=value ? Math.round(value.temperature)+'°' : errors.has(id) ? 'Indisponível' : 'Consultando…';
       summary.textContent=value ? root.PLUVIA?.weatherIcons?.condition(value.code)?.label || 'Condição prevista' : 'Toque para abrir a previsão';
-      stamp.textContent=value ? `${value.rain===null ? 'Chuva indisponível' : Math.round(value.rain)+'% de chuva em 3h'} · ${Date.now()-value.at>FRESH_MS ? 'leitura salva' : 'atualizado há '+Math.max(0,Math.floor((Date.now()-value.at)/60000))+' min'}` : '';
+      stamp.textContent=value ? `${value.rain===null ? 'Chuva indisponível' : Math.round(value.rain)+'% de chuva em 3h'} · ${Date.now()-value.at>FRESH_MS ? 'leitura salva' : (minutes=>minutes<1 ? 'atualizado agora' : 'atualizado há '+minutes+' min')(Math.max(0,Math.floor((Date.now()-value.at)/60000)))}` : '';
       button.append(name,reading,summary);
       if(value) {
         const thermal=doc.createElement('span');thermal.className='favorite-summary favorite-feels-like';

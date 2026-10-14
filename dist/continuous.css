@@ -776,6 +776,8 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 /* Compartilhar sem Web Share de arquivos: prévia do story e download, acima do texto para copiar. */
 #shareWeatherDialog .share-weather-image { display:block; width:auto; max-width:100%; max-height:min(46vh,420px); margin:0 auto 12px; border-radius:16px; box-shadow:0 8px 24px #0006; }
 #shareWeatherDialog .share-weather-image[hidden],#shareWeatherDialog .share-weather-download[hidden] { display:none; }
+/* De dia a regra de links dos diálogos claros pintava "Baixar imagem" de azul-escuro sobre o botão azul. */
+html body #shareWeatherDialog #shareWeatherDownload { color:#fff; }
 #shareWeatherDialog .share-weather-download { display:flex; align-items:center; justify-content:center; min-height:44px; margin:0 0 16px; border-radius:12px; background:var(--brand-blue); color:#fff; font-weight:600; text-decoration:none; }
 
 /* Próximas horas enxuto: hora, ícone, chance (só ≥ 20%, linha reservada) e temperatura. */
@@ -1083,6 +1085,8 @@ body[data-ink="dark"] #weatherView {
 #weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) #inmetContent h3 { font-size:.85rem; font-weight:500; color:var(--reading-muted); }
 #weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) #inmetUpdated { display:none; }
 #weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) :is(#inmetCard .source-head, #inmetContent, .source-link) { grid-row:1; }
+/* Na linha única o selo "INMET ·" ficava no topo da linha (align-self:start do layout de cartão) e o texto no centro: 5 px de degrau. */
+#weatherView .alerts-section:is([data-alert-state="clear"],[data-alert-state="loading"]) #inmetCard .source-head { align-self:center; }
 @media(max-width:420px) {
   /* Na linha única, o link ficaria por cima de "Consultando <cidade>": some até 420 px (o mapa oficial
      continua no cartão completo e no detalhe do aviso). */
