@@ -55,7 +55,10 @@ assert.doesNotMatch(html, /MODELO DE PRECIPITAÇÃO|Pulso de chuva no município
 assert.doesNotMatch(app, /rainPulse|rainMapLocations|getPrecipitationGrid|Comparando nove pontos ao redor/);
 assert.doesNotMatch(html, /DEFESA CIVIL|canais nacionais da Defesa Civil|id="defesaCard"/);
 assert.doesNotMatch(app, /loadDefesaAlerts|civilDefense|DEFESA_NACIONAL/);
-assert.match(html, /class="footer-details"><button id="openSources"[^>]*>Fontes de dados<\/button><button id="openPrivacy"[^>]*>Privacidade<\/button><a class="footer-link" href="\/termos\/">Termos de uso<\/a><button id="openHomeLayout"[^>]*>Personalizar a Home<\/button><button id="openChangelog"[^>]*>Novidades<\/button><\/div><!-- capitais:inicio --><nav class="capital-links"[^]*?<!-- capitais:fim --><\/footer>/);
+// Atalhos em "Mais do PLUVIA", no fim da janela da conta; o rodapé fica com a marca e as cidades.
+assert.match(html, /<nav class="account-more" id="accountMore" aria-labelledby="accountMoreTitle"><h3 id="accountMoreTitle">Mais do PLUVIA<\/h3><div class="account-more-list"><button id="openHomeLayout"[^>]*>Personalizar a Home<\/button><button id="openChangelog"[^>]*>Novidades<\/button><button id="openSources"[^>]*>Fontes de dados<\/button><button id="openPrivacy"[^>]*>Privacidade<\/button><a class="account-more-item" href="\/privacidade\/">Política de Privacidade<\/a><a class="account-more-item" href="\/termos\/">Termos de uso<\/a><\/div><\/nav>\n\s*<\/div><\/dialog>/);
+assert.match(html, /<span>O céu de cada cidade<\/span><\/div><\/div><!-- capitais:inicio --><nav class="capital-links"[^]*?<!-- capitais:fim --><\/footer>/);
+assert.doesNotMatch(html, /footer-details/);
 assert.match(html, /rel="icon" type="image\/png" sizes="192x192" href="\/icon-192\.png"/);
 assert.match(html, /id="sourceCreditsTitle">Créditos e licenças/);
 assert.match(html, /MET Norway[\s\S]*?CC BY 4\.0[\s\S]*?SunCalc[\s\S]*?WeatherIcons[\s\S]*?SIL OFL 1\.1/);
@@ -63,7 +66,7 @@ assert.match(styles, /footer \{ margin-top: 48px; padding-block: 28px/);
 assert.match(styles, /footer \{ margin-top: 28px; align-items:start;/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-panel-187/);
+assert.match(sw, /pluvia-panel-188/);
 assert.match(html, /redesign\.css\?v=panel-46/);
 assert.match(sw, /assets\/sky-cloud-veil\.webp/);
 assert.match(html, /id="weatherView" class="initial-loading" aria-busy="true"/);

@@ -1005,8 +1005,8 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 :where(button, summary, a, [role="button"]) { transition:color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease; }
 /* Toque: um véu na cor do próprio texto (sombra interna, por cima do fundo, sem trocá-lo) enquanto o
    dedo está no botão; some suave ao soltar. Só botões que não tinham resposta própria ao toque. */
-html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary) { transition:color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .28s ease; }
-html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary):active:not(:disabled) { box-shadow:inset 0 0 0 100px color-mix(in srgb, currentColor 14%, transparent); transition-duration:0s; }
+html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary) { transition:color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .28s ease; }
+html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary):active:not(:disabled) { box-shadow:inset 0 0 0 100px color-mix(in srgb, currentColor 14%, transparent); transition-duration:0s; }
 /* Bússola gira pelo menor caminho (app.js), marcador do UV e Sol/Lua do arco deslizam até a leitura nova. */
 .compass-needle { transition:transform .8s cubic-bezier(.22,1,.36,1), opacity .4s ease; }
 .uv-scale span { transition:left .8s cubic-bezier(.22,1,.36,1); }
@@ -1015,7 +1015,7 @@ html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notific
 #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:pluvia-bar-grow .6s cubic-bezier(.22,1,.36,1) calc(var(--i,0) * 16ms) both; }
 @keyframes pluvia-bar-grow { from { height:0; min-height:0; } }
 @media (prefers-reduced-motion:reduce) {
-  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot) { transition:none; }
+  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot) { transition:none; }
   #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
 }
 
@@ -1276,7 +1276,7 @@ html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dai
 }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) .dialog-scroll { padding:8px 20px 28px; }
 /* Botões: pílulas. Primário no azul da marca; secundário em superfície clara translúcida. */
-html body :is(#cityDialog,#accountDialog,#sourcesDialog) button:not(.dialog-close):not(.city-result):not(.favorite-city-card):not(.account-provider):not(.favorite-organize):not(.account-text-action):not(.city-button) {
+html body :is(#cityDialog,#accountDialog,#sourcesDialog) button:not(.dialog-close):not(.city-result):not(.favorite-city-card):not(.account-provider):not(.favorite-organize):not(.account-text-action):not(.city-button):not(.account-more-item) {
   border:0; border-radius:999px; background:var(--dialog-surface-2); color:var(--dialog-text); font-weight:600;
 }
 html body :is(#cityDialog,#accountDialog) :is(#accountSubmit,#profileSave,#notificationPreferencesSave,#savedPlaceSave,#accountRecoverySave) { background:var(--brand-blue); color:#fff; }
@@ -1690,3 +1690,15 @@ html body #accountDialog .terms-check input[type=checkbox]::before { content:non
 .captcha-box[data-state="interactive"] p { display:block; }
 body > .captcha-box[data-state="interactive"] { position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:31; max-width:34rem; margin:0 auto; padding:12px 16px; border-radius:18px; background:#0b1830f2; box-shadow:0 10px 30px #0006; }
 body > .captcha-box[data-state="interactive"] p { color:#fff; }
+
+/* "Mais do PLUVIA" na janela da conta (pedido do usuário, outubro/2026): os atalhos que ficavam no rodapé
+   (Personalizar a Home, Novidades, Fontes de dados, Privacidade, Termos) viram linhas tocáveis num cartão,
+   como os grupos da conta. Aparece com e sem conta. Só pintura: sem blur, transform ou z-index. */
+/* O `nav` global de styles.css (abas antigas: linha flex, pílula, fundo) e o hover de `nav a` são anulados aqui. */
+html body #accountDialog .account-more { display:block; margin:24px 0 0; padding:0; border:0; border-radius:0; background:none; box-shadow:none; }
+html body #accountDialog #accountMore .account-more-item:hover { background:none; color:var(--dialog-text); box-shadow:none; transform:none; }
+html body #accountDialog .account-more-list { display:flex; flex-direction:column; padding:0 16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog #accountMore .account-more-item { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:52px; margin:0; padding:0; border:0; border-radius:0; background:none; color:var(--dialog-text); font:inherit; font-size:.9375rem; font-weight:500; text-align:left; text-decoration:none; cursor:pointer; box-shadow:none; transform:none; transition:none; }
+html body #accountDialog #accountMore .account-more-item + .account-more-item { border-top:1px solid var(--dialog-line); }
+html body #accountDialog #accountMore .account-more-item::after { content:""; flex:none; width:7px; height:7px; margin-right:3px; border-right:2px solid var(--dialog-muted); border-bottom:2px solid var(--dialog-muted); transform:rotate(-45deg); }
+html body #accountDialog #accountMore .account-more-item:focus-visible { outline:2px solid var(--brand-blue); outline-offset:2px; border-radius:12px; }

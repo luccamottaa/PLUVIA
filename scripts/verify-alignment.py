@@ -150,9 +150,10 @@ with sync_playwright() as p:
   assert wind_parts['unitLeft']>=wind_parts['numberRight']-1 and wind_parts['numberTop']<=wind_parts['unitCenterY']<=wind_parts['numberBottom'],(width,wind_parts)
   # Radar compacto: na Home só a miniatura (sem player); o player alinhado é medido no radar ampliado.
   assert not boxes('.weather-map-card .weather-player > *'),(width,'player só no radar ampliado')
-  # Rodapé compacto: links lado a lado (quebram quando não cabem), cada linha centralizada e sem sobreposição.
-  links=boxes('footer .footer-link');assert len(links)==5,links
-  center=page.evaluate("(()=>{const r=document.querySelector('footer .footer-details').getBoundingClientRect();return r.x+r.width/2})()")
+  # Rodapé compacto: os dois grupos de cidades lado a lado (quebram quando não cabem), cada linha centralizada.
+  # Os atalhos (Fontes, Privacidade, Termos, Personalizar, Novidades) ficam em "Mais do PLUVIA", na conta.
+  links=boxes('footer .capital-links summary');assert len(links)==2,links
+  center=page.evaluate("(()=>{const r=document.querySelector('footer .capital-links').getBoundingClientRect();return r.x+r.width/2})()")
   for row_y in {round(b['y']) for b in links}:
    row=sorted([b for b in links if round(b['y'])==row_y],key=lambda b:b['x'])
    assert abs((row[0]['x']+row[-1]['right'])/2-center)<=2,(width,row,center)
@@ -238,9 +239,9 @@ with sync_playwright() as p:
   page.locator('#expandRadar').click();page.wait_for_function("document.getElementById('radarDialog').open")
   aligned('#radarDialog .weather-player > *','centerY',4)
   close()
-  page.locator('#openSources').click();header('#sourcesDialog .dialog-heading')
+  page.locator('#accountButton').click();page.locator('#accountDialog').wait_for(state='visible');page.locator('#openSources').click();header('#sourcesDialog .dialog-heading')
   if width in [320,390,1366]:screenshot(str(width)+'-sources','#sourcesDialog')
-  close()
+  close();page.locator('#sourcesDialog').wait_for(state='hidden');close();page.locator('#accountDialog').wait_for(state='hidden')
   print(json.dumps({'alignedViewport':width,'height':height}),flush=True)
 
  # The same fields must align around sunset and without a solar event too.

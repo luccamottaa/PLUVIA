@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.9.2", date:"2026-10-14", title:"Conta organizada", items:[
+      "Personalizar a Home, Novidades, Fontes de dados, Privacidade e Termos de uso saíram do rodapé e agora ficam em “Mais do PLUVIA”, no fim de Minha conta.",
+    ]},
     {version:"1.9.1", date:"2026-10-14", title:"Previsão mais coerente", items:[
       "A previsão agora vem inteira de uma fonte só (Open-Meteo), sem misturar outro modelo hora a hora. O MET Norway fica de reserva para quando a fonte principal cair, e o que está acontecendo agora continua vindo das estações do INMET e dos aeroportos.",
     ]},
@@ -180,7 +183,7 @@
       dialog.querySelector(".dialog-scroll")?.scrollTo?.(0, 0);
       track(source);
     }
-    opener.addEventListener("click", () => open("footer"));
+    opener.addEventListener("click", () => open("account"));
     el("changelogClose")?.addEventListener("click", () => closeDialog(dialog));
     dialog.addEventListener("click", event => { if (event.target === dialog) closeDialog(dialog); });
 
