@@ -28,11 +28,15 @@ test('aviso só para quem já usava e só em versão de novidades',()=>{
  const same=store(changelog.current());assert.equal(changelog.announce(same),null);
 });
 
-test('janela de novidades: versões depois da última vista, mais nova primeiro, no máximo três',()=>{
+test('janela de novidades: versões depois da última vista, novidades primeiro, no máximo três',()=>{
  const versions=[{version:'1.3'},{version:'1.2.1'},{version:'1.2'},{version:'1.1'},{version:'1.0'}];
- assert.deepEqual(changelog.since('1.1',3,versions).map(e=>e.version),['1.3','1.2.1','1.2']);
+ assert.deepEqual(changelog.since('1.1',3,versions).map(e=>e.version),['1.3','1.2','1.2.1']);
  assert.deepEqual(changelog.since('1.2.1',3,versions).map(e=>e.version),['1.3']);
  assert.deepEqual(changelog.since(null,3,versions),[]);
+ // Correções depois da novidade não podem empurrar a novidade anunciada para fora da janela.
+ const burst=[{version:'1.9.3'},{version:'1.9.2'},{version:'1.9.1'},{version:'1.9'},{version:'1.8'}];
+ assert.deepEqual(changelog.since('1.8',3,burst).map(e=>e.version),['1.9','1.9.3','1.9.2']);
+ assert.equal(changelog.pending('1.8',burst).version,'1.9');
 });
 
 // DOM mínimo para o mount: só o que changelog.js usa.
