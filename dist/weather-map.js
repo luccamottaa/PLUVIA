@@ -327,8 +327,9 @@
   $('weatherPlay').addEventListener('click',() => { if (state.timer) stop(); else play(); });
   const sourceEntries = [
     ['INMET','Dado oficial','Avisos meteorológicos vigentes e previstos para o município.'],
-    ['Open-Meteo','Estimativa meteorológica','Tempo, chuva e qualidade do ar no ponto do município.'],
-    ['MET Norway','Previsão meteorológica','Fonte principal de temperatura, vento e precipitação. Quando indisponível, usamos Open-Meteo. Dados CC BY 4.0.'],
+    ['Open-Meteo','Estimativa meteorológica','Previsão de tempo, chuva e qualidade do ar no ponto do município. É a fonte da previsão.'],
+    ['Estações do INMET e aeroportos','Observação','O que foi medido agora: corrige o topo quando chove e a previsão não pegou, e dispara os avisos de chuva e trovoada observadas.'],
+    ['MET Norway','Previsão de reserva','Usada só quando o Open-Meteo não responde, numa previsão reduzida. Dados CC BY 4.0.'],
     ['RainViewer','Observação de radar','Composição de radares; cobertura e disponibilidade variam por região.'],
     ['OpenStreetMap','Base cartográfica','Ruas e referências geográficas do mapa.'],
     ['IBGE','Referência territorial','Municípios, códigos e coordenadas centrais usadas na busca.']
