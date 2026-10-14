@@ -789,7 +789,11 @@ function cached() {
   } catch { return null; }
 }
 
+// Leitura salva antiga: o status visível só aparece se a atualização passar de 1,2 s.
+const STALE_STATUS_DELAY_MS = 1200;
+let staleStatusTimer = 0;
 function setDataStatus(text, stale = false) {
+  clearTimeout(staleStatusTimer);
   $("statusText").textContent = text;
   $("dataStatus").classList.toggle("stale", stale);
   $("dataStatus").dataset.freshness = stale ? "stale" : "current";
@@ -2000,11 +2004,22 @@ function chooseCity(id, locatedCity = null) {
     const savedAt = saved.weatherAt || saved.at, offline = isOffline();
     // This opening's own prefetch, or a reading under 10 min, reads as current while it refreshes:
     // showing then hiding the status pushed the city name down and back on every swap between
-    // favorites. Older readings keep the visible status; if the refresh fails, the failure status
-    // (always visible) replaces it.
+    // favorites. Older readings show the visible status only if the refresh takes more than 1.2 s
+    // (it usually arrives sooner, and the status flashed in and out); offline shows it at once. If
+    // the refresh fails, the failure status (always visible) replaces it.
     const age = Date.now() - savedAt;
     const recent = !offline && (saved.at === prefetchSavedAt || (age >= 0 && age < 600000));
-    setDataStatus(recent ? "Atualizando…" : savedStatus(savedAt, offline ? "offline" : "loading"), !recent);
+    const pending = savedStatus(savedAt, offline ? "offline" : "loading");
+    if (offline) setDataStatus(pending, true);
+    else {
+      setDataStatus("Atualizando…");
+      if (!recent) {
+        const revision = cityRevision;
+        staleStatusTimer = setTimeout(() => {
+          if (revision === cityRevision && $("statusText").textContent === "Atualizando…") setDataStatus(pending, true);
+        }, STALE_STATUS_DELAY_MS);
+      }
+    }
   } else {
     setDataStatus("Consultando o tempo em " + city.name);
   }
