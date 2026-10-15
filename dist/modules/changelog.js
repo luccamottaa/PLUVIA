@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.10.3", date:"2026-10-15", title:"Avisos no celular mais úteis", items:[
+      "Acabou o aviso de “mudança no tempo” toda manhã e toda tarde: o PLUVIA agora compara com o mesmo horário de ontem, então só avisa quando o dia vai ficar bem mais frio ou mais quente que o normal.",
+      "Os resumos da manhã e da noite dizem a que horas a chuva é mais provável (ou que não há chuva prevista), em vez de só a chance máxima do dia.",
+      "Avisos de chuva forte e de trovoada dizem quando devem começar, e não chega mais “chuva nas próximas horas” quando a estação ou o aeroporto já estão medindo chuva.",
+    ]},
     {version:"1.10.2", date:"2026-10-15", title:"Radar sem travar", items:[
       "A animação do radar ampliado não para mais quando uma imagem falha: ela pula para a próxima e só para se todas falharem.",
       "As imagens que já carregaram ficam guardadas enquanto o mapa não muda, então a animação gasta muito menos internet e não esbarra no limite do serviço de radar.",

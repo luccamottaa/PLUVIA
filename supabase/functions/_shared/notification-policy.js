@@ -9,10 +9,14 @@ export function eventGroup(event) {
   if (type==='weather_change' && event.metadata?.rain_transition && !event.metadata?.wind_transition && Math.abs(event.metadata?.temperature_delta_c || 0)<6) return 'rain';
   return type;
 }
-export function selectCandidates(candidates) {
+// Já chovendo (estação ou aeroporto mediu/relatou agora), "chuva nas próximas horas" não informa nada:
+// sai do lote. Chuva forte e tempestade previstas continuam, porque ainda podem piorar o que já cai.
+export function selectCandidates(candidates,{raining=false}={}) {
   const picked=new Map(), independent=[];
   const rank={storm:3,heavy_rain:2,rain_approaching:1,storm_now:3,rain_now:2,rain_nearby:1};
+  const wet=raining || candidates.some(candidate=>['rain_now','storm_now'].includes(candidate.type));
   for(const candidate of candidates) {
+    if(wet && candidate.type==='rain_approaching') continue;
     if(['official_alert','daily_summary','evening_summary'].includes(candidate.type)) {independent.push(candidate);continue;}
     const group=eventGroup(candidate), previous=picked.get(group);
     if(!previous || candidate.severity>previous.severity || candidate.severity===previous.severity && (rank[candidate.type] || 0)>(rank[previous.type] || 0)) picked.set(group,candidate);

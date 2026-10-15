@@ -174,3 +174,86 @@ test('chuva e trovoada observadas: estação começa a medir, aeroporto relata t
   assert.equal(pure.detectObserved({station:null,airport:airport({thunder:true},{},'2026-10-13T14:30:00Z')},location,now).length,0);
   assert.equal(pure.detectObserved({station:null,airport:null},location,now).length,0);
 });
+
+// Notificações mais específicas (outubro/2026): o ciclo normal do dia não é "mudança no tempo",
+// os resumos dizem quando a chuva é mais provável e "chuva nas próximas horas" cala enquanto chove.
+const smart=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({detectWeather,dailySummaryCandidate,eveningSummaryCandidate,rainingNow,weatherUrl})',{Intl,Date,URL,URLSearchParams});
+// 30 horas: 24 de ontem + agora + 6 à frente. Ciclo do dia de Manaus: 24 °C de madrugada, 32 °C à tarde.
+function day({shift=0,start='2026-10-01T05:00-04:00'}={}){
+  const t0=Date.parse(start)/1000,times=Array.from({length:31},(_,i)=>t0+(i-24)*3600);
+  const cycle=time=>{const h=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Manaus',hour:'2-digit',hourCycle:'h23'}).format(new Date(time*1000)));return 28-4*Math.cos((h-3)/24*2*Math.PI);};
+  return {now:new Date(t0*1000),data:{current:{time:t0,temperature_2m:cycle(t0),apparent_temperature:cycle(t0),precipitation:0,weather_code:1,wind_gusts_10m:15},
+    hourly:{time:times,temperature_2m:times.map(t=>cycle(t)+(t>t0?shift:0)),precipitation:times.map(()=>0),precipitation_probability:times.map(()=>0),weather_code:times.map(()=>1),wind_gusts_10m:times.map(()=>15)}}};
+}
+test('ciclo normal do dia não vira "mudança no tempo"; massa de ar diferente de ontem vira, no máximo uma vez por dia',()=>{
+  for(const start of ['2026-10-01T05:00-04:00','2026-10-01T13:00-04:00']){
+    const {now,data}=day({start});
+    assert.equal(smart.detectWeather(data,location,now).some(e=>e.type==='weather_change'),false,start);
+  }
+  const cold=day({shift:-7});
+  const event=smart.detectWeather(cold.data,location,cold.now).find(e=>e.type==='weather_change');
+  assert.equal(event.title,'🌡️ Mais frio que ontem');
+  assert.equal(event.body,'Nas próximas horas em Manaus: cerca de 7 °C a menos que ontem no mesmo horário.');
+  assert.equal(event.fingerprintSeed,'weather_change|1302603|2026-10-01|colder');
+  const later=day({shift:-7,start:'2026-10-01T13:00-04:00'});
+  assert.equal(smart.detectWeather(later.data,location,later.now).find(e=>e.type==='weather_change').fingerprintSeed,event.fingerprintSeed,'mesmo dia, mesmo aviso');
+  // Ontem incompleto (menos de 4 pares) não fabrica diferença.
+  const gap=day({shift:-9});gap.data.hourly.temperature_2m=gap.data.hourly.temperature_2m.map((v,i)=>i<27?null:v);
+  assert.equal(smart.detectWeather(gap.data,location,gap.now).some(e=>e.type==='weather_change'),false);
+});
+test('chuva mais tarde e rajadas dizem a partir de quando',()=>{
+  const {now,data}=day();data.hourly.precipitation[29]=2;data.hourly.precipitation_probability[29]=70;data.hourly.wind_gusts_10m[30]=62;
+  const event=smart.detectWeather(data,location,now).find(e=>e.type==='weather_change');
+  assert.equal(event.body,'Nas próximas horas em Manaus: chuva a partir das 09:00 e rajadas de até 62 km/h a partir das 10:00.');
+});
+test('chuva forte e trovoada dizem horário e volume',()=>{
+  const {now,data}=day();
+  data.hourly.precipitation[26]=9;data.hourly.precipitation_probability[26]=80;data.hourly.weather_code[27]=95;
+  const events=smart.detectWeather(data,location,now);
+  assert.equal(events.find(e=>e.type==='heavy_rain').body,'Chuva forte entre 06:00 e 07:00 em Manaus, até 9 mm em uma hora. Evite áreas alagáveis e acompanhe os avisos oficiais.');
+  assert.equal(events.find(e=>e.type==='storm').body,'Sinal de trovoada a partir das 07:00 em Manaus. Raios, chuva intensa e rajadas podem ocorrer.');
+  assert.equal(events.find(e=>e.type==='rain_approaching').body,'Chuva forte entre 06:00 e 07:00 em Manaus, com até 80% de chance. Vale levar guarda-chuva.');
+});
+// Um dia inteiro (00:00–24:00 de Manaus) mais as horas de amanhã, para os resumos.
+function forecastDays(start='2026-10-01T07:00-04:00'){
+  const t0=Date.parse(start)/1000,first=Date.parse('2026-10-01T01:00-04:00')/1000;
+  const times=Array.from({length:48},(_,i)=>first+i*3600);
+  return {now:new Date(t0*1000),data:{current:{time:t0,temperature_2m:25,apparent_temperature:27,precipitation:0,weather_code:1,wind_gusts_10m:15},
+    hourly:{time:times,temperature_2m:times.map(()=>28),precipitation:times.map(()=>0),precipitation_probability:times.map(()=>5),weather_code:times.map(()=>1),wind_gusts_10m:times.map(()=>15)},
+    daily:{time:[Date.parse('2026-10-01T00:00-04:00')/1000,Date.parse('2026-10-02T00:00-04:00')/1000],temperature_2m_max:[33.4,31.6],temperature_2m_min:[24.6,23.4],precipitation_probability_max:[60,70],precipitation_sum:[4,6.4]}}};
+}
+test('resumo da manhã diz quando a chuva é mais provável, e só afirma dia seco com o dia todo coberto',()=>{
+  const preference={daily_summary:true,daily_summary_time:'07:00'};
+  const {now,data}=forecastDays();
+  // Horas 15:00 e 16:00 (intervalos 14–15 e 15–16) com 40% e 60%.
+  const at=h=>data.hourly.time.indexOf(Date.parse(`2026-10-01T${h}:00-04:00`)/1000);
+  data.hourly.precipitation_probability[at(15)]=40;data.hourly.precipitation_probability[at(16)]=60;
+  assert.equal(smart.dailySummaryCandidate(data,location,preference,now).body,'Máxima de 33 °C e mínima de 25 °C. Chuva mais provável entre 14:00 e 16:00 (até 60%).');
+  data.hourly.precipitation_probability[at(16)]=40;
+  assert.equal(smart.dailySummaryCandidate(data,location,preference,now).body,'Máxima de 33 °C e mínima de 25 °C. Pode chover entre 14:00 e 16:00 (até 40%).');
+  const dry=forecastDays();dry.data.daily.precipitation_probability_max[0]=5;
+  assert.equal(smart.dailySummaryCandidate(dry.data,location,preference,dry.now).body,'Máxima de 33 °C e mínima de 25 °C. Sem chuva prevista.');
+  // Uma hora sem leitura: não dá para dizer "sem chuva"; volta ao texto da chance máxima.
+  const hole=forecastDays();hole.data.daily.precipitation_probability_max[0]=5;hole.data.hourly.precipitation_probability[at(20)]=null;
+  assert.equal(smart.dailySummaryCandidate(hole.data,location,preference,hole.now).body,'Máxima de 33 °C, mínima de 25 °C e até 5% de chance de chuva.');
+});
+test('resumo da noite usa as horas de amanhã para o horário da chuva',()=>{
+  const evening=new Date('2026-10-02T00:00Z'),{data}=forecastDays();data.current.time=evening.getTime()/1000;
+  const at=h=>data.hourly.time.indexOf(Date.parse(`2026-10-02T${h}:00-04:00`)/1000);
+  for(const h of ['13','14','15']) data.hourly.precipitation_probability[at(h)]=70;
+  const body=smart.eveningSummaryCandidate(data,location,{evening_summary:true,evening_summary_time:'20:00'},evening).body;
+  // Série de 48 horas (01:00 de hoje até 00:00 do dia 3): o amanhã inteiro está coberto.
+  assert.equal(body,'Leve guarda-chuva. Máxima de 32 °C e mínima de 23 °C. Chuva mais provável entre 12:00 e 15:00 (até 70%). Total previsto: 6 mm.');
+});
+test('chovendo agora pela estação ou pelo aeroporto; leitura velha não conta',()=>{
+  const now=new Date('2026-10-13T16:20:00Z');
+  assert.equal(smart.rainingNow({station:{station:{},time:'2026-10-13T16:00:00Z',rainMm:0.4},airport:null},now),true);
+  assert.equal(smart.rainingNow({station:{station:{},time:'2026-10-13T15:00:00Z',rainMm:4},airport:null},now),false);
+  assert.equal(smart.rainingNow({station:null,airport:{time:'2026-10-13T16:00:00Z',weather:{rain:'light'}}},now),true);
+  assert.equal(smart.rainingNow({station:{station:{},time:'2026-10-13T16:00:00Z',rainMm:0},airport:{time:'2026-10-13T16:00:00Z',weather:{nearbyShowers:true}}},now),false);
+  assert.equal(smart.rainingNow({station:null,airport:null},now),false);
+});
+test('consulta do push traz as 24 horas de ontem e três dias',()=>{
+  const url=new URL(smart.weatherUrl({...location,id:'x',user_id:'u'}));
+  assert.equal(url.searchParams.get('past_hours'),'24');assert.equal(url.searchParams.get('forecast_days'),'3');
+});
