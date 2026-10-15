@@ -59,7 +59,9 @@ function inQuietHours(preference: Preference, severity: number, date = new Date(
 function weatherUrl(location: Location) {
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.search = new URLSearchParams({
-    latitude: String(location.latitude), longitude: String(location.longitude), timezone: location.timezone, timeformat: "unixtime", forecast_days: "2",
+    // past_hours: a mesma hora de ontem é a referência da mudança de temperatura (sem o ciclo do dia).
+    // forecast_days 3: o resumo da noite precisa das 24 horas de amanhã, inclusive a que termina à meia-noite.
+    latitude: String(location.latitude), longitude: String(location.longitude), timezone: location.timezone, timeformat: "unixtime", forecast_days: "3", past_hours: "24",
     current: "temperature_2m,apparent_temperature,precipitation,weather_code,wind_gusts_10m",
     hourly: "temperature_2m,precipitation_probability,precipitation,weather_code,wind_gusts_10m",
     daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum",
@@ -103,6 +105,27 @@ function detectAirQuality(data: any, location: Location, now = new Date()) {
   } satisfies EventCandidate;
 }
 
+// Mesmos limites de intensidade do "Vai chover?" do app (mm/h).
+function rainIntensity(mm: number) {
+  return mm >= 7.5 ? "Chuva forte" : mm >= 2.5 ? "Chuva moderada" : "Chuva fraca";
+}
+
+// Diferença média entre as próximas horas e as mesmas horas de ontem. Comparar com a temperatura de agora
+// avisava o ciclo normal do dia (de madrugada "pode subir 8 °C", à tarde "pode cair 7 °C"): em outubro/2026
+// era a notificação mais enviada. Pede pelo menos 4 pares válidos; ausência nunca vira zero.
+function temperatureChange(times: number[], temperatures: unknown[], upcoming: number[]) {
+  const byTime = new Map<number, number>();
+  times.forEach((time, index) => {
+    const value = observed(temperatures?.[index], -100, 65);
+    if (value !== null) byTime.set(time, value);
+  });
+  const deltas = upcoming.flatMap(time => {
+    const today = byTime.get(time), yesterday = byTime.get(time - 86_400);
+    return today === undefined || yesterday === undefined ? [] : [today - yesterday];
+  });
+  return deltas.length >= 4 ? deltas.reduce((sum, value) => sum + value, 0) / deltas.length : null;
+}
+
 function detectWeather(data: any, location: Location, now = new Date()) {
   const events: EventCandidate[] = [];
   if (!freshCurrent(data, now)) return events;
@@ -132,22 +155,25 @@ function detectWeather(data: any, location: Location, now = new Date()) {
   const bucket = Math.floor(now.getTime() / 21_600_000);
   const end2h = new Date(now.getTime() + 2 * 3_600_000), end3h = new Date(now.getTime() + 3 * 3_600_000);
   const localHour = (unix: number) => new Intl.DateTimeFormat('pt-BR',{timeZone:location.timezone,hour:'2-digit',minute:'2-digit'}).format(new Date(unix*1000));
-  const lastRainHour = rainHours.at(-1);
-  const rainWindow = lastRainHour ? `entre ${localHour(rainHours[0].time - 3600)} e ${localHour(lastRainHour.time)}` : 'nas próximas horas';
+  // Intervalo do Open-Meteo termina no horário: a hora com chuva vai de time-1h até time.
+  const windowOf = (rows: any[]) => rows.length ? `entre ${localHour(rows[0].time - 3600)} e ${localHour(rows.at(-1).time)}` : "nas próximas horas";
 
   if (currentRain !== null && currentRain < 0.2 && rainHours.length > 0) events.push({
     type: "rain_approaching", severity: 2, title: "🌧️ Chuva nas próximas horas",
-    body: `Previsão para ${location.city_name}: chuva ${rainWindow}, com até ${Math.round(peakProbability)}% de chance e pico de ${peakRain.toFixed(1).replace('.',',')} mm/h. Vale levar guarda-chuva. Fonte: modelo Open-Meteo; o horário pode mudar.`, source: "Open-Meteo · modelo",
+    body: `${rainIntensity(peakRain)} ${windowOf(rainHours)} em ${location.city_name}, com até ${Math.round(peakProbability)}% de chance. Vale levar guarda-chuva.`, source: "Open-Meteo · modelo",
     start: now, expires: end2h, url: "./#chuva", fingerprintSeed: `rain_approaching|${location.city_id}|${bucket}|2`, metadata: { peak_probability: peakProbability, peak_mm_h: peakRain, confidence: "moderate" },
   });
   if (intenseRain.length) {
     const intensity = Math.max(...intenseRain.map((row: any) => row.precipitation));
     const severity = intensity >= 15 ? 4 : 3;
-    events.push({ type: "heavy_rain", severity, title: "🌧️ Chuva forte prevista", body: `O modelo indica chuva forte em ${location.city_name} nas próximas horas. Acompanhe alertas oficiais e evite áreas alagáveis.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#chuva", fingerprintSeed: `heavy_rain|${location.city_id}|${bucket}|${severity}`, metadata: { peak_probability: Math.max(...intenseRain.map((row: any) => row.probability)), peak_mm_h: intensity, confidence: "moderate" } });
+    events.push({ type: "heavy_rain", severity, title: "🌧️ Chuva forte prevista", body: `Chuva forte ${windowOf(intenseRain)} em ${location.city_name}, até ${Math.round(intensity)} mm em uma hora. Evite áreas alagáveis e acompanhe os avisos oficiais.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#chuva", fingerprintSeed: `heavy_rain|${location.city_id}|${bucket}|${severity}`, metadata: { peak_probability: Math.max(...intenseRain.map((row: any) => row.probability)), peak_mm_h: intensity, confidence: "moderate" } });
   }
   if (stormCode >= 95) {
     const severity = stormCode >= 99 ? 4 : 3;
-    events.push({ type: "storm", severity, title: "⛈️ Tempestade possível", body: `Há sinal de tempestade no modelo para ${location.city_name}. Raios, chuva intensa e rajadas podem ocorrer nas próximas horas.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#alertas", fingerprintSeed: `storm|${location.city_id}|${bucket}|${severity}`, metadata: { weather_code: stormCode, confidence: "moderate" } });
+    // Código de trovoada do modelo descreve a hora que termina no horário; "agora" só pela leitura atual.
+    const firstStorm = (weatherCode(data?.current?.weather_code) ?? 0) >= 95 ? null : next3h.find((row: any) => (row.code ?? 0) >= 95);
+    const when = !firstStorm ? "agora" : firstStorm.time - 3600 <= currentTime ? "na próxima hora" : `a partir das ${localHour(firstStorm.time - 3600)}`;
+    events.push({ type: "storm", severity, title: "⛈️ Tempestade possível", body: `Sinal de trovoada ${when} em ${location.city_name}. Raios, chuva intensa e rajadas podem ocorrer.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#alertas", fingerprintSeed: `storm|${location.city_id}|${bucket}|${severity}`, metadata: { weather_code: stormCode, confidence: "moderate" } });
   }
   if (peakGust >= 60) {
     const severity = peakGust >= 90 ? 4 : 3;
@@ -158,26 +184,30 @@ function detectWeather(data: any, location: Location, now = new Date()) {
     const heat = apparent !== null ? `A sensação térmica está em torno de ${Math.round(apparent)} °C` : `A temperatura está em torno de ${Math.round(temperature!)} °C`;
     events.push({ type: "extreme_heat", severity, title: "🌡️ Calor intenso", body: `${heat} em ${location.city_name}. Hidrate-se e reduza esforço sob o sol.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#agora", fingerprintSeed: `extreme_heat|${location.city_id}|${bucket}|${severity}`, metadata: { temperature_c: temperature, apparent_c: apparent, confidence: "moderate" } });
   }
-  const futureTemperatures = upcoming.map((row: any) => row.temperature).filter(Number.isFinite);
-  const temperatureDelta = futureTemperatures.length && temperature !== null
-    ? futureTemperatures.reduce((largest: number, value: number) => Math.abs(value - temperature) > Math.abs(largest) ? value - temperature : largest, 0)
-    : 0;
+  const temperatureDelta = (ordered ? temperatureChange(times, data.hourly.temperature_2m, upcoming.map((row: any) => row.time)) : null) ?? 0;
   const currentCode = weatherCode(data?.current?.weather_code);
   const dryNow = currentRain !== null && currentRain < 0.2 && currentCode !== null && currentCode < 51;
-  const rainTransition = dryNow && upcoming.some((row: any) => row.time > currentTime + 3 * 3600 && row.rainInterval && row.precipitation !== null && row.probability !== null && row.precipitation >= 1 && row.probability >= 60);
+  const lateRain = dryNow ? upcoming.find((row: any) => row.time > currentTime + 3 * 3600 && row.rainInterval && row.precipitation !== null && row.probability !== null && row.precipitation >= 1 && row.probability >= 60) : undefined;
+  const rainTransition = Boolean(lateRain);
   const currentGust = observed(data?.current?.wind_gusts_10m, 0, 500);
   const windTransition = currentGust !== null && currentGust < 35 && futurePeakGust >= 55;
-  if (Math.abs(temperatureDelta) >= 6 || rainTransition || windTransition) {
+  const windyHour = windTransition ? upcoming.find((row: any) => (row.gust ?? 0) >= 55) : undefined;
+  const temperatureShift = Math.abs(temperatureDelta) >= 6;
+  if (temperatureShift || rainTransition || windTransition) {
     const reasons = [
-      Math.abs(temperatureDelta) >= 6 ? `a temperatura pode ${temperatureDelta < 0 ? "cair" : "subir"} cerca de ${Math.round(Math.abs(temperatureDelta))} °C` : "",
-      rainTransition ? "a chuva ganha força mais tarde" : "",
-      windTransition ? "as rajadas podem aumentar bastante" : "",
+      temperatureShift ? `cerca de ${Math.round(Math.abs(temperatureDelta))} °C ${temperatureDelta < 0 ? "a menos" : "a mais"} que ontem no mesmo horário` : "",
+      lateRain ? `chuva a partir das ${localHour(lateRain.time - 3600)}` : "",
+      windTransition ? `rajadas de até ${Math.round(futurePeakGust)} km/h${windyHour ? ` a partir das ${localHour(windyHour.time - 3600)}` : ""}` : "",
     ].filter(Boolean);
+    const kinds = [temperatureShift ? (temperatureDelta < 0 ? "colder" : "warmer") : "", rainTransition ? "rain" : "", windTransition ? "wind" : ""].filter(Boolean);
+    // Só temperatura: no máximo um aviso por dia municipal e sentido (a massa de ar não muda de 6 em 6 horas).
+    const localDay = new Intl.DateTimeFormat("en-CA", { timeZone: location.timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
     events.push({
-      type: "weather_change", severity: windTransition || Math.abs(temperatureDelta) >= 9 ? 3 : 2, title: "🌦️ Mudança relevante no tempo",
-      body: `O modelo indica mudança nas próximas 6 horas em ${location.city_name}: ${reasons.join(" e ")}. A previsão pode mudar nas próximas atualizações.`,
+      type: "weather_change", severity: windTransition || Math.abs(temperatureDelta) >= 9 ? 3 : 2,
+      title: temperatureShift && kinds.length === 1 ? (temperatureDelta < 0 ? "🌡️ Mais frio que ontem" : "🌡️ Mais quente que ontem") : "🌦️ Mudança relevante no tempo",
+      body: `Nas próximas horas em ${location.city_name}: ${reasons.join(" e ")}.`,
       source: "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 6 * 3_600_000), url: "./#previsao",
-      fingerprintSeed: `weather_change|${location.city_id}|${bucket}|${reasons.map(reason => reason.split(" ").slice(0, 3).join("_")).join("|")}`,
+      fingerprintSeed: `weather_change|${location.city_id}|${kinds.length === 1 && temperatureShift ? localDay : bucket}|${kinds.join("|")}`,
       metadata: { temperature_delta_c: Math.round(temperatureDelta * 10) / 10, rain_transition: rainTransition, wind_transition: windTransition, confidence: "moderate" },
     });
   }
@@ -240,6 +270,19 @@ function detectObserved({ station, airport }: { station: any; airport: any }, lo
   return events;
 }
 
+// Chuva medida ou relatada agora (mesmas janelas de frescor de detectObserved). Só serve para calar
+// "chuva nas próximas horas" enquanto chove; leitura velha ou ausente nunca vira "seco".
+function rainingNow({ station, airport }: { station: any; airport: any }, now = new Date()) {
+  const fresh = (iso: unknown, max: number) => {
+    const at = typeof iso === "string" ? Date.parse(iso) : NaN;
+    return Number.isFinite(at) && now.getTime() - at <= max && at - now.getTime() <= 15 * 60_000;
+  };
+  const stationRain = station?.station && typeof station.rainMm === "number" && station.rainMm >= 0.2 && fresh(station.time, 45 * 60_000);
+  const wx = airport?.weather;
+  const airportRain = wx && (wx.rain || wx.drizzle || wx.thunder) && fresh(airport.time, 75 * 60_000);
+  return Boolean(stationRain || airportRain);
+}
+
 function parseInmetDate(alert: any, type: "inicio" | "fim") {
   const date = alert?.[`data_${type}`], time = alert?.[`hora_${type}`];
   if (date && /^\d{2}:\d{2}/.test(String(time || ""))) return new Date(`${String(date).slice(0, 10)}T${String(time).slice(0, 8)}-03:00`);
@@ -276,6 +319,33 @@ function inmetForLocation(alerts: any[], location: Location, now = new Date()) {
   });
 }
 
+// Quando a chuva é mais provável num dia municipal, para o resumo dizer o horário em vez de só "até 70%".
+// Horas do Open-Meteo descrevem o intervalo que termina no horário; só conta o que ainda não passou.
+// "Sem chuva prevista" exige todas as horas restantes do dia com chance e volume válidos; senão, null
+// e o resumo volta ao texto com a chance máxima do dia.
+function rainOutlook(data: any, location: Location, day: string, now: Date) {
+  const times = asArray(data?.hourly?.time);
+  const dayKey = (unix: number) => new Intl.DateTimeFormat("en-CA", { timeZone: location.timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(unix * 1000));
+  const hour = (unix: number) => new Intl.DateTimeFormat("pt-BR", { timeZone: location.timezone, hour: "2-digit", minute: "2-digit" }).format(new Date(unix * 1000));
+  const rows: any[] = times.flatMap((value: unknown, index: number) => {
+    const time = observed(value, 1);
+    if (time === null || time * 1000 <= now.getTime() || dayKey(time - 3600) !== day) return [];
+    return [{ time, probability: observed(data.hourly.precipitation_probability?.[index], 0, 100), precipitation: observed(data.hourly.precipitation?.[index], 0, 500) }];
+  });
+  if (!rows.length || rows.some((row: any, index: number) => index && row.time - rows[index - 1].time !== 3600)) return null;
+  const likely: any[] = rows.filter((row: any) => row.probability !== null && row.probability >= 30);
+  if (likely.length) {
+    const peak = Math.max(...likely.map((row: any) => row.probability));
+    const span = (likely.at(-1).time - likely[0].time) / 3600 + 1;
+    const when = span > 9 ? "ao longo do dia" : `entre ${hour(likely[0].time - 3600)} e ${hour(likely.at(-1).time)}`;
+    // "Mais provável" só com 50% ou mais; abaixo disso a frase não promete chuva.
+    return { text: `${peak >= 50 ? "Chuva mais provável" : "Pode chover"} ${when} (até ${Math.round(peak)}%).`, wet: peak >= 50 };
+  }
+  // Dia restante precisa terminar na meia-noite local, sem lacunas, para afirmar que não há chuva.
+  const complete = dayKey(rows.at(-1).time) !== day && rows.every((row: any) => row.probability !== null && row.precipitation !== null);
+  return complete && rows.every((row: any) => row.precipitation < 0.5) ? { text: "Sem chuva prevista.", wet: false } : null;
+}
+
 function dailySummaryCandidate(data: any, location: Location, preference: Preference, now = new Date()) {
   if (!preference.daily_summary) return null;
   const target = String(preference.daily_summary_time || "07:00").slice(0, 5);
@@ -292,7 +362,9 @@ function dailySummaryCandidate(data: any, location: Location, preference: Prefer
   const chance = observed(data?.daily?.precipitation_probability_max?.[day], 0, 100);
   if (high === null || low === null || chance === null || low > high) return null;
   const max = Math.round(high), min = Math.round(low), rain = Math.round(chance);
-  return { type: "daily_summary", severity: 1, title: `☀️ ${location.city_name} hoje`, body: `Máxima de ${max} °C, mínima de ${min} °C e até ${rain}% de chance de chuva.`, source: "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 6 * 3_600_000), url: "./#previsao", fingerprintSeed: `daily_summary|${location.city_id}|${localDay}`, metadata: { max_c: max, min_c: min, rain_probability: rain, confidence: "moderate" } } satisfies EventCandidate;
+  const outlook = rainOutlook(data, location, localDay, now);
+  const body = outlook ? `Máxima de ${max} °C e mínima de ${min} °C. ${outlook.text}` : `Máxima de ${max} °C, mínima de ${min} °C e até ${rain}% de chance de chuva.`;
+  return { type: "daily_summary", severity: 1, title: `☀️ ${location.city_name} hoje`, body, source: "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 6 * 3_600_000), url: "./#previsao", fingerprintSeed: `daily_summary|${location.city_id}|${localDay}`, metadata: { max_c: max, min_c: min, rain_probability: rain, confidence: "moderate" } } satisfies EventCandidate;
 }
 
 // Resumo da noite: a previsão de amanhã no calendário da cidade, no horário escolhido (20:00 por padrão).
@@ -320,7 +392,10 @@ function eveningSummaryCandidate(data: any, location: Location, preference: Pref
   const max = Math.round(high), min = Math.round(low), rain = Math.round(chance);
   const volume = total !== null && total >= 1 ? ` (${Math.round(total)} mm)` : "";
   const wet = rain >= 50 && (total === null || total >= 1);
-  const body = wet
+  const outlook = rainOutlook(data, location, tomorrow, now);
+  const body = outlook
+    ? `${wet ? "Leve guarda-chuva. " : ""}Máxima de ${max} °C e mínima de ${min} °C. ${outlook.text}${outlook.wet && total !== null && total >= 1 ? ` Total previsto: ${Math.round(total)} mm.` : ""}`
+    : wet
     ? `Leve guarda-chuva: até ${rain}% de chance de chuva${volume}. Máxima de ${max} °C e mínima de ${min} °C.`
     : `Máxima de ${max} °C, mínima de ${min} °C e até ${rain}% de chance de chuva${volume}.`;
   return { type: "evening_summary", severity: 1, title: `🌙 ${location.city_name} amanhã`, body, source: "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 12 * 3_600_000), url: "./#previsao", fingerprintSeed: `evening_summary|${location.city_id}|${tomorrow}`, metadata: { day: tomorrow, max_c: max, min_c: min, rain_probability: rain, rain_mm: total === null ? null : Math.round(total * 10) / 10, confidence: "moderate" } } satisfies EventCandidate;
@@ -468,6 +543,7 @@ Deno.serve(async (req) => {
           console.warn("weather source unavailable", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" });
         }
         if (Date.now() >= deadline) throw new Error("worker_budget");
+        let raining = false;
         if (preference.rain_approaching || preference.storms) {
           // Estação e aeroporto: um falhar não impede o outro, e nenhum dos dois derruba os demais avisos.
           const observedAt = Date.now();
@@ -480,6 +556,7 @@ Deno.serve(async (req) => {
           try { if (airportResult.status === "fulfilled") airport = nearestAirport(airportResult.value, location.latitude, location.longitude, observedAt); } catch { /* sem aeroporto */ }
           if (stationResult.status === "rejected" && airportResult.status === "rejected") sourceFailures++;
           candidates.push(...detectObserved({ station, airport }, location));
+          raining = rainingNow({ station, airport });
         }
         if (Date.now() >= deadline) throw new Error("worker_budget");
         if (preference.air_quality) {
@@ -489,7 +566,7 @@ Deno.serve(async (req) => {
           } catch (error) { console.warn("air quality unavailable", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" }); }
         }
         const enabledCandidates = candidates.filter(candidate => !preferenceFor[candidate.type] || preference[preferenceFor[candidate.type]]);
-        for (const candidate of selectCandidates(enabledCandidates)) {
+        for (const candidate of selectCandidates(enabledCandidates, { raining })) {
           if (Date.now() >= deadline) throw new Error("worker_budget");
           const event = await createEvent(admin, location, candidate);
           if (event.created) created++;

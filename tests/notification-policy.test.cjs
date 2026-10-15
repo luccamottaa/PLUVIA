@@ -43,7 +43,11 @@ test('mensagem de chuva indica previsão, horário no fuso local e números do m
  const now=new Date('2026-10-01T00:00Z'),t=now.getTime()/1000;
  const events=detect({current:{time:t,precipitation:0,temperature_2m:30},hourly:{time:[t,t+3600,t+7200,t+10800],precipitation:[0,1,2,0],precipitation_probability:[20,70,80,10],weather_code:[0,61,61,0]}},{city_id:'1302603',city_name:'Manaus',timezone:'America/Manaus'},now);
  // 21h and 22h are interval endings: rain covers 20h through 22h locally.
- const rain=events.find(e=>e.type==='rain_approaching');assert.match(rain.body,/20:00.*22:00/);assert.match(rain.body,/80%/);assert.match(rain.body,/2,0 mm\/h/);assert.match(rain.body,/modelo Open-Meteo/);
+ const rain=events.find(e=>e.type==='rain_approaching');assert.match(rain.body,/20:00.*22:00/);assert.match(rain.body,/80%/);assert.match(rain.body,/^Chuva fraca /);
+ // A identificação de modelo vem do estilo no aparelho, uma vez só (o corpo não repete "modelo").
+ assert.equal(rain.source,'Open-Meteo · modelo');
+ const look=require('../dist/modules/push-style.js').style({type:rain.type,title:rain.title,body:rain.body,source:rain.source,severity:rain.severity});
+ assert.match(look.body,/Previsão do modelo; pode mudar\.$/);
 });
 test('chuva observada não é repetição da previsão, e "chuva por perto" não segura o aviso de quando ela chega',()=>{
  const now=Date.parse('2026-10-13T16:30:00Z'),sent=(type,severity,minutes)=>({status:'accepted',sent_at:new Date(now-minutes*60000).toISOString(),notification_events:{event_type:type,severity,city_id:'1302603'}});
@@ -53,5 +57,12 @@ test('chuva observada não é repetição da previsão, e "chuva por perto" não
  assert.equal(isRepeat(rainNow,[sent('rain_now',2,60)],now),true,'mesmo episódio');
  assert.equal(isRepeat({type:'storm_now',severity:3,cityId:'1302603'},[sent('rain_now',2,20)],now),false,'trovoada sobe a severidade');
  const picked=selectCandidates([{type:'rain_now',severity:2},{type:'storm_now',severity:3},{type:'rain_approaching',severity:2},{type:'rain_nearby',severity:2}]);
- assert.deepEqual(picked.map(c=>c.type).sort(),['rain_approaching','rain_nearby','storm_now']);
+ // Já chovendo, "chuva nas próximas horas" sai do lote.
+ assert.deepEqual(picked.map(c=>c.type).sort(),['rain_nearby','storm_now']);
+});
+test('chuva medida agora (sem aviso de "começou") também cala "chuva nas próximas horas"',()=>{
+ const batch=[{type:'rain_approaching',severity:2},{type:'heavy_rain',severity:3},{type:'extreme_heat',severity:3}];
+ assert.deepEqual(selectCandidates(batch,{raining:true}).map(c=>c.type).sort(),['extreme_heat','heavy_rain']);
+ assert.deepEqual(selectCandidates([{type:'rain_approaching',severity:2}],{raining:true}),[]);
+ assert.deepEqual(selectCandidates([{type:'rain_approaching',severity:2}]).map(c=>c.type),['rain_approaching']);
 });

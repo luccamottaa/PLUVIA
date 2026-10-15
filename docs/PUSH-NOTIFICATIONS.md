@@ -60,7 +60,7 @@ O processamento agora mantém progresso, limita execução e impede sobreposiç�
 
 ## Limites meteorológicos
 
-- **Mudanças relevantes** está ativo e compara as próximas seis horas com a condição atual. Só cria evento para variação térmica relevante, transição para chuva ou aumento forte de rajadas; a mensagem identifica a origem como modelo e informa a incerteza.
+- **Mudanças relevantes** está ativo. A variação térmica compara a média das próximas seis horas com as mesmas horas de ontem (≥ 6 °C, no máximo um aviso por dia e sentido), para não avisar o ciclo normal do dia; transição para chuva e aumento forte de rajadas dizem a partir de quando. A origem como modelo é acrescentada no aparelho pelo `push-style`.
 - **Chuva nas próximas horas** usa previsão horária do modelo. Não é radar nem nowcasting hiperlocal e, por isso, não promete minuto exato.
 - **Raios** permanece indisponível até existir fonte observacional com API, cobertura, estabilidade e licença adequadas ao uso do PLUVIA. Código meteorológico de tempestade do modelo não é tratado como raio observado.
 
