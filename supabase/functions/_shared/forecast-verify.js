@@ -15,13 +15,16 @@ export const CAPITALS = [
 // best_match é o que o PLUVIA mostra hoje; os outros são os candidatos a substituí-lo.
 export const MODELS = ["best_match", "ecmwf_ifs025", "gfs_seamless", "icon_seamless"];
 export const LEADS = [6, 24];
+// Janelas da resposta "Vai chover?" do app (próximas 12 h) e do curtíssimo prazo (3 h).
+export const WINDOWS = [3, 12];
 const HOUR = 3600_000;
 
 export function forecastUrl(cities = CAPITALS) {
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.searchParams.set("latitude", cities.map(city => city.lat).join(","));
   url.searchParams.set("longitude", cities.map(city => city.lon).join(","));
-  url.searchParams.set("hourly", "temperature_2m,precipitation");
+  // Probabilidade: sem ela não dá para medir calibração (Brier). Modelo que não a oferece vem com null.
+  url.searchParams.set("hourly", "temperature_2m,precipitation,precipitation_probability");
   url.searchParams.set("models", MODELS.join(","));
   url.searchParams.set("forecast_days", "3");
   url.searchParams.set("timezone", "GMT");
@@ -48,8 +51,10 @@ export function buildSamples(payload, cities = CAPITALS, now = Date.now()) {
       for (const model of MODELS) {
         const temp = finite(entry.hourly[`temperature_2m_${model}`]?.[at], -40, 60);
         const precip = finite(entry.hourly[`precipitation_${model}`]?.[at], 0, 300);
+        const prob = finite(entry.hourly[`precipitation_probability_${model}`]?.[at], 0, 100);
         if (temp === null && precip === null) continue;
-        samples.push({city_id:cities[index].id, model, lead_hours:lead, target_at:new Date(target).toISOString(), temp_c:temp, precip_mm:precip});
+        samples.push({city_id:cities[index].id, model, lead_hours:lead, target_at:new Date(target).toISOString(), temp_c:temp, precip_mm:precip,
+          precip_prob:prob === null ? null : Math.round(prob)});
       }
     }
   });
@@ -65,4 +70,45 @@ export function observationFrom(city, reading) {
   if (temp === null && precip === null) return null;
   return {city_id:city.id, observed_at:new Date(at).toISOString(), temp_c:temp, precip_mm:precip,
     station_ibge:reading.station.ibge || null, distance_km:finite(reading.station.distanceKm, 0, 60)};
+}
+
+// Mesma regra do "Vai chover?" (weatherInsights.rainAnswer): hora com chuva = ≥ 0,5 mm, ou ≥ 50% com
+// volume ausente ou ≥ 0,1 mm; sem hora com chuva, "maybe" com alguma hora ≥ 30%; senão "dry". A janela
+// começa na hora cheia da emissão e cobre os intervalos que terminam de +1 h a +N h (o acumulado do
+// Open-Meteo termina no horário). Só janela completa: uma hora sem volume nem chance descarta a janela.
+export function windowAnswer(hours) {
+  const wet = hour => (hour.mm !== null && hour.mm >= 0.5) || (hour.prob !== null && hour.prob >= 50 && (hour.mm === null || hour.mm >= 0.1));
+  if (hours.some(wet)) return "rain";
+  return hours.some(hour => hour.prob !== null && hour.prob >= 30) ? "maybe" : "dry";
+}
+
+export function buildWindows(payload, cities = CAPITALS, now = Date.now()) {
+  const list = Array.isArray(payload) ? payload : [payload];
+  if (list.length !== cities.length) throw new Error("invalid_provider_data");
+  const base = Math.floor(now / HOUR) * HOUR;
+  const windows = [];
+  list.forEach((entry, index) => {
+    const times = entry?.hourly?.time;
+    if (!Array.isArray(times)) return;
+    const start = times.indexOf(base / 1000);
+    if (start < 0) return;
+    for (const model of MODELS) {
+      for (const size of WINDOWS) {
+        const hours = [];
+        for (let step = 1; step <= size; step++) {
+          if (times[start + step] !== base / 1000 + step * 3600) break;
+          const mm = finite(entry.hourly[`precipitation_${model}`]?.[start + step], 0, 300);
+          const prob = finite(entry.hourly[`precipitation_probability_${model}`]?.[start + step], 0, 100);
+          if (mm === null && prob === null) break;
+          hours.push({mm, prob});
+        }
+        if (hours.length !== size) continue;
+        const probs = hours.map(hour => hour.prob).filter(value => value !== null);
+        windows.push({city_id:cities[index].id, model, issued_at:new Date(base).toISOString(), window_hours:size, answer:windowAnswer(hours),
+          max_prob:probs.length ? Math.round(Math.max(...probs)) : null,
+          total_mm:hours.every(hour => hour.mm !== null) ? Math.round(hours.reduce((sum, hour) => sum + hour.mm, 0) * 10) / 10 : null});
+      }
+    }
+  });
+  return windows;
 }
