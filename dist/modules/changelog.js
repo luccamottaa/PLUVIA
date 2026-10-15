@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.10.2", date:"2026-10-15", title:"Radar sem travar", items:[
+      "A animação do radar ampliado não para mais quando uma imagem falha: ela pula para a próxima e só para se todas falharem.",
+      "As imagens que já carregaram ficam guardadas enquanto o mapa não muda, então a animação gasta muito menos internet e não esbarra no limite do serviço de radar.",
+      "Saiu do app com o radar ampliado aberto? Ao voltar, a animação continua de onde estava.",
+    ]},
     {version:"1.10.1", date:"2026-10-14", title:"Abertura mais leve", items:[
       "O PLUVIA faz menos trabalho ao abrir: a tela responde mais rápido ao primeiro toque, principalmente em celulares mais simples.",
       "A linha “Próxima janela seca” não ocupa mais espaço enquanto a previsão carrega (ela só aparece quando chove ou pode chover).",
