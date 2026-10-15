@@ -16,6 +16,12 @@
   let leafletPromise;
   let layerRevision = 0;
   const fading = new Map();
+  // Imagens do radar que já carregaram inteiras ficam no mapa (escondidas) enquanto a vista não muda:
+  // a animação volta a elas sem baixar os tiles de novo. Cada volta do loop pedia ~100 tiles, e o
+  // RainViewer limita 100 pedidos por IP por minuto (IP que a operadora divide entre muitos celulares):
+  // o 429 derrubava uma imagem inteira e a animação parava.
+  const frameLayers = new Map();
+  let failStreak = 0, resumeOnVisible = false;
   let pendingTimeout=null,radarSnapshot=null,displayedFrameKey=null,pendingFrameKey=null,displayedPartial=false,resizePending=false;
   const lastSize={width:0,height:0};
 
@@ -74,8 +80,17 @@
     if (state.nextOverlay) state.map?.removeLayer(state.nextOverlay);
     state.nextOverlay=null;
   }
+  function dropFrameLayers(keepCurrent) {
+    for (const [key,layer] of frameLayers) {
+      if (keepCurrent && layer === state.overlay) continue;
+      clearTimeout(fading.get(layer)); fading.delete(layer);
+      frameLayers.delete(key);
+      if (layer !== state.overlay) state.map?.removeLayer(layer);
+    }
+  }
   function removeOverlay() {
-    cancelPending(); displayedFrameKey=null;displayedPartial=false;
+    cancelPending(); displayedFrameKey=null;displayedPartial=false;failStreak=0;
+    dropFrameLayers(false);
     for (const [layer,timer] of fading) { clearTimeout(timer); state.map?.removeLayer(layer); }
     fading.clear();
     if (state.overlay && state.map) state.map.removeLayer(state.overlay);
@@ -86,8 +101,37 @@
     const slider = $('weatherTimeline'); slider.max = String(Math.max(0,frames.length - 1)); slider.value = String(state.index); slider.disabled = frames.length < 2;
     $('weatherFramePrev').disabled = frames.length < 2; $('weatherFrameNext').disabled = frames.length < 2; $('weatherPlay').disabled = frames.length < 2;
   }
+  // Imagem que sai: some pela opacidade e, guardada, fica fora da composição (visibility) até voltar.
+  function retire(layer) {
+    clearTimeout(fading.get(layer));
+    layer.setOpacity?.(0);
+    fading.set(layer,setTimeout(() => {
+      fading.delete(layer);
+      if (state.overlay === layer) return;
+      if (frameLayers.get(layer.pluviaKey) === layer) { const container=layer.getContainer?.(); if (container) container.style.visibility='hidden'; }
+      else state.map?.removeLayer(layer);
+    },450));
+  }
+  function reveal(layer, opacity) {
+    clearTimeout(fading.get(layer)); fading.delete(layer);
+    const container=layer.getContainer?.(); if (container) container.style.visibility='';
+    requestAnimationFrame(() => { if (state.overlay === layer) layer.setOpacity?.(opacity); });
+  }
+  function showLayer(layer, opacity, options, failed) {
+    const previous = state.overlay;
+    state.overlay = layer; failStreak = 0;
+    displayedFrameKey=options.key || null;
+    displayedPartial=Boolean(failed);
+    options.onReady?.(failed);
+    frameStatus(false,failed ? 'Parte da imagem não carregou.' : 'Imagem carregada.',Boolean(failed));
+    setError(failed ? 'Parte da imagem não carregou. Tente outro horário ou tente novamente.' : '');
+    reveal(layer,opacity);
+    if (previous && previous !== layer) retire(previous);
+  }
   function fadeTileLayer(layer, opacity, options={}) {
     cancelPending();
+    const cached = options.key && frameLayers.get(options.key);
+    if (cached) { showLayer(cached,opacity,options,0); return; }
     const previous = state.overlay;
     state.nextOverlay = layer;
     pendingFrameKey=options.key || null;
@@ -98,7 +142,9 @@
     function fail(message) {
       if (state.nextOverlay!==layer) return;
       clearTimeout(pendingTimeout);pendingTimeout=null;pendingFrameKey=null;state.nextOverlay=null;
-      state.map.removeLayer(layer);stop();
+      state.map.removeLayer(layer);
+      // Na animação, uma imagem que falha é pulada; só para quando todas falharam seguidas.
+      if (!state.timer || ++failStreak >= state.frames.length) stop();
       frameStatus(false,previous ? 'A imagem anterior continua exibida.' : 'Imagem indisponível.',true);
       setError(message);options.onError?.();
     }
@@ -108,25 +154,17 @@
       if (state.nextOverlay !== layer) return;
       if (!loaded) {fail('A imagem deste horário não carregou. Tente outro horário ou tente novamente.');return;}
       clearTimeout(pendingTimeout);pendingTimeout=null;pendingFrameKey=null;
-      state.nextOverlay = null; state.overlay = layer;
-      displayedFrameKey=options.key || null;
-      displayedPartial=Boolean(failed);
-      options.onReady?.(failed);
-      frameStatus(false,failed ? 'Parte da imagem não carregou.' : 'Imagem carregada.',Boolean(failed));
-      setError(failed ? 'Parte da imagem não carregou. Tente outro horário ou tente novamente.' : '');
-      requestAnimationFrame(() => {
-        if (state.overlay !== layer) return;
-        layer.setOpacity?.(opacity);
-        previous?.setOpacity?.(0);
-      });
-      if (previous) fading.set(previous,setTimeout(() => { state.map.removeLayer(previous); fading.delete(previous); },450));
+      state.nextOverlay = null;
+      if (options.key && !failed) { layer.pluviaKey = options.key; frameLayers.set(options.key,layer); }
+      showLayer(layer,opacity,options,failed);
     });
     layer.addTo(state.map);
   }
   function renderRainFrame() {
     const frame = state.frames[state.index]; if (!frame) return;
-    fadeTileLayer(L.tileLayer(`${frame.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:.76,maxNativeZoom:7,maxZoom:11,attribution:'Radar: RainViewer'}),.76,{
-      key:'rain:'+frame.time,loading:'Carregando imagem de '+zoneTime(frame.time)+'…',
+    const key='rain:'+frame.time;
+    fadeTileLayer(frameLayers.get(key) || L.tileLayer(`${frame.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:.76,maxNativeZoom:7,maxZoom:11,attribution:'Radar: RainViewer'}),.76,{
+      key,loading:'Carregando imagem de '+zoneTime(frame.time)+'…',
       onReady(failed) {$('weatherFrameTime').textContent=zoneTime(frame.time);$('weatherFrameTime').setAttribute?.('data-state','ready');source('radar',{status:failed ? 'partial' : 'ready',dataAt:frame.time*1000});},
       onError() {source('radar',{status:'error'});}
     });
@@ -243,6 +281,8 @@
       state.map = L.map('weatherMap',{zoomControl:true,minZoom:3,maxZoom:11}).setView([selectedCity.lat,selectedCity.lon],7);
       state.base = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{className:'pluvia-light-basemap',maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map);
       state.map.on?.('moveend zoomend resize',updateRecenter);
+      // Imagens guardadas pediriam tiles novos a cada arrasto/zoom mesmo escondidas.
+      state.map.on?.('movestart zoomstart',() => dropFrameLayers(true));
       setInteractive(Boolean(radarDialog?.open));
     } else state.map.setView([selectedCity.lat,selectedCity.lon],7);
     if (state.marker) state.map.removeLayer(state.marker);
@@ -300,14 +340,18 @@
   });
   $('closeRadar')?.addEventListener('click',() => globalThis.PLUVIA?.dialogs?.close(radarDialog) ?? radarDialog.close());
   radarDialog?.addEventListener('close',() => {
-    autoplayPending = false; stop(); radarHome?.appendChild(radarContent); document.body.style.overflow=previousOverflow;
+    autoplayPending = false; resumeOnVisible = false; stop(); radarHome?.appendChild(radarContent); document.body.style.overflow=previousOverflow;
     setInteractive(false);
     resizeMap(); $('expandRadar')?.focus();
   });
   radarDialog?.addEventListener('click',event => { if (event.target === radarDialog) globalThis.PLUVIA?.dialogs?.close(radarDialog) ?? radarDialog.close(); });
   if ('ResizeObserver' in globalThis && radarContent) new ResizeObserver(resizeMap).observe(radarContent);
   globalThis.addEventListener?.('resize',resizeMap,{passive:true});
-  document.addEventListener?.('visibilitychange',() => { if (document.hidden) stop(); });
+  // Sair do app pausa; voltando com o radar ampliado aberto, a animação continua de onde estava.
+  document.addEventListener?.('visibilitychange',() => {
+    if (document.hidden) { if (state.timer) resumeOnVisible = true; stop(); }
+    else if (resumeOnVisible) { resumeOnVisible = false; if (radarDialog?.open) play(); }
+  });
   // Na Home o mapa só começa depois da abertura (load + ocioso): no desktop ele já nasce visível e
   // Leaflet, tiles e metadados do radar disputavam a primeira pintura. O diálogo abre na hora.
   const settled = new Promise(resolve => {
