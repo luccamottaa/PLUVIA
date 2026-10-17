@@ -382,5 +382,135 @@
     };
   }
 
-  return {currentIndex, yesterday, pastRain, sunsetGlow, feelsLike, uv, pressure, rain, rainAnswer, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
+  // Medidor Visual de Intensidade de Chuva (Visual Rain Gauge):
+  // Classifica a taxa de precipitação horária e o estado imediato (ativa ou se aproximando).
+  function rainGauge(hourly, start, {current = null} = {}) {
+    const times = hourly?.time || [];
+    if (!(start >= 0) || !times[start]) {
+      return {rate: 0, level: "dry", label: "Sem chuva", percentage: 0, active: false, approaching: false, summary: "0 mm/h · Sem chuva"};
+    }
+    const nowCode = number(current?.weather_code);
+    const nowRainCode = nowCode !== null && (CURRENT_RAIN[nowCode] || STORM_CODES.has(nowCode));
+    const nextMm = number(hourly.precipitation?.[start + 1]);
+    const nextChance = number(hourly.precipitation_probability?.[start + 1]);
+    const isStorm = STORM_CODES.has(nowCode) || STORM_CODES.has(number(hourly.weather_code?.[start + 1]));
+
+    let rate = 0;
+    if (nextMm !== null && nextMm > 0) {
+      rate = nextMm;
+    } else if (nowRainCode) {
+      rate = CURRENT_RAIN[nowCode] === "forte" ? 12 : CURRENT_RAIN[nowCode] === "moderada" ? 5 : 1.2;
+    }
+
+    let level = "dry";
+    let label = "Sem chuva";
+    let percentage = 0;
+
+    if (isStorm) {
+      level = "storm";
+      label = "Tempestade";
+      percentage = Math.min(100, Math.max(80, Math.round((Math.max(rate, 10) / 15) * 100)));
+    } else if (rate >= 7.5) {
+      level = "heavy";
+      label = "Chuva forte";
+      percentage = Math.min(100, Math.max(70, Math.round(70 + ((rate - 7.5) / 12.5) * 30)));
+    } else if (rate >= 2.5) {
+      level = "moderate";
+      label = "Chuva moderada";
+      percentage = Math.round(35 + ((rate - 2.5) / 5) * 35);
+    } else if (rate > 0.1 || nowRainCode) {
+      level = "light";
+      label = "Chuva fraca";
+      percentage = Math.round(10 + (rate / 2.5) * 25);
+    } else if (nextChance !== null && nextChance >= 40) {
+      level = "dry";
+      label = "Sem chuva agora";
+      percentage = 0;
+    }
+
+    const active = nowRainCode || rate > 0.1;
+    const approaching = !active && nextChance !== null && nextChance >= 35;
+    const formattedRate = round(rate, 1).toLocaleString("pt-BR");
+    const summary = active
+      ? `${formattedRate} mm/h · ${label}`
+      : approaching
+        ? `Sem chuva agora (${Math.round(nextChance)}% de chance na próxima hora)`
+        : "0 mm/h · Sem chuva";
+
+    return {
+      rate: round(rate, 1),
+      level,
+      label,
+      percentage: Math.min(100, Math.max(0, percentage)),
+      active,
+      approaching,
+      summary
+    };
+  }
+
+  // Índice de Confiança PLUVIA (PLUVIA Confidence Score):
+  // Avalia sinais atmosféricos, concordância de modelos, idade do cache e cobertura de estações.
+  function pluviaConfidence(data, {city = null, station = null, savedAt = null, now = null} = {}) {
+    if (!data || !data.hourly?.time) {
+      return {score: 30, level: "low", label: "Previsão com menor precisão", note: "Previsão com menor precisão", factors: ["Sem dados completos"]};
+    }
+    let score = 86;
+    const factors = [];
+
+    if (data.pluviaReduced) {
+      score -= 28;
+      factors.push("Previsão reduzida (MET Norway)");
+    } else {
+      factors.push("Modelos meteorológicos em alta resolução");
+    }
+
+    const currentTime = Number.isFinite(now) ? now : Date.now();
+    if (Number.isFinite(savedAt)) {
+      const ageHours = (currentTime - savedAt) / 3600000;
+      if (ageHours > 12) {
+        score -= 35;
+        factors.push("Dados salvos há mais de 12 horas");
+      } else if (ageHours > 3) {
+        score -= 18;
+        factors.push("Dados salvos há mais de 3 horas");
+      } else {
+        factors.push("Dados recentes");
+      }
+    }
+
+    if (station && (station.temperature !== undefined || station.stationName)) {
+      score += 10;
+      factors.push("Estação oficial conectada em tempo real");
+    }
+
+    // Calibração Manaus e zonas tropicais de alta convecção
+    const isManaus = city?.id === "1302603" || city?.name === "Manaus" || city?.timezone === "America/Manaus";
+    if (isManaus) {
+      const currentHour = new Date(currentTime).getUTCHours() - 4; // UTC-4 Manaus
+      const isConvectiveWindow = currentHour >= 12 && currentHour <= 18;
+      if (isConvectiveWindow && !station) {
+        score -= 8;
+        factors.push("Janela convectiva vespertina em Manaus (maior variabilidade local)");
+      }
+    }
+
+    score = Math.min(98, Math.max(20, Math.round(score)));
+    let level = "high";
+    let label = "Confiança alta";
+    let note = null;
+
+    if (score < 55) {
+      level = "low";
+      label = "Previsão com menor precisão";
+      note = "Previsão com menor precisão";
+    } else if (score < 80) {
+      level = "moderate";
+      label = "Confiança moderada";
+    }
+
+    return {score, level, label, note, factors};
+  }
+
+  return {currentIndex, yesterday, pastRain, sunsetGlow, feelsLike, uv, pressure, rain, rainAnswer, rainGauge, pluviaConfidence, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
 });
+

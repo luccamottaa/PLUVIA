@@ -362,7 +362,14 @@
             <p class="condition" id="condition">Consultando o tempo…</p>
             <p class="hero-range" id="heroRange"><span class="sk sk-line sk-short" aria-hidden="true"></span></p>
             <p class="rain-answer" id="rainAnswer" data-tone="loading"><span class="sk sk-line" aria-hidden="true"></span></p>
+            <div class="rain-gauge" id="rainGauge" aria-label="Medidor de intensidade de chuva" hidden>
+              <div class="rain-gauge-track" role="progressbar" aria-label="Escala de intensidade de chuva" aria-valuemin="0" aria-valuemax="100">
+                <div class="rain-gauge-fill" id="rainGaugeFill"></div>
+              </div>
+              <p class="rain-gauge-label" id="rainGaugeLabel"></p>
+            </div>
             <p class="yesterday-note" id="yesterdayNote"><span class="sk sk-line sk-short" aria-hidden="true"></span></p>
+            <p class="pluvia-confidence" id="pluviaConfidence" hidden><span class="confidence-badge" id="confidenceBadge"></span><span class="confidence-text" id="confidenceText"></span></p>
             <button id="alertBanner" class="alert-banner" type="button" hidden aria-haspopup="dialog" aria-controls="alertDetail"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg><span><strong id="alertBannerTitle"></strong><small id="alertBannerTime"></small></span><span class="alert-banner-more" aria-hidden="true">›</span></button>
             <div class="city-dots" id="cityDots" role="group" aria-label="Trocar entre suas cidades" hidden></div>
             <div class="favorite-suggest" id="favoriteSuggest" hidden><button id="favoriteSuggestSave" class="favorite-suggest-save" type="button"><span aria-hidden="true">☆</span> Salvar <span id="favoriteSuggestCity">esta cidade</span><span class="favorite-suggest-extra"> nas suas cidades</span></button><button id="favoriteSuggestDismiss" class="favorite-suggest-dismiss" type="button">Agora não</button></div><p class="swipe-hint" id="swipeHint" hidden>Deslize para o lado para trocar de cidade</p>

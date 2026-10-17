@@ -836,6 +836,41 @@ function setRainAnswer(answer) {
   if (typeof noteAlertNudge === "function") noteAlertNudge("rain", answer.tone === "rain" || answer.tone === "storm");
   if (typeof noteShareMoment === "function") noteShareMoment("storm", answer.tone === "storm");
 }
+
+function setRainGauge(gauge) {
+  const node = $("rainGauge");
+  if (!node) return;
+  if (!gauge || (!gauge.active && !gauge.approaching)) {
+    node.hidden = true;
+    return;
+  }
+  node.hidden = false;
+  node.dataset.level = gauge.level;
+  const bar = $("rainGaugeFill");
+  if (bar) bar.style.width = `${gauge.percentage}%`;
+  const label = $("rainGaugeLabel");
+  if (label) label.textContent = gauge.summary;
+}
+
+function setPluviaConfidence(conf) {
+  const node = $("pluviaConfidence");
+  if (!node) return;
+  if (!conf || !conf.score) {
+    node.hidden = true;
+    return;
+  }
+  node.hidden = false;
+  node.dataset.level = conf.level;
+  const badge = $("confidenceBadge");
+  if (badge) {
+    badge.textContent = conf.label;
+    badge.className = `confidence-badge is-${conf.level}`;
+  }
+  const text = $("confidenceText");
+  if (text) {
+    text.textContent = conf.level === "low" ? (conf.note || "Previsão com menor precisão") : `${conf.score}% de concordância`;
+  }
+}
 // Dia marcante (trovoada no "Vai chover?" ou pôr do sol que promete): vira selo no topo do story
 // compartilhado. O convite visível na Home saiu (outubro/2026: 17 exibições e nenhum toque em 30 dias);
 // o estado fica só aqui e o story é refeito quando o momento muda.
@@ -932,6 +967,8 @@ function clearWeatherInsights() {
     if (node) node.textContent = "";
   });
   setRainAnswer({tone:"unknown",text:"Previsão de chuva indisponível."});
+  setRainGauge(null);
+  setPluviaConfidence(null);
   setYesterdayNote(null);
   renderTips([]);
 }
@@ -1094,6 +1131,12 @@ function renderWeatherInsights(data, air, start) {
   if ($("feelsLikeNote") && thermal) $("feelsLikeNote").textContent = thermal.label;
   // "Vai chover?" no topo; a frase equivalente da seção por hora foi retirada a pedido.
   setRainAnswer(rainAnswerFor(data, start));
+  setRainGauge(weatherInsights?.rainGauge?.(data.hourly, start, {current: data.current}));
+  setPluviaConfidence(weatherInsights?.pluviaConfidence?.(data, {
+    city: activeCity,
+    station: observedRainState.station,
+    savedAt: displayedWeather?.weatherAt
+  }));
   // Hoje vs. ontem no mesmo horário, com as 24 h passadas que a consulta principal já traz.
   const comparison = weatherInsights?.yesterday?.(data.hourly, start);
   const fallen = weatherInsights?.pastRain?.(data.hourly, start);
@@ -1500,7 +1543,7 @@ document.addEventListener?.("animationend", event => {
 });
 
 
-const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","condition","heroRange","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","dryWindow","daylight","sunPhrase","sunsetGlow","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate"].filter(id=>$(id));
+const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","condition","heroRange","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","dryWindow","daylight","sunPhrase","sunsetGlow","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate","rainGauge","pluviaConfidence"].filter(id=>$(id));
 let emptyCityContent;
 // Deslizar entre cidades (como no Apple Weather): a cidade aberta e os favoritos, na ordem salva.
 // As bolinhas são botões (clique/teclado); no toque, arrastar o topo para o lado troca de cidade.
