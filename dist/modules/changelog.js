@@ -15,6 +15,7 @@
     {version:"1.14.4", date:"2026-10-19", title:"Umidade com ícone", items:[
       "A umidade ganhou um ícone para cada faixa: carinha para confortável, gota vazia para um pouco seco, gota cheia para úmido e muito úmido, e alerta para ar seco.",
       "O buraco embaixo da umidade sumiu: a nota da visibilidade medida no aeroporto ficou mais curta e cabe numa linha.",
+      "Vento e pressão mais limpos: o vento mostra só as rajadas (a direção já está na bússola) e a pressão ficou só com o número.",
     ]},
     {version:"1.14.3", date:"2026-10-19", title:"Troca de cidade mais lisa", items:[
       "Trocar de cidade ficou mais suave: as informações descem sem engasgar, e numa cidade nova elas esperam a previsão chegar para descer de uma vez, em vez de trocar no meio do caminho.",
