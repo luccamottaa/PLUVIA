@@ -17,8 +17,8 @@ test('os cards preservam o vidro estático sem reflexo acionado por toque', () =
   assert.doesNotMatch(css + redesign, /glass-interactive|glass-active|glass-touch-ring|--glass-x|--glass-y/);
 });
 
-test('o topo rola com a página, a gota é azul e o nome tem espaço', () => {
-  assert.match(html, /class="brand-mark" aria-hidden="true"/);
+test('o topo rola com a página e a marca do topo é só o nome (1.16.2)', () => {
+  assert.match(html, /<a class="brand" href="#top" aria-label="PLUVIA, início"><span>PLUVIA<\/span><\/a>/);
   assert.match(redesign, /\.topbar \{ position:relative; top:auto; \}/);
   assert.match(redesign, /\.topbar \.brand-mark \{[\s\S]*?background:#2F6BFF/);
   assert.match(redesign, /\.topbar \.account-trigger \{ max-width:min\(44vw,180px\);/);
