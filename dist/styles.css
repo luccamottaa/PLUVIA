@@ -74,7 +74,7 @@ body {
 .topbar { position: sticky; top: 16px; z-index: 40; height: 74px; margin-top: 16px; padding: 0 18px; display: grid; grid-template-columns: 1fr auto; align-items: center; border: 1px solid rgba(255,255,255,.96); border-radius: 24px; background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(255,255,255,.82)); box-shadow: inset 0 1px 0 #ffffff, 0 18px 45px rgba(32,92,164,.10); backdrop-filter: blur(28px) saturate(150%); -webkit-backdrop-filter: blur(28px) saturate(150%); animation: topbar-in .65s cubic-bezier(.2,.8,.2,1) both; }
 .brand { position: relative; display: inline-flex; align-items: center; width: fit-content; text-decoration: none; filter: drop-shadow(0 8px 18px rgba(7,93,255,.16)); }
 .brand img { display: block; width: 124px; height: auto; object-fit: contain; opacity: 0; }
-.brand::after { content: ""; position: absolute; inset: 0; background: var(--brand-blue); -webkit-mask: url("./logo-pluvia.png?v=logo-1") center / contain no-repeat; mask: url("./logo-pluvia.png?v=logo-1") center / contain no-repeat; pointer-events: none; }
+.brand::after { content: ""; position: absolute; inset: 0; background: var(--brand-blue); -webkit-mask: url("./logo-pluvia.png?v=logo-2") center / contain no-repeat; mask: url("./logo-pluvia.png?v=logo-2") center / contain no-repeat; pointer-events: none; }
 nav { display: flex; gap: 4px; padding: 4px; border: 1px solid rgba(255,255,255,.68); border-radius: 999px; background: rgba(255,255,255,.30); box-shadow: inset 0 1px 0 rgba(255,255,255,.78); }
 nav a { color: var(--muted); text-decoration: none; padding: 8px 16px; border-radius: 999px; font-size: .82rem; font-weight: 600; transition: color .2s ease, background .2s ease, box-shadow .2s ease, transform .2s ease; }
 nav a:hover, nav a.active { color: #ffffff; background: var(--brand-blue); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 18px rgba(7,93,255,.24); }
@@ -204,7 +204,7 @@ footer > .footer-brand { display:flex; align-items:center; gap:15px; min-width:0
 .source-credits h3 { margin:0 0 8px; color:var(--text); font-size:1rem; }
 .source-credits p { margin:0; line-height:1.6; }
 .source-credits a { color:var(--blue); text-underline-offset:3px; }
-.footer-brand-icon { flex:0 0 62px; width:62px; height:74px; background:#316dff; -webkit-mask:url("./logo-mark.webp?v=logo-1") center / contain no-repeat; mask:url("./logo-mark.webp?v=logo-1") center / contain no-repeat; }
+.footer-brand-icon { flex:0 0 62px; width:62px; height:74px; background:#316dff; -webkit-mask:url("./logo-mark.webp?v=logo-2") center / contain no-repeat; mask:url("./logo-mark.webp?v=logo-2") center / contain no-repeat; }
 .footer-brand-copy { display:flex; flex-direction:column; align-items:flex-start; min-width:0; line-height:1.1; }
 .footer-brand-copy strong { color:#316dff; font-size:clamp(1.9rem,4vw,2.6rem); font-weight:900; letter-spacing:.015em; }
 .footer-brand-copy span { margin-top:7px; color:var(--canvas-text); font-size:clamp(.76rem,2.6vw,.92rem); font-weight:600; letter-spacing:.08em; }
@@ -490,7 +490,7 @@ body.city-dialog-open { overflow:hidden; } /* classe em vez de :has(): o Safari 
   
   .brand { width:44px; height:44px; }
   .brand img { width:44px; height:44px; }
-  .brand::after { -webkit-mask-image:url("./logo-mark.webp?v=logo-1"); mask-image:url("./logo-mark.webp?v=logo-1"); }
+  .brand::after { -webkit-mask-image:url("./logo-mark.webp?v=logo-2"); mask-image:url("./logo-mark.webp?v=logo-2"); }
   }
 
 /* Busca compacta e marca legível também no celular. */
@@ -551,7 +551,7 @@ body.city-dialog-open { overflow:hidden; } /* classe em vez de :has(): o Safari 
 /* Assinatura original inteira em azul, em ambos os temas. */
 .topbar .brand { width:144px; max-width:100%; height:44px; }
 .topbar .brand img,.topbar .brand span { visibility:hidden; }
-.topbar .brand::after { content:""; inset:0; background:#2F6BFF; -webkit-mask:url('./logo-pluvia.png?v=logo-1') left center / auto 56px no-repeat; mask:url('./logo-pluvia.png?v=logo-1') left center / auto 56px no-repeat; }
+.topbar .brand::after { content:""; inset:0; background:#2F6BFF; -webkit-mask:url('./logo-pluvia.png?v=logo-2') left center / auto 56px no-repeat; mask:url('./logo-pluvia.png?v=logo-2') left center / auto 56px no-repeat; }
 #accountLogout { margin-top:16px; }
 .topbar { height:auto; min-height:88px; padding:12px 18px; grid-template-columns:minmax(0,1fr) auto auto; grid-template-rows:44px 24px; column-gap:16px; row-gap:2px; align-items:center; }
 .topbar .brand { grid-column:1; grid-row:1; justify-self:start; }

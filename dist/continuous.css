@@ -1819,3 +1819,27 @@ html body #weatherView .weather-hero.current-card { padding-top:0 !important; }
   .topbar .brand .brand-mark { width:26px; height:32px; flex-basis:26px; }
   .topbar .brand span:last-child { font-size:1.12rem; }
 }
+/* Até 340 px a marca volta ao tamanho anterior: no WebKit o nome é mais largo e encostava nos botões da direita. */
+@media(max-width:340px) {
+  .topbar .brand .brand-mark { width:22px; height:28px; flex-basis:22px; }
+  .topbar .brand span:last-child { font-size:.95rem; }
+}
+/* As mesmas faixas pela largura real do cabeçalho (container query): no CI WebKit as media queries de 380/340 px
+   não valiam com a página desenhada a 320 px, e a marca encostava nos botões. O cabeçalho tem 20 px a menos que a tela. */
+.topbar { container-type:inline-size; }
+@container (max-width:360px) {
+  .topbar .brand .brand-mark { width:26px; height:32px; flex-basis:26px; }
+  .topbar .brand span:last-child { font-size:1.12rem; }
+}
+@container (max-width:320px) {
+  .topbar .brand .brand-mark { width:22px; height:28px; flex-basis:22px; }
+  .topbar .brand span:last-child { font-size:.95rem; }
+}
+/* Leituras largas ("100", "-12") em telas estreitas: o grau invisível encolhe primeiro (só ele pode encolher), e o grau
+   real nunca sai da tela; os algarismos só deixam o eixo quando não cabem de outro jeito (CI WebKit, 320 px). */
+#weatherView .temperature::before { flex:0 1 auto; min-width:0; overflow:hidden; }
+#weatherView .temperature > #temperature, #weatherView .temperature > .deg { flex-shrink:0; }
+/* Proporção do app Tempo (1.16, pedido do usuário): a temperatura tem ~2,8× o tamanho do nome da cidade
+   (no iPhone, 34 e 96 pt), então os algarismos ocupam mais ou menos a mesma largura do nome logo acima. */
+#weatherView .intro h1 { font-size:clamp(1.9rem,8.7vw,2.65rem); }
+html body #weatherView .weather-hero .temperature { font-size:clamp(5.35rem,24.5vw,7.5rem) !important; }
