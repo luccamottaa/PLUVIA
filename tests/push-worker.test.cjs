@@ -317,3 +317,35 @@ test('parou de chover: hora seca depois de chuva na estação, ou aeroporto que 
   // Chaves diferentes por leitura.
   assert.notEqual(stopped[0].fingerprintSeed,air[0].fingerprintSeed);
 });
+test('modelo de chuva vencedor: só volume e chance trocam, e a concordância nunca compara o modelo com ele mesmo',()=>{
+  const api=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({withRainModel,rainModelUrl,withAgreement,agreementUrl})',{Intl,Date,URL,URLSearchParams});
+  const data=weather(),times=data.hourly.time;
+  const other={hourly:{time:[...times],precipitation:times.map((_,i)=>i===2?3:0),precipitation_probability:times.map((_,i)=>i===2?80:5)}};
+  const swapped=api.withRainModel(data,other);
+  assert.equal(swapped.hourly.precipitation[2],3);assert.equal(swapped.hourly.precipitation_probability[2],80);
+  assert.equal(swapped.hourly.temperature_2m,data.hourly.temperature_2m,'temperatura continua do best_match');
+  assert.equal(api.withRainModel(data,{hourly:{...other.hourly,time:times.map(t=>t+3600)}}),null,'horas desalinhadas');
+  assert.equal(api.withRainModel(data,{hourly:{...other.hourly,precipitation_probability:times.map((_,i)=>i===3?null:5)}}),null,'chance faltando');
+  assert.match(api.rainModelUrl({...location,id:'x',user_id:'u'},'icon_seamless'),/models=icon_seamless.*|hourly=precipitation%2Cprecipitation_probability/);
+  assert.match(api.agreementUrl({...location,id:'x',user_id:'u'}),/best_match/);
+  // Chuva do ICON: os "outros" passam a ser ECMWF, GFS e o best_match.
+  const t0=1792382400,hours=Array.from({length:8},(_,i)=>t0+i*3600),wet=hours.map((_,i)=>i===2?3:0),dry=hours.map(()=>0);
+  const others={hourly:{time:hours,precipitation_ecmwf_ifs025:wet,precipitation_gfs_seamless:dry,precipitation_icon_seamless:wet,precipitation_best_match:wet}};
+  const rain={type:'rain_approaching',severity:2,body:'Chuva.',metadata:{window:[t0+7200,t0+7200]}};
+  assert.match(api.withAgreement(rain,others,'icon_seamless').body,/2 de 3 outros modelos/);
+  assert.match(api.withAgreement(rain,others).body,/2 de 3 outros modelos/,'padrão exclui o best_match');
+});
+test('chuva chegando pelo radar: 10 a 60 min de antecedência contados da imagem, só com chance de chuva no modelo',()=>{
+  const api=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({nowcastCandidate,rainLikelySoon})',{Intl,Date,URL,URLSearchParams});
+  const now=new Date('2026-10-19T15:00:00Z'),frame=now.getTime()-5*60_000;
+  const event=api.nowcastCandidate({minutes:40,speedKmh:35},frame,location,now);
+  assert.equal(event.type,'rain_incoming');assert.equal(event.severity,2);
+  assert.equal(event.body,'O radar mostra chuva vindo na direção de Manaus: deve chegar em cerca de 35 min, pelo movimento das últimas imagens.');
+  assert.match(event.fingerprintSeed,/^rain_incoming\|1302603\|/);
+  assert.equal(api.nowcastCandidate({minutes:10,speedKmh:35},frame,location,now),null,'menos de 10 min: tarde demais');
+  assert.equal(api.nowcastCandidate({minutes:40,speedKmh:35},now.getTime()-25*60_000,location,now),null,'imagem velha');
+  assert.equal(api.nowcastCandidate(null,frame,location,now),null);
+  const data=weather();const t=Date.parse('2026-10-01T11:00Z');
+  assert.equal(api.rainLikelySoon(data,new Date(t)),false);
+  data.hourly.precipitation_probability[2]=40;assert.equal(api.rainLikelySoon(data,new Date(t)),true);
+});

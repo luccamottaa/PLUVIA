@@ -6,6 +6,9 @@ import { selectCandidates, isRepeat, stopAllowed, pushUrgency } from "../_shared
 import { report } from "../_shared/error-report.js";
 import { metarUrl, nearestAirport } from "../_shared/metar.js";
 import { stationUrl, normalizeStation } from "../_shared/inmet-station.js";
+import { estimate as estimateArrival, windowTiles, windowMask, FRAME_GAP_S, SIZE as NOWCAST_SIZE } from "../_shared/radar-nowcast.js";
+import { PNG } from "npm:pngjs@7.0.0";
+import { Buffer } from "node:buffer";
 
 type Location = { id: string; user_id: string; city_id: string; city_name: string; uf: string; latitude: number; longitude: number; timezone: string };
 type Preference = Record<string, any> & { user_id: string };
@@ -17,7 +20,7 @@ const preferenceFor: Record<string, string> = {
   lightning: "lightning", strong_wind: "strong_wind", extreme_heat: "extreme_heat", air_quality: "air_quality",
   weather_change: "weather_changes", daily_summary: "daily_summary", evening_summary: "evening_summary",
   // Observados (estação do INMET e boletim do aeroporto): ligam junto com os avisos de chuva e tempestade.
-  rain_now: "rain_approaching", rain_nearby: "rain_approaching", rain_stopped: "rain_approaching", storm_now: "storms",
+  rain_now: "rain_approaching", rain_nearby: "rain_approaching", rain_stopped: "rain_approaching", rain_incoming: "rain_approaching", storm_now: "storms",
 };
 const asArray = (value: any) => Array.isArray(value) ? value : [];
 const text = (value: unknown, max = 500) => String(value ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
@@ -41,6 +44,46 @@ async function fetchJson(url: string, timeout = 12_000) {
     if (error instanceof Error && /^source_(http_\d+|invalid_response)$/.test(error.message)) throw error;
     throw new Error("source_network");
   } finally { clearTimeout(timer); }
+}
+
+async function fetchBytes(url: string, timeout = 8_000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, { signal: controller.signal, headers: { "User-Agent": "PLUVIA weather alerts/1.0" } });
+    if (!response.ok) throw new Error(`source_http_${response.status}`);
+    return new Uint8Array(await response.arrayBuffer());
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error("source_timeout");
+    if (error instanceof Error && /^source_http_\d+$/.test(error.message)) throw error;
+    throw new Error("source_network");
+  } finally { clearTimeout(timer); }
+}
+
+// "Chuva chegando" pelo radar (o mesmo cálculo do app, _shared/radar-nowcast.js): imagem do RainViewer de
+// 20 min atrás contra a mais recente, deslocamento das manchas e chegada em até 60 min. O aviso só sai
+// com 10 a 60 min de antecedência, contados da imagem; movimento sem clareza não vira aviso.
+function nowcastCandidate(result: { minutes: number; speedKmh: number } | null, frameAt: number, location: Location, now = new Date()) {
+  if (!result || !Number.isFinite(frameAt)) return null;
+  const age = (now.getTime() - frameAt) / 60_000;
+  const left = result.minutes - age;
+  if (age > 20 || left < 10 || left > 60) return null;
+  const minutes = Math.round(left / 5) * 5;
+  return {
+    type: "rain_incoming", severity: 2, title: "🌧️ Chuva chegando",
+    body: `O radar mostra chuva vindo na direção de ${location.city_name}: deve chegar em cerca de ${minutes} min, pelo movimento das últimas imagens.`,
+    source: "Radar · RainViewer", start: now, expires: new Date(frameAt + (result.minutes + 30) * 60_000), url: "./#chuva",
+    fingerprintSeed: `rain_incoming|${location.city_id}|${frameAt}`,
+    metadata: { arrival_min: minutes, speed_kmh: result.speedKmh, frame_at: new Date(frameAt).toISOString(), confidence: "moderate" },
+  } satisfies EventCandidate;
+}
+// Só vale olhar o radar quando o modelo já vê chance de chuva nas próximas 3 h (poupa a cota do RainViewer).
+function rainLikelySoon(data: any, now = new Date()) {
+  const t = now.getTime() / 1000, times = asArray(data?.hourly?.time);
+  return times.some((time: unknown, index: number) => {
+    const unix = observed(time, 1);
+    return unix !== null && unix > t && unix <= t + 3 * 3600 && ((observed(data.hourly.precipitation_probability?.[index], 0, 100) ?? 0) >= 30 || (observed(data.hourly.precipitation?.[index], 0, 500) ?? 0) >= 0.5);
+  });
 }
 
 function localMinutes(timezone: string, date = new Date()) {
@@ -78,8 +121,10 @@ function airQualityUrl(location: Location) {
   return url.toString();
 }
 
-// Outros modelos, consultados só quando um aviso de chuva vai sair (não a cada rodada).
-const AGREEMENT_MODELS = ["ecmwf_ifs025", "gfs_seamless", "icon_seamless"];
+// Outros modelos, consultados só quando um aviso de chuva vai sair (não a cada rodada). best_match entra na
+// consulta para a comparação nunca incluir o próprio modelo do aviso (quando a chuva vem do vencedor da
+// cidade, o best_match vira um dos "outros").
+const AGREEMENT_MODELS = ["ecmwf_ifs025", "gfs_seamless", "icon_seamless", "best_match"];
 function agreementUrl(location: Location) {
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.search = new URLSearchParams({
@@ -94,7 +139,7 @@ function agreementUrl(location: Location) {
 // válidos não há concordância a dizer (null). A confiança vem só disso: todos concordam = alta,
 // nenhum = baixa, o resto = moderada. Não é probabilidade calibrada; o placar de acerto é que vai dizer
 // quanto ela vale.
-function modelAgreement(data: any, window: unknown, minMm = 0.5) {
+function modelAgreement(data: any, window: unknown, minMm = 0.5, used = "best_match") {
   if (!Array.isArray(window)) return null;
   const [from, to] = window.map(value => observed(value, 1));
   if (from === null || to === null || to < from) return null;
@@ -106,6 +151,7 @@ function modelAgreement(data: any, window: unknown, minMm = 0.5) {
   if (indexes.length !== (to - from) / 3600 + 1) return null;
   let agree = 0, total = 0;
   for (const model of AGREEMENT_MODELS) {
+    if (model === used) continue;
     const values = indexes.map((index: number) => observed(data.hourly[`precipitation_${model}`]?.[index], 0, 500));
     if (values.some((value: number | null) => value === null)) continue;
     total++;
@@ -114,9 +160,9 @@ function modelAgreement(data: any, window: unknown, minMm = 0.5) {
   return total >= 2 ? { agree, total } : null;
 }
 
-function withAgreement(candidate: EventCandidate, data: any): EventCandidate {
+function withAgreement(candidate: EventCandidate, data: any, used = "best_match"): EventCandidate {
   if (!["rain_approaching", "heavy_rain"].includes(candidate.type)) return candidate;
-  const result = modelAgreement(data, candidate.metadata?.window, candidate.type === "heavy_rain" ? 2.5 : 0.5);
+  const result = modelAgreement(data, candidate.metadata?.window, candidate.type === "heavy_rain" ? 2.5 : 0.5, used);
   if (!result) return candidate;
   const what = candidate.type === "heavy_rain" ? "chuva forte" : "chuva";
   const note = result.agree === 0
@@ -126,6 +172,26 @@ function withAgreement(candidate: EventCandidate, data: any): EventCandidate {
     : ` ${result.agree} de ${result.total} outros modelos também preveem ${what} nesse horário.`;
   const confidence = result.agree === result.total ? "high" : result.agree === 0 ? "low" : "moderate";
   return { ...candidate, body: candidate.body + note, metadata: { ...candidate.metadata, agreement: result, confidence } };
+}
+
+// Modelo de chuva vencedor da cidade (pluvia_rain_model, placar de acerto): só volume e chance por hora vêm
+// dele, os dois da mesma amostra; temperatura, códigos e o resto continuam no best_match. Se as horas não
+// baterem uma a uma, ou se faltar chance ou volume em alguma, nada é trocado.
+function rainModelUrl(location: Location, model: string) {
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.search = new URLSearchParams({
+    latitude: String(location.latitude), longitude: String(location.longitude), timezone: location.timezone, timeformat: "unixtime",
+    forecast_days: "3", past_hours: "24", hourly: "precipitation,precipitation_probability", models: model,
+  }).toString();
+  return url.toString();
+}
+function withRainModel(weather: any, other: any) {
+  const times = asArray(weather?.hourly?.time), theirs = asArray(other?.hourly?.time);
+  if (!times.length || times.length !== theirs.length || times.some((time: unknown, index: number) => time !== theirs[index])) return null;
+  const mm = asArray(other.hourly.precipitation), chance = asArray(other.hourly.precipitation_probability);
+  const valid = (list: unknown[], max: number) => list.length === times.length && list.every(value => observed(value, 0, max) !== null);
+  if (!valid(mm, 500) || !valid(chance, 100)) return null;
+  return { ...weather, hourly: { ...weather.hourly, precipitation: mm, precipitation_probability: chance } };
 }
 
 // Null, strings and booleans are missing observations, never numeric zero.
@@ -589,6 +655,36 @@ Deno.serve(async (req) => {
       }
     }
     let created = 0, accepted = 0, sourceFailures = 0, processed = 0;
+    // Radar: metadados e telhas decodificadas compartilhados na rodada (cidades vizinhas usam as mesmas telhas).
+    let radarMeta: Promise<any> | null = null;
+    const tiles = new Map<string, Promise<Uint8Array>>();
+    const tile = (url: string) => {
+      if (!tiles.has(url)) tiles.set(url, fetchBytes(url).then(bytes => {
+        const png = PNG.sync.read(Buffer.from(bytes));
+        if (png.width !== 256 || png.height !== 256) throw new Error("source_invalid_response");
+        return new Uint8Array(png.data);
+      }));
+      return tiles.get(url)!;
+    };
+    const nowcastFor = async (location: Location) => {
+      radarMeta ||= fetchJson("https://api.rainviewer.com/public/weather-maps.json", 8_000);
+      const meta = await radarMeta;
+      const past = asArray(meta?.radar?.past), latest = past[past.length - 1];
+      const earlier = latest && past.find((frame: any) => frame?.time === latest.time - FRAME_GAP_S);
+      const host = latest?.host || meta?.host;
+      if (!latest?.path || !earlier?.path || typeof host !== "string" || !/^https:\/\/[a-z0-9.-]+\.rainviewer\.com$/.test(host)) return null;
+      const placed = windowTiles(location.longitude, location.latitude);
+      const maskFor = async (path: string) => windowMask(await Promise.all(placed.map(async ({ tx, ty, ox, oy }) => ({ ox, oy, rgba: await tile(`${host}${path}/256/7/${tx}/${ty}/2/1_1.png`) }))));
+      const [before, after] = await Promise.all([maskFor(earlier.path), maskFor(latest.path)]);
+      return nowcastCandidate(estimateArrival(before, after, NOWCAST_SIZE, FRAME_GAP_S, location.latitude), latest.time * 1000, location);
+    };
+    // Vencedor de chuva por cidade, uma consulta por cidade por rodada; falha do placar = best_match.
+    const rainModels = new Map<string, Promise<string | null>>();
+    const rainModelFor = (cityId: string) => {
+      if (!rainModels.has(cityId)) rainModels.set(cityId, Promise.resolve(admin.rpc("pluvia_rain_model", { p_city: cityId }))
+        .then(({ data, error }: any) => !error && typeof data === "string" && /^[a-z0-9_]{2,40}$/.test(data) ? data : null).catch(() => null));
+      return rainModels.get(cityId)!;
+    };
     const sources = new Map<string, Promise<any>>();
     const source = (url: string) => {
       if (!sources.has(url)) sources.set(url, fetchJson(url));
@@ -602,13 +698,22 @@ Deno.serve(async (req) => {
       if (!preference || !userSubscriptions.length || !preference.notifications_enabled) {
         await checkpoint(location.id); processed++; continue;
       }
+      let rainModel = "best_match";
+      let weatherForNowcast: any = null;
       try {
         const candidates: EventCandidate[] = inmetForLocation(inmetAlerts, location);
         const needsWeather = ["rain_approaching", "heavy_rain", "storms", "strong_wind", "extreme_heat", "weather_changes", "daily_summary", "evening_summary"].some(key => preference[key]);
         if (needsWeather) try {
-          const weather = await source(weatherUrl(location));
+          let weather = await source(weatherUrl(location));
           if (!freshCurrent(weather, new Date())) throw new Error("source_invalid_current");
+          // Chuva do modelo que mais acerta nesta cidade, quando o placar já tem um vencedor claro.
+          const winner = await rainModelFor(location.city_id);
+          if (winner) try {
+            const swapped = withRainModel(weather, await source(rainModelUrl(location, winner)));
+            if (swapped) { weather = swapped; rainModel = winner; }
+          } catch { /* fica o best_match */ }
           candidates.push(...detectWeather(weather, location));
+          weatherForNowcast = weather;
           const summary = dailySummaryCandidate(weather, location, preference);
           if (summary) candidates.push(summary);
           const evening = eveningSummaryCandidate(weather, location, preference);
@@ -634,6 +739,14 @@ Deno.serve(async (req) => {
           raining = rainingNow({ station, airport });
         }
         if (Date.now() >= deadline) throw new Error("worker_budget");
+        // Chuva a caminho pelo radar: sem chuva medida agora e com o modelo vendo chance nas próximas 3 h.
+        if (preference.rain_approaching && !raining && weatherForNowcast && rainLikelySoon(weatherForNowcast)) {
+          try {
+            const incoming = await nowcastFor(location);
+            if (incoming) candidates.push(incoming);
+          } catch { /* sem radar, sem aviso */ }
+        }
+        if (Date.now() >= deadline) throw new Error("worker_budget");
         if (preference.air_quality) {
           try {
             const airEvent = detectAirQuality(await source(airQualityUrl(location)), location);
@@ -646,9 +759,10 @@ Deno.serve(async (req) => {
           // Falha dos outros modelos não segura o aviso: ele sai sem a frase de concordância.
           try {
             const others = await source(agreementUrl(location));
-            selected = selected.map(candidate => withAgreement(candidate, others));
+            selected = selected.map(candidate => withAgreement(candidate, others, rainModel));
           } catch { /* sem concordância */ }
         }
+        if (rainModel !== "best_match") selected = selected.map(candidate => ["rain_approaching", "heavy_rain", "weather_change"].includes(candidate.type) ? { ...candidate, metadata: { ...candidate.metadata, rain_model: rainModel } } : candidate);
         for (const candidate of selected) {
           if (Date.now() >= deadline) throw new Error("worker_budget");
           const event = await createEvent(admin, location, candidate);

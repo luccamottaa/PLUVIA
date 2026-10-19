@@ -86,3 +86,9 @@ test('"parou de chover" só depois de um "começou" entregue e nunca junto de ch
  assert.deepEqual(selectCandidates([{type:'rain_stopped',severity:1}],{raining:true}),[]);
  assert.equal(pushUrgency('rain_stopped',1),'high');
 });
+test('chuva chegando substitui "chuva nas próximas horas" e some quando já chove',()=>{
+ assert.deepEqual(selectCandidates([{type:'rain_approaching',severity:2},{type:'rain_incoming',severity:2}]).map(e=>e.type),['rain_incoming']);
+ assert.deepEqual(selectCandidates([{type:'rain_incoming',severity:2}],{raining:true}),[]);
+ assert.deepEqual(selectCandidates([{type:'rain_incoming',severity:2},{type:'rain_now',severity:2}]).map(e=>e.type),['rain_now']);
+ assert.equal(pushUrgency('rain_incoming',2),'high');
+});

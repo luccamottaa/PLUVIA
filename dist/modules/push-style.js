@@ -25,6 +25,7 @@
     rain_now:         {icon:'rain', action:'Ver agora', fallback:'Começou a chover', observed:true},
     rain_nearby:      {icon:'rain', action:'Ver chuva por hora', fallback:'Chuva por perto', observed:true},
     storm_now:        {icon:'storm', action:'Ver agora', fallback:'Trovoada agora', observed:true},
+    rain_incoming:    {icon:'rain', action:'Ver chuva por hora', fallback:'Chuva chegando', observed:true},
     rain_stopped:     {icon:'daily', action:'Ver próximas horas', fallback:'Parou de chover', observed:true},
     test:             {icon:null, action:'Abrir o PLUVIA', fallback:'Notificações ativas'}
   };
