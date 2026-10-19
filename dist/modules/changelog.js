@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.14.3", date:"2026-10-19", title:"Troca de cidade mais lisa", items:[
+      "Trocar de cidade ficou mais suave: as informações descem sem engasgar, e numa cidade nova elas esperam a previsão chegar para descer de uma vez, em vez de trocar no meio do caminho.",
+      "A barra de chuva agora se enche aos poucos até a intensidade da chuva quando a cidade aparece. Sem chuva, ela continua vazia: a chance de chover não enche a barra.",
+    ]},
     {version:"1.14.2", date:"2026-10-19", title:"Umidade em palavras", items:[
       "A umidade agora sempre diz como está o ar: “Confortável”, “Úmido”, “Muito úmido”, “Um pouco seco” ou o alerta de ar seco. O buraco embaixo dela sumiu.",
     ]},

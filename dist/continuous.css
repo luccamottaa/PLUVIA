@@ -701,7 +701,8 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 #weatherView .rain-gauge[hidden] { display:none !important; }
 #weatherView .rain-gauge-track { width:100%; height:5px; border-radius:999px; background:rgba(255,255,255,.18); overflow:hidden; position:relative; }
 body[data-ink="dark"] #weatherView .rain-gauge-track { background:rgba(0,0,0,.12); }
-#weatherView .rain-gauge-fill { height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#5ea4ff,var(--brand-blue,#2f6bff)); transition:width .35s ease; }
+#weatherView .rain-gauge-fill { height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#5ea4ff,var(--brand-blue,#2f6bff)); transition:width .9s cubic-bezier(.22,1,.36,1) .25s; }
+@media (prefers-reduced-motion:reduce) { #weatherView .rain-gauge-fill { transition:none; } }
 #weatherView .rain-gauge[data-level="heavy"] .rain-gauge-fill,
 #weatherView .rain-gauge[data-level="storm"] .rain-gauge-fill { background:linear-gradient(90deg,#2f6bff,#8a5aff); }
 #weatherView .rain-gauge-label { margin:0; font-size:.78rem; font-weight:600; color:var(--reading-muted); letter-spacing:.02em; }
@@ -1008,6 +1009,8 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
    o Safari do iPhone. Só na troca de cidade, com o bloco parado na tela: nada espera a rolagem. */
 #weatherView [data-drop="go"] { position:relative; animation:pluvia-drop .62s cubic-bezier(.22,1,.36,1) var(--drop-delay,0ms) both; }
 @keyframes pluvia-drop { from { top:-18px; clip-path:inset(0 0 100% 0); } to { top:0; clip-path:inset(-40px); } }
+/* Cidade sem previsão salva: o bloco fica guardado (recortado) até a previsão chegar e então desce (app.js). */
+#weatherView [data-drop="hold"] { clip-path:inset(0 0 100% 0); }
 @media (prefers-reduced-motion:reduce) { #weatherView [data-drop] { clip-path:none; animation:none; } }
 /* ⓘ abre e fecha pela altura (grid 0fr ↔ 1fr), empurrando o conteúdo de baixo sem criar camadas. */
 #weatherView .info-tip-body[data-inline] { display:grid; grid-template-rows:1fr; transition:grid-template-rows .3s cubic-bezier(.3,.7,.2,1),margin .3s cubic-bezier(.3,.7,.2,1),padding .3s cubic-bezier(.3,.7,.2,1),border-color .3s,color .3s; }

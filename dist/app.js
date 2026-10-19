@@ -880,10 +880,19 @@ function setRainGauge(gauge) {
     node.hidden = true;
     return;
   }
+  // Ao aparecer (ou na cidade nova) o medidor desce como os outros blocos e a parte azul enche do zero até a
+  // intensidade; atualizações da mesma cidade só deslizam até o valor novo.
+  const appearing = node.hidden || node.dataset.city !== String(activeCity?.id);
   node.hidden = false;
+  node.dataset.city = String(activeCity?.id ?? "");
   node.dataset.level = gauge.level;
   const bar = $("rainGaugeFill");
-  if (bar) bar.style.width = `${gauge.percentage}%`;
+  const width = `${gauge.percentage}%`;
+  if (bar && appearing && dropMotion() && globalThis.requestAnimationFrame) {
+    bar.style.width = "0%";
+    requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = width; }));
+  } else if (bar) bar.style.width = width;
+  if (appearing) settleBlock(node);
   const track = node.querySelector(".rain-gauge-track");
   if (track) { track.setAttribute("aria-valuenow", String(gauge.percentage)); track.setAttribute("aria-valuetext", gauge.summary); }
   const label = $("rainGaugeLabel");
@@ -1583,9 +1592,38 @@ function whenOnScreen(nodes, done) {
 // descem logo depois do nome, da temperatura, da condição e do "Vai chover?".
 function dropVisibleBlocks(delay) {
   if (!dropMotion()) return;
-  whenOnScreen(dropBlocks(DROP_BLOCKS), list => dropIn(list, delay, 70));
+  const blocks = dropBlocks(DROP_BLOCKS);
+  const start = list => {
+    // Blocos guardados (abaixo) que não estão à vista voltam ao normal sem animar.
+    document.querySelectorAll?.('#weatherView [data-drop="hold"]').forEach(node => { if (!list.includes(node)) node.removeAttribute("data-drop"); });
+    dropIn(list, delay, 70);
+  };
+  // Guardado, o bloco está recortado e o IntersectionObserver o vê com área zero: mede direto (a previsão
+  // acabou de ser desenhada, o layout já está pronto).
+  if (blocks.some(node => node.dataset?.drop === "hold")) start(blocks.filter(onScreen));
+  else whenOnScreen(blocks, start);
 }
-function dropCityContent() { dropVisibleBlocks(240); }
+// Cidade sem previsão salva: os blocos ficam guardados (data-drop="hold") até a previsão chegar e ser
+// desenhada, e só então descem. Antes a cascata começava com os esqueletos e a chegada dos dados
+// redesenhava a tela no meio da descida: quadros de 180–270 ms com CPU 4× (perfil, outubro/2026).
+// Internet lenta: depois de DROP_HOLD_MS os blocos descem do mesmo jeito.
+const DROP_HOLD_MS = 800;
+let dropHold = 0;
+function dropCityContent() {
+  const token = ++dropHold;
+  if (!dropMotion() || displayedWeather) { dropVisibleBlocks(240); return; }
+  dropBlocks(DROP_BLOCKS).forEach(node => node.setAttribute("data-drop", "hold"));
+  const release = () => {
+    if (token !== dropHold) return;
+    dropHold++;
+    globalThis.removeEventListener?.("pluvia:weather-updated", ready);
+    clearTimeout(timer);
+    (globalThis.requestAnimationFrame || (fn => setTimeout(fn, 16)))(() => dropVisibleBlocks(0));
+  };
+  const ready = () => release();
+  const timer = setTimeout(release, DROP_HOLD_MS);
+  globalThis.addEventListener?.("pluvia:weather-updated", ready, {once:true});
+}
 document.addEventListener?.("animationend", event => {
   if (event.animationName !== "pluvia-drop" || event.target?.dataset?.drop !== "go") return;
   event.target.removeAttribute("data-drop");
