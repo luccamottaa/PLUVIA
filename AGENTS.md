@@ -233,7 +233,7 @@ Cascata "descendo" (a pedido): na troca de cidade, dentro da mesma View Transiti
 
 ## Limpeza de interface (outubro/2026)
 
-Notas sem informação saem: visibilidade só tem nota quando reduzida (< 5 km) ou indisponível (com "previsão salva" no cache), umidade só para ar seco (< 30% agora ou mais tarde no dia; 70% "alta" é o normal), pressão sem tendência diz "Estimativa do modelo" (identifica a série), o radar mostra só "Cidade/UF" (a marca azul é explicada no ⓘ). O marcador do AQI é a mesma bolinha do UV (a pílula parecia um "0"). Até 420 px o botão do radar mostra "radar" (nome acessível "Abrir radar") e, de 340 a 420 px, "Chuva na região" fica numa linha. Rodapé: só a marca (os links das cidades foram para "Mais do PLUVIA").
+Notas sem informação saem: visibilidade só tem nota quando reduzida (< 5 km) ou indisponível (com "previsão salva" no cache), umidade sempre com a faixa em palavras (1.14.2, pedido do usuário: "Um pouco seco" < 50, "Confortável" 50–70, "Úmido" 70–85, "Muito úmido" ≥ 85, e os alertas da Defesa Civil abaixo de 30%, com a hora mais seca do dia quando ela passa abaixo de 30%); sem nota, o bloco ficava com um buraco ao lado da visibilidade, pressão sem tendência diz "Estimativa do modelo" (identifica a série), o radar mostra só "Cidade/UF" (a marca azul é explicada no ⓘ). O marcador do AQI é a mesma bolinha do UV (a pílula parecia um "0"). Até 420 px o botão do radar mostra "radar" (nome acessível "Abrir radar") e, de 340 a 420 px, "Chuva na região" fica numa linha. Rodapé: só a marca (os links das cidades foram para "Mais do PLUVIA").
 
 ## Ontem, ar nos próximos dias e eventos no céu (outubro/2026)
 

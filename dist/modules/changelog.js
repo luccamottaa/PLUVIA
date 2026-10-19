@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.14.2", date:"2026-10-19", title:"Umidade em palavras", items:[
+      "A umidade agora sempre diz como está o ar: “Confortável”, “Úmido”, “Muito úmido”, “Um pouco seco” ou o alerta de ar seco. O buraco embaixo dela sumiu.",
+    ]},
     {version:"1.14.1", date:"2026-10-19", title:"Lua mais natural", items:[
       "A Lua do cartão ficou mais nítida, com uma imagem da NASA em alta definição, e a luz agora cai aos poucos do lado claro para o escuro, como numa foto. A Lua do céu ganhou a mesma luz.",
       "Visibilidade mais limpa: o selo “Visibilidade reduzida” saiu (quebrava em duas linhas e deixava um buraco no bloco); a nota embaixo do número já diz se está reduzida.",

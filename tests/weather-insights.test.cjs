@@ -122,9 +122,9 @@ for (const value of [null, undefined, '', ' ', false, [], NaN, Infinity, -1]) {
   assert.equal(insights.humidityLevel(12).level, 'alert');
   assert.equal(insights.humidityLevel(19).level, 'alert');
   assert.equal(insights.humidityLevel(25).level, 'attention');
-  assert.equal(insights.humidityLevel(45).label, 'Ar mais seco');
-  assert.equal(insights.humidityLevel(60).label, 'Faixa confortável');
-  assert.equal(insights.humidityLevel(90).label, 'Umidade muito alta');
+  assert.equal(insights.humidityLevel(45).label, 'Um pouco seco');
+  assert.equal(insights.humidityLevel(60).label, 'Confortável');
+  assert.equal(insights.humidityLevel(90).label, 'Muito úmido');
   for (const missing of [null, undefined, '20', NaN, -1, 101]) assert.equal(insights.humidityLevel(missing), null);
 
   const time = [], rh = [];
@@ -136,12 +136,12 @@ for (const value of [null, undefined, '', ' ', false, [], NaN, Infinity, -1]) {
   const morning = insights.humidity({time, relative_humidity_2m:rh}, 9, {relative_humidity_2m:44.6});
   assert.equal(morning.level, 'dry');
   assert.deepEqual(morning.driest, {value:17, time:'15:00', index:15});
-  assert.equal(morning.note, 'Ar mais seco · chega a 17% às 15h');
+  assert.equal(morning.note, 'Um pouco seco · chega a 17% às 15h');
 
   // A madrugada seguinte (9%) pertence a outro dia municipal e não entra na leitura de hoje.
   const evening = insights.humidity({time, relative_humidity_2m:rh}, 18, {relative_humidity_2m:45});
   assert.equal(evening.driest.value, 45);
-  assert.equal(evening.note, 'Ar mais seco');
+  assert.equal(evening.note, 'Um pouco seco');
 
   // A hora atual já é a mais seca: não repetir a mesma leitura como previsão.
   const now = insights.humidity({time, relative_humidity_2m:rh}, 15, {relative_humidity_2m:17});

@@ -1256,9 +1256,9 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   const dayIndex = day.time.indexOf(globalThis.PLUVIA.time.dayKey(Date.now(),activeCity));
   setHeroRange(day.temperature_2m_max[dayIndex], day.temperature_2m_min[dayIndex], now.apparentTemperature);
   $("humidity").innerHTML = `${fmt(now.relativeHumidity)}<sup>%</sup>`; const humidityReading = weatherInsights?.humidity?.(data.hourly,start,current);
-  // Nota só para ar seco (abaixo de 30% agora ou mais tarde): "Umidade alta" a 70% é o normal de quase todo o país.
-  const humidityUnusual = ["emergency","alert","attention"].includes(humidityReading?.level) || Boolean(humidityReading?.driest && humidityReading.note !== humidityReading.label);
-  $("humidityNote").textContent = !Number.isFinite(now.relativeHumidity) ? humidityLabel(null) : humidityUnusual ? humidityReading.note : "";
+  // Nota sempre com a faixa em palavras ("Confortável", "Úmido"…), a pedido do usuário: sem ela o bloco ficava
+  // com um buraco ao lado da nota da visibilidade. A hora mais seca do dia entra quando passa abaixo de 30%.
+  $("humidityNote").textContent = !Number.isFinite(now.relativeHumidity) ? humidityLabel(null) : humidityReading?.note || humidityLabel(now.relativeHumidity);
   $("humidity").closest?.(".metric")?.setAttribute("data-humidity-level",humidityReading?.level || "unknown");
   $("wind").innerHTML = `${fmt(now.windSpeed)}<sup> km/h</sup>`; $("windNote").textContent = `De ${windDirection(now.windDirection)} · rajadas ${fmt(now.windGust)} km/h`;
   // A agulha gira pelo menor caminho (350° → 10° anda 20°, não 340°); o ângulo acumulado fica no elemento.

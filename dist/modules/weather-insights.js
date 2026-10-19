@@ -173,10 +173,10 @@
     [12, "emergency", "Emergência: ar extremamente seco"],
     [20, "alert", "Alerta: ar muito seco"],
     [30, "attention", "Atenção: ar seco"],
-    [50, "dry", "Ar mais seco"],
-    [70, "comfortable", "Faixa confortável"],
-    [85, "high", "Umidade alta"],
-    [Infinity, "very-high", "Umidade muito alta"]
+    [50, "dry", "Um pouco seco"],
+    [70, "comfortable", "Confortável"],
+    [85, "high", "Úmido"],
+    [Infinity, "very-high", "Muito úmido"]
   ];
   const humidityValue = value => finite(value) && value >= 0 && value <= 100 ? Number(value) : null;
   function humidityLevel(value) {
