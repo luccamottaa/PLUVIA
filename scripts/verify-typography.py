@@ -65,8 +65,8 @@ with sync_playwright() as p:
   page.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
  context,page,state=session()
  assert loaded(page)
- assert page.evaluate("getComputedStyle(document.getElementById('temperature')).fontWeight==='300'")
- assert page.evaluate("getComputedStyle(document.getElementById('cityName')).fontWeight==='600'")
+ assert page.evaluate("getComputedStyle(document.getElementById('temperature')).fontWeight==='200'")
+ assert page.evaluate("getComputedStyle(document.getElementById('cityName')).fontWeight==='400'")
  # Measure the font's real digit advances, rather than only checking a CSS rule.
  widths=page.evaluate("()=>{const row=document.createElement('div');row.style.cssText='position:absolute;font:400 20px '+getComputedStyle(document.body).getPropertyValue('--font-ui')+';font-variant-numeric:tabular-nums;';for(const digit of '0123456789'){const span=document.createElement('span');span.textContent=digit;row.append(span)}document.body.append(row);const widths=[...row.children].map(el=>el.getBoundingClientRect().width);row.remove();return widths}")
  assert max(widths)-min(widths)<.1,widths
