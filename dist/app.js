@@ -805,7 +805,9 @@ function paintVisibility() {
   // Nota só quando foge do normal ou quando a leitura é medida (diz de onde veio). A classificação vai na
   // própria nota: o antigo selo "Visibilidade reduzida" quebrava em duas linhas e esticava a fileira toda.
   const level = !reduced ? "" : value < 1000 ? "Baixa" : "Reduzida";
-  const source = measured ? `medida no aeroporto ${airport.icao} às ${formatUpdateTime(airport.at)}` : "";
+  // Curta, numa linha: em duas linhas ela esticava a fileira e abria um buraco embaixo da umidade ao lado
+  // ("Medido" fica no nome acessível do bloco).
+  const source = measured ? `aeroporto ${airport.icao} · ${formatUpdateTime(airport.at)}` : "";
   $("visibilityNote").textContent = !available ? "Visibilidade indisponível para esta hora."
     : measured ? (level ? `${level} · ${source}` : source.charAt(0).toUpperCase() + source.slice(1))
     : reduced ? `${level} · estimativa do modelo${fromCache ? " salva" : ""}` : "";
@@ -1269,7 +1271,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   // com um buraco ao lado da nota da visibilidade. A hora mais seca do dia entra quando passa abaixo de 30%.
   $("humidityNote").textContent = !Number.isFinite(now.relativeHumidity) ? humidityLabel(null) : humidityReading?.note || humidityLabel(now.relativeHumidity);
   $("humidity").closest?.(".metric")?.setAttribute("data-humidity-level",humidityReading?.level || "unknown");
-  $("wind").innerHTML = `${fmt(now.windSpeed)}<sup> km/h</sup>`; $("windNote").textContent = `De ${windDirection(now.windDirection)} · rajadas ${fmt(now.windGust)} km/h`;
+  $("wind").innerHTML = `${fmt(now.windSpeed)}<sup> km/h</sup>`; $("windNote").textContent = `Rajadas ${fmt(now.windGust)} km/h`; // a direção já está na bússola (e no nome acessível dela)
   // A agulha gira pelo menor caminho (350° → 10° anda 20°, não 340°); o ângulo acumulado fica no elemento.
   const compass = $("windCompass"), turn = compass.pluviaTurn || 0, heading = Number.isFinite(now.windDirection) ? now.windDirection : 0;
   compass.pluviaTurn = turn + ((((heading - turn) % 360) + 540) % 360 - 180);
@@ -1278,7 +1280,10 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   $("windCompass").setAttribute("aria-label", `Vento de ${windDirection(now.windDirection)}, ${fmt(now.windSpeed)} quilômetros por hora, rajadas de ${fmt(now.windGust)} quilômetros por hora`);
   $("pressure").innerHTML = `${fmt(now.pressure)}<sup> hPa</sup>`;
   const pressureTrend = weatherInsights.pressure?.(data.hourly,start,activeCity);
-  $("pressureNote").textContent = pressureTrend ? (pressureTrend.trend==='stable' ? 'Estável nas últimas 3h' : `${pressureTrend.trend==='rising' ? 'Subindo' : 'Caindo'} ${fmt(Math.abs(pressureTrend.delta),1)} hPa em 3h`)+' · estimativa' : 'Estimativa do modelo';
+  // Sem nota visível (pedido do usuário, 1.14.4: quebrava em duas linhas e esticava a fileira). Tendência e a
+  // identificação da série modelada continuam para leitores de tela.
+  const pressureNote = $("pressureNote"), pressureText = (pressureTrend ? (pressureTrend.trend==='stable' ? 'Estável nas últimas 3h' : `${pressureTrend.trend==='rising' ? 'Subindo' : 'Caindo'} ${fmt(Math.abs(pressureTrend.delta),1)} hPa em 3h`)+' · ' : '')+'estimativa do modelo';
+  pressureNote.textContent = ""; const pressureHidden = document.createElement("span"); pressureHidden.className = "visually-hidden"; pressureHidden.textContent = pressureText; pressureNote.append(pressureHidden);
   const uvNow = now.uvIndex; $("uv").textContent = fmt(uvNow, 0); $("uvNote").textContent = uvLabel(Number.isFinite(uvNow) ? Math.round(uvNow) : uvNow);
   $("uvScale").hidden = !Number.isFinite(uvNow);
   if (Number.isFinite(uvNow)) $("uvScale").style.setProperty("--uv-position", `${Math.max(0, Math.min(100, uvNow / 11 * 100))}%`);

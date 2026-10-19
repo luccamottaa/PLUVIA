@@ -41,7 +41,7 @@ test('tela: medida no aeroporto vence o modelo e diz de onde veio',()=>{
   ctx.observedRainState.airport={icao:'SBEG',at:1,visibility:{meters:10000,plus:true}};ctx.observedRainState.stationCity='1302603';
   api.paintVisibility();
   assert.equal(nodes.visibilityValue.textContent,'10+ km');
-  assert.equal(nodes.visibilityNote.textContent,'Medida no aeroporto SBEG às 11:00');
+  assert.equal(nodes.visibilityNote.textContent,'Aeroporto SBEG · 11:00');
   assert.equal(nodes.label,'Visibilidade medida');
   // Leitura de outra cidade não vale aqui.
   ctx.observedRainState.stationCity='3550308';api.paintVisibility();
@@ -49,5 +49,5 @@ test('tela: medida no aeroporto vence o modelo e diz de onde veio',()=>{
   // Aeroporto com fumaça: 4 km medidos, reduzida.
   ctx.observedRainState.stationCity='1302603';ctx.observedRainState.airport={icao:'SBMN',at:1,visibility:{meters:4000,plus:false}};
   api.paintVisibility();
-  assert.equal(nodes.visibilityValue.textContent,'4,0 km');assert.equal(nodes.visibilityNote.textContent,'Reduzida · medida no aeroporto SBMN às 11:00');
+  assert.equal(nodes.visibilityValue.textContent,'4,0 km');assert.equal(nodes.visibilityNote.textContent,'Reduzida · aeroporto SBMN · 11:00');
 });
