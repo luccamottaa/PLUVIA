@@ -15,7 +15,7 @@
     <script src="./modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-200" />
+    <meta name="pluvia-release" content="pluvia-panel-201" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -198,7 +198,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="./redesign.css?v=panel-48" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-101" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-102" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -368,7 +368,6 @@
               <p class="rain-gauge-label" id="rainGaugeLabel"></p>
             </div>
             <p class="yesterday-note" id="yesterdayNote"><span class="sk sk-line sk-short" aria-hidden="true"></span></p>
-            <p class="pluvia-confidence" id="pluviaConfidence" hidden><span class="confidence-badge" id="confidenceBadge"></span><span class="confidence-text" id="confidenceText"></span></p>
             <button id="alertBanner" class="alert-banner" type="button" hidden aria-haspopup="dialog" aria-controls="alertDetail"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg><span><strong id="alertBannerTitle"></strong><small id="alertBannerTime"></small></span><span class="alert-banner-more" aria-hidden="true">›</span></button>
             <div class="city-dots" id="cityDots" role="group" aria-label="Trocar entre suas cidades" hidden></div>
             <div class="favorite-suggest" id="favoriteSuggest" hidden><button id="favoriteSuggestSave" class="favorite-suggest-save" type="button"><span aria-hidden="true">☆</span> Salvar <span id="favoriteSuggestCity">esta cidade</span><span class="favorite-suggest-extra"> nas suas cidades</span></button><button id="favoriteSuggestDismiss" class="favorite-suggest-dismiss" type="button">Agora não</button></div><p class="swipe-hint" id="swipeHint" hidden>Deslize para o lado para trocar de cidade</p>
@@ -546,14 +545,13 @@
     <script src="./modules/radar-probe.js?v=core-72" defer></script>
     <script src="./modules/radar-nowcast.js?v=nowcast-1" defer></script>
     <script src="./modules/observed-rain.js?v=observed-rain-2" defer></script>
-    <script src="./modules/model-agreement.js?v=agreement-1" defer></script>
     <script src="./modules/weather-icons.js?v=core-50" defer></script>
     <script src="./modules/weather-icon-system.js?v=modern-7" defer></script>
     <script src="./capitals.js?v=core-51" defer></script>
     <script src="./modules/hourly-detail.js?v=detail-7" defer></script>
     <script src="./modules/daily-detail.js?v=daily-3" defer></script>
     <script src="./modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="./app.js?v=panel-111" defer></script>
+    <script src="./app.js?v=panel-112" defer></script>
     <script src="./p0.js?v=panel-47" defer></script>
     <script src="./modules/risks.js?v=core-120" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
@@ -573,7 +571,7 @@
     <script src="./modules/station-now.js?v=station-3" defer></script>
     <script src="./modules/environment-now.js?v=environment-1" defer></script>
     <script src="./modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="./modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="./modules/voice-search.js?v=voice-1" defer></script><script src="./modules/rain-reports.js?v=rain-reports-1" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-1" defer></script><script src="./modules/changelog.js?v=changelog-35" defer></script>
+    <script src="./modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="./modules/voice-search.js?v=voice-1" defer></script><script src="./modules/rain-reports.js?v=rain-reports-1" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-1" defer></script><script src="./modules/changelog.js?v=changelog-36" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="./modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="./notifications.js?v=panel-36" defer></script>

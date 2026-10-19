@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.12.1", date:"2026-10-19", title:"Topo mais limpo", items:[
+      "A linha de concordância entre modelos (“Modelos divergem”, “Modelos concordam”) saiu de baixo do “Vai chover?”. A comparação continua dentro dos avisos de chuva no celular.",
+    ]},
     {version:"1.12", date:"2026-10-19", title:"Chuva a caminho", items:[
       "Quando o radar mostra chuva vindo na direção da cidade, o “Vai chover?” diz em quantos minutos ela deve chegar, pelo movimento das últimas imagens. Se o movimento não está claro, ele não arrisca.",
       "Novo aviso no celular: “Parou de chover”, quando a estação do INMET ou o aeroporto deixam de registrar chuva. Ele só chega para quem recebeu o “Começou a chover”.",
