@@ -211,7 +211,11 @@
       windSpeed: number(at(hourly.wind_speed_10m, index)),
       windDirection: number(at(hourly.wind_direction_10m, index)),
       windGust: number(at(hourly.wind_gusts_10m, index)),
-      uvIndex: number(at(hourly.uv_index, index))
+      uvIndex: number(at(hourly.uv_index, index)),
+      cape: number(at(hourly.cape, index)),
+      cloudCoverLow: number(at(hourly.cloud_cover_low, index)),
+      cloudCoverMid: number(at(hourly.cloud_cover_mid, index)),
+      cloudCoverHigh: number(at(hourly.cloud_cover_high, index))
     })));
   }
 
@@ -338,6 +342,30 @@
     });
   }
 
+  // Leitura do topo e dos blocos (temperatura, sensação, umidade, vento, pressão, UV e visibilidade) em nomes
+  // do PLUVIA, sem os nomes de campo do provedor: a tela lê daqui. UV e visibilidade são da hora atual
+  // (start). Sem snapshot (normalização recusada), a mesma leitura sai do JSON cru pelos mesmos
+  // normalizadores: a tela nunca fica sem previsão por causa da camada nova. Ausente é null, nunca zero.
+  function heroReading(snapshot, forecast, start) {
+    const current = snapshot?.current || normalizeCurrent(forecast?.current || {});
+    const index = Number.isInteger(start) && start >= 0 ? start : -1;
+    const hour = snapshot?.hourly?.[index] || null;
+    const raw = forecast?.hourly || {};
+    const hourValue = (key, rawKey) => hour ? hour[key] : number(at(raw[rawKey], index));
+    return freeze({
+      time: current.time,
+      temperature: current.temperature,
+      apparentTemperature: current.apparentTemperature,
+      relativeHumidity: current.relativeHumidity,
+      windSpeed: current.windSpeed,
+      windDirection: current.windDirection,
+      windGust: current.windGust,
+      pressure: current.pressureMsl ?? current.surfacePressure,
+      uvIndex: hourValue("uvIndex", "uv_index"),
+      visibility: hourValue("visibility", "visibility")
+    });
+  }
+
   function ingestOpenMeteo(forecast, air, city, metadata) {
     const snapshot = normalizeOpenMeteo(forecast, air, city, metadata);
     if (snapshot.location.id) {
@@ -357,5 +385,5 @@
   }
   function clear(cityId) { cityId == null ? snapshots.clear() : snapshots.delete(String(cityId)); }
 
-  return { validateForecast, validateAirQuality, cachedAir, airOutlook, normalizeOpenMeteo, ingestOpenMeteo, get, markStale, clear };
+  return { validateForecast, validateAirQuality, cachedAir, airOutlook, normalizeOpenMeteo, ingestOpenMeteo, heroReading, get, markStale, clear };
 });

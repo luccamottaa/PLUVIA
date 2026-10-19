@@ -71,3 +71,18 @@ test('resumo marcado e chuva que começou saem com prioridade alta; mudança no 
  assert.equal(pushUrgency('weather_change',2),'normal');assert.equal(pushUrgency('official_alert',2),'normal');
  assert.equal(pushUrgency('official_alert',3),'high');assert.equal(pushUrgency('heavy_rain',3),'high');
 });
+test('"parou de chover" só depois de um "começou" entregue e nunca junto de chuva',()=>{
+ const {stopAllowed}=require('../supabase/functions/_shared/notification-policy.js');
+ const d=(type,at,status='accepted')=>({status,sent_at:new Date(at).toISOString(),notification_events:{event_type:type,city_id:'1302603',severity:2}});
+ assert.equal(stopAllowed([]),false);
+ assert.equal(stopAllowed([d('rain_approaching',1000)]),false,'previsão não basta');
+ assert.equal(stopAllowed([d('rain_now',1000)]),true);
+ assert.equal(stopAllowed([d('storm_now',1000)]),true);
+ assert.equal(stopAllowed([d('rain_now',1000),d('rain_stopped',2000)]),false,'já avisou que parou');
+ assert.equal(stopAllowed([d('rain_now',1000),d('rain_stopped',2000),d('rain_now',3000)]),true,'voltou a chover e parou de novo');
+ assert.equal(stopAllowed([d('rain_now',1000,'failed')]),false);
+ const picked=selectCandidates([{type:'rain_stopped',severity:1},{type:'rain_now',severity:2}]);
+ assert.deepEqual(picked.map(e=>e.type),['rain_now']);
+ assert.deepEqual(selectCandidates([{type:'rain_stopped',severity:1}],{raining:true}),[]);
+ assert.equal(pushUrgency('rain_stopped',1),'high');
+});

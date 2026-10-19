@@ -145,6 +145,6 @@
     return task;
   }
 
-  app.radar = { probe, reset, get: snapshot, lonLatToPixel, PROBE_TTL_MS };
+  app.radar = { probe, reset, get: snapshot, lonLatToPixel, loadImage, PROBE_TTL_MS };
   if (typeof module === "object" && module.exports) module.exports = app.radar;
 })();

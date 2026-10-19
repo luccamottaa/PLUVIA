@@ -1,5 +1,7 @@
 # PLUVIA Agent Instructions
 
+> Visão de produto. As regras técnicas, os contratos e as decisões já tomadas vivem no `AGENTS.md`; em qualquer conflito, o `AGENTS.md` prevalece.
+
 We are creating a PWA allowing users around Brazil to view daily/hourly weather conditions.
 Our UI is clean and pure modern web project.
 We must strive to create a rock-solid codebase: robust, delightful, performance-first, bug-free.
@@ -114,16 +116,9 @@ Integration of Manaus microclimate recognition with:
 - Convective indicators
 
 ## PLUVIA Confidence
-PLUVIA score computed by atmospheric sensors confidence.
-Show a simple, understandable rating:
-Confidence score based on observable signals across:
-- model agreement (temperature)
-- current vs. recent radar alignment
-- sensor network
-- river proximity
-- station uptime
-
-When confidence is low/uncertain, provide a gentle note to user: "Previsão com menor precisão".
+Confidence must come from a real comparison, never from a fixed score with arbitrary deductions.
+Today it is model agreement: when the app says rain, it asks ECMWF, GFS and ICON whether they also have rain in the same hours ("2 de 3 outros modelos também preveem chuva"). No percentage is shown unless it was measured (the forecast scoreboard will say how much agreement is worth).
+When there is nothing to compare, say nothing rather than invent a rating.
 
 ## Official alerts
 Show notice of OFFICIAL government alerts for alerts, critical meteorological events.

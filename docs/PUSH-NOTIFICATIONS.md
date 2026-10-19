@@ -76,3 +76,7 @@ Novos cadastros pela interface exigem no mínimo 12 caracteres, incluindo maiús
 As notificações distinguem aviso oficial do INMET de previsão meteorológica. A previsão de chuva inclui intervalo no fuso da cidade, probabilidade e pico previsto em mm/h.
 
 Sinais de chuva próxima, chuva forte e tempestade gerados no mesmo processamento são reunidos no sinal mais forte. Para cada dispositivo e cidade, uma condição prevista de igual ou menor severidade não se repete durante seis horas após um envio aceito. Um aumento de severidade permite novo envio. Avisos oficiais distintos não entram nesse intervalo; continuam com deduplicação por identificador oficial. Envios pendentes por até dois minutos também são considerados para reduzir concorrência, e envios que falharam não contam como recebidos.
+
+"Parou de chover" (`rain_stopped`) fecha o ciclo de "Começou a chover"/"Trovoada agora": sai quando a estação do INMET fecha uma hora sem chuva depois de uma hora com pelo menos 1 mm, ou quando o aeroporto deixa de relatar chuva, nunca com outra fonte ainda medindo chuva. Só é entregue ao aparelho que recebeu um "começou" da mesma cidade nas últimas seis horas, uma vez por episódio. O texto avisa que pode ser só uma pausa.
+
+Prioridade de entrega: avisos de severidade 3 ou mais, os resumos da manhã e da noite e os avisos observados ("começou", "trovoada agora", "por perto", "parou") saem com `Urgency: high`; o resto, `normal`.

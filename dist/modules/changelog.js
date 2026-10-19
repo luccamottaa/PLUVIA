@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.12", date:"2026-10-19", title:"Chuva a caminho", items:[
+      "Quando o radar mostra chuva vindo na direção da cidade, o “Vai chover?” diz em quantos minutos ela deve chegar, pelo movimento das últimas imagens. Se o movimento não está claro, ele não arrisca.",
+      "Novo aviso no celular: “Parou de chover”, quando a estação do INMET ou o aeroporto deixam de registrar chuva. Ele só chega para quem recebeu o “Começou a chover”.",
+      "O medidor de chuva embaixo do “Vai chover?” só mostra milímetros de verdade: o que a estação mediu ou o que o modelo prevê para a próxima hora. Antes ele inventava um número quando o modelo não dava volume.",
+    ]},
     {version:"1.11", date:"2026-10-19", title:"Os modelos concordam?", items:[
       "Quando o “Vai chover?” diz chuva, o PLUVIA compara com outros três modelos de previsão (o europeu, o americano e o alemão) e diz se eles também preveem chuva nesse horário. Se nenhum concorda, ele avisa que pode não acontecer.",
       "Isso substitui o antigo selo de “confiança”, que era uma nota fixa e não comparava nada.",

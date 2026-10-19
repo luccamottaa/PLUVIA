@@ -389,72 +389,50 @@
     };
   }
 
-  // Medidor Visual de Intensidade de Chuva (Visual Rain Gauge):
-  // Classifica a taxa de precipitação horária e o estado imediato (ativa ou se aproximando).
-  function rainGauge(hourly, start, {current = null} = {}) {
+  // Medidor de intensidade de chuva, logo abaixo do "Vai chover?". Só mostra número de verdade: volume
+  // medido pela estação do INMET na última hora (observação) ou volume do modelo para a próxima hora
+  // (intervalo que termina em start+1), sempre dito como previsão. Sem volume (aeroporto, radar ou só o
+  // código do tempo), a barra mostra a classe de intensidade, sem inventar mm/h. Trovoada muda a cor e o
+  // rótulo, mas não enche a barra: trovoada não implica chuva forte. Mesmos limites do "Vai chover?".
+  const GAUGE_CLASS = {chuva:{level:"light", label:"Chuva agora", percentage:22}, fraca:{level:"light", label:"Chuva fraca", percentage:22}, moderada:{level:"moderate", label:"Chuva moderada", percentage:52}, forte:{level:"heavy", label:"Chuva forte", percentage:85}};
+  const gaugePercentage = mm => mm >= 7.5 ? Math.min(100, Math.round(70 + ((mm - 7.5) / 12.5) * 30)) : mm >= 2.5 ? Math.round(35 + ((mm - 2.5) / 5) * 35) : Math.round(10 + (mm / 2.5) * 25);
+  const gaugeClass = mm => mm >= 7.5 ? "forte" : mm >= 2.5 ? "moderada" : "fraca";
+  function rainGauge(hourly, start, {current = null, observed = null} = {}) {
     const times = hourly?.time || [];
-    if (!(start >= 0) || !times[start]) {
-      return {rate: 0, level: "dry", label: "Sem chuva", percentage: 0, active: false, approaching: false, summary: "0 mm/h · Sem chuva"};
-    }
+    const hidden = {level:"dry", label:"Sem chuva", percentage:0, active:false, approaching:false, summary:""};
+    if (!(start >= 0) || !times[start]) return hidden;
+    const mmText = mm => `${round(mm, 1).toFixed(1).replace(".", ",")} mm`;
     const nowCode = number(current?.weather_code);
-    const nowRainCode = nowCode !== null && (CURRENT_RAIN[nowCode] || STORM_CODES.has(nowCode));
     const nextMm = number(hourly.precipitation?.[start + 1]);
     const nextChance = number(hourly.precipitation_probability?.[start + 1]);
-    const isStorm = STORM_CODES.has(nowCode) || STORM_CODES.has(number(hourly.weather_code?.[start + 1]));
-
-    let rate = 0;
-    if (nextMm !== null && nextMm > 0) {
-      rate = nextMm;
-    } else if (nowRainCode) {
-      rate = CURRENT_RAIN[nowCode] === "forte" ? 12 : CURRENT_RAIN[nowCode] === "moderada" ? 5 : 1.2;
+    let klass = null, mm = null, source = null;
+    const observedMm = number(observed?.mm);
+    if (observed && observedMm !== null && observedMm >= 0.2) { mm = observedMm; source = "measured"; klass = gaugeClass(mm); }
+    else if (observed) {
+      // Aeroporto diz a intensidade; radar só diz que chove ("Chuva agora"); trovoada relatada sem chuva não vira chuva.
+      klass = ({light:"fraca", moderate:"moderada", heavy:"forte"})[observed.rain]
+        || (observed.source === "radar" ? "chuva" : null)
+        || (observed.drizzle ? "fraca" : null)
+        || (observed.source === "airport" && !observed.storm ? ({61:"fraca",80:"fraca",63:"moderada",81:"moderada",65:"forte",82:"forte"})[number(observed.code)] : null)
+        || (observed.source === "station" ? "chuva" : null);
+      source = "observed";
     }
-
-    let level = "dry";
-    let label = "Sem chuva";
-    let percentage = 0;
-
-    if (isStorm) {
-      level = "storm";
-      label = "Tempestade";
-      percentage = Math.min(100, Math.max(80, Math.round((Math.max(rate, 10) / 15) * 100)));
-    } else if (rate >= 7.5) {
-      level = "heavy";
-      label = "Chuva forte";
-      percentage = Math.min(100, Math.max(70, Math.round(70 + ((rate - 7.5) / 12.5) * 30)));
-    } else if (rate >= 2.5) {
-      level = "moderate";
-      label = "Chuva moderada";
-      percentage = Math.round(35 + ((rate - 2.5) / 5) * 35);
-    } else if (rate > 0.1 || nowRainCode) {
-      level = "light";
-      label = "Chuva fraca";
-      percentage = Math.round(10 + (rate / 2.5) * 25);
-    } else if (nextChance !== null && nextChance >= 40) {
-      level = "dry";
-      label = "Sem chuva agora";
-      percentage = 0;
+    else if (nextMm !== null && nextMm >= 0.1) { mm = nextMm; source = "forecast"; klass = gaugeClass(mm); }
+    else if (nowCode !== null && CURRENT_RAIN[nowCode]) { klass = CURRENT_RAIN[nowCode]; source = "code"; }
+    const storm = Boolean(observed?.storm) || STORM_CODES.has(nowCode) || (!observed && STORM_CODES.has(number(hourly.weather_code?.[start + 1])));
+    if (klass) {
+      const base = GAUGE_CLASS[klass];
+      const percentage = mm !== null ? gaugePercentage(mm) : base.percentage;
+      const label = storm ? `Trovoada · ${base.label.toLowerCase()}` : base.label;
+      const summary = source === "measured" ? `${label} · ${mmText(mm)} medidos na última hora`
+        : source === "forecast" ? `${label} · ${mmText(mm)} previstos na próxima hora`
+        : label;
+      return {level:storm ? "storm" : base.level, label, percentage, active:true, approaching:false, summary, source, mm:mm === null ? null : round(mm, 1)};
     }
-
-    const active = nowRainCode || rate > 0.1;
-    const approaching = !active && nextChance !== null && nextChance >= 35;
-    const formattedRate = round(rate, 1).toLocaleString("pt-BR");
-    const summary = active
-      ? `${formattedRate} mm/h · ${label}`
-      : approaching
-        ? `Sem chuva agora (${Math.round(nextChance)}% de chance na próxima hora)`
-        : "0 mm/h · Sem chuva";
-
-    return {
-      rate: round(rate, 1),
-      level,
-      label,
-      percentage: Math.min(100, Math.max(0, percentage)),
-      active,
-      approaching,
-      summary
-    };
+    if (storm) return {level:"storm", label:"Trovoada", percentage:0, active:true, approaching:false, summary:observed ? "Trovoada agora, sem chuva relatada" : "Trovoada · sem volume de chuva previsto", source:observed ? "observed" : "forecast", mm:null};
+    if (nextChance !== null && nextChance >= 35) return {...hidden, approaching:true, summary:`Sem chuva agora (${Math.round(nextChance)}% de chance na próxima hora)`};
+    return hidden;
   }
-
 
   return {currentIndex, yesterday, pastRain, sunsetGlow, feelsLike, uv, pressure, rain, rainAnswer, rainGauge, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
 });
