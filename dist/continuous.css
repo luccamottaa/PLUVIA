@@ -1778,3 +1778,7 @@ html body #accountDialog #accountMore .account-more-item:focus-visible { outline
 #weatherView .metrics .metric[data-humidity-level="alert"] #humidityNote::before,
 #weatherView .metrics .metric[data-humidity-level="emergency"] #humidityNote::before { content:""; --humidity-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4l9 16H3z'/%3E%3Cpath d='M12 10v4'/%3E%3Cpath d='M12 17h.01' stroke-width='2.6'/%3E%3C/svg%3E"); }
 @media (forced-colors:active) { #weatherView .metrics .metric[data-humidity-level] #humidityNote::before { background:CanvasText; } }
+
+/* Ciclo do dia: o mesmo Sol realista do céu (sky-sun.svg, já no precache), a pedido do usuário (1.14.5).
+   O disco ocupa ~51% da arte (o resto é halo), então o ponto fica maior; o halo já é o brilho, sem drop-shadow. */
+#weatherView .sun-arc .sun-dot { width:88px; height:88px; filter:none; }
