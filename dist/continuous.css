@@ -197,11 +197,11 @@ body[data-ink="dark"] #weatherView {
 #weatherView .metric-line-icon { display:block; width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 #weatherView .metrics .metric > strong,#weatherView .metrics .wind-reading { grid-column:2; grid-row:1; margin:0; }
 #weatherView .metrics .metric > strong,#weatherView .metrics .wind-reading > strong { color:var(--reading-ink); font-size:1.65rem; line-height:1.1; }
-#weatherView .metrics .metric strong sup { color:var(--reading-muted); }
+#weatherView .metrics .metric strong sup { color:var(--reading-muted); font-size:.55em; font-weight:600; } /* %, hPa, km/h maiores e mais grossos (1.14.5) */
 #weatherView .metrics .metric > small { grid-column:1/-1; margin:0; color:var(--reading-muted); font-size:.8rem; }
 #weatherView .metrics .wind-reading { justify-content:flex-end; flex-wrap:nowrap; }
 #weatherView .metrics .wind-reading > strong { display:block; flex:none; white-space:nowrap; }
-#weatherView .metrics .wind-reading > strong sup { font-size:.38em; margin-left:4px; }
+#weatherView .metrics .wind-reading > strong sup { font-size:.55em; margin-left:4px; }
 html body #weatherView .wind-compass { width:46px; height:46px; flex-basis:46px; }
 #weatherView .compass-labels { fill:var(--reading-muted); }
 #weatherView .compass-ring { stroke:var(--reading-line); }
