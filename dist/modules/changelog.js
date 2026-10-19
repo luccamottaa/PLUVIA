@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.14.1", date:"2026-10-19", title:"Lua mais natural", items:[
+      "A Lua do cartão ficou mais nítida, com uma imagem da NASA em alta definição, e a luz agora cai aos poucos do lado claro para o escuro, como numa foto. A Lua do céu ganhou a mesma luz.",
+    ]},
     {version:"1.14", date:"2026-10-19", title:"Lua de verdade", items:[
       "O Ciclo do dia ganhou um cartão da Lua: a fase, quanto dela está iluminada, o próximo nascer ou pôr e quantos dias faltam para a lua cheia, com a Lua grande ao lado na fase de agora.",
       "Visibilidade mais fiel: quando há um aeroporto perto da cidade, o PLUVIA mostra a visibilidade medida lá em vez da estimativa do modelo, que às vezes inventava neblina de madrugada.",
