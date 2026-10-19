@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-205" />
+    <meta name="pluvia-release" content="pluvia-panel-206" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -52,7 +52,7 @@
     <!-- Nuvem do fundo da intro: é o LCP do PageSpeed e só seria descoberta depois de sky.css e dos scripts do céu. -->
     <link rel="preload" href="/assets/sky-cloud-veil.webp?v=clouds-5" as="image" type="image/webp" fetchpriority="high" />
     <link rel="preload" href="/vendor/suncalc.js?v=sky-3" as="script" />
-    <link rel="preload" href="/modules/moon-view.js?v=moon-6" as="script" />
+    <link rel="preload" href="/modules/moon-view.js?v=moon-7" as="script" />
     <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-18" as="script" />
     <link rel="preload" href="/sky.css?v=sky-37" as="style" />
     <style>
@@ -120,7 +120,7 @@
     </style>
     <script src="/modules/city-time.js?v=time-2"></script>
     <script src="/vendor/suncalc.js?v=sky-3"></script>
-    <script src="/modules/moon-view.js?v=moon-6"></script>
+    <script src="/modules/moon-view.js?v=moon-7"></script>
     <script src="/modules/sky-atmosphere.js?v=sky-18"></script>
     <script src="/modules/sky-events.js?v=sky-events-3" defer></script><script src="/modules/eclipses.js?v=eclipses-2" defer></script>
     <link rel="stylesheet" href="/sky.css?v=sky-37" />
@@ -137,7 +137,7 @@
       <defs>
         <clipPath id="pluviaMoonDisc"><circle cx="40" cy="40" r="34"/></clipPath>
         <filter id="pluviaMoonSoftEdge" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation=".6"/></filter>
-        <mask id="pluviaMoonPhase" maskUnits="userSpaceOnUse" x="0" y="0" width="80" height="80" mask-type="alpha" style="mask-type:alpha"><path id="moonIcon" fill="white" filter="url(#pluviaMoonSoftEdge)" d=""/><image id="moonShade" x="6" y="6" width="68" height="68" preserveAspectRatio="none" href=""/></mask>
+        <mask id="pluviaMoonPhase" maskUnits="userSpaceOnUse" x="0" y="0" width="80" height="80" mask-type="alpha" style="mask-type:alpha"><path id="moonIcon" fill="white" filter="url(#pluviaMoonSoftEdge)" d=""/><image id="moonShade" x="6" y="6" width="68" height="68" preserveAspectRatio="none"/></mask>
         <radialGradient id="pluviaMoonRim"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset=".88" stop-color="#000" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></radialGradient>
         <image id="pluviaMoonSurface" href="/assets/moon-surface.webp?v=moon-1" x="6" y="6" width="68" height="68"/>
         <g id="moonDisc" visibility="hidden" clip-path="url(#pluviaMoonDisc)">

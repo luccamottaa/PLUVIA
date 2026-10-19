@@ -67,7 +67,8 @@
           url = canvas.toDataURL('image/png');
         }
       } catch (_) { url = ''; }
-      image.setAttribute('href', url);
+      // Sem máscara, o atributo sai: href vazio faz o WebKit pedir a própria página como imagem.
+      if (url) image.setAttribute('href', url); else image.removeAttribute?.('href');
       return Boolean(url);
     }
     function update(at = Date.now()) {
