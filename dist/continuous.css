@@ -707,13 +707,6 @@ body[data-ink="dark"] #weatherView .rain-gauge-track { background:rgba(0,0,0,.12
 #weatherView .rain-gauge-label { margin:0; font-size:.78rem; font-weight:600; color:var(--reading-muted); letter-spacing:.02em; }
 
 /* Índice de Confiança PLUVIA */
-#weatherView .pluvia-confidence { margin:6px auto 0; display:inline-flex; align-items:center; gap:6px; font-size:.75rem; color:var(--reading-muted); }
-#weatherView .pluvia-confidence[hidden], #weatherView .confidence-badge[hidden] { display:none !important; }
-#weatherView .confidence-badge { display:inline-block; padding:2px 7px; border-radius:999px; font-size:.7rem; font-weight:700; letter-spacing:.02em; }
-#weatherView .confidence-badge.is-high { background:rgba(47,107,255,.16); color:var(--brand-blue,#2f6bff); border:1px solid rgba(47,107,255,.3); }
-#weatherView .confidence-badge.is-moderate { background:rgba(245,166,35,.14); color:#f5a623; border:1px solid rgba(245,166,35,.28); }
-#weatherView .confidence-badge.is-low { background:rgba(235,87,87,.14); color:#eb5757; border:1px solid rgba(235,87,87,.28); }
-body[data-ink="dark"] #weatherView .confidence-badge.is-high { background:rgba(47,107,255,.1); color:#1a56db; }
 
 /* Dicas contextuais: lista curta, só quando há algo para fazer. */
 #weatherView .tips-section { margin:0; padding:14px 0 18px; border-bottom:1px solid var(--reading-line); }
