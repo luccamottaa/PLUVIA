@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { adminClient, pushSecrets } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 import { pushErrorCode, sendWebPush } from "../_shared/webpush.ts";
-import { selectCandidates, isRepeat } from "../_shared/notification-policy.js";
+import { selectCandidates, isRepeat, pushUrgency } from "../_shared/notification-policy.js";
 import { report } from "../_shared/error-report.js";
 import { metarUrl, nearestAirport } from "../_shared/metar.js";
 import { stationUrl, normalizeStation } from "../_shared/inmet-station.js";
@@ -493,7 +493,7 @@ async function deliver(admin: any, event: any, preference: Preference, subscript
     if (error || !delivery) { skipped++; continue; }
     try {
       const targetHash = String(event.url || "").includes("#") ? `#${String(event.url).split("#")[1]}` : "";
-      await sendWebPush(subscription, { title: event.title, body: event.body, icon: "/icon-192.png", badge: "/logo-mark.png", tag: event.fingerprint.slice(0, 32), type: event.type, severity: event.severity, source: event.source, expiresAt: event.expires.toISOString(), url: `./?push_delivery=${delivery.id}${targetHash}`, deliveryId: delivery.id }, vapid, event.severity);
+      await sendWebPush(subscription, { title: event.title, body: event.body, icon: "/icon-192.png", badge: "/logo-mark.png", tag: event.fingerprint.slice(0, 32), type: event.type, severity: event.severity, source: event.source, expiresAt: event.expires.toISOString(), url: `./?push_delivery=${delivery.id}${targetHash}`, deliveryId: delivery.id }, vapid, event.severity, pushUrgency(event.type, event.severity));
       await admin.from("notification_deliveries").update({ status: "accepted", sent_at: new Date().toISOString() }).eq("id", delivery.id);
       accepted++;
     } catch (error) {

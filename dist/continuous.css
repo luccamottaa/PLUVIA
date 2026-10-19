@@ -708,7 +708,7 @@ body[data-ink="dark"] #weatherView .rain-gauge-track { background:rgba(0,0,0,.12
 
 /* Índice de Confiança PLUVIA */
 #weatherView .pluvia-confidence { margin:6px auto 0; display:inline-flex; align-items:center; gap:6px; font-size:.75rem; color:var(--reading-muted); }
-#weatherView .pluvia-confidence[hidden] { display:none !important; }
+#weatherView .pluvia-confidence[hidden], #weatherView .confidence-badge[hidden] { display:none !important; }
 #weatherView .confidence-badge { display:inline-block; padding:2px 7px; border-radius:999px; font-size:.7rem; font-weight:700; letter-spacing:.02em; }
 #weatherView .confidence-badge.is-high { background:rgba(47,107,255,.16); color:var(--brand-blue,#2f6bff); border:1px solid rgba(47,107,255,.3); }
 #weatherView .confidence-badge.is-moderate { background:rgba(245,166,35,.14); color:#f5a623; border:1px solid rgba(245,166,35,.28); }

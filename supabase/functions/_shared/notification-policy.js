@@ -33,3 +33,11 @@ export function isRepeat(candidate,deliveries,now=Date.now()) {
     return age>=0 && (delivery.status==='accepted' && age<6*3600000 || delivery.status==='pending' && age<120000);
   });
 }
+// Prioridade de entrega (cabeçalho Urgency do Web Push). Na Apple, "normal" pode ser segurado ou agrupado
+// pelo aparelho (economia de bateria, Resumo Programado); o resumo marcado pela pessoa e a chuva que
+// acabou de começar perdem o sentido se chegarem depois. Uma vez por dia ou por episódio: o custo de
+// bateria é desprezível. A mudança no tempo e o resto da previsão de baixa severidade continuam normais.
+export function pushUrgency(type,severity) {
+  if(severity>=3 || ['daily_summary','evening_summary','rain_now','storm_now','rain_nearby'].includes(type)) return 'high';
+  return 'normal';
+}

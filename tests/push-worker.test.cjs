@@ -132,7 +132,7 @@ test('falha meteorológica é compartilhada e não bloqueia avisos oficiais',asy
 test('envio interrompido conserva a contagem parcial e não inicia outro dispositivo',async()=>{
   let clock=0,sent=0;
   const admin={from(){const chain={select(){return chain;},eq(){return chain;},in(){return chain;},gte(){return chain;},insert(){return chain;},update(){return chain;},single(){return chain;},then(resolve){return Promise.resolve({data:{id:'delivery'}}).then(resolve);}};return chain;}};
-  const context=vm.createContext({Date:class extends Date{static now(){return clock;}},Intl,TextEncoder,URL,URLSearchParams,isRepeat:()=>false,sendWebPush:async()=>{sent++;clock=100;}});
+  const context=vm.createContext({Date:class extends Date{static now(){return clock;}},Intl,TextEncoder,URL,URLSearchParams,isRepeat:()=>false,pushUrgency:()=>'high',sendWebPush:async()=>{sent++;clock=100;}});
   vm.runInContext(source.slice(0,source.indexOf('Deno.serve(')),context);
   const result=await context.deliver(admin,{type:'official_alert',severity:3,id:'event',url:'./#alertas',fingerprint:'abc',expires:new Date(now.getTime()+3600000)},
     {notifications_enabled:true,official_alerts:true},[{id:'one'},{id:'two'}],'owner',{},50);

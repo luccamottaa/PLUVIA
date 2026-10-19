@@ -21,7 +21,7 @@ test('chuva agora diz quando deve parar, ou que não há pausa',()=>{
  assert.equal(rainAnswer(series(14,{mm:()=>1,chance:()=>90}),0).text,'Chuva fraca agora; sem pausa prevista nas próximas 12 horas.');
 });
 test('chance média sem volume vira possibilidade, não certeza',()=>{
- assert.deepEqual(rainAnswer(series(14,{chance:h=>h===5?40:10}),0),{tone:'maybe',text:'Pode chover a partir das 18h (40% de chance).',hours:12,start:'2026-10-06T18:00'});
+ assert.deepEqual(rainAnswer(series(14,{chance:h=>h===5?40:10}),0),{tone:'maybe',text:'Pode chover a partir das 18h (40% de chance).',hours:12,start:'2026-10-06T18:00',window:['2026-10-06T19:00','2026-10-06T19:00']});
  assert.equal(rainAnswer(series(14,{chance:h=>h===5?60:10,mm:()=>0}),0).tone,'maybe','60% com 0 mm não é chuva certa');
 });
 test('dado ausente não vira tempo seco',()=>{
