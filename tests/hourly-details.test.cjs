@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const layerRows = require('../dist/modules/weather-data-layer.js').rows;
 
 const app = fs.readFileSync(path.join(__dirname, '..', 'dist', 'app.js'), 'utf8');
 const html = fs.readFileSync(path.join(__dirname, '..', 'dist', 'index.html'), 'utf8');
@@ -58,10 +59,10 @@ test('visibilidade baixa aparece no resumo, dado ausente fica indisponível', ()
 test('a fileira de horas reutiliza a fonte solar, respeita o intervalo e leva a sensação ao leitor de tela',()=>{
  const {hourly,elements,ctx}=screen();
  ctx.PLUVIA.sky={dayAt:()=>({rise:Date.parse('2026-09-24T06:00Z'),set:Date.parse('2026-09-24T17:45Z')})};
- hourly.renderHourly({...data,apparent_temperature:[32,33,31]},0,{time:['2026-09-24']});
+ {const raw={...data,apparent_temperature:[32,33,31]};hourly.renderHourly(layerRows(null,{hourly:raw}).hourly,0,{time:['2026-09-24']},raw);}
  const row=elements.hourlyPeek.innerHTML;
  assert.match(row,/Sensação 32°/);assert.match(row,/<\/button><span class="hourly-peek-item hourly-solar-item"><span class="peek-time">17:45 <\/span>.*?<strong class="solar-label">Pôr do sol<\/strong><\/span>/,'o pôr do sol é uma coluna própria, fora do botão da hora');assert.equal((row.match(/Pôr do sol/g)||[]).length,1);
- ctx.PLUVIA.sky.dayAt=()=>null;hourly.renderHourly(data,0,{});assert.doesNotMatch(elements.hourlyPeek.innerHTML,/Pôr do sol/);
+ ctx.PLUVIA.sky.dayAt=()=>null;hourly.renderHourly(layerRows(null,{hourly:data}).hourly,0,{},data);assert.doesNotMatch(elements.hourlyPeek.innerHTML,/Pôr do sol/);
 });
 
 test('a fase da Lua segue as efemérides de setembro de 2026', () => {
@@ -133,14 +134,14 @@ test('a iluminação varia dentro da mesma fase e respeita os quartos e extremos
 
 test('a chance só aparece a partir de 20%, ausente não vira zero e a janela seca continua atualizada',()=>{
  const {hourly,elements}=screen();
- hourly.renderHourly(data,0,{time:['2026-09-24']});
+ hourly.renderHourly(layerRows(null,{hourly:data}).hourly,0,{time:['2026-09-24']},data);
  const row=elements.hourlyPeek.innerHTML;
  assert.equal((row.match(/data-hour-index=/g)||[]).length,3);
  assert.match(row,/peek-rain"><i><\/i>80% /,'chance relevante visível (intervalo que termina em i+1)');
  assert.match(row,/27<span class="peek-deg">°<\/span>/);
  assert.equal(elements.hourlyPeek.dataset.rain,'some');
  assert.equal(elements.dryWindow.textContent,'Sem chuva nas próximas horas');
- hourly.renderHourly({...data,precipitation_probability:[0,5,null],precipitation:[0,0,null]},0,{});
+ {const raw={...data,precipitation_probability:[0,5,null],precipitation:[0,0,null]};hourly.renderHourly(layerRows(null,{hourly:raw}).hourly,0,{},raw);}
  assert.equal(elements.hourlyPeek.dataset.rain,'none');
  assert.match(elements.hourlyPeek.innerHTML,/— de chance de chuva, Volume indisponível/,'ausente não vira zero');
 });

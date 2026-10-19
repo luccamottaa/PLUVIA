@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const layerRows = require('../dist/modules/weather-data-layer.js').rows;
 
 const app = fs.readFileSync(path.join(__dirname, '..', 'dist', 'app.js'), 'utf8');
 const source = app.slice(app.indexOf('function renderForecast('), app.indexOf('\nfunction solarArcPoint('));
@@ -16,7 +17,7 @@ function render(daily) {
     weather:() => ['Chuva fraca'],
     weatherIcons:{markup:() => '<svg></svg>', markupName:() => '<i></i>'}
   };
-  vm.runInNewContext(`${source}\nrenderForecast(daily, 30, 0)`, {...ctx, daily});
+  vm.runInNewContext(`${source}\nrenderForecast(daily, 30, 0)`, {...ctx, daily:layerRows(null,{daily}).daily});
   return list.innerHTML;
 }
 

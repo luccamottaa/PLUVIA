@@ -517,9 +517,11 @@ function showHourlyHint() {
   } catch {}
   return true;
 }
-function renderHourly(hourly, start, daily) {
-  const readings = new Map(Array.from({length:24}, (_, i) => start + i).filter(i => i < hourly.time.length)
-    .map(i => [i, PLUVIA.hourlyDetail.detail(hourly, i)]).filter(([, reading]) => reading));
+// Próximas horas leem as linhas normalizadas (weatherData.rows); a validação e o alinhamento i+1 continuam
+// em hourlyDetail.detail. A janela seca ainda recebe o contrato bruto (raw).
+function renderHourly(rows, start, daily, raw) {
+  const readings = new Map(Array.from({length:24}, (_, i) => start + i).filter(i => i < rows.length)
+    .map(i => [i, PLUVIA.hourlyDetail.detail(rows, i)]).filter(([, reading]) => reading));
   const indices = [...readings.keys()];
   const peek = $("hourlyPeek");
   if (peek) {
@@ -528,10 +530,10 @@ function renderHourly(hourly, start, daily) {
     // Na primeira pintura a fileira já está no começo: escrever scrollLeft ali forçava um reflow (PageSpeed).
     if (peek.dataset.city !== activeCity?.id) { if (peek.dataset.city) peek.scrollLeft = 0; peek.dataset.city = activeCity?.id || ""; }
     peek.innerHTML = indices.map((i, p) => {
-      const time = p === 0 ? "Agora" : shortTime(hourly.time[i]);
+      const time = p === 0 ? "Agora" : shortTime(rows[i].time);
       const temperature = readings.get(i).temperature;
       const probability = readings.get(i).probability;
-      const icon = weatherIcons.markup(hourly.weather_code?.[i], forecastIsDay(hourly.time[i], daily), {className:"hourly-weather-icon", decorative:true});
+      const icon = weatherIcons.markup(rows[i].weatherCode, forecastIsDay(rows[i].time, daily), {className:"hourly-weather-icon", decorative:true});
       const mm = readings.get(i).mm;
       const volume = Number.isFinite(mm) && mm >= 0 ? `${fmt(mm, 1)} mm` : "Volume indisponível";
       const rain = Number.isFinite(probability) ? `${Math.round(probability)}%` : "—";
@@ -541,7 +543,7 @@ function renderHourly(hourly, start, daily) {
       const showRain = Number.isFinite(probability) && probability >= 20;
       // Sem aria-label: o nome acessível é o próprio texto visível (hora, chance, temperatura),
       // como pede o WCAG 2.5.3, e o resto vai num trecho só para leitores de tela.
-      const solar = hourlySolarEvents(hourly.time[i],hourly.time[i+1],true);
+      const solar = hourlySolarEvents(rows[i].time,rows[i+1]?.time,true);
       const extra = `. Sensação ${fmt(readings.get(i).feelsLike)}°, ${rain} de chance de chuva, ${volume}. Ver detalhes`;
       return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span><span class="peek-icon">${icon}</span><strong>${fmt(temperature)}<span class="peek-deg">°</span></strong><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span><span class="peek-extra">${extra}</span></button>${solar}`;
     }).join("") || '<p>Previsão por hora indisponível.</p>';
@@ -555,43 +557,44 @@ function renderHourly(hourly, start, daily) {
     decision.textContent = !indices.length ? 'Previsão por hora indisponível.' : hint ? 'Toque em um horário para ver sensação, chuva e rajadas.' : '';
     decision.hidden = Boolean(indices.length) && !hint;
   }
-  setDryWindow(findDryWindow(hourly, start));
+  setDryWindow(findDryWindow(raw, start));
 }
 
-function renderForecast(daily, currentTemperature, at = Date.now()) {
+// Os 7 dias leem as linhas normalizadas por dia (weatherData.rows: temperatureMax, precipitationSum…).
+function renderForecast(days, currentTemperature, at = Date.now()) {
   const today = globalThis.PLUVIA.time.dayKey(at,activeCity);
-  const start = daily.time.findIndex(day => day >= today);
+  const start = days.findIndex(row => row.time >= today);
   if (start < 0) { $("forecastList").innerHTML = '<p class="forecast-loading">Previsão diária salva sem próximos dias disponíveis.</p>'; return; }
-  const indices = Array.from({length:Math.min(7,daily.time.length-start)},(_,i)=>start+i)
-    .filter(i=>Number.isFinite(daily.temperature_2m_min[i]) && Number.isFinite(daily.temperature_2m_max[i]));
+  const indices = Array.from({length:Math.min(7,days.length-start)},(_,i)=>start+i)
+    .filter(i=>Number.isFinite(days[i].temperatureMin) && Number.isFinite(days[i].temperatureMax));
   if (!indices.length) { $("forecastList").innerHTML = '<p class="forecast-loading">Previsão diária incompleta para os próximos dias.</p>'; return; }
-  const days = indices.map(i=>daily.time[i]);
+  const dates = indices.map(i=>days[i].time);
   const bestIndex = indices.reduce((best, i) => {
-    const score = (daily.precipitation_probability_max[i] || 0) + (daily.precipitation_sum[i] || 0) * 4;
-    const bestScore = (daily.precipitation_probability_max[best] || 0) + (daily.precipitation_sum[best] || 0) * 4;
+    const score = (days[i].precipitationProbabilityMax || 0) + (days[i].precipitationSum || 0) * 4;
+    const bestScore = (days[best].precipitationProbabilityMax || 0) + (days[best].precipitationSum || 0) * 4;
     return score < bestScore ? i : best;
   }, start);
-  const minAll = Math.min(...indices.map(i=>daily.temperature_2m_min[i]).filter(Number.isFinite));
-  const maxAll = Math.max(...indices.map(i=>daily.temperature_2m_max[i]).filter(Number.isFinite));
+  const minAll = Math.min(...indices.map(i=>days[i].temperatureMin).filter(Number.isFinite));
+  const maxAll = Math.max(...indices.map(i=>days[i].temperatureMax).filter(Number.isFinite));
   const spread = Math.max(1, maxAll - minAll);
-  $("forecastList").innerHTML = days.map((date, offset) => {
+  $("forecastList").innerHTML = dates.map((date, offset) => {
     const i = indices[offset];
     const d = new Date(`${date}T12:00:00Z`);
     const day = date === today ? "Hoje" : (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:"UTC",weekday: "long"}).format(d).replace(/-feira$/, "").replace(/^./, c => c.toUpperCase());
     const label = (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:"UTC",day: "2-digit", month: "short"}).format(d).replace(".", "");
-    const [cond] = weather(daily.weather_code[i]); const min = daily.temperature_2m_min[i]; const max = daily.temperature_2m_max[i];
+    const [cond] = weather(days[i].weatherCode); const min = days[i].temperatureMin; const max = days[i].temperatureMax;
     const left = Math.max(0, Math.min(98, (min - minAll) / spread * 100));
     const width = Math.max(2, (max - min) / spread * 100);
     const currentPosition = date === today && Number.isFinite(currentTemperature) && currentTemperature >= min && currentTemperature <= max
       ? Math.max(0, Math.min(100, (currentTemperature - minAll) / spread * 100)) : null;
-    const rainProb = Number.isFinite(daily.precipitation_probability_max[i]) ? Math.round(daily.precipitation_probability_max[i]) : null;
-    const rainMm = daily.precipitation_sum[i];
+    const rainProb = Number.isFinite(days[i].precipitationProbabilityMax) ? Math.round(days[i].precipitationProbabilityMax) : null;
+    const rainMm = days[i].precipitationSum;
     // Mesma regra das Próximas horas: a chance só aparece quando é relevante. Dia sem leitura continua
     // mostrando "—" (ausente não vira "sem chuva"); o valor fica para leitores de tela e no detalhe.
     const rainQuiet = Number.isFinite(rainProb) && rainProb < 20 && Number.isFinite(rainMm) && rainMm < 0.5;
     const weekend = [0,6].includes(d.getUTCDay());
     const reading = !Number.isFinite(rainProb) || !Number.isFinite(rainMm) ? "Previsão de chuva indisponível" : rainMm >= 20 ? "Acumulado de chuva elevado" : rainMm >= 8 ? "Chuva ao longo do dia" : rainProb >= 55 ? "Chuva provável, com baixo acumulado" : rainProb >= 30 ? "Chuva isolada" : "Baixa probabilidade de chuva";
-    const uvMax = daily.uv_index_max?.[i];
+    const uvMax = days[i].uvIndexMax;
     // A pedido, a linha não tem mais a nota de chuva/UV embaixo (em Manaus o UV 9 aparecia todo dia e
     // dobrava a altura da lista): o ícone e a chance já contam a chuva, e o texto fica para leitores de tela
     // e no detalhe do dia.
@@ -603,7 +606,7 @@ function renderForecast(daily, currentTemperature, at = Date.now()) {
     // rótulo e os trechos .peek-extra completam a leitura só para leitores de tela.
     return `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}" data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog">
       <span class="forecast-day"><strong><span class="day-full">${day}</span>${day === "Hoje" ? "" : `<span class="day-short" aria-hidden="true">${day.slice(0,3)}</span>`}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
-      <span class="forecast-condition"><i>${weatherIcons.markup(daily.weather_code[i], true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
+      <span class="forecast-condition"><i>${weatherIcons.markup(days[i].weatherCode, true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
       <span class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</span><strong aria-hidden="true">${fmt(max)}°</strong></span>
       ${rainQuiet ? `<span class="forecast-rain" data-rain="none"><span class="peek-extra">, chance de chuva ${rainProb}%, ${fmt(rainMm, 1)} mm${noteText}. Ver detalhes. </span></span>` : `<span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb ?? '—'}%</span>${showVolume ? `<span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span>` : `<span class="peek-extra">, ${fmt(rainMm, 1)} mm</span>`}<span class="peek-extra">${noteText}. Ver detalhes. </span></span></span>`}
     </button>`;
@@ -1243,12 +1246,13 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   setDataStatus(fromCache ? savedStatus(cacheAt || observedAt, isOffline() ? "offline" : "failure")
     : data.pluviaReduced ? `Previsão reduzida · MET Norway · ${formatUpdateTime(observedAt)}` : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache || Boolean(data.pluviaReduced));
   renderVisibility(now.visibility, fromCache);
-  renderHourly(data.hourly, start, day);
+  const lines = weatherData?.rows?.(snapshot, data);
+  renderHourly(lines?.hourly || [], start, day, data.hourly);
   syncNowHourIcon(data);
   globalThis.PLUVIA?.hourlyDetail?.update?.({hourly:data.hourly,daily:day,start,city:activeCity,fromCache,cacheAt,isDayAt:time=>forecastIsDay(time,day)});
   globalThis.PLUVIA?.dailyDetail?.update?.({hourly:data.hourly,daily:day,city:activeCity,fromCache,cacheAt,at:Date.now(),isDayAt:time=>forecastIsDay(time,day),dayAt:stamp=>globalThis.PLUVIA.sky.dayAt(stamp)});
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
-  renderForecast(day, current.temperature_2m); renderSun(day, Date.now(), data.hourly);
+  renderForecast(lines?.daily || [], now.temperature); renderSun(day, Date.now(), data.hourly);
   displayedWeather = {forecast:data,air,fromCache,cacheAt,weatherAt:metadata.weatherAt || cacheAt || Date.now(),hour:start,phase:atmosphere?.phase,day:globalThis.PLUVIA.time.dayKey(Date.now(),activeCity),airAt:metadata.airAt,freshAir:metadata.freshAir === true};
   globalThis.dispatchEvent?.(new CustomEvent("pluvia:weather-updated",{detail:{cityId:activeCity.id}}));
 }

@@ -1,3 +1,4 @@
+const layerRows = require('../dist/modules/weather-data-layer.js').rows;
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const time=require('../dist/modules/city-time.js');
 const {create}=require('../dist/modules/sky-atmosphere.js');
@@ -24,7 +25,7 @@ test('previsão diária não chama ontem de Hoje nem cria zero para chuva ausent
  data.daily.precipitation_sum[7]=null;data.daily.precipitation_probability_max[7]=null;
  const context=vm.createContext({PLUVIA:{time},activeCity:city,$:()=>list,fmt:value=>Number.isFinite(value)?String(value):'--',weather:()=>['Nublado'],weatherIcons:{markup:()=>'',markupName:()=>''}});
  vm.runInContext(app.slice(app.indexOf('function renderForecast('),app.indexOf('function solarArcPoint(')),context);
- context.renderForecast(data.daily,30,Date.parse('2026-10-02T00:01-04:00'));
+ context.renderForecast(layerRows(null,{daily:data.daily}).daily,30,Date.parse('2026-10-02T00:01-04:00'));
  assert.equal((list.innerHTML.match(/<span class="day-full">Hoje/g)||[]).length,1);
  assert.doesNotMatch(list.innerHTML,/01 de out/);assert.match(list.innerHTML,/Previsão de chuva indisponível/);assert.doesNotMatch(list.innerHTML,/NaN|Infinity/);
 });

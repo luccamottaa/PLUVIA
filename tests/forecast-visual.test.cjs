@@ -1,3 +1,4 @@
+const layerRows = require('../dist/modules/weather-data-layer.js').rows;
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -27,13 +28,13 @@ const daily = {
   weather_code: Array(7).fill(0)
 };
 
-renderForecast(daily, 27, Date.parse('2026-09-23T12:00:00-04:00'));
+renderForecast(layerRows(null,{daily}).daily, 27, Date.parse('2026-09-23T12:00:00-04:00'));
 assert.match(list.innerHTML, /class="temp-fill" style="left:0\.0%;width:71\.4%"/);
 assert.match(list.innerHTML, /class="temp-now" style="left:50\.0%"/);
 assert.match(list.innerHTML, /class="temp-fill" style="left:35\.7%;width:64\.3%"/);
 assert.equal((list.innerHTML.match(/class="temp-now"/g) || []).length, 1);
 
-renderForecast(daily, 38, Date.parse('2026-09-23T12:00:00-04:00'));
+renderForecast(layerRows(null,{daily}).daily, 38, Date.parse('2026-09-23T12:00:00-04:00'));
 assert.doesNotMatch(list.innerHTML, /class="temp-now"/, 'sem ponto atual se a leitura estiver fora da faixa prevista');
 
 console.log('PASS: faixas de temperatura usam escala compartilhada e o ponto atual só aparece quando há dados compatíveis.');

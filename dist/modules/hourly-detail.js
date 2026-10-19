@@ -11,7 +11,21 @@
   const numberFormat=digits=>numberFormats.get(digits) || numberFormats.set(digits,new Intl.NumberFormat('pt-BR',{minimumFractionDigits:digits,maximumFractionDigits:digits})).get(digits);
   const format=(value,digits=0)=>value===null || !Number.isFinite(value) ? 'Indisponível' : numberFormat(digits).format(value);
   const clock=time=>typeof time==='string' ? time.slice(11,16) : '';
-  function detail(hourly,index) {
+  // Linhas normalizadas (weatherData.rows: nomes do PLUVIA) viram colunas com os nomes do provedor só aqui,
+  // para as mesmas faixas e o mesmo alinhamento i+1 valerem nos dois formatos. Cache por lista (imutável).
+  const columnsOf=new WeakMap();
+  function columns(rows) {
+    if(columnsOf.has(rows)) return columnsOf.get(rows);
+    const pick=key=>rows.map(row=>row?.[key]);
+    const out={time:pick('time'),temperature_2m:pick('temperature'),apparent_temperature:pick('apparentTemperature'),weather_code:pick('weatherCode'),
+      precipitation_probability:pick('precipitationProbability'),precipitation:pick('precipitation'),wind_speed_10m:pick('windSpeed'),
+      wind_gusts_10m:pick('windGust'),wind_direction_10m:pick('windDirection'),uv_index:pick('uvIndex'),pressure_msl:pick('pressureMsl'),
+      relative_humidity_2m:pick('relativeHumidity')};
+    columnsOf.set(rows,out);
+    return out;
+  }
+  function detail(source,index) {
+    const hourly=Array.isArray(source) ? columns(source) : source;
     if(!Number.isInteger(index) || index<0 || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(hourly?.time?.[index] || '')) return null;
     const time=hourly.time[index],next=hourly.time[index+1];
     const continuous=Date.parse(time.slice(0,16)+'Z')+3600000===Date.parse(next?.slice(0,16)+'Z');
