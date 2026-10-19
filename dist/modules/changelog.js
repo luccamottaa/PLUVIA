@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.11", date:"2026-10-19", title:"Os modelos concordam?", items:[
+      "Quando o “Vai chover?” diz chuva, o PLUVIA compara com outros três modelos de previsão (o europeu, o americano e o alemão) e diz se eles também preveem chuva nesse horário. Se nenhum concorda, ele avisa que pode não acontecer.",
+      "Isso substitui o antigo selo de “confiança”, que era uma nota fixa e não comparava nada.",
+      "Os avisos de chuva no celular também dizem se os outros modelos concordam, e os resumos da manhã e da noite chegam com prioridade, para o iPhone não segurar.",
+    ]},
     {version:"1.10.3", date:"2026-10-15", title:"Avisos no celular mais úteis", items:[
       "Acabou o aviso de “mudança no tempo” toda manhã e toda tarde: o PLUVIA agora compara com o mesmo horário de ontem, então só avisa quando o dia vai ficar bem mais frio ou mais quente que o normal.",
       "Os resumos da manhã e da noite dizem a que horas a chuva é mais provável (ou que não há chuva prevista), em vez de só a chance máxima do dia.",

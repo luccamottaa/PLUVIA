@@ -15,7 +15,7 @@ export type VapidConfig = {
   vapid_subject: string;
 };
 
-export async function sendWebPush(subscription: StoredSubscription, payload: Record<string, unknown>, vapid: VapidConfig, severity = 2) {
+export async function sendWebPush(subscription: StoredSubscription, payload: Record<string, unknown>, vapid: VapidConfig, severity = 2, urgency: "high" | "normal" = severity >= 3 ? "high" : "normal") {
   if (!allowedPushEndpoint(subscription.endpoint)) {
     throw Object.assign(new Error('invalid_push_endpoint'),{statusCode:410});
   }
@@ -27,7 +27,7 @@ export async function sendWebPush(subscription: StoredSubscription, payload: Rec
     {
       vapidDetails: { subject: vapid.vapid_subject, publicKey: vapid.vapid_public_key, privateKey: vapid.vapid_private_key },
       TTL: severity >= 4 ? 43_200 : 10_800,
-      urgency: severity >= 3 ? "high" : "normal",
+      urgency,
       topic,
       timeout: 12_000,
     },

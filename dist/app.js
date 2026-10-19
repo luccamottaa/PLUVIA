@@ -835,6 +835,7 @@ function setRainAnswer(answer) {
   node.dataset.tone = answer.tone;
   if (typeof noteAlertNudge === "function") noteAlertNudge("rain", answer.tone === "rain" || answer.tone === "storm");
   if (typeof noteShareMoment === "function") noteShareMoment("storm", answer.tone === "storm");
+  paintAgreement(answer);
 }
 
 function setRainGauge(gauge) {
@@ -852,25 +853,46 @@ function setRainGauge(gauge) {
   if (label) label.textContent = gauge.summary;
 }
 
-function setPluviaConfidence(conf) {
+// Concordância entre modelos (modules/model-agreement.js) logo abaixo do "Vai chover?", só quando ele
+// diz chuva ou "pode chover" pela previsão (observação não tem janela de modelo). A linha aparece já com
+// "Comparando…" no mesmo render da resposta e só troca o texto depois: a chegada não desloca a página.
+const agreementState = {key:"", controller:null};
+function paintAgreement(answer) {
   const node = $("pluviaConfidence");
   if (!node) return;
-  if (!conf || !conf.score) {
-    node.hidden = true;
-    return;
-  }
-  node.hidden = false;
-  node.dataset.level = conf.level;
-  const badge = $("confidenceBadge");
-  if (badge) {
-    badge.textContent = conf.label;
-    badge.className = `confidence-badge is-${conf.level}`;
-  }
-  const text = $("confidenceText");
-  if (text) {
-    text.textContent = conf.level === "low" ? (conf.note || "Previsão com menor precisão") : `${conf.score}% de concordância`;
-  }
+  const city = activeCity, api = globalThis.PLUVIA?.modelAgreement;
+  const span = ["rain","storm","maybe"].includes(answer?.tone) && Array.isArray(answer.window) ? answer.window : null;
+  const key = span && city && api?.check ? `${city.id}|${answer.tone}|${span.join("|")}` : "";
+  if (key === agreementState.key) return;
+  agreementState.key = key;
+  agreementState.controller?.abort?.();
+  agreementState.controller = null;
+  const badge = $("confidenceBadge"), text = $("confidenceText");
+  if (!key) { node.hidden = true; return; }
+  const paint = (level, label, sentence) => {
+    node.hidden = false;
+    node.dataset.level = level;
+    if (badge) { badge.hidden = !label; badge.textContent = label || ""; badge.className = `confidence-badge is-${level}`; }
+    if (text) text.textContent = sentence;
+  };
+  paint("pending", "", "Comparando com outros modelos…");
+  const controller = agreementState.controller = typeof AbortController === "function" ? new AbortController() : null;
+  api.check(city, span, {minMm: answer.tone === "maybe" ? 0.2 : 0.5, signal: controller?.signal}).then(result => {
+    if (agreementState.key !== key) return;
+    if (result) paint(result.level, result.label, result.text);
+    else paint("pending", "", "Outros modelos sem dados para esse horário.");
+  }).catch(error => {
+    if (agreementState.key !== key || error?.code === "cancelled") return;
+    paint("pending", "", "Sem comparação com outros modelos agora.");
+  });
 }
+globalThis.addEventListener?.("pluvia:city-changed", () => {
+  agreementState.key = "";
+  agreementState.controller?.abort?.();
+  agreementState.controller = null;
+  const node = $("pluviaConfidence");
+  if (node) node.hidden = true;
+});
 // Dia marcante (trovoada no "Vai chover?" ou pôr do sol que promete): vira selo no topo do story
 // compartilhado. O convite visível na Home saiu (outubro/2026: 17 exibições e nenhum toque em 30 dias);
 // o estado fica só aqui e o story é refeito quando o momento muda.
@@ -968,7 +990,6 @@ function clearWeatherInsights() {
   });
   setRainAnswer({tone:"unknown",text:"Previsão de chuva indisponível."});
   setRainGauge(null);
-  setPluviaConfidence(null);
   setYesterdayNote(null);
   renderTips([]);
 }
@@ -1132,11 +1153,6 @@ function renderWeatherInsights(data, air, start) {
   // "Vai chover?" no topo; a frase equivalente da seção por hora foi retirada a pedido.
   setRainAnswer(rainAnswerFor(data, start));
   setRainGauge(weatherInsights?.rainGauge?.(data.hourly, start, {current: data.current}));
-  setPluviaConfidence(weatherInsights?.pluviaConfidence?.(data, {
-    city: activeCity,
-    station: observedRainState.station,
-    savedAt: displayedWeather?.weatherAt
-  }));
   // Hoje vs. ontem no mesmo horário, com as 24 h passadas que a consulta principal já traz.
   const comparison = weatherInsights?.yesterday?.(data.hourly, start);
   const fallen = weatherInsights?.pastRain?.(data.hourly, start);

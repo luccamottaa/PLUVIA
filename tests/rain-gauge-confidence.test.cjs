@@ -55,26 +55,3 @@ test('rainGauge: chuva se aproximando na próxima hora marca approaching', () =>
   assert.equal(approaching.approaching, true);
   assert.match(approaching.summary, /60% de chance/);
 });
-
-test('pluviaConfidence: dados recentes e completos geram confiança alta', () => {
-  const data = {hourly: makeSeries(24), current: {temperature_2m: 29}};
-  const conf = insights.pluviaConfidence(data, {now: Date.now(), savedAt: Date.now() - 300000});
-  assert.equal(conf.level, 'high');
-  assert.equal(conf.label, 'Confiança alta');
-  assert.ok(conf.score >= 80);
-});
-
-test('pluviaConfidence: dados reduzidos ou salvos há mais de 12h caem para menor precisão', () => {
-  const staleData = {hourly: makeSeries(24), pluviaReduced: true};
-  const conf = insights.pluviaConfidence(staleData, {now: Date.now(), savedAt: Date.now() - 15 * 3600000});
-  assert.equal(conf.level, 'low');
-  assert.equal(conf.label, 'Previsão com menor precisão');
-  assert.equal(conf.note, 'Previsão com menor precisão');
-});
-
-test('pluviaConfidence: conexão de estação oficial incrementa score', () => {
-  const data = {hourly: makeSeries(24)};
-  const withoutStation = insights.pluviaConfidence(data, {now: 1000000, savedAt: 1000000});
-  const withStation = insights.pluviaConfidence(data, {now: 1000000, savedAt: 1000000, station: {temperature: 31, stationName: 'INMET Manaus'}});
-  assert.ok(withStation.score > withoutStation.score);
-});

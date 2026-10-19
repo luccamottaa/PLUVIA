@@ -288,7 +288,7 @@
       const mm = number(hourly.precipitation?.[index+1]);
       const chance = number(hourly.precipitation_probability?.[index+1]);
       if ((mm === null || mm < 0) && (chance === null || chance < 0 || chance > 100)) break;
-      hours.push({time:times[index], mm:mm !== null && mm >= 0 ? mm : null, chance:chance !== null && chance >= 0 && chance <= 100 ? chance : null,
+      hours.push({time:times[index], end:times[index+1], mm:mm !== null && mm >= 0 ? mm : null, chance:chance !== null && chance >= 0 && chance <= 100 ? chance : null,
         storm:STORM_CODES.has(number(hourly.weather_code?.[index+1]))});
     }
     if (!hours.length) return unknown;
@@ -305,14 +305,21 @@
       const order = ["fraca","moderada","forte"];
       const intensity = [rainIntensity(peak), ...span.map(hour => hour.nowIntensity).filter(Boolean)].reduce((a,b) => order.indexOf(b) > order.indexOf(a) ? b : a);
       const kind = storm ? "trovoada" : `chuva ${intensity}`;
+      const window = [span[0].end, span[span.length - 1].end];
       if (first === 0) {
         const tail = end + 1 < hours.length ? `deve parar por volta ${hourPhrase(hours[end + 1].time)}` : `sem pausa prevista nas próximas ${hours.length} horas`;
-        return {tone:storm ? "storm" : "rain", text:`${kind[0].toUpperCase()}${kind.slice(1)} agora; ${tail}.`, hours:hours.length, start:hours[0].time};
+        return {tone:storm ? "storm" : "rain", text:`${kind[0].toUpperCase()}${kind.slice(1)} agora; ${tail}.`, hours:hours.length, start:hours[0].time, window};
       }
-      return {tone:storm ? "storm" : "rain", text:`Leve guarda-chuva: ${kind} a partir ${hourPhrase(hours[first].time)}.`, hours:hours.length, start:hours[first].time};
+      return {tone:storm ? "storm" : "rain", text:`Leve guarda-chuva: ${kind} a partir ${hourPhrase(hours[first].time)}.`, hours:hours.length, start:hours[first].time, window};
     }
-    const maybe = hours.find(hour => hour.chance !== null && hour.chance >= 30);
-    if (maybe) return {tone:"maybe", text:`Pode chover a partir ${hourPhrase(maybe.time)} (${Math.round(maybe.chance)}% de chance).`, hours:hours.length, start:maybe.time};
+    // Janela da resposta: fins dos intervalos (mesmo carimbo da precipitação), para comparar com outros modelos.
+    const maybeAt = hours.findIndex(hour => hour.chance !== null && hour.chance >= 30);
+    if (maybeAt >= 0) {
+      const maybe = hours[maybeAt];
+      let last = maybeAt;
+      while (last + 1 < hours.length && hours[last + 1].chance !== null && hours[last + 1].chance >= 30) last += 1;
+      return {tone:"maybe", text:`Pode chover a partir ${hourPhrase(maybe.time)} (${Math.round(maybe.chance)}% de chance).`, hours:hours.length, start:maybe.time, window:[maybe.end, hours[last].end]};
+    }
     if (hours.length < 3) return unknown;
     return {tone:"dry", text:`Sem chuva prevista nas próximas ${hours.length} horas.`, hours:hours.length};
   }
@@ -448,69 +455,7 @@
     };
   }
 
-  // Índice de Confiança PLUVIA (PLUVIA Confidence Score):
-  // Avalia sinais atmosféricos, concordância de modelos, idade do cache e cobertura de estações.
-  function pluviaConfidence(data, {city = null, station = null, savedAt = null, now = null} = {}) {
-    if (!data || !data.hourly?.time) {
-      return {score: 30, level: "low", label: "Previsão com menor precisão", note: "Previsão com menor precisão", factors: ["Sem dados completos"]};
-    }
-    let score = 86;
-    const factors = [];
 
-    if (data.pluviaReduced) {
-      score -= 28;
-      factors.push("Previsão reduzida (MET Norway)");
-    } else {
-      factors.push("Modelos meteorológicos em alta resolução");
-    }
-
-    const currentTime = Number.isFinite(now) ? now : Date.now();
-    if (Number.isFinite(savedAt)) {
-      const ageHours = (currentTime - savedAt) / 3600000;
-      if (ageHours > 12) {
-        score -= 35;
-        factors.push("Dados salvos há mais de 12 horas");
-      } else if (ageHours > 3) {
-        score -= 18;
-        factors.push("Dados salvos há mais de 3 horas");
-      } else {
-        factors.push("Dados recentes");
-      }
-    }
-
-    if (station && (station.temperature !== undefined || station.stationName)) {
-      score += 10;
-      factors.push("Estação oficial conectada em tempo real");
-    }
-
-    // Calibração Manaus e zonas tropicais de alta convecção
-    const isManaus = city?.id === "1302603" || city?.name === "Manaus" || city?.timezone === "America/Manaus";
-    if (isManaus) {
-      const currentHour = new Date(currentTime).getUTCHours() - 4; // UTC-4 Manaus
-      const isConvectiveWindow = currentHour >= 12 && currentHour <= 18;
-      if (isConvectiveWindow && !station) {
-        score -= 8;
-        factors.push("Janela convectiva vespertina em Manaus (maior variabilidade local)");
-      }
-    }
-
-    score = Math.min(98, Math.max(20, Math.round(score)));
-    let level = "high";
-    let label = "Confiança alta";
-    let note = null;
-
-    if (score < 55) {
-      level = "low";
-      label = "Previsão com menor precisão";
-      note = "Previsão com menor precisão";
-    } else if (score < 80) {
-      level = "moderate";
-      label = "Confiança moderada";
-    }
-
-    return {score, level, label, note, factors};
-  }
-
-  return {currentIndex, yesterday, pastRain, sunsetGlow, feelsLike, uv, pressure, rain, rainAnswer, rainGauge, pluviaConfidence, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
+  return {currentIndex, yesterday, pastRain, sunsetGlow, feelsLike, uv, pressure, rain, rainAnswer, rainGauge, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
 });
 

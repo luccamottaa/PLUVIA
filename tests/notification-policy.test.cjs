@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const {selectCandidates,isRepeat}=require('../supabase/functions/_shared/notification-policy.js');
+const {selectCandidates,isRepeat,pushUrgency}=require('../supabase/functions/_shared/notification-policy.js');
 const processor=fs.readFileSync('supabase/functions/push-process/index.ts','utf8');
 const worker=require('node:module').stripTypeScriptTypes(processor.replace(/^import .*$/gm,''));
 const quiet=vm.runInNewContext(worker.slice(0,worker.indexOf('Deno.serve'))+';inQuietHours',{Date,Intl,URL,URLSearchParams,Math,Number});
@@ -65,4 +65,9 @@ test('chuva medida agora (sem aviso de "começou") também cala "chuva nas próx
  assert.deepEqual(selectCandidates(batch,{raining:true}).map(c=>c.type).sort(),['extreme_heat','heavy_rain']);
  assert.deepEqual(selectCandidates([{type:'rain_approaching',severity:2}],{raining:true}),[]);
  assert.deepEqual(selectCandidates([{type:'rain_approaching',severity:2}]).map(c=>c.type),['rain_approaching']);
+});
+test('resumo marcado e chuva que começou saem com prioridade alta; mudança no tempo continua normal',()=>{
+ for(const type of ['daily_summary','evening_summary','rain_now','storm_now','rain_nearby']) assert.equal(pushUrgency(type,1),'high',type);
+ assert.equal(pushUrgency('weather_change',2),'normal');assert.equal(pushUrgency('official_alert',2),'normal');
+ assert.equal(pushUrgency('official_alert',3),'high');assert.equal(pushUrgency('heavy_rain',3),'high');
 });
