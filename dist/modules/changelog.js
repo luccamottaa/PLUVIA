@@ -12,6 +12,12 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.15.2", date:"2026-10-19", title:"Topo no estilo do app Tempo", items:[
+      "O topo ficou mais parecido com o app Tempo da Apple: nome da cidade em letra normal, temperatura mais fina e a condição e as máximas e mínimas no mesmo tamanho, tudo centralizado.",
+      "Grau da temperatura um pouco menor, logo do PLUVIA maior e a temperatura mais perto do nome da cidade.",
+      "Mais fotos de perfil: agora são 18 desenhos de tempo para escolher.",
+      "Tocar na foto de perfil, no compartilhar e na busca não mostra mais um quadrado cinza: o botão só esmaece de leve.",
+    ]},
     {version:"1.15.1", date:"2026-10-19", title:"Topo alinhado", items:[
       "O símbolo de grau da temperatura do topo ficou do tamanho do número, como no app Tempo da Apple.",
       "Topo alinhado: o número da temperatura fica no centro, embaixo do nome da cidade, e a foto de perfil tem a mesma margem da lupa do outro lado.",

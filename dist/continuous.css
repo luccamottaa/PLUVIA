@@ -1024,12 +1024,13 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 /* Toque: um véu na cor do próprio texto (sombra interna, por cima do fundo, sem trocá-lo) enquanto o
    dedo está no botão; some suave ao soltar. Só botões que não tinham resposta própria ao toque. */
 html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary) { transition:color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .28s ease; }
-html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.dialog-close,.hourly-modes button,.hourly-detail-navigation button):active:not(:disabled) { box-shadow:inset 0 0 0 100px color-mix(in srgb, currentColor 14%, transparent); transition-duration:0s; }
+html body :is(#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.dialog-close,.hourly-modes button,.hourly-detail-navigation button):active:not(:disabled) { box-shadow:inset 0 0 0 100px color-mix(in srgb, currentColor 14%, transparent); transition-duration:0s; }
 /* Linhas que abrem/fecham ("Mais sobre o céu", "Poluentes e origem", grupos da conta) e itens de lista: o véu acima virava
    um bloco cinza quadrado piscando no toque (vídeo do usuário, 1.15). Aqui o texto só esmaece e volta, como nos apps da Apple. */
-html body :is(details > summary,.account-more-item) { box-shadow:none !important; transition:opacity .28s ease; }
-html body :is(details > summary,.account-more-item):active { opacity:.45; transition-duration:0s; }
-@media (prefers-reduced-motion:reduce) { html body :is(details > summary,.account-more-item) { transition:none; } }
+html body :is(details > summary,.account-more-item,#accountButton,#openCitySearch,#shareWeather) { box-shadow:none !important; transition:opacity .28s ease; }
+html body :is(details > summary,.account-more-item,#accountButton,#openCitySearch,#shareWeather):active { opacity:.45; transition-duration:0s; }
+/* Os botões do topo também (vídeo do usuário, 1.15.2): o véu desenhava um quadrado cinza em volta da foto redonda. */
+@media (prefers-reduced-motion:reduce) { html body :is(details > summary,.account-more-item,#accountButton,#openCitySearch,#shareWeather) { transition:none; } }
 /* Bússola gira pelo menor caminho (app.js), marcador do UV e Sol/Lua do arco deslizam até a leitura nova. */
 .compass-needle { transition:transform .8s cubic-bezier(.22,1,.36,1), opacity .4s ease; }
 .uv-scale span { transition:left .8s cubic-bezier(.22,1,.36,1); }
@@ -1799,3 +1800,22 @@ html body #accountDialog #accountMore .account-more-item:focus-visible { outline
 /* Conta à esquerda: a foto (32 px + anel) ficava 6 px mais perto da borda que a lupa da direita, cujo desenho tem
    22 px de margem. A foto/ícone começa na mesma margem de 22 px; o alvo de toque continua com 44 px. */
 .topbar .account-trigger[data-signed-in] { justify-items:start; padding-left:10px; }
+
+/* Topo no ritmo do Apple Weather (pedido do usuário, 1.15.2): cidade em peso normal, temperatura fina, condição e
+   "Sensação · Máx. · Mín." no mesmo tamanho e peso, tudo no mesmo eixo. Só tipografia, sem camadas. */
+#weatherView .intro h1 { font-size:clamp(2.1rem,9vw,2.6rem); font-weight:400; letter-spacing:0; }
+#weatherView .temperature { font-weight:200; }
+#weatherView .condition, #weatherView .hero-range { font-size:clamp(1.05rem,5vw,1.25rem) !important; font-weight:500; line-height:1.3; }
+#weatherView .hero-range { margin-top:-6px; }
+/* Ajustes pedidos (1.15.2): grau um pouco menor que o número (o invisível à esquerda acompanha, para os algarismos
+   continuarem no eixo), marca PLUVIA maior no celular e temperatura mais perto do nome da cidade. */
+#weatherView .temperature .deg, #weatherView .temperature::before { font-size:.72em; }
+html body #weatherView .weather-hero.current-card { padding-top:0 !important; }
+@media(max-width:520px) {
+  .topbar .brand .brand-mark { width:31px; height:38px; flex-basis:31px; }
+  .topbar .brand span:last-child { font-size:1.32rem; }
+}
+@media(max-width:380px) {
+  .topbar .brand .brand-mark { width:26px; height:32px; flex-basis:26px; }
+  .topbar .brand span:last-child { font-size:1.12rem; }
+}

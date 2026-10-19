@@ -17,7 +17,17 @@
     {id:'trovoada', label:'Trovoada', src:icon('thunderstorm'), bg:'linear-gradient(145deg,#7d6bb8,#352a66)'},
     {id:'neve', label:'Neve', src:icon('snow'), bg:'linear-gradient(145deg,#f1f7ff,#c3dbf4)'},
     {id:'vento', label:'Vento', src:icon('windy'), bg:'linear-gradient(145deg,#b6f0d6,#4cc79a)'},
-    {id:'neblina', label:'Neblina', src:icon('fog'), bg:'linear-gradient(145deg,#dde3ea,#a3b0c0)'}
+    {id:'neblina', label:'Neblina', src:icon('fog'), bg:'linear-gradient(145deg,#dde3ea,#a3b0c0)'},
+    {id:'noite-nublada', label:'Noite com nuvens', src:icon('partly-cloudy-night'), bg:'linear-gradient(145deg,#4a3f8f,#1a1640)'},
+    {id:'garoa', label:'Garoa', src:icon('drizzle'), bg:'linear-gradient(145deg,#c9e6f2,#7fb4cf)'},
+    {id:'temporal', label:'Chuva forte', src:icon('heavy-rain'), bg:'linear-gradient(145deg,#5f7fa8,#22364f)'},
+    {id:'granizo', label:'Granizo', src:icon('thunderstorm-hail'), bg:'linear-gradient(145deg,#9fb4d6,#46557a)'},
+    {id:'nublado', label:'Nublado', src:icon('overcast'), bg:'linear-gradient(145deg,#cfd8e3,#8494a8)'},
+    {id:'pancada', label:'Pancada de chuva', src:icon('showers'), bg:'linear-gradient(145deg,#ffd9a0,#f08a5d)'},
+    {id:'bruma', label:'Bruma', src:icon('haze'), bg:'linear-gradient(145deg,#f6e3c4,#d9a86c)'},
+    {id:'chuva-noite', label:'Chuva à noite', src:icon('showers-night'), bg:'linear-gradient(145deg,#2c4f7c,#0d1b33)'},
+    {id:'poucas-nuvens', label:'Poucas nuvens', src:icon('few-clouds-day'), bg:'linear-gradient(145deg,#ffe6f0,#ff9fc4)'},
+    {id:'raio-chuva', label:'Trovoada com chuva', src:icon('thunderstorm-rain'), bg:'linear-gradient(145deg,#2b2140,#7a3fd1)'}
   ].map(Object.freeze));
   const find = id => AVATARS.find(avatar => avatar.id === id) || null;
   function read(storage) {
