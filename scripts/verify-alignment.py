@@ -101,10 +101,10 @@ with sync_playwright() as p:
  def resize(width,height):
   # No WebKit do Playwright, a troca de largura liga as media/container queries (matchMedia muda), mas o estilo
   # já calculado de alguns elementos continua o da largura anterior (a marca ficava com a gota de 390 px a 320 px).
-  # Uma propriedade customizada (herdada) na raiz força o recálculo da página inteira; num aparelho de verdade a
-  # largura não muda no meio do desenho.
+  # Esconder e mostrar o body descarta o estilo calculado e força o recálculo de tudo (uma propriedade customizada na
+  # raiz não bastou); num aparelho de verdade a largura não muda no meio do desenho.
   page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(100)
-  page.evaluate("()=>{const r=document.documentElement;r.style.setProperty('--qa-resized',String(innerWidth));void r.offsetWidth;r.style.removeProperty('--qa-resized');void r.offsetWidth}")
+  page.evaluate("()=>{const b=document.body,y=scrollY;b.style.display='none';void b.offsetWidth;b.style.removeProperty('display');void b.offsetWidth;scrollTo(0,y)}")
  def home(width,label):
   assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(width,label)
   report={'width':width,'period':label}
