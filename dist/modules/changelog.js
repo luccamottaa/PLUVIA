@@ -14,6 +14,8 @@
   const VERSIONS = [
     {version:"1.15.2", date:"2026-10-19", title:"Topo no estilo do app Tempo", items:[
       "O topo ficou mais parecido com o app Tempo da Apple: nome da cidade em letra normal, temperatura mais fina e a condição e as máximas e mínimas no mesmo tamanho, tudo centralizado.",
+      "Mais fotos de perfil: agora são 18 desenhos de tempo para escolher.",
+      "Tocar na foto de perfil, no compartilhar e na busca não mostra mais um quadrado cinza: o botão só esmaece de leve.",
     ]},
     {version:"1.15.1", date:"2026-10-19", title:"Topo alinhado", items:[
       "O símbolo de grau da temperatura do topo ficou do tamanho do número, como no app Tempo da Apple.",

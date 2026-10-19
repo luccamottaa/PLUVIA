@@ -4,7 +4,7 @@ const idPattern = /^[A-Za-z0-9-]{1,64}$/;
 const clean = (value, limit) => typeof value === 'string' ? value.replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,limit) : '';
 const version = value => Number.isSafeInteger(value) && value >= 0 ? value : 0;
 // Fotos de perfil: só os desenhos de dist/modules/avatars.js (conferido por teste); null volta à inicial.
-export const AVATAR_IDS = Object.freeze(['sol','lua','nuvem','chuva','trovoada','neve','vento','neblina']);
+export const AVATAR_IDS = Object.freeze(['sol','lua','nuvem','chuva','trovoada','neve','vento','neblina','noite-nublada','garoa','temporal','granizo','nublado','pancada','bruma','chuva-noite','poucas-nuvens','raio-chuva']);
 const avatarId = value => AVATAR_IDS.includes(value) ? value : null;
 export function snapshot(metadata = {}) {
   const favoriteCityIds = [...new Set(Array.isArray(metadata.favorite_city_ids) ? metadata.favorite_city_ids.filter(id=>typeof id==='string' || Number.isInteger(id)).map(String).filter(id=>cityPattern.test(id)) : [])].slice(0,30);
