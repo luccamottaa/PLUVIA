@@ -12,12 +12,14 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.15", date:"2026-10-19", title:"Fonte nova", items:[
-      "As letras agora usam a fonte do próprio aparelho: no iPhone é a mesma do app Tempo da Apple. Como ela já vem no celular, o PLUVIA abre um pouco mais rápido.",
-      "O % da umidade ficou maior e mais grosso.",
+    {version:"1.15.1", date:"2026-10-19", title:"Topo alinhado", items:[
       "O símbolo de grau da temperatura do topo ficou do tamanho do número, como no app Tempo da Apple.",
       "Topo alinhado: o número da temperatura fica no centro, embaixo do nome da cidade, e a foto de perfil tem a mesma margem da lupa do outro lado.",
       "Tocar em “Mais sobre o céu”, nos detalhes do ar e nas opções da conta não pisca mais um bloco cinza: o texto só esmaece de leve.",
+    ]},
+    {version:"1.15", date:"2026-10-19", title:"Fonte nova", items:[
+      "As letras agora usam a fonte do próprio aparelho: no iPhone é a mesma do app Tempo da Apple. Como ela já vem no celular, o PLUVIA abre um pouco mais rápido.",
+      "O % da umidade ficou maior e mais grosso.",
     ]},
     {version:"1.14.5", date:"2026-10-19", title:"Leituras mais fáceis de ler", items:[
       "As unidades dos blocos (%, hPa e km/h) ficaram maiores e mais grossas.",
