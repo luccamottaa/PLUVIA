@@ -14,6 +14,7 @@
   const VERSIONS = [
     {version:"1.16", date:"2026-10-19", title:"Gota nova", items:[
       "A gota do PLUVIA ficou mais simples: a mesma forma de sempre, agora com uma onda só no meio. Aparece no topo, na abertura e no ícone do app na tela de início.",
+      "Temperatura do topo um pouco menor, na mesma proporção do app Tempo: os números ficam mais ou menos da largura do nome da cidade.",
       "Em celulares bem estreitos, a temperatura de três algarismos e o nome PLUVIA não encostam mais nas bordas e nos botões do topo.",
     ]},
     {version:"1.15.2", date:"2026-10-19", title:"Topo no estilo do app Tempo", items:[
