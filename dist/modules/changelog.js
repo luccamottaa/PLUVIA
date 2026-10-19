@@ -12,7 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.14.6", date:"2026-10-19", title:"% da umidade em destaque", items:[
+    {version:"1.15", date:"2026-10-19", title:"Fonte nova", items:[
+      "As letras agora usam a fonte do próprio aparelho: no iPhone é a mesma do app Tempo da Apple. Como ela já vem no celular, o PLUVIA abre um pouco mais rápido.",
       "O % da umidade ficou maior e mais grosso.",
     ]},
     {version:"1.14.5", date:"2026-10-19", title:"Leituras mais fáceis de ler", items:[

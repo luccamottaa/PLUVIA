@@ -14,7 +14,7 @@ output=Path(os.environ.get('PLUVIA_QA_OUTPUT',str(Path(tempfile.gettempdir())/'p
 output.mkdir(parents=True,exist_ok=True)
 base=json.loads(subprocess.check_output(['node','-e',"process.stdout.write(JSON.stringify(require('./tests/support/forecast.cjs').forecast('2026-10-04',3)))"],cwd=repo,text=True))
 errors=[];forbidden=[];outage_resource_errors=[];outage_failures=[]
-fonts=['inter-latin-v20.woff2','nunito-wordmark-v32.woff2']
+fonts=['nunito-wordmark-v32.woff2']  # o texto usa a fonte do sistema (SF Pro no iPhone); só a marca é local
 cache_name=re.search(r'const CACHE = "([^"]+)"', (repo/'dist/sw.js').read_text()).group(1)
 viewports=[(320,568),(390,844),(430,932),(844,390),(768,1024),(1366,768),(2560,1080)]
 
@@ -55,7 +55,7 @@ with sync_playwright() as p:
   page.wait_for_function("document.getElementById('temperature').textContent==='30' && document.getElementById('pluviaIntro').hidden && !document.documentElement.classList.contains('awaiting-styles') && !document.getElementById('weatherView').classList.contains('initial-loading')")
   page.evaluate('document.fonts.ready')
   return context,page,state
- def loaded(page):return page.evaluate("[...document.fonts].some(font=>font.family==='Inter' && font.status==='loaded') && [...document.fonts].some(font=>font.family==='Nunito' && font.status==='loaded')")
+ def loaded(page):return page.evaluate("[...document.fonts].some(font=>font.family==='Nunito' && font.status==='loaded')")
  def geometry(page,width):
   result=page.evaluate("()=>{const number=document.querySelector('#temperature').getBoundingClientRect(),section=document.querySelector('.weather-main').getBoundingClientRect(),degree=document.querySelector('.temperature .deg').getBoundingClientRect();return {overflow:document.documentElement.scrollWidth>innerWidth,readingCenter:(number.x+degree.right)/2,sectionCenter:section.x+section.width/2,degreeRight:degree.right,numberLeft:number.x}}")
   assert not result['overflow'] and result['numberLeft']>=0 and result['degreeRight']<=width,result
@@ -68,7 +68,7 @@ with sync_playwright() as p:
  assert page.evaluate("getComputedStyle(document.getElementById('temperature')).fontWeight==='300'")
  assert page.evaluate("getComputedStyle(document.getElementById('cityName')).fontWeight==='600'")
  # Measure the font's real digit advances, rather than only checking a CSS rule.
- widths=page.evaluate("()=>{const row=document.createElement('div');row.style.cssText='position:absolute;font:400 20px Inter;font-variant-numeric:tabular-nums;';for(const digit of '0123456789'){const span=document.createElement('span');span.textContent=digit;row.append(span)}document.body.append(row);const widths=[...row.children].map(el=>el.getBoundingClientRect().width);row.remove();return widths}")
+ widths=page.evaluate("()=>{const row=document.createElement('div');row.style.cssText='position:absolute;font:400 20px '+getComputedStyle(document.body).getPropertyValue('--font-ui')+';font-variant-numeric:tabular-nums;';for(const digit of '0123456789'){const span=document.createElement('span');span.textContent=digit;row.append(span)}document.body.append(row);const widths=[...row.children].map(el=>el.getBoundingClientRect().width);row.remove();return widths}")
  assert max(widths)-min(widths)<.1,widths
  for phase,hour in [('night',7),('day',14)]:
   page.clock.set_fixed_time(datetime.datetime(2026,10,4,hour,15,tzinfo=datetime.timezone.utc));page.evaluate('PLUVIA.sky.update(Date.now(),false)')
