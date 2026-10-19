@@ -133,6 +133,9 @@ with sync_playwright() as p:
   for name in [greeting,'Olá, Lucca','Olá, Maria Eduarda Albuquerque']:
    account.evaluate('(el,value)=>el.textContent=value',name)
    button,brand,actions=boxes('#accountButton,.topbar .brand,.topbar .top-actions')
+   if not (button['right']<=brand['x']-5 and brand['right']<=actions['x']-5):
+    # Diagnóstico do que o navegador aplicou na marca (largura da tela, media query, fonte e gota).
+    brand['debug']=page.evaluate("()=>{const b=document.querySelector('.topbar .brand'),m=b.querySelector('.brand-mark'),t=b.querySelector('span:last-child');return {innerWidth,clientWidth:document.documentElement.clientWidth,mq380:matchMedia('(max-width:380px)').matches,mq340:matchMedia('(max-width:340px)').matches,topbar:document.querySelector('.topbar').clientWidth,mark:getComputedStyle(m).width,markBox:m.getBoundingClientRect().width,font:getComputedStyle(t).fontSize,family:getComputedStyle(t).fontFamily,text:t.getBoundingClientRect().width,cq:CSS.supports('container-type:inline-size')}}")
    assert button['right']<=brand['x']-5 and brand['right']<=actions['x']-5,(width,name,button,brand,actions)
    assert button['height']>=44,(width,button)
    aligned('#accountButton,.topbar .brand,.topbar .top-actions','centerY',3)
