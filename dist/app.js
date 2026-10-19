@@ -1039,6 +1039,8 @@ function renderAirOutlook(air) {
     name.textContent = day.date === tomorrowKey ? "Amanhã" : (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:"UTC", weekday:"short", day:"2-digit", month:"2-digit"}).format(date);
     level.textContent = label;
     level.dataset.aqiLevel = aqiLevel(day.aqiMax) || "";
+    // Números só para leitores de tela (pedido do usuário, 1.14.5): na tela fica o dia e a categoria.
+    value.className = "visually-hidden";
     value.textContent = `AQI até ${day.aqiMax}` + (Number.isFinite(day.pm25Mean) ? ` · PM2,5 ${fmt(day.pm25Mean, 0)} µg/m³` : "");
     item.append(name, level, value);
     return item;

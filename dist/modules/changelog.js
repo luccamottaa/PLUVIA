@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.14.5", date:"2026-10-19", title:"Leituras mais fáceis de ler", items:[
+      "As unidades dos blocos (%, hPa e km/h) ficaram maiores e mais grossas.",
+      "Ar nos próximos dias mais limpo: cada dia mostra só a categoria, sem os números do índice e das partículas.",
+      "O Ciclo do dia ganhou o mesmo Sol realista, com brilho, que aparece no céu do topo.",
+    ]},
     {version:"1.14.4", date:"2026-10-19", title:"Umidade com ícone", items:[
       "A umidade ganhou um ícone para cada faixa: carinha para confortável, gota vazia para um pouco seco, gota cheia para úmido e muito úmido, e alerta para ar seco.",
       "O buraco embaixo da umidade sumiu: a nota da visibilidade medida no aeroporto ficou mais curta e cabe numa linha.",
