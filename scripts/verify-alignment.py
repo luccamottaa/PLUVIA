@@ -122,7 +122,9 @@ with sync_playwright() as p:
    reading.evaluate('(el,value)=>el.textContent=value',value)
    number,degree=boxes('#temperature,.temperature .deg')
    axis=boxes('.weather-main')[0]['centerX']
-   assert abs(number['centerX']-axis)<=1,(width,value,number,degree,axis)
+   # Algarismos no eixo; só uma leitura que não cabe (o grau invisível encolheu) pode sair dele, para a esquerda, com o grau no limite.
+   off=number['centerX']-axis
+   assert abs(off)<=1 or (off<0 and degree['right']>=width-24),(width,value,number,degree,axis)
    assert degree['x']>=number['right'] and number['x']>=0 and degree['right']<=width,(width,value,number,degree)
    for item in boxes('.topbar .brand,#cityName,#condition'):
     assert abs(item['centerX']-axis)<=1,(width,item,axis)
