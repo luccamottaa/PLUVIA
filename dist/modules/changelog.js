@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.13", date:"2026-10-19", title:"Chuva chegando no celular", items:[
+      "Novo aviso no celular: quando o radar mostra chuva vindo na direção da sua cidade, o PLUVIA avisa com 10 a 60 minutos de antecedência, pelo movimento das últimas imagens. Se o movimento não está claro, ele não avisa.",
+      "Quando o placar de acerto mostrar que outro modelo prevê a chuva da sua cidade claramente melhor, os avisos de chuva passam a usar esse modelo. Até lá, nada muda.",
+    ]},
     {version:"1.12.1", date:"2026-10-19", title:"Topo mais limpo", items:[
       "A linha de concordância entre modelos (“Modelos divergem”, “Modelos concordam”) saiu de baixo do “Vai chover?”. A comparação continua dentro dos avisos de chuva no celular.",
     ]},

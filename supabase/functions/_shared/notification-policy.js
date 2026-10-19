@@ -15,8 +15,11 @@ export function selectCandidates(candidates,{raining=false}={}) {
   const picked=new Map(), independent=[];
   const rank={storm:3,heavy_rain:2,rain_approaching:1,storm_now:3,rain_now:2,rain_nearby:1};
   const wet=raining || candidates.some(candidate=>['rain_now','storm_now'].includes(candidate.type));
+  const incoming=!wet && candidates.some(candidate=>candidate.type==='rain_incoming');
   for(const candidate of candidates) {
-    if(wet && ['rain_approaching','rain_stopped'].includes(candidate.type)) continue;
+    if(wet && ['rain_approaching','rain_stopped','rain_incoming'].includes(candidate.type)) continue;
+    // Radar com a chuva chegando diz o mesmo que "chuva nas próximas horas", com hora mais precisa.
+    if(incoming && candidate.type==='rain_approaching') continue;
     if(['official_alert','daily_summary','evening_summary'].includes(candidate.type)) {independent.push(candidate);continue;}
     const group=eventGroup(candidate), previous=picked.get(group);
     if(!previous || candidate.severity>previous.severity || candidate.severity===previous.severity && (rank[candidate.type] || 0)>(rank[previous.type] || 0)) picked.set(group,candidate);
@@ -47,6 +50,6 @@ export function isRepeat(candidate,deliveries,now=Date.now()) {
 // acabou de começar perdem o sentido se chegarem depois. Uma vez por dia ou por episódio: o custo de
 // bateria é desprezível. A mudança no tempo e o resto da previsão de baixa severidade continuam normais.
 export function pushUrgency(type,severity) {
-  if(severity>=3 || ['daily_summary','evening_summary','rain_now','storm_now','rain_nearby','rain_stopped'].includes(type)) return 'high';
+  if(severity>=3 || ['daily_summary','evening_summary','rain_now','storm_now','rain_nearby','rain_stopped','rain_incoming'].includes(type)) return 'high';
   return 'normal';
 }

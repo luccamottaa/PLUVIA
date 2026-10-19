@@ -41,3 +41,17 @@ test('busca do movimento é leve (grade reduzida)',()=>{
   const ms=Number(process.hrtime.bigint()-t)/1e6/5;
   assert.ok(ms<60,`${ms.toFixed(1)} ms`);
 });
+
+test('app e servidor dão o mesmo resultado (núcleo copiado em _shared/radar-nowcast.js)',async()=>{
+  const server=await import('../supabase/functions/_shared/radar-nowcast.js');
+  for(const [a,b] of [[-60,-44],[-44,-60],[-70,-70],[-30,-20]]){
+    const before=blob(CENTER+a,CENTER+5),after=blob(CENTER+b,CENTER+3);
+    assert.deepEqual(server.estimate(before,after,SIZE,1200,-3.1),nowcast.estimate(before,after,SIZE,1200,-3.1),`${a}→${b}`);
+  }
+  // Janela montada das telhas decodificadas: o pixel da cidade cai no centro.
+  const tiles=server.windowTiles(-60.022,-3.119);
+  assert.ok(tiles.length>=1&&tiles.length<=4);
+  const decoded=tiles.map(t=>{const rgba=new Uint8Array(256*256*4);const px=server.pixelOf(-60.022,-3.119);const x=Math.round(px.x)-t.tx*256,y=Math.round(px.y)-t.ty*256;if(x>=0&&x<256&&y>=0&&y<256)rgba[(y*256+x)*4+3]=255;return {...t,rgba};});
+  const m=server.windowMask(decoded);
+  assert.equal(m[CENTER*SIZE+CENTER],1);
+});
