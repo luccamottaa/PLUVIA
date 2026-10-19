@@ -57,11 +57,15 @@ with sync_playwright() as p:
   return context,page,state
  def loaded(page):return page.evaluate("[...document.fonts].some(font=>font.family==='Nunito' && font.status==='loaded')")
  def geometry(page,width):
-  result=page.evaluate("()=>{const number=document.querySelector('#temperature').getBoundingClientRect(),section=document.querySelector('.weather-main').getBoundingClientRect(),degree=document.querySelector('.temperature .deg').getBoundingClientRect();return {overflow:document.documentElement.scrollWidth>innerWidth,readingCenter:number.x+number.width/2,sectionCenter:section.x+section.width/2,degreeRight:degree.right,numberLeft:number.x}}")
+  result=page.evaluate("()=>{const number=document.querySelector('#temperature').getBoundingClientRect(),section=document.querySelector('.weather-main').getBoundingClientRect(),degree=document.querySelector('.temperature .deg').getBoundingClientRect();return {overflow:document.documentElement.scrollWidth>innerWidth,readingCenter:number.x+number.width/2,size:parseFloat(getComputedStyle(document.querySelector('#weatherView .temperature')).fontSize),sectionCenter:section.x+section.width/2,degreeRight:degree.right,numberLeft:number.x}}")
   assert not result['overflow'] and result['numberLeft']>=0 and result['degreeRight']<=width,result
-  assert abs(result['readingCenter']-result['sectionCenter'])<=1,result
+  # Algarismos ~0,12 em à esquerda do eixo, como no app Tempo (1.16.1).
+  assert abs(result['readingCenter']-result['sectionCenter']+0.1224*result['size'])<=1.5,result
  def resize(page,width,height):
   page.set_viewport_size({'width':width,'height':height})
+  # Como em verify-alignment: o navegador do teste nem sempre recalcula o estilo (o grau invisível, em pseudo-elemento)
+  # depois de trocar a largura; esconder e mostrar o body força o recálculo. Num aparelho a largura não muda assim.
+  page.evaluate("()=>{const b=document.body,y=scrollY;b.style.display='none';void b.offsetWidth;b.style.removeProperty('display');void b.offsetWidth;scrollTo(0,y)}")
   page.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
  context,page,state=session()
  assert loaded(page)
