@@ -25,3 +25,17 @@ test('render do app usa a leitura normalizada no topo e nos blocos',()=>{
   assert.match(body,/heroReading\?\.\(snapshot, data, start\)/);
   for(const field of ['temperature_2m)','relative_humidity_2m)','wind_speed_10m)','wind_gusts_10m)']) assert.ok(!body.includes(`fmt(current.${field}`),field);
 });
+
+test('horas e dias: linhas normalizadas dão a mesma leitura das colunas cruas',()=>{
+  const detail=require('../dist/modules/hourly-detail.js').detail;
+  const data=forecast();data.hourly.precipitation[6]=2.4;data.hourly.precipitation_probability[6]=70;  const lines=layer.rows(layer.normalizeOpenMeteo(data,null,city),data);
+  for(const i of [0,4,5,70,71]) assert.deepEqual(JSON.parse(JSON.stringify(detail(lines.hourly,i))),JSON.parse(JSON.stringify(detail(data.hourly,i))),String(i));
+  assert.equal(detail(lines.hourly,5).mm,2.4,'chuva da hora i vem do intervalo que termina em i+1');
+  assert.equal(lines.daily[0].temperatureMax,34);assert.equal(lines.daily.length,data.daily.time.length);
+  // Hora sem temperatura: a validação recusa o snapshot e a tela usa a ponte, com o mesmo resultado.
+  data.hourly.temperature_2m[5]=null;
+  assert.throws(()=>layer.normalizeOpenMeteo(data,null,city));
+  const bridge=layer.rows(null,data);
+  assert.equal(bridge.hourly.length,data.hourly.time.length);
+  assert.deepEqual(JSON.parse(JSON.stringify(detail(bridge.hourly,5))),JSON.parse(JSON.stringify(detail(data.hourly,5))));
+});

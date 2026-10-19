@@ -366,6 +366,15 @@
     });
   }
 
+  // Linhas por hora e por dia em nomes do PLUVIA (snapshot.hourly/daily); sem snapshot, as mesmas linhas
+  // saem do JSON cru pelos mesmos normalizadores. Ausente é null.
+  function rows(snapshot, forecast) {
+    return freeze({
+      hourly: snapshot?.hourly || normalizeHourly(forecast?.hourly || {}),
+      daily: snapshot?.daily || normalizeDaily(forecast?.daily || {})
+    });
+  }
+
   function ingestOpenMeteo(forecast, air, city, metadata) {
     const snapshot = normalizeOpenMeteo(forecast, air, city, metadata);
     if (snapshot.location.id) {
@@ -385,5 +394,5 @@
   }
   function clear(cityId) { cityId == null ? snapshots.clear() : snapshots.delete(String(cityId)); }
 
-  return { validateForecast, validateAirQuality, cachedAir, airOutlook, normalizeOpenMeteo, ingestOpenMeteo, heroReading, get, markStale, clear };
+  return { validateForecast, validateAirQuality, cachedAir, airOutlook, normalizeOpenMeteo, ingestOpenMeteo, heroReading, rows, get, markStale, clear };
 });
