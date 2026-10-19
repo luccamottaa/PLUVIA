@@ -114,7 +114,7 @@ with sync_playwright() as p:
   if rain_row=='none': assert not boxes('.peek-rain'),(width,label)
   aligned('.topbar .account-trigger,.topbar .brand,.topbar .top-actions','centerY',3)
   aligned('.topbar .top-actions > *','centerY')
-  # Center the whole reading, not only the number while its degree hangs outside.
+  # Digits on the axis; the degree hangs to the right (an invisible degree on the left balances it, 1.15).
   # The same axis belongs to the brand, municipality and condition.
   reading=page.locator('#temperature')
   original=reading.inner_text()
@@ -122,7 +122,7 @@ with sync_playwright() as p:
    reading.evaluate('(el,value)=>el.textContent=value',value)
    number,degree=boxes('#temperature,.temperature .deg')
    axis=boxes('.weather-main')[0]['centerX']
-   assert abs((number['x']+degree['right'])/2-axis)<=1,(width,value,number,degree,axis)
+   assert abs(number['centerX']-axis)<=1,(width,value,number,degree,axis)
    assert degree['x']>=number['right'] and number['x']>=0 and degree['right']<=width,(width,value,number,degree)
    for item in boxes('.topbar .brand,#cityName,#condition'):
     assert abs(item['centerX']-axis)<=1,(width,item,axis)

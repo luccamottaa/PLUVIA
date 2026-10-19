@@ -1790,3 +1790,12 @@ html body #accountDialog #accountMore .account-more-item:focus-visible { outline
 #weatherView .sun-arc .sun-dot { width:88px; height:88px; filter:none; }
 /* % da umidade ainda maior e mais grosso que as outras unidades (pedido do usuário, 1.14.6). */
 #weatherView .metrics #humidity sup { font-size:.72em; font-weight:700; margin-left:2px; }
+
+/* Alinhamento do topo (pedido do usuário, 1.15): com o grau do tamanho do número, centrar "número + grau" deixava os
+   algarismos ~26 px à esquerda do eixo do nome da cidade. Um grau invisível do mesmo tamanho à esquerda equilibra o
+   flex: os algarismos ficam no eixo e o grau pendura à direita, como no Apple Weather. Sem posição absoluta. */
+#weatherView .temperature::before { content:"°"; visibility:hidden; font-size:1em; letter-spacing:0; }
+#weatherView.initial-loading .temperature::before { display:none; }
+/* Conta à esquerda: a foto (32 px + anel) ficava 6 px mais perto da borda que a lupa da direita, cujo desenho tem
+   22 px de margem. A foto/ícone começa na mesma margem de 22 px; o alvo de toque continua com 44 px. */
+.topbar .account-trigger[data-signed-in] { justify-items:start; padding-left:10px; }
