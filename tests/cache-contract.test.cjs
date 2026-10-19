@@ -37,7 +37,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-206"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-207"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
   assert.match(html, /styles\.css\?v=core-130/);
@@ -66,9 +66,9 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   assert.ok(!sw.includes('"./assets/rain-drops.svg"'),'asset antigo fica disponível para shells legados, sem precache novo');
   assert.ok(sw.includes('./assets/moon-surface.webp?v=moon-1'),'textura lunar disponível no modo offline');
   assert.ok(fs.statSync(path.join(root,'assets/moon-surface.webp')).size < 30000,'textura leve para mobile');
-  // Cartão da Lua: textura de 512 px só para o disco grande, fora do precache (vem quando a Home abre).
+  // Cartão da Lua: textura de 512 px só para o disco grande; no precache para o cartão abrir offline.
   assert.ok(fs.statSync(path.join(root,'assets/moon-surface-hd.webp')).size < 90000,'textura HD dentro do orçamento');
-  assert.ok(!sw.includes('moon-surface-hd.webp'),'textura HD fora do precache');
+  assert.ok(sw.includes('./assets/moon-surface-hd.webp?v=moon-hd-1'),'textura HD disponível offline');
 });
 
 test('shell iOS e domínio canônico estão travados', () => {
