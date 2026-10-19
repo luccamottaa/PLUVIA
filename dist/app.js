@@ -802,14 +802,13 @@ function paintVisibility() {
   const available = Number.isFinite(value) && value >= 0;
   const reduced = available && value < 5000;
   $("visibilityValue").textContent = !available ? "--" : measured?.plus ? "10+ km" : value < 1000 ? `${fmt(value)} m` : `${fmt(value / 1000, value < 10000 ? 1 : 0)} km`;
-  // Nota só quando foge do normal ou quando a leitura é medida (diz de onde veio).
-  const source = measured ? `Medida no aeroporto ${airport.icao} às ${formatUpdateTime(airport.at)}` : "";
+  // Nota só quando foge do normal ou quando a leitura é medida (diz de onde veio). A classificação vai na
+  // própria nota: o antigo selo "Visibilidade reduzida" quebrava em duas linhas e esticava a fileira toda.
+  const level = !reduced ? "" : value < 1000 ? "Baixa" : "Reduzida";
+  const source = measured ? `medida no aeroporto ${airport.icao} às ${formatUpdateTime(airport.at)}` : "";
   $("visibilityNote").textContent = !available ? "Visibilidade indisponível para esta hora."
-    : measured ? source
-    : reduced ? `${value < 1000 ? "Visibilidade baixa" : "Visibilidade reduzida"} · estimativa do modelo${fromCache ? " salva" : ""}` : "";
-  $("visibilityBadge").hidden = !reduced;
-  $("visibilityBadge").textContent = !reduced ? "" : value < 1000 ? "Visibilidade baixa" : "Visibilidade reduzida";
-  $("visibilityBadge").dataset.level = value < 1000 ? "low" : "reduced";
+    : measured ? (level ? `${level} · ${source}` : source.charAt(0).toUpperCase() + source.slice(1))
+    : reduced ? `${level} · estimativa do modelo${fromCache ? " salva" : ""}` : "";
   $("visibilityValue").closest?.(".metric")?.setAttribute("aria-label", measured ? "Visibilidade medida" : "Visibilidade prevista");
 }
 
@@ -2074,7 +2073,6 @@ function chooseCity(id, locatedCity = null) {
     renderAirParticles(null);
     renderAirOutlook(null);
     $("uvScale").hidden = true;
-    $("visibilityBadge").hidden = true;
     $("windCompass").style.setProperty?.("--wind-visible","0");
     clearWeatherInsights();
     // Por último: o conteúdo inicial (skeleton) não pode ser sobrescrito por textos de "indisponível".

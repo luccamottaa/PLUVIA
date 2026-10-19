@@ -22,7 +22,7 @@ function screen() {
   const peek = {innerHTML:'',scrollLeft:12,dataset:{}};
   const elements = {
     hourlyPeek:peek, dryWindow:{textContent:''}, visibilityValue:{textContent:''},
-    visibilityNote:{textContent:''}, visibilityBadge:{hidden:true,textContent:'',dataset:{}},
+    visibilityNote:{textContent:''},
     moonIcon:{d:'',setAttribute(name,value){this[name]=value;}},
     moonDisc:{visibility:'hidden',setAttribute(name,value){this[name]=value;}}, moonPhase:{textContent:''}
   };
@@ -47,11 +47,10 @@ test('visibilidade baixa aparece no resumo, dado ausente fica indisponível', ()
   const {details,elements} = screen();
   details.renderVisibility(800);
   assert.equal(elements.visibilityValue.textContent,'800 m');
-  assert.equal(elements.visibilityBadge.hidden,false);
-  assert.equal(elements.visibilityBadge.dataset.level,'low');
+  assert.equal(elements.visibilityNote.textContent,'Baixa · estimativa do modelo');
   details.renderVisibility(10000,true);
   assert.equal(elements.visibilityValue.textContent,'10 km');
-  assert.equal(elements.visibilityBadge.hidden,true);
+  assert.equal(elements.visibilityNote.textContent,'');
   details.renderVisibility(null);
   assert.equal(elements.visibilityValue.textContent,'--');
   assert.match(elements.visibilityNote.textContent,/indisponível/);
