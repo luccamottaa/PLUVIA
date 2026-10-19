@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.16", date:"2026-10-19", title:"Gota nova", items:[
+      "A gota do PLUVIA ficou mais simples: a mesma forma de sempre, agora com uma onda só no meio. Aparece no topo, na abertura e no ícone do app na tela de início.",
+    ]},
     {version:"1.15.2", date:"2026-10-19", title:"Topo no estilo do app Tempo", items:[
       "O topo ficou mais parecido com o app Tempo da Apple: nome da cidade em letra normal, temperatura mais fina e a condição e as máximas e mínimas no mesmo tamanho, tudo centralizado.",
       "Grau da temperatura um pouco menor, logo do PLUVIA maior e a temperatura mais perto do nome da cidade.",
