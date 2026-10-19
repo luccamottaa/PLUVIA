@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.16.1", date:"2026-10-19", title:"Temperatura no eixo do app Tempo", items:[
+      "A temperatura do topo foi um pouco para a esquerda: como no app Tempo, o número começa alinhado com o nome da cidade e o grau fica pendurado do lado.",
+    ]},
     {version:"1.16", date:"2026-10-19", title:"Gota nova", items:[
       "A gota do PLUVIA ficou mais simples: a mesma forma de sempre, agora com uma onda só no meio. Aparece no topo, na abertura e no ícone do app na tela de início.",
       "Temperatura do topo um pouco menor, na mesma proporção do app Tempo: os números ficam mais ou menos da largura do nome da cidade.",

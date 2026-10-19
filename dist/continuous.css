@@ -1843,3 +1843,7 @@ html body #weatherView .weather-hero.current-card { padding-top:0 !important; }
    (no iPhone, 34 e 96 pt), então os algarismos ocupam mais ou menos a mesma largura do nome logo acima. */
 #weatherView .intro h1 { font-size:clamp(1.9rem,8.7vw,2.65rem); }
 html body #weatherView .weather-hero .temperature { font-size:clamp(5.35rem,24.5vw,7.5rem) !important; }
+/* Eixo como no app Tempo (1.16.1, pedido do usuário com print do app da Apple): lá os algarismos ficam um pouco à
+   esquerda do centro do nome (o "29" começa junto do "M" de Manaus), porque o grau também pesa no conjunto. O grau
+   invisível perde .34 do próprio tamanho: os algarismos saem ~0,12 em para a esquerda do eixo (~12 px a 96 px). */
+#weatherView .temperature::before { margin-inline-end:-.34em; }
