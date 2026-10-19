@@ -257,3 +257,13 @@ test('consulta do push traz as 24 horas de ontem e três dias',()=>{
   const url=new URL(smart.weatherUrl({...location,id:'x',user_id:'u'}));
   assert.equal(url.searchParams.get('past_hours'),'24');assert.equal(url.searchParams.get('forecast_days'),'3');
 });
+
+test('aviso observado: cada boletim tem chave própria, o mesmo boletim repetido não',()=>{
+  const now=new Date('2026-10-19T04:27:00Z');
+  const airport=time=>({icao:'SBRJ',distanceKm:1,time,weather:{rain:'light',showers:false,drizzle:false,thunder:false,nearbyShowers:false,nearbyThunder:false},previous:{weather:{rain:null,drizzle:false,thunder:false}}});
+  const at=time=>pure.detectObserved({station:null,airport:airport(time)},location,now)[0];
+  const first=at('2026-10-19T04:00:00Z'),again=at('2026-10-19T04:00:00Z'),next=at('2026-10-19T04:20:00Z');
+  assert.equal(first.fingerprintSeed,again.fingerprintSeed);
+  assert.notEqual(first.fingerprintSeed,next.fingerprintSeed,'boletim novo não reaproveita o texto do anterior');
+  assert.match(next.body,/às 00:20\./);
+});

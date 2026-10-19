@@ -228,7 +228,10 @@ function detectObserved({ station, airport }: { station: any; airport: any }, lo
   const at = (iso: unknown) => typeof iso === "string" ? Date.parse(iso) : NaN;
   const fresh = (value: number, max: number) => Number.isFinite(value) && now.getTime() - value <= max && value - now.getTime() <= 15 * 60_000;
   const hour = (value: number) => new Intl.DateTimeFormat("pt-BR", { timeZone: location.timezone, hour: "2-digit", minute: "2-digit" }).format(new Date(value));
-  const bucket = Math.floor(now.getTime() / 10_800_000);
+  // Cada boletim/leitura vira um evento próprio (o horário entra na chave). Com uma janela fixa de 3 h, um
+  // boletim novo reaproveitava o evento já criado, com o texto e o horário do boletim anterior, e quem
+  // ainda não tinha recebido ganhava um "começou a chover às 00:00" à 01:27. A repetição no mesmo episódio
+  // continua barrada por isRepeat (grupo observed/nearby, 6 h).
   const expires = new Date(now.getTime() + 2 * 3_600_000);
   const airportAt = at(airport?.time), wx = airport?.weather && fresh(airportAt, 75 * 60_000) ? airport.weather : null;
   const near = wx && typeof airport.distanceKm === "number" ? `, a ${Math.round(airport.distanceKm)} km` : "";
@@ -238,7 +241,7 @@ function detectObserved({ station, airport }: { station: any; airport: any }, lo
   if (wx?.thunder === true) events.push({
     type: "storm_now", severity: 3, title: "⛈️ Trovoada agora",
     body: `${place} relatou trovoada${wx.rain ? " com chuva" : ""} perto de ${location.city_name} às ${hour(airportAt)}. Procure abrigo e evite áreas abertas.`,
-    source: "Aeroporto · boletim METAR", start: now, expires, url: "./#agora", fingerprintSeed: `storm_now|${location.city_id}|${bucket}`,
+    source: "Aeroporto · boletim METAR", start: now, expires, url: "./#agora", fingerprintSeed: `storm_now|${location.city_id}|${airportAt}`,
     metadata: { icao: airport.icao, observed_at: new Date(airportAt).toISOString(), confidence: "high" },
   });
   const stationAt = at(station?.time), mm = typeof station?.rainMm === "number" ? station.rainMm : null;
@@ -249,14 +252,14 @@ function detectObserved({ station, airport }: { station: any; airport: any }, lo
     events.push({
       type: "rain_now", severity: 2, title: "🌧️ Começou a chover",
       body: `A estação do INMET mais próxima de ${location.city_name}${distance} mediu ${mm.toFixed(1).replace(".", ",")} mm entre ${hour(stationAt - 3_600_000)} e ${hour(stationAt)}.`,
-      source: "INMET · estação automática", start: now, expires, url: "./#agora", fingerprintSeed: `rain_now|${location.city_id}|${bucket}`,
+      source: "INMET · estação automática", start: now, expires, url: "./#agora", fingerprintSeed: `rain_now|${location.city_id}|station|${stationAt}`,
       metadata: { rain_mm: mm, observed_at: new Date(stationAt).toISOString(), confidence: "high" },
     });
   } else if (wx && !wx.thunder && (wx.rain || wx.drizzle) && previous && !previous.rain && !previous.drizzle && !previous.thunder) {
     events.push({
       type: "rain_now", severity: 2, title: "🌧️ Começou a chover",
       body: `${place} relatou ${rainName(wx)} perto de ${location.city_name} às ${hour(airportAt)}.`,
-      source: "Aeroporto · boletim METAR", start: now, expires, url: "./#agora", fingerprintSeed: `rain_now|${location.city_id}|${bucket}`,
+      source: "Aeroporto · boletim METAR", start: now, expires, url: "./#agora", fingerprintSeed: `rain_now|${location.city_id}|airport|${airportAt}`,
       metadata: { icao: airport.icao, observed_at: new Date(airportAt).toISOString(), confidence: "high" },
     });
   }
@@ -264,7 +267,7 @@ function detectObserved({ station, airport }: { station: any; airport: any }, lo
   if (wx && !wx.thunder && !wx.rain && !wx.drizzle && (wx.nearbyThunder || wx.nearbyShowers) && !(mm !== null && mm >= 0.2 && fresh(stationAt, 45 * 60_000))) events.push({
     type: "rain_nearby", severity: 2, title: wx.nearbyThunder ? "🌦️ Trovoada por perto" : "🌦️ Chuva por perto",
     body: `${place} relatou ${wx.nearbyThunder ? "trovoada" : "pancadas de chuva"} nas proximidades às ${hour(airportAt)}. A chuva pode chegar a ${location.city_name} em breve.`,
-    source: "Aeroporto · boletim METAR", start: now, expires, url: "./#chuva", fingerprintSeed: `rain_nearby|${location.city_id}|${bucket}`,
+    source: "Aeroporto · boletim METAR", start: now, expires, url: "./#chuva", fingerprintSeed: `rain_nearby|${location.city_id}|${airportAt}`,
     metadata: { icao: airport.icao, observed_at: new Date(airportAt).toISOString(), thunder: wx.nearbyThunder === true, confidence: "moderate" },
   });
   return events;
