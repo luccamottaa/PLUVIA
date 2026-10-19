@@ -78,6 +78,56 @@ function airQualityUrl(location: Location) {
   return url.toString();
 }
 
+// Outros modelos, consultados só quando um aviso de chuva vai sair (não a cada rodada).
+const AGREEMENT_MODELS = ["ecmwf_ifs025", "gfs_seamless", "icon_seamless"];
+function agreementUrl(location: Location) {
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.search = new URLSearchParams({
+    latitude: String(location.latitude), longitude: String(location.longitude), timezone: location.timezone, timeformat: "unixtime",
+    forecast_days: "2", hourly: "precipitation", models: AGREEMENT_MODELS.join(","),
+  }).toString();
+  return url.toString();
+}
+
+// Quantos outros modelos também preveem chuva nas mesmas horas do aviso (intervalos que terminam de
+// window[0] a window[1]). Modelo com alguma hora ausente fica fora da conta; com menos de 2 modelos
+// válidos não há concordância a dizer (null). A confiança vem só disso: todos concordam = alta,
+// nenhum = baixa, o resto = moderada. Não é probabilidade calibrada; o placar de acerto é que vai dizer
+// quanto ela vale.
+function modelAgreement(data: any, window: unknown, minMm = 0.5) {
+  if (!Array.isArray(window)) return null;
+  const [from, to] = window.map(value => observed(value, 1));
+  if (from === null || to === null || to < from) return null;
+  const times = asArray(data?.hourly?.time);
+  const indexes = times.flatMap((time: unknown, index: number) => {
+    const unix = observed(time, 1);
+    return unix !== null && unix >= from && unix <= to ? [index] : [];
+  });
+  if (indexes.length !== (to - from) / 3600 + 1) return null;
+  let agree = 0, total = 0;
+  for (const model of AGREEMENT_MODELS) {
+    const values = indexes.map((index: number) => observed(data.hourly[`precipitation_${model}`]?.[index], 0, 500));
+    if (values.some((value: number | null) => value === null)) continue;
+    total++;
+    if (values.some((value: number | null) => (value as number) >= minMm)) agree++;
+  }
+  return total >= 2 ? { agree, total } : null;
+}
+
+function withAgreement(candidate: EventCandidate, data: any): EventCandidate {
+  if (!["rain_approaching", "heavy_rain"].includes(candidate.type)) return candidate;
+  const result = modelAgreement(data, candidate.metadata?.window, candidate.type === "heavy_rain" ? 2.5 : 0.5);
+  if (!result) return candidate;
+  const what = candidate.type === "heavy_rain" ? "chuva forte" : "chuva";
+  const note = result.agree === 0
+    ? ` Os outros modelos não preveem ${what} nesse horário: pode não acontecer.`
+    : result.agree === result.total
+    ? ` Os outros ${result.total} modelos também preveem ${what} nesse horário.`
+    : ` ${result.agree} de ${result.total} outros modelos também preveem ${what} nesse horário.`;
+  const confidence = result.agree === result.total ? "high" : result.agree === 0 ? "low" : "moderate";
+  return { ...candidate, body: candidate.body + note, metadata: { ...candidate.metadata, agreement: result, confidence } };
+}
+
 // Null, strings and booleans are missing observations, never numeric zero.
 function observed(value: unknown, min = -Infinity, max = Infinity): number | null {
   return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max ? value : null;
@@ -161,12 +211,12 @@ function detectWeather(data: any, location: Location, now = new Date()) {
   if (currentRain !== null && currentRain < 0.2 && rainHours.length > 0) events.push({
     type: "rain_approaching", severity: 2, title: "🌧️ Chuva nas próximas horas",
     body: `${rainIntensity(peakRain)} ${windowOf(rainHours)} em ${location.city_name}, com até ${Math.round(peakProbability)}% de chance. Vale levar guarda-chuva.`, source: "Open-Meteo · modelo",
-    start: now, expires: end2h, url: "./#chuva", fingerprintSeed: `rain_approaching|${location.city_id}|${bucket}|2`, metadata: { peak_probability: peakProbability, peak_mm_h: peakRain, confidence: "moderate" },
+    start: now, expires: end2h, url: "./#chuva", fingerprintSeed: `rain_approaching|${location.city_id}|${bucket}|2`, metadata: { peak_probability: peakProbability, peak_mm_h: peakRain, window: [rainHours[0]?.time, rainHours.at(-1)?.time], confidence: "moderate" },
   });
   if (intenseRain.length) {
     const intensity = Math.max(...intenseRain.map((row: any) => row.precipitation));
     const severity = intensity >= 15 ? 4 : 3;
-    events.push({ type: "heavy_rain", severity, title: "🌧️ Chuva forte prevista", body: `Chuva forte ${windowOf(intenseRain)} em ${location.city_name}, até ${Math.round(intensity)} mm em uma hora. Evite áreas alagáveis e acompanhe os avisos oficiais.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#chuva", fingerprintSeed: `heavy_rain|${location.city_id}|${bucket}|${severity}`, metadata: { peak_probability: Math.max(...intenseRain.map((row: any) => row.probability)), peak_mm_h: intensity, confidence: "moderate" } });
+    events.push({ type: "heavy_rain", severity, title: "🌧️ Chuva forte prevista", body: `Chuva forte ${windowOf(intenseRain)} em ${location.city_name}, até ${Math.round(intensity)} mm em uma hora. Evite áreas alagáveis e acompanhe os avisos oficiais.`, source: "Open-Meteo · modelo", start: now, expires: end3h, url: "./#chuva", fingerprintSeed: `heavy_rain|${location.city_id}|${bucket}|${severity}`, metadata: { peak_probability: Math.max(...intenseRain.map((row: any) => row.probability)), peak_mm_h: intensity, window: [intenseRain[0].time, intenseRain[intenseRain.length - 1].time], confidence: "moderate" } });
   }
   if (stormCode >= 95) {
     const severity = stormCode >= 99 ? 4 : 3;
@@ -569,7 +619,15 @@ Deno.serve(async (req) => {
           } catch (error) { console.warn("air quality unavailable", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" }); }
         }
         const enabledCandidates = candidates.filter(candidate => !preferenceFor[candidate.type] || preference[preferenceFor[candidate.type]]);
-        for (const candidate of selectCandidates(enabledCandidates, { raining })) {
+        let selected = selectCandidates(enabledCandidates, { raining });
+        if (selected.some(candidate => ["rain_approaching", "heavy_rain"].includes(candidate.type))) {
+          // Falha dos outros modelos não segura o aviso: ele sai sem a frase de concordância.
+          try {
+            const others = await source(agreementUrl(location));
+            selected = selected.map(candidate => withAgreement(candidate, others));
+          } catch { /* sem concordância */ }
+        }
+        for (const candidate of selected) {
           if (Date.now() >= deadline) throw new Error("worker_budget");
           const event = await createEvent(admin, location, candidate);
           if (event.created) created++;
