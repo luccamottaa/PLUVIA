@@ -98,6 +98,13 @@ with sync_playwright() as p:
   area,row=result_bounds[0],result_bounds[-1]
   assert row['y']>=area['y']-1 and row['y']+row['height']<=area['y']+area['height']+1,(width,row,area)
   carousel.evaluate('el=>el.scrollLeft=0');scroll.evaluate('el=>el.scrollTop=0')
+ def resize(width,height):
+  # No WebKit do Playwright, a troca de largura liga as media/container queries (matchMedia muda), mas o estilo
+  # já calculado de alguns elementos continua o da largura anterior (a marca ficava com a gota de 390 px a 320 px).
+  # Uma propriedade customizada (herdada) na raiz força o recálculo da página inteira; num aparelho de verdade a
+  # largura não muda no meio do desenho.
+  page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(100)
+  page.evaluate("()=>{const r=document.documentElement;r.style.setProperty('--qa-resized',String(innerWidth));void r.offsetWidth;r.style.removeProperty('--qa-resized');void r.offsetWidth}")
  def home(width,label):
   assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),(width,label)
   report={'width':width,'period':label}
@@ -205,7 +212,7 @@ with sync_playwright() as p:
   reports.append(report)
 
  for width,height in [(320,740),(390,844),(430,932),(768,1024),(844,390),(1366,768),(2560,1080)]:
-  page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(100)
+  resize(width,height)
   home(width,'sunrise')
   assert 'Nascer do sol' in page.locator('#hourlyPeek').inner_text()
   if width in [320,390,768,1366]:
@@ -250,7 +257,7 @@ with sync_playwright() as p:
   page.clock.set_fixed_time(datetime.datetime(2026,10,4,hour+4,15,tzinfo=datetime.timezone.utc))
   page.evaluate("render(displayedWeather.forecast,displayedWeather.air,false,Date.now())")
   for width,height in [(390,844),(1366,768)]:
-   page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(100);home(width,label)
+   resize(width,height);home(width,label)
    # Com 24 horas o pôr do sol entra na fileira nos dois casos; às 15h ele cai entre os seis primeiros.
    first=page.evaluate("[...document.querySelectorAll('#hourlyPeek .hourly-peek-item')].slice(0,6).map(e=>e.textContent).join(' ')")
    assert 'Pôr do sol' in page.locator('#hourlyPeek').text_content()
@@ -263,7 +270,7 @@ with sync_playwright() as p:
  page.evaluate("chooseCity('3305158')")
  page.wait_for_function("document.getElementById('cityName').textContent.includes('São José do Vale do Rio Preto') && !document.getElementById('weatherView').classList.contains('initial-loading')")
  for width,height in [(320,740),(768,1024),(1366,768)]:
-  page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(100);home(width,'long-city')
+  resize(width,height);home(width,'long-city')
   screenshot(str(width)+'-long-city','#agora')
  assert not errors,errors
  assert not forbidden,forbidden
