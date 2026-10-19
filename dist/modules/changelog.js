@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.16.2", date:"2026-10-19", title:"Topo só com o nome", items:[
+      "O topo mostra só o nome PLUVIA, sem a gota, centralizado no mesmo eixo do nome da cidade e da temperatura.",
+    ]},
     {version:"1.16.1", date:"2026-10-19", title:"Temperatura no eixo do app Tempo", items:[
       "A temperatura do topo foi um pouco para a esquerda: como no app Tempo, o número começa alinhado com o nome da cidade e o grau fica pendurado do lado.",
     ]},
