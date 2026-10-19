@@ -297,3 +297,23 @@ test('aviso de chuva leva a janela das horas no metadata',()=>{
   assert.deepEqual(JSON.parse(JSON.stringify(events.find(e=>e.type==='heavy_rain').metadata.window)),[data.hourly.time[26],data.hourly.time[26]]);
   assert.deepEqual(JSON.parse(JSON.stringify(events.find(e=>e.type==='rain_approaching').metadata.window)),[data.hourly.time[26],data.hourly.time[26]]);
 });
+test('parou de chover: hora seca depois de chuva na estação, ou aeroporto que deixa de relatar chuva',()=>{
+  const now=new Date('2026-10-13T16:20:00Z');
+  const station=(rainMm,previousRainMm,time='2026-10-13T16:00:00Z')=>({station:{ibge:'1302603',distanceKm:1.9},time,rainMm,previousRainMm});
+  const airport=(weather,previous,time='2026-10-13T16:00:00Z')=>({icao:'SBEG',distanceKm:9.5,time,weather:{rain:null,showers:false,drizzle:false,thunder:false,nearbyShowers:false,nearbyThunder:false,...weather},previous:{weather:previous}});
+  const stopped=pure.detectObserved({station:station(0,6.2),airport:null},location,now);
+  assert.equal(stopped.length,1);assert.equal(stopped[0].type,'rain_stopped');assert.equal(stopped[0].severity,1);
+  assert.equal(stopped[0].body,'A estação do INMET mais próxima de Manaus não registrou chuva entre 11:00 e 12:00, depois de 6,2 mm na hora anterior. Pode ser só uma pausa.');
+  // Garoa fraca na hora anterior, leitura velha ou chuva ainda no aeroporto: não é "parou".
+  assert.equal(pure.detectObserved({station:station(0,0.6),airport:null},location,now).length,0);
+  assert.equal(pure.detectObserved({station:station(0,6,'2026-10-13T15:00:00Z'),airport:null},location,now).length,0);
+  assert.ok(!pure.detectObserved({station:station(0,6),airport:airport({rain:'light'},{rain:'light'})},location,now).some(e=>e.type==='rain_stopped'));
+  // Aeroporto: boletim anterior com chuva, o atual seco e sem trovoada por perto.
+  const air=pure.detectObserved({station:null,airport:airport({}, {rain:'moderate'})},location,now);
+  assert.equal(air[0].type,'rain_stopped');
+  assert.equal(air[0].body,'O aeroporto mais próximo (SBEG, a 10 km) deixou de relatar chuva às 12:00, perto de Manaus. Pode ser só uma pausa.');
+  assert.equal(pure.detectObserved({station:null,airport:airport({nearbyThunder:true},{rain:'moderate'})},location,now).some(e=>e.type==='rain_stopped'),false);
+  assert.equal(pure.detectObserved({station:station(1.4,0),airport:airport({},{rain:'moderate'})},location,now).some(e=>e.type==='rain_stopped'),false,'estação ainda mede chuva');
+  // Chaves diferentes por leitura.
+  assert.notEqual(stopped[0].fingerprintSeed,air[0].fingerprintSeed);
+});

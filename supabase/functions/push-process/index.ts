@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { adminClient, pushSecrets } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 import { pushErrorCode, sendWebPush } from "../_shared/webpush.ts";
-import { selectCandidates, isRepeat, pushUrgency } from "../_shared/notification-policy.js";
+import { selectCandidates, isRepeat, stopAllowed, pushUrgency } from "../_shared/notification-policy.js";
 import { report } from "../_shared/error-report.js";
 import { metarUrl, nearestAirport } from "../_shared/metar.js";
 import { stationUrl, normalizeStation } from "../_shared/inmet-station.js";
@@ -17,7 +17,7 @@ const preferenceFor: Record<string, string> = {
   lightning: "lightning", strong_wind: "strong_wind", extreme_heat: "extreme_heat", air_quality: "air_quality",
   weather_change: "weather_changes", daily_summary: "daily_summary", evening_summary: "evening_summary",
   // Observados (estação do INMET e boletim do aeroporto): ligam junto com os avisos de chuva e tempestade.
-  rain_now: "rain_approaching", rain_nearby: "rain_approaching", storm_now: "storms",
+  rain_now: "rain_approaching", rain_nearby: "rain_approaching", rain_stopped: "rain_approaching", storm_now: "storms",
 };
 const asArray = (value: any) => Array.isArray(value) ? value : [];
 const text = (value: unknown, max = 500) => String(value ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
@@ -313,6 +313,27 @@ function detectObserved({ station, airport }: { station: any; airport: any }, lo
       metadata: { icao: airport.icao, observed_at: new Date(airportAt).toISOString(), confidence: "high" },
     });
   }
+  // Parou: a hora que acabou de fechar ficou seca na estação depois de uma hora com ≥ 1 mm, ou o aeroporto
+  // deixou de relatar chuva/trovoada. Nunca com a outra fonte ainda medindo chuva. Pode ser só uma pausa, e o
+  // texto diz isso. deliver() só manda para quem recebeu "começou a chover"/"trovoada agora" da cidade.
+  const stationWet = mm !== null && mm >= 0.2 && fresh(stationAt, 45 * 60_000);
+  const airportWet = Boolean(wx && (wx.rain || wx.drizzle || wx.thunder));
+  const stationStopped = station?.station && fresh(stationAt, 45 * 60_000) && mm !== null && mm < 0.2 && before !== null && before >= 1;
+  const airportStopped = wx && !airportWet && !wx.nearbyThunder && previous && (previous.rain || previous.drizzle || previous.thunder);
+  if (stationStopped && !airportWet) {
+    const distance = typeof station.station.distanceKm === "number" && station.station.distanceKm >= 5 ? `, a ${Math.round(station.station.distanceKm)} km` : "";
+    events.push({
+      type: "rain_stopped", severity: 1, title: "🌤️ Parou de chover",
+      body: `A estação do INMET mais próxima de ${location.city_name}${distance} não registrou chuva entre ${hour(stationAt - 3_600_000)} e ${hour(stationAt)}, depois de ${before!.toFixed(1).replace(".", ",")} mm na hora anterior. Pode ser só uma pausa.`,
+      source: "INMET · estação automática", start: now, expires, url: "./#chuva", fingerprintSeed: `rain_stopped|${location.city_id}|station|${stationAt}`,
+      metadata: { previous_rain_mm: before, observed_at: new Date(stationAt).toISOString(), confidence: "high" },
+    });
+  } else if (airportStopped && !stationWet) events.push({
+    type: "rain_stopped", severity: 1, title: "🌤️ Parou de chover",
+    body: `${place} deixou de relatar chuva às ${hour(airportAt)}, perto de ${location.city_name}. Pode ser só uma pausa.`,
+    source: "Aeroporto · boletim METAR", start: now, expires, url: "./#chuva", fingerprintSeed: `rain_stopped|${location.city_id}|airport|${airportAt}`,
+    metadata: { icao: airport.icao, observed_at: new Date(airportAt).toISOString(), confidence: "high" },
+  });
   // Por perto: chuva ou trovoada nas proximidades do aeroporto, sem nada no próprio aeroporto nem na estação.
   if (wx && !wx.thunder && !wx.rain && !wx.drizzle && (wx.nearbyThunder || wx.nearbyShowers) && !(mm !== null && mm >= 0.2 && fresh(stationAt, 45 * 60_000))) events.push({
     type: "rain_nearby", severity: 2, title: wx.nearbyThunder ? "🌦️ Trovoada por perto" : "🌦️ Chuva por perto",
@@ -486,7 +507,8 @@ async function deliver(admin: any, event: any, preference: Preference, subscript
         .eq('subscription_id',subscription.id).eq('notification_events.city_id',event.cityId)
         .in('status',['accepted','pending']).gte('created_at',new Date(Date.now()-6*3600000).toISOString());
       if (recentError) throw new Error("dedup_lookup_failed");
-      if (isRepeat(event,recent || [])) { skipped++; continue; }
+      // "Parou de chover" fecha o ciclo: só depois de um "começou a chover"/"trovoada agora" entregue a este aparelho.
+      if (event.type === "rain_stopped" ? !stopAllowed(recent || []) : isRepeat(event,recent || [])) { skipped++; continue; }
     }
     const { data: delivery, error } = await admin.from("notification_deliveries").insert({ event_id: event.id, user_id: userId, subscription_id: subscription.id }).select("id").single();
     if (error?.code === "23505") { skipped++; continue; }
