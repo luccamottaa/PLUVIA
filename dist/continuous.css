@@ -161,10 +161,11 @@ body[data-ink="dark"] #weatherView {
 #weatherView .temperature .deg {
   position:relative;
   inset-inline-start:auto;
-  top:.12em;
+  top:0;
   margin:0 !important;
   transform:none;
-  font-size:.3em;
+  font-size:1em; /* grau do tamanho do número, como no Apple Weather (pedido do usuário, 1.15) */
+  letter-spacing:0;
   font-weight:inherit;
   color:inherit !important;
 }

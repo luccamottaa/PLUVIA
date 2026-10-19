@@ -15,6 +15,7 @@
     {version:"1.15", date:"2026-10-19", title:"Fonte nova", items:[
       "As letras agora usam a fonte do próprio aparelho: no iPhone é a mesma do app Tempo da Apple. Como ela já vem no celular, o PLUVIA abre um pouco mais rápido.",
       "O % da umidade ficou maior e mais grosso.",
+      "O símbolo de grau da temperatura do topo ficou do tamanho do número, como no app Tempo da Apple.",
     ]},
     {version:"1.14.5", date:"2026-10-19", title:"Leituras mais fáceis de ler", items:[
       "As unidades dos blocos (%, hPa e km/h) ficaram maiores e mais grossas.",
