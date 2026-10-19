@@ -10,7 +10,7 @@ const html = fs.readFileSync(path.join(__dirname, '..', 'dist', 'index.html'), '
 const moon = require('../dist/vendor/suncalc.js');
 const moonView = require('../dist/modules/moon-view.js');
 const hourlySource = app.slice(app.indexOf('const SOLAR_GLYPHS = '), app.indexOf('\nfunction renderForecast('));
-const detailsSource = app.slice(app.indexOf('function renderVisibility('), app.indexOf('\nfunction cache(', app.indexOf('function renderVisibility(')));
+const detailsSource = app.slice(app.indexOf('const visibilityState = '), app.indexOf('\nfunction cache(', app.indexOf('function renderVisibility(')));
 const hours = ['2026-09-24T16:00','2026-09-24T17:00','2026-09-24T18:00'];
 const data = {
   time:hours, temperature_2m:[27,29,28], weather_code:[1,2,3],
@@ -27,7 +27,7 @@ function screen() {
     moonDisc:{visibility:'hidden',setAttribute(name,value){this[name]=value;}}, moonPhase:{textContent:''}
   };
   const ctx = {
-    $:id => elements[id], activeCity:{id:'1302603',name:'Manaus'},
+    $:id => elements[id], activeCity:{id:'1302603',name:'Manaus'}, observedRainState:{airport:null,stationCity:null},
     cityDate:value=>new Date(value+'Z'),formatUpdateTime:at=>new Date(at).toISOString().slice(11,16),
     fmt:(value,digits=0) => Number.isFinite(value) ? value.toFixed(digits).replace('.',',') : '--',
     shortTime:time => time.slice(11,16), windDirection:deg => ({0:'N',90:'L'})[deg],
@@ -96,7 +96,7 @@ test('a lua texturizada acompanha as oito fases e desaparece sem dados', () => {
   details.renderMoon(new Date());
   assert.equal(elements.moonIcon.d,'');
   assert.equal(elements.moonDisc.visibility,'hidden');
-  assert.match(html,/<svg class="moon-phase-icon"[^>]*>[\s\S]*?<use href="#moonDisc"/);
+  assert.match(html,/<svg class="moon-card-disc"[^>]*>[\s\S]*?<use href="#moonDisc"/);
   assert.match(html,/href="\.\/assets\/moon-surface\.webp\?v=moon-1"/);
 });
 

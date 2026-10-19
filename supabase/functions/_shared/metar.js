@@ -39,6 +39,16 @@ export function parseWeather(wx) {
   return result;
 }
 
+// Visibilidade horizontal do boletim, em metros, logo depois do grupo de vento ("… 04005KT 9999 …").
+// 9999 e CAVOK querem dizer 10 km ou mais (plus); o campo visib da API vem em milhas e é arredondado.
+export function parseVisibility(raw) {
+  const match = /\s(?:\d{3}|VRB)\d{2,3}(?:G\d{2,3})?(?:KT|MPS)(?:\s\d{3}V\d{3})?\s(CAVOK|\d{4})(?:NDV)?(?=\s|$)/.exec(String(raw || ''));
+  if (!match) return null;
+  if (match[1] === 'CAVOK' || match[1] === '9999') return {meters:10000, plus:true};
+  const meters = Number(match[1]);
+  return Number.isFinite(meters) && meters >= 0 && meters < 9999 ? {meters, plus:false} : null;
+}
+
 function finite(value, min, max) {
   const number = typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number(value) : NaN;
   return Number.isFinite(number) && number >= min && number <= max ? number : null;
@@ -93,6 +103,7 @@ export function nearestAirport(list, lat, lon, now = Date.now(), {radiusKm = AIR
     windKmh:wind === null ? null : Math.round(wind * 1.852),
     gustKmh:gust === null ? null : Math.round(gust * 1.852),
     weather:parseWeather(best.latest.item.wxString),
+    visibility:parseVisibility(best.latest.item.rawOb),
     previous:best.previous ? {time:new Date(best.previous.at).toISOString(), weather:parseWeather(best.previous.item.wxString)} : null
   };
 }

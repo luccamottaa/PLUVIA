@@ -45,7 +45,9 @@
       humidity:finite(airport.humidity, 0, 100),
       weather:{rain:['light','moderate','heavy'].includes(weather.rain) ? weather.rain : null, showers:flag('showers'), drizzle:flag('drizzle'),
         thunder:flag('thunder'), nearbyShowers:flag('nearbyShowers'), nearbyThunder:flag('nearbyThunder')},
-      previousWet:previous ? Boolean(previous.rain || previous.thunder || previous.drizzle) : null};
+      previousWet:previous ? Boolean(previous.rain || previous.thunder || previous.drizzle) : null,
+      // Visibilidade medida (metros; 10 000 com plus = "10 km ou mais"). Ausente fica null.
+      visibility:finite(airport.visibility?.meters, 0, 10000) === null ? null : {meters:airport.visibility.meters, plus:airport.visibility.plus === true}};
   }
   // O que o aeroporto relata, em poucas palavras ("" quando não há chuva nem trovoada).
   function weatherPhrase(weather) {
