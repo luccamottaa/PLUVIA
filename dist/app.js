@@ -805,7 +805,9 @@ function paintVisibility() {
   // Nota só quando foge do normal ou quando a leitura é medida (diz de onde veio). A classificação vai na
   // própria nota: o antigo selo "Visibilidade reduzida" quebrava em duas linhas e esticava a fileira toda.
   const level = !reduced ? "" : value < 1000 ? "Baixa" : "Reduzida";
-  const source = measured ? `medida no aeroporto ${airport.icao} às ${formatUpdateTime(airport.at)}` : "";
+  // Curta, numa linha: em duas linhas ela esticava a fileira e abria um buraco embaixo da umidade ao lado
+  // ("Medido" fica no nome acessível do bloco).
+  const source = measured ? `aeroporto ${airport.icao} · ${formatUpdateTime(airport.at)}` : "";
   $("visibilityNote").textContent = !available ? "Visibilidade indisponível para esta hora."
     : measured ? (level ? `${level} · ${source}` : source.charAt(0).toUpperCase() + source.slice(1))
     : reduced ? `${level} · estimativa do modelo${fromCache ? " salva" : ""}` : "";
