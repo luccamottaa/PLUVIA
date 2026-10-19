@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.14.6", date:"2026-10-19", title:"% da umidade em destaque", items:[
+      "O % da umidade ficou maior e mais grosso.",
+    ]},
     {version:"1.14.5", date:"2026-10-19", title:"Leituras mais fáceis de ler", items:[
       "As unidades dos blocos (%, hPa e km/h) ficaram maiores e mais grossas.",
       "Ar nos próximos dias mais limpo: cada dia mostra só a categoria, sem os números do índice e das partículas.",

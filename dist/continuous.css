@@ -1782,3 +1782,5 @@ html body #accountDialog #accountMore .account-more-item:focus-visible { outline
 /* Ciclo do dia: o mesmo Sol realista do céu (sky-sun.svg, já no precache), a pedido do usuário (1.14.5).
    O disco ocupa ~51% da arte (o resto é halo), então o ponto fica maior; o halo já é o brilho, sem drop-shadow. */
 #weatherView .sun-arc .sun-dot { width:88px; height:88px; filter:none; }
+/* % da umidade ainda maior e mais grosso que as outras unidades (pedido do usuário, 1.14.6). */
+#weatherView .metrics #humidity sup { font-size:.72em; font-weight:700; margin-left:2px; }
