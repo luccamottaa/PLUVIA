@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.14", date:"2026-10-19", title:"Lua de verdade", items:[
+      "O Ciclo do dia ganhou um cartão da Lua: a fase, quanto dela está iluminada, o próximo nascer ou pôr e quantos dias faltam para a lua cheia, com a Lua grande ao lado na fase de agora.",
+      "Visibilidade mais fiel: quando há um aeroporto perto da cidade, o PLUVIA mostra a visibilidade medida lá em vez da estimativa do modelo, que às vezes inventava neblina de madrugada.",
+    ]},
     {version:"1.13", date:"2026-10-19", title:"Chuva chegando no celular", items:[
       "Novo aviso no celular: quando o radar mostra chuva vindo na direção da sua cidade, o PLUVIA avisa com 10 a 60 minutos de antecedência, pelo movimento das últimas imagens. Se o movimento não está claro, ele não avisa.",
       "Quando o placar de acerto mostrar que outro modelo prevê a chuva da sua cidade claramente melhor, os avisos de chuva passam a usar esse modelo. Até lá, nada muda.",

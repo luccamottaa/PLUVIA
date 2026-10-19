@@ -35,7 +35,7 @@
       const text = document?.getElementById?.('moonPhase');
       if (text) text.textContent = label;
       const illumination = document?.getElementById?.('moonIllumination');
-      if (illumination) illumination.textContent = available ? Math.round(fraction*100)+'% iluminada' : 'Iluminação indisponível';
+      if (illumination) illumination.textContent = available ? Math.round(fraction*100)+'%' : 'Indisponível';
       document?.documentElement?.style?.setProperty('--moon-light',fraction.toFixed(3));
       return {available,phase,label,fraction};
     }

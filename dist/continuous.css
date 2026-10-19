@@ -1161,13 +1161,20 @@ body[data-ink="dark"] #weatherView {
 #weatherView .sun-section .sun-ends div + div { text-align:right; }
 #weatherView .sun-section .sun-ends span { font-size:.8125rem; letter-spacing:0; }
 #weatherView .sun-section .sun-ends strong { color:var(--reading-ink); font-size:1.15rem; font-weight:600; }
-#weatherView .sun-section .moon-line { display:flex; justify-content:flex-start; align-items:center; gap:10px; width:100%; padding:14px 0 0; border-top:1px solid var(--reading-line); }
-#weatherView .sun-section .moon-line .moon-phase-icon { width:32px; height:32px; flex:0 0 32px; }
-#weatherView .sun-section .moon-line > span { font:400 .95rem/1.4 var(--font-ui); letter-spacing:0; color:var(--reading-muted); }
-#weatherView .sun-section .moon-line .moon-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-#weatherView .sun-section .moon-line strong { display:inline; margin:0; color:var(--reading-ink); font:500 .95rem/1.4 var(--font-ui); }
-#weatherView .sun-section .moon-line #moonIllumination { display:inline; margin:0; font-size:inherit; }
-#weatherView .sun-section .moon-line #moonIllumination::before { content:"· "; }
+/* Cartão da Lua (pedido do usuário, no estilo do Apple Weather): fase, iluminação, próximo nascer/pôr e
+   dias até a lua cheia à esquerda; o mesmo #moonDisc (textura NASA, fase de moon-view) grande à direita.
+   Só pintura: sem transform, blur ou z-index. O halo é um degradê radial no fundo do próprio SVG. */
+#weatherView .sun-section .moon-card { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:16px; width:100%; padding:16px 0 0; border-top:1px solid var(--reading-line); }
+#weatherView .sun-section .moon-card-title { margin:0 0 6px; color:var(--reading-ink); font:600 .8125rem/1.3 var(--font-ui); letter-spacing:.06em; text-transform:uppercase; text-align:left; }
+#weatherView .sun-section .moon-card .moon-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+#weatherView .sun-section .moon-card-rows { display:grid; margin:0; padding:0; border:0; }
+#weatherView .sun-section .moon-card-rows div { display:flex; justify-content:space-between; align-items:baseline; gap:12px; min-width:0; padding:9px 0; border:0; border-bottom:1px solid var(--reading-line); }
+#weatherView .sun-section .moon-card-rows div:last-child { border-bottom:0; }
+#weatherView .sun-section .moon-card-rows dt { margin:0; color:var(--reading-muted); font:400 .9375rem/1.35 var(--font-ui); letter-spacing:0; text-align:left; white-space:nowrap; }
+#weatherView .sun-section .moon-card-rows dd { margin:0; color:var(--reading-ink); font:500 .9375rem/1.35 var(--font-ui); font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+#weatherView .sun-section .moon-card-disc { display:block; width:clamp(104px,28vw,148px); height:auto; aspect-ratio:1; padding:6px; border-radius:50%; background:radial-gradient(circle closest-side,rgba(214,226,255,.16) 78%,rgba(214,226,255,.05) 90%,transparent 100%); }
+body[data-ink="dark"] #weatherView .sun-section .moon-card-disc { background:radial-gradient(circle closest-side,rgba(19,35,61,.22) 80%,rgba(19,35,61,.06) 92%,transparent 100%); }
+@media (max-width:359px) { #weatherView .sun-section .moon-card { gap:10px; } #weatherView .sun-section .moon-card-disc { width:84px; padding:4px; } #weatherView .sun-section .moon-card-rows div { display:grid; gap:2px; padding:7px 0; } #weatherView .sun-section .moon-card-rows dd { text-align:left; } }
 /* Respiro entre o último cartão e a linha do rodapé (a borda do cartão encostava nela). */
 #weatherView { padding-bottom:28px; }
 @media (forced-colors:active) {

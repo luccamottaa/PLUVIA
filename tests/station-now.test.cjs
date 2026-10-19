@@ -134,7 +134,7 @@ test('app: cartão escondido até a leitura, some na troca de cidade e entra no 
   const html = fs.readFileSync('dist/index.html','utf8'), css = fs.readFileSync('dist/continuous.css','utf8'), sw = fs.readFileSync('dist/sw.js','utf8');
   assert.match(html,/<article class="metric station-metric panel card-detail" id="stationNow" aria-labelledby="stationNowTitle" hidden>/);
   assert.match(html,/id="airQualityCard">[\s\S]*?<\/article>\n\s*<article class="metric station-metric/,'depois do ar, sem empurrar o topo');
-  assert.match(html,/modules\/station-now\.js\?v=station-3/);assert.match(sw,/modules\/station-now\.js\?v=station-3/);
+  assert.match(html,/modules\/station-now\.js\?v=station-4/);assert.match(sw,/modules\/station-now\.js\?v=station-4/);
   assert.match(css,/#weatherView \.metrics \.station-metric\[hidden\] \{ display:none; \}/);
   const source = fs.readFileSync('dist/modules/station-now.js','utf8');
   assert.match(source,/'pluvia:city-changed', \(\) => \{ revision\+\+; pendingCity = null; controller\?\.abort\?\.\(\); hide\(\); \}/);

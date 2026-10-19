@@ -702,12 +702,33 @@ function renderEclipses(at, box) {
   }
 }
 
+// Cartão da Lua (no estilo do Apple Weather): fase e iluminação vêm de moon-view; aqui só o próximo
+// nascer/pôr (mesmo sky.astronomyAt de hoje e de amanhã, em cache) e os dias até a próxima lua cheia
+// (sky-events, Meeus), contados no calendário municipal.
+function renderMoonCard(at, astronomy) {
+  const label=$('moonNextLabel'), time=$('moonNextTime'), full=$('moonFullIn');
+  if(!label || !time) return;
+  const tomorrow=globalThis.PLUVIA?.sky?.astronomyAt?.(at+86400000);
+  const events=[[astronomy?.moonRise,'Nascer da Lua',false],[astronomy?.moonSet,'Pôr da Lua',false],
+    [tomorrow?.moonRise,'Nascer da Lua',true],[tomorrow?.moonSet,'Pôr da Lua',true]]
+    .filter(([stamp])=>Number.isFinite(stamp) && stamp>at).sort((a,b)=>a[0]-b[0]);
+  const next=events[0];
+  label.textContent=next ? next[1] : 'Nascer da Lua';
+  time.textContent=next ? (next[2] ? 'amanhã, ' : '')+formatUpdateTime(next[0]) : 'Indisponível';
+  if(!full) return;
+  const stamp=globalThis.PLUVIA?.skyEvents?.nextPhases?.(at)?.full, dayKey=globalThis.PLUVIA?.time?.dayKey;
+  if(!Number.isFinite(stamp) || !dayKey || !activeCity) { full.textContent='Indisponível'; return; }
+  const days=Math.round((Date.parse(dayKey(stamp,activeCity)+'T00:00Z')-Date.parse(dayKey(at,activeCity)+'T00:00Z'))/86400000);
+  full.textContent=!Number.isFinite(days) ? 'Indisponível' : days<=0 ? 'hoje' : days===1 ? 'amanhã' : `em ${days} dias`;
+}
+
 function renderSun(daily, at = Date.now(), hourly = null) {
   const astronomy=globalThis.PLUVIA?.sky?.astronomyAt?.(at);
   const astronomyFields={civilDawn:astronomy?.dawn,civilDusk:astronomy?.dusk,moonrise:astronomy?.moonRise,moonset:astronomy?.moonSet};
   for(const [id,stamp] of Object.entries(astronomyFields)) {
     const field=$(id);if(field) field.textContent=Number.isFinite(stamp) ? formatUpdateTime(stamp) : id.startsWith('moon') && astronomy?.moonAvailable ? 'Sem evento hoje' : 'Indisponível';
   }
+  renderMoonCard(at, astronomy);
   // Hora dourada (Sol entre 0° e 6°) e hora azul (crepúsculo civil), manhã e fim de tarde.
   const span=(from,to)=>Number.isFinite(from) && Number.isFinite(to) && to>from ? formatUpdateTime(from)+'–'+formatUpdateTime(to) : null;
   const windows=(morning,evening)=>[morning,evening].filter(Boolean).join(' e ') || 'Indisponível';
@@ -767,16 +788,29 @@ function renderSun(daily, at = Date.now(), hourly = null) {
     : "Duração prevista de sol indisponível.";
 }
 
+// Visibilidade: a medida no aeroporto mais próximo (boletim METAR de até 75 min, via station-now) vence a
+// do modelo, que em Manaus inventa "neblina" de madrugada com a umidade alta (480 m com o aeroporto em
+// 9999). Sem aeroporto, fica o modelo, identificado como estimativa quando está baixo.
+const visibilityState = {model:null, fromCache:false};
 function renderVisibility(value, fromCache = false) {
+  visibilityState.model = value; visibilityState.fromCache = fromCache;
+  paintVisibility();
+}
+function paintVisibility() {
+  const airport = observedRainState.airport, measured = airport?.visibility && String(observedRainState.stationCity) === String(activeCity?.id) ? airport.visibility : null;
+  const value = measured ? measured.meters : visibilityState.model, fromCache = visibilityState.fromCache;
   const available = Number.isFinite(value) && value >= 0;
   const reduced = available && value < 5000;
-  $("visibilityValue").textContent = !available ? "--" : value < 1000 ? `${fmt(value)} m` : `${fmt(value / 1000, value < 10000 ? 1 : 0)} km`;
-  // Nota só quando foge do normal: "Boa visibilidade" embaixo de 10 km não dizia nada.
+  $("visibilityValue").textContent = !available ? "--" : measured?.plus ? "10+ km" : value < 1000 ? `${fmt(value)} m` : `${fmt(value / 1000, value < 10000 ? 1 : 0)} km`;
+  // Nota só quando foge do normal ou quando a leitura é medida (diz de onde veio).
+  const source = measured ? `Medida no aeroporto ${airport.icao} às ${formatUpdateTime(airport.at)}` : "";
   $("visibilityNote").textContent = !available ? "Visibilidade indisponível para esta hora."
-    : reduced ? `${value < 1000 ? "Visibilidade baixa" : "Visibilidade reduzida"}${fromCache ? " · previsão salva" : ""}` : "";
+    : measured ? source
+    : reduced ? `${value < 1000 ? "Visibilidade baixa" : "Visibilidade reduzida"} · estimativa do modelo${fromCache ? " salva" : ""}` : "";
   $("visibilityBadge").hidden = !reduced;
   $("visibilityBadge").textContent = !reduced ? "" : value < 1000 ? "Visibilidade baixa" : "Visibilidade reduzida";
   $("visibilityBadge").dataset.level = value < 1000 ? "low" : "reduced";
+  $("visibilityValue").closest?.(".metric")?.setAttribute("aria-label", measured ? "Visibilidade medida" : "Visibilidade prevista");
 }
 
 function cache(data, metadata = {}) { try { localStorage.setItem(`pluvia-weather-${activeCity.id}`, JSON.stringify({at: Date.now(),weatherAt:metadata.weatherAt || Date.now(),airAt:metadata.airAt || null,data})); } catch {} }
@@ -1102,6 +1136,7 @@ globalThis.addEventListener?.("pluvia:station-reading", event => {
   observedRainState.airport = event.detail?.airport || null;
   observedRainState.stationCity = event.detail?.cityId || null;
   refreshObservedRain();
+  try { paintVisibility(); } catch {}
 });
 // Chuva a caminho pelo radar: só para a cidade aberta e enquanto a imagem é recente (a frase some sozinha).
 const nowcastState = {cityId:null, result:null};
@@ -1559,7 +1594,7 @@ document.addEventListener?.("animationend", event => {
 });
 
 
-const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","condition","heroRange","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","dryWindow","daylight","sunPhrase","sunsetGlow","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","astronomyDate","rainGauge"].filter(id=>$(id));
+const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","condition","heroRange","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","dryWindow","daylight","sunPhrase","sunsetGlow","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","moonNextLabel","moonNextTime","moonFullIn","astronomyDate","rainGauge"].filter(id=>$(id));
 let emptyCityContent;
 // Deslizar entre cidades (como no Apple Weather): a cidade aberta e os favoritos, na ordem salva.
 // As bolinhas são botões (clique/teclado); no toque, arrastar o topo para o lado troca de cidade.
