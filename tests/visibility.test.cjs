@@ -26,7 +26,7 @@ test('app guarda a visibilidade do aeroporto só quando é válida',()=>{
 });
 
 function screen(){
-  const nodes={visibilityValue:{textContent:'',closest:()=>({setAttribute(k,v){nodes.label=v;}})},visibilityNote:{textContent:''},visibilityBadge:{hidden:true,textContent:'',dataset:{}}};
+  const nodes={visibilityValue:{textContent:'',closest:()=>({setAttribute(k,v){nodes.label=v;}})},visibilityNote:{textContent:''}};
   const app=fs.readFileSync('dist/app.js','utf8');
   const src=app.slice(app.indexOf('const visibilityState = '),app.indexOf('\nfunction cache('));
   const ctx={$:id=>nodes[id],fmt:(v,d=0)=>Number.isFinite(v)?v.toFixed(d).replace('.',','):'--',formatUpdateTime:()=>'11:00',activeCity:{id:'1302603'},observedRainState:{airport:null,stationCity:null}};
@@ -37,17 +37,17 @@ test('tela: medida no aeroporto vence o modelo e diz de onde veio',()=>{
   const {nodes,ctx,api}=screen();
   api.renderVisibility(480,false);
   assert.equal(nodes.visibilityValue.textContent,'480 m');
-  assert.equal(nodes.visibilityNote.textContent,'Visibilidade baixa · estimativa do modelo');
+  assert.equal(nodes.visibilityNote.textContent,'Baixa · estimativa do modelo');
   ctx.observedRainState.airport={icao:'SBEG',at:1,visibility:{meters:10000,plus:true}};ctx.observedRainState.stationCity='1302603';
   api.paintVisibility();
   assert.equal(nodes.visibilityValue.textContent,'10+ km');
   assert.equal(nodes.visibilityNote.textContent,'Medida no aeroporto SBEG às 11:00');
-  assert.equal(nodes.visibilityBadge.hidden,true);assert.equal(nodes.label,'Visibilidade medida');
+  assert.equal(nodes.label,'Visibilidade medida');
   // Leitura de outra cidade não vale aqui.
   ctx.observedRainState.stationCity='3550308';api.paintVisibility();
   assert.equal(nodes.visibilityValue.textContent,'480 m');
   // Aeroporto com fumaça: 4 km medidos, reduzida.
   ctx.observedRainState.stationCity='1302603';ctx.observedRainState.airport={icao:'SBMN',at:1,visibility:{meters:4000,plus:false}};
   api.paintVisibility();
-  assert.equal(nodes.visibilityValue.textContent,'4,0 km');assert.equal(nodes.visibilityBadge.hidden,false);
+  assert.equal(nodes.visibilityValue.textContent,'4,0 km');assert.equal(nodes.visibilityNote.textContent,'Reduzida · medida no aeroporto SBMN às 11:00');
 });
