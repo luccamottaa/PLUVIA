@@ -50,14 +50,24 @@
       const idle=root.requestIdleCallback ? fn=>root.requestIdleCallback(fn,{timeout:2000}) : fn=>root.setTimeout(fn,300);
       // Fora da abertura: espera o primeiro toque/rolagem/tecla (ou 12 s), para o canvas (~150 ms no
       // celular) não disputar a CPU com a abertura. Ainda fica pronto antes do toque em Compartilhar na prática.
-      const schedule=fn=>engaged ? idle(fn) : (pendingCard=()=>idle(fn), root.setTimeout(engage,12000));
-      schedule(()=>cards.render(data,{document:root.document}).then(blob=>{
+      // Depois de uma troca de cidade, espera a cascata terminar: o canvas é uma tarefa única de ~200 ms no
+      // celular e, num intervalo ocioso entre quadros, travava a descida dos blocos (perfil, outubro/2026).
+      // A checagem vale na hora de desenhar: o toque que troca de cidade também acorda o story (engage) antes
+      // do evento de troca.
+      const settled=fn=>{
+        const wait=lastCityChange+CITY_SETTLE_MS-Date.now();
+        if(wait>0) {root.setTimeout(()=>settled(fn),wait);return;}
+        idle(()=>Date.now()-lastCityChange<CITY_SETTLE_MS ? settled(fn) : fn());
+      };
+      const schedule=fn=>engaged ? settled(fn) : (pendingCard=()=>settled(fn), root.setTimeout(engage,12000));
+      schedule(()=>token===cardToken && cards.render(data,{document:root.document}).then(blob=>{
         if(token!==cardToken || !blob) return;
         const name=String(snapshot?.location?.name || 'cidade').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
         card=new root.File([blob],`pluvia-${name || 'previsao'}.png`,{type:'image/png'});
       }).catch(()=>{}));
     }
-    let engaged=false,pendingCard=null;
+    let engaged=false,pendingCard=null,lastCityChange=-Infinity;
+    const CITY_SETTLE_MS=2500;
     function engage() { engaged=true; const run=pendingCard; pendingCard=null; run?.(); }
     for(const type of ['pointerdown','keydown','scroll','touchstart']) root.addEventListener?.(type,engage,{once:true,passive:true,capture:true});
     function clearCardPreview() {
@@ -72,7 +82,7 @@
     // O selo de dia marcante muda raramente (trovoada some, pôr do sol passa): refaz o story só então.
     root.addEventListener('pluvia:share-moment',()=>{if(snapshot) prepareCard();});
     root.addEventListener('pluvia:city-changed',()=>{
-      revision++;cardToken++;snapshot=null;card=null;button.disabled=true;status('');if(dialog.open) dialog.close();
+      revision++;cardToken++;lastCityChange=Date.now();snapshot=null;card=null;button.disabled=true;status('');if(dialog.open) dialog.close();
     });
     button.addEventListener('click',async()=>{
       if(busy) return;

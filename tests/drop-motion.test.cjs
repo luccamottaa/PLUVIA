@@ -12,12 +12,12 @@ function block(name,{top=0,height=100,hidden=false}={}){
     closest:()=>null,getBoundingClientRect:()=>({top,bottom:top+height,height}),
     style:{setProperty(k,v){props[k]=v;},removeProperty(k){delete props[k];}}};
 }
-function load({reduced=false,blocks=[],io=true}={}){
+function load({reduced=false,blocks=[],io=true,weather={}}={}){
   const listeners={},observers=[];
   class IO{constructor(cb,opts){this.cb=cb;this.opts=opts;this.seen=new Set();observers.push(this);}observe(n){this.seen.add(n);}unobserve(n){this.seen.delete(n);}disconnect(){this.seen.clear();}}
   const g={matchMedia:q=>({matches:reduced&&/reduce/.test(q)}),getComputedStyle:()=>({top:'0px'}),innerHeight:800};
   if(io) g.IntersectionObserver=IO;
-  const ctx={globalThis:g,IntersectionObserver:IO,document:{querySelectorAll:selector=>{ctx.selector=selector;return blocks;},addEventListener:(t,f)=>{listeners[t]=f;}}};
+  const ctx={globalThis:g,IntersectionObserver:IO,displayedWeather:weather,setTimeout:(f,ms)=>{ctx.timers.push([f,ms]);return ctx.timers.length;},clearTimeout:()=>{},timers:[],document:{querySelectorAll:selector=>{ctx.selector=selector;return blocks;},addEventListener:(t,f)=>{listeners[t]=f;}}};
   const api=vm.runInNewContext(`${source}\n({dropIn,dropCityContent,DROP_BLOCKS})`,ctx);
   return {...api,ctx,listeners,observers};
 }
@@ -33,6 +33,22 @@ test('troca de cidade: só os blocos à vista descem, em ordem, depois dos texto
   assert.deepEqual(blocks.filter(b=>b.attrs['data-drop']==='go').map(b=>[b.name,b.props['--drop-delay']]),[['banner','240ms'],['alertas','310ms']]);
   assert.equal(blocks[3].attrs['data-drop'],undefined,'fora da tela não anima nem fica escondido');
   assert.equal(blocks[4].attrs['data-drop'],undefined,'bloco sem altura não anima');
+});
+test('cidade sem dado salvo: os blocos esperam escondidos a previsão e descem juntos quando ela chega',()=>{
+  const blocks=[block('banner',{top:300}),block('abaixo',{top:900})];
+  const {dropCityContent,ctx,observers}=load({blocks,weather:null});
+  const events={};
+  ctx.globalThis.addEventListener=(t,f)=>{events[t]=f;};ctx.globalThis.removeEventListener=()=>{};
+  ctx.globalThis.requestAnimationFrame=f=>f();
+  ctx.document.querySelectorAll=s=>/hold/.test(s)?blocks.filter(b=>b.attrs['data-drop']==='hold'):blocks;
+  dropCityContent();
+  assert.deepEqual(blocks.map(b=>b.attrs['data-drop']),['hold','hold'],'esqueletos não descem antes dos dados');
+  assert.equal(observers.length,0);
+  assert.equal(ctx.timers[0][1],800,'limite de espera');
+  events['pluvia:weather-updated']();
+  assert.deepEqual(blocks.map(b=>[b.name,b.attrs['data-drop'],b.props['--drop-delay']]),[['banner','go','0ms'],['abaixo',undefined,undefined]]);
+  ctx.timers[0][0]();
+  assert.equal(blocks[0].attrs['data-drop'],'go','o limite depois da previsão não repete a cascata');
 });
 test('reduzir movimento: nada desce',()=>{
   const blocks=[block('a',{top:100}),block('b',{top:1200})];
