@@ -10,7 +10,7 @@ const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 test('fontes locais leves têm formato válido e estão disponíveis no precache offline', () => {
   const css = fs.readFileSync(path.join(root, 'fonts.css'), 'utf8');
   const urls = [...css.matchAll(/src:url\("(\.\/assets\/fonts\/[^"?]+\.woff2)"\)/g)].map(match => match[1]);
-  assert.equal(urls.length, 2);
+  assert.deepEqual(urls, ['./assets/fonts/nunito-wordmark-v32.woff2'], 'só a marca tem fonte local; o texto usa a do sistema (SF Pro)');
   let total = 0;
   for (const url of urls) {
     const data = fs.readFileSync(path.join(root, url));
@@ -37,10 +37,10 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-212"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-213"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
-  assert.match(html, /styles\.css\?v=core-130/);
+  assert.match(html, /styles\.css\?v=core-131/);
   assert.match(html, /redesign\.css\?v=panel-48/);
   assert.doesNotMatch(sw, /glass\.js/);
   assert.match(html, /app\.js\?v=panel-119/);

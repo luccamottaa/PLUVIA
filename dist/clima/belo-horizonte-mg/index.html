@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-212" />
+    <meta name="pluvia-release" content="pluvia-panel-213" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -43,7 +43,6 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png" />
-    <link rel="preload" href="/assets/fonts/inter-latin-v20.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/assets/fonts/nunito-wordmark-v32.woff2" as="font" type="font/woff2" crossorigin />
     <!-- A previsão e o ar começam já na abertura (prefetch): conexão aberta antes do primeiro script. -->
     <link rel="preconnect" href="https://api.open-meteo.com" crossorigin />
@@ -58,15 +57,7 @@
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       /* fonts.css inline (o mesmo texto do arquivo, conferido por teste): era uma folha bloqueante a mais na cadeia crítica. */
-/* Local WOFF2 subsets; licenses and provenance are in assets/fonts/. */
-@font-face {
-  font-family:"Inter";
-  font-style:normal;
-  font-weight:100 900;
-  font-display:swap;
-  src:url("/assets/fonts/inter-latin-v20.woff2") format("woff2");
-  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
-}
+/* Texto usa a fonte do sistema (SF Pro no iPhone/Mac, pedido do usuário, 1.15); só a marca tem fonte local. Licenças em assets/fonts/. */
 /* The original wordmark needs only the six letters in PLUVIA. */
 @font-face {
   font-family:"Nunito";
@@ -76,7 +67,7 @@
   src:url("/assets/fonts/nunito-wordmark-v32.woff2") format("woff2");
   unicode-range:U+0041,U+0049,U+004C,U+0050,U+0055-0056;
 }
-      html { background:#080f22; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+      html { background:#080f22; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; }
       *,*::before,*::after { box-sizing:border-box; }
       html.awaiting-styles body > :not(#pluviaIntro) { visibility:hidden; }
       /* Base column from styles.css (async): hidden boxes that move still count as layout shift,
@@ -129,8 +120,8 @@
       try { localStorage.removeItem("pluvia-boot-pending"); localStorage.removeItem("pluvia-safe-until"); } catch (e) {}
     </script>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="/styles.css?v=core-130" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <noscript><link rel="stylesheet" href="/styles.css?v=core-130" /></noscript>
+    <link rel="stylesheet" href="/styles.css?v=core-131" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <noscript><link rel="stylesheet" href="/styles.css?v=core-131" /></noscript>
   </head>
   <body>
     <svg class="moon-definitions" width="0" height="0" aria-hidden="true" focusable="false">
@@ -205,7 +196,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="/redesign.css?v=panel-48" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-106" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-107" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -578,7 +569,7 @@
     <script src="/modules/station-now.js?v=station-4" defer></script>
     <script src="/modules/environment-now.js?v=environment-1" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-43" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-44" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-36" defer></script>
