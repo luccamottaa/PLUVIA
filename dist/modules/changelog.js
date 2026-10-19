@@ -13,7 +13,7 @@
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
     {version:"1.14.5", date:"2026-10-19", title:"Leituras mais fáceis de ler", items:[
-      "As unidades dos blocos (%, hPa e km/h) ficaram maiores e mais grossas.",
+      "As unidades dos blocos (%, hPa e km/h) ficaram maiores e mais grossas, com destaque para o % da umidade.",
       "Ar nos próximos dias mais limpo: cada dia mostra só a categoria, sem os números do índice e das partículas.",
       "O Ciclo do dia ganhou o mesmo Sol realista, com brilho, que aparece no céu do topo.",
     ]},
