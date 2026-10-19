@@ -267,3 +267,33 @@ test('aviso observado: cada boletim tem chave própria, o mesmo boletim repetido
   assert.notEqual(first.fingerprintSeed,next.fingerprintSeed,'boletim novo não reaproveita o texto do anterior');
   assert.match(next.body,/às 00:20\./);
 });
+
+test('concordância entre modelos: frase e confiança vêm só dos outros modelos nas horas do aviso',()=>{
+  const api=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({withAgreement,modelAgreement,agreementUrl})',{Intl,Date,URL,URLSearchParams});
+  const t0=1792382400,times=Array.from({length:8},(_,i)=>t0+i*3600);
+  const others=(e,g,i)=>({hourly:{time:times,precipitation_ecmwf_ifs025:e,precipitation_gfs_seamless:g,precipitation_icon_seamless:i}});
+  const dry=times.map(()=>0),wet=times.map((_,i)=>i===2?3:0);
+  const rain={type:'rain_approaching',severity:2,body:'Chuva fraca entre 01:00 e 02:00 em Manaus, com até 70% de chance. Vale levar guarda-chuva.',metadata:{window:[t0+7200,t0+7200],confidence:'moderate'}};
+  const all=api.withAgreement(rain,others(wet,wet,wet));
+  assert.match(all.body,/Os outros 3 modelos também preveem chuva nesse horário\.$/);assert.equal(all.metadata.confidence,'high');
+  const some=api.withAgreement(rain,others(wet,dry,dry));
+  assert.match(some.body,/1 de 3 outros modelos também preveem chuva/);assert.equal(some.metadata.confidence,'moderate');
+  const none=api.withAgreement(rain,others(dry,dry,dry));
+  assert.match(none.body,/não preveem chuva nesse horário: pode não acontecer\.$/);assert.equal(none.metadata.confidence,'low');
+  // Modelo com hora ausente fica fora; com menos de dois válidos não se diz nada.
+  const gap=times.map(()=>null);
+  assert.equal(api.withAgreement(rain,others(wet,gap,gap)).body,rain.body);
+  assert.match(api.withAgreement(rain,others(wet,dry,gap)).body,/1 de 2 outros/);
+  // Chuva forte exige 2,5 mm nos outros modelos; outros tipos não mudam.
+  const heavy={...rain,type:'heavy_rain',body:'Chuva forte.'};
+  assert.match(api.withAgreement(heavy,others(times.map((_,i)=>i===2?1:0),dry,dry)).body,/não preveem chuva forte/);
+  assert.equal(api.withAgreement({...rain,type:'storm'},others(wet,wet,wet)).body,rain.body);
+  assert.equal(api.withAgreement({...rain,metadata:{}},others(wet,wet,wet)).body,rain.body,'sem janela, sem frase');
+  assert.match(api.agreementUrl({...location,id:'x',user_id:'u'}),/models=ecmwf_ifs025%2Cgfs_seamless%2Cicon_seamless/);
+});
+test('aviso de chuva leva a janela das horas no metadata',()=>{
+  const {now,data}=day();data.hourly.precipitation[26]=9;data.hourly.precipitation_probability[26]=80;
+  const events=smart.detectWeather(data,location,now);
+  assert.deepEqual(JSON.parse(JSON.stringify(events.find(e=>e.type==='heavy_rain').metadata.window)),[data.hourly.time[26],data.hourly.time[26]]);
+  assert.deepEqual(JSON.parse(JSON.stringify(events.find(e=>e.type==='rain_approaching').metadata.window)),[data.hourly.time[26],data.hourly.time[26]]);
+});
