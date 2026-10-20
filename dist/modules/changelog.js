@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.21", date:"2026-10-20", title:"Lua como no céu", items:[
+      "A Lua do PLUVIA agora fica inclinada como no céu de verdade: o lado iluminado aponta para o Sol.",
+      "Perto do Equador, a lua crescente do fim de tarde aparece “deitada”, como um sorriso; mais ao sul, mais de lado.",
+      "A inclinação muda com a cidade e a hora, no céu do fundo, no Ciclo do dia e no cartão da Lua.",
+    ]},
     {version:"1.20", date:"2026-10-20", title:"Mapa colorido do Brasil", items:[
       "O mapa do Brasil agora pinta o país inteiro pela temperatura, do azul (frio) ao vermelho (calor).",
       "Além das 27 capitais, cidades do interior entram nas cores, para a Amazônia e o Cerrado não ficarem com a temperatura do litoral.",

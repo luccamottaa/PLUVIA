@@ -4,7 +4,8 @@
   else {
     root.PLUVIA = root.PLUVIA || {};
     root.PLUVIA.moonView = api.create({document:root.document,
-      getIllumination:date => root.PLUVIA.moon?.getMoonIllumination(date)});
+      getIllumination:date => root.PLUVIA.moon?.getMoonIllumination(date),
+      getPosition:(date, lat, lon) => root.PLUVIA.moon?.getMoonPosition(date, lat, lon)});
     root.document.addEventListener('DOMContentLoaded',() => root.PLUVIA.moonView.update(),{once:true});
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
@@ -45,8 +46,30 @@
     }
     return alpha;
   }
-  function create({document, getIllumination} = {}) {
-    let shadeKey = null;
+  // Inclinação como no céu de verdade (pedido do usuário, outubro/2026): o lado claro aponta para o Sol.
+  // A máscara é desenhada com o norte para cima e a luz à direita (crescente) ou à esquerda (minguante);
+  // `angle` (SunCalc) é o ângulo de posição do limbo iluminado, contado do norte para o leste, e o
+  // ângulo paralático leva o norte celeste para a vertical do lugar. A textura gira pelo paralático
+  // (a Lua vista daqui) e a sombra, dentro dela, até o limbo ficar no ângulo de posição. Sem cidade
+  // ou leitura, nada gira (o desenho antigo, norte para cima). Graus no sentido horário do SVG.
+  function tilt(reading, position) {
+    const angle = Number(reading?.angle), parallactic = Number(position?.parallacticAngle), phase = Number(reading?.phase);
+    if (![angle, parallactic, phase].every(Number.isFinite)) return {surface:0, limb:0};
+    const base = phase < .5 ? -90 : 90;
+    const wrap = value => Math.round(((value % 360) + 540) % 360 - 180);
+    return {surface:wrap(parallactic), limb:wrap(base - angle)};
+  }
+  function create({document, getIllumination, getPosition} = {}) {
+    let shadeKey = null, tiltKey = null;
+    function paintTilt({surface, limb}) {
+      const key = surface + ':' + limb;
+      if (key === tiltKey) return;
+      tiltKey = key;
+      const set = (node, degrees) => degrees ? node.setAttribute('transform', `rotate(${degrees} 40 40)`) : node.removeAttribute?.('transform');
+      const limbNode = document?.getElementById?.('moonLimb');
+      if (limbNode) set(limbNode, limb);
+      for (const node of document?.querySelectorAll?.('.moon-tilt') || []) set(node, surface);
+    }
     // Desenha a máscara só quando a fase muda de verdade (≈ 0,1% do ciclo, uns 40 min): o relógio de 30 s
     // não refaz o canvas. Sem canvas (testes, navegadores antigos), fica o terminador de phasePath.
     function paintShade(phase, available) {
@@ -71,13 +94,15 @@
       if (url) image.setAttribute('href', url); else image.removeAttribute?.('href');
       return Boolean(url);
     }
-    function update(at = Date.now()) {
-      let phase,reading;
+    function update(at = Date.now(), city = null) {
+      let phase,reading,position = null;
       try {reading=getIllumination?.(new Date(at));phase=reading?.phase;} catch (_) {}
+      try {if (Number.isFinite(city?.lat) && Number.isFinite(city?.lon)) position = getPosition?.(new Date(at), city.lat, city.lon);} catch (_) {}
       const available = Number.isFinite(phase) && phase >= 0 && phase <= 1;
       const label = available ? NAMES[Math.round(phase * 8) % 8] : 'Fase indisponível';
       const fraction = available ? Number.isFinite(reading?.fraction) && reading.fraction>=0 && reading.fraction<=1 ? reading.fraction : (1 - Math.cos(phase * Math.PI * 2)) / 2 : 0;
       const shaded = paintShade(phase, available);
+      paintTilt(available ? tilt(reading, position) : {surface:0, limb:0});
       document?.getElementById?.('moonIcon')?.setAttribute('d',available && !shaded ? phasePath(phase) : '');
       for (const id of ['moonDisc', 'moonDiscHd']) document?.getElementById?.(id)?.setAttribute('visibility',available ? 'visible' : 'hidden');
       const text = document?.getElementById?.('moonPhase');
@@ -89,5 +114,5 @@
     }
     return {update};
   }
-  return {create,phasePath,shading};
+  return {create,phasePath,shading,tilt};
 });

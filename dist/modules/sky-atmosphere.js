@@ -246,7 +246,7 @@
       // the day. Real moonrise/set remain in astronomyAt; phase stays shared.
       const moonX = ORBIT_MARGIN + nightProgress * (1 - 2 * ORBIT_MARGIN);
       const moonY = 1 - Math.sin(Math.PI * nightProgress);
-      moonView?.update(at);
+      moonView?.update(at, city);
       // WMO 1 (mainly clear) shares the partly-cloudy palette, but needs fewer
       // cloud banks than WMO 2. Coverage is decorative, never an observation.
       return write({phase,solar,weather,clouds:code === 1 ? 'few' : 'standard',strength,sunVisibility,moonVisibility,starVisibility,
