@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.23", date:"2026-10-20", title:"Cartões de dia", items:[
+      "De dia, os cartões trocaram o branco leitoso por um vidro azulado mais transparente, que deixa o céu aparecer.",
+    ]},
     {version:"1.22", date:"2026-10-20", title:"Ícones novos", items:[
       "Os ícones do tempo ganharam um visual mais limpo: sol amarelo com raios, nuvem branca lisa e chuva em tracinhos azuis.",
       "Os ícones das notificações e das fotos de perfil seguem o mesmo desenho.",
@@ -20,6 +23,7 @@
       "A Lua do PLUVIA agora fica inclinada como no céu de verdade: o lado iluminado aponta para o Sol.",
       "Perto do Equador, a lua crescente do fim de tarde aparece “deitada”, como um sorriso; mais ao sul, mais de lado.",
       "A inclinação muda com a cidade e a hora, no céu do fundo, no Ciclo do dia e no cartão da Lua.",
+      "Correção: tocar num link logo depois de uma atualização do app não volta mais para a mesma página.",
     ]},
     {version:"1.20", date:"2026-10-20", title:"Mapa colorido do Brasil", items:[
       "O mapa do Brasil agora pinta o país inteiro pela temperatura, do azul (frio) ao vermelho (calor).",

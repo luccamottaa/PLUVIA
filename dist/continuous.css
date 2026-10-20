@@ -1064,13 +1064,15 @@ html body :is(details > summary,.account-more-item,#accountButton,#openCitySearc
   --card-border:rgba(190,210,245,.13);
   --card-glow:none;
 }
+/* Dia (1.23, opção A escolhida pelo usuário: "achando feio" o vidro branco leitoso): vidro azulado bem mais
+   transparente, puxado para o azul do céu, com borda branca fina e sombra azul suave. Sem borda de luz em degradê. */
 body[data-ink="dark"] #weatherView {
-  --card-bg:rgba(255,255,255,.3);
-  --card-line:rgba(255,255,255,.46);
-  --card-fill:linear-gradient(rgba(255,255,255,.4),rgba(255,255,255,.4)) padding-box;
-  --card-rim:linear-gradient(150deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.45) 26%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.45) 76%,rgba(255,255,255,.85) 100%);
-  --card-glow:inset 0 1px 0 rgba(255,255,255,.5);
-  --card-border:transparent;
+  --card-bg:rgba(214,234,255,.24);
+  --card-line:rgba(255,255,255,.5);
+  --card-fill:linear-gradient(rgba(214,234,255,.26),rgba(214,234,255,.26)) padding-box;
+  --card-rim:linear-gradient(transparent,transparent);
+  --card-glow:0 6px 20px rgba(28,72,128,.08);
+  --card-border:rgba(255,255,255,.55);
 }
 #weatherView .hero-range { margin:-8px 0 0; color:var(--reading-ink); font-size:1.05rem; font-weight:500; line-height:1.35; text-align:center; }
 #weatherView .hero-range:empty { display:none; }
