@@ -213,7 +213,9 @@
     paintSummary();
   }
 
-  async function paintState() {
+  // keep: depois de ligar/desligar, a frase do resultado (ou do erro) fica; antes ela era trocada na hora
+  // pela frase padrão e falhas passavam em silêncio.
+  async function paintState({keep = false} = {}) {
     await paintDiagnostics();
     const anonStatus = el("anonPushStatus");
     if (anonStatus) anonStatus.hidden = true;
@@ -238,7 +240,7 @@
     status(active ? "on" : "off", active ? "Alertas ativos" : "Alertas desativados");
     toggle.disabled = false; toggle.textContent = active ? "Desativar neste dispositivo" : "Ativar alertas";
     testButton.hidden = !active;
-    message(active ? "Este dispositivo pode receber notificações mesmo com o PLUVIA fechado." : pendingEnable && currentUser() ? "Conta conectada. Toque em “Ativar alertas” para solicitar permissão." : "A permissão será solicitada após o toque em “Ativar alertas”.");
+    if (!keep) message(active ? "Este dispositivo pode receber notificações mesmo com o PLUVIA fechado." : pendingEnable && currentUser() ? "Conta conectada. Toque em “Ativar alertas” para solicitar permissão." : "A permissão será solicitada após o toque em “Ativar alertas”.");
     pushActive = active;
     // Sem conta, o desligar fica na própria janela da conta (as preferências exigem conta).
     if (anonStatus) anonStatus.hidden = !(active && !currentUser());
@@ -308,7 +310,10 @@
           return;
         }
       }
-      config = await loadConfig();
+      // Um aviso de login da mesma conta no meio do caminho (o SDK repete SIGNED_IN ao voltar ao app) anulava
+      // a leitura e saía um TypeError em inglês: tenta de novo uma vez.
+      config = await loadConfig() || await loadConfig();
+      if (!config) throw new Error("A conta mudou. Toque de novo em “Ativar alertas”.");
       const registration = await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: publicKeyBytes(config.publicKey) });
@@ -319,7 +324,7 @@
       window.dispatchEvent(new CustomEvent("pluvia:alerts-enabled", { detail: { cityId: currentLocation()?.cityId || "", label: cityLabel() } }));
       message(currentUser() ? `Alertas ligados para ${cityLabel()}. INMET, chuva nas próximas horas e o resumo do dia às 7h (dá para mudar nas preferências). Envie um teste se quiser conferir.` : `Avisos ligados para ${cityLabel()} neste aparelho. Para escolher os tipos de aviso e outras cidades, entre na conta.`);
     } catch (error) { message(error.message || "Não foi possível ativar os alertas."); }
-    finally { busy = false; await paintState(); }
+    finally { busy = false; await paintState({keep:true}); }
   }
 
   async function disable() {
@@ -332,11 +337,13 @@
       saveSubscriptionId(""); anonDevice(false); config = null; track("Push Disabled", { platform: deviceInfo().platform });
       message("Alertas desativados neste dispositivo.");
       if (currentUser()) await loadConfig();
-    } finally { busy = false; await paintState(); }
+    } finally { busy = false; await paintState({keep:true}); }
   }
 
   async function toggleNotifications() {
-    const active = supported && Notification.permission === "granted" && Boolean(await browserSubscription().catch(() => null));
+    // O mesmo "ativo" do botão: inscrição no navegador sem cadastro no servidor (falha de rede no meio) mostra
+    // "Ativar alertas", e o toque seguinte desligava em vez de tentar de novo.
+    const active = supported && Notification.permission === "granted" && Boolean(localSubscriptionId()) && Boolean(await browserSubscription().catch(() => null));
     return active ? disable() : enable();
   }
 
@@ -408,19 +415,22 @@
     busy = true; button.disabled = true;
     try { const id = button.dataset.removeSubscription; await invoke("push-subscriptions", { action: "remove", subscriptionId: id }); if (id === localSubscriptionId()) { const subscription = await browserSubscription(); if (subscription) await subscription.unsubscribe(); saveSubscriptionId(""); } await loadConfig(); await paintState(); message("Dispositivo removido."); }
     catch (error) { message(error.message || "Não foi possível remover o dispositivo."); }
-    finally { busy = false; }
+    finally { busy = false; if (button.isConnected) button.disabled = false; }
   });
   locationsNode?.addEventListener("click", async event => {
     const button = event.target.closest("[data-remove-location]"); if (!button || busy) return;
     busy = true; button.disabled = true;
     try { await invoke("push-subscriptions", { action: "remove_location", locationId: button.dataset.removeLocation }); await loadConfig(); message("Cidade removida do monitoramento."); }
     catch (error) { message(error.message || "Não foi possível remover a cidade."); }
-    finally { busy = false; }
+    finally { busy = false; if (button.isConnected) button.disabled = false; }
   });
 
   window.addEventListener("pluvia:auth-changed", async event => {
-    configRevision++;
     const owner=event.detail?.user?.id || null;
+    // Mesma conta de novo (o SDK repete SIGNED_IN ao voltar ao app e ao renovar o token): não relê nem repinta
+    // as preferências, senão uma edição ainda não salva voltava ao valor antigo e um "Ativar" em curso falhava.
+    if (owner && owner===configOwner && config && !pendingEnable) { await paintState({keep:true}); return; }
+    configRevision++;
     if(owner!==configOwner || !owner) {
       config=null;configOwner=owner;paintPreferences(null);paintDevices([]);paintLocations([]);paintCityChoices();el('notificationPreferencesSave').disabled=true;
     }

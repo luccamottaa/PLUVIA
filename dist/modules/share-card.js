@@ -40,7 +40,7 @@
       // Dia marcante (o mesmo convite da Home): selo no topo do story. Outro valor não vira selo.
       badge:Object.hasOwn(BADGES, String(moment)) ? BADGES[moment] : null,
       stamp:`${saved ? 'Leitura salva de' : 'Atualizado em'} ${stamp} · horário local`,
-      source:snapshot.source.weather === 'met-norway+open-meteo' ? 'Previsão por modelos · MET Norway / Open-Meteo' : 'Previsão por modelos · Open-Meteo'
+      source:snapshot.source.weather === 'met-norway' ? 'Previsão reduzida · MET Norway (CC BY 4.0)' : snapshot.source.weather === 'met-norway+open-meteo' ? 'Previsão por modelos · MET Norway / Open-Meteo' : 'Previsão por modelos · Open-Meteo'
     };
   }
 

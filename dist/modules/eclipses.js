@@ -73,7 +73,9 @@
   // O resultado vale para a cidade e o dia (UTC) do pedido; o mesmo dia não recalcula.
   const key = (city, at) => `${city.id}|${new Date(at).toISOString().slice(0, 10)}`;
   const valid = city => city && Number.isFinite(Number(city.lat)) && Number.isFinite(Number(city.lon));
-  function peek(city, at = Date.now()) { return valid(city) ? cache.get(key(city, at)) : undefined; }
+  // Um eclipse que já terminou hoje não é mais o próximo: o resultado guardado no dia deixa de valer.
+  const live = (result, at) => result && ![result.solar, result.lunar].some(e => e && (e.end ?? e.peak) < at) ? result : undefined;
+  function peek(city, at = Date.now()) { return valid(city) ? live(cache.get(key(city, at)), at) : undefined; }
   function compute(A, city, at) {
     const latitude = Number(city.lat), longitude = Number(city.lon);
     return {solar:nextSolar(A, latitude, longitude, at), lunar:nextLunar(A, latitude, longitude, at)};
@@ -81,7 +83,9 @@
   async function request(city, at = Date.now(), {library} = {}) {
     if (!valid(city)) return null;
     const id = key(city, at);
-    if (cache.has(id)) return cache.get(id);
+    const saved = live(cache.get(id), at);
+    if (saved) return saved;
+    cache.delete(id);
     const A = library || await load();
     const result = compute(A, city, at);
     cache.set(id, result);

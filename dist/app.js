@@ -87,7 +87,8 @@ function weatherIconSvg(code, isDay = true) {
   return weatherIcons?.markup(code, isDay, {className:"weather-visual", eager:true}) || "";
 }
 
-const fmt = (value, digits = 0) => Number.isFinite(value) ? value.toFixed(digits).replace(".", ",") : "--";
+// Valores que arredondam para zero viram 0: (-0.3).toFixed(0) é "-0", e o inverno da serra gaúcha/catarinense mostrava "-0°".
+const fmt = (value, digits = 0) => Number.isFinite(value) ? (Math.abs(value) < 0.5 * 10 ** -digits ? 0 : value).toFixed(digits).replace(".", ",") : "--";
 const shortTime = (iso) => iso?.slice(11, 16) || "--:--";
 
 function windDirection(deg) {
@@ -472,7 +473,10 @@ function findDryWindow(hourly, start) {
     if (pair.every(value => value < 30)) {
       // Já seco agora: a "janela seca" repetiria o "Vai chover?" do topo, então a linha some.
       if (i === start + 1) return "";
-      const day = hourly.time[i - 1].slice(0, 10) === hourly.time[start].slice(0, 10) ? "Hoje" : "Amanhã";
+      // A busca vai até 36 h: numa chuva longa a janela pode cair depois de amanhã, que não é "Amanhã".
+      const dayOf = time => Date.parse(String(time).slice(0, 10) + "T00:00Z");
+      const ahead = Math.round((dayOf(hourly.time[i - 1]) - dayOf(hourly.time[start])) / 86400000);
+      const day = ahead === 0 ? "Hoje" : ahead === 1 ? "Amanhã" : (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:"UTC", weekday:"short", day:"2-digit", month:"2-digit"}).format(new Date(dayOf(hourly.time[i - 1]))).replace(/^./, c => c.toUpperCase());
       return `${day}, das ${shortTime(hourly.time[i - 1])} às ${shortTime(hourly.time[i + 1])}: menor probabilidade de chuva`;
     }
   }
@@ -568,11 +572,14 @@ function renderForecast(days, currentTemperature, at = Date.now()) {
     .filter(i=>Number.isFinite(days[i].temperatureMin) && Number.isFinite(days[i].temperatureMax));
   if (!indices.length) { $("forecastList").innerHTML = '<p class="forecast-loading">Previsão diária incompleta para os próximos dias.</p>'; return; }
   const dates = indices.map(i=>days[i].time);
+  // Dia mais seco só entre dias com chance e volume conhecidos: ausente não é zero (na previsão reduzida do
+  // MET a chance é sempre null e o destaque caía num dia qualquer).
+  const dryScore = i => Number.isFinite(days[i].precipitationProbabilityMax) && Number.isFinite(days[i].precipitationSum)
+    ? days[i].precipitationProbabilityMax + days[i].precipitationSum * 4 : null;
   const bestIndex = indices.reduce((best, i) => {
-    const score = (days[i].precipitationProbabilityMax || 0) + (days[i].precipitationSum || 0) * 4;
-    const bestScore = (days[best].precipitationProbabilityMax || 0) + (days[best].precipitationSum || 0) * 4;
-    return score < bestScore ? i : best;
-  }, start);
+    const score = dryScore(i);
+    return score !== null && (best < 0 || score < dryScore(best)) ? i : best;
+  }, -1);
   const minAll = Math.min(...indices.map(i=>days[i].temperatureMin).filter(Number.isFinite));
   const maxAll = Math.max(...indices.map(i=>days[i].temperatureMax).filter(Number.isFinite));
   const spread = Math.max(1, maxAll - minAll);
@@ -607,7 +614,7 @@ function renderForecast(days, currentTemperature, at = Date.now()) {
       <span class="forecast-day"><strong><span class="day-full">${day}</span>${day === "Hoje" ? "" : `<span class="day-short" aria-hidden="true">${day.slice(0,3)}</span>`}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
       <span class="forecast-condition"><i>${weatherIcons.markup(days[i].weatherCode, true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
       <span class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</span><strong aria-hidden="true">${fmt(max)}°</strong></span>
-      ${rainQuiet ? `<span class="forecast-rain" data-rain="none"><span class="peek-extra">, chance de chuva ${rainProb}%, ${fmt(rainMm, 1)} mm${noteText}. Ver detalhes. </span></span>` : `<span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb ?? '—'}%</span>${showVolume ? `<span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span>` : `<span class="peek-extra">, ${fmt(rainMm, 1)} mm</span>`}<span class="peek-extra">${noteText}. Ver detalhes. </span></span></span>`}
+      ${rainQuiet ? `<span class="forecast-rain" data-rain="none"><span class="peek-extra">, chance de chuva ${rainProb}%, ${fmt(rainMm, 1)} mm${noteText}. Ver detalhes. </span></span>` : `<span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb === null ? '—' : `${rainProb}%`}</span>${showVolume ? `<span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span>` : `<span class="peek-extra">, ${fmt(rainMm, 1)} mm</span>`}<span class="peek-extra">${noteText}. Ver detalhes. </span></span></span>`}
     </button>`;
   }).join("");
 }
@@ -629,7 +636,9 @@ function renderSkyEvents(at) {
   $('nextNewMoon').textContent=Number.isFinite(phases.new) ? dateLabel(phases.new) : 'Indisponível';
   $('nextFullMoon').textContent=Number.isFinite(phases.full) ? dateLabel(phases.full) : 'Indisponível';
   const today=globalThis.PLUVIA.time.dayKey(at,activeCity);
-  const shower=events.nextShower(today,Number(activeCity.lat));
+  // Antes do meio-dia a noite que vale é a de ontem: na madrugada do pico ("melhor depois da meia-noite")
+  // a chuva de meteoros sumia e aparecia a próxima.
+  const shower=events.nextShower(globalThis.PLUVIA.time.dayKey(at-12*3600000,activeCity),Number(activeCity.lat));
   $('meteorRow').hidden=!shower;
   if(shower) {
     const night=new Date(shower.night+'T12:00:00Z'), next=new Date(night.getTime()+86400000);

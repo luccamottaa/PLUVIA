@@ -31,7 +31,7 @@
     };
     button.addEventListener("click", () => {
       if (recognition) { stop(); say(""); return; }
-      let heard = false;
+      let heard = false, failed = false;
       try {
         recognition = new Recognition();
         recognition.lang = "pt-BR";
@@ -52,6 +52,7 @@
       mine.onerror = event => {
         if (recognition !== mine) return;
         const code = event?.error;
+        failed = true;
         say(code === "not-allowed" || code === "service-not-allowed" ? "Sem permissão para o microfone. Digite o nome da cidade."
           : code === "no-speech" ? "Não ouvi nada. Toque no microfone e fale o nome da cidade."
           : code === "aborted" ? "" : "Não deu para reconhecer. Tente de novo ou digite.");
@@ -59,7 +60,8 @@
       mine.onend = () => {
         if (recognition !== mine) return;
         stop();
-        if (heard) say("");
+        // Fim sem resultado nem erro (nomatch, frase vazia; comum no Safari): o "Ouvindo…" não pode ficar.
+        if (heard) say(""); else if (!failed) say("Não ouvi o nome da cidade. Toque no microfone e tente de novo.");
       };
       button.setAttribute("aria-pressed", "true");
       button.setAttribute("data-listening", "");

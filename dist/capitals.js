@@ -239,11 +239,12 @@ const CITY_ALIASES = new Map([
   ['bsb','5300108'],['jampa','2507507'],['ssa','2927408'],['rec','2611606'],['cwb','4106902'],
   ['rj','3304557'],['sp','3550308']
 ]);
+// Palavra que é sigla de estado vira filtro, menos quando faz parte do nome ("Pé de Serra", "Sento Sé").
 function searchCities(query, uf = '') {
   const exact = normalizeName(query).trim().replace(/\s+/g, ' ');
   const alias = CITY_ALIASES.get(exact);
   const terms = exact.split(' ').filter(Boolean);
-  const matches = CITIES.filter(city => (!uf || city.uf === uf) && (city.id === alias || terms.every(term => stateNames.has(term.toUpperCase()) ? city.uf === term.toUpperCase() : citySearchIndex.get(city.id).includes(term) || oneTypoAway(term, cityNameIndex.get(city.id)))));
+  const matches = CITIES.filter(city => (!uf || city.uf === uf) && (city.id === alias || terms.every(term => stateNames.has(term.toUpperCase()) && !cityNameIndex.get(city.id).split(' ').includes(term) ? city.uf === term.toUpperCase() : citySearchIndex.get(city.id).includes(term) || oneTypoAway(term, cityNameIndex.get(city.id)))));
   // Nome exato/apelido, favoritos, depois capitais e nomes que começam pelo texto: "rio" mostra
   // Rio Branco e Rio de Janeiro antes dos 40 municípios "Rio ...".
   const priority = city => {

@@ -501,11 +501,19 @@ function rainOutlook(data: any, location: Location, day: string, now: Date) {
   return complete && rows.every((row: any) => row.precipitation < 0.5) ? { text: "Sem chuva prevista.", wet: false } : null;
 }
 
+// Janela do resumo: de 4 min antes a 30 min depois do horário, com a virada da meia-noite. Com mais de 100
+// locais o cron visita cada um a cada 10–15 min, e a janela de ±4 min deixava locais sem resumo nenhum; a
+// impressão digital por dia impede repetição.
+function summaryDue(current: number, target: number) {
+  const late = (current - target + 1440) % 1440;
+  return late <= 30 || late >= 1436;
+}
+
 function dailySummaryCandidate(data: any, location: Location, preference: Preference, now = new Date()) {
   if (!preference.daily_summary) return null;
   const target = String(preference.daily_summary_time || "07:00").slice(0, 5);
   const [hour, minute] = target.split(":").map(Number), current = localMinutes(location.timezone, now);
-  if (Math.abs(current - (hour * 60 + minute)) > 4) return null;
+  if (!summaryDue(current, hour * 60 + minute)) return null;
   if (!freshCurrent(data, now)) return null;
   const localDay = new Intl.DateTimeFormat("en-CA", { timeZone: location.timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
   const day = asArray(data?.daily?.time).findIndex((at: unknown) => {
@@ -529,7 +537,7 @@ function eveningSummaryCandidate(data: any, location: Location, preference: Pref
   if (!preference.evening_summary) return null;
   const target = String(preference.evening_summary_time || "20:00").slice(0, 5);
   const [hour, minute] = target.split(":").map(Number), current = localMinutes(location.timezone, now);
-  if (Math.abs(current - (hour * 60 + minute)) > 4) return null;
+  if (!summaryDue(current, hour * 60 + minute)) return null;
   if (!freshCurrent(data, now)) return null;
   const dayKey = (date: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: location.timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
   const today = dayKey(now);
@@ -549,7 +557,9 @@ function eveningSummaryCandidate(data: any, location: Location, preference: Pref
   const wet = rain >= 50 && (total === null || total >= 1);
   const outlook = rainOutlook(data, location, tomorrow, now);
   const body = outlook
-    ? `${wet ? "Leve guarda-chuva. " : ""}Máxima de ${max} °C e mínima de ${min} °C. ${outlook.text}${outlook.wet && total !== null && total >= 1 ? ` Total previsto: ${Math.round(total)} mm.` : ""}`
+    // Com a leitura por hora, o guarda-chuva segue ela: o diário pode discordar (modelo de chuva da cidade só
+    // troca as horas, e o diário inclui a última hora de hoje) e saía "Leve guarda-chuva… Sem chuva prevista".
+    ? `${outlook.wet ? "Leve guarda-chuva. " : ""}Máxima de ${max} °C e mínima de ${min} °C. ${outlook.text}${outlook.wet && total !== null && total >= 1 ? ` Total previsto: ${Math.round(total)} mm.` : ""}`
     : wet
     ? `Leve guarda-chuva: até ${rain}% de chance de chuva${volume}. Máxima de ${max} °C e mínima de ${min} °C.`
     : `Máxima de ${max} °C, mínima de ${min} °C e até ${rain}% de chance de chuva${volume}.`;
