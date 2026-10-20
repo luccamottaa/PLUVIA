@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const {selectCandidates,isRepeat,pushUrgency,activeSubscriptions}=require('../supabase/functions/_shared/notification-policy.js');
+const {selectCandidates,isRepeat,pushUrgency,activeSubscriptions,isOfficialRepeat}=require('../supabase/functions/_shared/notification-policy.js');
 const processor=fs.readFileSync('supabase/functions/push-process/index.ts','utf8');
 const worker=require('node:module').stripTypeScriptTypes(processor.replace(/^import .*$/gm,''));
 const quiet=vm.runInNewContext(worker.slice(0,worker.indexOf('Deno.serve'))+';inQuietHours',{Date,Intl,URL,URLSearchParams,Math,Number});
@@ -114,4 +114,13 @@ test('aviso do INMET que ainda vai começar diz quando começa, sem parecer vale
  assert.match(future.body,/^Perigo potencial previsto em Manaus, AM, de amanhã às 23:01 até qua\., 21\/10 às 22:59\. /);
  const [active]=inmet([{...alert,inicio:'2026-10-20T02:00:00Z',fim:'2026-10-20T05:00:00Z'}],location,now);
  assert.match(active.body,/^Perigo potencial em Manaus, AM, válido até \w+ às 01:00\. |^Perigo potencial em Manaus, AM, válido até amanhã às 01:00\. /);
+});
+test('aviso do INMET republicado com outro número não chega de novo; grau maior ou fim novo chegam',()=>{
+ const sent={notification_events:{event_type:'official_alert',severity:2,title:'⚠️ Chuvas Intensas',metadata:{official_id:'a1',valid_until:'2026-10-21T02:59:00.000Z'}}};
+ const again={type:'official_alert',severity:2,title:'⚠️ Chuvas Intensas',metadata:{official_id:'a2',valid_until:'2026-10-21T02:59:00.000Z'}};
+ assert.equal(isOfficialRepeat(again,[sent]),true);
+ assert.equal(isOfficialRepeat({...again,severity:3},[sent]),false,'grau maior avisa');
+ assert.equal(isOfficialRepeat({...again,metadata:{valid_until:'2026-10-22T02:59:00.000Z'}},[sent]),false,'aviso do dia seguinte avisa');
+ assert.equal(isOfficialRepeat({...again,title:'⚠️ Acumulado de Chuva'},[sent]),false);
+ assert.equal(isOfficialRepeat(again,[]),false);
 });

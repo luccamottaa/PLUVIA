@@ -15,6 +15,8 @@
     {version:"1.18.4", date:"2026-10-20", title:"Avisos sem repetição", items:[
       "Quem reinstalou o PLUVIA no iPhone não recebe mais o mesmo aviso duas vezes.",
       "Aviso do INMET que ainda vai começar diz quando começa, em vez de parecer que já vale.",
+      "Aviso republicado pelo INMET com outro número não chega de novo.",
+      "A bolinha no ícone do app some quando você abre o PLUVIA.",
     ]},
     {version:"1.18.3", date:"2026-10-20", title:"Ícone na Tela de Início", items:[
       "Mais uma correção para a logo aparecer ao adicionar o PLUVIA à Tela de Início do iPhone.",

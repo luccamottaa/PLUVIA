@@ -72,3 +72,15 @@ export function activeSubscriptions(list=[]) {
     return Number.isFinite(seen) && seen>=current.created;
   });
 }
+
+// O INMET às vezes republica o mesmo aviso com outro número (19/10/2026, Manaus: 11:43 e 11:51, mesmo fenômeno,
+// grau e fim). Para o mesmo aparelho e cidade, um aviso oficial com o mesmo título, grau e fim de um já entregue é
+// repetição; grau maior ou fim diferente (aviso novo ou prorrogado) passa.
+export function isOfficialRepeat(event,recent=[]) {
+  const until=event.metadata?.valid_until;
+  if(!until) return false;
+  return recent.some(row=>{
+    const previous=row?.notification_events || {};
+    return previous.event_type==='official_alert' && Number(previous.severity)===Number(event.severity) && previous.title===event.title && previous.metadata?.valid_until===until;
+  });
+}

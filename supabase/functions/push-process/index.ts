@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { adminClient, pushSecrets } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 import { pushErrorCode, sendWebPush } from "../_shared/webpush.ts";
-import { selectCandidates, isRepeat, stopAllowed, pushUrgency, activeSubscriptions } from "../_shared/notification-policy.js";
+import { selectCandidates, isRepeat, isOfficialRepeat, stopAllowed, pushUrgency, activeSubscriptions } from "../_shared/notification-policy.js";
 import { report } from "../_shared/error-report.js";
 import { metarUrl, nearestAirport } from "../_shared/metar.js";
 import { stationUrl, normalizeStation } from "../_shared/inmet-station.js";
@@ -590,6 +590,14 @@ async function deliver(admin: any, event: any, preference: Preference, subscript
       if (recentError) throw new Error("dedup_lookup_failed");
       // "Parou de chover" fecha o ciclo: só depois de um "começou a chover"/"trovoada agora" entregue a este aparelho.
       if (event.type === "rain_stopped" ? !stopAllowed(recent || []) : isRepeat(event,recent || [])) { skipped++; continue; }
+    }
+    if (event.type === "official_alert") {
+      const { data: recent, error: recentError } = await admin.from("notification_deliveries")
+        .select("status,notification_events!inner(event_type,severity,city_id,title,metadata)")
+        .eq("subscription_id", subscription.id).eq("notification_events.city_id", event.cityId).eq("notification_events.event_type", "official_alert")
+        .in("status", ["accepted", "pending"]).gte("created_at", new Date(Date.now() - 72 * 3600000).toISOString());
+      if (recentError) throw new Error("dedup_lookup_failed");
+      if (isOfficialRepeat(event, Array.isArray(recent) ? recent : [])) { skipped++; continue; }
     }
     const { data: delivery, error } = await admin.from("notification_deliveries").insert({ event_id: event.id, user_id: userId, subscription_id: subscription.id }).select("id").single();
     if (error?.code === "23505") { skipped++; continue; }
