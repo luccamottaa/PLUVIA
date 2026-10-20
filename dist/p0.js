@@ -106,7 +106,9 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
     }
   });
   document.addEventListener('visibilitychange',reloadWhenIdle);
-  window.addEventListener('pagehide', reloadWhenIdle);
+  // pagehide também dispara quando a pessoa sai por um link (Termos, página de outra cidade): recarregar ali
+  // cancelava a navegação. Só a página que vai para o cache de voltar (app indo para o fundo) recarrega.
+  window.addEventListener('pagehide', event => { if (event?.persisted) reloadWhenIdle(); });
   let registration;
   let checking;
   let lastCheck = -Infinity;
