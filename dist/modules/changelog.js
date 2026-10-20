@@ -12,6 +12,12 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.24.1", date:"2026-10-20", title:"Correções", items:[
+      "No Chrome e no Android, o sol e a lua atrás das nuvens apareciam cortados demais nos ícones; agora o recorte fica só em volta da nuvem.",
+      "As barras de “Chuva na próxima hora” voltaram a ficar azuis quando há chuva.",
+      "Tocar num link logo depois de uma atualização do app não cancela mais a abertura da página.",
+      "No “Brasil agora”, a escala de cores não aparece mais sozinha enquanto o mapa carrega ou quando a consulta falha.",
+    ]},
     {version:"1.24", date:"2026-10-20", title:"Ícones redesenhados", items:[
       "Os ícones do tempo foram redesenhados com mais cuidado: uma nuvem só, sempre no mesmo lugar, e a chuva centrada embaixo dela.",
       "Sol, lua e nuvens de trás ganharam um recorte fino quando ficam atrás de outra nuvem, como no app Tempo do iPhone.",

@@ -103,3 +103,15 @@ test('dado que chega depois desce no lugar: alertas saindo de "Consultando", dic
   assert.match(load,/if \(fromSkeleton && !introCovering\(\)\) \{ animateCityText\(\); dropVisibleBlocks\(120\); \}/,'cidade sem nada salvo: esqueletos viram dados em cascata');
   assert.match(app,/function introCovering\(\) \{\n  const intro = \$\("pluviaIntro"\);\n  return Boolean\(intro && !intro\.hidden && !intro\.dataset\.done\);/,'com a intro cobrindo a tela a animação é pulada');
 });
+
+test('bloco dentro de cartão que já está descendo não desce de novo (deslocamentos somavam)',()=>{
+  const app=fs.readFileSync(require.resolve('../dist/app.js'),'utf8');
+  const source=app.slice(app.indexOf('function settleBlock('),app.indexOf('// Faixa no topo'));
+  const calls=[];
+  const ctx={dropIn:list=>calls.push(list.length),dropMotion:()=>true,whenOnScreen:(nodes,done)=>done(nodes)};
+  const api=vm.runInNewContext(`${source}\n({settleBlock})`,ctx);
+  api.settleBlock({parentElement:{closest:()=>({})}});
+  assert.equal(calls.length,0,'pai com data-drop: filho fica parado');
+  api.settleBlock({parentElement:{closest:()=>null}});
+  assert.equal(calls.length,1,'sem pai descendo, o bloco desce');
+});

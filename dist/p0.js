@@ -90,8 +90,9 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
   // A versão nova entra quando o app vai para o fundo, nunca na frente da pessoa: recarregar
   // logo depois de abrir pintava a página duas vezes em ~3 s (o iPhone chegou a encerrar a página
   // por memória) e cortava as consultas em andamento. Busca/formulário abertos esperam.
+  let leaving = false;
   const reloadWhenIdle = () => {
-    if (!pendingReload || reloadingForUpdate || document.visibilityState !== 'hidden' ||
+    if (!pendingReload || reloadingForUpdate || leaving || document.visibilityState !== 'hidden' ||
       document.querySelector?.('dialog[open], input:focus, textarea:focus, [contenteditable]:focus')) return;
     reloadingForUpdate = true;
     // As consultas cortadas por esta recarga não são falha da fonte (http-client).
@@ -106,9 +107,11 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
     }
   });
   document.addEventListener('visibilitychange',reloadWhenIdle);
-  // pagehide também dispara quando a pessoa sai por um link (Termos, página de outra cidade): recarregar ali
-  // cancelava a navegação. Só a página que vai para o cache de voltar (app indo para o fundo) recarrega.
-  window.addEventListener('pagehide', event => { if (event?.persisted) reloadWhenIdle(); });
+  // pagehide só dispara quando a página está sendo trocada por outra (link para os Termos, página de outra
+  // cidade, inclusive indo para o cache de voltar) e vem antes do visibilitychange: recarregar ali cancelava a
+  // navegação (WebKit da CI, outubro/2026). A página que sai não recarrega; se voltar do cache, pageshow libera.
+  window.addEventListener('pagehide', () => { leaving = true; });
+  window.addEventListener('pageshow', () => { leaving = false; });
   let registration;
   let checking;
   let lastCheck = -Infinity;

@@ -103,8 +103,9 @@
   // hora inteira ou com imagem velha, null (a seção some).
   function nextHour(result, now = Date.now()) {
     if (!result?.mask || !result.perStep || !Number.isFinite(result.frameAt)) return null;
-    const age = (now - result.frameAt) / 60_000;
-    if (age < 0 || age > MAX_FRAME_AGE_MS / 60_000) return null;
+    // Relógio do aparelho um pouco atrasado não esconde o gráfico: idade negativa conta como imagem de agora.
+    const age = Math.max(0, (now - result.frameAt) / 60_000);
+    if (age > MAX_FRAME_AGE_MS / 60_000) return null;
     const points = [];
     for (let minutes = 0; minutes <= 60; minutes += 5) {
       const k = (minutes + age) / STEP_MIN;
