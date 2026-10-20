@@ -6,7 +6,7 @@ test('release check includes daily detail and versioned shell assets without ext
  const assets=manifest('dist');assert.equal(assets[0].file,'index.html');assert.ok(assets.some(a=>a.file==='sw.js'));
  assert.ok(assets.some(a=>a.file==='modules/daily-detail.js'));assert.ok(assets.every(a=>!a.url.startsWith('https:')));
  const conditions=assets.filter(a=>a.file.startsWith('assets/weather-icons/conditions/'));
- assert.equal(conditions.length,22);assert.ok(conditions.every(a=>a.url.endsWith('?v=modern-5')));
+ assert.equal(conditions.length,22);assert.ok(conditions.every(a=>a.url.endsWith('?v=modern-7')));
  assert.equal(assets.filter(a=>a.file.startsWith('assets/weather-icons/metrics/')).length,16);
 });
 test('HTTP 200 with stale content fails; retries only failed assets',async()=>{

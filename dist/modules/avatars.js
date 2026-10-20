@@ -8,7 +8,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
   'use strict';
   const KEY = 'pluvia-avatars', MAX_ACCOUNTS = 5;
-  const icon = name => `/assets/weather-icons/conditions/${name}.svg?v=modern-5`;
+  const icon = name => `/assets/weather-icons/conditions/${name}.svg?v=modern-7`;
   const AVATARS = Object.freeze([
     {id:'sol', label:'Sol', src:icon('clear-day'), bg:'linear-gradient(145deg,#ffe08a,#ffb648)'},
     {id:'lua', label:'Lua', src:icon('clear-night'), bg:'linear-gradient(145deg,#3150a8,#101f4a)'},
