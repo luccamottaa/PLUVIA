@@ -1078,6 +1078,13 @@ body[data-ink="dark"] #weatherView {
   --card-glow:0 6px 20px rgba(28,72,128,.08);
   --card-border:rgba(255,255,255,.55);
 }
+/* Céu cinza de dia (nublado, garoa, chuva e trovoada com tinta clara, 1.25): cartão cinza-escuro translúcido como no
+   Apple Weather. O vidro azulado da noite clareava o cinza e o texto secundário ficava abaixo de 4,5:1. */
+body[data-phase="day"][data-ink="light"] #weatherView {
+  --card-bg:rgba(28,34,42,.26);
+  --card-fill:linear-gradient(rgba(28,34,42,.26),rgba(28,34,42,.26)) padding-box;
+  --card-border:rgba(255,255,255,.14);
+}
 #weatherView .hero-range { margin:-8px 0 0; color:var(--reading-ink); font-size:1.05rem; font-weight:500; line-height:1.35; text-align:center; }
 #weatherView .hero-range:empty { display:none; }
 #weatherView .hero-range .sk-line { width:min(9rem,50%); }
