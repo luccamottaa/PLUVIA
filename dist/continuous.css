@@ -714,8 +714,9 @@ body[data-ink="dark"] #weatherView .rain-gauge-track { background:rgba(0,0,0,.12
 #weatherView .tips-section { margin:0; padding:14px 0 18px; border-bottom:1px solid var(--reading-line); }
 #weatherView .tips-title { margin:0 0 10px; color:var(--reading-muted); font-size:.8rem; font-weight:600; letter-spacing:.045em; text-transform:uppercase; }
 #weatherView .tips-list { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
-#weatherView .tips-list li { display:flex; align-items:flex-start; gap:10px; color:var(--reading-ink); font-size:.95rem; line-height:1.4; }
-#weatherView .tip-icon { flex:none; width:22px; height:22px; margin-top:1px; color:var(--graphic-blue); }
+/* Ícone centrado na altura do texto (pedido do usuário, 1.23.2): no topo, com a dica em duas linhas, ele ficava alto. */
+#weatherView .tips-list li { display:flex; align-items:center; gap:10px; color:var(--reading-ink); font-size:.95rem; line-height:1.4; }
+#weatherView .tip-icon { flex:none; width:22px; height:22px; color:var(--graphic-blue); }
 
 
 /* Ar nos próximos dias: três colunas compactas (dia, categoria, AQI máximo previsto), cor da categoria
