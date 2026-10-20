@@ -66,7 +66,9 @@ test('primeira instalação não recarrega; offline e falhas de atualização pe
   app.workerEvents.controllerchange();
   assert.equal(app.reloads(), 0);
   app.context.document.visibilityState = 'hidden';
-  app.events.pagehide();
+  app.events.pagehide({persisted:false});
+  assert.equal(app.reloads(), 0, 'saindo por um link, a recarga não cancela a navegação');
+  app.events.pagehide({persisted:true});
   assert.equal(app.reloads(), 1, 'uma atualização posterior à primeira instalação recarrega a versão');
   app.context.document.visibilityState = 'visible';
   app.advance(31000);
