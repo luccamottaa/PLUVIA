@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.23", date:"2026-10-20", title:"Cartões de dia", items:[
+      "De dia, os cartões trocaram o branco leitoso por um vidro azulado mais transparente, que deixa o céu aparecer.",
+    ]},
     {version:"1.22", date:"2026-10-20", title:"Ícones novos", items:[
       "Os ícones do tempo ganharam um visual mais limpo: sol amarelo com raios, nuvem branca lisa e chuva em tracinhos azuis.",
       "Os ícones das notificações e das fotos de perfil seguem o mesmo desenho.",
