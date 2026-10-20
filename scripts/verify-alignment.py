@@ -202,7 +202,7 @@ with sync_playwright() as p:
    const center=node=>{const r=node.getBoundingClientRect();return r.y+r.height/2};const box=el.getBoundingClientRect();
    return {top:Math.round(box.y),left:box.x,right:box.right,head:center(el.querySelector(':scope > .metric-head')),value:center(el.querySelector(':scope > strong,:scope > .wind-reading')),note:el.querySelector(':scope > small').getBoundingClientRect().y};
   })""")
-  assert len(tiles)==4,tiles
+  assert len(tiles)==6,tiles  # sensação, máx. e mín., visibilidade, umidade, vento e pressão (1.17)
   tile_rows={}
   for tile in tiles:tile_rows.setdefault(tile['top'],[]).append(tile)
   assert all(len(group)>=2 for group in tile_rows.values()),(width,tile_rows)

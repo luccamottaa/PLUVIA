@@ -47,7 +47,7 @@ function fixture() {
   data.hourly.precipitation[1] = 2.4; data.hourly.precipitation[24] = 1.2; data.hourly.precipitation[0] = 50;
   const result = insights.pastRain(data.hourly, 24);
   assert.equal(result.total, 3.6);
-  assert.equal(result.text, 'Choveu cerca de 3,6 mm nas últimas 24 h, pelo modelo.');
+  assert.equal(result.text, 'Choveu cerca de 3,6 mm nas últimas 24 h.');
   data.hourly.precipitation[5] = 12;
   assert.match(insights.pastRain(data.hourly, 24).text, /cerca de 16 mm/);
   data.hourly.precipitation[10] = null;
