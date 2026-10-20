@@ -1,8 +1,8 @@
-"""Prévias sociais (Open Graph): a geral (dist/og-pluvia-v3.png, 1731×909, desde a 1.18) e as das 27 capitais
+"""Prévias sociais (Open Graph): a geral (dist/og-pluvia-v4.png, 1731×909, céu de pôr do sol desde a 1.18.2) e as das 27 capitais
 (1200×630 JPEG em dist/og/<slug>-<versão>.jpg).
 
-Arte estática com as camadas do próprio céu do PLUVIA (gradiente noturno, estrelas e as duas texturas
-de nuvem), a assinatura da marca (gota clara e nome branco) e o nome da capital. Não mostra temperatura nem condição: a imagem fica em
+Arte estática com as camadas do próprio céu do PLUVIA (pôr do sol do azul-noite ao laranja, estrelas só no alto e as duas
+texturas de nuvem clareadas pela luz do pôr do sol), a assinatura da marca (gota clara e nome branco) e o nome da capital. Não mostra temperatura nem condição: a imagem fica em
 cache nos apps de mensagem por dias e uma previsão congelada seria enganosa. Rodar depois de mudar a
 arte ou a lista de capitais e, em seguida, `node scripts/generate-city-pages.cjs`:
 
@@ -15,8 +15,8 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 from PIL import Image
 
-OG_VERSION = 'v2'   # v2: marca nova da 1.18 (gota caindo na água)
-MAIN_OG = 'og-pluvia-v3.png'
+OG_VERSION = 'v3'   # v3: céu de pôr do sol (1.18.2); v2: marca nova da 1.18
+MAIN_OG = 'og-pluvia-v4.png'
 repo = Path(__file__).resolve().parent.parent
 dist = repo / 'dist'
 out = dist / 'og'
@@ -33,16 +33,18 @@ data = lambda path, kind: f'data:{kind};base64,' + base64.b64encode((dist / path
 PAGE = """<!doctype html><html><head><meta charset="utf-8"><style>
 @font-face { font-family:Inter; src:url('%(inter)s') format('woff2'); font-weight:100 900; }
 html,body { margin:0; width:1200px; height:630px; overflow:hidden; }
-body { position:relative; background:linear-gradient(180deg,#10233f 0%%,#0b1730 55%%,#080f22 100%%); font-family:Inter,sans-serif; color:#f1f7ff; }
-.stars { position:absolute; inset:0; background:url('%(stars)s') 0 0/600px auto repeat; opacity:.85; }
-.veil { position:absolute; left:-200px; right:-200px; bottom:-120px; height:420px; background:url('%(veil)s') 0 100%%/auto 100%% repeat-x; opacity:.75; filter:brightness(.75) saturate(.85) hue-rotate(-8deg); }
-.volume { position:absolute; left:-320px; right:-320px; bottom:-170px; height:400px; background:url('%(volume)s') 180px 100%%/auto 100%% repeat-x; filter:brightness(.62) saturate(.8); }
+body { position:relative; background:linear-gradient(180deg,#0b1636 0%%,#1d2560 30%%,#4a3c86 55%%,#9a5c8e 75%%,#f09a74 92%%,#ffc08a 100%%); font-family:Inter,sans-serif; color:#f1f7ff; }
+.glow { position:absolute; inset:0; background:radial-gradient(ellipse 70%% 45%% at 50%% 105%%,rgba(255,190,130,.55),transparent 70%%); }
+.stars { position:absolute; inset:0; background:url('%(stars)s') 0 0/600px auto repeat; opacity:.9; -webkit-mask:linear-gradient(#000 0,#000 25%%,transparent 55%%); mask:linear-gradient(#000 0,#000 25%%,transparent 55%%); }
+.veil,.volume { position:absolute; mix-blend-mode:screen; -webkit-mask:linear-gradient(transparent 0,#000 35%%); mask:linear-gradient(transparent 0,#000 35%%); }
+.veil { left:-200px; right:-200px; bottom:-150px; height:380px; background:url('%(veil)s') 0 100%%/auto 100%% repeat-x; opacity:.55; filter:grayscale(1) brightness(1.35) sepia(.9) saturate(2.2) hue-rotate(-25deg) blur(1.5px); }
+.volume { left:-320px; right:-320px; bottom:-210px; height:360px; background:url('%(volume)s') 520px 100%%/auto 100%% repeat-x; opacity:.6; filter:grayscale(1) brightness(1.5) sepia(1) saturate(2.6) hue-rotate(-18deg) blur(1px); }
 .content { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 80px; }
-.logo { height:96px; margin-bottom:42px; }
-.kicker { font-size:34px; font-weight:500; color:#b9cbe3; letter-spacing:.01em; }
+.logo { height:96px; margin-bottom:42px; filter:drop-shadow(0 6px 30px rgba(5,10,30,.45)); }
+.kicker { font-size:34px; font-weight:500; color:#d4dcf2; text-shadow:0 2px 16px rgba(5,10,30,.5); letter-spacing:.01em; }
 .city { margin-top:6px; font-size:%(size)spx; font-weight:700; line-height:1.08; letter-spacing:-.02em; text-shadow:0 4px 24px #050b1a; }
-.tags { margin-top:22px; font-size:30px; font-weight:500; color:#d6e3f5; }
-</style></head><body><div class="stars"></div><div class="veil"></div><div class="volume"></div>
+.tags { margin-top:22px; font-size:30px; font-weight:500; color:#eef2fb; text-shadow:0 2px 16px rgba(5,10,30,.55); }
+</style></head><body><div class="stars"></div><div class="glow"></div><div class="veil"></div><div class="volume"></div>
 <div class="content"><img class="logo" src="%(logo)s" alt=""><div class="kicker">Previsão do tempo em</div>
 <div class="city">%(city)s</div><div class="tags">Chuva hora a hora · avisos do INMET · radar</div></div></body></html>"""
 
@@ -55,7 +57,7 @@ with sync_playwright() as p:
     page = browser.new_page(viewport={'width':1200, 'height':630}, device_scale_factor=1)
     # Prévia geral do site: mesma arte, com a assinatura grande e o slogan, em 1731×909.
     main = PAGE.replace('<div class="kicker">Previsão do tempo em</div>\n<div class="city">%(city)s</div><div class="tags">Chuva hora a hora · avisos do INMET · radar</div>',
-                        '<div class="slogan">O céu de cada cidade</div>').replace('.logo { height:96px; margin-bottom:42px; }', '.logo { height:150px; margin-bottom:34px; } .slogan { font-size:46px; font-weight:500; color:#d6e3f5; }')
+                        '<div class="slogan">O céu de cada cidade</div>').replace('.logo { height:96px; margin-bottom:42px; filter:drop-shadow(0 6px 30px rgba(5,10,30,.45)); }', '.logo { height:150px; margin-bottom:34px; filter:drop-shadow(0 6px 30px rgba(5,10,30,.45)); } .slogan { font-size:46px; font-weight:500; color:#e6eefb; text-shadow:0 3px 20px rgba(5,10,30,.5); }')
     wide = browser.new_page(viewport={'width':1200, 'height':630}, device_scale_factor=1731 / 1200)
     wide.set_content(main % {**assets, 'size':0}, wait_until='load'); wide.evaluate('document.fonts.ready')
     Image.open(io.BytesIO(wide.screenshot(type='png'))).convert('RGB').save(dist / MAIN_OG, 'PNG', optimize=True)

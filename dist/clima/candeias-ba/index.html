@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-222" />
+    <meta name="pluvia-release" content="pluvia-panel-223" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -28,15 +28,15 @@
     <meta property="og:title" content="Previsão do tempo em Candeias (BA) agora — PLUVIA" />
     <meta property="og:description" content="Previsão do tempo em Candeias (BA) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET." />
     <meta property="og:url" content="https://pluviaweather.com.br/clima/candeias-ba/" />
-    <meta property="og:image" content="https://pluviaweather.com.br/og-pluvia-v3.png" />
+    <meta property="og:image" content="https://pluviaweather.com.br/og-pluvia-v4.png" />
     <meta property="og:image:width" content="1731" />
     <meta property="og:image:height" content="909" />
-    <meta property="og:image:alt" content="Logo do PLUVIA, uma gota caindo na água, e slogan O céu de cada cidade sobre céu noturno com nuvens e estrelas." />
+    <meta property="og:image:alt" content="Logo do PLUVIA, uma gota caindo na água, e slogan O céu de cada cidade sobre céu de pôr do sol com nuvens e estrelas." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Previsão do tempo em Candeias (BA) agora — PLUVIA" />
     <meta name="twitter:description" content="Previsão do tempo em Candeias (BA) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET." />
-    <meta name="twitter:image" content="https://pluviaweather.com.br/og-pluvia-v3.png" />
-    <meta name="twitter:image:alt" content="Logo do PLUVIA, uma gota caindo na água, e slogan O céu de cada cidade sobre céu noturno com nuvens e estrelas." />
+    <meta name="twitter:image" content="https://pluviaweather.com.br/og-pluvia-v4.png" />
+    <meta name="twitter:image:alt" content="Logo do PLUVIA, uma gota caindo na água, e slogan O céu de cada cidade sobre céu de pôr do sol com nuvens e estrelas." />
     <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://pluviaweather.com.br/clima/candeias-ba/","url":"https://pluviaweather.com.br/clima/candeias-ba/","name":"Previsão do tempo em Candeias (BA) agora — PLUVIA","description":"Previsão do tempo em Candeias (BA) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET.","inLanguage":"pt-BR","isPartOf":{"@type":"WebSite","name":"PLUVIA","url":"https://pluviaweather.com.br/"},"about":{"@type":"City","name":"Candeias","containedInPlace":{"@type":"AdministrativeArea","name":"Bahia"},"geo":{"@type":"GeoCoordinates","latitude":-12.6716,"longitude":-38.5472}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"PLUVIA","item":"https://pluviaweather.com.br/"},{"@type":"ListItem","position":2,"name":"Candeias (BA)","item":"https://pluviaweather.com.br/clima/candeias-ba/"}]}]}</script>
     <title>Previsão do tempo em Candeias (BA) agora — PLUVIA</title>
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -501,9 +501,9 @@
       </div>
       <div class="hourly-detail-navigation"><button id="dailyDetailPrev" type="button">‹ Dia anterior</button><button id="dailyDetailNext" type="button">Próximo dia ›</button></div>
     </dialog>
-    <dialog id="changelogDialog" class="city-dialog changelog-dialog" aria-labelledby="changelogTitle">
+    <dialog id="changelogDialog" class="city-dialog changelog-1dialog" aria-labelledby="changelogTitle">
       <div class="dialog-heading"><h2 id="changelogTitle">Novidades do PLUVIA</h2><button id="changelogClose" class="dialog-close" type="button" aria-label="Fechar novidades">×</button></div>
-      <div class="dialog-scroll"><p class="changelog-intro">Versões 1.1, 1.2… trazem novidades; 1.1.1, 1.1.2… são correções.</p><ol id="changelogList" class="changelog-list"></ol></div>
+      <div class="dialog-scroll"><p class="changelog-1intro">Versões 1.1, 1.2… trazem novidades; 1.1.1, 1.1.2… são correções.</p><ol id="changelogList" class="changelog-1list"></ol></div>
     </dialog>
     <dialog id="termsDialog" class="city-dialog terms-dialog" aria-labelledby="termsTitle">
       <div class="dialog-heading"><h2 id="termsTitle">Antes de ligar os avisos</h2><button id="termsClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
@@ -512,9 +512,9 @@
         <div class="whats-new-actions"><button id="termsAccept" class="whats-new-ok" type="button" disabled>Aceitar e ligar avisos</button><button id="termsCancel" class="whats-new-all" type="button">Agora não</button></div></div>
     </dialog>
     <div class="terms-notice" id="termsNotice" role="region" aria-label="Termos de uso" hidden><p>Ao usar o PLUVIA, você concorda com os <a href="/termos/" target="_blank" rel="noopener">Termos de uso</a> e a <a href="/privacidade/" target="_blank" rel="noopener">Política de privacidade</a>.</p><button id="termsNoticeOk" type="button">OK</button></div>
-    <dialog id="whatsNewDialog" class="city-dialog changelog-dialog whats-new-dialog" aria-labelledby="whatsNewTitle">
+    <dialog id="whatsNewDialog" class="city-dialog changelog-1dialog whats-new-dialog" aria-labelledby="whatsNewTitle">
       <div class="dialog-heading"><h2 id="whatsNewTitle">Novidades do PLUVIA</h2><button id="whatsNewClose" class="dialog-close" type="button" aria-label="Fechar novidades">×</button></div>
-      <div class="dialog-scroll"><ol id="whatsNewList" class="changelog-list"></ol><div class="whats-new-actions"><button id="whatsNewOk" class="whats-new-ok" type="button" autofocus>Entendi</button><button id="whatsNewAll" class="whats-new-all" type="button">Ver todas as versões</button></div></div>
+      <div class="dialog-scroll"><ol id="whatsNewList" class="changelog-1list"></ol><div class="whats-new-actions"><button id="whatsNewOk" class="whats-new-ok" type="button" autofocus>Entendi</button><button id="whatsNewAll" class="whats-new-all" type="button">Ver todas as versões</button></div></div>
     </dialog>
     <dialog id="installPushDialog" class="city-dialog" aria-labelledby="installPushTitle">
       <div class="dialog-heading"><h2 id="installPushTitle">Alertas no iPhone</h2><button id="installPushClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
@@ -572,7 +572,7 @@
     <script src="/modules/station-now.js?v=station-4" defer></script>
     <script src="/modules/environment-now.js?v=environment-1" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-53" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-153" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-36" defer></script>
