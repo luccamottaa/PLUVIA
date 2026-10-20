@@ -816,6 +816,10 @@ html body #shareWeatherDialog #shareWeatherDownload { color:#fff; }
 #weatherView .rain-report-options button[aria-pressed="true"] { border-color:var(--brand-blue); background:var(--brand-blue); color:var(--on-accent); }
 #weatherView .rain-report-options button:disabled:not([aria-pressed="true"]) { opacity:.55; cursor:default; }
 #weatherView .rain-report-summary { min-height:1.45em; margin:10px 0 0; color:var(--reading-muted); font-size:.8125rem; line-height:1.45; }
+/* De dia a borda do cartão é branca (vidro azulado, 1.23) e somia no fundo claro: botões e divisórias usam a tinta escura. */
+body[data-ink="dark"] #weatherView .rain-report-options button:not([aria-pressed="true"]) { border-color:rgba(19,35,61,.24); background:rgba(255,255,255,.32); }
+body[data-ink="dark"] #weatherView :is(.rain-report,.install-card) { border-top-color:rgba(19,35,61,.12); }
+body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="future"]) { border-color:rgba(19,35,61,.16); }
 @media (forced-colors:active) { #weatherView .rain-report-options button { border-color:ButtonText; } #weatherView .rain-report-options button[aria-pressed="true"] { forced-color-adjust:none; background:Highlight; color:HighlightText; } }
 #weatherView .hourly-peek .rain-phrase { margin:10px 0 0; padding:0; border:0; background:none; box-shadow:none; }
 #weatherView .hourly-peek .rain-phrase small { color:var(--reading-muted); font-size:.8125rem; }

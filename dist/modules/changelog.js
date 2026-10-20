@@ -14,6 +14,7 @@
   const VERSIONS = [
     {version:"1.23", date:"2026-10-20", title:"Cartões de dia", items:[
       "De dia, os cartões trocaram o branco leitoso por um vidro azulado mais transparente, que deixa o céu aparecer.",
+      "Os botões do “Tá chovendo aí?” voltaram a parecer botões de dia, com borda e fundo como à noite.",
       "Tocar num link logo depois de uma atualização do app não volta mais para a mesma página.",
     ]},
     {version:"1.22", date:"2026-10-20", title:"Ícones novos", items:[
