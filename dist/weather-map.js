@@ -1,6 +1,8 @@
 (function () {
   const dateFormat=(locale,options)=>globalThis.PLUVIA?.time?.dateFormat?.(locale,options) ?? new Intl.DateTimeFormat(locale,options);
   const $ = id => document.getElementById(id);
+  // Cor da marca da tinta atual (azul-claro de noite, azul-marinho de dia), lida do CSS ao criar a marca da cidade.
+  const brandColor = () => getComputedStyle(document.documentElement).getPropertyValue('--brand-blue').trim() || '#2f557f';
   const mapCard = document.querySelector('.weather-map-card');
   if (!mapCard || !$('weatherMap')) return;
 
@@ -242,7 +244,7 @@
     state.user = {lat,lon};
     for (const layer of [state.userHalo,state.userMarker]) if (layer) state.map.removeLayer(layer);
     // Halo da precisão informada pelo aparelho (limitado para não cobrir o mapa) e o ponto por cima.
-    state.userHalo = Number.isFinite(accuracy) && accuracy > 0 ? L.circle([lat,lon],{radius:Math.min(accuracy,5000),color:'#2f6bff',weight:1,opacity:.5,fillColor:'#2f6bff',fillOpacity:.12,interactive:false}).addTo(state.map) : null;
+    state.userHalo = Number.isFinite(accuracy) && accuracy > 0 ? L.circle([lat,lon],{radius:Math.min(accuracy,5000),color:brandColor(),weight:1,opacity:.5,fillColor:brandColor(),fillOpacity:.12,interactive:false}).addTo(state.map) : null;
     state.userMarker = L.marker([lat,lon],{icon:L.divIcon({className:'pluvia-user-dot',iconSize:[22,22],html:'<span></span>'}),keyboard:false,zIndexOffset:1000}).addTo(state.map).bindTooltip('Você está aqui');
     return true;
   }
@@ -287,7 +289,7 @@
     } else state.map.setView([selectedCity.lat,selectedCity.lon],7);
     if (state.marker) state.map.removeLayer(state.marker);
     // O nome fica sempre ao lado da marca: no radar ampliado, achar a própria cidade era o primeiro passo.
-    state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:8,color:'#fff',weight:3,fillColor:'#2f6bff',fillOpacity:1}).addTo(state.map).bindTooltip(selectedCity.name,{permanent:true,direction:'right',offset:[10,0],className:'pluvia-city-label'});
+    state.marker = L.circleMarker([selectedCity.lat,selectedCity.lon],{radius:8,color:'#fff',weight:3,fillColor:brandColor(),fillOpacity:1}).addTo(state.map).bindTooltip(selectedCity.name,{permanent:true,direction:'right',offset:[10,0],className:'pluvia-city-label'});
     state.cityId = selectedCity.id; $('weatherMapCity').textContent = `${selectedCity.name}/${selectedCity.uf}`;
     const recenterButton = $('weatherMapRecenter');
     if (recenterButton) { recenterButton.hidden = false; recenterButton.setAttribute('aria-label','Mostrar minha localização no mapa'); recenterButton.title = 'Minha localização'; }

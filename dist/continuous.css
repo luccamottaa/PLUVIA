@@ -3,18 +3,18 @@
 :root { --brand-blue:#2f6bff; --blue:var(--brand-blue); }
 /* One brand accent for account, city selection and radar controls. */
 html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#alertDetail) :is(button,input,select,summary,a):focus-visible { outline-color:var(--brand-blue); }
-#cityDialog #locateCity,#accountDialog :is(#accountSubmit,#profileSave,#notificationPreferencesSave),#accountDialog .account-tabs button[aria-pressed=true] { background:var(--brand-blue); border-color:var(--brand-blue); color:#fff; }
+#cityDialog #locateCity,#accountDialog :is(#accountSubmit,#profileSave,#notificationPreferencesSave),#accountDialog .account-tabs button[aria-pressed=true] { background:var(--brand-blue); border-color:var(--brand-blue); color:var(--on-accent); }
 #cityDialog .city-actions button:not(#locateCity),#accountDialog .notification-actions button { border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
 #accountDialog #accountLogout { color:var(--brand-blue); border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
 #cityDialog .city-result[data-current=true] { border-left-color:var(--brand-blue); }
 #cityDialog .favorite-city-card[aria-current=true] { border-color:var(--brand-blue); }
-#accountDialog .profile-avatar { background:var(--brand-blue); color:#fff; }
+#accountDialog .profile-avatar { background:var(--brand-blue); color:var(--on-accent); }
 #accountDialog :is(.notification-types,.notification-location,.notification-quiet-toggle) input[type=checkbox] { accent-color:var(--brand-blue); }
 #accountDialog .notification-status.is-on { color:var(--brand-blue); border-color:color-mix(in srgb,var(--brand-blue) 35%,transparent); background:color-mix(in srgb,var(--brand-blue) 8%,transparent); }
 #accountDialog .notification-status.is-on::before { background:var(--brand-blue); }
 #accountDialog :is(.notification-location-row,.notification-device) button { color:var(--brand-blue) !important; border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
 #radarMapContent .weather-player button { color:var(--brand-blue); }
-#radarMapContent .weather-player #weatherPlay { background:var(--brand-blue); border-color:var(--brand-blue); color:#fff; }
+#radarMapContent .weather-player #weatherPlay { background:var(--brand-blue); border-color:var(--brand-blue); color:var(--on-accent); }
 #radarMapContent .weather-player input { accent-color:var(--brand-blue); }
 #radarMapContent .leaflet-control-attribution a { color:var(--brand-blue); }
 /* Keep native scrolling; the browser controls the indicator's size and fade. */
@@ -273,7 +273,7 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
 #weatherView .weather-map-legend { background:var(--map-surface); color:var(--map-ink); border-color:var(--map-line); }
 #weatherView .weather-player { grid-template-columns:44px 48px 44px minmax(80px,1fr); gap:8px; }
 #weatherView .weather-player button { display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--map-line); border-radius:50%; background:var(--map-surface); color:var(--map-link); }
-#weatherView .weather-player #weatherPlay { width:48px; height:48px; background:var(--brand-blue); color:#fff; border-color:var(--brand-blue); box-shadow:0 3px 10px #12345724; }
+#weatherView .weather-player #weatherPlay { width:48px; height:48px; background:var(--brand-blue); color:var(--on-accent); border-color:var(--brand-blue); box-shadow:0 3px 10px #12345724; }
 #weatherView .weather-player button svg { display:block; width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 #weatherView .weather-player #weatherPlay .player-play { width:25px; height:25px; fill:currentColor; stroke-width:1.5; }
 #weatherView .weather-player #weatherPlay .player-pause { stroke-width:3; }
@@ -288,7 +288,7 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
 }
 #weatherView .section-icon { color:var(--graphic-blue); }
 #weatherView .section-icon svg { stroke-width:2.2; }
-#weatherView .source-badge.inmet { background:var(--brand-blue); color:#fff; border-color:var(--brand-blue); box-shadow:none; font-weight:700; }
+#weatherView .source-badge.inmet { background:var(--brand-blue); color:var(--on-accent); border-color:var(--brand-blue); box-shadow:none; font-weight:700; }
 
 #weatherView .source-state { font-weight:700; }
 #weatherView .inmet-yellow,#alertDetail .inmet-yellow { --alert-color:#ffe178; --alert-accent:#f4c430; }
@@ -320,7 +320,7 @@ html body #weatherView #inmetCard { min-height:0; }
 .inmet-alert-meta dd { margin:5px 0 0; color:var(--reading-ink); font-size:.8125rem; line-height:1.5; }
 .inmet-alert-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px 16px; margin-top:18px; }
 #weatherView .inmet-alert .inmet-detail { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:44px; max-width:100%; margin:0; font:750 .8125rem/1.4 var(--font-ui); text-decoration:none; }
-#weatherView .inmet-alert button.inmet-detail { padding:10px 14px; border:1px solid var(--brand-blue); border-radius:12px; background:var(--brand-blue); color:#fff; }
+#weatherView .inmet-alert button.inmet-detail { padding:10px 14px; border:1px solid var(--brand-blue); border-radius:12px; background:var(--brand-blue); color:var(--on-accent); }
 #weatherView .inmet-alert .inmet-official { padding:8px 0; }
 #weatherView .inmet-alert .inmet-official:hover { text-decoration:underline; }
 #weatherView .inmet-alert button.inmet-detail > span { font-size:1.25rem; line-height:1; }
@@ -390,7 +390,7 @@ footer.shell .capital-links ul { display:flex; flex-wrap:wrap; justify-content:c
 footer.shell .capital-links a, footer.shell .capital-links a:hover { display:inline-flex; align-items:center; min-height:32px; padding:0; border-radius:0; background:none; box-shadow:none; transform:none; font-size:inherit; font-weight:400; color:var(--intro-ink); text-decoration:underline; text-decoration-color:color-mix(in srgb,currentColor 35%,transparent); text-underline-offset:3px; }
 footer.shell .capital-links a[aria-current="page"] { font-weight:600; text-decoration:none; }
 body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60; }
-#sourcesDialog :is(.sources-list b,a),#alertDetailBody a { color:#7aa7ff; } /* azul da marca clareado: os diálogos são sempre escuros e #2f6bff dava 3,6:1 */
+#sourcesDialog :is(.sources-list b,a),#alertDetailBody a { color:var(--brand-blue); }
 .weather-map-section,body[data-phase="night"] .weather-map-section { --map-link:var(--brand-blue); }
 
 .hourly-decision { margin:0 0 18px; font-size:.95rem; font-weight:700; line-height:1.55; color:var(--reading-ink); }
@@ -528,7 +528,7 @@ details > .details-motion[data-moving] > .details-motion-inner { overflow:hidden
 #radarMapContent .weather-map-recenter[aria-busy="true"] { opacity:.6; cursor:progress; }
 /* "Você está aqui": ponto azul com borda branca, distinto do marcador do município (menor, sem halo). */
 .pluvia-user-dot { display:grid; place-items:center; }
-.pluvia-user-dot span { width:16px; height:16px; border:3px solid #fff; border-radius:50%; background:var(--brand-blue,#2f6bff); box-shadow:0 0 0 1px #10234033,0 2px 8px #10234066; }
+.pluvia-user-dot span { width:16px; height:16px; border:3px solid #fff; border-radius:50%; background:var(--brand-blue,var(--brand-blue)); box-shadow:0 0 0 1px #10234033,0 2px 8px #10234066; }
 #radarMapContent .weather-map-recenter:focus-visible { outline:2px solid var(--brand-blue); outline-offset:3px; }
 #radarMapContent .weather-map-error { right:68px; }
 #radarMapContent .weather-map-legend:empty { display:none; }
@@ -571,7 +571,7 @@ details > .details-motion[data-moving] > .details-motion-inner { overflow:hidden
 #dailyDetailDialog :is(button,[tabindex]):focus-visible { outline:2px solid var(--brand-blue); outline-offset:2px; }
 /* Keep loading feedback stable while a new image is prepared offscreen. */
 #radarMapContent .weather-frame-status { min-height:2.8em; margin:12px 0 0; color:var(--reading-muted); font-size:.8rem; line-height:1.4; }
-#radarMapContent .weather-map-retry { min-height:44px; margin-top:8px; padding:8px 16px; background:var(--brand-blue); color:#fff; border:1px solid var(--brand-blue); border-radius:12px; font:inherit; }
+#radarMapContent .weather-map-retry { min-height:44px; margin-top:8px; padding:8px 16px; background:var(--brand-blue); color:var(--on-accent); border:1px solid var(--brand-blue); border-radius:12px; font:inherit; }
 #radarMapContent .weather-map-retry[hidden] { display:none; }
 body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) .topbar { color:#041a2e; }
 body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .intro h1 { color:var(--reading-ink); }
@@ -702,10 +702,10 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 #weatherView .rain-gauge[hidden] { display:none !important; }
 #weatherView .rain-gauge-track { width:100%; height:5px; border-radius:999px; background:rgba(255,255,255,.18); overflow:hidden; position:relative; }
 body[data-ink="dark"] #weatherView .rain-gauge-track { background:rgba(0,0,0,.12); }
-#weatherView .rain-gauge-fill { height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#5ea4ff,var(--brand-blue,#2f6bff)); transition:width .9s cubic-bezier(.22,1,.36,1) .25s; }
+#weatherView .rain-gauge-fill { height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#5ea4ff,var(--brand-blue,var(--brand-blue))); transition:width .9s cubic-bezier(.22,1,.36,1) .25s; }
 @media (prefers-reduced-motion:reduce) { #weatherView .rain-gauge-fill { transition:none; } }
 #weatherView .rain-gauge[data-level="heavy"] .rain-gauge-fill,
-#weatherView .rain-gauge[data-level="storm"] .rain-gauge-fill { background:linear-gradient(90deg,#2f6bff,#8a5aff); }
+#weatherView .rain-gauge[data-level="storm"] .rain-gauge-fill { background:linear-gradient(90deg,var(--brand-blue),#8a5aff); }
 #weatherView .rain-gauge-label { margin:0; font-size:.78rem; font-weight:600; color:var(--reading-muted); letter-spacing:.02em; }
 
 /* Índice de Confiança PLUVIA */
@@ -792,7 +792,7 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 #shareWeatherDialog .share-weather-image[hidden],#shareWeatherDialog .share-weather-download[hidden] { display:none; }
 /* De dia a regra de links dos diálogos claros pintava "Baixar imagem" de azul-escuro sobre o botão azul. */
 html body #shareWeatherDialog #shareWeatherDownload { color:#fff; }
-#shareWeatherDialog .share-weather-download { display:flex; align-items:center; justify-content:center; min-height:44px; margin:0 0 16px; border-radius:12px; background:var(--brand-blue); color:#fff; font-weight:600; text-decoration:none; }
+#shareWeatherDialog .share-weather-download { display:flex; align-items:center; justify-content:center; min-height:44px; margin:0 0 16px; border-radius:12px; background:var(--brand-blue); color:var(--on-accent); font-weight:600; text-decoration:none; }
 
 /* Próximas horas enxuto: hora, ícone, chance (só ≥ 20%, linha reservada) e temperatura. */
 #weatherView .hourly-peek-item { min-height:0; gap:6px; padding-block:10px 12px; }
@@ -807,7 +807,7 @@ html body #shareWeatherDialog #shareWeatherDownload { color:#fff; }
 #weatherView .rain-report-question { margin:0 0 10px; color:var(--reading-ink); font-size:.9375rem; font-weight:600; }
 #weatherView .rain-report-options { display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:8px; }
 #weatherView .rain-report-options button { min-height:44px; padding:0 12px; border:1px solid var(--card-border, #aac7e540); border-radius:999px; background:transparent; color:var(--reading-ink); font:inherit; font-size:.875rem; font-weight:500; cursor:pointer; }
-#weatherView .rain-report-options button[aria-pressed="true"] { border-color:var(--brand-blue); background:var(--brand-blue); color:#fff; }
+#weatherView .rain-report-options button[aria-pressed="true"] { border-color:var(--brand-blue); background:var(--brand-blue); color:var(--on-accent); }
 #weatherView .rain-report-options button:disabled:not([aria-pressed="true"]) { opacity:.55; cursor:default; }
 #weatherView .rain-report-summary { min-height:1.45em; margin:10px 0 0; color:var(--reading-muted); font-size:.8125rem; line-height:1.45; }
 @media (forced-colors:active) { #weatherView .rain-report-options button { border-color:ButtonText; } #weatherView .rain-report-options button[aria-pressed="true"] { forced-color-adjust:none; background:Highlight; color:HighlightText; } }
@@ -1247,7 +1247,7 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 
 /* Organizar favoritos: linhas com mover para cima/baixo no lugar dos cartões. */
 .favorite-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.favorite-organize { min-height:44px; padding:0 4px; border:0; background:none; color:var(--map-link,#7aa7ff); font:inherit; font-weight:600; cursor:pointer; }
+.favorite-organize { min-height:44px; padding:0 4px; border:0; background:none; color:var(--map-link,var(--brand-blue)); font:inherit; font-weight:600; cursor:pointer; }
 .favorite-organize[hidden] { display:none; }
 .favorite-city-list[data-editing] { display:flex; flex-direction:column; gap:0; overflow:visible; }
 .favorite-order-row { display:grid; grid-template-columns:minmax(0,1fr) 44px 44px; align-items:center; gap:4px; min-height:48px; border-bottom:1px solid rgba(255,255,255,.12); }
@@ -1314,12 +1314,12 @@ html body :is(#cityDialog,#accountDialog,#sourcesDialog) .dialog-scroll { paddin
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) button:not(.dialog-close):not(.city-result):not(.favorite-city-card):not(.account-provider):not(.favorite-organize):not(.account-text-action):not(.city-button):not(.account-more-item) {
   border:0; border-radius:999px; background:var(--dialog-surface-2); color:var(--dialog-text); font-weight:600;
 }
-html body :is(#cityDialog,#accountDialog) :is(#accountSubmit,#profileSave,#notificationPreferencesSave,#savedPlaceSave,#accountRecoverySave) { background:var(--brand-blue); color:#fff; }
-html body #accountDialog #notificationPreferencesSave:disabled { background:#2f6bff59; color:#ffffffa6; }
+html body :is(#cityDialog,#accountDialog) :is(#accountSubmit,#profileSave,#notificationPreferencesSave,#savedPlaceSave,#accountRecoverySave) { background:var(--brand-blue); color:var(--on-accent); }
+html body #accountDialog #notificationPreferencesSave:disabled { background:color-mix(in srgb,var(--brand-blue) 35%,transparent); color:color-mix(in srgb,var(--on-accent) 65%,transparent); }
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) :is(input:not([type=checkbox]),select) {
   min-height:50px; border:1px solid #ffffff1f; border-radius:16px; background:#ffffff0a; color:var(--dialog-text);
 }
-html body :is(#cityDialog,#accountDialog,#sourcesDialog) :is(input:not([type=checkbox]),select):focus { border-color:var(--brand-blue); outline:none; box-shadow:0 0 0 3px #2f6bff40; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog) :is(input:not([type=checkbox]),select):focus { border-color:var(--brand-blue); outline:none; box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-blue) 25%,transparent); }
 /* Títulos de grupo: discretos, como cabeçalhos de lista. */
 html body :is(#cityDialog,#accountDialog,#sourcesDialog) :is(h3,h4,legend) { margin:0 0 10px; padding:0 4px; color:var(--dialog-muted); font-size:.875rem; font-weight:600; letter-spacing:0; text-transform:none; }
 /* Interruptores: as mesmas caixas de seleção nativas (papel, foco e teclado intactos), desenhadas como chave. */
@@ -1358,7 +1358,7 @@ html body #cityDialog .voice-search::before {
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='3' width='6' height='11' rx='3'/%3E%3Cpath d='M5 11a7 7 0 0 0 14 0M12 18v3'/%3E%3C/svg%3E") center/contain no-repeat;
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='3' width='6' height='11' rx='3'/%3E%3Cpath d='M5 11a7 7 0 0 0 14 0M12 18v3'/%3E%3C/svg%3E") center/contain no-repeat;
 }
-html body #cityDialog #voiceSearch[data-listening] { background:var(--brand-blue); color:#fff; }
+html body #cityDialog #voiceSearch[data-listening] { background:var(--brand-blue); color:var(--on-accent); }
 @media (forced-colors:active){ html body #cityDialog .voice-search::before { background:ButtonText; } }
 @media (max-width:600px){ html body #cityDialog #voiceSearch { right:22px; margin-top:-26px; } }
 html body #cityDialog .city-picker { gap:22px; }
@@ -1371,7 +1371,7 @@ html body #cityDialog .city-actions > button::before {
   content:""; width:24px; height:24px; background:var(--brand-blue); background:#8fb4ff;
   -webkit-mask:var(--action-icon) center/contain no-repeat; mask:var(--action-icon) center/contain no-repeat;
 }
-html body #cityDialog #locateCity { background:var(--brand-blue); color:#fff; }
+html body #cityDialog #locateCity { background:var(--brand-blue); color:var(--on-accent); }
 html body #cityDialog #locateCity::before { background:#fff; }
 html body #cityDialog #favoriteCity { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z'/%3E%3C/svg%3E"); }
 html body #cityDialog #favoriteCity[aria-pressed=true] { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' stroke='black' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z'/%3E%3C/svg%3E"); }
@@ -1384,7 +1384,7 @@ html body #cityDialog .favorite-organize { color:#8fb4ff; font-size:.875rem; }
 html body #cityDialog .favorite-city-card {
   border:1px solid transparent; border-radius:22px; background:var(--dialog-surface); color:var(--dialog-text); padding:14px; font-weight:400;
 }
-html body #cityDialog .favorite-city-card[aria-current=true] { border-color:var(--brand-blue); background:#2f6bff1f; }
+html body #cityDialog .favorite-city-card[aria-current=true] { border-color:var(--brand-blue); background:color-mix(in srgb,var(--brand-blue) 12%,transparent); }
 html body #cityDialog .favorite-city-card > strong { font-size:.9375rem; font-weight:600; }
 html body #cityDialog .favorite-city-card .favorite-reading { font-size:2rem; font-weight:300; letter-spacing:-.03em; line-height:1.05; }
 html body #cityDialog .favorite-city-card :is(.favorite-summary,.favorite-range,.favorite-local-time,.favorite-updated) { font-weight:400; }
@@ -1397,7 +1397,7 @@ html body #cityDialog .city-result { min-height:64px; padding:12px 18px; gap:2px
 html body #cityDialog .city-results li:last-child .city-result { border-bottom:0; }
 html body #cityDialog .city-result span { font-size:1rem; font-weight:600; }
 html body #cityDialog .city-result small { font-size:.8125rem; }
-html body #cityDialog .city-result[data-current=true] { padding-left:18px; border-left:0; background:#2f6bff1f; }
+html body #cityDialog .city-result[data-current=true] { padding-left:18px; border-left:0; background:color-mix(in srgb,var(--brand-blue) 12%,transparent); }
 html body #cityDialog #cityPickerStatus { padding:0 4px; }
 html body #cityDialog .saved-places { margin:22px 0 0; padding:4px 18px; border:0; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
 html body #cityDialog .saved-places > summary { display:flex; flex-direction:column; justify-content:center; min-height:64px; font-size:1rem; font-weight:600; list-style:none; }
@@ -1415,10 +1415,10 @@ html body #accountDialog .account-provider { min-height:50px; border-radius:999p
 html body #accountDialog .account-text-action { min-height:44px; border:0; background:transparent; color:var(--dialog-muted); }
 html body #accountDialog .profile-identity {
   flex-direction:column; align-items:center; gap:12px; margin:4px 0 22px; padding:24px 16px 22px; border-radius:26px; text-align:center;
-  background:radial-gradient(120% 100% at 50% 0,#2f6bff40,transparent 70%),var(--dialog-surface);
+  background:radial-gradient(120% 100% at 50% 0,color-mix(in srgb,var(--brand-blue) 25%,transparent),transparent 70%),var(--dialog-surface);
 }
 html body #accountDialog .profile-identity strong { font-size:1.375rem; font-weight:650; }
-html body #accountDialog .profile-avatar { width:76px; height:76px; border-radius:50%; background:linear-gradient(145deg,#5b8cff,#2f6bff 55%,#1d4fd8); color:#fff; font-size:2rem; font-weight:600; box-shadow:0 10px 30px #2f6bff55; }
+html body #accountDialog .profile-avatar { width:76px; height:76px; border-radius:50%; background:var(--brand-blue); color:var(--on-accent); font-size:2rem; font-weight:600; box-shadow:0 10px 30px color-mix(in srgb,var(--brand-blue) 33%,transparent); }
 html body #accountDialog #accountIdentity { margin:2px 0 0; }
 html body #accountDialog #profileForm { gap:10px; padding:16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
 html body #accountDialog #profileForm small { padding:0 4px; }
@@ -1431,7 +1431,7 @@ html body #accountDialog .notification-checks { margin:0 0 12px; padding:0 16px;
 html body #accountDialog .notification-checks summary { display:flex; align-items:center; min-height:52px; color:var(--dialog-text); font-size:.9375rem; }
 html body #accountDialog .notification-actions { margin:0 0 26px; gap:8px; }
 html body #accountDialog .notification-actions button { min-height:50px; }
-html body #accountDialog #notificationToggle { background:var(--brand-blue); color:#fff; }
+html body #accountDialog #notificationToggle { background:var(--brand-blue); color:var(--on-accent); }
 html body #accountDialog .alert-preferences { gap:26px; }
 html body #accountDialog .alert-preferences > small,html body #accountDialog .notification-help,html body #accountDialog #notificationPrivacy { margin:-16px 4px 0; font-size:.8125rem; line-height:1.5; }
 html body #accountDialog :is(.notification-types,.notification-timing,.notification-city-choices) { margin:0; padding:0; border:0; }
@@ -1489,7 +1489,7 @@ html body #accountDialog .capital-links summary::-webkit-details-marker { displa
 html body #accountDialog .capital-links summary::after { content:"›"; flex:none; color:var(--dialog-muted); font-size:1.4rem; line-height:1; }
 html body #accountDialog .capital-links details[open]:not([data-closing]) > summary::after { rotate:90deg; }
 html body #accountDialog .capital-links ul { display:flex; flex-wrap:wrap; gap:0 16px; margin:0; padding:0 16px 12px; list-style:none; }
-html body #accountDialog .capital-links a, html body #accountDialog .capital-links a:hover { display:inline-flex; align-items:center; min-height:36px; padding:0; border-radius:0; background:none; box-shadow:none; transform:none; color:var(--dialog-link,#7aa7ff); font-size:.9375rem; font-weight:500; text-decoration:none; }
+html body #accountDialog .capital-links a, html body #accountDialog .capital-links a:hover { display:inline-flex; align-items:center; min-height:36px; padding:0; border-radius:0; background:none; box-shadow:none; transform:none; color:var(--dialog-link,var(--brand-blue)); font-size:.9375rem; font-weight:500; text-decoration:none; }
 @media (hover:hover) { html body #accountDialog .capital-links a:hover { text-decoration:underline; } }
 html body #accountDialog .capital-links a[aria-current="page"] { color:var(--dialog-text); font-weight:600; }
 html body[data-ink="dark"] #accountDialog details.account-delete > summary { color:#b42318; }
@@ -1573,7 +1573,7 @@ html body #sourcesDialog .source-credits p { margin:10px 4px 0; font-size:.8125r
 .changelog-intro { margin:0 0 12px; color:rgba(255,255,255,.72); font-size:.875rem; }
 .changelog-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:20px; }
 .changelog-entry h3 { display:flex; align-items:center; gap:8px; margin:0; font-size:1.0625rem; font-weight:600; }
-.changelog-badge { padding:2px 8px; border-radius:999px; background:var(--brand-blue,#2f6bff); color:#fff; font-size:.8125rem; font-weight:600; }
+.changelog-badge { padding:2px 8px; border-radius:999px; background:var(--brand-blue,var(--brand-blue)); color:var(--on-accent); font-size:.8125rem; font-weight:600; }
 .changelog-entry[data-kind="fix"] .changelog-badge { background:rgba(255,255,255,.16); }
 .changelog-date { margin:2px 0 0; color:rgba(255,255,255,.64); font-size:.8125rem; }
 .changelog-title { margin:8px 0 0; font-weight:600; }
@@ -1595,10 +1595,10 @@ html body #dailyDetailDialog #dailyDetailCondition { margin-top:0; }
 .whats-new-actions button { min-height:44px; border:0; border-radius:999px; font:inherit; font-weight:600; cursor:pointer; }
 /* Branco sobre o azul da marca fica em 4,49:1: o texto do botão principal é grande e forte (≥ 18,7 px bold),
    onde o mínimo é 3:1. */
-.whats-new-ok { background:var(--brand-blue,#2f6bff); color:#fff; font-size:1.1875rem !important; font-weight:700 !important; }
-.whats-new-all { background:none; color:#7aa7ff; font-weight:500 !important; }
-html body[data-ink="dark"] .whats-new-all { color:var(--dialog-link,#1f56d6); }
-.whats-new-actions button:focus-visible { outline:3px solid var(--brand-blue,#2f6bff); outline-offset:3px; }
+.whats-new-ok { background:var(--brand-blue,var(--brand-blue)); color:var(--on-accent); font-size:1.1875rem !important; font-weight:700 !important; }
+.whats-new-all { background:none; color:var(--brand-blue); font-weight:500 !important; }
+html body[data-ink="dark"] .whats-new-all { color:var(--dialog-link,var(--brand-blue)); }
+.whats-new-actions button:focus-visible { outline:3px solid var(--brand-blue,var(--brand-blue)); outline-offset:3px; }
 html body #whatsNewDialog .whats-new-actions button { min-height:48px; border-radius:999px; padding:12px 16px; }
 html body #whatsNewDialog .whats-new-all { min-height:44px; background:none; }
 
@@ -1614,7 +1614,7 @@ html body #monthDialog .month-stats dd { margin:4px 0 0; font-size:1.25rem; font
 html body #monthDialog .month-stats dd small { display:block; margin-top:2px; font-size:.8125rem; font-weight:400; }
 html body #monthDialog .month-chart { margin:0 0 16px; }
 html body #monthDialog .month-chart-bars svg { display:block; width:100%; height:72px; }
-html body #monthDialog .month-bar { fill:var(--brand-blue, #2f6bff); }
+html body #monthDialog .month-bar { fill:var(--brand-blue, var(--brand-blue)); }
 html body #monthDialog .month-bar-track { fill:currentColor; opacity:.25; }
 html body #monthDialog .month-bar-missing { fill:none; }
 html body #monthDialog .month-chart-axis { display:flex; justify-content:space-between; margin-top:6px; font-size:.8125rem; font-variant-numeric:tabular-nums; }
@@ -1645,7 +1645,7 @@ html body #accountDialog #avatarOptions button.avatar-option[aria-pressed="true"
    Contraste medido por verify-contrast.py. */
 html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#alertDetail,#installPushDialog,#installDialog,#changelogDialog,#whatsNewDialog,#termsDialog,#radarDialog) {
   --dialog-bg:#f7f5f0; --dialog-surface:#ffffff; --dialog-surface-2:#0b18300d; --dialog-line:#0b183017;
-  --dialog-text:#13233d; --dialog-muted:#556479; --dialog-link:#1f56d6;
+  --dialog-text:#13233d; --dialog-muted:#556479; --dialog-link:var(--brand-blue);
   --text:#13233d; --muted:#556479; --line:#0b18301f; --panel:#fff; --panel-strong:#fff; --panel-subtle:#0b18300a;
   color-scheme:light; color:var(--dialog-text); border-color:#0b183014;
   background:#f7f5f0; box-shadow:0 30px 90px #0b183040,inset 0 1px 0 #ffffffcc;
@@ -1665,11 +1665,11 @@ html body[data-ink="dark"] #cityDialog .city-actions > button::before,html body[
 html body[data-ink="dark"] #cityDialog .favorite-organize { background:none; color:var(--dialog-link); }
 html body[data-ink="dark"] #cityDialog #locateCity::before { background:#fff; }
 html body[data-ink="dark"] #cityDialog #favoriteCity[aria-pressed=true]::before { background:#e0a400; }
-html body[data-ink="dark"] #cityDialog :is(.city-result[data-current=true],.favorite-city-card[aria-current=true]) { background:#2f6bff14; }
+html body[data-ink="dark"] #cityDialog :is(.city-result[data-current=true],.favorite-city-card[aria-current=true]) { background:color-mix(in srgb,var(--brand-blue) 8%,transparent); }
 html body[data-ink="dark"] #accountDialog .account-tabs { background:#0b18300d; }
 html body[data-ink="dark"] #accountDialog #accountTabs button[aria-pressed=true] { background:#fff; color:var(--dialog-text); box-shadow:0 1px 3px #0b183026; }
-html body[data-ink="dark"] #accountDialog .profile-identity { background:radial-gradient(120% 100% at 50% 0,#2f6bff1f,transparent 70%),#fff; }
-html body[data-ink="dark"] #accountDialog #notificationPreferencesSave:disabled { background:#2f6bff40; color:#ffffffd9; }
+html body[data-ink="dark"] #accountDialog .profile-identity { background:radial-gradient(120% 100% at 50% 0,color-mix(in srgb,var(--brand-blue) 12%,transparent),transparent 70%),#fff; }
+html body[data-ink="dark"] #accountDialog #notificationPreferencesSave:disabled { background:color-mix(in srgb,var(--brand-blue) 25%,transparent); color:color-mix(in srgb,var(--on-accent) 85%,transparent); }
 html body[data-ink="dark"] :is(#cityDialog,#accountDialog) :is(#accountSubmit,#profileSave,#notificationPreferencesSave,#savedPlaceSave,#accountRecoverySave,#locateCity) { color:#fff; }
 html body[data-ink="dark"] .changelog-intro,html body[data-ink="dark"] .changelog-date { color:var(--dialog-muted); }
 html body[data-ink="dark"] .changelog-entry ul { color:var(--dialog-text); }
@@ -1677,10 +1677,10 @@ html body[data-ink="dark"] .changelog-entry[data-kind="fix"] .changelog-badge { 
 html body[data-ink="dark"] #brazilDialog .brazil-row:hover { background:#0b18300a; }
 html body[data-ink="dark"] :is(#changelogDialog,#whatsNewDialog,#termsDialog,#installDialog,#radarDialog) .dialog-close { border-radius:50%; }
 html body[data-ink="dark"] :is(#changelogDialog,#whatsNewDialog) .changelog-title { color:var(--dialog-text); }
-html body[data-ink="dark"] #sourcesDialog .sources-list b { color:#1f56d6; }
+html body[data-ink="dark"] #sourcesDialog .sources-list b { color:var(--brand-blue); }
 html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=official] b { color:#0f7a52; }
 html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=observation] b { color:#5b3fc4; }
-html body[data-ink="dark"] #sourcesDialog .sources-list article::before { background-color:#2f6bff26; }
+html body[data-ink="dark"] #sourcesDialog .sources-list article::before { background-color:color-mix(in srgb,var(--brand-blue) 15%,transparent); }
 html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=official]::before { background-color:#12a06a29; }
 html body[data-ink="dark"] #sourcesDialog .sources-list article[data-kind=observation]::before { background-color:#7c5cf029; }
 
@@ -1725,7 +1725,7 @@ html body #accountDialog #accountLogout { margin-top:18px; }
 html body #accountDialog .account-group > summary .account-group-value { display:block; align-self:center; margin:0!important; padding:0!important; line-height:1.3; }
 html body #accountDialog .account-group :is(.notification-types,.notification-timing,.notification-city-choices) { border-radius:0; }
 html body #accountDialog .account-group #notificationPrivacy { margin:0; padding:10px 0 0; }
-html body[data-ink="dark"] #accountDialog #accountLogout { color:var(--dialog-link,#1f56d6); }
+html body[data-ink="dark"] #accountDialog #accountLogout { color:var(--dialog-link,var(--brand-blue)); }
 /* O invólucro da animação de altura é grade: sem min-width:0 o cartão cresce até o campo mais largo
    (fuso, horários) e passa da janela no celular. */
 html body #accountDialog .account-group,html body #accountDialog .account-group > .details-motion,html body #accountDialog .account-group .details-motion-inner { min-width:0; max-width:100%; }
@@ -1733,10 +1733,10 @@ html body #accountDialog .account-group :is(select,input:not([type=checkbox])) {
 
 /* --- Termos (outubro/2026): caixinha ao criar conta e ao ligar avisos; aviso discreto no primeiro acesso --- */
 html body .terms-check { display:flex; align-items:flex-start; gap:12px; margin:14px 0 4px; color:var(--dialog-text, #e8eefc); font-size:.9375rem; line-height:1.45; cursor:pointer; }
-html body .terms-check input[type=checkbox] { flex:none; width:22px; height:22px; margin:1px 0 0; accent-color:var(--brand-blue,#2f6bff); }
+html body .terms-check input[type=checkbox] { flex:none; width:22px; height:22px; margin:1px 0 0; accent-color:var(--brand-blue,var(--brand-blue)); }
 html body .terms-check[hidden] { display:none; }
 html body :is(.terms-check,.terms-social-note,.terms-notice) a { color:#9cc0ff; text-decoration:underline; text-underline-offset:2px; }
-html body[data-ink="dark"] :is(#accountDialog,#termsDialog) :is(.terms-check,.terms-social-note) a { color:var(--dialog-link,#1f56d6); }
+html body[data-ink="dark"] :is(#accountDialog,#termsDialog) :is(.terms-check,.terms-social-note) a { color:var(--dialog-link,var(--brand-blue)); }
 html body #accountDialog .terms-social-note { display:block; margin:2px 4px 6px; color:var(--dialog-muted); font-size:.8125rem; line-height:1.45; text-align:center; }
 html body #termsDialog p { margin:0 0 12px; color:var(--dialog-text); line-height:1.5; }
 html body #termsDialog #termsAccept:disabled { opacity:.45; cursor:not-allowed; }
@@ -1744,12 +1744,12 @@ html body #termsDialog #termsAccept:disabled { opacity:.45; cursor:not-allowed; 
 .terms-notice { position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:30; display:flex; align-items:center; gap:12px; max-width:34rem; margin:0 auto; padding:12px 12px 12px 16px; border-radius:18px; background:#0b1830f2; color:#fff; box-shadow:0 10px 30px #0006; font-size:.875rem; line-height:1.45; }
 .terms-notice[hidden] { display:none; }
 .terms-notice p { flex:1; min-width:0; margin:0; }
-.terms-notice button { flex:none; min-width:64px; min-height:44px; padding:0 16px; border:0; border-radius:999px; background:var(--brand-blue,#2f6bff); color:#fff; font:inherit; font-weight:700; font-size:1.1875rem; cursor:pointer; }
+.terms-notice button { flex:none; min-width:64px; min-height:44px; padding:0 16px; border:0; border-radius:999px; background:var(--brand-blue,var(--brand-blue)); color:var(--on-accent); font:inherit; font-weight:700; font-size:1.1875rem; cursor:pointer; }
 .terms-notice button:focus-visible { outline:3px solid #9cc0ff; outline-offset:2px; }
 /* Na conta, o aceite é caixinha de marcar (não interruptor), ao lado do texto. */
 html body #accountDialog #accountForm .terms-check { display:flex!important; flex-direction:row; align-items:flex-start; gap:12px; margin:6px 0 4px; color:var(--dialog-text); font-size:.9375rem; }
 html body #accountDialog #accountForm .terms-check[hidden] { display:none!important; }
-html body #accountDialog .terms-check input[type=checkbox] { -webkit-appearance:auto; appearance:auto; width:22px!important; height:22px!important; margin:1px 0 0!important; border-radius:4px; background:none; accent-color:var(--brand-blue,#2f6bff); }
+html body #accountDialog .terms-check input[type=checkbox] { -webkit-appearance:auto; appearance:auto; width:22px!important; height:22px!important; margin:1px 0 0!important; border-radius:4px; background:none; accent-color:var(--brand-blue,var(--brand-blue)); }
 html body #accountDialog .terms-check input[type=checkbox]::before { content:none; display:none; }
 /* Turnstile (verificação de segurança do login/avisos). Quase sempre invisível: o contêiner fica no
    fluxo sem altura e só ganha espaço e a frase quando o Cloudflare pede uma interação. Sem janela
@@ -1776,7 +1776,7 @@ html body #accountDialog #accountMore .account-more-item:focus-visible { outline
 /* Umidade: um ícone em traço por faixa ao lado da nota (pedido do usuário, 1.14.4). Só máscara e cor,
    no azul da marca como os outros ícones de leitura; nível desconhecido (carregando, sem leitura) não tem ícone. */
 #weatherView .metrics #humidityNote { display:flex; align-items:center; gap:6px; }
-#weatherView .metrics .metric[data-humidity-level] #humidityNote::before { flex:none; width:1.3em; height:1.3em; background:var(--brand-blue,#2f6bff); -webkit-mask:var(--humidity-icon) center/contain no-repeat; mask:var(--humidity-icon) center/contain no-repeat; }
+#weatherView .metrics .metric[data-humidity-level] #humidityNote::before { flex:none; width:1.3em; height:1.3em; background:var(--brand-blue,var(--brand-blue)); -webkit-mask:var(--humidity-icon) center/contain no-repeat; mask:var(--humidity-icon) center/contain no-repeat; }
 #weatherView .metrics .metric[data-humidity-level="dry"] #humidityNote::before { content:""; --humidity-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5c3.5 4.2 6 7.6 6 10.7a6 6 0 0 1-12 0c0-3.1 2.5-6.5 6-10.7z'/%3E%3Cpath d='M9.5 17.5h5'/%3E%3C/svg%3E"); }
 #weatherView .metrics .metric[data-humidity-level="comfortable"] #humidityNote::before { content:""; --humidity-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8.5 14.5a4.2 4.2 0 0 0 7 0'/%3E%3Cpath d='M9 9.5h.01M15 9.5h.01' stroke-width='2.6'/%3E%3C/svg%3E"); }
 #weatherView .metrics .metric[data-humidity-level="high"] #humidityNote::before { content:""; --humidity-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5c3.5 4.2 6 7.6 6 10.7a6 6 0 0 1-12 0c0-3.1 2.5-6.5 6-10.7z'/%3E%3Cpath d='M6 14.2a6 6 0 0 0 12 0z' fill='black'/%3E%3C/svg%3E"); }
@@ -1854,3 +1854,18 @@ html body #weatherView .weather-hero .temperature { font-size:clamp(5.35rem,24.5
   #weatherView .metrics { grid-template-columns:repeat(3,minmax(0,1fr)); }
   #weatherView .metrics .metric-sky:nth-child(4) { border-top:1px solid var(--reading-line) !important; padding-top:18px; }
 }
+/* Marca nova (1.18, opção C e combinação 2 escolhidas pelo usuário): o nome PLUVIA segue a tinta do céu, branca de
+   noite e azul-marinho de dia (a mesma do slogan e do rodapé), e a gota é a mesma tinta puxada para o azul-claro.
+   O azul da marca continua nos botões, links e destaques; só a assinatura deixou de ser azul. */
+.topbar .brand { color:var(--intro-ink) !important; }
+footer.shell .footer-brand-copy strong { color:var(--intro-ink); }
+footer.shell .footer-brand-icon { background:#cfe3ff; background:color-mix(in srgb,var(--intro-ink) 72%,#7fb0ff); }
+/* Cor nova dos destaques (1.18, pedido do usuário: "todos esses ícones azuis no novo padrão de cor do PLUVIA"):
+   o azul vivo #2f6bff saiu. Na tinta clara (noite, chuva forte) o destaque é o azul-claro da gota nova, com texto
+   azul-noite nos botões preenchidos; na tinta escura (céu claro de dia) é o azul-marinho da marca, com texto branco.
+   Ícones em traço, links, bolinhas, interruptores, selos e botões preenchidos herdam pelos mesmos tokens. */
+:root { --brand-blue:#b7d2ff; --on-accent:#0c1a33; }
+:root[data-ink="dark"] { --brand-blue:#2f557f; --on-accent:#fff; }
+#weatherView, .weather-map-section, body[data-phase="night"] .weather-map-section { --map-link:var(--brand-blue); }
+nav a:hover, nav a.active, #welcomeLocate, #installPushReload, #installDone { color:var(--on-accent); }
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked::before { background:var(--on-accent); }

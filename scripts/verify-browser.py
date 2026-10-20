@@ -48,9 +48,9 @@ with sync_playwright() as p:
  assert page.locator('#localClock,#localDate,#cityTimezone,#weatherView .clock-wrap').count()==0
  def verify_brand():
   brand=page.locator('.topbar .brand')
-  # Desde a 1.16.2 o topo mostra só o nome PLUVIA, sem a gota (pedido do usuário).
-  style=brand.evaluate("el=>({text:getComputedStyle(el.lastElementChild).color,marks:el.querySelectorAll('.brand-mark').length})")
-  assert style['text']=='rgb(47, 107, 255)' and style['marks']==0,style
+  # Desde a 1.16.2 o topo mostra só o nome PLUVIA, sem a gota; desde a 1.18 na tinta do céu (--intro-ink), não mais azul.
+  style=brand.evaluate("el=>{const probe=document.createElement('span');probe.style.color='var(--intro-ink)';document.body.append(probe);const ink=getComputedStyle(probe).color;probe.remove();return {text:getComputedStyle(el.lastElementChild).color,ink,marks:el.querySelectorAll('.brand-mark').length}}")
+  assert style['text']==style['ink'] and style['text']!='rgb(47, 107, 255)' and style['marks']==0,style
   # Equal side tracks keep the brand centered for guests and long greetings.
   account=page.locator('#accountButton');original=account.inner_text()
   try:

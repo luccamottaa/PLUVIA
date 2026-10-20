@@ -12,6 +12,12 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.18", date:"2026-10-20", title:"Logo nova", items:[
+      "O PLUVIA tem logo nova: uma gota caindo na água, com duas ondinhas.",
+      "O nome PLUVIA agora acompanha o céu: branco à noite e azul-marinho de dia, com a gota em azul-claro.",
+      "Ícone do app, favicon, abertura, rodapé, imagem de compartilhar e a prévia do link no WhatsApp já estão com a logo nova.",
+      "Botões, ícones, links e destaques trocaram o azul vivo pelas cores novas: azul-claro à noite e azul-marinho de dia.",
+    ]},
     {version:"1.17", date:"2026-10-20", title:"Sensação e máxima nos blocos", items:[
       "Sensação térmica e máxima/mínima de hoje agora têm blocos próprios, junto com umidade, vento e os outros.",
       "A frase de ontem ficou mais curta: “Choveu cerca de 3 mm nas últimas 24 h.”",

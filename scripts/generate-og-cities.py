@@ -1,7 +1,8 @@
-"""Prévias sociais (Open Graph) das 27 capitais: 1200×630 JPEG em dist/og/<slug>.jpg.
+"""Prévias sociais (Open Graph): a geral (dist/og-pluvia-v3.png, 1731×909, desde a 1.18) e as das 27 capitais
+(1200×630 JPEG em dist/og/<slug>-<versão>.jpg).
 
 Arte estática com as camadas do próprio céu do PLUVIA (gradiente noturno, estrelas e as duas texturas
-de nuvem), a assinatura azul e o nome da capital. Não mostra temperatura nem condição: a imagem fica em
+de nuvem), a assinatura da marca (gota clara e nome branco) e o nome da capital. Não mostra temperatura nem condição: a imagem fica em
 cache nos apps de mensagem por dias e uma previsão congelada seria enganosa. Rodar depois de mudar a
 arte ou a lista de capitais e, em seguida, `node scripts/generate-city-pages.cjs`:
 
@@ -14,7 +15,8 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 from PIL import Image
 
-OG_VERSION = 'v1'
+OG_VERSION = 'v2'   # v2: marca nova da 1.18 (gota caindo na água)
+MAIN_OG = 'og-pluvia-v3.png'
 repo = Path(__file__).resolve().parent.parent
 dist = repo / 'dist'
 out = dist / 'og'
@@ -51,6 +53,13 @@ chromium = shutil.which('chromium') or ('/opt/pw-browsers/chromium' if Path('/op
 with sync_playwright() as p:
     browser = p.chromium.launch(args=['--no-sandbox'], **({'executable_path':chromium} if chromium else {}))
     page = browser.new_page(viewport={'width':1200, 'height':630}, device_scale_factor=1)
+    # Prévia geral do site: mesma arte, com a assinatura grande e o slogan, em 1731×909.
+    main = PAGE.replace('<div class="kicker">Previsão do tempo em</div>\n<div class="city">%(city)s</div><div class="tags">Chuva hora a hora · avisos do INMET · radar</div>',
+                        '<div class="slogan">O céu de cada cidade</div>').replace('.logo { height:96px; margin-bottom:42px; }', '.logo { height:150px; margin-bottom:34px; } .slogan { font-size:46px; font-weight:500; color:#d6e3f5; }')
+    wide = browser.new_page(viewport={'width':1200, 'height':630}, device_scale_factor=1731 / 1200)
+    wide.set_content(main % {**assets, 'size':0}, wait_until='load'); wide.evaluate('document.fonts.ready')
+    Image.open(io.BytesIO(wide.screenshot(type='png'))).convert('RGB').save(dist / MAIN_OG, 'PNG', optimize=True)
+    wide.close()
     for city in capitals:
         label = f"{city['name']}/{city['uf']}"
         size = 104 if len(label) <= 14 else 88 if len(label) <= 20 else 74
