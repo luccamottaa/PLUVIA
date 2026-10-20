@@ -134,7 +134,10 @@ test('atualização completa ativa mesmo se um ícone falha, mas não se faltar 
   await success.installing;
   assert.equal(success.skipped(), true);
   assert.ok(success.requests.length > 20);
-  assert.ok(success.requests.every(request => request.cache === 'reload'));
+  // Com ?v= vem do cache HTTP (a URL muda com o conteúdo); sem versão (shell, manifest, ícones) vai à rede.
+  const versioned = request => /[?&]v=/.test(String(request.url));
+  assert.ok(success.requests.some(versioned) && success.requests.some(request => !versioned(request)));
+  assert.ok(success.requests.every(request => versioned(request) ? request.cache !== 'reload' : request.cache === 'reload'));
   const failed = worker(true);
   await assert.rejects(failed.installing, /CSS unavailable/);
   assert.equal(failed.skipped(), false);

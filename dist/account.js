@@ -101,7 +101,7 @@
         button.type = 'button'; button.className = 'avatar-option'; button.dataset.avatarId = avatar.id;
         button.setAttribute('aria-label', avatar.label); button.title = avatar.label;
         face.className = 'avatar-face'; face.setAttribute('aria-hidden','true');
-        if (avatar.id) avatars.paint(face, avatar); else face.dataset.initial = 'true';
+        if (avatar.id) avatars.paint(face, avatar, document, {lazy:true}); else face.dataset.initial = 'true';
         button.append(face);
         // Aparece na hora e vai para a conta (account-preferences); se o servidor recusar, volta à anterior.
         button.addEventListener('click', async () => {

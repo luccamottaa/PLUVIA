@@ -49,12 +49,15 @@
     try { storage.setItem(KEY, JSON.stringify(Object.fromEntries(kept))); return true; } catch { return false; }
   }
   // Pinta um elemento como foto: fundo colorido e o desenho (decorativo; o nome acessível fica no botão).
-  function paint(node, avatar, documentRef = root.document) {
+  // lazy: as 18 opções de "Minha conta" ficam numa janela fechada; com loading=lazy (antes do src) elas só baixam
+  // quando a janela abre, em vez de disputar a rede com a previsão na abertura (1.25).
+  function paint(node, avatar, documentRef = root.document, {lazy = false} = {}) {
     if (!node) return;
     if (!avatar) { node.style?.removeProperty?.('--avatar-bg'); delete node.dataset?.avatar; return; }
     node.dataset.avatar = avatar.id;
     node.style.setProperty('--avatar-bg', avatar.bg);
     const image = documentRef.createElement('img');
+    if (lazy) image.loading = 'lazy';
     image.src = avatar.src; image.alt = ''; image.width = 64; image.height = 64; image.decoding = 'async';
     node.replaceChildren(image);
   }

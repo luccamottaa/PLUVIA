@@ -12,7 +12,10 @@ self.addEventListener("install", event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
     const critical = url => url === "./" || url === SHELL || /\.(js|css)(\?|$)/.test(url);
-    const request = url => new Request(new URL(url, self.location.href), { cache: "reload" });
+    // Arquivo com ?v= não pode estar velho (a URL muda junto com o conteúdo): vem do cache HTTP que a própria
+    // página acabou de encher. Antes tudo era baixado de novo, ~0,5 MB a mais na primeira visita (1.25).
+    // Sem versão (shell, manifest, ícones) continua indo à rede.
+    const request = url => new Request(new URL(url, self.location.href), /[?&]v=/.test(url) ? {} : { cache: "reload" });
     await cache.addAll(PRECACHE.filter(critical).map(request));
     // A missing decorative icon must not prevent an otherwise complete update.
     await Promise.allSettled(PRECACHE.filter(url => !critical(url)).map(url => cache.add(request(url))));
