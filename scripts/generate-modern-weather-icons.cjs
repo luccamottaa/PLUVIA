@@ -44,7 +44,8 @@ const FLAT_SUN='#ffd33d',FLAT_RAIN='#5ac8fa',FLAT_MOON='#eef1f8';
 const flatCloud=(dark=false)=>`<g data-symbol="cloud" fill="url(#${dark?'flat-cloud-dark':'flat-cloud'})" stroke="${dark?'#94a6ba':'#b4c6d8'}" stroke-width="1.6" stroke-linejoin="round"><path d="M32 96a20 20 0 0 1-2-39.9A30 30 0 0 1 88 50a23 23 0 1 1 6 46Z"/></g>`;
 const flatSun=`<g data-symbol="sun">${line('M64 10v11M64 107v11M10 64h11M107 64h11M25.8 25.8l7.8 7.8M94.4 94.4l7.8 7.8M102.2 25.8l-7.8 7.8M33.6 94.4l-7.8 7.8',FLAT_SUN,7)}${circle(64,64,26,FLAT_SUN)}</g>`;
 const flatMoon=`<g data-symbol="moon"><path d="M80 18a44 44 0 1 0 30 62A36 36 0 0 1 80 18Z" fill="${FLAT_MOON}"/></g>`;
-const flatPartial=(night=false,few=false)=>group(night?flatMoon:flatSun,few?'translate(22 2) scale(.78)':'translate(40 2) scale(.66)')+group(flatCloud(),few?'translate(2 52) scale(.6)':'translate(-2 22) scale(.86)');
+// Poucas nuvens: sol quase centrado e nuvem pequena na frente, embaixo à direita (o conjunto fica no centro da coluna).
+const flatPartial=(night=false,few=false)=>group(night?flatMoon:flatSun,few?'translate(10 6) scale(.74)':'translate(40 2) scale(.66)')+group(flatCloud(),few?'translate(46 58) scale(.58)':'translate(-2 22) scale(.86)');
 const flatRainCloud=(dark=false)=>group(flatCloud(dark),'translate(8 -8) scale(.88)');
 // Tracinhos inclinados, como na referência; a quantidade e o tamanho distinguem garoa, chuva fraca, moderada e forte.
 const flatDrops=(count=3,size=1,rows=1)=>`<g data-symbol="${size<.7?'drizzle':'rain'}">`+Array.from({length:count},(_,i)=>{
@@ -79,7 +80,8 @@ const metricGradients={
 };
 const softThermometer=(warm=false)=>'<path d="M49 75V28a15 15 0 0 1 30 0v47a25 25 0 1 1-30 0Z" fill="url(#instrument-face)" stroke="#6484a7" stroke-width="2.5"/>'+line('M64 31v54',warm?'#f7a749':'#3d9fe9',8)+circle(64,96,15,`url(#${warm?'instrument-warm':'instrument-blue'})`)+line('M56 28v41','#ffffff',2)+line('M82 36h7M82 50h7M82 64h7','#6484a7',3);
 const temperatureArrow=(up=true)=>group('<path d="m101 18 13 16h-8v28H96V34h-8Z" fill="url(#'+(up?'instrument-warm':'instrument-blue')+')" stroke="'+(up?'#ab722f':'#3c689f')+'" stroke-width="1.5" stroke-linejoin="round"/>',up?'translate(0 0)':'translate(0 81) scale(1 -1)');
-const softDrop='<path d="M64 15C54 32 29 58 29 78a35 35 0 0 0 70 0C99 58 74 32 64 15Z" fill="url(#sky-rain)" stroke="#3976ac" stroke-width="1.5"/>'+line('M44 77c0 12 7 21 17 24','#d7f4ff',3.5);
+// Gota chapada (1.23.2), no mesmo estilo das condições: azul sólido, sem contorno, com um fio de brilho.
+const softDrop='<path d="M64 12C53 31 27 57 27 79a37 37 0 0 0 74 0C101 57 75 31 64 12Z" fill="#3fa9f5"/>'+line('M45 80c0 11 6 19 15 22','#ffffff',4);
 const instrumentWind= line('M13 49h66c18 0 19-25 4-25-8 0-12 5-12 10M13 66h87c18 0 18 26 2 26-8 0-12-5-12-10M26 84h28c18 0 18 24 2 24','#57769a',8)+line('M13 49h66c18 0 19-25 4-25-8 0-12 5-12 10M13 66h87c18 0 18 26 2 26-8 0-12-5-12-10M26 84h28c18 0 18 24 2 24','#87d6fa',5);
 const softEye='<path d="M10 64s20-28 54-28 54 28 54 28-20 28-54 28S10 64 10 64Z" fill="url(#instrument-face)" stroke="#6083aa" stroke-width="2.5"/>'+circle(64,64,20,'url(#instrument-blue)','#4382b7',1.5)+circle(64,64,9,'#24416a')+circle(71,56,4,'#ffffff');
 const softLeaf='<path d="M27 88C17 47 50 22 104 22c0 51-27 80-69 73Z" fill="url(#instrument-leaf)" stroke="#3d927c" stroke-width="2"/>'+line('M28 111 85 42M47 86l-1-23M61 69h24','#297e68',3.5);

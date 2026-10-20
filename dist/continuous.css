@@ -1300,6 +1300,10 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 #weatherView .hourly-peek-item.is-now { border-bottom-color:transparent; }
 #weatherView .hourly-peek-list .hourly-peek-item { padding-bottom:4px; }
 #weatherView .hourly-peek-item .peek-rain { min-height:18px; margin-top:-2px; }
+/* Gota + chance cabem na coluna (~55 px a 390 px): com a gota de 16 px e 4 px de espaço o grupo passava da coluna
+   e a gota parecia ser da hora anterior. Gota menor e colada no número, centrados juntos sob a temperatura. */
+#weatherView .hourly-peek-item .peek-rain { gap:1px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+#weatherView .hourly-peek-item .peek-rain .rain-metric-icon { width:12px; height:12px; flex:none; }
 
 #weatherView .hourly-peek-list::-webkit-scrollbar { display:none; }
 
