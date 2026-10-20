@@ -59,3 +59,8 @@ for name, size in [('icon-maskable-192.png', 192), ('icon-maskable-512.png', 512
 save(place(sky(32, radius=7), mark, LIGHT, .76), 'favicon-32.png', 'RGBA')
 save(place(sky(16, radius=4), solid, LIGHT, .8), 'favicon-16.png', 'RGBA')
 save(place(sky(96, radius=20), mark, LIGHT, .7), 'favicon-96.png', 'RGBA')
+# Endereços que o iPhone procura sozinho na raiz quando não consegue o ícone pelo <link> (1.18.2).
+import shutil
+for name in ('apple-touch-icon.png', 'apple-touch-icon-precomposed.png'):
+    shutil.copyfile(DIST / 'apple-touch-icon-180.png', DIST / name)
+Image.open(DIST / 'favicon-32.png').save(DIST / 'favicon.ico', sizes=[(16, 16), (32, 32)])

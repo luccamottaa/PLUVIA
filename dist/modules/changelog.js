@@ -12,8 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.18.2", date:"2026-10-20", title:"Prévia do link", items:[
+    {version:"1.18.2", date:"2026-10-20", title:"Prévia do link e ícone", items:[
       "A imagem que aparece quando alguém compartilha o link ganhou um céu de pôr do sol.",
+      "Mais uma correção para a logo aparecer ao adicionar o PLUVIA à Tela de Início do iPhone.",
     ]},
     {version:"1.18.1", date:"2026-10-20", title:"Ícone na Tela de Início", items:[
       "Adicionar o PLUVIA à Tela de Início do iPhone volta a mostrar a logo nova, em vez de só a letra P.",

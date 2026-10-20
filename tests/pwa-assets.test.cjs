@@ -18,6 +18,9 @@ test('exporta todos os ícones instaláveis nas dimensões declaradas', () => {
     assert.deepEqual(pngDimensions(icon.src.replace(/^\.\//, '').replace(/\?.*$/, '')), {width:expected,height:expected});
   }
   assert.deepEqual(pngDimensions('apple-touch-icon-180.png'), {width:180,height:180});
+  // Reservas que o iPhone procura na raiz quando o <link> falha: mesma arte do ícone de 180 px.
+  for (const name of ['apple-touch-icon.png', 'apple-touch-icon-precomposed.png']) assert.ok(fs.readFileSync(path.join(root, name)).equals(fs.readFileSync(path.join(root, 'apple-touch-icon-180.png'))), name);
+  assert.ok(fs.existsSync(path.join(root, 'favicon.ico')));
   // O iPhone guarda o ícone pelo endereço: com ?v= ele busca a arte nova ao adicionar à Tela de Início.
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8'), sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
   assert.match(html, /rel="apple-touch-icon" sizes="180x180" href="\.\/apple-touch-icon-180\.png\?v=logo-\d+"/);
