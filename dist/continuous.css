@@ -520,7 +520,7 @@ details > .details-motion[data-moving] > .details-motion-inner { overflow:hidden
 /* Chance e volume são grandezas separadas, inclusive quando o volume falta. */
 
 /* Recentralizar no município, como o botão de localização dos apps de mapa. */
-#radarMapContent .weather-map-recenter { position:absolute; z-index:500; top:12px; right:12px; display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--map-line); border-radius:50%; background:var(--map-surface); color:var(--brand-blue); box-shadow:0 6px 18px #10234033; cursor:pointer; }
+#radarMapContent .weather-map-recenter { position:absolute; z-index:500; top:12px; right:12px; display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--map-line); border-radius:50%; background:var(--map-surface); color:var(--map-link); box-shadow:0 6px 18px #10234033; cursor:pointer; }
 #radarMapContent .weather-map-recenter[hidden] { display:none; }
 #radarMapContent .weather-map-recenter svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
 #radarMapContent .weather-map-recenter .recenter-dot { fill:none; }
@@ -1081,8 +1081,8 @@ body[data-ink="dark"] #weatherView {
 /* Céu cinza de dia (nublado, garoa, chuva e trovoada com tinta clara, 1.25): cartão cinza-escuro translúcido como no
    Apple Weather. O vidro azulado da noite clareava o cinza e o texto secundário ficava abaixo de 4,5:1. */
 body[data-phase="day"][data-ink="light"] #weatherView {
-  --card-bg:rgba(28,34,42,.26);
-  --card-fill:linear-gradient(rgba(28,34,42,.26),rgba(28,34,42,.26)) padding-box;
+  --card-bg:rgba(24,30,38,.34);
+  --card-fill:linear-gradient(rgba(24,30,38,.34),rgba(24,30,38,.34)) padding-box;
   --card-border:rgba(255,255,255,.14);
 }
 #weatherView .hero-range { margin:-8px 0 0; color:var(--reading-ink); font-size:1.05rem; font-weight:500; line-height:1.35; text-align:center; }
@@ -1889,6 +1889,9 @@ footer.shell .footer-brand-icon { background:#cfe3ff; background:color-mix(in sr
 :root { --brand-blue:#b7d2ff; --on-accent:#0c1a33; }
 :root[data-ink="dark"] { --brand-blue:#2f557f; --on-accent:#fff; }
 #weatherView, .weather-map-section, body[data-phase="night"] .weather-map-section { --map-link:var(--brand-blue); }
+/* O mapa segue a fase (claro de dia), não a tinta: no céu cinza de dia (tinta clara, 1.25) o azul-claro dos links e
+   botões sobre a superfície clara do mapa ficava em 1,5:1. De dia o mapa usa sempre o azul-marinho da marca. */
+body[data-phase="day"] .weather-map-section { --map-link:#2f557f; }
 nav a:hover, nav a.active, #welcomeLocate, #installPushReload, #installDone { color:var(--on-accent); }
 html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked::before { background:var(--on-accent); }
 /* Chuva na próxima hora (1.19): barras do nowcast do radar, de agora a +60 min a cada 5 min. A altura é a fração da

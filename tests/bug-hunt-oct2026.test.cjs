@@ -72,3 +72,22 @@ test('chuva de meteoros: na madrugada do pico vale a noite de ontem',()=>{
   const events=require('../dist/modules/sky-events.js');
   assert.equal(events.nextShower('2026-10-21',-3.1)?.night,events.nextShower('2026-10-20',-3.1)?.night,'a noite de 21→22 é a mesma vista da tarde do dia 21');
 });
+test('"Tá chovendo aí?": os botões voltam sozinhos depois de 15 min com o app aberto, e o resumo é relido',async()=>{
+  const api=require('../dist/modules/rain-reports.js');
+  const el=(attrs={})=>{const a={};return Object.assign({hidden:true,textContent:'',disabled:false,dataset:{},setAttribute(k,v){a[k]=v;},getAttribute(k){return a[k];},toggleAttribute(){},addEventListener(t,f){this['on'+t]=f;}},attrs);};
+  const buttons=['dry','drizzle','rain','heavy'].map(kind=>el({dataset:{kind}}));
+  const box=el({querySelectorAll:()=>buttons}),summary=el(),question=el();
+  const listeners={},doc={visibilityState:'visible',getElementById:id=>({rainReport:box,rainReportSummary:summary,rainReportQuestion:question})[id],addEventListener:(t,f)=>{listeners[t]=f;}};
+  const store=new Map(),storage={getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,v)};
+  let t=Date.parse('2026-10-20T12:00:00Z'),gets=0;const timers=[];
+  const http={createClient:()=>({abortAll(){},async getJson(url,opts){if(opts?.method==='POST')return 'ok';gets++;return [{dry:1,drizzle:0,rain:0,heavy:0}];}})};
+  const ui=api.mount({doc,storage,crypto:{randomUUID:()=>'0123456789abcdef0123456789abcdef'},http,now:()=>t,setTimer:(fn,ms)=>{timers.push({fn,ms});return timers.length;},clearTimer(){}});
+  ui.setCity({id:'1302603',name:'Manaus'});await new Promise(r=>setImmediate(r));
+  await ui.report('rain');
+  assert.ok(buttons.every(b=>b.disabled));
+  const unlock=timers.at(-1);assert.ok(unlock.ms>14*60000&&unlock.ms<=15*60000+50);
+  t+=16*60000;const before=gets;unlock.fn();await new Promise(r=>setImmediate(r));
+  assert.ok(buttons.every(b=>!b.disabled),'botões liberados');
+  assert.ok(gets>before,'resumo relido');
+  assert.equal(typeof listeners.visibilitychange,'function','voltar ao app confere o prazo');
+});

@@ -2048,6 +2048,12 @@ function renderFavoriteSuggest() {
   const box = $("favoriteSuggest");
   if (!box) return;
   const show = favoriteSuggestionFor(activeCity);
+  // Esconder o convite com o foco num dos botões jogava o foco no body (teclado/leitor de tela): ele vai para a
+  // bolinha da cidade aberta ou, sem bolinhas, para a busca.
+  if (!show && box.contains?.(document.activeElement)) {
+    const dots = $("cityDots");
+    (dots && !dots.hidden && dots.querySelector('[aria-current="true"]') || $("openCitySearch"))?.focus?.({preventScroll:true});
+  }
   box.hidden = !show;
   if (!show) { suggestedCityId = null; return; }
   $("favoriteSuggestCity").textContent = activeCity.name;
