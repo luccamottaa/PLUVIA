@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.23.1", date:"2026-10-20", title:"Botões de dia", items:[
+      "Os botões do “Tá chovendo aí?” voltaram a parecer botões de dia, com borda e fundo como à noite.",
+    ]},
     {version:"1.23", date:"2026-10-20", title:"Cartões de dia", items:[
       "De dia, os cartões trocaram o branco leitoso por um vidro azulado mais transparente, que deixa o céu aparecer.",
       "Tocar num link logo depois de uma atualização do app não volta mais para a mesma página.",
