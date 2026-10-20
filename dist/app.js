@@ -841,12 +841,14 @@ function formatUpdateTime(at) {
 
 // Dicas contextuais: somem quando não há nada para fazer. Texto entra como textContent.
 const TIP_ICONS = {wind:"wind-speed", heat:"feels-like", air:"air-quality", uv:"uv-index"};
+// Desde a 1.23.2 o cartão de dicas sempre aparece: a primeira linha é o "Vai chover?" (#rainAnswer, saiu do topo a
+// pedido do usuário). Só a lista das demais dicas some quando não há nada a fazer.
 function renderTips(list) {
-  const section = $("tips"), target = $("tipsList");
-  if (!section || !target) return;
+  const target = $("tipsList");
+  if (!target) return;
   const items = Array.isArray(list) ? list : [];
-  const appearing = section.hidden && items.length > 0;
-  section.hidden = items.length === 0;
+  const appearing = target.hidden && items.length > 0;
+  target.hidden = items.length === 0;
   if (!items.length) { target.textContent = ""; return; }
   target.replaceChildren(...items.map(tip => {
     const item = document.createElement("li");
@@ -859,7 +861,7 @@ function renderTips(list) {
     item.append(icon, text);
     return item;
   }));
-  if (appearing) settleBlock(section);
+  if (appearing) settleBlock(target);
 }
 
 function setRainAnswer(answer) {

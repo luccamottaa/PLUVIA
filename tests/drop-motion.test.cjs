@@ -91,14 +91,14 @@ test('dado que chega depois desce no lugar: alertas saindo de "Consultando", dic
   const pick=(start,end)=>app.slice(app.indexOf(start),app.indexOf(end));
   const source=[pick('function setAlertState(','// Faixa no topo'),pick('function renderTips(','function setRainAnswer('),pick('function setYesterdayNote(','function clearWeatherInsights(')].join('\n');
   const dropped=[];
-  const els={alertas:{dataset:{alertState:'loading'}},tips:{hidden:true,dataset:{}},tipsList:{replaceChildren(){},set textContent(v){}},yesterdayNote:{textContent:'',dataset:{}}};
+  const els={alertas:{dataset:{alertState:'loading'}},tips:{hidden:false,dataset:{}},tipsList:{hidden:true,replaceChildren(){},set textContent(v){}},yesterdayNote:{textContent:'',dataset:{}}};
   const ctx={$:id=>els[id],dropIn:list=>dropped.push(...list.map(n=>Object.keys(els).find(k=>els[k]===n))),dropMotion:()=>true,onScreen:()=>true,whenOnScreen:(nodes,done)=>done(nodes),
     TIP_ICONS:{},weatherIcons:null,document:{createElement:()=>({dataset:{},setAttribute(){},append(){},className:'',innerHTML:'',textContent:''})}};
   const api=vm.runInNewContext(`${source}\n({setAlertState,renderTips,setYesterdayNote})`,ctx);
   api.setAlertState('alerts');api.setAlertState('clear');
   api.renderTips([{kind:'uv',text:'UV alto'}]);api.renderTips([{kind:'uv',text:'UV alto'}]);
   api.setYesterdayNote({text:'2° mais quente que ontem'});api.setYesterdayNote({text:'parecida'});
-  assert.deepEqual(dropped,['alertas','tips','yesterdayNote'],'só a primeira chegada de cada bloco desce; atualizações não reanimam');
+  assert.deepEqual(dropped,['alertas','tipsList','yesterdayNote'],'só a primeira chegada de cada bloco desce; atualizações não reanimam');
   const load=app.slice(app.indexOf('async function loadWeather('),app.indexOf('async function refreshAll('));
   assert.match(load,/if \(fromSkeleton && !introCovering\(\)\) \{ animateCityText\(\); dropVisibleBlocks\(120\); \}/,'cidade sem nada salvo: esqueletos viram dados em cascata');
   assert.match(app,/function introCovering\(\) \{\n  const intro = \$\("pluviaIntro"\);\n  return Boolean\(intro && !intro\.hidden && !intro\.dataset\.done\);/,'com a intro cobrindo a tela a animação é pulada');

@@ -994,7 +994,6 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 :root[data-city-slide] #weatherView .intro h1 { view-transition-name:pluvia-city; }
 :root[data-city-slide] #weatherView .wx-copy { view-transition-name:pluvia-temp; }
 :root[data-city-slide] #weatherView #condition { view-transition-name:pluvia-condition; }
-:root[data-city-slide] #weatherView #rainAnswer { view-transition-name:pluvia-rain; }
 /* A foto antiga sai rápido para o lado do gesto (200 ms, sem ficar sobreposta à nova: "ManPetrolina"),
    e a nova desce no lugar, em cascata: nome, temperatura, condição, "Vai chover?". */
 ::view-transition-group(pluvia-city),::view-transition-group(pluvia-temp),::view-transition-group(pluvia-condition),::view-transition-group(pluvia-rain) { animation-duration:.5s; animation-timing-function:cubic-bezier(.22,1,.36,1); }
@@ -1906,3 +1905,10 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 #weatherView .hourly-peek .rain-gauge-label { text-align:left; }
 #weatherView .hourly-peek .yesterday-note { max-width:none; margin:12px 0 0; text-align:left; font-size:.875rem; }
 #weatherView .hourly-peek .yesterday-note .sk-line { margin:0; }
+/* "Vai chover?" como primeira dica (1.23.2): mesma linha das dicas (ícone em traço centrado), texto à esquerda e um
+   pouco mais forte, por ser a resposta principal. A lista das outras dicas só entra quando há o que fazer. */
+#weatherView .tips-rain { display:flex; align-items:center; gap:10px; margin:0; }
+#weatherView .tips-rain .rain-answer { flex:1; min-width:0; margin:0; max-width:none; font-size:.95rem; font-weight:600; text-align:left; text-wrap:pretty; }
+#weatherView .tips-rain .rain-answer[data-tone="loading"] .sk-line { margin:0; }
+#weatherView .tips-list { margin-top:10px; }
+#weatherView .tips-list[hidden] { display:none; }
