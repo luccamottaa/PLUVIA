@@ -40,6 +40,35 @@
     return `rgb(${STOPS.at(-1)[1]})`;
   }
   const finite = value => typeof value === 'number' && Number.isFinite(value) ? value : null;
+  const rgbOf = value => {const color = tempColor(value); return color ? color.slice(4, -1).split(',').map(Number) : null;};
+
+  // Cidades do interior que só entram no campo de cores (sem etiqueta): entre as capitais sobra muito território,
+  // e o campo interpolado só com elas pintava a Amazônia e o Cerrado com a temperatura do litoral.
+  const FIELD_POINTS = [[-0.13,-67.09],[-3.35,-64.71],[-7.26,-64.8],[-7.63,-72.67],[-4.27,-55.98],[-3.2,-52.21],[-5.37,-49.12],
+    [-7.19,-48.21],[-5.52,-47.47],[-6.77,-43.02],[-7.21,-39.32],[-9.39,-40.5],[-12.15,-45],[-14.86,-40.84],[-16.73,-43.86],
+    [-18.92,-48.28],[-16.47,-54.64],[-11.86,-55.51],[-12.74,-60.15],[-15.89,-52.26],[-22.22,-54.81],[-22.12,-51.39],
+    [-24.96,-53.46],[-27.1,-52.62],[-29.68,-53.81],[-29.75,-57.09],[-10.18,-48.88],[-1.72,-55.87]]
+    .map(([lat, lon]) => ({lat, lon, timezone:'auto'}));
+
+  // Campo contínuo: média ponderada pelo inverso do quadrado da distância (no plano do mapa) das leituras válidas.
+  // Grade pequena (o navegador suaviza ao ampliar); ausentes ficam fora, e com menos de 6 leituras não há campo.
+  function field(points, width = 128, height = 112) {
+    const valid = points.filter(point => finite(point.temperature) !== null).map(point => {
+      const [x, y] = project(point.lat, point.lon); return [x / MAP.width * width, y / MAP.height * height, point.temperature];
+    });
+    if (valid.length < 6) return null;
+    const out = new Float32Array(width * height);
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+      let sum = 0, weights = 0, exact = null;
+      for (const [px, py, t] of valid) {
+        const d2 = (px - x - .5) ** 2 + (py - y - .5) ** 2;
+        if (d2 < 1e-6) {exact = t; break;}
+        const w = 1 / d2; sum += w * t; weights += w;
+      }
+      out[y * width + x] = exact ?? sum / weights;
+    }
+    return {width, height, values:out};
+  }
 
   // Uma URL para todas: coordenadas e fusos na mesma ordem das capitais (timezone por local,
   // então máxima/mínima do dia seguem o calendário de cada capital).
@@ -74,6 +103,19 @@
     });
   }
 
+  // A resposta traz as capitais e depois os pontos do interior. Uma lista sem os pontos extras ainda serve
+  // (só as capitais pintam o campo); tamanho diferente disso é resposta incompleta.
+  function split(response, cities) {
+    const list = Array.isArray(response) ? response : null;
+    if (list && list.length === cities.length + FIELD_POINTS.length) {
+      return {rows:parse(list.slice(0, cities.length), cities), extra:list.slice(cities.length).map((item, index) => {
+        const temperature = finite(item?.current?.temperature_2m);
+        return {...FIELD_POINTS[index], temperature:temperature !== null && temperature > -60 && temperature < 60 ? temperature : null};
+      })};
+    }
+    return {rows:parse(response, cities), extra:[]};
+  }
+
   function group(rows) {
     return REGIONS.map(([name, ufs]) => ({name, rows:rows.filter(row => ufs.includes(row.uf)).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))}))
       .filter(region => region.rows.length);
@@ -90,7 +132,19 @@
     const capitals = () => typeof CAPITALS !== 'undefined' ? CAPITALS : [];
     const degrees = value => value === null ? '—' : Math.round(value) + '°';
 
-    const mapBox = el('brazilMap');
+    const mapBox = el('brazilMap'), legend = el('brazilLegend');
+    let fieldRows = [];
+    // Pinta o campo numa tela pequena e devolve a imagem; sem canvas, o mapa fica só com as etiquetas.
+    function paintField(points) {
+      const grid = field(points);
+      const canvas = grid && doc.createElement('canvas'), ctx = canvas?.getContext?.('2d');
+      if (!ctx) return null;
+      canvas.width = grid.width; canvas.height = grid.height;
+      const image = ctx.createImageData(grid.width, grid.height);
+      grid.values.forEach((value, index) => {const [r, g, b] = rgbOf(value); image.data.set([r, g, b, 255], index * 4);});
+      ctx.putImageData(image, 0, 0);
+      try {return canvas.toDataURL('image/png');} catch {return null;}
+    }
     function renderMap(rows) {
       if (!mapBox) return;
       const ns = 'http://www.w3.org/2000/svg', svg = doc.createElementNS(ns, 'svg');
@@ -98,6 +152,17 @@
       svg.setAttribute('focusable', 'false');
       const land = doc.createElementNS(ns, 'path'); land.setAttribute('class', 'brazil-land'); land.setAttribute('d', OUTLINE);
       svg.append(land);
+      const heat = paintField(rows.concat(fieldRows));
+      if (heat) {
+        const defs = doc.createElementNS(ns, 'defs'), clip = doc.createElementNS(ns, 'clipPath'), shape = doc.createElementNS(ns, 'path');
+        clip.setAttribute('id', 'brazilLandClip'); shape.setAttribute('d', OUTLINE); clip.append(shape); defs.append(clip);
+        const image = doc.createElementNS(ns, 'image'); image.setAttribute('class', 'brazil-heat');
+        Object.entries({x:0, y:0, width:MAP.width, height:MAP.height, preserveAspectRatio:'none', 'clip-path':'url(#brazilLandClip)', href:heat})
+          .forEach(([key, value]) => image.setAttribute(key, value));
+        const edge = land.cloneNode(); edge.setAttribute('class', 'brazil-edge');
+        svg.append(defs, image, edge);
+      }
+      if (legend) legend.hidden = !heat;
       const chips = [];
       for (const row of rows) {
         const [x, y] = project(row.lat, row.lon), [lx, ly] = LABELS[row.uf] || [x, y];
@@ -149,15 +214,16 @@
 
     async function load() {
       const token = ++revision, cities = capitals();
-      if (cache && Date.now() - cache.at < FRESH_MS) {render(cache.rows); status(`Atualizado às ${clock(cache.at)} · Open-Meteo`); return;}
+      if (cache && Date.now() - cache.at < FRESH_MS) {fieldRows = cache.fieldRows; render(cache.rows); status(`Atualizado às ${clock(cache.at)} · Open-Meteo`); return;}
       list.replaceChildren(); if (mapBox) {mapBox.hidden = true; mapBox.replaceChildren();} status('Consultando as 27 capitais…');
       try {
         if (!client?.getJson || !cities.length) throw new Error('Cliente indisponível.');
         client.abortAll?.();
-        const data = await client.getJson(buildUrl(cities), {timeoutMs:12000, cache:'no-store'});
+        const data = await client.getJson(buildUrl(cities.concat(FIELD_POINTS)), {timeoutMs:12000, cache:'no-store'});
         if (token !== revision) return;
-        const rows = parse(data, cities);
-        cache = {rows, at:Date.now()};
+        const {rows, extra} = split(data, cities);
+        fieldRows = extra;
+        cache = {rows, fieldRows, at:Date.now()};
         render(rows); status(`Atualizado às ${clock(cache.at)} · Open-Meteo`);
       } catch (error) {
         if (token !== revision || error?.code === 'cancelled') return;
@@ -190,5 +256,5 @@
     mapBox?.addEventListener('click', pick);
   }
 
-  return {buildUrl, parse, group, REGIONS, tempColor, project, LABELS, MAP, mount, open:() => openDialog?.()};
+  return {buildUrl, parse, split, field, FIELD_POINTS, group, REGIONS, tempColor, project, LABELS, MAP, mount, open:() => openDialog?.()};
 });

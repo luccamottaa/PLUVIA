@@ -55,3 +55,27 @@ test('mapa: cores de temperatura, ausente sem cor e etiquetas dentro do quadro s
     assert.ok(Math.abs(a[0] - b[0]) >= 56 || Math.abs(a[1] - b[1]) >= 34, `${capitals[i].uf} × ${capitals[j].uf}`);
   }
 });
+
+test('campo contínuo: interior entra na mesma consulta, ausentes ficam fora e o campo passa pelas leituras', () => {
+  const extra = brazil.FIELD_POINTS.map((point, index) => ({current:{temperature_2m:index === 0 ? null : 25 + index % 5}}));
+  const capitals = cities.map(() => ({current:{temperature_2m:30, weather_code:1, is_day:1}, daily:{}}));
+  const {rows, extra:points} = brazil.split(capitals.concat(extra), cities);
+  assert.equal(rows.length, 3);
+  assert.equal(points.length, brazil.FIELD_POINTS.length);
+  assert.equal(points[0].temperature, null, 'ausente não vira zero');
+  assert.equal(brazil.split(capitals, cities).extra.length, 0, 'sem os pontos extras, só as capitais');
+  assert.throws(() => brazil.split(capitals.slice(1), cities), /incompleta/);
+  // Todos os pontos extras ficam dentro do território desenhado.
+  for (const point of brazil.FIELD_POINTS) {
+    const [x, y] = brazil.project(point.lat, point.lon);
+    assert.ok(x > 0 && x < brazil.MAP.width && y > 0 && y < brazil.MAP.height, `${point.lat},${point.lon}`);
+  }
+  const grid = brazil.field([{lat:-3,lon:-60,temperature:20},{lat:-30,lon:-51,temperature:10},{lat:-1,lon:-48,temperature:30},
+    {lat:-15,lon:-47,temperature:25},{lat:-8,lon:-35,temperature:28},{lat:-23,lon:-46,temperature:18},{lat:-9,lon:-67,temperature:null}]);
+  assert.ok(grid);
+  const values = [...grid.values];
+  assert.ok(Math.min(...values) >= 10 && Math.max(...values) <= 30, 'média ponderada não sai da faixa das leituras');
+  const at = (lat, lon) => {const [x, y] = brazil.project(lat, lon); return grid.values[Math.floor(y / brazil.MAP.height * grid.height) * grid.width + Math.floor(x / brazil.MAP.width * grid.width)];};
+  assert.ok(Math.abs(at(-30, -51) - 10) < 2, 'perto do ponto frio, frio');
+  assert.equal(brazil.field([{lat:0,lon:-60,temperature:20}]), null, 'poucas leituras: sem campo');
+});

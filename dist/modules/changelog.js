@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.20", date:"2026-10-20", title:"Mapa colorido do Brasil", items:[
+      "O mapa do Brasil agora pinta o país inteiro pela temperatura, do azul (frio) ao vermelho (calor).",
+      "Além das 27 capitais, cidades do interior entram nas cores, para a Amazônia e o Cerrado não ficarem com a temperatura do litoral.",
+      "Uma legenda embaixo do mapa mostra a escala de cores.",
+    ]},
     {version:"1.19", date:"2026-10-20", title:"Chuva na próxima hora", items:[
       "Quando o radar vê chuva em cima da cidade ou chegando, Próximas horas mostra um gráfico de agora até daqui a 60 minutos.",
       "Embaixo, uma frase curta: quando a chuva chega e quanto tempo dura, ou quando deve diminuir.",

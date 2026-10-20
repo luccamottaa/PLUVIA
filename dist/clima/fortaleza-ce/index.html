@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-226" />
+    <meta name="pluvia-release" content="pluvia-panel-227" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -196,7 +196,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="/redesign.css?v=panel-50" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-115" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-116" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -465,9 +465,9 @@
       <div class="dialog-heading"><h2 id="brazilTitle">Brasil agora</h2><button id="brazilClose" class="dialog-close" type="button" autofocus aria-label="Fechar Brasil agora">×</button></div>
       <div class="dialog-scroll">
         <p id="brazilStatus" class="brazil-status" role="status" aria-live="polite"></p>
-        <div id="brazilMap" class="brazil-map" aria-hidden="true" hidden></div>
+        <div id="brazilMap" class="brazil-map" aria-hidden="true" hidden></div><div id="brazilLegend" class="brazil-legend" aria-hidden="true" hidden><span>5°</span><i></i><span>37°</span></div>
         <div id="brazilList" class="brazil-list"></div>
-        <p class="brazil-note">Temperatura atual, condição e máxima/mínima do dia em cada capital, pelo calendário local. No mapa, as cores vão do azul (frio) ao vermelho (calor); contorno Natural Earth. Previsão Open-Meteo no ponto de referência do município. Toque numa capital para abrir a previsão completa.</p>
+        <p class="brazil-note">Temperatura atual, condição e máxima/mínima do dia em cada capital, pelo calendário local. No mapa, as cores vão do azul (frio) ao vermelho (calor), interpoladas entre as capitais e cidades do interior (ilustrativo: entre os pontos não há medição); contorno Natural Earth. Previsão Open-Meteo no ponto de referência do município. Toque numa capital para abrir a previsão completa.</p>
       </div>
     </dialog>
     <dialog id="monthDialog" class="city-dialog month-dialog" aria-labelledby="monthTitle" aria-describedby="monthCity">
@@ -572,12 +572,12 @@
     <script src="/modules/share-card.js?v=share-card-5" defer></script>
     <script src="/modules/share-weather.js?v=share-11" defer></script>
     <script src="/saved-places.js?v=places-2" defer></script>
-    <script src="/modules/brazil-now.js?v=brazil-2" defer></script>
+    <script src="/modules/brazil-now.js?v=brazil-3" defer></script>
     <script src="/modules/month-recap.js?v=month-1" defer></script>
     <script src="/modules/station-now.js?v=station-4" defer></script>
     <script src="/modules/environment-now.js?v=environment-1" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-256" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-258" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-36" defer></script>

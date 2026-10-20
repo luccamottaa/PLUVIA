@@ -769,6 +769,12 @@ html body #brazilDialog .brazil-note { font-size:.8rem; line-height:1.5; }
 .brazil-map svg { display:block; width:100%; height:100%; }
 .brazil-land { fill:#aac7e51f; stroke:#aac7e573; stroke-width:1.2; stroke-linejoin:round; }
 .brazil-leader { stroke:#aac7e573; stroke-width:1; }
+/* Campo contínuo de temperatura (1.20): imagem pequena interpolada, recortada pelo contorno e ampliada pelo navegador. */
+.brazil-heat { opacity:.88; image-rendering:auto; }
+.brazil-edge { fill:none; stroke:#0b143066; stroke-width:1.2; stroke-linejoin:round; }
+.brazil-legend { display:flex; align-items:center; gap:8px; max-width:320px; margin:-8px auto 18px; color:var(--dialog-muted); font-size:.8125rem; font-variant-numeric:tabular-nums; }
+.brazil-legend[hidden] { display:none; }
+.brazil-legend i { flex:1; height:8px; border-radius:999px; background:linear-gradient(90deg,rgb(91,140,255) 0%,rgb(76,195,230) 31.25%,rgb(95,211,141) 53.1%,rgb(242,208,75) 68.75%,rgb(243,154,61) 84.4%,rgb(229,83,61) 100%); }
 .brazil-dot { fill:#e8f0ff; stroke:#0b1430; stroke-width:1; }
 .brazil-chip { position:absolute; transform:translate(-50%,-50%); padding:1px 6px; border-radius:999px; background:var(--chip,#8a96ad); color:#0b1430; font-size:.8125rem; font-weight:600; line-height:1.4; font-variant-numeric:tabular-nums; white-space:nowrap; cursor:pointer; box-shadow:0 0 0 1px #0b143040; }
 .brazil-chip[data-missing] { background:#8a96ad; }

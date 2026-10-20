@@ -1,5 +1,5 @@
 """Brasil agora no navegador, só com fixtures.
-Confere que a abertura não consulta as capitais, que o diálogo faz uma única consulta com as 27
+Confere que a abertura não consulta as capitais, que o diálogo faz uma única consulta com as 27 capitais e os 28 pontos do interior
 coordenadas, agrupa por região, alinha temperatura e máx./mín. entre as linhas sem estourar a largura
 (320 a 1366 px), que falha vira mensagem clara, e que tocar numa capital abre a cidade. Não testa a API real.
 """
@@ -67,7 +67,7 @@ with sync_playwright() as p:
         page.click('#openCitySearch'); page.wait_for_function("document.getElementById('cityDialog').open")
         page.click('#brazilOpen')
         page.wait_for_function("document.querySelectorAll('.brazil-row').length===27", timeout=10000)
-        assert calls == [27, 27], (width, calls)
+        assert calls == [55, 55], (width, calls)  # 27 capitais + 28 pontos do interior do campo de cores
         state = page.evaluate("""() => { const dialog = document.getElementById('brazilDialog'), rows = [...document.querySelectorAll('.brazil-row')];
           const edge = selector => [...new Set(rows.map(row => { const node = row.querySelector(selector); return node.getClientRects().length ? Math.round(node.getBoundingClientRect().right) : null; }))];
           return {overflow:dialog.scrollWidth > dialog.clientWidth + 1 || rows.some(row => row.scrollWidth > row.clientWidth + 1),
