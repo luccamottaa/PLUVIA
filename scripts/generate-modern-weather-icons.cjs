@@ -34,43 +34,58 @@ const softBolt='<g data-symbol="lightning"><path d="M65 74 46 99h16l-7 23 31-35H
 const softFlakes=`<g data-symbol="snow">${line('M37 95v22M28 100l18 12M46 100l-18 12M90 95v22M81 100l18 12M99 100l-18 12','#bde9ff',3.5)}</g>`;
 const weatherStroke=(d,color='#b8d2e6')=>line(d,'#57769a',6)+line(d,color,3.5);
 const softWind=weatherStroke('M13 49h66c18 0 19-25 4-25-8 0-12 5-12 10M13 66h87c18 0 18 26 2 26-8 0-12-5-12-10M26 84h28c18 0 18 24 2 24','#83d3f6');
-// Desde a 1.22 (pedido do usuário: "parecidos com os do Apple Weather, não iguais") as condições são
-// chapadas: sol amarelo com raios soltos, nuvem branca lisa com um leve sombreado embaixo (para não sumir no
-// céu claro do dia), chuva em tracinhos azuis inclinados, raio amarelo e lua prateada. Sem contorno, brilho
-// ou volume; os indicadores (metrics) continuam na família antiga.
+// Desde a 1.22 (pedido do usuário: "parecidos com os do Apple Weather, não iguais") as condições são chapadas.
+// Refeitas na 1.24 com regras fixas (a primeira versão tinha composições soltas, apontadas pelo usuário):
+// - uma nuvem só (CLOUD: três círculos com a base reta, contas no comentário), posicionada por cloudAt;
+// - nos tempos com precipitação a nuvem fica sempre no mesmo lugar e o que cai fica centrado embaixo dela;
+// - sol/lua/nuvem de trás são recortados pela nuvem da frente com uma folga (máscara), como no Apple Weather,
+//   em vez de encostar nela;
+// - sol #ffd33d, chuva #5ac8fa, nuvem branca com leve sombreado embaixo e contorno fino (aparece no céu claro).
 conditionGradients['flat-cloud']='<linearGradient id="flat-cloud" x2="0" y2="1"><stop offset=".4" stop-color="#ffffff"/><stop offset="1" stop-color="#d2deea"/></linearGradient>';
 conditionGradients['flat-cloud-dark']='<linearGradient id="flat-cloud-dark" x2="0" y2="1"><stop offset=".3" stop-color="#d9e1ea"/><stop offset="1" stop-color="#a9b8c8"/></linearGradient>';
-const FLAT_SUN='#ffd33d',FLAT_RAIN='#5ac8fa',FLAT_MOON='#eef1f8';
-const flatCloud=(dark=false)=>`<g data-symbol="cloud" fill="url(#${dark?'flat-cloud-dark':'flat-cloud'})" stroke="${dark?'#94a6ba':'#b4c6d8'}" stroke-width="1.6" stroke-linejoin="round"><path d="M32 96a20 20 0 0 1-2-39.9A30 30 0 0 1 88 50a23 23 0 1 1 6 46Z"/></g>`;
-const flatSun=`<g data-symbol="sun">${line('M64 10v11M64 107v11M10 64h11M107 64h11M25.8 25.8l7.8 7.8M94.4 94.4l7.8 7.8M102.2 25.8l-7.8 7.8M33.6 94.4l-7.8 7.8',FLAT_SUN,7)}${circle(64,64,26,FLAT_SUN)}</g>`;
-const flatMoon=`<g data-symbol="moon"><path d="M80 18a44 44 0 1 0 30 62A36 36 0 0 1 80 18Z" fill="${FLAT_MOON}"/></g>`;
-// Poucas nuvens: sol quase centrado e nuvem pequena na frente, embaixo à direita (o conjunto fica no centro da coluna).
-const flatPartial=(night=false,few=false)=>group(night?flatMoon:flatSun,few?'translate(10 6) scale(.74)':'translate(40 2) scale(.66)')+group(flatCloud(),few?'translate(46 58) scale(.58)':'translate(-2 22) scale(.86)');
-const flatRainCloud=(dark=false)=>group(flatCloud(dark),'translate(8 -8) scale(.88)');
-// Tracinhos inclinados, como na referência; a quantidade e o tamanho distinguem garoa, chuva fraca, moderada e forte.
-const flatDrops=(count=3,size=1,rows=1)=>`<g data-symbol="${size<.7?'drizzle':'rain'}">`+Array.from({length:count},(_,i)=>{
- const step=rows>1?13:24,row=rows>1?i%2:0,x=64-(count-1)*step/2+i*step,y=88+row*14,len=12*size;
- return line(`M${x+len*.35} ${y}l${-len*.35} ${len}`,FLAT_RAIN,5.5);
-}).join('')+'</g>';
-const flatBolt=`<g data-symbol="lightning"><path d="M68 76 50 101h14l-6 22 27-32H71l6-15Z" fill="${FLAT_SUN}"/></g>`;
-const flatFlakes=`<g data-symbol="snow">${line('M40 92v20M31 97l18 10M49 97l-18 10M86 92v20M77 97l18 10M95 97l-18 10','#8fd0f7',4)}</g>`;
-const flatLines=(d,color='#aebdcc')=>line(d,color,6);
-const flatWind=flatLines('M14 50h62c16 0 17-22 3-22-7 0-11 4-11 9M14 66h84c16 0 16 24 2 24-7 0-11-4-11-9M26 84h26c16 0 16 22 2 22','#86cbef');
+const FLAT_SUN='#ffd33d',FLAT_RAIN='#5ac8fa',FLAT_MOON='#eef1f8',FLAT_SNOW='#6cbcf0',FLAT_MIST='#aebdcc';
+// Base y=92 de x=31 a 94; círculo esquerdo (31,75) r17, central (66,54) r27, direito (94,70) r22. Os arcos
+// passam pelas interseções de cima. Caixa: x 14–116, y 27–92 (centro x 65).
+const CLOUD='M31 92A17 17 0 1 1 39.78 60.44A27 27 0 1 1 92.34 48.05A22 22 0 1 1 94 92Z';
+const cloudAt=(scale,cx,bottom)=>`translate(${(cx-65*scale).toFixed(2)} ${(bottom-92*scale).toFixed(2)}) scale(${scale})`;
+const flatCloud=(transform,dark=false)=>`<g data-symbol="cloud" transform="${transform}"><path d="${CLOUD}" fill="url(#${dark?'flat-cloud-dark':'flat-cloud'})" stroke="${dark?'#94a6ba':'#b4c6d8'}" stroke-width="${(1.6).toFixed(1)}" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></g>`;
+// Recorte: o que fica atrás some numa faixa em volta da nuvem da frente.
+const behind=(id,transform,content)=>`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128"><rect width="128" height="128" fill="#fff"/><path d="${CLOUD}" transform="${transform}" fill="#000" stroke="#000" stroke-width="${(7).toFixed(0)}" vector-effect="non-scaling-stroke"/></mask></defs><g mask="url(#${id})">${content}</g>`;
+const flatSun=(cx=64,cy=64,k=1)=>{const r=22*k,a=31*k,b=43*k,rays=Array.from({length:8},(_,i)=>{const t=i*Math.PI/4,c=Math.cos(t),s=Math.sin(t);return `M${(cx+a*c).toFixed(1)} ${(cy+a*s).toFixed(1)}L${(cx+b*c).toFixed(1)} ${(cy+b*s).toFixed(1)}`;}).join('');
+ return `<g data-symbol="sun">${line(rays,FLAT_SUN,(7*Math.max(k,.75)).toFixed(1))}${circle(cx,cy,r.toFixed(1),FLAT_SUN)}</g>`;};
+// Crescente: disco menos outro disco deslocado para cima e para a direita.
+const flatMoon=(id,cx=62,cy=66,k=1)=>`<g data-symbol="moon"><defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128"><rect width="128" height="128" fill="#fff"/><circle cx="${(cx+21*k).toFixed(1)}" cy="${(cy-15*k).toFixed(1)}" r="${(31*k).toFixed(1)}" fill="#000"/></mask></defs><circle cx="${cx}" cy="${cy}" r="${(38*k).toFixed(1)}" fill="${FLAT_MOON}" mask="url(#${id})"/></g>`;
+const partial=(night,few)=>{
+ const cloud=few?cloudAt(.54,84,106):cloudAt(.84,52,108);
+ const sky=night?(few?flatMoon('moon-cut',52,52,.82):flatMoon('moon-cut',80,42,.72)):(few?flatSun(52,52,.84):flatSun(80,42,.76));
+ return behind('cloud-gap',cloud,sky)+flatCloud(cloud);
+};
+const RAIN_CLOUD=cloudAt(.92,64,78);
+// Tracinhos inclinados centrados em x=64 sob a nuvem; quantidade e comprimento distinguem as intensidades.
+const strokes=(count,len,gap=20,y=88,symbol='rain',cx=64)=>`<g data-symbol="${symbol}">`+line(Array.from({length:count},(_,i)=>{const x=cx-(count-1)*gap/2+i*gap+len*.18;return `M${x.toFixed(1)} ${y}l${(-len*.36).toFixed(1)} ${len}`;}).join(''),FLAT_RAIN,6)+'</g>';
+const BOLT=`<g data-symbol="lightning"><path d="M71 70 51 99h14l-7 22 26-31H70l7-20Z" fill="${FLAT_SUN}" stroke="#f2b93a" stroke-width="1.5" stroke-linejoin="round"/></g>`;
+const flake=(x,y,r=7.5)=>Array.from({length:3},(_,i)=>{const t=i*Math.PI/3+Math.PI/2,c=Math.cos(t)*r,s=Math.sin(t)*r;return `M${(x-c).toFixed(1)} ${(y-s).toFixed(1)}L${(x+c).toFixed(1)} ${(y+s).toFixed(1)}`;}).join('');
+const flakes=points=>`<g data-symbol="snow">${line(points.map(([x,y])=>flake(x,y)).join(''),FLAT_SNOW,4)}</g>`;
+const mist=(d,color=FLAT_MIST)=>line(d,color,6);
+const flatWind=mist('M14 50h62c16 0 17-22 3-22-7 0-11 4-11 9M14 66h84c16 0 16 24 2 24-7 0-11-4-11-9M26 84h26c16 0 16 22 2 22','#86cbef');
+const SHOWER_CLOUD=cloudAt(.84,56,82);
+const showers=night=>behind('cloud-gap',SHOWER_CLOUD,night?flatMoon('moon-cut',88,36,.62):flatSun(88,36,.66))+flatCloud(SHOWER_CLOUD)+strokes(3,14,20,92,'rain',56);
 const conditionArtwork={
- 'clear-day':flatSun,'clear-night':flatMoon,
- 'few-clouds-day':flatPartial(false,true),'few-clouds-night':flatPartial(true,true),
- 'partly-cloudy-day':flatPartial(),'partly-cloudy-night':flatPartial(true),
- cloudy:group(flatCloud(),'translate(0 2)'),overcast:group(flatCloud(true),'translate(30 -6) scale(.72)')+group(flatCloud(),'translate(-2 24) scale(.86)'),
- drizzle:flatRainCloud()+flatDrops(3,.55),'light-rain':flatRainCloud()+flatDrops(2,.85),
- 'moderate-rain':flatRainCloud()+flatDrops(3,1),'heavy-rain':flatRainCloud(true)+flatDrops(5,1.15,2),
- // Pancadas: nuvem no centro (as gotas ficam embaixo dela) e o sol/lua menor atrás, no canto de cima (1.23.3).
- showers:group(flatSun,'translate(54 4) scale(.48)')+group(flatCloud(),'translate(13 8) scale(.8)')+flatDrops(3,.9),
- 'showers-night':group(flatMoon,'translate(56 2) scale(.52)')+group(flatCloud(),'translate(13 8) scale(.8)')+flatDrops(3,.9),
- thunderstorm:flatRainCloud(true)+flatBolt,'thunderstorm-rain':group(flatRainCloud(true)+line('M38 88l-4 11M94 88l-4 11',FLAT_RAIN,5.5),'')+flatBolt,
- 'thunderstorm-hail':flatRainCloud(true)+`<g data-symbol="hail">${circle(36,104,5.5,'#ffffff','#9fd3f2',2)}${circle(94,104,5.5,'#ffffff','#9fd3f2',2)}</g>`+flatBolt,
- snow:flatRainCloud()+flatFlakes,sleet:flatRainCloud()+line('M42 90l-4 11',FLAT_RAIN,5.5)+group(flatFlakes,'translate(46 0) scale(.55 1)'),
- fog:group(flatCloud(),'translate(10 -10) scale(.84)')+flatLines('M18 86h74M36 100h74M22 114h60'),
- haze:group(flatSun,'translate(18 2) scale(.72)')+flatLines('M18 82h92M32 97h66M18 112h92','#b8c4cf'),windy:flatWind
+ 'clear-day':flatSun(),'clear-night':flatMoon('moon-cut'),
+ 'few-clouds-day':partial(false,true),'few-clouds-night':partial(true,true),
+ 'partly-cloudy-day':partial(false,false),'partly-cloudy-night':partial(true,false),
+ cloudy:flatCloud(cloudAt(1.04,64,96)),
+ overcast:behind('cloud-gap',cloudAt(.86,54,106),flatCloud(cloudAt(.76,78,74),true))+flatCloud(cloudAt(.86,54,106)),
+ drizzle:flatCloud(RAIN_CLOUD)+strokes(3,8,20,90,'drizzle'),'light-rain':flatCloud(RAIN_CLOUD)+strokes(2,14,22),
+ 'moderate-rain':flatCloud(RAIN_CLOUD)+strokes(3,16),'heavy-rain':flatCloud(RAIN_CLOUD,true)+strokes(4,22,16),
+ showers:showers(false),'showers-night':showers(true),
+ thunderstorm:flatCloud(RAIN_CLOUD,true)+BOLT,
+ 'thunderstorm-rain':flatCloud(RAIN_CLOUD,true)+strokes(2,14,58)+BOLT,
+ 'thunderstorm-hail':flatCloud(RAIN_CLOUD,true)+`<g data-symbol="hail">${circle(36,102,6,'#ffffff','#9fd3f2',2.5)}${circle(94,106,6,'#ffffff','#9fd3f2',2.5)}</g>`+BOLT,
+ snow:flatCloud(RAIN_CLOUD)+flakes([[40,98],[64,110],[88,98]]),
+ sleet:flatCloud(RAIN_CLOUD)+`<g data-symbol="rain">${line('M47 88l-5.8 16',FLAT_RAIN,6)}</g>`+flakes([[84,98]]),
+ fog:flatCloud(cloudAt(.78,64,68))+mist('M22 84h84M34 98h60M22 112h84'),
+ haze:flatSun(64,42,.62)+mist('M20 86h88M34 100h60M20 114h88'),windy:flatWind
 };
 const metricGradients={
  ...conditionGradients,
@@ -103,7 +118,7 @@ const icons={conditions:conditionArtwork,metrics:metricArtwork,astronomy:{sunris
 for(const [category,items] of Object.entries(icons)){
  fs.mkdirSync(path.join(root,category),{recursive:true});
  for(const [name,body] of Object.entries(items)) {
-  const gradients=['conditions','metrics'].includes(category) ? '<defs>'+[...new Set([...body.matchAll(/url\(#([^\)]+)\)/g)].map(match=>match[1]))].map(id=>metricGradients[id]).join('')+'</defs>' : defs;
+  const gradients=['conditions','metrics'].includes(category) ? '<defs>'+[...new Set([...body.matchAll(/url\(#([^\)]+)\)/g)].map(match=>match[1]))].map(id=>metricGradients[id]||'').join('')+'</defs>' : defs;
   fs.writeFileSync(path.join(root,category,name+'.svg'),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">${gradients}${body}</svg>\n`);
  }
 }

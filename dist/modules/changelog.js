@@ -12,8 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.23.3", date:"2026-10-20", title:"Ícone de pancadas", items:[
-      "O ícone de pancadas de chuva ficou centrado: nuvem no meio, gotas embaixo e o sol (ou a lua) menor atrás.",
+    {version:"1.24", date:"2026-10-20", title:"Ícones redesenhados", items:[
+      "Os ícones do tempo foram redesenhados com mais cuidado: uma nuvem só, sempre no mesmo lugar, e a chuva centrada embaixo dela.",
+      "Sol, lua e nuvens de trás ganharam um recorte fino quando ficam atrás de outra nuvem, como no app Tempo do iPhone.",
+      "Neve, granizo, neblina e pancadas de chuva ficaram mais legíveis.",
     ]},
     {version:"1.23.2", date:"2026-10-20", title:"Próximas horas alinhadas", items:[
       "A gota e a chance de chuva ficam centradas embaixo de cada hora, sem invadir a hora ao lado.",
