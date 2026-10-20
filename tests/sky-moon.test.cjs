@@ -103,3 +103,21 @@ test('máscara sombreada é desenhada uma vez por fase e substitui o terminador 
   assert.equal(drawn,1);assert.equal(attrs.moonShade.href,'data:image/png;base64,AAA');
   assert.equal(attrs.moonIcon.d,'');assert.equal(attrs.moonDiscHd.visibility,'visible');
 });
+
+test('Lua inclinada como no céu: o lado claro aponta para o Sol, pela cidade e pela hora', () => {
+  const sc = require('../dist/vendor/suncalc.js'), mv = require('../dist/modules/moon-view.js');
+  // Direção final do limbo iluminado no desenho, em graus no sentido horário a partir do topo.
+  const lit = (iso, lat, lon) => {
+    const d = new Date(iso), i = sc.getMoonIllumination(d), t = mv.tilt(i, sc.getMoonPosition(d, lat, lon));
+    return (((i.phase < .5 ? 90 : -90) + t.surface + t.limb) % 360 + 360) % 360;
+  };
+  // Crescente no fim de tarde em Manaus (perto do Equador): "deitada", lado claro para baixo.
+  const manaus = lit('2026-10-13T22:40:00Z', -3.119, -60.022);
+  assert.ok(manaus > 120 && manaus < 200, String(manaus));
+  // Em Londres, a mesma Lua aparece acesa pela direita.
+  const london = lit('2026-10-13T17:30:00Z', 51.5, -0.12);
+  assert.ok(london > 60 && london < 130, String(london));
+  // Sem cidade ou sem leitura: nada gira (desenho antigo).
+  assert.deepEqual(mv.tilt({angle:-80, phase:.1}, null), {surface:0, limb:0});
+  assert.deepEqual(mv.tilt(null, {parallacticAngle:10}), {surface:0, limb:0});
+});
