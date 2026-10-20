@@ -94,7 +94,7 @@
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     // Assinatura (1.18): gota clara à noite e azul-acinzentada de dia, nome na cor do texto; o azul da marca
     // fica no selo do dia marcante.
-    const brand = data.night ? '#7aa5ff' : '#2f6bff', dropColor = data.night ? '#cfe3ff' : '#2f557f';
+    const brand = data.night ? '#b7d2ff' : '#2f557f', dropColor = data.night ? '#cfe3ff' : '#2f557f';
     if (mark) {
       const tint = doc.createElement('canvas'); tint.width = 96; tint.height = 96;
       const t = tint.getContext('2d');

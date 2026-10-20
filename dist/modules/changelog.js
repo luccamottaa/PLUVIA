@@ -16,6 +16,7 @@
       "O PLUVIA tem logo nova: uma gota caindo na água, com duas ondinhas.",
       "O nome PLUVIA agora acompanha o céu: branco à noite e azul-marinho de dia, com a gota em azul-claro.",
       "Ícone do app, favicon, abertura, rodapé, imagem de compartilhar e a prévia do link no WhatsApp já estão com a logo nova.",
+      "Botões, ícones, links e destaques trocaram o azul vivo pelas cores novas: azul-claro à noite e azul-marinho de dia.",
     ]},
     {version:"1.16.2", date:"2026-10-19", title:"Topo só com o nome", items:[
       "O topo mostra só o nome PLUVIA, sem a gota, centralizado no mesmo eixo do nome da cidade e da temperatura.",
