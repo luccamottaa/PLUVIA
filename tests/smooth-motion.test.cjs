@@ -144,7 +144,7 @@ test('toque e ponteiros animam sem camadas e respeitam reduced-motion',()=>{
   assert.match(css,/\.compass-needle \{ transition:transform [^}]+\}/);
   assert.match(css,/\.uv-scale span \{ transition:left [^}]+\}/);
   const reduced=css.slice(css.lastIndexOf('@media (prefers-reduced-motion:reduce) {'));
-  assert.match(reduced,/\.compass-needle, \.uv-scale span, #weatherView \.sun-arc :is\(\.sun-dot,\.moon-dot\) \{ transition:none; \}/);
+  assert.match(reduced,/\.compass-needle, \.uv-scale span, #weatherView \.sun-arc :is\(\.sun-dot,\.moon-dot\), #weatherView \.next-hour-bars span \{ transition:none; \}/);
   assert.match(app,/compass\.pluviaTurn = turn \+ \(\(\(\(heading - turn\) % 360\) \+ 540\) % 360 - 180\)/,'agulha pelo menor caminho');
   assert.doesNotMatch(app,/growHourlyBars|rainChart/,'o gráfico de 24 horas saiu da Home');
 });

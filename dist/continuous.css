@@ -1039,7 +1039,7 @@ html body :is(details > summary,.account-more-item,#accountButton,#openCitySearc
 #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:pluvia-bar-grow .6s cubic-bezier(.22,1,.36,1) calc(var(--i,0) * 16ms) both; }
 @keyframes pluvia-bar-grow { from { height:0; min-height:0; } }
 @media (prefers-reduced-motion:reduce) {
-  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot) { transition:none; }
+  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot), #weatherView .next-hour-bars span { transition:none; }
   #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
 }
 
@@ -1869,3 +1869,17 @@ footer.shell .footer-brand-icon { background:#cfe3ff; background:color-mix(in sr
 #weatherView, .weather-map-section, body[data-phase="night"] .weather-map-section { --map-link:var(--brand-blue); }
 nav a:hover, nav a.active, #welcomeLocate, #installPushReload, #installDone { color:var(--on-accent); }
 html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked::before { background:var(--on-accent); }
+/* Chuva na próxima hora (1.19): barras do nowcast do radar, de agora a +60 min a cada 5 min. A altura é a fração da
+   janela da cidade com eco projetado (cobertura, não intensidade); só aparece quando o radar vê chuva em cima da cidade
+   ou chegando. Sem transform/opacity: as barras mudam só de altura. */
+#weatherView .next-hour { margin:4px 0 14px; }
+#weatherView .next-hour[hidden] { display:none !important; }
+#weatherView .next-hour-heading { margin:0 0 8px; display:flex; align-items:baseline; justify-content:space-between; gap:8px; font-size:.95rem; font-weight:600; color:var(--reading-ink,inherit); }
+#weatherView .next-hour-heading small { font-size:.8rem; font-weight:500; color:var(--reading-muted); }
+#weatherView .next-hour-bars { height:44px; display:flex; align-items:flex-end; gap:3px; border-bottom:1px solid rgba(255,255,255,.18); }
+body[data-ink="dark"] #weatherView .next-hour-bars { border-bottom-color:rgba(0,0,0,.14); }
+#weatherView .next-hour-bars span { flex:1 1 0; min-width:0; height:8%; border-radius:3px 3px 0 0; background:rgba(255,255,255,.16); transition:height .6s cubic-bezier(.22,1,.36,1); }
+body[data-ink="dark"] #weatherView .next-hour-bars span { background:rgba(0,0,0,.1); }
+body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #weatherView .next-hour-bars span[data-wet="1"] { background:var(--brand-blue); }
+#weatherView .next-hour-axis { margin:4px 0 0; display:flex; justify-content:space-between; font-size:.8rem; color:var(--reading-muted); font-variant-numeric:tabular-nums; }
+#weatherView .next-hour-text { margin:8px 0 0; font-size:.9rem; color:var(--reading-ink,inherit); }

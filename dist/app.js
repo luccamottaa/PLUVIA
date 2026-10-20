@@ -447,7 +447,7 @@ function updateClock() {
     const day = globalThis.PLUVIA.time.dayKey(now.getTime(),activeCity);
     const air = weatherData.cachedAir({data:{air:saved.air},airAt:saved.airAt},now.getTime()).air;
     if (hour !== saved.hour || day !== saved.day || air !== saved.air || atmosphere?.phase && atmosphere.phase !== saved.phase) render(saved.forecast,air,saved.fromCache,saved.cacheAt,{weatherAt:saved.weatherAt,airAt:saved.airAt,freshAir:saved.freshAir});
-    else { renderSun(saved.forecast.daily,now.getTime(),saved.forecast.hourly); refreshObservedRain(); }
+    else { renderSun(saved.forecast.daily,now.getTime(),saved.forecast.hourly); refreshObservedRain(); paintNextHour(); }
   }
 }
 
@@ -1152,6 +1152,24 @@ function nowcastAnswer() {
   if (!activeCity || nowcastState.cityId !== String(activeCity.id)) return null;
   return globalThis.PLUVIA?.nowcast?.answer?.(nowcastState.result) || null;
 }
+// "Próxima hora": a cobertura de chuva na cidade a cada 5 min pelo radar (modules/radar-nowcast.js). Refeita no
+// relógio central (a imagem envelhece) sem nova consulta; some sem chuva na hora ou com imagem velha.
+function paintNextHour() {
+  const node = $("nextHour");
+  if (!node) return;
+  const data = activeCity && nowcastState.cityId === String(activeCity.id) ? globalThis.PLUVIA?.nowcast?.nextHour?.(nowcastState.result) : null;
+  if (!data) { node.hidden = true; return; }
+  const appearing = node.hidden;
+  node.hidden = false;
+  [...($("nextHourBars")?.children || [])].forEach((bar, index) => {
+    const coverage = data.points[index]?.coverage ?? 0;
+    bar.style.height = `${Math.max(8, Math.round(coverage * 100))}%`;
+    bar.dataset.wet = coverage >= 0.25 ? "true" : "false";
+  });
+  $("nextHourText").textContent = data.text;
+  $("nextHourTime").textContent = `radar das ${(globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:activeCity.timezone, hour:"2-digit", minute:"2-digit"}).format(new Date(data.frameAt))}`;
+  if (appearing) settleBlock(node);
+}
 // O radar é consultado depois de cada previsão pintada (TTL de 8 min no próprio módulo, cliente próprio).
 // Sem eco em cima da cidade e com o modelo indicando chance de chuva, o nowcast (cache de 10 min) mede se
 // alguma mancha está vindo; com tempo seco no modelo ele nem roda, para não gastar a cota do radar.
@@ -1163,20 +1181,23 @@ globalThis.addEventListener?.("pluvia:weather-updated", () => {
     observedRainState.radar = snapshot;
     refreshObservedRain();
     const shown = displayedWeather?.forecast, cast = globalThis.PLUVIA?.nowcast;
-    if (!cast?.check || snapshot?.precipitating || !shown?.hourly?.time) return;
+    if (!cast?.check || !shown?.hourly?.time) return;
+    // Chuva em cima da cidade também roda: o gráfico da próxima hora diz quando ela deve diminuir.
     const tone = weatherInsights?.rainAnswer?.(shown.hourly, selectCurrentHour(shown.hourly.time), {current:shown.current})?.tone;
-    if (!["rain","maybe","storm"].includes(tone)) return;
+    if (!snapshot?.precipitating && !["rain","maybe","storm"].includes(tone)) return;
     return cast.check(city).then(result => {
       if (String(activeCity?.id) !== String(city.id)) return;
       nowcastState.cityId = String(city.id);
       nowcastState.result = result;
       refreshObservedRain();
+      paintNextHour();
     });
   }).catch(() => {});
 });
 globalThis.addEventListener?.("pluvia:city-changed", () => {
   Object.assign(observedRainState, {station:null, airport:null, stationCity:null, radar:null, key:""});
   nowcastState.cityId = null; nowcastState.result = null;
+  paintNextHour();
   globalThis.PLUVIA?.radar?.reset?.(activeCity?.id ?? null);
 });
 
