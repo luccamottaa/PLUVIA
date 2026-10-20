@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.19", date:"2026-10-20", title:"Chuva na próxima hora", items:[
+      "Quando o radar vê chuva em cima da cidade ou chegando, Próximas horas mostra um gráfico de agora até daqui a 60 minutos.",
+      "Embaixo, uma frase curta: quando a chuva chega e quanto tempo dura, ou quando deve diminuir.",
+    ]},
     {version:"1.18.4", date:"2026-10-20", title:"Avisos sem repetição", items:[
       "Quem reinstalou o PLUVIA no iPhone não recebe mais o mesmo aviso duas vezes.",
       "Aviso do INMET que ainda vai começar diz quando começa, em vez de parecer que já vale.",

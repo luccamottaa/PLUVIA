@@ -55,3 +55,25 @@ test('app e servidor dão o mesmo resultado (núcleo copiado em _shared/radar-no
   const m=server.windowMask(decoded);
   assert.equal(m[CENTER*SIZE+CENTER],1);
 });
+
+test('próxima hora: barras de 5 em 5 min com a mancha empurrada pelo mesmo deslocamento',()=>{
+  const now=Date.parse('2026-10-19T15:00:00Z');
+  const before=blob(CENTER-60,CENTER),after=blob(CENTER-44,CENTER);
+  const step=nowcast.stepFor(before,after,SIZE,1200);
+  assert.ok(step);
+  const coming=nowcast.nextHour({mask:after,perStep:step.perStep,frameAt:now},now);
+  assert.equal(coming.points.length,13);
+  assert.deepEqual(coming.points.map(p=>p.minutes),[0,5,10,15,20,25,30,35,40,45,50,55,60]);
+  assert.ok(coming.points[0].coverage<0.25,'ainda seco agora');
+  assert.match(coming.text,/^Pelo radar, a chuva chega em cerca de \d+ min/);
+  // A mesma mancha já em cima da cidade e indo embora: diz quando diminui.
+  const leaving=nowcast.stepFor(blob(CENTER-16,CENTER),blob(CENTER,CENTER),SIZE,1200);
+  const over=nowcast.nextHour({mask:blob(CENTER,CENTER),perStep:leaving.perStep,frameAt:now},now);
+  assert.ok(over.points[0].coverage>=0.25);
+  assert.match(over.text,/diminuir em cerca de \d+ min|segue a próxima hora toda/);
+  // Imagem velha, sem movimento ou nenhuma barra com chuva: nada aparece.
+  assert.equal(nowcast.nextHour({mask:after,perStep:step.perStep,frameAt:now-25*60_000},now),null);
+  assert.equal(nowcast.nextHour({mask:after,frameAt:now},now),null);
+  assert.equal(nowcast.nextHour({mask:blob(CENTER+60,CENTER),perStep:step.perStep,frameAt:now},now),null,'indo para longe da cidade');
+  assert.equal(nowcast.nextHour(null,now),null);
+});

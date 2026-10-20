@@ -5,7 +5,8 @@
    cidade (a mesma de radar-probe) ficar com eco em pelo menos um quarto, essa é a chegada.
    Só fala quando o movimento é claro: eco suficiente nas duas imagens, sobreposição boa e deslocamento
    dentro da busca. Não prevê intensidade, não diz "não vai chover" e não substitui chuva observada. Roda só
-   quando o modelo já indica chance de chuva (app.js), com cliente próprio e cache de 10 min por cidade. */
+   quando o modelo já indica chance de chuva ou o radar já vê chuva em cima da cidade (app.js), com cliente
+   próprio e cache de 10 min por cidade. */
 (function (root, factory) {
   const api = factory(root);
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -68,11 +69,17 @@
     }
     return out;
   }
-  function estimate(previous, current, size = SIZE, gapSeconds = FRAME_GAP_S, lat = 0) {
+  // Deslocamento da chuva a cada 10 min (pixels), ou null sem movimento claro.
+  function stepFor(previous, current, size = SIZE, gapSeconds = FRAME_GAP_S) {
     const coarse = motion(half(previous, size), half(current, size), size / 2, MAX_SHIFT / 2);
     if (!coarse) return null;
     const shift = {dx:coarse.dx * 2, dy:coarse.dy * 2, score:coarse.score};
-    const perStep = {dx:shift.dx * (STEP_MIN * 60 / gapSeconds), dy:shift.dy * (STEP_MIN * 60 / gapSeconds)};
+    return {shift, perStep:{dx:shift.dx * (STEP_MIN * 60 / gapSeconds), dy:shift.dy * (STEP_MIN * 60 / gapSeconds)}};
+  }
+  function estimate(previous, current, size = SIZE, gapSeconds = FRAME_GAP_S, lat = 0) {
+    const step = stepFor(previous, current, size, gapSeconds);
+    if (!step) return null;
+    const {shift, perStep} = step;
     const minutes = arrival(current, size, perStep);
     if (minutes === null) return null;
     const kmPerPixel = 156.543 * Math.cos(lat * Math.PI / 180) / 2 ** ZOOM;
@@ -81,13 +88,39 @@
   }
   // Frase do "Vai chover?" a partir da chegada já descontado o tempo desde a imagem.
   function answer(result, now = Date.now()) {
-    if (!result || !Number.isFinite(result.frameAt)) return null;
+    if (!result || !Number.isFinite(result.frameAt) || !Number.isFinite(result.minutes)) return null;
     const age = (now - result.frameAt) / 60_000;
     if (age > MAX_FRAME_AGE_MS / 60_000) return null;
     const left = result.minutes - age;
     if (left < 5) return null;
     const when = left <= 12 ? 'nos próximos 10 min' : `em cerca de ${Math.round(left / 5) * 5} min`;
     return {tone:'rain', nowcast:true, text:`Chuva a caminho pelo radar: deve chegar ${when}, pelo movimento das últimas imagens.`};
+  }
+
+  // "Próxima hora" (pedido do dono, outubro/2026, inspirado no Apple Weather): a fração da área da cidade com
+  // chuva a cada 5 min, de agora até 60 min, empurrando a mancha da imagem mais recente no ritmo medido.
+  // Cobertura, não intensidade: o RainViewer público não dá mm/h confiável. Sem movimento claro, sem chuva na
+  // hora inteira ou com imagem velha, null (a seção some).
+  function nextHour(result, now = Date.now()) {
+    if (!result?.mask || !result.perStep || !Number.isFinite(result.frameAt)) return null;
+    const age = (now - result.frameAt) / 60_000;
+    if (age < 0 || age > MAX_FRAME_AGE_MS / 60_000) return null;
+    const points = [];
+    for (let minutes = 0; minutes <= 60; minutes += 5) {
+      const k = (minutes + age) / STEP_MIN;
+      points.push({minutes, coverage:Math.round(cityCoverage(result.mask, SIZE, result.perStep.dx * k, result.perStep.dy * k) * 100) / 100});
+    }
+    const wet = point => point.coverage >= 0.25;
+    if (!points.some(wet)) return null;
+    let text;
+    if (wet(points[0])) {
+      const stop = points.findIndex(point => !wet(point));
+      text = stop < 0 ? 'Pelo radar, a chuva segue a próxima hora toda.' : `Pelo radar, a chuva deve diminuir em cerca de ${points[stop].minutes} min.`;
+    } else {
+      const start = points.findIndex(wet), end = points.findIndex((point, index) => index > start && !wet(point));
+      text = `Pelo radar, a chuva chega em cerca de ${points[start].minutes} min` + (end > 0 ? ` e dura cerca de ${points[end].minutes - points[start].minutes} min.` : ' e segue até o fim da hora.');
+    }
+    return {points, text, frameAt:result.frameAt};
   }
 
   function pixelOf(lon, lat, z = ZOOM) {
@@ -125,13 +158,15 @@
     let result = null;
     if (latest?.path && earlier?.path && host && now - latest.time * 1000 <= MAX_FRAME_AGE_MS) {
       const [before, after] = await Promise.all([windowMask(host, earlier.path, city, signal), windowMask(host, latest.path, city, signal)]);
-      const found = estimate(before, after, SIZE, FRAME_GAP_S, Number(city.lat));
-      result = found ? {...found, frameAt:latest.time * 1000, cityId:id} : null;
+      const step = stepFor(before, after, SIZE, FRAME_GAP_S);
+      const found = step ? estimate(before, after, SIZE, FRAME_GAP_S, Number(city.lat)) : null;
+      // A máscara atual e o passo ficam para o gráfico da próxima hora, que se refaz a cada minuto sem nova consulta.
+      result = step ? {...(found || {minutes:null}), perStep:step.perStep, mask:after, frameAt:latest.time * 1000, cityId:id} : null;
     }
     cache.delete(id); cache.set(id, {at:now, result});
     while (cache.size > 12) cache.delete(cache.keys().next().value);
     return result;
   }
 
-  return {SIZE, CENTER, mask, half, cityCoverage, motion, arrival, estimate, answer, check, clear:() => cache.clear()};
+  return {SIZE, CENTER, mask, half, cityCoverage, motion, arrival, stepFor, estimate, answer, nextHour, check, clear:() => cache.clear()};
 });
