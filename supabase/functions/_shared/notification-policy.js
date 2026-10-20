@@ -53,3 +53,22 @@ export function pushUrgency(type,severity) {
   if(severity>=3 || ['daily_summary','evening_summary','rain_now','storm_now','rain_nearby','rain_stopped','rain_incoming'].includes(type)) return 'high';
   return 'normal';
 }
+
+// Reinstalar o app no iPhone cria outra inscrição e a antiga continua entregando no mesmo aparelho (19/10/2026:
+// o mesmo aviso do INMET chegou duas vezes). Por usuário, no mesmo serviço de push, sistema e navegador, vale a
+// inscrição mais nova; uma mais antiga só continua se foi vista depois que a nova apareceu (outro aparelho em uso,
+// como um iPad). Não desliga nada: só escolhe quem recebe nesta rodada.
+export function activeSubscriptions(list=[]) {
+  const key=item=>[String(item.endpoint||'').split('/')[2]||'',item.platform||'',item.browser||''].join('|');
+  const newest=new Map();
+  for(const item of list) {
+    const group=key(item), created=Date.parse(item.created_at)||0, current=newest.get(group);
+    if(!current || created>current.created) newest.set(group,{id:item.id,created});
+  }
+  return list.filter(item=>{
+    const current=newest.get(key(item));
+    if(current.id===item.id) return true;
+    const seen=Date.parse(item.last_seen_at);
+    return Number.isFinite(seen) && seen>=current.created;
+  });
+}

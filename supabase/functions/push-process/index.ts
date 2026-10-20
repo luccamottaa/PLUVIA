@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { adminClient, pushSecrets } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 import { pushErrorCode, sendWebPush } from "../_shared/webpush.ts";
-import { selectCandidates, isRepeat, stopAllowed, pushUrgency } from "../_shared/notification-policy.js";
+import { selectCandidates, isRepeat, stopAllowed, pushUrgency, activeSubscriptions } from "../_shared/notification-policy.js";
 import { report } from "../_shared/error-report.js";
 import { metarUrl, nearestAirport } from "../_shared/metar.js";
 import { stationUrl, normalizeStation } from "../_shared/inmet-station.js";
@@ -434,6 +434,16 @@ function parseInmetDate(alert: any, type: "inicio" | "fim") {
   return Number.isFinite(parsed.getTime()) ? parsed : null;
 }
 
+// "hoje às 22:59", "amanhã às 23:01" ou "qua., 21/10 às 22:59", no calendário da cidade.
+function alertWhen(date: Date, now: Date, timeZone: string) {
+  const day = (value: Date) => new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(value);
+  const time = new Intl.DateTimeFormat("pt-BR", { timeZone, hour: "2-digit", minute: "2-digit" }).format(date);
+  const days = Math.round((Date.parse(day(date)) - Date.parse(day(now))) / 86_400_000);
+  if (days === 0) return `hoje às ${time}`;
+  if (days === 1) return `amanhã às ${time}`;
+  return `${new Intl.DateTimeFormat("pt-BR", { timeZone, weekday: "short", day: "2-digit", month: "2-digit" }).format(date)} às ${time}`;
+}
+
 function inmetForLocation(alerts: any[], location: Location, now = new Date()) {
   return alerts.flatMap((alert: any) => {
     if ([true, 1, "1", "true"].includes(alert.encerrado) || /cancel/i.test(String(alert.msgType || ""))) return [];
@@ -454,8 +464,13 @@ function inmetForLocation(alerts: any[], location: Location, now = new Date()) {
     const id = text(first(alert, ["id_aviso", "id", "identifier"], `${location.city_id}-${start.toISOString()}`), 100);
     const phenomenon = text(first(alert, ["descricao", "evento", "titulo", "tipo"], "Aviso meteorológico"), 100);
     const risk = text(first(alert, ["riscos", "description"], "Consulte os riscos e as orientações no aviso oficial."), 260);
-    const validUntil = new Intl.DateTimeFormat("pt-BR", { timeZone: location.timezone, hour: "2-digit", minute: "2-digit" }).format(end);
-    return [{ type: "official_alert", severity, title: `⚠️ ${phenomenon}`, body: `${severityLabel} em ${location.city_name}, ${location.uf}, válido até ${validUntil}. ${risk} Fonte: INMET.`, source: "INMET · alerta oficial", start, expires: end, url: "./#alertas", fingerprintSeed: `official_alert|${id}|${location.city_id}|${severity}`, metadata: { official_id: id, area: `${location.city_name}, ${location.uf}`, severity_label: severityLabel, valid_until: end.toISOString(), confidence: "high" } } satisfies EventCandidate];
+    // Aviso que ainda vai começar diz quando começa; "válido até 22:59" sem data parecia valer agora (19/10/2026:
+    // o aviso de amanhã às 23:01 chegou às 23:05 da véspera).
+    const area = `${location.city_name}, ${location.uf}`;
+    const when = start.getTime() > now.getTime() + 5 * 60_000
+      ? `${severityLabel} previsto em ${area}, de ${alertWhen(start, now, location.timezone)} até ${alertWhen(end, now, location.timezone)}.`
+      : `${severityLabel} em ${area}, válido até ${alertWhen(end, now, location.timezone)}.`;
+    return [{ type: "official_alert", severity, title: `⚠️ ${phenomenon}`, body: `${when} ${risk} Fonte: INMET.`, source: "INMET · alerta oficial", start, expires: end, url: "./#alertas", fingerprintSeed: `official_alert|${id}|${location.city_id}|${severity}`, metadata: { official_id: id, area: `${location.city_name}, ${location.uf}`, severity_label: severityLabel, valid_until: end.toISOString(), confidence: "high" } } satisfies EventCandidate];
   });
 }
 
@@ -641,12 +656,13 @@ Deno.serve(async (req) => {
     if (!userIds.length) return json(req, { ok: true, locations: 0, events: 0, accepted: 0 });
     const [{ data: preferences, error: preferenceError }, { data: subscriptions, error: subscriptionError }] = await Promise.all([
       admin.from("notification_preferences").select("*").in("user_id", userIds),
-      admin.from("push_subscriptions").select("id,user_id,endpoint,p256dh,auth").in("user_id", userIds).eq("enabled", true),
+      admin.from("push_subscriptions").select("id,user_id,endpoint,p256dh,auth,platform,browser,created_at,last_seen_at").in("user_id", userIds).eq("enabled", true),
     ]);
     if (preferenceError || subscriptionError) throw new Error("worker_accounts_failed");
     const preferencesByUser = new Map((preferences || []).map((row: Preference) => [row.user_id, row]));
     const subscriptionsByUser = new Map<string, any[]>();
     for (const subscription of subscriptions || []) subscriptionsByUser.set(subscription.user_id, [...(subscriptionsByUser.get(subscription.user_id) || []), subscription]);
+    for (const [userId, list] of subscriptionsByUser) subscriptionsByUser.set(userId, activeSubscriptions(list));
     let inmetAlerts: any[] = [];
     if ([...preferencesByUser.values()].some((preference: any) => preference.notifications_enabled && preference.official_alerts)) {
       try { inmetAlerts = normalizeInmet(await fetchJson(INMET_URL)); } catch (error) {
