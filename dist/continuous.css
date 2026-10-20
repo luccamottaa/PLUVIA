@@ -1091,7 +1091,6 @@ body[data-ink="dark"] #weatherView {
 #weatherView .favorite-suggest-dismiss { color:var(--reading-muted); }
 #weatherView .favorite-suggest-extra { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 #weatherView .favorite-suggest-save { position:relative; }
-:root[data-city-slide] #weatherView #heroRange { view-transition-name:pluvia-range; }
 ::view-transition-group(pluvia-range) { animation-duration:.5s; animation-timing-function:cubic-bezier(.22,1,.36,1); }
 ::view-transition-old(pluvia-range) { animation:pluvia-slide-out .2s cubic-bezier(.4,0,1,1) both; }
 :root[data-city-slide="prev"]::view-transition-old(pluvia-range) { animation-name:pluvia-slide-out-prev; }

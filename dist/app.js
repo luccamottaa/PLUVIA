@@ -1256,8 +1256,8 @@ function dataAge(at) {
   return `há ${hours}h`;
 }
 
-// Máx./mín. de hoje logo abaixo da condição (o primeiro número que se procura); ausente não vira "--°".
-// A linha do topo junta sensação, máxima e mínima (o cartão separado repetia a máx./mín. e saiu).
+// Linha "Sensação · Máx. · Mín." do topo: saiu na 1.23.2 (pedido do usuário, repetia os blocos de Sensação e
+// Máx./mín.); sem #heroRange no HTML a função não faz nada. Ausente nunca vira "--°".
 function setHeroRange(high, low, feels) {
   const node = $("heroRange");
   if (!node) return;
