@@ -325,14 +325,11 @@ function holdAlertBanner(kind) {
   return true;
 }
 
-// Bolinha no ícone do app instalado: acompanha o aviso INMET vigente da cidade aberta (leitura atual).
-// O SW marca a bolinha ao chegar um push; sem aviso vigente ela sai quando o app abre. Sem a API, nada.
-function syncAppBadge(active) {
-  try {
-    const nav = globalThis.navigator;
-    const pending = active ? nav?.setAppBadge?.() : nav?.clearAppBadge?.();
-    pending?.catch?.(() => {});
-  } catch {}
+// Bolinha no ícone do app instalado: como nos apps do iPhone, marca o que chegou e ainda não foi visto. O SW
+// põe a bolinha ao chegar um push; abrir o app (ou voltar a ele) tira. Antes ela ficava enquanto houvesse aviso
+// vigente, e um aviso de dois dias deixava o "1" no ícone o tempo todo (pedido do usuário, 1.18.4). Sem a API, nada.
+function clearAppBadge() {
+  try { globalThis.navigator?.clearAppBadge?.()?.catch?.(() => {}); } catch {}
 }
 
 // Aviso da faixa no topo: o vigente da cidade; sem vigente, o previsto mais grave da cidade (versão translúcida).
@@ -368,7 +365,6 @@ function renderInmetAlerts(raw, stale = false) {
   const bannerItem = !stale && candidate?.severity?.rank >= 1 ? candidate : null;
   if (!stale) rememberAlertShape(activeCity?.id, bannerItem);
   setAlertBanner(bannerItem, bannerItem ? alerts.indexOf(bannerItem) : -1, bannerItem ? alerts.length - 1 : 0);
-  if (!stale) syncAppBadge(bannerItem?.stage === "active");
   // Sem aviso, a seção vira uma linha discreta abaixo do topo. Com aviso vigente ou previsto da cidade na
   // faixa do topo, o cartão some (repetia a faixa; os outros avisos ficam no detalhe); avisos a confirmar,
   // só de outra área ou de leitura anterior continuam no cartão.
@@ -2400,6 +2396,8 @@ function requestLocationIfGranted() {
 requestLocationIfGranted();
 setInterval(() => { if (!document.hidden) refreshAll(); }, AUTO_REFRESH_MS);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) updateClock(); refreshIfStale(); });
+clearAppBadge();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) clearAppBadge(); });
 window.addEventListener("pageshow", () => { updateClock(); refreshIfStale(); });
 window.addEventListener("online", () => refreshAll());
 // A queda da conexão aparece na hora, sem esperar a próxima consulta falhar.

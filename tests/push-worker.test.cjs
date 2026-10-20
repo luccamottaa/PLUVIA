@@ -101,7 +101,7 @@ function worker({count=205,failWeather=false}={}){
   },from(table){
     let after=null;const chain={select(){return chain;},eq(){return chain;},in(){return chain;},order(){return chain;},limit(){return chain;},gt(key,value){after=value;return chain;},delete(){return chain;},lt(){return chain;},then(resolve){return Promise.resolve(failAccounts&&table==='notification_preferences'?{error:{code:'network'}}:{data:table==='notification_locations'?rows.filter(r=>!after||r.id>after).slice(0,100):table==='notification_preferences'?[{user_id:'owner',notifications_enabled:true,official_alerts:true,heavy_rain:true,air_quality:true}]:table==='push_subscriptions'?[{id:'subscription',user_id:'owner'}]:[]}).then(resolve);}};return chain;
   }};
-  const ctx=vm.createContext({Deno:{serve:fn=>handler=fn},crypto:require('node:crypto').webcrypto,adminClient:()=>admin,pushSecrets:async()=>({cron_secret:'secret'}),readJson:async()=>({action:'process'}),json:(req,body,status=200)=>({body,status}),preflight(){},selectCandidates:x=>x,report:()=>{},TextEncoder,URL,URLSearchParams,Intl,Date:class extends Date{constructor(value){super(value??clock);}static now(){return clock;}},console:{warn(){},error(){}}});
+  const ctx=vm.createContext({Deno:{serve:fn=>handler=fn},crypto:require('node:crypto').webcrypto,adminClient:()=>admin,pushSecrets:async()=>({cron_secret:'secret'}),readJson:async()=>({action:'process'}),json:(req,body,status=200)=>({body,status}),preflight(){},selectCandidates:x=>x,activeSubscriptions:x=>x,report:()=>{},TextEncoder,URL,URLSearchParams,Intl,Date:class extends Date{constructor(value){super(value??clock);}static now(){return clock;}},console:{warn(){},error(){}}});
   vm.runInContext(source,ctx);
   ctx.fetchJson=async url=>{fetches++;if(url.includes('inmet'))return [];if(failWeather)throw Error('source_network');return weather();};
   ctx.detectWeather=()=>[];ctx.dailySummaryCandidate=()=>null;ctx.detectAirQuality=()=>null;
@@ -132,7 +132,7 @@ test('falha meteorológica é compartilhada e não bloqueia avisos oficiais',asy
 test('envio interrompido conserva a contagem parcial e não inicia outro dispositivo',async()=>{
   let clock=0,sent=0;
   const admin={from(){const chain={select(){return chain;},eq(){return chain;},in(){return chain;},gte(){return chain;},insert(){return chain;},update(){return chain;},single(){return chain;},then(resolve){return Promise.resolve({data:{id:'delivery'}}).then(resolve);}};return chain;}};
-  const context=vm.createContext({Date:class extends Date{static now(){return clock;}},Intl,TextEncoder,URL,URLSearchParams,isRepeat:()=>false,pushUrgency:()=>'high',sendWebPush:async()=>{sent++;clock=100;}});
+  const context=vm.createContext({Date:class extends Date{static now(){return clock;}},Intl,TextEncoder,URL,URLSearchParams,isRepeat:()=>false,isOfficialRepeat:()=>false,pushUrgency:()=>'high',sendWebPush:async()=>{sent++;clock=100;}});
   vm.runInContext(source.slice(0,source.indexOf('Deno.serve(')),context);
   const result=await context.deliver(admin,{type:'official_alert',severity:3,id:'event',url:'./#alertas',fingerprint:'abc',expires:new Date(now.getTime()+3600000)},
     {notifications_enabled:true,official_alerts:true},[{id:'one'},{id:'two'}],'owner',{},50);

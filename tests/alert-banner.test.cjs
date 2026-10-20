@@ -57,7 +57,7 @@ test('aviso só previsto da cidade vai para a faixa em linha translúcida e vira
   assert.match(render,/item\.stage === "future" && item\.area === city\.name/);
   assert.match(render,/activeOfficial\?\.severity\?\.rank >= 1 \? activeOfficial : upcoming/);
   assert.match(render,/!stale && candidate/);
-  assert.match(render,/syncAppBadge\(bannerItem\?\.stage === "active"\)/);
+  assert.doesNotMatch(render,/AppBadge/,"a faixa não mexe na bolinha do ícone");
   assert.match(source,/noteAlertNudge\("official", show && !future\)/);
 });
 

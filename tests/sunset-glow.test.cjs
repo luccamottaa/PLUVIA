@@ -31,16 +31,17 @@ test('camada ausente ou pôr fora das horas da previsão não viram frase',()=>{
   assert.equal(insights.sunsetGlow(hourly(),NaN,city),null);
 });
 
-test('bolinha do app acompanha o aviso vigente e não quebra sem a API',()=>{
+test('bolinha do app sai quando o app abre ou volta e não quebra sem a API',()=>{
   const fs=require('node:fs'),vm=require('node:vm');
   const app=fs.readFileSync(__dirname+'/../dist/app.js','utf8');
-  const source=app.slice(app.indexOf('function syncAppBadge('),app.indexOf('function renderInmetAlerts('));
+  const source=app.slice(app.indexOf('function clearAppBadge('),app.indexOf('// Aviso da faixa no topo'));
   const calls=[];
-  const context=vm.createContext({globalThis:{navigator:{setAppBadge:()=>{calls.push('set');return Promise.reject(Error('x'));},clearAppBadge:()=>{calls.push('clear');return Promise.resolve();}}}});
+  const context=vm.createContext({globalThis:{navigator:{clearAppBadge:()=>{calls.push('clear');return Promise.reject(Error('x'));}}}});
   vm.runInContext(source,context);
-  context.syncAppBadge(true);context.syncAppBadge(false);
-  assert.deepEqual(calls,['set','clear']);
+  context.clearAppBadge();assert.deepEqual(calls,['clear']);
   const bare=vm.createContext({globalThis:{navigator:{}}});vm.runInContext(source,bare);
-  assert.doesNotThrow(()=>bare.syncAppBadge(true));
-  assert.match(app,/if \(!stale\) syncAppBadge\(bannerItem\?\.stage === \"active\"\)/,'leitura anterior não mexe na bolinha; aviso só previsto não marca');
+  assert.doesNotThrow(()=>bare.clearAppBadge());
+  // Abrir o app e voltar a ele tiram a bolinha; o app nunca marca (quem marca é o push, no SW).
+  assert.match(app,/\nclearAppBadge\(\);\ndocument\.addEventListener\("visibilitychange", \(\) => \{ if \(!document\.hidden\) clearAppBadge\(\); \}\);/);
+  assert.doesNotMatch(app,/setAppBadge/);
 });

@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const {selectCandidates,isRepeat,pushUrgency}=require('../supabase/functions/_shared/notification-policy.js');
+const {selectCandidates,isRepeat,pushUrgency,activeSubscriptions,isOfficialRepeat}=require('../supabase/functions/_shared/notification-policy.js');
 const processor=fs.readFileSync('supabase/functions/push-process/index.ts','utf8');
 const worker=require('node:module').stripTypeScriptTypes(processor.replace(/^import .*$/gm,''));
 const quiet=vm.runInNewContext(worker.slice(0,worker.indexOf('Deno.serve'))+';inQuietHours',{Date,Intl,URL,URLSearchParams,Math,Number});
@@ -91,4 +91,36 @@ test('chuva chegando substitui "chuva nas próximas horas" e some quando já cho
  assert.deepEqual(selectCandidates([{type:'rain_incoming',severity:2}],{raining:true}),[]);
  assert.deepEqual(selectCandidates([{type:'rain_incoming',severity:2},{type:'rain_now',severity:2}]).map(e=>e.type),['rain_now']);
  assert.equal(pushUrgency('rain_incoming',2),'high');
+});
+test('reinstalar o app no mesmo aparelho não duplica avisos; outro aparelho em uso continua recebendo',()=>{
+ const apple='https://web.push.apple.com/abc', ios={platform:'iOS/iPadOS',browser:'Safari'};
+ // 19/10/2026: inscrição antiga (vista pela última vez às 02:17) e a nova do app reinstalado às 03:09.
+ const old={id:'old',endpoint:apple,...ios,created_at:'2026-10-14T04:32Z',last_seen_at:'2026-10-20T02:17Z'};
+ const fresh={id:'new',endpoint:apple+'2',...ios,created_at:'2026-10-20T03:09Z',last_seen_at:'2026-10-20T03:09Z'};
+ const windows={id:'pc',endpoint:'https://fcm.googleapis.com/x',platform:'Windows',browser:'Chrome',created_at:'2026-10-01T20:36Z',last_seen_at:'2026-10-17T00:38Z'};
+ assert.deepEqual(activeSubscriptions([old,fresh,windows]).map(item=>item.id),['new','pc']);
+ // Um iPad aberto depois que o iPhone se inscreveu é outro aparelho em uso: os dois recebem.
+ const ipad={...old,id:'ipad',last_seen_at:'2026-10-20T04:00Z'};
+ assert.deepEqual(activeSubscriptions([ipad,fresh]).map(item=>item.id).sort(),['ipad','new']);
+ assert.deepEqual(activeSubscriptions([fresh]).map(item=>item.id),['new']);
+ assert.deepEqual(activeSubscriptions([]),[]);
+});
+test('aviso do INMET que ainda vai começar diz quando começa, sem parecer valer agora',()=>{
+ const inmet=vm.runInNewContext(worker.slice(0,worker.indexOf('Deno.serve'))+';inmetForLocation',{Date,Intl,URL,URLSearchParams,Math,Number,JSON,String,Array,Object,Set,Map,RegExp});
+ const location={city_id:'1302603',city_name:'Manaus',uf:'AM',timezone:'America/Manaus'};
+ const alert={id:'a1',geocodes:['1302603'],descricao:'Chuvas Intensas',severidade:'Perigo Potencial',riscos:'Baixo risco de alagamentos.',inicio:'2026-10-21T03:01:00Z',fim:'2026-10-22T02:59:00Z'};
+ const now=new Date('2026-10-20T03:05Z'); // 23:05 de 19/10 em Manaus
+ const [future]=inmet([alert],location,now);
+ assert.match(future.body,/^Perigo potencial previsto em Manaus, AM, de amanhã às 23:01 até qua\., 21\/10 às 22:59\. /);
+ const [active]=inmet([{...alert,inicio:'2026-10-20T02:00:00Z',fim:'2026-10-20T05:00:00Z'}],location,now);
+ assert.match(active.body,/^Perigo potencial em Manaus, AM, válido até \w+ às 01:00\. |^Perigo potencial em Manaus, AM, válido até amanhã às 01:00\. /);
+});
+test('aviso do INMET republicado com outro número não chega de novo; grau maior ou fim novo chegam',()=>{
+ const sent={notification_events:{event_type:'official_alert',severity:2,title:'⚠️ Chuvas Intensas',metadata:{official_id:'a1',valid_until:'2026-10-21T02:59:00.000Z'}}};
+ const again={type:'official_alert',severity:2,title:'⚠️ Chuvas Intensas',metadata:{official_id:'a2',valid_until:'2026-10-21T02:59:00.000Z'}};
+ assert.equal(isOfficialRepeat(again,[sent]),true);
+ assert.equal(isOfficialRepeat({...again,severity:3},[sent]),false,'grau maior avisa');
+ assert.equal(isOfficialRepeat({...again,metadata:{valid_until:'2026-10-22T02:59:00.000Z'}},[sent]),false,'aviso do dia seguinte avisa');
+ assert.equal(isOfficialRepeat({...again,title:'⚠️ Acumulado de Chuva'},[sent]),false);
+ assert.equal(isOfficialRepeat(again,[]),false);
 });

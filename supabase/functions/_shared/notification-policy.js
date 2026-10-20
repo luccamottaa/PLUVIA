@@ -53,3 +53,34 @@ export function pushUrgency(type,severity) {
   if(severity>=3 || ['daily_summary','evening_summary','rain_now','storm_now','rain_nearby','rain_stopped','rain_incoming'].includes(type)) return 'high';
   return 'normal';
 }
+
+// Reinstalar o app no iPhone cria outra inscrição e a antiga continua entregando no mesmo aparelho (19/10/2026:
+// o mesmo aviso do INMET chegou duas vezes). Por usuário, no mesmo serviço de push, sistema e navegador, vale a
+// inscrição mais nova; uma mais antiga só continua se foi vista depois que a nova apareceu (outro aparelho em uso,
+// como um iPad). Não desliga nada: só escolhe quem recebe nesta rodada.
+export function activeSubscriptions(list=[]) {
+  const key=item=>[String(item.endpoint||'').split('/')[2]||'',item.platform||'',item.browser||''].join('|');
+  const newest=new Map();
+  for(const item of list) {
+    const group=key(item), created=Date.parse(item.created_at)||0, current=newest.get(group);
+    if(!current || created>current.created) newest.set(group,{id:item.id,created});
+  }
+  return list.filter(item=>{
+    const current=newest.get(key(item));
+    if(current.id===item.id) return true;
+    const seen=Date.parse(item.last_seen_at);
+    return Number.isFinite(seen) && seen>=current.created;
+  });
+}
+
+// O INMET às vezes republica o mesmo aviso com outro número (19/10/2026, Manaus: 11:43 e 11:51, mesmo fenômeno,
+// grau e fim). Para o mesmo aparelho e cidade, um aviso oficial com o mesmo título, grau e fim de um já entregue é
+// repetição; grau maior ou fim diferente (aviso novo ou prorrogado) passa.
+export function isOfficialRepeat(event,recent=[]) {
+  const until=event.metadata?.valid_until;
+  if(!until) return false;
+  return recent.some(row=>{
+    const previous=row?.notification_events || {};
+    return previous.event_type==='official_alert' && Number(previous.severity)===Number(event.severity) && previous.title===event.title && previous.metadata?.valid_until===until;
+  });
+}
