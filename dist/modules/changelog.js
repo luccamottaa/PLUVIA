@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.22", date:"2026-10-20", title:"Ícones novos", items:[
+      "Os ícones do tempo ganharam um visual mais limpo: sol amarelo com raios, nuvem branca lisa e chuva em tracinhos azuis.",
+      "Os ícones das notificações e das fotos de perfil seguem o mesmo desenho.",
+    ]},
     {version:"1.21", date:"2026-10-20", title:"Lua como no céu", items:[
       "A Lua do PLUVIA agora fica inclinada como no céu de verdade: o lado iluminado aponta para o Sol.",
       "Perto do Equador, a lua crescente do fim de tarde aparece “deitada”, como um sorriso; mais ao sul, mais de lado.",

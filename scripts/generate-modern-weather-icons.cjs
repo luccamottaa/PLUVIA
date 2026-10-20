@@ -34,20 +34,41 @@ const softBolt='<g data-symbol="lightning"><path d="M65 74 46 99h16l-7 23 31-35H
 const softFlakes=`<g data-symbol="snow">${line('M37 95v22M28 100l18 12M46 100l-18 12M90 95v22M81 100l18 12M99 100l-18 12','#bde9ff',3.5)}</g>`;
 const weatherStroke=(d,color='#b8d2e6')=>line(d,'#57769a',6)+line(d,color,3.5);
 const softWind=weatherStroke('M13 49h66c18 0 19-25 4-25-8 0-12 5-12 10M13 66h87c18 0 18 26 2 26-8 0-12-5-12-10M26 84h28c18 0 18 24 2 24','#83d3f6');
+// Desde a 1.22 (pedido do usuário: "parecidos com os do Apple Weather, não iguais") as condições são
+// chapadas: sol amarelo com raios soltos, nuvem branca lisa com um leve sombreado embaixo (para não sumir no
+// céu claro do dia), chuva em tracinhos azuis inclinados, raio amarelo e lua prateada. Sem contorno, brilho
+// ou volume; os indicadores (metrics) continuam na família antiga.
+conditionGradients['flat-cloud']='<linearGradient id="flat-cloud" x2="0" y2="1"><stop offset=".4" stop-color="#ffffff"/><stop offset="1" stop-color="#d2deea"/></linearGradient>';
+conditionGradients['flat-cloud-dark']='<linearGradient id="flat-cloud-dark" x2="0" y2="1"><stop offset=".3" stop-color="#d9e1ea"/><stop offset="1" stop-color="#a9b8c8"/></linearGradient>';
+const FLAT_SUN='#ffd33d',FLAT_RAIN='#5ac8fa',FLAT_MOON='#eef1f8';
+const flatCloud=(dark=false)=>`<g data-symbol="cloud" fill="url(#${dark?'flat-cloud-dark':'flat-cloud'})" stroke="${dark?'#94a6ba':'#b4c6d8'}" stroke-width="1.6" stroke-linejoin="round"><path d="M32 96a20 20 0 0 1-2-39.9A30 30 0 0 1 88 50a23 23 0 1 1 6 46Z"/></g>`;
+const flatSun=`<g data-symbol="sun">${line('M64 10v11M64 107v11M10 64h11M107 64h11M25.8 25.8l7.8 7.8M94.4 94.4l7.8 7.8M102.2 25.8l-7.8 7.8M33.6 94.4l-7.8 7.8',FLAT_SUN,7)}${circle(64,64,26,FLAT_SUN)}</g>`;
+const flatMoon=`<g data-symbol="moon"><path d="M80 18a44 44 0 1 0 30 62A36 36 0 0 1 80 18Z" fill="${FLAT_MOON}"/></g>`;
+const flatPartial=(night=false,few=false)=>group(night?flatMoon:flatSun,few?'translate(22 2) scale(.78)':'translate(40 2) scale(.66)')+group(flatCloud(),few?'translate(2 52) scale(.6)':'translate(-2 22) scale(.86)');
+const flatRainCloud=(dark=false)=>group(flatCloud(dark),'translate(8 -8) scale(.88)');
+// Tracinhos inclinados, como na referência; a quantidade e o tamanho distinguem garoa, chuva fraca, moderada e forte.
+const flatDrops=(count=3,size=1,rows=1)=>`<g data-symbol="${size<.7?'drizzle':'rain'}">`+Array.from({length:count},(_,i)=>{
+ const step=rows>1?13:24,row=rows>1?i%2:0,x=64-(count-1)*step/2+i*step,y=88+row*14,len=12*size;
+ return line(`M${x+len*.35} ${y}l${-len*.35} ${len}`,FLAT_RAIN,5.5);
+}).join('')+'</g>';
+const flatBolt=`<g data-symbol="lightning"><path d="M68 76 50 101h14l-6 22 27-32H71l6-15Z" fill="${FLAT_SUN}"/></g>`;
+const flatFlakes=`<g data-symbol="snow">${line('M40 92v20M31 97l18 10M49 97l-18 10M86 92v20M77 97l18 10M95 97l-18 10','#8fd0f7',4)}</g>`;
+const flatLines=(d,color='#aebdcc')=>line(d,color,6);
+const flatWind=flatLines('M14 50h62c16 0 17-22 3-22-7 0-11 4-11 9M14 66h84c16 0 16 24 2 24-7 0-11-4-11-9M26 84h26c16 0 16 22 2 22','#86cbef');
 const conditionArtwork={
- 'clear-day':softSun,'clear-night':softMoon,
- 'few-clouds-day':softPartial(false,true),'few-clouds-night':softPartial(true,true),
- 'partly-cloudy-day':softPartial(),'partly-cloudy-night':softPartial(true),
- cloudy:softCloud(),overcast:group(softCloud(true),'translate(29 -5) scale(.73)')+group(softCloud(),'translate(-1 26) scale(.87)'),
- drizzle:rainCloud()+softDrops(3,true),'light-rain':rainCloud()+softDrops(2),
- 'moderate-rain':rainCloud()+softDrops(3),'heavy-rain':rainCloud(true)+softDrops(5),
- showers:group(softSun,'translate(-1 0) scale(.62)')+group(softCloud(),'translate(15 19) scale(.82)')+softDrops(3),
- 'showers-night':group(softMoon,'translate(-1 -7) scale(.68)')+group(softCloud(),'translate(15 19) scale(.82)')+softDrops(3),
- thunderstorm:rainCloud(true)+softBolt,'thunderstorm-rain':rainCloud(true)+softDrops(2)+softBolt,
- 'thunderstorm-hail':rainCloud(true)+`<g data-symbol="hail">${circle(32,107,4.5,'#e4f3ff','#a4c9ee',1)}${circle(96,107,4.5,'#e4f3ff','#a4c9ee',1)}</g>`+softBolt,
- snow:rainCloud()+softFlakes,sleet:rainCloud()+softDrops(1)+group(softFlakes,'translate(47 0) scale(.52 1)'),
- fog:group(softCloud(),'translate(13 -4) scale(.82)')+weatherStroke('M16 86h77M35 101h77M20 115h60'),
- haze:group(softSun,'translate(13 -4) scale(.78)')+weatherStroke('M18 80h91M30 95h67M18 110h91','#cad5de'),windy:softWind
+ 'clear-day':flatSun,'clear-night':flatMoon,
+ 'few-clouds-day':flatPartial(false,true),'few-clouds-night':flatPartial(true,true),
+ 'partly-cloudy-day':flatPartial(),'partly-cloudy-night':flatPartial(true),
+ cloudy:group(flatCloud(),'translate(0 2)'),overcast:group(flatCloud(true),'translate(30 -6) scale(.72)')+group(flatCloud(),'translate(-2 24) scale(.86)'),
+ drizzle:flatRainCloud()+flatDrops(3,.55),'light-rain':flatRainCloud()+flatDrops(2,.85),
+ 'moderate-rain':flatRainCloud()+flatDrops(3,1),'heavy-rain':flatRainCloud(true)+flatDrops(5,1.15,2),
+ showers:group(flatSun,'translate(46 0) scale(.56)')+group(flatCloud(),'translate(4 4) scale(.8)')+flatDrops(3,.9),
+ 'showers-night':group(flatMoon,'translate(48 -2) scale(.6)')+group(flatCloud(),'translate(4 4) scale(.8)')+flatDrops(3,.9),
+ thunderstorm:flatRainCloud(true)+flatBolt,'thunderstorm-rain':group(flatRainCloud(true)+line('M38 88l-4 11M94 88l-4 11',FLAT_RAIN,5.5),'')+flatBolt,
+ 'thunderstorm-hail':flatRainCloud(true)+`<g data-symbol="hail">${circle(36,104,5.5,'#ffffff','#9fd3f2',2)}${circle(94,104,5.5,'#ffffff','#9fd3f2',2)}</g>`+flatBolt,
+ snow:flatRainCloud()+flatFlakes,sleet:flatRainCloud()+line('M42 90l-4 11',FLAT_RAIN,5.5)+group(flatFlakes,'translate(46 0) scale(.55 1)'),
+ fog:group(flatCloud(),'translate(10 -10) scale(.84)')+flatLines('M18 86h74M36 100h74M22 114h60'),
+ haze:group(flatSun,'translate(18 2) scale(.72)')+flatLines('M18 82h92M32 97h66M18 112h92','#b8c4cf'),windy:flatWind
 };
 const metricGradients={
  ...conditionGradients,
