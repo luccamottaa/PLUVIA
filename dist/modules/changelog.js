@@ -12,6 +12,12 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.23.2", date:"2026-10-20", title:"Próximas horas alinhadas", items:[
+      "A gota e a chance de chuva ficam centradas embaixo de cada hora, sem invadir a hora ao lado.",
+      "A gota ganhou o desenho novo, e o ícone de poucas nuvens ficou centrado como os outros.",
+      "Nas dicas, a folha e o sol ficam no meio do texto, não mais grudados na primeira linha.",
+      "O topo ficou mais limpo: só cidade, temperatura e condição. “Vai chover?” virou a primeira dica, a barra de chuva e a comparação com ontem foram para o cartão Próximas horas, e sensação e máxima/mínima ficam nos blocos de leitura.",
+    ]},
     {version:"1.23.1", date:"2026-10-20", title:"Botões de dia", items:[
       "Os botões do “Tá chovendo aí?” voltaram a parecer botões de dia, com borda e fundo como à noite.",
     ]},

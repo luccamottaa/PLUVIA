@@ -714,8 +714,9 @@ body[data-ink="dark"] #weatherView .rain-gauge-track { background:rgba(0,0,0,.12
 #weatherView .tips-section { margin:0; padding:14px 0 18px; border-bottom:1px solid var(--reading-line); }
 #weatherView .tips-title { margin:0 0 10px; color:var(--reading-muted); font-size:.8rem; font-weight:600; letter-spacing:.045em; text-transform:uppercase; }
 #weatherView .tips-list { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
-#weatherView .tips-list li { display:flex; align-items:flex-start; gap:10px; color:var(--reading-ink); font-size:.95rem; line-height:1.4; }
-#weatherView .tip-icon { flex:none; width:22px; height:22px; margin-top:1px; color:var(--graphic-blue); }
+/* Ícone centrado na altura do texto (pedido do usuário, 1.23.2): no topo, com a dica em duas linhas, ele ficava alto. */
+#weatherView .tips-list li { display:flex; align-items:center; gap:10px; color:var(--reading-ink); font-size:.95rem; line-height:1.4; }
+#weatherView .tip-icon { flex:none; width:22px; height:22px; color:var(--graphic-blue); }
 
 
 /* Ar nos próximos dias: três colunas compactas (dia, categoria, AQI máximo previsto), cor da categoria
@@ -993,7 +994,6 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 :root[data-city-slide] #weatherView .intro h1 { view-transition-name:pluvia-city; }
 :root[data-city-slide] #weatherView .wx-copy { view-transition-name:pluvia-temp; }
 :root[data-city-slide] #weatherView #condition { view-transition-name:pluvia-condition; }
-:root[data-city-slide] #weatherView #rainAnswer { view-transition-name:pluvia-rain; }
 /* A foto antiga sai rápido para o lado do gesto (200 ms, sem ficar sobreposta à nova: "ManPetrolina"),
    e a nova desce no lugar, em cascata: nome, temperatura, condição, "Vai chover?". */
 ::view-transition-group(pluvia-city),::view-transition-group(pluvia-temp),::view-transition-group(pluvia-condition),::view-transition-group(pluvia-rain) { animation-duration:.5s; animation-timing-function:cubic-bezier(.22,1,.36,1); }
@@ -1091,7 +1091,6 @@ body[data-ink="dark"] #weatherView {
 #weatherView .favorite-suggest-dismiss { color:var(--reading-muted); }
 #weatherView .favorite-suggest-extra { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 #weatherView .favorite-suggest-save { position:relative; }
-:root[data-city-slide] #weatherView #heroRange { view-transition-name:pluvia-range; }
 ::view-transition-group(pluvia-range) { animation-duration:.5s; animation-timing-function:cubic-bezier(.22,1,.36,1); }
 ::view-transition-old(pluvia-range) { animation:pluvia-slide-out .2s cubic-bezier(.4,0,1,1) both; }
 :root[data-city-slide="prev"]::view-transition-old(pluvia-range) { animation-name:pluvia-slide-out-prev; }
@@ -1300,6 +1299,10 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 #weatherView .hourly-peek-item.is-now { border-bottom-color:transparent; }
 #weatherView .hourly-peek-list .hourly-peek-item { padding-bottom:4px; }
 #weatherView .hourly-peek-item .peek-rain { min-height:18px; margin-top:-2px; }
+/* Gota + chance cabem na coluna (~55 px a 390 px): com a gota de 16 px e 4 px de espaço o grupo passava da coluna
+   e a gota parecia ser da hora anterior. Gota menor e colada no número, centrados juntos sob a temperatura. */
+#weatherView .hourly-peek-item .peek-rain { gap:1px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+#weatherView .hourly-peek-item .peek-rain .rain-metric-icon { width:12px; height:12px; flex:none; }
 
 #weatherView .hourly-peek-list::-webkit-scrollbar { display:none; }
 
@@ -1895,3 +1898,16 @@ body[data-ink="dark"] #weatherView .next-hour-bars span { background:rgba(0,0,0,
 body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #weatherView .next-hour-bars span[data-wet="1"] { background:var(--brand-blue); }
 #weatherView .next-hour-axis { margin:4px 0 0; display:flex; justify-content:space-between; font-size:.8rem; color:var(--reading-muted); font-variant-numeric:tabular-nums; }
 #weatherView .next-hour-text { margin:8px 0 0; font-size:.9rem; color:var(--reading-ink,inherit); }
+/* Topo mais limpo (1.23.2, pedido do usuário: "tira essas informações daqui de cima"): no hero fica só o "Vai chover?".
+   A barra de chuva abre o cartão Próximas horas e a nota de ontem fecha o cartão, alinhadas à esquerda como o resto. */
+#weatherView .hourly-peek .rain-gauge { width:100%; margin:2px 0 14px; align-items:flex-start; }
+#weatherView .hourly-peek .rain-gauge-label { text-align:left; }
+#weatherView .hourly-peek .yesterday-note { max-width:none; margin:12px 0 0; text-align:left; font-size:.875rem; }
+#weatherView .hourly-peek .yesterday-note .sk-line { margin:0; }
+/* "Vai chover?" como primeira dica (1.23.2): mesma linha das dicas (ícone em traço centrado), texto à esquerda e um
+   pouco mais forte, por ser a resposta principal. A lista das outras dicas só entra quando há o que fazer. */
+#weatherView .tips-rain { display:flex; align-items:center; gap:10px; margin:0; }
+#weatherView .tips-rain .rain-answer { flex:1; min-width:0; margin:0; max-width:none; font-size:.95rem; font-weight:600; text-align:left; text-wrap:pretty; }
+#weatherView .tips-rain .rain-answer[data-tone="loading"] .sk-line { margin:0; }
+#weatherView .tips-list { margin-top:10px; }
+#weatherView .tips-list[hidden] { display:none; }

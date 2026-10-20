@@ -841,12 +841,14 @@ function formatUpdateTime(at) {
 
 // Dicas contextuais: somem quando não há nada para fazer. Texto entra como textContent.
 const TIP_ICONS = {wind:"wind-speed", heat:"feels-like", air:"air-quality", uv:"uv-index"};
+// Desde a 1.23.2 o cartão de dicas sempre aparece: a primeira linha é o "Vai chover?" (#rainAnswer, saiu do topo a
+// pedido do usuário). Só a lista das demais dicas some quando não há nada a fazer.
 function renderTips(list) {
-  const section = $("tips"), target = $("tipsList");
-  if (!section || !target) return;
+  const target = $("tipsList");
+  if (!target) return;
   const items = Array.isArray(list) ? list : [];
-  const appearing = section.hidden && items.length > 0;
-  section.hidden = items.length === 0;
+  const appearing = target.hidden && items.length > 0;
+  target.hidden = items.length === 0;
   if (!items.length) { target.textContent = ""; return; }
   target.replaceChildren(...items.map(tip => {
     const item = document.createElement("li");
@@ -859,7 +861,7 @@ function renderTips(list) {
     item.append(icon, text);
     return item;
   }));
-  if (appearing) settleBlock(section);
+  if (appearing) settleBlock(target);
 }
 
 function setRainAnswer(answer) {
@@ -1254,8 +1256,8 @@ function dataAge(at) {
   return `há ${hours}h`;
 }
 
-// Máx./mín. de hoje logo abaixo da condição (o primeiro número que se procura); ausente não vira "--°".
-// A linha do topo junta sensação, máxima e mínima (o cartão separado repetia a máx./mín. e saiu).
+// Linha "Sensação · Máx. · Mín." do topo: saiu na 1.23.2 (pedido do usuário, repetia os blocos de Sensação e
+// Máx./mín.); sem #heroRange no HTML a função não faz nada. Ausente nunca vira "--°".
 function setHeroRange(high, low, feels) {
   const node = $("heroRange");
   if (!node) return;
@@ -1593,7 +1595,7 @@ document.querySelectorAll("nav a").forEach(link => link.addEventListener("click"
 // (clip-path); CSS em continuous.css. Só pintura: transform e opacity nos blocos viravam camadas do
 // tamanho da página sobre o céu animado e derrubavam o Safari do iPhone. Ao rolar nada é escondido:
 // revelar o bloco só quando ele entrava na tela, com a página subindo, parecia um corte (outubro/2026).
-const DROP_BLOCKS = ["#yesterdayNote", "#alertBanner", "#alertas", "#tips", ".hourly-peek", ".metrics", ".air-outlook", ".weather-map-section", ".forecast-section", ".sun-section"];
+const DROP_BLOCKS = ["#alertBanner", "#alertas", "#tips", ".hourly-peek", ".metrics", ".air-outlook", ".weather-map-section", ".forecast-section", ".sun-section"];
 function dropMotion() {
   return !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 }
