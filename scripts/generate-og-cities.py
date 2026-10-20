@@ -1,4 +1,4 @@
-"""Prévias sociais (Open Graph): a geral (dist/og-pluvia-v4.png, 1731×909, céu de pôr do sol desde a 1.18.1) e as das 27 capitais
+"""Prévias sociais (Open Graph): a geral (dist/og-pluvia-v4.png, 1731×909, céu de pôr do sol desde a 1.18.2) e as das 27 capitais
 (1200×630 JPEG em dist/og/<slug>-<versão>.jpg).
 
 Arte estática com as camadas do próprio céu do PLUVIA (pôr do sol do azul-noite ao laranja, estrelas só no alto e as duas
@@ -15,7 +15,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 from PIL import Image
 
-OG_VERSION = 'v3'   # v3: céu de pôr do sol (1.18.1); v2: marca nova da 1.18
+OG_VERSION = 'v3'   # v3: céu de pôr do sol (1.18.2); v2: marca nova da 1.18
 MAIN_OG = 'og-pluvia-v4.png'
 repo = Path(__file__).resolve().parent.parent
 dist = repo / 'dist'
