@@ -63,8 +63,9 @@ const conditionArtwork={
  cloudy:group(flatCloud(),'translate(0 2)'),overcast:group(flatCloud(true),'translate(30 -6) scale(.72)')+group(flatCloud(),'translate(-2 24) scale(.86)'),
  drizzle:flatRainCloud()+flatDrops(3,.55),'light-rain':flatRainCloud()+flatDrops(2,.85),
  'moderate-rain':flatRainCloud()+flatDrops(3,1),'heavy-rain':flatRainCloud(true)+flatDrops(5,1.15,2),
- showers:group(flatSun,'translate(46 0) scale(.56)')+group(flatCloud(),'translate(4 4) scale(.8)')+flatDrops(3,.9),
- 'showers-night':group(flatMoon,'translate(48 -2) scale(.6)')+group(flatCloud(),'translate(4 4) scale(.8)')+flatDrops(3,.9),
+ // Pancadas: nuvem no centro (as gotas ficam embaixo dela) e o sol/lua menor atrás, no canto de cima (1.23.3).
+ showers:group(flatSun,'translate(54 4) scale(.48)')+group(flatCloud(),'translate(13 8) scale(.8)')+flatDrops(3,.9),
+ 'showers-night':group(flatMoon,'translate(56 2) scale(.52)')+group(flatCloud(),'translate(13 8) scale(.8)')+flatDrops(3,.9),
  thunderstorm:flatRainCloud(true)+flatBolt,'thunderstorm-rain':group(flatRainCloud(true)+line('M38 88l-4 11M94 88l-4 11',FLAT_RAIN,5.5),'')+flatBolt,
  'thunderstorm-hail':flatRainCloud(true)+`<g data-symbol="hail">${circle(36,104,5.5,'#ffffff','#9fd3f2',2)}${circle(94,104,5.5,'#ffffff','#9fd3f2',2)}</g>`+flatBolt,
  snow:flatRainCloud()+flatFlakes,sleet:flatRainCloud()+line('M42 90l-4 11',FLAT_RAIN,5.5)+group(flatFlakes,'translate(46 0) scale(.55 1)'),

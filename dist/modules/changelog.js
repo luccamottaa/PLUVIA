@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.23.3", date:"2026-10-20", title:"Ícone de pancadas", items:[
+      "O ícone de pancadas de chuva ficou centrado: nuvem no meio, gotas embaixo e o sol (ou a lua) menor atrás.",
+    ]},
     {version:"1.23.2", date:"2026-10-20", title:"Próximas horas alinhadas", items:[
       "A gota e a chance de chuva ficam centradas embaixo de cada hora, sem invadir a hora ao lado.",
       "A gota ganhou o desenho novo, e o ícone de poucas nuvens ficou centrado como os outros.",

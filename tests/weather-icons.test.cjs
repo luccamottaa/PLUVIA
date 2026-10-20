@@ -18,19 +18,19 @@ test('mapeia códigos WMO e respeita variantes de dia e noite', () => {
   assert.equal(icons.assetFor(80, true), 'showers.svg');
   assert.equal(icons.assetFor(80, false), 'showers-night.svg');
   assert.equal(icons.assetFor(81, false), 'showers-night.svg');
-  assert.match(icons.icon(80, false).src, /showers-night\.svg\?v=modern-5$/);
-  assert.match(icons.icon(2, false).src, /partly-cloudy-night\.svg\?v=modern-5$/);
+  assert.match(icons.icon(80, false).src, /showers-night\.svg\?v=modern-6$/);
+  assert.match(icons.icon(2, false).src, /partly-cloudy-night\.svg\?v=modern-6$/);
   assert.equal(icons.assetFor(82, false), 'heavy-rain.svg');
 });
 
 test('centraliza ícones nomeados e usa fallback local sem gerar 404', () => {
-  assert.equal(icons.namedIcon('humidity').src, '/assets/weather-icons/metrics/humidity.svg?v=modern-5');
+  assert.equal(icons.namedIcon('humidity').src, '/assets/weather-icons/metrics/humidity.svg?v=modern-6');
   for (const name of ['temperature-high','temperature-low','feels-like','visibility']) {
-    assert.equal(icons.namedIcon(name).src, `/assets/weather-icons/metrics/${name}.svg?v=modern-5`);
+    assert.equal(icons.namedIcon(name).src, `/assets/weather-icons/metrics/${name}.svg?v=modern-6`);
   }
   assert.equal(icons.namedIcon('rain-probability').source, 'pluvia-vector');
   assert.equal(icons.namedIcon('radar').source, 'pluvia-vector');
-  assert.equal(icons.namedIcon('radar').src, '/assets/weather-icons/maps/radar.svg?v=modern-5');
+  assert.equal(icons.namedIcon('radar').src, '/assets/weather-icons/maps/radar.svg?v=modern-6');
 });
 
 test('todos os ícones vetoriais existem e são válidos', () => {
