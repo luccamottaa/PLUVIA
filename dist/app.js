@@ -248,7 +248,10 @@ function setAlertState(state) {
   if ((before === "loading" || before === "pending") && state !== "loading" && state !== "pending" && state !== "banner") settleBlock(section);
 }
 // Bloco que aparece ou muda depois que a página já está à vista desce no lugar (cascata "descendo").
+// Bloco dentro de outro que já está descendo (ou guardado até a previsão) não desce de novo: os deslocamentos
+// somavam e o filho andava o dobro (barra de chuva, nota de ontem e lista de dicas ficam dentro de cartões).
 function settleBlock(node) {
+  if (node?.parentElement?.closest?.("[data-drop]")) return;
   if (typeof dropIn === "function" && dropMotion()) whenOnScreen([node], dropIn);
 }
 
@@ -1166,7 +1169,7 @@ function paintNextHour() {
   [...($("nextHourBars")?.children || [])].forEach((bar, index) => {
     const coverage = data.points[index]?.coverage ?? 0;
     bar.style.height = `${Math.max(8, Math.round(coverage * 100))}%`;
-    bar.dataset.wet = coverage >= 0.25 ? "true" : "false";
+    bar.dataset.wet = coverage >= 0.25 ? "1" : "0";
   });
   $("nextHourText").textContent = data.text;
   $("nextHourTime").textContent = `radar das ${(globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:activeCity.timezone, hour:"2-digit", minute:"2-digit"}).format(new Date(data.frameAt))}`;

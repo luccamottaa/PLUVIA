@@ -49,8 +49,10 @@ const FLAT_SUN='#ffd33d',FLAT_RAIN='#5ac8fa',FLAT_MOON='#eef1f8',FLAT_SNOW='#6cb
 const CLOUD='M31 92A17 17 0 1 1 39.78 60.44A27 27 0 1 1 92.34 48.05A22 22 0 1 1 94 92Z';
 const cloudAt=(scale,cx,bottom)=>`translate(${(cx-65*scale).toFixed(2)} ${(bottom-92*scale).toFixed(2)}) scale(${scale})`;
 const flatCloud=(transform,dark=false)=>`<g data-symbol="cloud" transform="${transform}"><path d="${CLOUD}" fill="url(#${dark?'flat-cloud-dark':'flat-cloud'})" stroke="${dark?'#94a6ba':'#b4c6d8'}" stroke-width="${(1.6).toFixed(1)}" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></g>`;
-// Recorte: o que fica atrás some numa faixa em volta da nuvem da frente.
-const behind=(id,transform,content)=>`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128"><rect width="128" height="128" fill="#fff"/><path d="${CLOUD}" transform="${transform}" fill="#000" stroke="#000" stroke-width="${(7).toFixed(0)}" vector-effect="non-scaling-stroke"/></mask></defs><g mask="url(#${id})">${content}</g>`;
+// Recorte: o que fica atrás some numa faixa de 3,5 px em volta da nuvem da frente. Sem vector-effect: dentro de
+// <mask> com transform, o Chromium desenhava o buraco maior e deslocado e apagava quase todo o sol/lua.
+const scaleOf=transform=>Number(/scale\(([\d.]+)\)/.exec(transform)?.[1]||1);
+const behind=(id,transform,content)=>`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128"><rect width="128" height="128" fill="#fff"/><path d="${CLOUD}" transform="${transform}" fill="#000" stroke="#000" stroke-width="${(7/scaleOf(transform)).toFixed(1)}"/></mask></defs><g mask="url(#${id})">${content}</g>`;
 const flatSun=(cx=64,cy=64,k=1)=>{const r=22*k,a=31*k,b=43*k,rays=Array.from({length:8},(_,i)=>{const t=i*Math.PI/4,c=Math.cos(t),s=Math.sin(t);return `M${(cx+a*c).toFixed(1)} ${(cy+a*s).toFixed(1)}L${(cx+b*c).toFixed(1)} ${(cy+b*s).toFixed(1)}`;}).join('');
  return `<g data-symbol="sun">${line(rays,FLAT_SUN,(7*Math.max(k,.75)).toFixed(1))}${circle(cx,cy,r.toFixed(1),FLAT_SUN)}</g>`;};
 // Crescente: disco menos outro disco deslocado para cima e para a direita.

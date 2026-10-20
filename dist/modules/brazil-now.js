@@ -215,7 +215,7 @@
     async function load() {
       const token = ++revision, cities = capitals();
       if (cache && Date.now() - cache.at < FRESH_MS) {fieldRows = cache.fieldRows; render(cache.rows); status(`Atualizado às ${clock(cache.at)} · Open-Meteo`); return;}
-      list.replaceChildren(); if (mapBox) {mapBox.hidden = true; mapBox.replaceChildren();} status('Consultando as 27 capitais…');
+      list.replaceChildren(); if (mapBox) {mapBox.hidden = true; mapBox.replaceChildren();} if (legend) legend.hidden = true; status('Consultando as 27 capitais…');
       try {
         if (!client?.getJson || !cities.length) throw new Error('Cliente indisponível.');
         client.abortAll?.();

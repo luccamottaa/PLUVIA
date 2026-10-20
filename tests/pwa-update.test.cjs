@@ -65,10 +65,16 @@ test('primeira instalação não recarrega; offline e falhas de atualização pe
   assert.equal(app.reloads(), 0);
   app.workerEvents.controllerchange();
   assert.equal(app.reloads(), 0);
-  app.context.document.visibilityState = 'hidden';
+  // Saindo por um link: pagehide e depois visibilitychange (hidden). A recarga cancelaria a navegação.
   app.events.pagehide({persisted:false});
+  app.context.document.visibilityState = 'hidden';
+  app.documentEvents.visibilitychange();
   assert.equal(app.reloads(), 0, 'saindo por um link, a recarga não cancela a navegação');
-  app.events.pagehide({persisted:true});
+  // Volta do cache de voltar: a versão nova entra na próxima ida para o fundo.
+  app.context.document.visibilityState = 'visible';
+  app.events.pageshow({persisted:true});
+  app.context.document.visibilityState = 'hidden';
+  app.documentEvents.visibilitychange();
   assert.equal(app.reloads(), 1, 'uma atualização posterior à primeira instalação recarrega a versão');
   app.context.document.visibilityState = 'visible';
   app.advance(31000);

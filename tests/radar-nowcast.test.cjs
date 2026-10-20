@@ -77,3 +77,16 @@ test('próxima hora: barras de 5 em 5 min com a mancha empurrada pelo mesmo desl
   assert.equal(nowcast.nextHour({mask:blob(CENTER+60,CENTER),perStep:step.perStep,frameAt:now},now),null,'indo para longe da cidade');
   assert.equal(nowcast.nextHour(null,now),null);
 });
+
+test('próxima hora: relógio do aparelho atrasado não esconde o gráfico; barra com chuva usa data-wet="1" (o CSS colore)',()=>{
+  const now=Date.parse('2026-10-19T15:00:00Z');
+  const step=nowcast.stepFor(blob(CENTER-60,CENTER),blob(CENTER-44,CENTER),SIZE,1200);
+  const ahead=nowcast.nextHour({mask:blob(CENTER-44,CENTER),perStep:step.perStep,frameAt:now+3*60_000},now);
+  assert.ok(ahead,'imagem 3 min "no futuro" pelo relógio do aparelho');
+  assert.equal(ahead.points[0].minutes,0);
+  const fs=require('node:fs'),path=require('node:path');
+  const app=fs.readFileSync(path.join(__dirname,'..','dist','app.js'),'utf8');
+  const css=fs.readFileSync(path.join(__dirname,'..','dist','continuous.css'),'utf8');
+  const value=app.match(/bar\.dataset\.wet = coverage >= 0\.25 \? "([^"]+)"/)[1];
+  assert.ok(css.includes(`.next-hour-bars span[data-wet="${value}"]`),`o valor escrito (${value}) precisa ser o que o CSS pinta`);
+});
