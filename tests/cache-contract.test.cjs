@@ -43,7 +43,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   assert.match(html, /styles\.css\?v=core-133/);
   assert.match(html, /redesign\.css\?v=panel-50/);
   assert.doesNotMatch(sw, /glass\.js/);
-  assert.match(html, /app\.js\?v=panel-119/);
+  assert.match(html, /app\.js\?v=panel-120/);
   assert.ok(!sw.includes('"./assets/panel-night-sky.webp"'), 'não baixa a antiga foto sem uso no cache inicial');
   for (const asset of ['sky-sun.svg','sky-cloud-veil.webp','sky-cloud-volume.webp']) assert.ok(sw.includes(`./assets/${asset}`));
   assert.ok(['sky-cloud-veil.webp','sky-cloud-volume.webp'].reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<360*1024,'texturas das nuvens mantêm orçamento do shell mobile');
