@@ -64,14 +64,14 @@ assert.match(html, /<nav class="account-more" id="accountMore" aria-labelledby="
 assert.match(html, /<span>O céu de cada cidade<\/span><\/div><\/div><\/footer>/);
 assert.match(html, /id="accountMore"[^]*?<\/nav><!-- capitais:inicio --><nav class="capital-links" aria-labelledby="capitalLinksTitle"><h3 id="capitalLinksTitle">Previsão por cidade<\/h3>[^]*?<!-- capitais:fim -->/);
 assert.doesNotMatch(html, /footer-details/);
-assert.match(html, /rel="icon" type="image\/png" sizes="192x192" href="\/icon-192\.png"/);
+assert.match(html, /rel="icon" type="image\/png" sizes="192x192" href="\/icon-192\.png\?v=logo-\d+"/);
 assert.match(html, /id="sourceCreditsTitle">Créditos e licenças/);
 assert.match(html, /MET Norway[\s\S]*?CC BY 4\.0[\s\S]*?SunCalc[\s\S]*?WeatherIcons[\s\S]*?SIL OFL 1\.1/);
 assert.match(styles, /footer \{ margin-top: 48px; padding-block: 28px/);
 assert.match(styles, /footer \{ margin-top: 28px; align-items:start;/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-panel-221/);
+assert.match(sw, /pluvia-panel-222/);
 assert.match(html, /redesign\.css\?v=panel-50/);
 assert.match(sw, /assets\/sky-cloud-veil\.webp/);
 assert.match(html, /id="weatherView" class="initial-loading" aria-busy="true"/);

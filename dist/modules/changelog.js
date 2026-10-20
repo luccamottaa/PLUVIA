@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.18.1", date:"2026-10-20", title:"Ícone na Tela de Início", items:[
+      "Adicionar o PLUVIA à Tela de Início do iPhone volta a mostrar a logo nova, em vez de só a letra P.",
+    ]},
     {version:"1.18", date:"2026-10-20", title:"Logo nova", items:[
       "O PLUVIA tem logo nova: uma gota caindo na água, com duas ondinhas.",
       "O nome PLUVIA agora acompanha o céu: branco à noite e azul-marinho de dia, com a gota em azul-claro.",

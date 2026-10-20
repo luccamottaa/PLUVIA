@@ -15,9 +15,14 @@ function pngDimensions(file) {
 test('exporta todos os ícones instaláveis nas dimensões declaradas', () => {
   for (const icon of manifest.icons) {
     const expected = Number(icon.sizes.split('x')[0]);
-    assert.deepEqual(pngDimensions(icon.src.replace(/^\.\//, '')), {width:expected,height:expected});
+    assert.deepEqual(pngDimensions(icon.src.replace(/^\.\//, '').replace(/\?.*$/, '')), {width:expected,height:expected});
   }
   assert.deepEqual(pngDimensions('apple-touch-icon-180.png'), {width:180,height:180});
+  // O iPhone guarda o ícone pelo endereço: com ?v= ele busca a arte nova ao adicionar à Tela de Início.
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8'), sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+  assert.match(html, /rel="apple-touch-icon" sizes="180x180" href="\.\/apple-touch-icon-180\.png\?v=logo-\d+"/);
+  for (const icon of manifest.icons) assert.match(icon.src, /\?v=logo-\d+$/, icon.src);
+  assert.match(sw, /endsWith\('\/apple-touch-icon-180\.png'\)\) return;/, 'o SW não intercepta o ícone da Tela de Início');
   assert.deepEqual(pngDimensions('favicon-16.png'), {width:16,height:16});
   assert.deepEqual(pngDimensions('favicon-32.png'), {width:32,height:32});
   assert.deepEqual(pngDimensions('favicon-96.png'), {width:96,height:96});
@@ -28,8 +33,8 @@ test('mantém o fundo azul escuro no aplicativo instalável', () => {
   assert.equal(manifest.theme_color, '#10233f');
   assert.equal(manifest.name, 'PLUVIA');
   assert.equal(manifest.id, 'https://pluviaweather.com.br/', 'o ID estável mantém a instalação existente atualizável');
-  assert.ok(manifest.icons.some(icon => icon.src === './icon-splash-512.png' && icon.purpose === 'any'));
-  assert.ok(manifest.icons.some(icon => icon.src === './icon-splash-192.png' && icon.purpose === 'any'));
+  assert.ok(manifest.icons.some(icon => icon.src === './icon-splash-512.png?v=logo-4' && icon.purpose === 'any'));
+  assert.ok(manifest.icons.some(icon => icon.src === './icon-splash-192.png?v=logo-4' && icon.purpose === 'any'));
   assert.ok(manifest.icons.some(icon => icon.purpose === 'any'));
   assert.ok(manifest.icons.some(icon => icon.purpose === 'maskable'));
 });
