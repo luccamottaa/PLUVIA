@@ -1847,3 +1847,9 @@ html body #weatherView .weather-hero .temperature { font-size:clamp(5.35rem,24.5
    esquerda do centro do nome (o "29" começa junto do "M" de Manaus), porque o grau também pesa no conjunto. O grau
    invisível perde .34 do próprio tamanho: os algarismos saem ~0,12 em para a esquerda do eixo (~12 px a 96 px). */
 #weatherView .temperature::before { margin-inline-end:-.34em; }
+/* Marca nova (1.18, opção C e combinação 2 escolhidas pelo usuário): o nome PLUVIA segue a tinta do céu, branca de
+   noite e azul-marinho de dia (a mesma do slogan e do rodapé), e a gota é a mesma tinta puxada para o azul-claro.
+   O azul da marca continua nos botões, links e destaques; só a assinatura deixou de ser azul. */
+.topbar .brand { color:var(--intro-ink) !important; }
+footer.shell .footer-brand-copy strong { color:var(--intro-ink); }
+footer.shell .footer-brand-icon { background:#cfe3ff; background:color-mix(in srgb,var(--intro-ink) 72%,#7fb0ff); }

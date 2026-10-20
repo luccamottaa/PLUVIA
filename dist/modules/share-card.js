@@ -92,15 +92,16 @@
     else {sky.addColorStop(0, '#5fb0f2'); sky.addColorStop(1, '#cfe9fa');}
     ctx.fillStyle = sky; ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    // Assinatura: gota recolorida (azul da marca de dia, gota clara à noite) e o nome em Nunito.
-    const brand = data.night ? '#7aa5ff' : '#2f6bff';
+    // Assinatura (1.18): gota clara à noite e azul-acinzentada de dia, nome na cor do texto; o azul da marca
+    // fica no selo do dia marcante.
+    const brand = data.night ? '#7aa5ff' : '#2f6bff', dropColor = data.night ? '#cfe3ff' : '#2f557f';
     if (mark) {
       const tint = doc.createElement('canvas'); tint.width = 96; tint.height = 96;
       const t = tint.getContext('2d');
-      t.drawImage(mark, 0, 0, 96, 96); t.globalCompositeOperation = 'source-in'; t.fillStyle = brand; t.fillRect(0, 0, 96, 96);
+      t.drawImage(mark, 0, 0, 96, 96); t.globalCompositeOperation = 'source-in'; t.fillStyle = dropColor; t.fillRect(0, 0, 96, 96);
       ctx.drawImage(tint, WIDTH / 2 - 150, 132, 72, 72);
     }
-    ctx.fillStyle = brand; ctx.font = '900 64px Nunito, Inter, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillStyle = ink; ctx.font = '900 64px Nunito, Inter, sans-serif'; ctx.textAlign = 'left';
     ctx.fillText('PLUVIA', WIDTH / 2 - 66, 192);
     ctx.textAlign = 'center';
     if (data.badge) {

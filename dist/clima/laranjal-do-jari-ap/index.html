@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-218" />
+    <meta name="pluvia-release" content="pluvia-panel-220" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -28,15 +28,15 @@
     <meta property="og:title" content="Previsão do tempo em Laranjal do Jari (AP) agora — PLUVIA" />
     <meta property="og:description" content="Previsão do tempo em Laranjal do Jari (AP) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET." />
     <meta property="og:url" content="https://pluviaweather.com.br/clima/laranjal-do-jari-ap/" />
-    <meta property="og:image" content="https://pluviaweather.com.br/og-pluvia-v2.png" />
+    <meta property="og:image" content="https://pluviaweather.com.br/og-pluvia-v3.png" />
     <meta property="og:image:width" content="1731" />
     <meta property="og:image:height" content="909" />
-    <meta property="og:image:alt" content="Logo azul do PLUVIA e slogan O céu de cada cidade sobre céu noturno com nuvens e estrelas." />
+    <meta property="og:image:alt" content="Logo do PLUVIA, uma gota caindo na água, e slogan O céu de cada cidade sobre céu noturno com nuvens e estrelas." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Previsão do tempo em Laranjal do Jari (AP) agora — PLUVIA" />
     <meta name="twitter:description" content="Previsão do tempo em Laranjal do Jari (AP) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET." />
-    <meta name="twitter:image" content="https://pluviaweather.com.br/og-pluvia-v2.png" />
-    <meta name="twitter:image:alt" content="Logo azul do PLUVIA e slogan O céu de cada cidade sobre céu noturno com nuvens e estrelas." />
+    <meta name="twitter:image" content="https://pluviaweather.com.br/og-pluvia-v3.png" />
+    <meta name="twitter:image:alt" content="Logo do PLUVIA, uma gota caindo na água, e slogan O céu de cada cidade sobre céu noturno com nuvens e estrelas." />
     <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://pluviaweather.com.br/clima/laranjal-do-jari-ap/","url":"https://pluviaweather.com.br/clima/laranjal-do-jari-ap/","name":"Previsão do tempo em Laranjal do Jari (AP) agora — PLUVIA","description":"Previsão do tempo em Laranjal do Jari (AP) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET.","inLanguage":"pt-BR","isPartOf":{"@type":"WebSite","name":"PLUVIA","url":"https://pluviaweather.com.br/"},"about":{"@type":"City","name":"Laranjal do Jari","containedInPlace":{"@type":"AdministrativeArea","name":"Amapá"},"geo":{"@type":"GeoCoordinates","latitude":-0.804911,"longitude":-52.453}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"PLUVIA","item":"https://pluviaweather.com.br/"},{"@type":"ListItem","position":2,"name":"Laranjal do Jari (AP)","item":"https://pluviaweather.com.br/clima/laranjal-do-jari-ap/"}]}]}</script>
     <title>Previsão do tempo em Laranjal do Jari (AP) agora — PLUVIA</title>
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -96,9 +96,9 @@
 }
 .pluvia-intro.is-leaving { opacity:0; pointer-events:none; transition:opacity .42s ease; }
 .pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; pointer-events:none; }
-.intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; gap:2px; color:var(--brand-blue,#2f6bff); font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; animation:intro-mark-in .8s ease-out .2s both; }
+.intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; gap:2px; color:var(--intro-ink,#f3f8ff); font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; animation:intro-mark-in .8s ease-out .2s both; }
 .intro-wordmark strong { font-family:var(--font-brand,"Nunito",ui-rounded,system-ui,sans-serif); font-weight:900; }
-.intro-drop { display:block; width:clamp(42px,11vw,70px); height:clamp(55px,14vw,88px); background:currentColor; -webkit-mask:url("/logo-mark.webp?v=logo-2") center / contain no-repeat; mask:url("/logo-mark.webp?v=logo-2") center / contain no-repeat; }
+.intro-drop { display:block; width:clamp(42px,11vw,70px); height:clamp(55px,14vw,88px); background:#cfe3ff; background:color-mix(in srgb,currentColor 72%,#7fb0ff); -webkit-mask:url("/logo-mark.webp?v=logo-3") center / contain no-repeat; mask:url("/logo-mark.webp?v=logo-3") center / contain no-repeat; }
 .pluvia-intro .intro-tagline { position:relative; z-index:1; margin:16px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.2rem); letter-spacing:.08em; animation:intro-caption-in .65s ease-out .5s both; }
 .pluvia-intro .intro-kicker { position:absolute; bottom:calc(65px + env(safe-area-inset-bottom)); color:#e1ebf5; font-size:.65rem; font-weight:750; letter-spacing:.24em; text-transform:uppercase; }
 .pluvia-intro .intro-copy { display:none; }
@@ -121,8 +121,8 @@
       try { localStorage.removeItem("pluvia-boot-pending"); localStorage.removeItem("pluvia-safe-until"); } catch (e) {}
     </script>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="/styles.css?v=core-132" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <noscript><link rel="stylesheet" href="/styles.css?v=core-132" /></noscript>
+    <link rel="stylesheet" href="/styles.css?v=core-133" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <noscript><link rel="stylesheet" href="/styles.css?v=core-133" /></noscript>
   </head>
   <body>
     <svg class="moon-definitions" width="0" height="0" aria-hidden="true" focusable="false">
@@ -196,8 +196,8 @@
     </script>
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
-    <link rel="stylesheet" href="/redesign.css?v=panel-49" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-111" />
+    <link rel="stylesheet" href="/redesign.css?v=panel-50" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-113" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -562,7 +562,7 @@
     <script src="/modules/captcha.js?v=captcha-1" defer></script>
     <script src="/account.js?v=account-16" defer></script>
     <script src="/favorite-cities.js?v=favorites-11" defer></script>
-    <script src="/modules/share-card.js?v=share-card-3" defer></script>
+    <script src="/modules/share-card.js?v=share-card-4" defer></script>
     <script src="/modules/share-weather.js?v=share-11" defer></script>
     <script src="/saved-places.js?v=places-2" defer></script>
     <script src="/modules/brazil-now.js?v=brazil-2" defer></script>
@@ -570,7 +570,7 @@
     <script src="/modules/station-now.js?v=station-4" defer></script>
     <script src="/modules/environment-now.js?v=environment-1" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-49" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-51" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-36" defer></script>
