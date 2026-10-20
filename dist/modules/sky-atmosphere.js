@@ -173,7 +173,10 @@
       // Text ink follows how dark the sky is, not only the Sun: moderate/heavy rain and
       // thunderstorms paint a dark daytime sky, so the reading switches to light ink.
       // Twilight windows keep their own (dark) ink over the bright twilight light.
-      const darkDay = state.phase === 'day' && state.solar === 'none' && (rain.kind === 'moderate' || rain.kind === 'heavy');
+      // Since 1.25 (user request, Apple Weather reference) overcast, drizzle and light rain also paint a
+      // lead-grey daytime sky with light ink, instead of a washed-out pale blue under dark ink.
+      const greyDay = weather === 'cloud' || weather === 'rain' || weather === 'storm';
+      const darkDay = state.phase === 'day' && state.solar === 'none' && (greyDay || rain.kind === 'moderate' || rain.kind === 'heavy');
       const ink = state.phase === 'day' && !darkDay ? 'dark' : 'light';
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
         for (const [key,value] of Object.entries({phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,ink,skyTransition:animate ? 'live' : 'instant'})) if (node.dataset[key] !== value) node.dataset[key] = value;
