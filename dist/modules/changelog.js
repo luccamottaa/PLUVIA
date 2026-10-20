@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.17", date:"2026-10-20", title:"Sensação e máxima nos blocos", items:[
+      "Sensação térmica e máxima/mínima de hoje agora têm blocos próprios, junto com umidade, vento e os outros.",
+      "A frase de ontem ficou mais curta: “Choveu cerca de 3 mm nas últimas 24 h.”",
+    ]},
     {version:"1.16.2", date:"2026-10-19", title:"Topo só com o nome", items:[
       "O topo mostra só o nome PLUVIA, sem a gota, centralizado no mesmo eixo do nome da cidade e da temperatura.",
     ]},

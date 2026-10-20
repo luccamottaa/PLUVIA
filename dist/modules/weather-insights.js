@@ -86,7 +86,7 @@
     }
     if (total < 1) return null;
     const mm = total < 10 ? round(total, 1) : Math.round(total);
-    return {total:round(total, 1), text:`Choveu cerca de ${mm.toLocaleString("pt-BR")} mm nas últimas 24 h, pelo modelo.`};
+    return {total:round(total, 1), text:`Choveu cerca de ${mm.toLocaleString("pt-BR")} mm nas últimas 24 h.`};
   }
 
   // Pôr do sol colorido costuma vir com nuvens médias/altas espalhadas e horizonte sem nuvens baixas.

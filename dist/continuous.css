@@ -1847,3 +1847,10 @@ html body #weatherView .weather-hero .temperature { font-size:clamp(5.35rem,24.5
    esquerda do centro do nome (o "29" começa junto do "M" de Manaus), porque o grau também pesa no conjunto. O grau
    invisível perde .34 do próprio tamanho: os algarismos saem ~0,12 em para a esquerda do eixo (~12 px a 96 px). */
 #weatherView .temperature::before { margin-inline-end:-.34em; }
+/* Sensação e máx./mín. entraram nos blocos de leitura (1.17): seis blocos, 2 colunas no celular e 3 a partir de
+   721 px (com 4 sobravam dois na última fileira). A mínima fica menor, ao lado da máxima. */
+#weatherView .metrics .metric-sky .metric-min { font-size:.62em; font-weight:500; color:color-mix(in srgb,currentColor 75%,transparent); }
+@media(min-width:721px) {
+  #weatherView .metrics { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  #weatherView .metrics .metric-sky:nth-child(4) { border-top:1px solid var(--reading-line) !important; padding-top:18px; }
+}

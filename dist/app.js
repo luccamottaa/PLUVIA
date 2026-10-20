@@ -1246,6 +1246,23 @@ function setHeroRange(high, low, feels) {
   node.textContent = parts.join(" · ");
 }
 
+// Cartões de sensação e de máxima/mínima entre os blocos de leitura (1.17, pedido do usuário). Ausente vira "--",
+// nunca zero; a nota compara a sensação com a temperatura do mesmo momento.
+function setTemperatureTiles(high, low, feels, temperature) {
+  const feelsNode = $("feelsValue"), rangeNode = $("rangeValue");
+  if (feelsNode) {
+    feelsNode.textContent = Number.isFinite(feels) ? `${fmt(feels)}°` : "--";
+    const diff = Number.isFinite(feels) && Number.isFinite(temperature) ? Math.round(feels) - Math.round(temperature) : null;
+    $("feelsNote").textContent = diff === null ? "—" : diff >= 2 ? "Parece mais quente" : diff <= -2 ? "Parece mais frio" : "Parecida com a real";
+  }
+  if (rangeNode) {
+    rangeNode.replaceChildren(document.createTextNode(Number.isFinite(high) ? `${fmt(high)}°` : "--"));
+    const min = document.createElement("span"); min.className = "metric-min"; min.textContent = ` / ${Number.isFinite(low) ? `${fmt(low)}°` : "--"}`;
+    rangeNode.append(min);
+    $("rangeNote").textContent = Number.isFinite(high) || Number.isFinite(low) ? "Máxima / mínima de hoje" : "—";
+  }
+}
+
 function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   let snapshot = null;
   try {
@@ -1268,6 +1285,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   const atmosphere = paintCurrentCondition(data);
   const dayIndex = day.time.indexOf(globalThis.PLUVIA.time.dayKey(Date.now(),activeCity));
   setHeroRange(day.temperature_2m_max[dayIndex], day.temperature_2m_min[dayIndex], now.apparentTemperature);
+  setTemperatureTiles(day.temperature_2m_max[dayIndex], day.temperature_2m_min[dayIndex], now.apparentTemperature, now.temperature);
   $("humidity").innerHTML = `${fmt(now.relativeHumidity)}<sup>%</sup>`; const humidityReading = weatherInsights?.humidity?.(data.hourly,start,current);
   // Nota sempre com a faixa em palavras ("Confortável", "Úmido"…), a pedido do usuário: sem ela o bloco ficava
   // com um buraco ao lado da nota da visibilidade. A hora mais seca do dia entra quando passa abaixo de 30%.
@@ -1380,7 +1398,7 @@ async function loadWeather(revision = cityRevision) {
     globalThis.PLUVIA?.sources.set("air-quality",{status:displayedWeather?.air ? "stale" : "error"});
     if (!displayedWeather) {
       // Sem dado algum, o skeleton daria a impressão de carregamento sem fim: os valores ficam indisponíveis.
-      for (const id of ["temperature","visibilityValue","humidity","wind","pressure","uv","airValue","airQuality"]) $(id).textContent = "--"; setHeroRange(null, null);
+      for (const id of ["temperature","visibilityValue","humidity","wind","pressure","uv","airValue","airQuality"]) $(id).textContent = "--"; setHeroRange(null, null); setTemperatureTiles(null, null, null, null);
       for (const id of ["visibilityNote","humidityNote","windNote","pressureNote","uvNote"]) $(id).textContent = "—";
       $("airNote").textContent = "AQI indisponível";
       $("condition").textContent = "Tempo indisponível";
