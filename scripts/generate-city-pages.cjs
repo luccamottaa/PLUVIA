@@ -9,7 +9,7 @@ const fs = require('node:fs'), path = require('node:path'), vm = require('node:v
 const dist = path.resolve(__dirname, '../dist');
 const SITE = 'https://pluviaweather.com.br';
 // Mesmo valor de OG_VERSION em scripts/generate-og-cities.py.
-const OG_VERSION = 'v2';
+const OG_VERSION = 'v3';
 const START = '<!-- capitais:inicio -->', END = '<!-- capitais:fim -->';
 
 function capitalsApi() {
