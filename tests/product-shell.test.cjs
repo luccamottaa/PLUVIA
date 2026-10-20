@@ -24,7 +24,8 @@ assert.match(html, /class="intro-sky"[\s\S]*?class="sky-sun"[\s\S]*?class="sky-c
 assert.doesNotMatch(html, /class="intro-sun"/);
 assert.match(html, /class="intro-wordmark"[\s\S]*?<strong>PLUVIA<\/strong>/);
 assert.doesNotMatch(html, /pluvia-footer-logo\.jpeg/);
-assert.match(html, /class="intro-progress"/);
+assert.doesNotMatch(html, /class="intro-progress"/, "a gota caindo substitui a barrinha de carregamento");
+assert.match(html, /class="intro-tear"[\s\S]*?class="intro-ripple"/);
 assert.match(html, /reduced \? 300 : quick \? 900 : 2600\)/);
 assert.match(html, /setTimeout\(dismiss, reduced \? 1500 : quick \? 2500 : 4600\)/);
 assert.match(app, /pluvia:refresh-settled/);
