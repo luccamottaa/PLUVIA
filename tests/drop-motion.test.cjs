@@ -25,7 +25,7 @@ test('troca de cidade: só os blocos à vista descem, em ordem, depois dos texto
   const blocks=[block('banner',{top:300}),block('alertas',{top:420}),block('escondido',{top:500,hidden:true}),block('abaixo',{top:900}),block('vazio',{top:700,height:0})];
   const {dropCityContent,ctx,observers}=load({blocks});
   dropCityContent();
-  assert.match(ctx.selector,/^#weatherView #yesterdayNote,#weatherView #alertBanner,#weatherView #alertas/);
+  assert.match(ctx.selector,/^#weatherView #alertBanner,#weatherView #alertas/);
   assert.equal(blocks.filter(b=>b.attrs['data-drop']==='go').length,0,'nada é medido no mesmo quadro (reflow forçado)');
   const [io]=observers;
   assert.deepEqual([...io.seen].map(b=>b.name),['banner','alertas','abaixo','vazio']);

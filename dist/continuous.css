@@ -1900,3 +1900,9 @@ body[data-ink="dark"] #weatherView .next-hour-bars span { background:rgba(0,0,0,
 body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #weatherView .next-hour-bars span[data-wet="1"] { background:var(--brand-blue); }
 #weatherView .next-hour-axis { margin:4px 0 0; display:flex; justify-content:space-between; font-size:.8rem; color:var(--reading-muted); font-variant-numeric:tabular-nums; }
 #weatherView .next-hour-text { margin:8px 0 0; font-size:.9rem; color:var(--reading-ink,inherit); }
+/* Topo mais limpo (1.23.2, pedido do usuário: "tira essas informações daqui de cima"): no hero fica só o "Vai chover?".
+   A barra de chuva abre o cartão Próximas horas e a nota de ontem fecha o cartão, alinhadas à esquerda como o resto. */
+#weatherView .hourly-peek .rain-gauge { width:100%; margin:2px 0 14px; align-items:flex-start; }
+#weatherView .hourly-peek .rain-gauge-label { text-align:left; }
+#weatherView .hourly-peek .yesterday-note { max-width:none; margin:12px 0 0; text-align:left; font-size:.875rem; }
+#weatherView .hourly-peek .yesterday-note .sk-line { margin:0; }

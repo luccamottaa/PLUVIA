@@ -1593,7 +1593,7 @@ document.querySelectorAll("nav a").forEach(link => link.addEventListener("click"
 // (clip-path); CSS em continuous.css. Só pintura: transform e opacity nos blocos viravam camadas do
 // tamanho da página sobre o céu animado e derrubavam o Safari do iPhone. Ao rolar nada é escondido:
 // revelar o bloco só quando ele entrava na tela, com a página subindo, parecia um corte (outubro/2026).
-const DROP_BLOCKS = ["#yesterdayNote", "#alertBanner", "#alertas", "#tips", ".hourly-peek", ".metrics", ".air-outlook", ".weather-map-section", ".forecast-section", ".sun-section"];
+const DROP_BLOCKS = ["#alertBanner", "#alertas", "#tips", ".hourly-peek", ".metrics", ".air-outlook", ".weather-map-section", ".forecast-section", ".sun-section"];
 function dropMotion() {
   return !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 }

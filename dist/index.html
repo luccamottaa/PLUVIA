@@ -15,7 +15,7 @@
     <script src="./modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-235" />
+    <meta name="pluvia-release" content="pluvia-panel-236" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -195,7 +195,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="./redesign.css?v=panel-50" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-120" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-121" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -358,13 +358,6 @@
             <p class="condition" id="condition">Consultando o tempo…</p>
             <p class="hero-range" id="heroRange"><span class="sk sk-line sk-short" aria-hidden="true"></span></p>
             <p class="rain-answer" id="rainAnswer" data-tone="loading"><span class="sk sk-line" aria-hidden="true"></span></p>
-            <div class="rain-gauge" id="rainGauge" aria-label="Medidor de intensidade de chuva" hidden>
-              <div class="rain-gauge-track" role="progressbar" aria-label="Escala de intensidade de chuva" aria-valuemin="0" aria-valuemax="100">
-                <div class="rain-gauge-fill" id="rainGaugeFill"></div>
-              </div>
-              <p class="rain-gauge-label" id="rainGaugeLabel"></p>
-            </div>
-            <p class="yesterday-note" id="yesterdayNote"><span class="sk sk-line sk-short" aria-hidden="true"></span></p>
             <button id="alertBanner" class="alert-banner" type="button" hidden aria-haspopup="dialog" aria-controls="alertDetail"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg><span><strong id="alertBannerTitle"></strong><small id="alertBannerTime"></small></span><span class="alert-banner-more" aria-hidden="true">›</span></button>
             <div class="city-dots" id="cityDots" role="group" aria-label="Trocar entre suas cidades" hidden></div>
             <div class="favorite-suggest" id="favoriteSuggest" hidden><button id="favoriteSuggestSave" class="favorite-suggest-save" type="button"><span aria-hidden="true">☆</span> Salvar <span id="favoriteSuggestCity">esta cidade</span><span class="favorite-suggest-extra"> nas suas cidades</span></button><button id="favoriteSuggestDismiss" class="favorite-suggest-dismiss" type="button">Agora não</button></div><p class="swipe-hint" id="swipeHint" hidden>Deslize para o lado para trocar de cidade</p>
@@ -385,6 +378,12 @@
       <section class="hourly-peek panel" id="chuva" aria-labelledby="hourlyPeekTitle">
         <div class="hourly-peek-heading"><div class="heading-with-tip"><h2 id="hourlyPeekTitle">Próximas horas</h2><details class="info-tip"><summary aria-label="Sobre a previsão por hora"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p class="rain-phrase" id="rainPhraseWrap"><small id="rainPhraseMeta">Open-Meteo</small></p><p>Previsão por modelos no ponto de referência do município. A chance de chuva aparece quando passa de 20%; toque num horário para ver sensação, volume e rajadas.</p></div></details></div></div>
         <p id="hourlyDecision" class="hourly-decision">Toque em um horário para ver sensação, chuva e rajadas.</p>
+        <div class="rain-gauge" id="rainGauge" aria-label="Medidor de intensidade de chuva" hidden>
+          <div class="rain-gauge-track" role="progressbar" aria-label="Escala de intensidade de chuva" aria-valuemin="0" aria-valuemax="100">
+            <div class="rain-gauge-fill" id="rainGaugeFill"></div>
+          </div>
+          <p class="rain-gauge-label" id="rainGaugeLabel"></p>
+        </div>
         <div class="next-hour" id="nextHour" hidden>
           <p class="next-hour-heading"><span class="next-hour-title">Próxima hora</span> <small id="nextHourTime"></small></p>
           <div class="next-hour-bars" id="nextHourBars" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
@@ -393,6 +392,7 @@
         </div>
         <div class="hourly-peek-list" id="hourlyPeek" role="group" aria-label="Condições nas próximas horas"><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span><span class="hourly-peek-item sk-peek" aria-hidden="true"><span class="peek-time"><span class="sk sk-line sk-short"></span></span><span class="peek-icon"><span class="sk sk-icon"></span></span><span class="peek-rain"></span><strong><span class="sk sk-num"></span></strong></span></div>
         <p class="dry-window-line" hidden><span>Próxima janela seca</span> <strong id="dryWindow">Calculando…</strong></p>
+        <p class="yesterday-note" id="yesterdayNote"><span class="sk sk-line sk-short" aria-hidden="true"></span></p>
         <div class="rain-report" id="rainReport" hidden>
           <p class="rain-report-question" id="rainReportQuestion">Tá chovendo aí?</p>
           <div class="rain-report-options" role="group" aria-labelledby="rainReportQuestion"><button type="button" data-kind="dry" aria-pressed="false">Sem chuva</button><button type="button" data-kind="drizzle" aria-pressed="false">Garoa</button><button type="button" data-kind="rain" aria-pressed="false">Chuva</button><button type="button" data-kind="heavy" aria-pressed="false">Chuva forte</button></div>
@@ -556,7 +556,7 @@
     <script src="./modules/hourly-detail.js?v=detail-8" defer></script>
     <script src="./modules/daily-detail.js?v=daily-3" defer></script>
     <script src="./modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="./app.js?v=panel-122" defer></script>
+    <script src="./app.js?v=panel-123" defer></script>
     <script src="./p0.js?v=panel-48" defer></script>
     <script src="./modules/risks.js?v=core-120" defer></script>
     <script src="./modules/adapters.js?v=core-110" defer></script>
@@ -576,7 +576,7 @@
     <script src="./modules/station-now.js?v=station-4" defer></script>
     <script src="./modules/environment-now.js?v=environment-1" defer></script>
     <script src="./modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="./modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="./modules/voice-search.js?v=voice-1" defer></script><script src="./modules/rain-reports.js?v=rain-reports-1" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-1" defer></script><script src="./modules/changelog.js?v=changelog-269" defer></script>
+    <script src="./modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="./modules/voice-search.js?v=voice-1" defer></script><script src="./modules/rain-reports.js?v=rain-reports-1" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-1" defer></script><script src="./modules/changelog.js?v=changelog-270" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="./modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="./notifications.js?v=panel-36" defer></script>
