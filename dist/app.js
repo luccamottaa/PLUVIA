@@ -828,10 +828,15 @@ function renderVisibility(value, fromCache = false) {
 }
 function paintVisibility() {
   const airport = observedRainState.airport, measured = airport?.visibility && String(observedRainState.stationCity) === String(activeCity?.id) ? airport.visibility : null;
-  const value = measured ? measured.meters : visibilityState.model, fromCache = visibilityState.fromCache;
+  // O METAR para em "10 km ou mais" (9999). Quando o aeroporto confirma isso e o modelo diz mais que 10 km,
+  // mostra o número do modelo (1.25.4, pedido do usuário: ficava sempre "10+ km"); com o modelo abaixo de
+  // 10 km, a medida do aeroporto vence, como antes.
+  const model = visibilityState.model, fromCache = visibilityState.fromCache;
+  const blend = measured?.plus && Number.isFinite(model) && model > 10000;
+  const value = blend ? model : measured ? measured.meters : model;
   const available = Number.isFinite(value) && value >= 0;
   const reduced = available && value < 5000;
-  $("visibilityValue").textContent = !available ? "--" : measured?.plus ? "10+ km" : value < 1000 ? `${fmt(value)} m` : `${fmt(value / 1000, value < 10000 ? 1 : 0)} km`;
+  $("visibilityValue").textContent = !available ? "--" : blend ? `${fmt(value / 1000, 0)} km` : measured?.plus ? "10+ km" : value < 1000 ? `${fmt(value)} m` : `${fmt(value / 1000, value < 10000 ? 1 : 0)} km`;
   // Nota só quando foge do normal ou quando a leitura é medida (diz de onde veio). A classificação vai na
   // própria nota: o antigo selo "Visibilidade reduzida" quebrava em duas linhas e esticava a fileira toda.
   const level = !reduced ? "" : value < 1000 ? "Baixa" : "Reduzida";
@@ -839,9 +844,10 @@ function paintVisibility() {
   // ("Medido" fica no nome acessível do bloco).
   const source = measured ? `aeroporto ${airport.icao} · ${formatUpdateTime(airport.at)}` : "";
   $("visibilityNote").textContent = !available ? "Visibilidade indisponível para esta hora."
+    : blend ? `${airport.icao} 10+ km · modelo`
     : measured ? (level ? `${level} · ${source}` : source.charAt(0).toUpperCase() + source.slice(1))
     : reduced ? `${level} · estimativa do modelo${fromCache ? " salva" : ""}` : "";
-  $("visibilityValue").closest?.(".metric")?.setAttribute("aria-label", measured ? "Visibilidade medida" : "Visibilidade prevista");
+  $("visibilityValue").closest?.(".metric")?.setAttribute("aria-label", blend ? "Visibilidade prevista pelo modelo; o aeroporto mede 10 km ou mais" : measured ? "Visibilidade medida" : "Visibilidade prevista");
 }
 
 function cache(data, metadata = {}) { try { localStorage.setItem(`pluvia-weather-${activeCity.id}`, JSON.stringify({at: Date.now(),weatherAt:metadata.weatherAt || Date.now(),airAt:metadata.airAt || null,data})); } catch {} }

@@ -51,3 +51,20 @@ test('tela: medida no aeroporto vence o modelo e diz de onde veio',()=>{
   api.paintVisibility();
   assert.equal(nodes.visibilityValue.textContent,'4,0 km');assert.equal(nodes.visibilityNote.textContent,'Reduzida · aeroporto SBMN · 11:00');
 });
+
+test('tela: aeroporto em 10+ km e modelo acima disso mostram o número do modelo',()=>{
+  const {nodes,ctx,api}=screen();
+  ctx.observedRainState.airport={icao:'SBEG',at:1,visibility:{meters:10000,plus:true}};ctx.observedRainState.stationCity='1302603';
+  api.renderVisibility(24140,false);
+  assert.equal(nodes.visibilityValue.textContent,'24 km');
+  assert.equal(nodes.visibilityNote.textContent,'SBEG 10+ km · modelo');
+  assert.match(nodes.label,/10 km ou mais/);
+  // Modelo abaixo de 10 km com o aeroporto em 10+: a medida vence.
+  api.renderVisibility(480,false);
+  assert.equal(nodes.visibilityValue.textContent,'10+ km');
+  assert.equal(nodes.visibilityNote.textContent,'Aeroporto SBEG · 11:00');
+  // Aeroporto com valor exato (sem "ou mais"): continua a medida.
+  ctx.observedRainState.airport={icao:'SBEG',at:1,visibility:{meters:8000,plus:false}};
+  api.renderVisibility(24140,false);
+  assert.equal(nodes.visibilityValue.textContent,'8,0 km');
+});
