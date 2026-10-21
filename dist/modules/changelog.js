@@ -12,6 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.25.4", date:"2026-10-21", title:"Visibilidade com número", items:[
+      "Quando o aeroporto informa só \"10 km ou mais\", a visibilidade agora mostra a distância prevista pelo modelo (por exemplo, 24 km) em vez de ficar sempre em \"10+ km\". Com o modelo abaixo de 10 km, continua valendo a medida do aeroporto."]},
     {version:"1.25.3", date:"2026-10-21", title:"Próximos 7 dias alinhados", items:[
       "A chance e o volume de chuva ficaram centrados na coluna, e o nome do dia de hoje aparece em azul, de dia e de noite."]},
     {version:"1.25.2", date:"2026-10-21", title:"Correção de bugs", items:[
