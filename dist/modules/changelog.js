@@ -362,7 +362,9 @@
     opener.textContent = `Novidades · v${current()}`;
     const track = source => runtime.pluviaAnalytics?.track?.("Changelog Opened", {source});
     const closeDialog = target => runtime.PLUVIA?.dialogs?.close?.(target) ?? target.close();
+    let skipPopup = () => {};
     function open(source) {
+      skipPopup();
       body.replaceChildren(...list().map(entry => entryNode(doc, entry)));
       remember(storage);
       if (!dialog.open) dialog.showModal();
@@ -385,6 +387,8 @@
     el("whatsNewAll")?.addEventListener("click", () => { closeDialog(popup); open("update_note"); });
     popup.addEventListener("click", event => { if (event.target === popup) close(); });
     let shown = false, observer = null, timer = 0, settle = 0;
+    // Quem abriu Novidades antes da janela já viu tudo: ela não aparece mais nesta abertura.
+    skipPopup = () => { if (!shown) { shown = true; stop(); } };
     const started = Date.now();
     function ready() {
       const intro = el("pluviaIntro");
