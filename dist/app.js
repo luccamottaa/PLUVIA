@@ -730,6 +730,16 @@ function renderMoonCard(at, astronomy) {
   full.textContent=!Number.isFinite(days) ? 'Indisponível' : days<=0 ? 'hoje' : days===1 ? 'amanhã' : `em ${days} dias`;
 }
 
+// O ponto do Sol/Lua no arco desliza em 1 s (left/top), e cada tique de 30 s movia ~0,1%: uma animação de layout da
+// página inteira por ~60 quadros, mesmo com o card fora da tela (o único trabalho do app parado, 1.25). Só reescreve
+// quando a posição anda algo visível; troca de cidade ou de dia continua deslizando.
+function moveArcDot(node, point) {
+  if (!node) return;
+  const last = node.pluviaArc;
+  if (last && Math.abs(last.left - point.left) < 0.5 && Math.abs(last.top - point.top) < 1) return;
+  node.pluviaArc = {left:point.left, top:point.top};
+  node.style.left = `${point.left}%`; node.style.top = `${point.top}px`;
+}
 function renderSun(daily, at = Date.now(), hourly = null) {
   const astronomy=globalThis.PLUVIA?.sky?.astronomyAt?.(at);
   const astronomyFields={civilDawn:astronomy?.dawn,civilDusk:astronomy?.dusk,moonrise:astronomy?.moonRise,moonset:astronomy?.moonSet};
@@ -764,7 +774,7 @@ function renderSun(daily, at = Date.now(), hourly = null) {
     moonDot.hidden = !night;
     if (night) {
       const moonPoint = solarArcPoint((at - nightStart) / (nightEnd - nightStart));
-      moonDot.style.left = `${moonPoint.left}%`; moonDot.style.top = `${moonPoint.top}px`;
+      moveArcDot(moonDot, moonPoint);
     }
   }
   if (!available) {
@@ -779,7 +789,7 @@ function renderSun(daily, at = Date.now(), hourly = null) {
   $("sunrise").textContent = formatUpdateTime(rise); $("sunset").textContent = formatUpdateTime(set);
   $("daylight").textContent = `${Math.floor(minutes / 60)}h ${minutes % 60}min de luz`;
   const point = solarArcPoint((at - rise) / (set - rise));
-  $("sunDot").style.left = `${point.left}%`; $("sunDot").style.top = `${point.top}px`;
+  moveArcDot($("sunDot"), point);
   const duration = ms => { const total = Math.max(1, Math.ceil(ms / 60000)); return total < 60 ? `${total} min` : `${Math.floor(total / 60)}h ${String(total % 60).padStart(2, "0")}min`; };
   const nextRise = at < rise ? rise : globalThis.PLUVIA?.sky?.dayAt?.(at + 86400000)?.rise;
   // Uma linha só (a duração do dia e o que falta); os horários ficam nas pontas do arco.

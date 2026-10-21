@@ -1022,6 +1022,9 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 @keyframes pluvia-drop { from { top:-18px; clip-path:inset(0 0 100% 0); } to { top:0; clip-path:inset(-40px); } }
 /* Cidade sem previsão salva: o bloco fica guardado (recortado) até a previsão chegar e então desce (app.js). */
 #weatherView [data-drop="hold"] { clip-path:inset(0 0 100% 0); }
+/* Contém a pintura de cada bloco durante a descida: sem isso o top + clip-path repintava a camada da página inteira
+   ~50 vezes por troca (1.25, medido: −35% de pintura); não cria camada (14 antes e depois). */
+#weatherView [data-drop] { contain:paint; }
 @media (prefers-reduced-motion:reduce) { #weatherView [data-drop] { clip-path:none; animation:none; } }
 /* ⓘ abre e fecha pela altura (grid 0fr ↔ 1fr), empurrando o conteúdo de baixo sem criar camadas. */
 #weatherView .info-tip-body[data-inline] { display:grid; grid-template-rows:1fr; transition:grid-template-rows .3s cubic-bezier(.3,.7,.2,1),margin .3s cubic-bezier(.3,.7,.2,1),padding .3s cubic-bezier(.3,.7,.2,1),border-color .3s,color .3s; }
