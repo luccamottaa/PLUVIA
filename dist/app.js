@@ -622,7 +622,7 @@ function renderForecast(days, currentTemperature, at = Date.now()) {
     const showVolume = !Number.isFinite(rainMm) || rainMm >= 0.5;
     // Sem aria-label: o nome do botão é o texto visível (WCAG 2.5.3); a faixa de temperatura tem o próprio
     // rótulo e os trechos .peek-extra completam a leitura só para leitores de tela.
-    return `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}" data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog">
+    return `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}"${date === today ? " data-today" : ""} data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog">
       <span class="forecast-day"><strong><span class="day-full">${day}</span>${day === "Hoje" ? "" : `<span class="day-short" aria-hidden="true">${day.slice(0,3)}</span>`}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
       <span class="forecast-condition"><i>${weatherIcons.markup(days[i].weatherCode, true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
       <span class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</span><strong aria-hidden="true">${fmt(max)}°</strong></span>
