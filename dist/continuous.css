@@ -253,11 +253,6 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
   #weatherView .forecast-list .forecast-row > .forecast-uv { display:block; grid-column:2 / -1; grid-row:2; text-align:left; color:var(--reading-muted); }
 }
 #weatherView .forecast-row.best-day .forecast-day > strong { color:var(--reading-link); }
-/* Hoje (1.25.1, pedido do usuário): nome no azul da marca e um fundo suave na linha inteira. Só a cor do texto
-   confundiria com o dia mais seco da semana (.best-day), que já usa o mesmo azul. Só pintura. */
-#weatherView .forecast-list .forecast-row[data-today] { border-radius:16px; border-color:transparent; background:color-mix(in srgb,var(--brand-blue) 14%,transparent); }
-#weatherView .forecast-list .forecast-row[data-today] + .forecast-row { border-top-color:transparent; }
-#weatherView .forecast-row[data-today] .forecast-day > strong { color:var(--brand-blue); font-weight:700; }
 #weatherView .sun-section { min-height:0; gap:22px; }
 #weatherView .sun-section :is(.sun-copy p,.sun-times span,.sunshine-note,.moon-inline) { color:var(--reading-muted); }
 #weatherView .sun-section .arc-line path { stroke:var(--reading-line); }
@@ -1934,15 +1929,17 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 #weatherView .forecast-list .forecast-day > strong :is(.day-full,.day-short) { font-size:inherit; }
 @media(max-width:720px) { #weatherView .forecast-list .forecast-day > strong { font-size:1.125rem; } }
 @media(max-width:374px) { #weatherView .forecast-list .forecast-day > strong { font-size:1.05rem; } }
-/* 7 dias (1.25.3, pedido do usuário: "centraliza tudo" e "uma cor que indica o dia atual"): chance e volume
-   centrados na própria coluna (alinhados à direita, as linhas só com a chance pareciam tortas) e hoje num azul
-   de verdade, com contorno fino, em vez do véu claro que de noite parecia branco. Só pintura. */
+/* 7 dias (1.25.3, pedido do usuário: "centraliza tudo" e a cor do dia atual "nas letras, não no fundo"):
+   chance e volume centrados na própria coluna (alinhados à direita, as linhas só com a chance pareciam tortas)
+   e hoje sem fundo, com o nome num azul vivo: #6fb1ff com tinta clara (7,5:1) e #0f4aa8 com tinta escura
+   (4,7:1 no cartão de dia). O azul da marca à noite (#b7d2ff) quase não se distinguia do branco. Só pintura. */
 #weatherView .forecast-list .forecast-row > .forecast-condition { justify-self:center; align-self:center; }
 @media(max-width:720px) {
   #weatherView .forecast-list .forecast-rain-values { justify-items:center; text-align:center; }
   #weatherView .forecast-list :is(.forecast-rain-chance,.forecast-rain-volume) { min-width:0; text-align:center; }
 }
-#weatherView .forecast-list .forecast-row[data-today] { background:rgba(74,144,255,.26); box-shadow:inset 0 0 0 1px rgba(132,184,255,.5); }
-#weatherView .forecast-row[data-today] .forecast-day > strong { color:#fff; }
-body[data-ink="dark"] #weatherView .forecast-list .forecast-row[data-today] { background:rgba(47,107,255,.16); box-shadow:inset 0 0 0 1px rgba(47,107,255,.38); }
-body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong { color:var(--brand-blue); }
+/* O nome fica num <span> que outras folhas pintam: a cor vai também nele. */
+#weatherView .forecast-row[data-today] .forecast-day > strong,
+#weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#6fb1ff; font-weight:700; }
+body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong,
+body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#0f4aa8; }

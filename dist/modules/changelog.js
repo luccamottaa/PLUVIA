@@ -13,7 +13,7 @@
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
     {version:"1.25.3", date:"2026-10-21", title:"Próximos 7 dias alinhados", items:[
-      "A chance e o volume de chuva ficaram centrados na coluna, e o dia de hoje ganhou um destaque azul com contorno, de dia e de noite."]},
+      "A chance e o volume de chuva ficaram centrados na coluna, e o nome do dia de hoje aparece em azul, de dia e de noite."]},
     {version:"1.25.2", date:"2026-10-21", title:"Correção de bugs", items:[
       "A cidade salva não troca mais por Manaus quando a internet está lenta na abertura.",
       "Os favoritos de uma conta não passam mais para outra conta no mesmo aparelho.",
