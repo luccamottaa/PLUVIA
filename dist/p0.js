@@ -6,7 +6,8 @@ function pinTop() {
 function moveCityResult(direction) {
   const items = [...document.querySelectorAll(".city-result")];
   if (!items.length) return;
-  activeResultIndex = (activeResultIndex + direction + items.length) % items.length;
+  // Sem resultado ativo, ↑ vai ao último (com -1, a conta caía no penúltimo).
+  activeResultIndex = activeResultIndex < 0 ? (direction > 0 ? 0 : items.length - 1) : (activeResultIndex + direction + items.length) % items.length;
   items.forEach((item, index) => item.setAttribute("aria-selected", String(index === activeResultIndex)));
   items[activeResultIndex].focus();
 }
@@ -36,9 +37,11 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   let fallbackTimer;
   if (pageCity) chooseCity(pageCity.id);
   else if (saved) chooseCity(saved.id);
-  else if (savedId) ensureMunicipalities().then(() => {
-    if (!activeCity && cityById.has(savedId)) chooseCity(savedId);
-  }).catch(() => {});
+  // Cidade salva fora do índice leve: o arquivo do estado basta (a base completa é do GPS). Sem
+  // o prazo de 1,65 s: Manaus escolhida nesse meio-tempo apagava a cidade salva de vez.
+  else if (savedId) ensureCityDetails(savedId).then(city => {
+    if (!activeCity) chooseCity(city ? city.id : fallback?.id);
+  }).catch(() => { if (!activeCity && fallback) chooseCity(fallback.id); });
   else {
     if (typeof prefetchForecast === "function" && fallback) prefetchForecast(fallback);
     // index.html already shows this notice in the first paint when no city is
@@ -81,7 +84,7 @@ document.getElementById("cityResults")?.addEventListener("click", event => {
   // scrollTo força o primeiro layout da página inteira (~130 ms com CPU lenta): no próximo quadro ele
   // sai da tarefa de abertura e aproveita o layout que o quadro faria de qualquer jeito.
   if (typeof requestAnimationFrame === "function") requestAnimationFrame(pinTop); else pinTop();
-  setTimeout(() => { clearTimeout(fallbackTimer); if (!activeCity && fallback) chooseCity(fallback.id); }, 1650);
+  if (!savedId || saved || pageCity) setTimeout(() => { clearTimeout(fallbackTimer); if (!activeCity && fallback) chooseCity(fallback.id); }, 1650);
 })();
 if ("serviceWorker" in navigator && window.isSecureContext) {
   let hadController = Boolean(navigator.serviceWorker.controller);
