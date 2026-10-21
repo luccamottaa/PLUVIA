@@ -37,6 +37,14 @@ async function fetchForecast(city = activeCity, revision = cityRevision) {
 }
 
 
+// O fetch da previsão iniciado no topo do index.html (primeira visita) é usado uma única vez, só para a mesma URL e
+// por até 2 min, com prazo de 12 s; sem ele, falha, atraso ou resposta inválida, vale a consulta normal.
+function takeEarlyForecast(city) {
+  const early = globalThis.PLUVIA_EARLY_FORECAST;
+  globalThis.PLUVIA_EARLY_FORECAST = null;
+  if (!early?.promise || early.url !== services?.weather?.forecastUrl?.(city) || !(Date.now() - early.at < 2 * 60000)) return null;
+  return Promise.race([early.promise, new Promise((_, reject) => setTimeout(() => reject(new Error("Prazo esgotado.")), 12000))]);
+}
 function prefetchForecast(city) {
   if (!city) return;
   try {
@@ -44,7 +52,11 @@ function prefetchForecast(city) {
     const age = Date.now() - saved?.at;
     if (age >= 0 && age <= CACHE_MAX_AGE_MS && validForecast(saved?.data?.forecast)) return;
   } catch {}
-  const promise = fetchForecast(city, cityRevision);
+  const early = takeEarlyForecast(city);
+  const promise = early ? early.then(data => {
+    if (!validForecast(data)) throw new Error("Previsão incompleta.");
+    return data;
+  }).catch(() => fetchForecast(city, cityRevision)) : fetchForecast(city, cityRevision);
   prefetchedForecast = {cityId:city.id, at:Date.now(), promise};
   promise.then(data => {
     try {

@@ -48,17 +48,20 @@
     <link rel="preconnect" href="https://air-quality-api.open-meteo.com" crossorigin />
     <link rel="preconnect" href="https://dszyyrcvwrpyiypwyvxe.supabase.co" crossorigin />
     <!-- Nuvem do fundo da intro: é o LCP do PageSpeed e só seria descoberta depois de sky.css e dos scripts do céu. -->
-    <!-- Primeira visita (sem cidade salva, fora das páginas de cidade): a previsão de Manaus, o ar e os avisos do
-         INMET começam a baixar já aqui, em vez de esperar ~30 scripts até o p0 (~3 s com CPU 4× e 3G; 1.25). O fetch do
-         app reaproveita a resposta. As URLs são as de weather-services.js para Manaus (tests/first-visit-preload). -->
+    <!-- Primeira visita (sem cidade salva, fora das páginas de cidade): a previsão de Manaus começa a baixar já aqui,
+         em vez de esperar ~30 scripts até o p0 (~3 s com CPU 4× e 3G; 1.25). É um fetch guardado em
+         PLUVIA_EARLY_FORECAST que o prefetchForecast do app consome uma única vez: um <link rel=preload> podia ser
+         reaproveitado pelo WebKit nas atualizações seguintes da mesma URL, trazendo a previsão velha. A URL é a de
+         weather-services.js para Manaus (tests/first-visit-preload). -->
     <script>
       try {
-        if (localStorage.getItem("pluvia-city") == null && !document.querySelector('meta[name="pluvia-city"]')) {
-          ["https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&timezone=America%2FManaus&current=temperature_2m%2Crelative_humidity_2m%2Capparent_temperature%2Cis_day%2Cprecipitation%2Crain%2Cshowers%2Cweather_code%2Ccloud_cover%2Cpressure_msl%2Csurface_pressure%2Cwind_speed_10m%2Cwind_direction_10m%2Cwind_gusts_10m&hourly=temperature_2m%2Capparent_temperature%2Cprecipitation_probability%2Cprecipitation%2Crain%2Cweather_code%2Ccloud_cover%2Ccloud_cover_low%2Ccloud_cover_mid%2Ccloud_cover_high%2Ccape%2Cvisibility%2Cwind_speed_10m%2Cwind_direction_10m%2Cwind_gusts_10m%2Crelative_humidity_2m%2Cpressure_msl%2Cuv_index&daily=weather_code%2Ctemperature_2m_max%2Ctemperature_2m_min%2Capparent_temperature_max%2Capparent_temperature_min%2Cprecipitation_sum%2Crain_sum%2Cprecipitation_probability_max%2Cuv_index_max%2Csunrise%2Csunset%2Csunshine_duration%2Cdaylight_duration&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&past_hours=24&forecast_days=8", "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-3.119&longitude=-60.022&timezone=America%2FManaus&current=pm10%2Cpm2_5%2Ccarbon_monoxide%2Cnitrogen_dioxide%2Cozone%2Cus_aqi&hourly=pm2_5%2Cus_aqi&past_hours=24&forecast_days=4", "https://apiprevmet3.inmet.gov.br/avisos/ativos"].forEach(function (href) {
-            var link = document.createElement("link");
-            link.rel = "preload"; link.as = "fetch"; link.crossOrigin = "anonymous"; link.href = href;
-            document.head.appendChild(link);
-          });
+        if (window.fetch && localStorage.getItem("pluvia-city") == null && !document.querySelector('meta[name="pluvia-city"]')) {
+          var earlyUrl = "https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&timezone=America%2FManaus&current=temperature_2m%2Crelative_humidity_2m%2Capparent_temperature%2Cis_day%2Cprecipitation%2Crain%2Cshowers%2Cweather_code%2Ccloud_cover%2Cpressure_msl%2Csurface_pressure%2Cwind_speed_10m%2Cwind_direction_10m%2Cwind_gusts_10m&hourly=temperature_2m%2Capparent_temperature%2Cprecipitation_probability%2Cprecipitation%2Crain%2Cweather_code%2Ccloud_cover%2Ccloud_cover_low%2Ccloud_cover_mid%2Ccloud_cover_high%2Ccape%2Cvisibility%2Cwind_speed_10m%2Cwind_direction_10m%2Cwind_gusts_10m%2Crelative_humidity_2m%2Cpressure_msl%2Cuv_index&daily=weather_code%2Ctemperature_2m_max%2Ctemperature_2m_min%2Capparent_temperature_max%2Capparent_temperature_min%2Cprecipitation_sum%2Crain_sum%2Cprecipitation_probability_max%2Cuv_index_max%2Csunrise%2Csunset%2Csunshine_duration%2Cdaylight_duration&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&past_hours=24&forecast_days=8";
+          window.PLUVIA_EARLY_FORECAST = { url: earlyUrl, at: Date.now(), promise: window.fetch(earlyUrl, { credentials: "omit" }).then(function (response) {
+            if (!response.ok) throw new Error("HTTP " + response.status);
+            return response.json();
+          }) };
+          window.PLUVIA_EARLY_FORECAST.promise.catch(function () {});
         }
       } catch (_) {}
     </script>
