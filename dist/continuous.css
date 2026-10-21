@@ -253,6 +253,11 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
   #weatherView .forecast-list .forecast-row > .forecast-uv { display:block; grid-column:2 / -1; grid-row:2; text-align:left; color:var(--reading-muted); }
 }
 #weatherView .forecast-row.best-day .forecast-day > strong { color:var(--reading-link); }
+/* Hoje (1.25.1, pedido do usuário): nome no azul da marca e um fundo suave na linha inteira. Só a cor do texto
+   confundiria com o dia mais seco da semana (.best-day), que já usa o mesmo azul. Só pintura. */
+#weatherView .forecast-list .forecast-row[data-today] { border-radius:16px; border-color:transparent; background:color-mix(in srgb,var(--brand-blue) 14%,transparent); }
+#weatherView .forecast-list .forecast-row[data-today] + .forecast-row { border-top-color:transparent; }
+#weatherView .forecast-row[data-today] .forecast-day > strong { color:var(--brand-blue); font-weight:700; }
 #weatherView .sun-section { min-height:0; gap:22px; }
 #weatherView .sun-section :is(.sun-copy p,.sun-times span,.sunshine-note,.moon-inline) { color:var(--reading-muted); }
 #weatherView .sun-section .arc-line path { stroke:var(--reading-line); }
@@ -1243,7 +1248,10 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 /* 7 dias no celular: a barra mínima-máxima ficava espremida (~33 px em 393 px). O dia tem largura
    própria até 4,5rem (cabe "Domingo"), a chuva 3,5rem e as temperaturas trilhos de 3,4ch; o resto vai para a barra. */
 @media(max-width:720px) {
-  #weatherView .forecast-list .forecast-row { grid-template-columns:minmax(3.25rem,4.5rem) 32px 3.5rem minmax(6.4rem,1fr); column-gap:8px; }
+  /* 1.25.1 (pedido do usuário): nome do dia maior (1,125rem, coluna até 4,9rem: cabe "Domingo") e o ícone no meio do
+     espaço entre o dia e a chuva (coluna flexível, ícone centrado), em vez de colado no nome. */
+  #weatherView .forecast-list .forecast-row { grid-template-columns:minmax(3.6rem,4.9rem) 44px 3.5rem minmax(6.4rem,1fr); column-gap:6px; }
+  #weatherView .forecast-list .forecast-row > .forecast-condition { justify-self:center; }
   #weatherView .forecast-list .forecast-row > .temp-range { grid-template-columns:3.4ch minmax(24px,1fr) 3.4ch; column-gap:6px; }
   #weatherView .forecast-list .forecast-day > strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 }
@@ -1916,3 +1924,13 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 #weatherView .tips-rain .rain-answer[data-tone="loading"] .sk-line { margin:0; }
 #weatherView .tips-list { margin-top:10px; }
 #weatherView .tips-list[hidden] { display:none; }
+
+/* 7 dias (1.25.1, pedido do usuário): todas as linhas com o mesmo recuo interno de 10 px e a lista 10 px para fora,
+   para o fundo de "Hoje" caber sem mudar as colunas; nome do dia maior no celular. No fim do arquivo para vencer as
+   regras de padding das linhas acima. */
+#weatherView .forecast-list { width:calc(100% + 20px); max-width:none; margin-inline:-10px; }
+#weatherView .forecast-list > .forecast-row { padding-inline:10px; }
+/* O nome fica num <span> dentro do <strong>, e styles.css põe todo span de .forecast-day em .75rem: herda o tamanho do strong. */
+#weatherView .forecast-list .forecast-day > strong :is(.day-full,.day-short) { font-size:inherit; }
+@media(max-width:720px) { #weatherView .forecast-list .forecast-day > strong { font-size:1.125rem; } }
+@media(max-width:374px) { #weatherView .forecast-list .forecast-day > strong { font-size:1.05rem; } }

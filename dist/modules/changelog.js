@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.25.1", date:"2026-10-21", title:"Próximos 7 dias mais legíveis", items:[
+      "Os nomes dos dias ficaram maiores, os ícones mais no centro da linha, e o dia de hoje ganhou destaque com cor e fundo próprio.",
+    ]},
     {version:"1.25", date:"2026-10-21", title:"Intro nova, céu nublado e mais rápido", items:[
       "A abertura ganhou vida: a gota cai, abre as ondinhas na água e o PLUVIA aparece. Para quem já viu, ela é bem mais curta e some assim que a previsão chega.",
       "Dia nublado agora tem cara de dia nublado: céu cinza-chumbo, texto branco e cartões escuros, como no app Tempo do iPhone. Garoa e chuva fraca também.",
