@@ -2,7 +2,8 @@
   const dateFormat=(locale,options)=>globalThis.PLUVIA?.time?.dateFormat?.(locale,options) ?? new Intl.DateTimeFormat(locale,options);
   const $ = id => document.getElementById(id);
   // Cor da marca da tinta atual (azul-claro de noite, azul-marinho de dia), lida do CSS ao criar a marca da cidade.
-  const brandColor = () => getComputedStyle(document.documentElement).getPropertyValue('--brand-blue').trim() || '#2f557f';
+  // De dia o mapa é claro: azul-marinho mesmo com tinta clara (céu cinza); à noite, o azul da marca da tinta.
+  const brandColor = () => document.body?.dataset?.phase === 'day' ? '#2f557f' : getComputedStyle(document.documentElement).getPropertyValue('--brand-blue').trim() || '#2f557f';
   const mapCard = document.querySelector('.weather-map-card');
   if (!mapCard || !$('weatherMap')) return;
 

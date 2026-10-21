@@ -60,7 +60,10 @@
       const solar=state.dayAt?.(time.parse(reading.date+'T12:00',state.city));
       el('dailyDetailSunrise').textContent=stamp(solar?.rise);el('dailyDetailSunset').textContent=stamp(solar?.set);
       el('dailyDetailHoursNote').textContent=reading.hours.length ? `${reading.hours.length} horários disponíveis${reading.complete ? ' para este dia' : ' · dados horários parciais'}. Vento e rajadas representam os maiores valores desses horários.` : 'Detalhes horários indisponíveis para este dia. Os totais acima vêm da previsão diária.';
-      el('dailyDetailSource').textContent=(state.fromCache ? 'Dados salvos · ' : 'Previsão por modelos · ')+`MET Norway / Open-Meteo · horário de ${state.city.name}.`;
+      // Fonte da leitura real (desde a 1.9.1 a previsão normal é só do Open-Meteo; o MET entra só na reduzida).
+      const weather=root.PLUVIA?.weatherData?.get?.(state.city.id)?.source?.weather;
+      const source=weather==='met-norway' ? 'MET Norway' : weather==='met-norway+open-meteo' ? 'MET Norway / Open-Meteo' : 'Open-Meteo';
+      el('dailyDetailSource').textContent=(state.fromCache ? 'Dados salvos · ' : weather==='met-norway' ? 'Previsão reduzida · ' : 'Previsão por modelos · ')+`${source} · horário de ${state.city.name}.`;
       const list=el('dailyDetailHours'),scroll=list.scrollLeft,focused=doc.activeElement;
       const existing=new Map([...list.children].map(button=>[button.dataset.hourTime,button])),buttons=[];
       for(const hour of reading.hours) {
@@ -81,6 +84,8 @@
       if(focused?.classList.contains('daily-hour') && focused.isConnected) focused.focus({preventScroll:true});
       const days=available(),position=days.findIndex(day=>day.date===selectedDate);
       el('dailyDetailPrev').disabled=position<=0;el('dailyDetailNext').disabled=position>=days.length-1;
+      // O botão que tinha o foco pode ter ficado desabilitado (último/primeiro dia): o foco iria para o body.
+      if(dialog.open && (doc.activeElement===doc.body || doc.activeElement?.disabled)) (el('dailyDetailNext').disabled ? el('dailyDetailPrev') : el('dailyDetailNext'))?.focus?.({preventScroll:true});
       return true;
     }
     function update(next) {

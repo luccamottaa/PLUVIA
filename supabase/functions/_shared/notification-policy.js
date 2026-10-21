@@ -39,7 +39,10 @@ export function isRepeat(candidate,deliveries,now=Date.now()) {
   if(['official_alert','daily_summary','evening_summary'].includes(candidate.type)) return false;
   return deliveries.some(delivery=>{
     const prior=delivery.notification_events;
-    if(!prior || prior.city_id!==candidate.cityId || eventGroup(prior)!==eventGroup(candidate) || prior.severity<candidate.severity) return false;
+    // "Chuva chegando" (radar) já avisou esta chuva: o "chuva nas próximas horas" do modelo que sobra no lote
+    // quando o radar para de falar (faltam < 10 min) seria o segundo aviso do mesmo episódio.
+    const related=eventGroup(prior)===eventGroup(candidate) || candidate.type==='rain_approaching' && prior.event_type==='rain_incoming';
+    if(!prior || prior.city_id!==candidate.cityId || !related || prior.severity<candidate.severity) return false;
     const at=Date.parse(delivery.sent_at || delivery.created_at);
     const age=now-at;
     return age>=0 && (delivery.status==='accepted' && age<6*3600000 || delivery.status==='pending' && age<120000);

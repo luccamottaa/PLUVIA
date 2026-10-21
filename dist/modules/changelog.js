@@ -12,6 +12,12 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.25", date:"2026-10-21", title:"Intro nova, céu nublado e mais rápido", items:[
+      "A abertura ganhou vida: a gota cai, abre as ondinhas na água e o PLUVIA aparece. Para quem já viu, ela é bem mais curta e some assim que a previsão chega.",
+      "Dia nublado agora tem cara de dia nublado: céu cinza-chumbo, texto branco e cartões escuros, como no app Tempo do iPhone. Garoa e chuva fraca também.",
+      "Na primeira visita a previsão começa a baixar logo de cara e aparece até quase 1 segundo antes, gastando menos internet.",
+      "Mais de 25 correções: busca por “Pé de Serra” e “Sento Sé”, “-0°” no frio, janela seca que dizia “amanhã” para depois de amanhã, avisos de chuva repetidos, resumos que podiam não chegar, botão de avisos que desligava em vez de tentar de novo, radar ilegível no céu cinza e mais.",
+    ]},
     {version:"1.24.1", date:"2026-10-20", title:"Correção de bugs e melhoria de desempenho", items:[
       "No Chrome e no Android, o sol e a lua atrás das nuvens apareciam cortados demais nos ícones; agora o recorte fica só em volta da nuvem.",
       "As barras de “Chuva na próxima hora” voltaram a ficar azuis quando há chuva.",

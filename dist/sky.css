@@ -29,6 +29,10 @@
 :root[data-phase="day"][data-ink="light"] { --sky-base:#222a35; --sky-color:linear-gradient(165deg,#2b3340,#1d242e 70%,#222a35); --cloud-opacity:1; --cloud-filter:brightness(.44) saturate(.55); --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; --lightning-opacity:.85; }
 :root[data-phase="day"][data-ink="light"][data-rain="heavy"] { --cloud-filter:brightness(.42) saturate(.5); }
 :root[data-phase="day"][data-ink="light"][data-weather="storm"] { --sky-base:#1e2232; --sky-color:linear-gradient(165deg,#2a2e42,#191d2b 70%,#1e2232); --cloud-filter:brightness(.4) sepia(.3) hue-rotate(195deg) saturate(1.1); }
+/* Nublado, garoa e chuva fraca de dia (1.25, referência do usuário: o nublado do Apple Weather): céu cinza-chumbo,
+   nuvens em textura cinza e tinta clara. Mais claro que a chuva forte e a trovoada, que continuam no teto escuro. */
+:root[data-phase="day"][data-ink="light"][data-weather="cloud"] { --sky-base:#56606a; --sky-color:linear-gradient(180deg,#434b55,#545d67 55%,#616a74); --cloud-filter:brightness(.46) saturate(.2); }
+:root[data-phase="day"][data-ink="light"][data-weather="rain"]:not([data-rain="moderate"]):not([data-rain="heavy"]) { --sky-base:#4d5660; --sky-color:linear-gradient(180deg,#3b434c,#4b545e 55%,#57606a); --cloud-filter:brightness(.42) saturate(.2); }
 :root[data-weather="fog"] { --sky-base:#111c2c; --sky-color:linear-gradient(180deg,#35405788,#111c2c); --cloud-opacity:.3; }
 :root[data-weather="fog"][data-phase="day"] { --sky-base:#c0d1dd; --sky-color:linear-gradient(165deg,#aabfcf,#e0e9ef); --cloud-opacity:.5; }
 :root[data-weather="snow"] { --sky-base:#0e1a2d; --sky-color:linear-gradient(165deg,#29364e,#0e1a2d); --cloud-opacity:.65; }
@@ -42,8 +46,6 @@ html,body { background:var(--sky-base); }
 .pluvia-intro .intro-wordmark { color:var(--brand-blue,#2f6bff); }
 .pluvia-intro .intro-tagline { color:var(--intro-ink); }
 .pluvia-intro .intro-kicker { z-index:1; color:var(--intro-muted); }
-.pluvia-intro .intro-progress { z-index:1; background:color-mix(in srgb,var(--intro-ink) 18%,transparent); }
-.pluvia-intro .intro-progress span { background:var(--intro-ink); }
 .night-stage::before { content:""; position:absolute; inset:0 0 auto; z-index:-1; pointer-events:none; background-image:var(--sky-color); opacity:1; height:min(1450px,160vh); -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); }
 .night-stage::after { display:none; }
 /* Twilight belongs to the viewport, outside the masked weather effects.

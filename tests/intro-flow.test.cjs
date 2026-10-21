@@ -104,3 +104,19 @@ test('voltar logo depois de o iPhone fechar o app não repete a intro; depois de
   const clockBack = runIntro({ local: { 'pluvia-intro-at': String(now + 3600e3) }, now });
   assert.equal(clockBack.intro.hidden, false, 'relógio que voltou no tempo não esconde a intro para sempre');
 });
+
+test('quem já viu uma intro ganha a versão rápida: 0,9 s de mínimo e 2,5 s de limite', () => {
+  const now = Date.parse('2026-10-09T05:00:00Z');
+  const first = runIntro({ local: {}, now });
+  assert.equal(first.timers[0].delay, 2600, 'primeira visita: intro completa');
+  assert.equal(first.intro.dataset.quick, undefined);
+  const later = runIntro({ local: { 'pluvia-intro-at': String(now - 4 * 3600e3) }, now });
+  assert.equal(later.intro.dataset.quick, '1');
+  assert.equal(later.timers[0].delay, 900);
+  assert.ok(later.timers.some(timer => timer.delay === 2500));
+  later.listeners['pluvia:refresh-settled']();
+  later.timers[0].callback();
+  assert.deepEqual(later.intro.classList.classes, ['is-leaving']);
+  assert.equal(runIntro({ storageBlocked: true }).timers[0].delay, 2600, 'sem storage não dá para saber: completa');
+});
+

@@ -16,8 +16,12 @@
     const lines=[`${city.name}/${city.region} · ${Math.round(current.temperature)} °C · ${condition}`];
     if(Number.isFinite(current.apparentTemperature)) lines.push(`Sensação ${Math.round(current.apparentTemperature)} °C`);
     lines.push(`${saved ? 'Leitura salva' : 'Dados meteorológicos'} de ${stamp} · horário local`,
-      snapshot.source.weather==='met-norway+open-meteo' ? 'Previsão por modelos · MET Norway / Open-Meteo' : 'Previsão por modelos · Open-Meteo');
+      sourceLine(snapshot.source.weather));
     return {title:'PLUVIA · '+city.name,text:lines.join('\n'),url:URL};
+  }
+  // Previsão reduzida (Open-Meteo fora do ar) é só do MET Norway, que pede o crédito CC BY.
+  function sourceLine(weather) {
+    return weather==='met-norway' ? 'Previsão reduzida · MET Norway (CC BY 4.0)' : weather==='met-norway+open-meteo' ? 'Previsão por modelos · MET Norway / Open-Meteo' : 'Previsão por modelos · Open-Meteo';
   }
   async function deliver(payload,navigator) {
     if(!payload) return 'unavailable';

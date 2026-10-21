@@ -89,7 +89,7 @@
   // Frase do "Vai chover?" a partir da chegada já descontado o tempo desde a imagem.
   function answer(result, now = Date.now()) {
     if (!result || !Number.isFinite(result.frameAt) || !Number.isFinite(result.minutes)) return null;
-    const age = (now - result.frameAt) / 60_000;
+    const age = Math.max(0, (now - result.frameAt) / 60_000);
     if (age > MAX_FRAME_AGE_MS / 60_000) return null;
     const left = result.minutes - age;
     if (left < 5) return null;

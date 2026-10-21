@@ -61,7 +61,7 @@ test('biblioteca carrega uma vez, sob demanda, pelo caminho da raiz; falha permi
 test('a biblioteca não entra na abertura nem no precache; o módulo e a licença acompanham', () => {
   const html = fs.readFileSync('dist/index.html', 'utf8'), sw = fs.readFileSync('dist/sw.js', 'utf8');
   assert.doesNotMatch(html, /astronomy-2\.1\.19/);assert.doesNotMatch(sw, /astronomy-2\.1\.19/);
-  assert.match(html, /modules\/eclipses\.js\?v=eclipses-2/);assert.match(sw, /modules\/eclipses\.js\?v=eclipses-2/);
+  assert.match(html, /modules\/eclipses\.js\?v=eclipses-3/);assert.match(sw, /modules\/eclipses\.js\?v=eclipses-3/);
   assert.match(fs.readFileSync('dist/vendor/astronomy-LICENSE', 'utf8'), /MIT License/);
   assert.match(html, /Astronomy Engine<\/a> \(MIT\)/);
 });

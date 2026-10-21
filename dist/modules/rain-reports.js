@@ -38,12 +38,12 @@
     return id;
   }
 
-  function mount({doc = runtime.document, storage = runtime.localStorage, crypto = runtime.crypto, http = runtime.PLUVIA?.http, now = () => Date.now()} = {}) {
+  function mount({doc = runtime.document, storage = runtime.localStorage, crypto = runtime.crypto, http = runtime.PLUVIA?.http, now = () => Date.now(), setTimer = setTimeout, clearTimer = clearTimeout} = {}) {
     const box = doc?.getElementById?.("rainReport"), summary = doc?.getElementById?.("rainReportSummary");
     if (!box || !summary) return null;
     const client = http?.createClient?.({defaultTimeoutMs:8000});
     const buttons = [...box.querySelectorAll("[data-kind]")];
-    let city = null, revision = 0, cache = new Map();
+    let city = null, revision = 0, cache = new Map(), unlockTimer = 0;
     const headers = {apikey:KEY, Authorization:`Bearer ${KEY}`};
     // O cartão só aparece depois que o servidor respondeu uma vez (a função precisa estar publicada);
     // daí em diante este aparelho já o mostra na abertura, sem empurrar a página.
@@ -58,6 +58,10 @@
         button.disabled = Boolean(recent);
       }
       box.toggleAttribute("data-answered", Boolean(recent));
+      // Com o app aberto, os botões voltam sozinhos quando os 15 min passam (antes ficavam desabilitados até
+      // trocar de cidade) e o resumo da última hora é relido.
+      clearTimer(unlockTimer);
+      if (recent) unlockTimer = setTimer(() => { paintAnswer(); loadSummary(true); }, Math.max(0, ANSWER_MS - (now() - answer.at)) + 50);
       return recent;
     }
 
@@ -127,6 +131,8 @@
       const button = event.target.closest?.("[data-kind]");
       if (button && !button.disabled) report(button.dataset.kind);
     });
+    // Voltando ao app (o iPhone congela timers em segundo plano): confere o prazo e relê o resumo (cache de 2 min).
+    doc.addEventListener?.("visibilitychange", () => { if (doc.visibilityState === "visible" && city) { paintAnswer(); loadSummary(); } });
     runtime.addEventListener?.("pluvia:city-changed", () => setCity(typeof activeCity !== "undefined" ? activeCity : null));
     if (typeof activeCity !== "undefined" && activeCity) setCity(activeCity);
     return {setCity, report, refresh:() => loadSummary(true)};

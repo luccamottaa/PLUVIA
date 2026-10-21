@@ -37,6 +37,14 @@ async function fetchForecast(city = activeCity, revision = cityRevision) {
 }
 
 
+// O fetch da previsão iniciado no topo do index.html (primeira visita) é usado uma única vez, só para a mesma URL e
+// por até 2 min, com prazo de 12 s; sem ele, falha, atraso ou resposta inválida, vale a consulta normal.
+function takeEarlyForecast(city) {
+  const early = globalThis.PLUVIA_EARLY_FORECAST;
+  globalThis.PLUVIA_EARLY_FORECAST = null;
+  if (!early?.promise || early.url !== services?.weather?.forecastUrl?.(city) || !(Date.now() - early.at < 2 * 60000)) return null;
+  return Promise.race([early.promise, new Promise((_, reject) => setTimeout(() => reject(new Error("Prazo esgotado.")), 12000))]);
+}
 function prefetchForecast(city) {
   if (!city) return;
   try {
@@ -44,7 +52,11 @@ function prefetchForecast(city) {
     const age = Date.now() - saved?.at;
     if (age >= 0 && age <= CACHE_MAX_AGE_MS && validForecast(saved?.data?.forecast)) return;
   } catch {}
-  const promise = fetchForecast(city, cityRevision);
+  const early = takeEarlyForecast(city);
+  const promise = early ? early.then(data => {
+    if (!validForecast(data)) throw new Error("Previsão incompleta.");
+    return data;
+  }).catch(() => fetchForecast(city, cityRevision)) : fetchForecast(city, cityRevision);
   prefetchedForecast = {cityId:city.id, at:Date.now(), promise};
   promise.then(data => {
     try {
@@ -87,7 +99,8 @@ function weatherIconSvg(code, isDay = true) {
   return weatherIcons?.markup(code, isDay, {className:"weather-visual", eager:true}) || "";
 }
 
-const fmt = (value, digits = 0) => Number.isFinite(value) ? value.toFixed(digits).replace(".", ",") : "--";
+// Valores que arredondam para zero viram 0: (-0.3).toFixed(0) é "-0", e o inverno da serra gaúcha/catarinense mostrava "-0°".
+const fmt = (value, digits = 0) => Number.isFinite(value) ? (Math.abs(value) < 0.5 * 10 ** -digits ? 0 : value).toFixed(digits).replace(".", ",") : "--";
 const shortTime = (iso) => iso?.slice(11, 16) || "--:--";
 
 function windDirection(deg) {
@@ -472,7 +485,10 @@ function findDryWindow(hourly, start) {
     if (pair.every(value => value < 30)) {
       // Já seco agora: a "janela seca" repetiria o "Vai chover?" do topo, então a linha some.
       if (i === start + 1) return "";
-      const day = hourly.time[i - 1].slice(0, 10) === hourly.time[start].slice(0, 10) ? "Hoje" : "Amanhã";
+      // A busca vai até 36 h: numa chuva longa a janela pode cair depois de amanhã, que não é "Amanhã".
+      const dayOf = time => Date.parse(String(time).slice(0, 10) + "T00:00Z");
+      const ahead = Math.round((dayOf(hourly.time[i - 1]) - dayOf(hourly.time[start])) / 86400000);
+      const day = ahead === 0 ? "Hoje" : ahead === 1 ? "Amanhã" : (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:"UTC", weekday:"short", day:"2-digit", month:"2-digit"}).format(new Date(dayOf(hourly.time[i - 1]))).replace(/^./, c => c.toUpperCase());
       return `${day}, das ${shortTime(hourly.time[i - 1])} às ${shortTime(hourly.time[i + 1])}: menor probabilidade de chuva`;
     }
   }
@@ -568,11 +584,14 @@ function renderForecast(days, currentTemperature, at = Date.now()) {
     .filter(i=>Number.isFinite(days[i].temperatureMin) && Number.isFinite(days[i].temperatureMax));
   if (!indices.length) { $("forecastList").innerHTML = '<p class="forecast-loading">Previsão diária incompleta para os próximos dias.</p>'; return; }
   const dates = indices.map(i=>days[i].time);
+  // Dia mais seco só entre dias com chance e volume conhecidos: ausente não é zero (na previsão reduzida do
+  // MET a chance é sempre null e o destaque caía num dia qualquer).
+  const dryScore = i => Number.isFinite(days[i].precipitationProbabilityMax) && Number.isFinite(days[i].precipitationSum)
+    ? days[i].precipitationProbabilityMax + days[i].precipitationSum * 4 : null;
   const bestIndex = indices.reduce((best, i) => {
-    const score = (days[i].precipitationProbabilityMax || 0) + (days[i].precipitationSum || 0) * 4;
-    const bestScore = (days[best].precipitationProbabilityMax || 0) + (days[best].precipitationSum || 0) * 4;
-    return score < bestScore ? i : best;
-  }, start);
+    const score = dryScore(i);
+    return score !== null && (best < 0 || score < dryScore(best)) ? i : best;
+  }, -1);
   const minAll = Math.min(...indices.map(i=>days[i].temperatureMin).filter(Number.isFinite));
   const maxAll = Math.max(...indices.map(i=>days[i].temperatureMax).filter(Number.isFinite));
   const spread = Math.max(1, maxAll - minAll);
@@ -607,7 +626,7 @@ function renderForecast(days, currentTemperature, at = Date.now()) {
       <span class="forecast-day"><strong><span class="day-full">${day}</span>${day === "Hoje" ? "" : `<span class="day-short" aria-hidden="true">${day.slice(0,3)}</span>`}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
       <span class="forecast-condition"><i>${weatherIcons.markup(days[i].weatherCode, true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
       <span class="temp-range" role="img" aria-label="Mínima ${fmt(min)} graus, máxima ${fmt(max)} graus${currentPosition === null ? "" : `, temperatura atual ${fmt(currentTemperature)} graus`}"><strong aria-hidden="true">${fmt(min)}°</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${left.toFixed(1)}%;width:${Math.min(width, 100 - left).toFixed(1)}%"></span>${currentPosition === null ? "" : `<span class="temp-now" style="left:${currentPosition.toFixed(1)}%"></span>`}</span><strong aria-hidden="true">${fmt(max)}°</strong></span>
-      ${rainQuiet ? `<span class="forecast-rain" data-rain="none"><span class="peek-extra">, chance de chuva ${rainProb}%, ${fmt(rainMm, 1)} mm${noteText}. Ver detalhes. </span></span>` : `<span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb ?? '—'}%</span>${showVolume ? `<span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span>` : `<span class="peek-extra">, ${fmt(rainMm, 1)} mm</span>`}<span class="peek-extra">${noteText}. Ver detalhes. </span></span></span>`}
+      ${rainQuiet ? `<span class="forecast-rain" data-rain="none"><span class="peek-extra">, chance de chuva ${rainProb}%, ${fmt(rainMm, 1)} mm${noteText}. Ver detalhes. </span></span>` : `<span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb === null ? '—' : `${rainProb}%`}</span>${showVolume ? `<span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span>` : `<span class="peek-extra">, ${fmt(rainMm, 1)} mm</span>`}<span class="peek-extra">${noteText}. Ver detalhes. </span></span></span>`}
     </button>`;
   }).join("");
 }
@@ -629,7 +648,9 @@ function renderSkyEvents(at) {
   $('nextNewMoon').textContent=Number.isFinite(phases.new) ? dateLabel(phases.new) : 'Indisponível';
   $('nextFullMoon').textContent=Number.isFinite(phases.full) ? dateLabel(phases.full) : 'Indisponível';
   const today=globalThis.PLUVIA.time.dayKey(at,activeCity);
-  const shower=events.nextShower(today,Number(activeCity.lat));
+  // Antes do meio-dia a noite que vale é a de ontem: na madrugada do pico ("melhor depois da meia-noite")
+  // a chuva de meteoros sumia e aparecia a próxima.
+  const shower=events.nextShower(globalThis.PLUVIA.time.dayKey(at-12*3600000,activeCity),Number(activeCity.lat));
   $('meteorRow').hidden=!shower;
   if(shower) {
     const night=new Date(shower.night+'T12:00:00Z'), next=new Date(night.getTime()+86400000);
@@ -721,6 +742,16 @@ function renderMoonCard(at, astronomy) {
   full.textContent=!Number.isFinite(days) ? 'Indisponível' : days<=0 ? 'hoje' : days===1 ? 'amanhã' : `em ${days} dias`;
 }
 
+// O ponto do Sol/Lua no arco desliza em 1 s (left/top), e cada tique de 30 s movia ~0,1%: uma animação de layout da
+// página inteira por ~60 quadros, mesmo com o card fora da tela (o único trabalho do app parado, 1.25). Só reescreve
+// quando a posição anda algo visível; troca de cidade ou de dia continua deslizando.
+function moveArcDot(node, point) {
+  if (!node) return;
+  const last = node.pluviaArc;
+  if (last && Math.abs(last.left - point.left) < 0.5 && Math.abs(last.top - point.top) < 1) return;
+  node.pluviaArc = {left:point.left, top:point.top};
+  node.style.left = `${point.left}%`; node.style.top = `${point.top}px`;
+}
 function renderSun(daily, at = Date.now(), hourly = null) {
   const astronomy=globalThis.PLUVIA?.sky?.astronomyAt?.(at);
   const astronomyFields={civilDawn:astronomy?.dawn,civilDusk:astronomy?.dusk,moonrise:astronomy?.moonRise,moonset:astronomy?.moonSet};
@@ -755,7 +786,7 @@ function renderSun(daily, at = Date.now(), hourly = null) {
     moonDot.hidden = !night;
     if (night) {
       const moonPoint = solarArcPoint((at - nightStart) / (nightEnd - nightStart));
-      moonDot.style.left = `${moonPoint.left}%`; moonDot.style.top = `${moonPoint.top}px`;
+      moveArcDot(moonDot, moonPoint);
     }
   }
   if (!available) {
@@ -770,7 +801,7 @@ function renderSun(daily, at = Date.now(), hourly = null) {
   $("sunrise").textContent = formatUpdateTime(rise); $("sunset").textContent = formatUpdateTime(set);
   $("daylight").textContent = `${Math.floor(minutes / 60)}h ${minutes % 60}min de luz`;
   const point = solarArcPoint((at - rise) / (set - rise));
-  $("sunDot").style.left = `${point.left}%`; $("sunDot").style.top = `${point.top}px`;
+  moveArcDot($("sunDot"), point);
   const duration = ms => { const total = Math.max(1, Math.ceil(ms / 60000)); return total < 60 ? `${total} min` : `${Math.floor(total / 60)}h ${String(total % 60).padStart(2, "0")}min`; };
   const nextRise = at < rise ? rise : globalThis.PLUVIA?.sky?.dayAt?.(at + 86400000)?.rise;
   // Uma linha só (a duração do dia e o que falta); os horários ficam nas pontas do arco.
@@ -1937,17 +1968,27 @@ function takeCitySource(located, first) {
   if (mark && Date.now() - mark.at < 15000) return mark.source;
   return first ? "startup" : "other";
 }
+// Os três textos recebem o nome da transição direto no próprio estilo, com a direção no nome
+// ("pluvia-city" ou "pluvia-city-prev"), só durante a troca. Antes um atributo na raiz (data-city-slide)
+// ligava os nomes pelo CSS, e pôr/tirar esse atributo recalculava o estilo da página inteira duas vezes
+// por troca (~90 ms com CPU 4×, 1.25).
+const SLIDE_TEXTS = [[".intro h1", "pluvia-city"], [".wx-copy", "pluvia-temp"], ["#condition", "pluvia-condition"]];
 function slideToCity(id, direction) {
-  const root = document.documentElement;
   const canSlide = typeof document.startViewTransition === "function" &&
     !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   if (!canSlide) { chooseCity(id); animateCityText(); dropCityContent(); return; }
-  root.dataset.citySlide = direction > 0 ? "next" : "prev";
+  const suffix = direction > 0 ? "" : "-prev";
+  const named = SLIDE_TEXTS.map(([selector, name]) => {
+    const node = document.querySelector(`#weatherView ${selector}`);
+    node?.style?.setProperty("view-transition-name", name + suffix);
+    return node;
+  }).filter(Boolean);
+  const clear = () => named.forEach(node => node.style.removeProperty("view-transition-name"));
   try {
     const transition = document.startViewTransition(() => { chooseCity(id); dropCityContent(); });
     transition.updateCallbackDone?.catch(() => {});
-    transition.finished.catch(() => {}).finally(() => { delete root.dataset.citySlide; });
-  } catch { delete root.dataset.citySlide; chooseCity(id); dropCityContent(); }
+    transition.finished.catch(() => {}).finally(clear);
+  } catch { clear(); chooseCity(id); dropCityContent(); }
 }
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
@@ -2039,6 +2080,12 @@ function renderFavoriteSuggest() {
   const box = $("favoriteSuggest");
   if (!box) return;
   const show = favoriteSuggestionFor(activeCity);
+  // Esconder o convite com o foco num dos botões jogava o foco no body (teclado/leitor de tela): ele vai para a
+  // bolinha da cidade aberta ou, sem bolinhas, para a busca.
+  if (!show && box.contains?.(document.activeElement)) {
+    const dots = $("cityDots");
+    (dots && !dots.hidden && dots.querySelector('[aria-current="true"]') || $("openCitySearch"))?.focus?.({preventScroll:true});
+  }
   box.hidden = !show;
   if (!show) { suggestedCityId = null; return; }
   $("favoriteSuggestCity").textContent = activeCity.name;

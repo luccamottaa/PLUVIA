@@ -38,13 +38,13 @@ test('abertura com previsão salva reutiliza a mesma cobertura de céu quase lim
   assert.equal(root.dataset.weather,'partly');
   assert.equal(sky.bootstrap({getItem(){return null;}},at).clouds,'standard','sem cache não inventa poucas nuvens');
 });
-test('chuva moderada/forte e trovoada escurecem o céu diurno e trocam a tinta do texto; crepúsculo e noite preservam a regra',()=>{
+test('nublado, chuva (desde a 1.25 também garoa e chuva fraca) e trovoada escurecem o céu diurno e trocam a tinta do texto; crepúsculo e noite preservam a regra',()=>{
   const context=vm.createContext({});
   vm.runInContext(fs.readFileSync('dist/vendor/suncalc.js','utf8'),context);
   const root={dataset:{},style:{setProperty(){}}},body={dataset:{},style:{setProperty(){}}};
   const sky=create({document:{documentElement:root,body},sun:context.PLUVIA.sun});
   const noon=Date.parse('2026-10-01T12:00:00-04:00');
-  for(const [code,rain,ink] of [[0,'none','dark'],[3,'none','dark'],[51,'drizzle','dark'],[61,'light','dark'],[63,'moderate','light'],[65,'heavy','light'],[95,'moderate','light']]) {
+  for(const [code,rain,ink] of [[0,'none','dark'],[2,'none','dark'],[3,'none','light'],[51,'drizzle','light'],[61,'light','light'],[63,'moderate','light'],[65,'heavy','light'],[95,'moderate','light']]) {
     sky.apply(code,1,null,city,noon);
     assert.equal(root.dataset.rain,rain,String(code));
     assert.equal(root.dataset.ink,ink,String(code));

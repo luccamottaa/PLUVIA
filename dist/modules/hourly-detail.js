@@ -76,6 +76,9 @@
       el('hourlyDetailRainInterval').textContent=reading.rainEnd ? `Chuva prevista entre ${clock(reading.time)} e ${clock(reading.rainEnd)}${reading.rainEnd.slice(0,10)!==reading.time.slice(0,10) ? ' do dia seguinte' : ''}.` : 'Intervalo de chuva indisponível.';
       el('hourlyDetailSource').textContent=(state.fromCache ? 'Leitura salva · ' : 'Previsão por modelos · ')+`horário de ${state.city.name}.`;
       const range=bounds();el('hourlyDetailPrev').disabled=index<=range.first;el('hourlyDetailNext').disabled=index>=range.last;
+      // O botão que tinha o foco pode ter ficado desabilitado (última/primeira hora): o foco iria para o body.
+      const active=doc.activeElement;
+      if(dialog.open && (active===doc.body || active?.disabled)) (el('hourlyDetailNext').disabled ? el('hourlyDetailPrev') : el('hourlyDetailNext'))?.focus?.({preventScroll:true});
     }
     function update(next) {
       if(!next?.hourly || !next.city) return;
