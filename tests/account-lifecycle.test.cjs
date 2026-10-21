@@ -89,3 +89,22 @@ test('erros do servidor, limite e rede preservam mensagens distintas',async()=>{
 test('templates usam URL oficial de confirmação, botão e link textual sem rastreio ou nome não escapado',()=>{
  for(const name of ['confirmation','recovery']){const html=fs.readFileSync('supabase/templates/'+name+'.html','utf8');assert.match(html,/lang="pt-BR"/);assert.equal((html.match(/href="{{ \.ConfirmationURL }}"/g)||[]).length,2);assert.match(html,/PLUVIA/);assert.doesNotMatch(html,/<script|{{ \.Data|https?:\/\/[^" ]+\.(png|webp)|tracking/i);}
 });
+
+test('favoritos de A não vão para B quando a leitura de A nunca chegou', async()=>{
+ const model=require('../supabase/functions/_shared/account-preferences.js');
+ let offline=true; const meta={'owner-b':{favorite_city_ids:['3550308']}};
+ const app=boot({user:null,invoke:async(name,options,current)=>{
+   if(offline) return {error:{context:{json:async()=>({code:'service_unavailable',error:'x'})}}};
+   const m=meta[current.id]||{};
+   if(options.body.action==='apply') meta[current.id]={...m,...model.applyOperations(m,model.operationsInput(options.body.operations))};
+   return {data:{snapshot:model.snapshot(meta[current.id]||{})}};
+ }});
+ await settle();
+ app.switchUser({id:'owner-a',user_metadata:{}}); await settle(); await app.flush();
+ app.favorites(['1302603']); await app.flush(); await settle();
+ app.switchUser(null); await settle();
+ offline=false;
+ app.switchUser({id:'owner-b',user_metadata:{favorite_city_ids:['3550308']}}); await settle(); await app.flush(); await app.flush(); await settle();
+ assert.deepEqual(meta['owner-b'].favorite_city_ids,['3550308']);
+ assert.equal(app.writes.filter(w=>w.ownerId==='owner-b' && w.action!=='read').length,0);
+});

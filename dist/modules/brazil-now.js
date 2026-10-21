@@ -230,7 +230,12 @@
         status(root.navigator?.onLine === false ? 'Sem internet: não foi possível consultar as capitais.' : 'Não foi possível consultar as capitais agora. Tente novamente.');
       }
     }
-    const clock = at => new Intl.DateTimeFormat('pt-BR', {hour:'2-digit', minute:'2-digit'}).format(at);
+    // Horário no fuso da cidade aberta (o resto do app também), nunca no do aparelho.
+    const clock = at => {
+      const zone = (typeof activeCity !== 'undefined' && activeCity?.timezone) || 'America/Sao_Paulo';
+      const options = {hour:'2-digit', minute:'2-digit', timeZone:zone};
+      return (root.PLUVIA?.time?.dateFormat?.('pt-BR', options) || new Intl.DateTimeFormat('pt-BR', options)).format(at);
+    };
 
     function open() {
       el('cityDialog')?.open && el('cityDialog').close();

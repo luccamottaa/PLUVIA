@@ -170,6 +170,9 @@
   async function mergeAccountPreferences(user){
     if(!user || currentUser?.id!==user.id || syncingOwner===user.id)return;
     const ownerId=user.id,revision=accountRevision,guest=!storedOwner() ? favoriteView.slice() : [];
+    // A lista local passa a ser desta conta já agora (os favoritos de visitante ficam na fila dela):
+    // sem isso, se a leitura falhasse e outra conta entrasse, a lista de A ia parar na conta de B.
+    if(!storedOwner()){try{localStorage.setItem('pluvia-favorites-owner',ownerId);}catch{}}
     const active=()=>currentUser?.id===ownerId && revision===accountRevision;
     syncingOwner=ownerId;
     if(guest.length){

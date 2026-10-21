@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.25.2", date:"2026-10-21", title:"Correção de bugs", items:[
+      "A cidade salva não troca mais por Manaus quando a internet está lenta na abertura.",
+      "Os favoritos de uma conta não passam mais para outra conta no mesmo aparelho.",
+      "Últimos 30 dias não diz \"nenhum dia com chuva\" quando faltam dados de algum dia.",
+      "Brasil agora mostra o horário da atualização no fuso da cidade, e a seta para cima na busca vai ao último resultado."]},
     {version:"1.25.1", date:"2026-10-21", title:"Próximos 7 dias mais legíveis", items:[
       "Os nomes dos dias ficaram maiores, os ícones mais no centro da linha, e o dia de hoje ganhou destaque com cor e fundo próprio.",
     ]},
@@ -362,7 +367,9 @@
     opener.textContent = `Novidades · v${current()}`;
     const track = source => runtime.pluviaAnalytics?.track?.("Changelog Opened", {source});
     const closeDialog = target => runtime.PLUVIA?.dialogs?.close?.(target) ?? target.close();
+    let skipPopup = () => {};
     function open(source) {
+      skipPopup();
       body.replaceChildren(...list().map(entry => entryNode(doc, entry)));
       remember(storage);
       if (!dialog.open) dialog.showModal();
@@ -385,6 +392,8 @@
     el("whatsNewAll")?.addEventListener("click", () => { closeDialog(popup); open("update_note"); });
     popup.addEventListener("click", event => { if (event.target === popup) close(); });
     let shown = false, observer = null, timer = 0, settle = 0;
+    // Quem abriu Novidades antes da janela já viu tudo: ela não aparece mais nesta abertura.
+    skipPopup = () => { if (!shown) { shown = true; stop(); } };
     const started = Date.now();
     function ready() {
       const intro = el("pluviaIntro");

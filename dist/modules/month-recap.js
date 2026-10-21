@@ -70,7 +70,9 @@
   // Frase curta para o topo do diálogo, sem adjetivar além do que os números dizem.
   function headline(summary) {
     if (!summary || summary.rainyDays === null) return '';
-    const total = summary.covered.total;
+    const total = summary.covered.total, measured = summary.covered.rain;
+    // Dia sem dado pode ter tido chuva: com lacunas, a frase fala só dos dias com dado.
+    if (measured < total) return `Choveu 1 mm ou mais em ${summary.rainyDays} dos ${measured} dias com dado nos últimos ${total} dias.`;
     if (summary.rainyDays === 0) return `Nenhum dia com chuva de 1 mm ou mais nos últimos ${total} dias.`;
     if (summary.rainyDays === 1) return `Choveu 1 mm ou mais em 1 dos últimos ${total} dias.`;
     return `Choveu 1 mm ou mais em ${summary.rainyDays} dos últimos ${total} dias.`;

@@ -90,3 +90,11 @@ test('janela de novidades aparece uma vez, depois da intro e da previsão, sem c
  covered.setOpen(false);covered.docListeners.close.forEach(f=>f());covered.flush();
  assert.equal(covered.els.whatsNewDialog.shown,1,'abre quando a outra janela fecha');
 });
+test('quem abre Novidades antes da janela não recebe a janela depois',()=>{
+ const features=changelog.VERSIONS.filter(e=>changelog.kind(e.version)==='feature').map(e=>e.version);
+ const dom=fakeDom({openDialog:true});mountWith(features[1],dom);
+ dom.els.openChangelog.listeners.click.forEach(f=>f());
+ dom.setOpen(false);(dom.docListeners.close||[]).forEach(f=>f());dom.flush();
+ assert.equal(dom.els.whatsNewDialog.shown,undefined);
+ assert.equal(dom.els.changelogDialog.shown,1);
+});

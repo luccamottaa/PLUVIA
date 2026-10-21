@@ -200,7 +200,7 @@
       }
     }
     const notable = driest && driest.index !== start && driest.value < 30 && (now === null || driest.value < round(now));
-    const forecast = notable ? `chega a ${driest.value}% às ${driest.time.slice(0, 2)}h` : "";
+    const forecast = notable ? `chega a ${driest.value}% ${hourPhrase(times[driest.index], "às")}` : "";
     const label = classification?.label || "Umidade indisponível";
     return {
       now: now === null ? null : round(now),

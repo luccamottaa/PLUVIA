@@ -65,3 +65,14 @@ test('resposta sem datas ou dia de hoje inválido é rejeitada', () => {
   assert.throws(() => month.summarize({}, '2026-10-12'), /inválida/);
   assert.throws(() => month.summarize(response(), null), /inválida/);
 });
+
+test('com dias sem dado, a frase não diz "nenhum dia com chuva"', () => {
+  const summary = month.summarize(response(daily => {
+    daily.precipitation_sum.fill(0);
+    daily.precipitation_sum[0] = daily.precipitation_sum[1] = daily.precipitation_sum[2] = null;
+  }), '2026-10-12');
+  assert.equal(summary.rainyDays, 0);
+  assert.equal(summary.covered.rain, 27);
+  assert.doesNotMatch(month.headline(summary), /Nenhum dia/);
+  assert.match(month.headline(summary), /0 dos 27 dias com dado/);
+});
