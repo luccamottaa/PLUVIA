@@ -1968,17 +1968,27 @@ function takeCitySource(located, first) {
   if (mark && Date.now() - mark.at < 15000) return mark.source;
   return first ? "startup" : "other";
 }
+// Os três textos recebem o nome da transição direto no próprio estilo, com a direção no nome
+// ("pluvia-city" ou "pluvia-city-prev"), só durante a troca. Antes um atributo na raiz (data-city-slide)
+// ligava os nomes pelo CSS, e pôr/tirar esse atributo recalculava o estilo da página inteira duas vezes
+// por troca (~90 ms com CPU 4×, 1.25).
+const SLIDE_TEXTS = [[".intro h1", "pluvia-city"], [".wx-copy", "pluvia-temp"], ["#condition", "pluvia-condition"]];
 function slideToCity(id, direction) {
-  const root = document.documentElement;
   const canSlide = typeof document.startViewTransition === "function" &&
     !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   if (!canSlide) { chooseCity(id); animateCityText(); dropCityContent(); return; }
-  root.dataset.citySlide = direction > 0 ? "next" : "prev";
+  const suffix = direction > 0 ? "" : "-prev";
+  const named = SLIDE_TEXTS.map(([selector, name]) => {
+    const node = document.querySelector(`#weatherView ${selector}`);
+    node?.style?.setProperty("view-transition-name", name + suffix);
+    return node;
+  }).filter(Boolean);
+  const clear = () => named.forEach(node => node.style.removeProperty("view-transition-name"));
   try {
     const transition = document.startViewTransition(() => { chooseCity(id); dropCityContent(); });
     transition.updateCallbackDone?.catch(() => {});
-    transition.finished.catch(() => {}).finally(() => { delete root.dataset.citySlide; });
-  } catch { delete root.dataset.citySlide; chooseCity(id); dropCityContent(); }
+    transition.finished.catch(() => {}).finally(clear);
+  } catch { clear(); chooseCity(id); dropCityContent(); }
 }
 function stepCity(direction) {
   const ids = swipeCities(), index = ids.indexOf(activeCity?.id);
