@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-241" />
+    <meta name="pluvia-release" content="pluvia-panel-242" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -50,11 +50,25 @@
     <link rel="preconnect" href="https://air-quality-api.open-meteo.com" crossorigin />
     <link rel="preconnect" href="https://dszyyrcvwrpyiypwyvxe.supabase.co" crossorigin />
     <!-- Nuvem do fundo da intro: é o LCP do PageSpeed e só seria descoberta depois de sky.css e dos scripts do céu. -->
+    <!-- Primeira visita (sem cidade salva, fora das páginas de cidade): a previsão de Manaus, o ar e os avisos do
+         INMET começam a baixar já aqui, em vez de esperar ~30 scripts até o p0 (~3 s com CPU 4× e 3G; 1.25). O fetch do
+         app reaproveita a resposta. As URLs são as de weather-services.js para Manaus (tests/first-visit-preload). -->
+    <script>
+      try {
+        if (localStorage.getItem("pluvia-city") == null && !document.querySelector('meta[name="pluvia-city"]')) {
+          ["https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&timezone=America%2FManaus&current=temperature_2m%2Crelative_humidity_2m%2Capparent_temperature%2Cis_day%2Cprecipitation%2Crain%2Cshowers%2Cweather_code%2Ccloud_cover%2Cpressure_msl%2Csurface_pressure%2Cwind_speed_10m%2Cwind_direction_10m%2Cwind_gusts_10m&hourly=temperature_2m%2Capparent_temperature%2Cprecipitation_probability%2Cprecipitation%2Crain%2Cweather_code%2Ccloud_cover%2Ccloud_cover_low%2Ccloud_cover_mid%2Ccloud_cover_high%2Ccape%2Cvisibility%2Cwind_speed_10m%2Cwind_direction_10m%2Cwind_gusts_10m%2Crelative_humidity_2m%2Cpressure_msl%2Cuv_index&daily=weather_code%2Ctemperature_2m_max%2Ctemperature_2m_min%2Capparent_temperature_max%2Capparent_temperature_min%2Cprecipitation_sum%2Crain_sum%2Cprecipitation_probability_max%2Cuv_index_max%2Csunrise%2Csunset%2Csunshine_duration%2Cdaylight_duration&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&past_hours=24&forecast_days=8", "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-3.119&longitude=-60.022&timezone=America%2FManaus&current=pm10%2Cpm2_5%2Ccarbon_monoxide%2Cnitrogen_dioxide%2Cozone%2Cus_aqi&hourly=pm2_5%2Cus_aqi&past_hours=24&forecast_days=4", "https://apiprevmet3.inmet.gov.br/avisos/ativos"].forEach(function (href) {
+            var link = document.createElement("link");
+            link.rel = "preload"; link.as = "fetch"; link.crossOrigin = "anonymous"; link.href = href;
+            document.head.appendChild(link);
+          });
+        }
+      } catch (_) {}
+    </script>
     <link rel="preload" href="/assets/sky-cloud-veil.webp?v=clouds-5" as="image" type="image/webp" fetchpriority="high" />
     <link rel="preload" href="/vendor/suncalc.js?v=sky-3" as="script" />
     <link rel="preload" href="/modules/moon-view.js?v=moon-8" as="script" />
-    <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-19" as="script" />
-    <link rel="preload" href="/sky.css?v=sky-37" as="style" />
+    <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-20" as="script" />
+    <link rel="preload" href="/sky.css?v=sky-38" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       /* fonts.css inline (o mesmo texto do arquivo, conferido por teste): era uma folha bloqueante a mais na cadeia crítica. */
@@ -94,28 +108,43 @@
   background:linear-gradient(180deg,transparent 25%,#03142924);
   animation:intro-horizon 2.6s ease-out both;
 }
-.pluvia-intro.is-leaving { opacity:0; pointer-events:none; transition:opacity .42s ease; }
+/* Saída (1.25): o nome e o slogan sobem e somem, e o céu da intro se funde com o da Home (é a mesma cena). */
+.pluvia-intro.is-leaving { opacity:0; pointer-events:none; transition:opacity .38s ease .07s; }
+.pluvia-intro.is-leaving :is(.intro-wordmark,.intro-tagline,.intro-kicker) { opacity:0; transform:translateY(-22px); transition:opacity .28s ease,transform .32s cubic-bezier(.4,0,.6,1); }
 .pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; pointer-events:none; }
-.intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; gap:2px; color:var(--intro-ink,#f3f8ff); font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; animation:intro-mark-in .8s ease-out .2s both; }
+.intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; gap:2px; color:var(--intro-ink,#f3f8ff); font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; }
 .intro-wordmark strong { font-family:var(--font-brand,"Nunito",ui-rounded,system-ui,sans-serif); font-weight:900; }
-.intro-drop { display:block; width:clamp(42px,11vw,70px); height:clamp(55px,14vw,88px); background:#cfe3ff; background:color-mix(in srgb,currentColor 72%,#7fb0ff); -webkit-mask:url("/logo-mark.webp?v=logo-3") center / contain no-repeat; mask:url("/logo-mark.webp?v=logo-3") center / contain no-repeat; }
-.pluvia-intro .intro-tagline { position:relative; z-index:1; margin:16px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.2rem); letter-spacing:.08em; animation:intro-caption-in .65s ease-out .5s both; }
+/* A marca é a gota caindo na água (1.18): na intro ela cai de verdade, as ondinhas abrem quando ela toca a água
+   e o nome entra (1.25, pedido do usuário). SVG inline com a geometria de generate-brand-mark.py; só transform e
+   opacity num elemento pequeno. */
+.intro-drop { display:block; width:clamp(42px,11vw,70px); height:clamp(55px,14vw,88px); color:#cfe3ff; color:color-mix(in srgb,currentColor 72%,#7fb0ff); }
+.intro-drop svg { display:block; width:100%; height:100%; overflow:visible; fill:currentColor; stroke:currentColor; }
+.intro-tear { stroke:none; transform-box:fill-box; transform-origin:50% 100%; animation:intro-fall .52s cubic-bezier(.5,0,.9,.55) .12s both; }
+.intro-ripple { fill:none; transform-box:fill-box; transform-origin:50% 50%; animation:intro-ripple .6s cubic-bezier(.2,.8,.3,1) .56s both; }
+.intro-ripple-2 { animation-delay:.66s; }
+.intro-wordmark strong { animation:intro-word-in .55s cubic-bezier(.2,.8,.3,1) .62s both; }
+.pluvia-intro .intro-tagline { position:relative; z-index:1; margin:16px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.2rem); letter-spacing:.08em; animation:intro-caption-in .6s ease-out .85s both; }
 .pluvia-intro .intro-kicker { position:absolute; bottom:calc(65px + env(safe-area-inset-bottom)); color:#e1ebf5; font-size:.65rem; font-weight:750; letter-spacing:.24em; text-transform:uppercase; }
 .pluvia-intro .intro-copy { display:none; }
-.pluvia-intro .intro-progress { position:absolute; bottom:calc(40px + env(safe-area-inset-bottom)); width:64px; height:2px; border-radius:999px; overflow:hidden; background:#ffffff30; }
-.pluvia-intro .intro-progress span { display:block; height:100%; background:#dceeff; transform-origin:left; animation:intro-progress-fill 2.6s linear both; }
+.pluvia-intro[data-quick] { animation-duration:.9s; }
+.pluvia-intro[data-quick] .intro-tear { animation-duration:.32s; animation-delay:0s; }
+.pluvia-intro[data-quick] .intro-ripple { animation-duration:.4s; animation-delay:.26s; }
+.pluvia-intro[data-quick] .intro-ripple-2 { animation-delay:.32s; }
+.pluvia-intro[data-quick] .intro-wordmark strong { animation-duration:.4s; animation-delay:.28s; }
+.pluvia-intro[data-quick] .intro-tagline { animation-duration:.35s; animation-delay:.42s; }
 @keyframes intro-horizon { from { opacity:.4; transform:scale(1.05); } to { opacity:1; transform:scale(1); } }
-@keyframes intro-mark-in { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+@keyframes intro-fall { 0% { opacity:0; transform:translateY(-150%) scaleY(1.1); } 20% { opacity:1; } 80% { transform:translateY(0) scaleY(1.1); } 90% { transform:translateY(0) scale(1.08,.9); } 100% { opacity:1; transform:none; } }
+@keyframes intro-ripple { from { opacity:0; transform:scale(.2,.35); } 35% { opacity:1; } to { opacity:1; transform:none; } }
+@keyframes intro-word-in { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:none; } }
 @keyframes intro-caption-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-@keyframes intro-progress-fill { from { transform:scaleX(0); } to { transform:scaleX(1); } }
-@media(prefers-reduced-motion:reduce) { .pluvia-intro *,.pluvia-intro::before { animation:none !important; } }
+@media(prefers-reduced-motion:reduce) { .pluvia-intro *,.pluvia-intro::before { animation:none !important; } .pluvia-intro.is-leaving,.pluvia-intro.is-leaving * { transform:none !important; } }
     </style>
     <script src="/modules/city-time.js?v=time-2"></script>
     <script src="/vendor/suncalc.js?v=sky-3"></script>
     <script src="/modules/moon-view.js?v=moon-8"></script>
-    <script src="/modules/sky-atmosphere.js?v=sky-19"></script>
-    <script src="/modules/sky-events.js?v=sky-events-3" defer></script><script src="/modules/eclipses.js?v=eclipses-2" defer></script>
-    <link rel="stylesheet" href="/sky.css?v=sky-37" />
+    <script src="/modules/sky-atmosphere.js?v=sky-20"></script>
+    <script src="/modules/sky-events.js?v=sky-events-3" defer></script><script src="/modules/eclipses.js?v=eclipses-3" defer></script>
+    <link rel="stylesheet" href="/sky.css?v=sky-38" />
     <script>
       /* O antigo modo seguro (céu parado depois de uma queda) saiu a pedido: limpa as marcas que ele deixou. */
       try { localStorage.removeItem("pluvia-boot-pending"); localStorage.removeItem("pluvia-safe-until"); } catch (e) {}
@@ -150,23 +179,23 @@
     <div id="pluviaIntro" class="pluvia-intro">
       <p class="intro-kicker">Feito no Norte</p>
       <div class="intro-sky" aria-hidden="true"><span class="sky-twilight"></span><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
-      <div class="intro-wordmark"><span class="intro-drop" aria-hidden="true"></span><strong>PLUVIA</strong></div>
+      <div class="intro-wordmark"><span class="intro-drop" aria-hidden="true"><svg viewBox="0 0 1654 1654" focusable="false"><path class="intro-tear" d="M1198 728 L1211 754 L1221 780 L1230 808 L1237 836 L1242 864 L1245 892 L1246 921 L1246 950 L1243 979 L1238 1007 L1231 1035 L1223 1062 L1212 1089 L1200 1115 L1186 1140 L1170 1164 L1153 1187 L1134 1209 L1114 1229 L1092 1248 L1069 1266 L1045 1282 L1020 1296 L994 1308 L968 1319 L940 1327 L912 1334 L884 1339 L855 1342 L827 1343 L798 1342 L769 1339 L741 1334 L713 1327 L685 1319 L659 1308 L633 1296 L608 1282 L584 1266 L561 1248 L539 1229 L519 1209 L500 1187 L483 1164 L467 1140 L453 1115 L441 1089 L430 1062 L422 1035 L415 1007 L410 979 L407 950 L407 921 L408 892 L411 864 L416 836 L423 808 L432 780 L442 754 L455 728 L502 647 L547 569 L590 492 L630 418 L668 346 L705 277 L738 209 L770 144 L799 81 L826 20 L854 81 L883 144 L915 209 L948 277 L985 346 L1023 418 L1063 492 L1106 569 L1151 647Z"/><path class="intro-ripple" d="M273 1467A589 135 0 0 1 1380 1467" stroke-width="110"/><path class="intro-ripple intro-ripple-2" d="M506 1599A354 80 0 0 1 1147 1599" stroke-width="100"/></svg></span><strong>PLUVIA</strong></div>
       <p class="intro-tagline">O céu de cada cidade</p>
       <p class="intro-copy">Consulte o tempo antes de sair.</p>
-      <div class="intro-progress" aria-hidden="true"><span></span></div>
     </div>
     <script>
       (function () {
         var intro = document.getElementById("pluviaIntro");
         globalThis.PLUVIA?.sky?.update();
-        var seen = false;
+        var seen = false, quick = false;
         try { seen = sessionStorage.getItem("pluvia-intro-seen") === "1"; sessionStorage.setItem("pluvia-intro-seen", "1"); } catch (_) {}
         // O iPhone fecha o app instalado logo depois de ir para segundo plano, e cada volta virava uma
-        // abertura nova com a intro inteira (2,6 s). A intro completa só repete 3 h depois da última.
+        // abertura nova com a intro inteira (2,6 s). A intro só repete 3 h depois da última, e quem já viu
+        // uma intro ganha a versão rápida (1.25, pedido do usuário): mínimo de 0,9 s, sai quando a previsão chega.
         try {
           var lastIntro = Number(localStorage.getItem("pluvia-intro-at")) || 0, now = Date.now();
           if (!seen && now - lastIntro >= 0 && now - lastIntro < 108e5) seen = true;
-          else if (!seen) localStorage.setItem("pluvia-intro-at", String(now));
+          else if (!seen) { quick = lastIntro > 0; localStorage.setItem("pluvia-intro-at", String(now)); }
         } catch (_) {}
         function reveal() {
           var welcome = document.getElementById("locationWelcome");
@@ -183,6 +212,7 @@
           setTimeout(function () { intro.hidden = true; }, 450);
         }
         if (seen) { intro.hidden = true; return; }
+        if (quick) intro.dataset.quick = "1";
         var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         // A intro serve de tela de carregamento: some depois do tempo mínimo e da primeira consulta
         // (previsão e INMET, com sucesso ou falha), para a Home já abrir com os dados novos. Internet lenta
@@ -190,14 +220,14 @@
         var minimum = false, settled = false;
         function settle() { settled = true; if (minimum) dismiss(); }
         if (window.addEventListener) window.addEventListener("pluvia:refresh-settled", settle, { once: true });
-        setTimeout(function () { minimum = true; if (settled || (globalThis.PLUVIA && globalThis.PLUVIA.refreshSettledAt)) dismiss(); }, reduced ? 300 : 2600);
-        setTimeout(dismiss, reduced ? 1500 : 4600);
+        setTimeout(function () { minimum = true; if (settled || (globalThis.PLUVIA && globalThis.PLUVIA.refreshSettledAt)) dismiss(); }, reduced ? 300 : quick ? 900 : 2600);
+        setTimeout(dismiss, reduced ? 1500 : quick ? 2500 : 4600);
       })();
     </script>
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="/redesign.css?v=panel-50" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-123" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-124" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -549,37 +579,37 @@
     <script src="/modules/weather-extras.js?v=core-109" defer></script>
     <script src="/modules/weather-insights.js?v=core-76" defer></script>
     <script src="/modules/radar-probe.js?v=core-72" defer></script>
-    <script src="/modules/radar-nowcast.js?v=nowcast-3" defer></script>
+    <script src="/modules/radar-nowcast.js?v=nowcast-4" defer></script>
     <script src="/modules/observed-rain.js?v=observed-rain-2" defer></script>
     <script src="/modules/weather-icons.js?v=core-50" defer></script>
     <script src="/modules/weather-icon-system.js?v=modern-12" defer></script>
-    <script src="/capitals.js?v=core-51" defer></script>
-    <script src="/modules/hourly-detail.js?v=detail-8" defer></script>
-    <script src="/modules/daily-detail.js?v=daily-3" defer></script>
+    <script src="/capitals.js?v=core-52" defer></script>
+    <script src="/modules/hourly-detail.js?v=detail-9" defer></script>
+    <script src="/modules/daily-detail.js?v=daily-4" defer></script>
     <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="/app.js?v=panel-126" defer></script>
+    <script src="/app.js?v=panel-127" defer></script>
     <script src="/p0.js?v=panel-49" defer></script>
     <script src="/modules/risks.js?v=core-120" defer></script>
     <script src="/modules/adapters.js?v=core-110" defer></script>
-    <script src="/weather-map.js?v=map-20" defer></script>
+    <script src="/weather-map.js?v=map-21" defer></script>
     <script src="/modules/account-sync.js?v=sync-2" defer></script>
     <script src="/modules/social-auth.js?v=oauth-3" defer></script>
-    <script src="/modules/avatars.js?v=avatars-8" defer></script>
+    <script src="/modules/avatars.js?v=avatars-9" defer></script>
     <script src="/modules/terms.js?v=terms-2" defer></script>
     <script src="/modules/captcha.js?v=captcha-1" defer></script>
-    <script src="/account.js?v=account-16" defer></script>
+    <script src="/account.js?v=account-17" defer></script>
     <script src="/favorite-cities.js?v=favorites-11" defer></script>
-    <script src="/modules/share-card.js?v=share-card-5" defer></script>
-    <script src="/modules/share-weather.js?v=share-11" defer></script>
+    <script src="/modules/share-card.js?v=share-card-6" defer></script>
+    <script src="/modules/share-weather.js?v=share-12" defer></script>
     <script src="/saved-places.js?v=places-2" defer></script>
     <script src="/modules/brazil-now.js?v=brazil-4" defer></script>
     <script src="/modules/month-recap.js?v=month-1" defer></script>
     <script src="/modules/station-now.js?v=station-4" defer></script>
     <script src="/modules/environment-now.js?v=environment-1" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-1" defer></script><script src="/modules/rain-reports.js?v=rain-reports-1" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-275" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-2" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-276" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
-    <script src="/notifications.js?v=panel-36" defer></script>
+    <script src="/notifications.js?v=panel-37" defer></script>
   </body>
 </html>
