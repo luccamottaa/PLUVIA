@@ -1934,3 +1934,15 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 #weatherView .forecast-list .forecast-day > strong :is(.day-full,.day-short) { font-size:inherit; }
 @media(max-width:720px) { #weatherView .forecast-list .forecast-day > strong { font-size:1.125rem; } }
 @media(max-width:374px) { #weatherView .forecast-list .forecast-day > strong { font-size:1.05rem; } }
+/* 7 dias (1.25.3, pedido do usuário: "centraliza tudo" e "uma cor que indica o dia atual"): chance e volume
+   centrados na própria coluna (alinhados à direita, as linhas só com a chance pareciam tortas) e hoje num azul
+   de verdade, com contorno fino, em vez do véu claro que de noite parecia branco. Só pintura. */
+#weatherView .forecast-list .forecast-row > .forecast-condition { justify-self:center; align-self:center; }
+@media(max-width:720px) {
+  #weatherView .forecast-list .forecast-rain-values { justify-items:center; text-align:center; }
+  #weatherView .forecast-list :is(.forecast-rain-chance,.forecast-rain-volume) { min-width:0; text-align:center; }
+}
+#weatherView .forecast-list .forecast-row[data-today] { background:rgba(74,144,255,.26); box-shadow:inset 0 0 0 1px rgba(132,184,255,.5); }
+#weatherView .forecast-row[data-today] .forecast-day > strong { color:#fff; }
+body[data-ink="dark"] #weatherView .forecast-list .forecast-row[data-today] { background:rgba(47,107,255,.16); box-shadow:inset 0 0 0 1px rgba(47,107,255,.38); }
+body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong { color:var(--brand-blue); }
