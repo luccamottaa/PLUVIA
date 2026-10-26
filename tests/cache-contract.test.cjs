@@ -50,7 +50,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   assert.ok(!sw.includes('"./assets/sky-cloud-bank.webp"'),'textura antiga não é baixada pelo novo shell');
   // Nuvens por condição: baixadas (e guardadas pelo SW) só quando aquele céu aparece, fora do precache.
   const skyCss=fs.readFileSync(path.join(root,'sky.css'),'utf8');
-  for (const name of ['overcast','rain','storm','fog']) {
+  for (const name of ['overcast','rain','storm','fog','stratus']) {
     const asset=`sky-cloud-${name}.webp`;
     assert.ok(fs.existsSync(path.join(root,'assets',asset)),asset);
     // 1.29.1: 3168 × 1056 (a de 528 px de altura era esticada quase 4× no iPhone e ficava borrada).

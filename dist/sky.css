@@ -281,11 +281,13 @@ body.page-hidden :is(.sky-effects,.intro-sky) > * { visibility:hidden !important
   .sky-clouds-front { transform:none; }
   .sky-lightning { display:none !important; }
 }
-/* Nublado à noite e no crepúsculo (1.29.1, pedido do usuário com o app Tempo de referência: "a do Apple Weather
-   até pega a cor do céu no pôr do sol"). Antes: céu quase preto e nuvens escurecidas a 33% (massa cinza-chumbo
-   que apagava a cor do crepúsculo). Agora o céu nublado da noite é anil, as nuvens ficam claras e lilases (o
-   relevo vem da textura) e, no lado noturno do pôr/nascer do sol, a cor do crepúsculo vence: a película do
-   crepúsculo passa a 90% e as nuvens ganham o tom rosado/violeta dela. Só filtro estático e cor de fundo. */
-:root[data-weather="cloud"][data-phase="night"] { --sky-base:#2a3153; --sky-color:linear-gradient(180deg,#20274a 0%,#2c3357 48%,#3a3e66 100%); --cloud-filter:brightness(.45) contrast(.82) sepia(.42) hue-rotate(198deg) saturate(1.3); }
-:root[data-weather="cloud"][data-phase="night"]:is([data-solar="sunset"],[data-solar="sunrise"]) { --cloud-filter:brightness(.52) contrast(.82) sepia(.55) hue-rotate(228deg) saturate(1.4); }
+/* Nublado à noite e no crepúsculo (1.29.1, pedido do usuário com o app Tempo de referência: "as do Apple Weather são
+   bem naturais" e "pega a cor do céu no pôr do sol"). Antes: céu quase preto e o deck de manchas escurecido a 33%
+   (massa cinza-chumbo que apagava o crepúsculo). Agora: céu anil, véus finos (sky-cloud-stratus, semitransparentes)
+   tingidos de lilás por filtro estático, a camada da frente bem discreta e, no lado noturno do pôr/nascer do sol, o
+   tom puxa para o violeta e a película do crepúsculo vai a 90%. Só cor de fundo, filtro e opacidade. */
+:root[data-weather="cloud"][data-phase="night"] { --sky-base:#2a3153; --sky-color:linear-gradient(180deg,#20274a 0%,#2c3357 48%,#3a3e66 100%); --cloud-filter:brightness(.62) sepia(.3) hue-rotate(205deg) saturate(1.2); }
+:root[data-weather="cloud"][data-phase="night"]:is([data-solar="sunset"],[data-solar="sunrise"]) { --cloud-filter:brightness(.72) sepia(.45) hue-rotate(235deg) saturate(1.3); }
+:root[data-weather="cloud"][data-phase="night"] .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-stratus.webp?v=clouds-7"); }
+:root[data-weather="cloud"][data-phase="night"] .sky-clouds-front { opacity:.32; }
 :root[data-weather="cloud"]:is([data-solar="sunset"],[data-solar="sunrise"]) .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .9); }
