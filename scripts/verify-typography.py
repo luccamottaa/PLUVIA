@@ -59,8 +59,8 @@ with sync_playwright() as p:
  def geometry(page,width):
   result=page.evaluate("()=>{const number=document.querySelector('#temperature').getBoundingClientRect(),section=document.querySelector('.weather-main').getBoundingClientRect(),degree=document.querySelector('.temperature .deg').getBoundingClientRect();return {overflow:document.documentElement.scrollWidth>innerWidth,readingCenter:number.x+number.width/2,size:parseFloat(getComputedStyle(document.querySelector('#weatherView .temperature')).fontSize),sectionCenter:section.x+section.width/2,degreeRight:degree.right,numberLeft:number.x}}")
   assert not result['overflow'] and result['numberLeft']>=0 and result['degreeRight']<=width,result
-  # Algarismos ~0,12 em à esquerda do eixo, como no app Tempo (1.16.1).
-  assert abs(result['readingCenter']-result['sectionCenter']+0.1224*result['size'])<=1.5,result
+  # Algarismos no eixo (1.25.5; até então ~0,12 em à esquerda).
+  assert abs(result['readingCenter']-result['sectionCenter'])<=1.5,result
  def resize(page,width,height):
   page.set_viewport_size({'width':width,'height':height})
   # Como em verify-alignment: o navegador do teste nem sempre recalcula o estilo (o grau invisível, em pseudo-elemento)

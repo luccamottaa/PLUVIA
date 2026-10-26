@@ -129,10 +129,10 @@ with sync_playwright() as p:
    reading.evaluate('(el,value)=>el.textContent=value',value)
    number,degree=boxes('#temperature,.temperature .deg')
    axis=boxes('.weather-main')[0]['centerX']
-   # Como no app Tempo, os algarismos ficam ~0,12 em à esquerda do eixo (o grau invisível perde .34 do seu tamanho);
+   # Desde a 1.25.5 os algarismos ficam no eixo (o grau invisível tem o tamanho do grau real);
    # só uma leitura que não cabe (o grau invisível encolheu) pode ir mais para a esquerda, com o grau no limite.
    size=page.evaluate("parseFloat(getComputedStyle(document.querySelector('#weatherView .temperature')).fontSize)")
-   off=number['centerX']-axis+0.1224*size
+   off=number['centerX']-axis
    assert abs(off)<=1.5 or (off<0 and degree['right']>=width-24),(width,value,number,degree,axis,size)
    assert degree['x']>=number['right'] and number['x']>=0 and degree['right']<=width,(width,value,number,degree)
    for item in boxes('.topbar .brand,#cityName,#condition'):

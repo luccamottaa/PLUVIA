@@ -1863,10 +1863,10 @@ html body #weatherView .weather-hero.current-card { padding-top:0 !important; }
    (no iPhone, 34 e 96 pt), então os algarismos ocupam mais ou menos a mesma largura do nome logo acima. */
 #weatherView .intro h1 { font-size:clamp(1.9rem,8.7vw,2.65rem); }
 html body #weatherView .weather-hero .temperature { font-size:clamp(5.35rem,24.5vw,7.5rem) !important; }
-/* Eixo como no app Tempo (1.16.1, pedido do usuário com print do app da Apple): lá os algarismos ficam um pouco à
-   esquerda do centro do nome (o "29" começa junto do "M" de Manaus), porque o grau também pesa no conjunto. O grau
-   invisível perde .34 do próprio tamanho: os algarismos saem ~0,12 em para a esquerda do eixo (~12 px a 96 px). */
-#weatherView .temperature::before { margin-inline-end:-.34em; }
+/* Algarismos no eixo (1.25.5, pedido do usuário: "tem algo desalinhado"). Na 1.16.1 eles ficavam ~0,12 em à
+   esquerda (o grau invisível perdia .34 do tamanho), como no app Tempo, mas com a condição centrada logo embaixo
+   o número parecia torto (~12 px). Agora o grau invisível tem o tamanho inteiro e só o grau real fica pendurado. */
+#weatherView .temperature::before { margin-inline-end:0; }
 /* Sensação e máx./mín. entraram nos blocos de leitura (1.17): seis blocos, 2 colunas no celular e 3 a partir de
    721 px (com 4 sobravam dois na última fileira). A mínima fica menor, ao lado da máxima. */
 #weatherView .metrics .metric-sky .metric-min { font-size:.62em; font-weight:500; color:color-mix(in srgb,currentColor 75%,transparent); }
