@@ -1943,3 +1943,7 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 #weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#6fb1ff; font-weight:700; }
 body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong,
 body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#0f4aa8; }
+/* Condição mais perto da temperatura (1.25.5, pedido do usuário: "muito separado"). A caixa do número tem a
+   altura da fonte inteira, e embaixo dos algarismos sobra o espaço das letras com perna (~0,2 em): com o gap
+   da coluna, a condição ficava ~37 px abaixo dos algarismos. Puxa a caixa de volta na proporção do número. */
+#weatherView .wx-copy { margin-bottom:calc(clamp(5.35rem,24.5vw,7.5rem) * -.17); }
