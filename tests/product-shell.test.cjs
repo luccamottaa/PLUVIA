@@ -43,7 +43,7 @@ assert.match(html, /id="inmetCard"[\s\S]*?id="inmetContent"/);
 assert.doesNotMatch(html, /id="openWeatherMap"|id="weatherMapDialog"/);
 assert.match(app, /prefers-reduced-motion: reduce/);
 assert.match(html, /summary_large_image/);
-assert.match(html, /og-pluvia-v5\.png/);
+assert.match(html, /og-pluvia-v6\.png/);
 assert.match(html, /@font-face \{\n  font-family:"Nunito";/, "fonte da marca declarada inline no shell");
 assert.doesNotMatch(html, /inter-latin|font-family:"Inter"/, "texto usa a fonte do sistema (SF Pro), sem baixar a Inter");
 assert.doesNotMatch(html, /fonts\.googleapis\.com|fonts\.gstatic\.com/);

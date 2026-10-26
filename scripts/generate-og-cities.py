@@ -1,4 +1,4 @@
-"""Prévias sociais (Open Graph): a geral (dist/og-pluvia-v5.png, 1731×909, céu de pôr do sol desde a 1.18.2, logo nova na 1.26) e as das 27 capitais
+"""Prévias sociais (Open Graph): a geral (dist/og-pluvia-v6.png, 1731×909, céu de pôr do sol desde a 1.18.2, logo nova na 1.26) e as das 27 capitais
 (1200×630 JPEG em dist/og/<slug>-<versão>.jpg).
 
 Arte estática com as camadas do próprio céu do PLUVIA (pôr do sol do azul-noite ao laranja, estrelas só no alto e as duas
@@ -16,7 +16,7 @@ from playwright.sync_api import sync_playwright
 from PIL import Image
 
 OG_VERSION = 'v4'   # v4: logo nova (1.26); v3: céu de pôr do sol (1.18.2); v2: marca nova da 1.18
-MAIN_OG = 'og-pluvia-v5.png'
+MAIN_OG = 'og-pluvia-v6.png'   # v6: slogan O céu do Brasil agora (1.26.6)
 repo = Path(__file__).resolve().parent.parent
 dist = repo / 'dist'
 out = dist / 'og'
@@ -57,7 +57,7 @@ with sync_playwright() as p:
     page = browser.new_page(viewport={'width':1200, 'height':630}, device_scale_factor=1)
     # Prévia geral do site: mesma arte, com a assinatura grande e o slogan, em 1731×909.
     main = PAGE.replace('<div class="kicker">Previsão do tempo em</div>\n<div class="city">%(city)s</div><div class="tags">Chuva hora a hora · avisos do INMET · radar</div>',
-                        '<div class="slogan">O céu de cada cidade</div>').replace('.logo { height:96px; margin-bottom:42px; filter:drop-shadow(0 6px 30px rgba(5,10,30,.45)); }', '.logo { height:150px; margin-bottom:34px; filter:drop-shadow(0 6px 30px rgba(5,10,30,.45)); } .slogan { font-size:46px; font-weight:500; color:#e6eefb; text-shadow:0 3px 20px rgba(5,10,30,.5); }')
+                        '<div class="slogan">O céu do Brasil agora</div>').replace('.logo { height:96px; margin-bottom:42px; filter:drop-shadow(0 6px 30px rgba(5,10,30,.45)); }', '.logo { height:150px; margin-bottom:34px; filter:drop-shadow(0 6px 30px rgba(5,10,30,.45)); } .slogan { font-size:46px; font-weight:500; color:#e6eefb; text-shadow:0 3px 20px rgba(5,10,30,.5); }')
     wide = browser.new_page(viewport={'width':1200, 'height':630}, device_scale_factor=1731 / 1200)
     wide.set_content(main % {**assets, 'size':0}, wait_until='load'); wide.evaluate('document.fonts.ready')
     Image.open(io.BytesIO(wide.screenshot(type='png'))).convert('RGB').save(dist / MAIN_OG, 'PNG', optimize=True)
