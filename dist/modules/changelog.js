@@ -12,6 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.26.3", date:"2026-10-26", title:"Chuva cinza", items:[
+      "Com chuva forte ou trovoada de dia, o céu agora fica cinza, sem o fundo azul-marinho que aparecia embaixo das nuvens."]},
     {version:"1.26.2", date:"2026-10-26", title:"Nublado de verdade e menos texto no topo", items:[
       "O céu nublado agora tem nuvens cheias, com relevo, de ponta a ponta, como no app Tempo.",
       "A condição de céu fechado passou a se chamar \"Nublado\" (antes aparecia \"Céu encoberto\").",
