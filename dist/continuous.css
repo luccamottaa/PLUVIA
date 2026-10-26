@@ -1087,6 +1087,16 @@ body[data-phase="day"][data-ink="light"] #weatherView {
   --card-fill:linear-gradient(rgba(24,30,38,.34),rgba(24,30,38,.34)) padding-box;
   --card-border:rgba(255,255,255,.14);
 }
+/* Nublado de dia (1.26.6, referência do usuário: o nublado do app Tempo): céu cinza-azulado prateado e cartões
+   de vidro azul-ardósia, em vez do cinza-chumbo. */
+body[data-phase="day"][data-ink="light"][data-weather="cloud"] #weatherView {
+  --card-bg:rgba(36,48,68,.6);
+  --card-fill:linear-gradient(rgba(36,48,68,.6),rgba(36,48,68,.6)) padding-box;
+  --card-border:rgba(255,255,255,.18);
+}
+/* Céu claro como no app Tempo: o texto branco sobre o céu leva uma sombra suave e larga (a mesma solução do app
+   Tempo), em vez de escurecer o céu. Só no nublado de dia. */
+body[data-phase="day"][data-ink="light"][data-weather="cloud"] :is(.topbar,.weather-hero,.site-footer) { text-shadow:0 1px 3px rgba(20,32,52,.35),0 0 18px rgba(20,32,52,.28); }
 #weatherView .hero-range { margin:-8px 0 0; color:var(--reading-ink); font-size:1.05rem; font-weight:500; line-height:1.35; text-align:center; }
 #weatherView .hero-range:empty { display:none; }
 #weatherView .hero-range .sk-line { width:min(9rem,50%); }
@@ -1974,13 +1984,23 @@ body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > str
 #weatherView .hourly-peek-list[data-mode="rain"] .peek-chance { display:inline-flex; align-items:center; justify-content:center; gap:1px; font-size:.8125rem; font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums; color:var(--reading-ink); }
 #weatherView .hourly-peek-list[data-mode="rain"] .peek-chance[data-low="1"] { color:var(--reading-muted); font-weight:500; }
 #weatherView .hourly-peek-list[data-mode="rain"] .peek-chance[data-low="1"] .rain-metric-icon { display:none; }
-/* Vento (1.26.1): seta cheia dentro de um círculo fino, apontando para onde o vento vai; embaixo da velocidade,
-   de onde ele vem ("de SE"). Só a seta gira (transform estático no SVG, sem animação). */
-#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind { display:grid; place-items:center; }
-#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-dial { display:grid; place-items:center; width:32px; height:32px; border-radius:50%; border:1.5px solid color-mix(in srgb,var(--reading-ink,#fff) 28%,transparent); background:color-mix(in srgb,var(--reading-ink,#fff) 7%,transparent); }
-#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-dial svg { display:block; width:18px; height:18px; fill:var(--reading-link); stroke:none; }
-#weatherView .hourly-peek-list[data-mode="wind"] .peek-unit { font-size:.75rem; color:var(--reading-muted); }
-#weatherView .hourly-peek-list[data-mode="wind"] .peek-from { min-height:1.2em; font-size:.75rem; font-weight:600; color:var(--reading-ink); }
+/* Vento (1.26.5, como no app Tempo): colunas sem espaço entre si, separadas por um tracejado fino, velocidade
+   grande e um gráfico contínuo embaixo (linha da velocidade sobre a área das rajadas). Cada coluna desenha o seu
+   pedaço do gráfico; sem transform nem animação. */
+#weatherView .hourly-peek-list[data-mode="wind"] { gap:0; }
+#weatherView .hourly-peek-list[data-mode="wind"] .hourly-peek-item { padding-bottom:0; gap:2px; }
+#weatherView .hourly-peek-list[data-mode="wind"] .hourly-peek-item + .hourly-peek-item { background:linear-gradient(color-mix(in srgb,var(--reading-ink,#fff) 22%,transparent) 50%,transparent 0) left top / 1px 6px repeat-y; }
+#weatherView .hourly-peek-list[data-mode="wind"] .hourly-peek-item > strong { margin-top:10px; font-size:1.5rem; }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-unit { font-size:.8125rem; color:var(--reading-muted); }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-from { display:inline-flex; align-items:center; justify-content:center; gap:2px; min-height:1.3em; font-size:.75rem; font-weight:600; color:var(--reading-muted); }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-from svg { width:11px; height:11px; fill:currentColor; }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-chart { position:relative; display:block; align-self:stretch; height:60px; margin:6px -4px 0; }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-chart svg { display:block; width:100%; height:100%; overflow:visible; }
+#weatherView .hourly-peek-list[data-mode="wind"] .wind-gust { fill:color-mix(in srgb,#5fd0c4 34%,transparent); stroke:none; }
+#weatherView .hourly-peek-list[data-mode="wind"] .wind-speed { fill:none; stroke:#5fd8e6; stroke-width:3; stroke-linecap:round; vector-effect:non-scaling-stroke; }
+body[data-ink="dark"] #weatherView .hourly-peek-list[data-mode="wind"] .wind-gust { fill:color-mix(in srgb,#1f8f86 30%,transparent); }
+body[data-ink="dark"] #weatherView .hourly-peek-list[data-mode="wind"] .wind-speed { stroke:#0f7f95; }
+#weatherView .hourly-peek-list[data-mode="wind"] .wind-now { position:absolute; left:50%; width:10px; height:10px; margin:-5px 0 0 -5px; border-radius:50%; background:#fff; box-shadow:0 0 0 2.5px #10233f; }
 /* Próxima hora (1.26, pedido do usuário: "confuso"): trilho escuro da altura toda e a parte com chuva em azul,
    enchendo de baixo (altura = fração da área da cidade com eco no radar, não intensidade). */
 #weatherView .next-hour-bars { height:56px; gap:4px; border-bottom:0; }

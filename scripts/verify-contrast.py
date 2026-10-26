@@ -51,6 +51,12 @@ with sync_playwright() as p:
  page.wait_for_function("document.getElementById('inmetContent').textContent.includes('Sem alertas')")
  page.evaluate('document.fonts.ready')
  import base64
+ # Nublado de dia (1.26.5): o dono escolheu o céu claro do app Tempo, com texto branco e sombra suave direto
+ # sobre o céu. Só esses textos sobre o céu (topo, rodapé e intro) ficam abaixo de 4,5:1 nesse estado; os
+ # textos dentro dos cartões continuam exigindo 4,5:1. O piso de 1,9 pega um céu que clareie ainda mais.
+ SKY_TEXT={'#accountButton','#condition','#cityName','footer .footer-brand-copy span','.intro-tagline','.intro-kicker'}
+ def minimum(label,selector):
+  return 1.9 if label=='cloud' and selector in SKY_TEXT else 4.5
  def sample(selector):
   el=page.locator(selector).first;el.scroll_into_view_if_needed();page.evaluate('document.activeElement.blur()');page.evaluate('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))')
   clip=el.bounding_box();encoded=base64.b64encode(page.screenshot(clip=clip)).decode()
@@ -64,12 +70,12 @@ with sync_playwright() as p:
   page.set_viewport_size({'width':390,'height':844})
   for selector in ['#accountButton','#condition','#cityName','#hourlyDecision','#windNote','#sunPhrase','footer .footer-brand-copy span']:
    result=sample(selector)
-   assert result['contrast']>=4.5,{'state':label,'selector':selector,**result}
+   assert result['contrast']>=minimum(label,selector),{'state':label,'selector':selector,**result}
    reports.append({'state':label,'selector':selector,**result})
   page.evaluate("(()=>{const intro=document.getElementById('pluviaIntro');intro.hidden=false;intro.classList.remove('is-leaving');})()")
   for selector in ['.intro-tagline','.intro-kicker']:
    result=sample(selector)
-   assert result['contrast']>=4.5,{'state':label,'selector':selector,**result}
+   assert result['contrast']>=minimum(label,selector),{'state':label,'selector':selector,**result}
    reports.append({'state':label,'selector':selector,**result})
   page.evaluate("document.getElementById('pluviaIntro').hidden=true")
  (output/'report.json').write_text(json.dumps(reports,ensure_ascii=False,indent=2))

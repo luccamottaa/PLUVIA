@@ -33,7 +33,7 @@
 :root[data-phase="day"][data-ink="light"][data-weather="storm"] { --sky-base:#1f2125; --sky-color:linear-gradient(165deg,#2a2c31,#1a1c20 70%,#1f2125); --cloud-filter:brightness(.4) saturate(.15); }
 /* Nublado, garoa e chuva fraca de dia (1.25, referência do usuário: o nublado do Apple Weather): céu cinza-chumbo,
    nuvens em textura cinza e tinta clara. Mais claro que a chuva forte e a trovoada, que continuam no teto escuro. */
-:root[data-phase="day"][data-ink="light"][data-weather="cloud"] { --sky-base:#4a525c; --sky-color:linear-gradient(180deg,#3f4751,#4e5761 55%,#5b646e); --cloud-filter:brightness(.44) contrast(1.4) saturate(.15); }
+:root[data-phase="day"][data-ink="light"][data-weather="cloud"] { --sky-base:#909db0; --sky-color:linear-gradient(180deg,#8796aa,#9eabbc 45%,#93a0b2); --intro-muted:#f3f7fc; --cloud-filter:brightness(.86) contrast(.95) saturate(.45); }
 :root[data-phase="day"][data-ink="light"][data-weather="rain"]:not([data-rain="moderate"]):not([data-rain="heavy"]) { --sky-base:#4d5660; --sky-color:linear-gradient(180deg,#3b434c,#4b545e 55%,#57606a); --cloud-filter:brightness(.42) saturate(.2); }
 :root[data-weather="fog"] { --sky-base:#111c2c; --sky-color:linear-gradient(180deg,#35405788,#111c2c); --cloud-opacity:.3; }
 :root[data-weather="fog"][data-phase="day"] { --sky-base:#c0d1dd; --sky-color:linear-gradient(165deg,#aabfcf,#e0e9ef); --cloud-opacity:.5; }
@@ -126,11 +126,11 @@ html,body { background:var(--sky-base); }
 /* Each cloudy condition has its own deck texture (scripts/generate-soft-clouds.py), downloaded and
    cached by the SW only when that sky is shown; the haze behind keeps the sky closed meanwhile.
    Overcast and snow: soft stratus; rain: darker nimbostratus; storm: heavy ceiling; fog: low bands. */
-:root[data-weather="snow"] .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-overcast.webp?v=clouds-5"),linear-gradient(#f2f5f980,#f2f5f966); }
+:root[data-weather="snow"] .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-overcast.webp?v=clouds-6"),linear-gradient(#f2f5f980,#f2f5f966); }
 /* Nublado (1.26.2, pedido do usuário com print do Apple Weather): nuvens cheias e com relevo no céu todo, em vez do
    cinza liso da névoa. O fundo empilha duas cópias do volume (deslocadas dentro do mesmo tile, o laço continua sem
    emenda) sobre o estrato, a camada da frente sobe para o topo e o filtro de dia ganha contraste. */
-:root[data-weather="cloud"] .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-volume.webp?v=clouds-5"),url("./assets/sky-cloud-volume.webp?v=clouds-5"),url("./assets/sky-cloud-overcast.webp?v=clouds-5"); background-size:var(--cloud-tile) var(--cloud-height); background-position:0 0,calc(var(--cloud-tile) * .47) calc(var(--cloud-height) * .3),0 0; }
+:root[data-weather="cloud"] .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-overcast.webp?v=clouds-6"); background-size:var(--cloud-tile) var(--cloud-height); background-position:0 0; }
 :root[data-weather="cloud"] .sky-effects > .sky-clouds-front { top:2%; }
 :root[data-weather="rain"] .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-rain.webp?v=clouds-5"),linear-gradient(#e4e9ef80,#e4e9ef66); }
 :root[data-phase="day"]:is([data-weather="cloud"],[data-weather="rain"],[data-weather="storm"]) .sky-clouds-front { opacity:calc(var(--cloud-opacity) * .75); }
