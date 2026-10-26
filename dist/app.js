@@ -608,16 +608,23 @@ function setHourlyMode(mode) {
   hourlyMode = mode;
   try { localStorage.setItem("pluvia-hourly-mode", mode); } catch {}
   for (const button of globalThis.document?.querySelectorAll?.(".hourly-modes [data-mode]") || []) button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
-  if (lastHourly) renderHourly(...lastHourly);
-  // Como no app Tempo (vídeo do usuário, 1.26.6): ao trocar de modo, a fileira nova se revela da esquerda para a
-  // direita e as barras de chuva sobem do zero. Só clip-path e altura (pintura), sem transform/opacity.
-  const peek = $("hourlyPeek");
-  if (peek && !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
-    peek.removeAttribute("data-switching");
-    void peek.offsetWidth;
-    peek.setAttribute("data-switching", "");
-    clearTimeout(setHourlyMode.timer);
-    setHourlyMode.timer = setTimeout(() => peek.removeAttribute("data-switching"), 900);
+  // Como no app Tempo (vídeos do usuário, 1.26.7): a fileira antiga some e a nova aparece num fade curto, no mesmo
+  // lugar e com a mesma altura nos três modos (a seção de baixo não pula). View Transition só com a fileira nomeada,
+  // como em slideToCity; sem a API ou com movimento reduzido, troca na hora.
+  const peek = $("hourlyPeek"), list = $("forecastList");
+  const paint = () => { if (lastHourly) renderHourly(...lastHourly); if (lastForecast) renderForecast(...lastForecast); };
+  const canFade = peek && typeof globalThis.document?.startViewTransition === "function" &&
+    !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if (!canFade) paint();
+  else {
+    peek.style.setProperty("view-transition-name", "pluvia-hourly");
+    list?.style.setProperty("view-transition-name", "pluvia-daily");
+    const clear = () => { peek.style.removeProperty("view-transition-name"); list?.style.removeProperty("view-transition-name"); };
+    try {
+      const transition = document.startViewTransition(paint);
+      transition.updateCallbackDone?.catch(() => {});
+      transition.finished.catch(() => {}).finally(clear);
+    } catch { clear(); paint(); }
   }
   globalThis.pluviaAnalytics?.track?.("Hourly Mode Changed", {mode});
 }
@@ -658,7 +665,13 @@ function renderHourly(rows, start, daily, raw) {
 }
 
 // Os 7 dias leem as linhas normalizadas por dia (weatherData.rows: temperatureMax, precipitationSum…).
-function renderForecast(days, currentTemperature, at = Date.now()) {
+// Como no app Tempo (1.27, pedido do usuário), a lista segue o modo das Próximas horas: em Chuva, cada dia mostra a
+// chuva hora a hora numa faixa (mesma escala das barras da fileira, só pelo volume), o total e a chance; em Vento, a
+// menor e a maior velocidade do dia numa trilha com escala comum aos 7 dias e a maior rajada. Hora ausente não é zero.
+function renderForecast(days, currentTemperature, at = Date.now(), hourly = []) {
+  lastForecast = [days, currentTemperature, at, hourly];
+  const list = $("forecastList");
+  list?.setAttribute?.("data-mode", hourlyMode);
   const today = globalThis.PLUVIA.time.dayKey(at,activeCity);
   const start = days.findIndex(row => row.time >= today);
   if (start < 0) { $("forecastList").innerHTML = '<p class="forecast-loading">Previsão diária salva sem próximos dias disponíveis.</p>'; return; }
@@ -677,6 +690,8 @@ function renderForecast(days, currentTemperature, at = Date.now()) {
   const minAll = Math.min(...indices.map(i=>days[i].temperatureMin).filter(Number.isFinite));
   const maxAll = Math.max(...indices.map(i=>days[i].temperatureMax).filter(Number.isFinite));
   const spread = Math.max(1, maxAll - minAll);
+  const winds = new Map(hourlyMode === "wind" ? indices.map(i => [i, dayWind(dayHours(hourly, days[i].time))]) : []);
+  const windTop = Math.max(20, ...[...winds.values()].filter(Boolean).map(w => w.max));
   $("forecastList").innerHTML = dates.map((date, offset) => {
     const i = indices[offset];
     const d = new Date(`${date}T12:00:00Z`);
@@ -704,6 +719,32 @@ function renderForecast(days, currentTemperature, at = Date.now()) {
     const showVolume = !Number.isFinite(rainMm) || rainMm >= 0.5;
     // Sem aria-label: o nome do botão é o texto visível (WCAG 2.5.3); a faixa de temperatura tem o próprio
     // rótulo e os trechos .peek-extra completam a leitura só para leitores de tela.
+    const dayHead = `<span class="forecast-day"><strong><span class="day-full">${day}</span>${day === "Hoje" ? "" : `<span class="day-short" aria-hidden="true">${day.slice(0,3)}</span>`}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
+      <span class="forecast-condition"><i>${weatherIcons.markup(days[i].weatherCode, true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>`;
+    const rowOpen = `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}"${date === today ? " data-today" : ""} data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog">`;
+    if (hourlyMode === "rain") {
+      const hours = dayHours(hourly, date);
+      const bars = Array.from({length:24}, (_, h) => {
+        const mm = hours[h]?.precipitation;
+        return Number.isFinite(mm) && mm >= 0 ? `<i style="--fill:${Math.round(rainFill(mm) * 100)}%"></i>` : '<i data-missing="1"></i>';
+      }).join("");
+      const total = Number.isFinite(rainMm) ? `${fmt(rainMm, rainMm >= 10 ? 0 : 1)} mm` : "—";
+      return `${rowOpen}
+      ${dayHead}
+      <span class="temp-range day-mode day-rain" role="img" aria-label="Chuva hora a hora: ${Number.isFinite(rainMm) ? `${fmt(rainMm, 1)} milímetros no dia` : "volume indisponível"}">${bars}</span>
+      <span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb === null ? "—" : `${rainProb}%`}</span><span class="forecast-rain-volume">${total}</span><span class="peek-extra">. Ver detalhes. </span></span></span>
+    </button>`;
+    }
+    if (hourlyMode === "wind") {
+      const wind = winds.get(i);
+      const range = wind ? `<strong aria-hidden="true">${fmt(wind.min)}</strong><span class="temp-track" aria-hidden="true"><span class="temp-fill" style="left:${(wind.min / windTop * 100).toFixed(1)}%;width:${Math.max(2, (wind.max - wind.min) / windTop * 100).toFixed(1)}%"></span></span><strong aria-hidden="true">${fmt(wind.max)}</strong>` : '<strong aria-hidden="true">—</strong><span class="temp-track" aria-hidden="true"></span><strong aria-hidden="true">—</strong>';
+      const gust = wind && Number.isFinite(wind.gust) ? fmt(wind.gust) : "—";
+      return `${rowOpen}
+      ${dayHead}
+      <span class="temp-range day-mode day-wind" role="img" aria-label="${wind ? `Vento de ${fmt(wind.min)} a ${fmt(wind.max)} quilômetros por hora` : "Vento indisponível"}">${range}</span>
+      <span class="forecast-rain"><span>${weatherIcons.markupName("wind-gust", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, rajadas de até </span><span class="forecast-rain-chance">${gust}</span><span class="forecast-rain-volume">km/h</span><span class="peek-extra">. Ver detalhes. </span></span></span>
+    </button>`;
+    }
     return `<button type="button" class="forecast-row ${i === bestIndex ? "best-day" : ""}"${date === today ? " data-today" : ""} data-day-index="${i}" aria-haspopup="dialog" aria-controls="dailyDetailDialog">
       <span class="forecast-day"><strong><span class="day-full">${day}</span>${day === "Hoje" ? "" : `<span class="day-short" aria-hidden="true">${day.slice(0,3)}</span>`}${weekend ? '<span class="weekend-note"> · fim de semana</span>' : ""}</strong><span>${label} <span aria-hidden="true">›</span></span></span>
       <span class="forecast-condition"><i>${weatherIcons.markup(days[i].weatherCode, true, {className:"forecast-weather-icon"})}</i><span>${cond}</span></span>
@@ -711,6 +752,17 @@ function renderForecast(days, currentTemperature, at = Date.now()) {
       ${rainQuiet ? `<span class="forecast-rain" data-rain="none"><span class="peek-extra">, chance de chuva ${rainProb}%, ${fmt(rainMm, 1)} mm${noteText}. Ver detalhes. </span></span>` : `<span class="forecast-rain"><span>${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}</span><span class="forecast-rain-values"><span class="peek-extra">, chance de chuva </span><span class="forecast-rain-chance">${rainProb === null ? '—' : `${rainProb}%`}</span>${showVolume ? `<span class="forecast-rain-volume">${fmt(rainMm, 1)} mm</span>` : `<span class="peek-extra">, ${fmt(rainMm, 1)} mm</span>`}<span class="peek-extra">${noteText}. Ver detalhes. </span></span></span>`}
     </button>`;
   }).join("");
+}
+
+let lastForecast = null;
+function dayHours(hourly, date) {
+  // Intervalo que termina no timestamp: as 24 horas do dia são as que terminam de 01:00 até 00:00 do dia seguinte.
+  const first = hourly.findIndex(row => typeof row.time === "string" && row.time.startsWith(`${date}T00`));
+  return first < 0 ? [] : hourly.slice(first + 1, first + 25);
+}
+function dayWind(hours) {
+  const speed = hours.map(row => row.windSpeed).filter(Number.isFinite), gust = hours.map(row => row.windGust).filter(Number.isFinite);
+  return speed.length >= 18 ? {min:Math.min(...speed), max:Math.max(...speed), gust:gust.length >= 18 ? Math.max(...gust) : null} : null;
 }
 
 function solarArcPoint(progress) {
@@ -1463,7 +1515,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   globalThis.PLUVIA?.hourlyDetail?.update?.({hourly:data.hourly,daily:day,start,city:activeCity,fromCache,cacheAt,isDayAt:time=>forecastIsDay(time,day)});
   globalThis.PLUVIA?.dailyDetail?.update?.({hourly:data.hourly,daily:day,city:activeCity,fromCache,cacheAt,at:Date.now(),isDayAt:time=>forecastIsDay(time,day),dayAt:stamp=>globalThis.PLUVIA.sky.dayAt(stamp)});
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
-  renderForecast(lines?.daily || [], now.temperature); renderSun(day, Date.now(), data.hourly);
+  renderForecast(lines?.daily || [], now.temperature, Date.now(), lines?.hourly || []); renderSun(day, Date.now(), data.hourly);
   displayedWeather = {forecast:data,air,fromCache,cacheAt,weatherAt:metadata.weatherAt || cacheAt || Date.now(),hour:start,phase:atmosphere?.phase,day:globalThis.PLUVIA.time.dayKey(Date.now(),activeCity),airAt:metadata.airAt,freshAir:metadata.freshAir === true};
   globalThis.dispatchEvent?.(new CustomEvent("pluvia:weather-updated",{detail:{cityId:activeCity.id}}));
 }

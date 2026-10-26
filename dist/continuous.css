@@ -1990,11 +1990,11 @@ body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > str
 #weatherView .hourly-peek-list[data-mode="wind"] { gap:0; }
 #weatherView .hourly-peek-list[data-mode="wind"] .hourly-peek-item { padding-bottom:0; gap:2px; }
 #weatherView .hourly-peek-list[data-mode="wind"] .hourly-peek-item + .hourly-peek-item { background:linear-gradient(color-mix(in srgb,var(--reading-ink,#fff) 22%,transparent) 50%,transparent 0) left top / 1px 6px repeat-y; }
-#weatherView .hourly-peek-list[data-mode="wind"] .hourly-peek-item > strong { margin-top:10px; font-size:1.5rem; }
+#weatherView .hourly-peek-list[data-mode="wind"] .hourly-peek-item > strong { margin-top:4px; font-size:1.5rem; }
 #weatherView .hourly-peek-list[data-mode="wind"] .peek-unit { font-size:.8125rem; color:var(--reading-muted); }
 #weatherView .hourly-peek-list[data-mode="wind"] .peek-from { display:inline-flex; align-items:center; justify-content:center; gap:2px; min-height:1.3em; font-size:.75rem; font-weight:600; color:var(--reading-muted); }
 #weatherView .hourly-peek-list[data-mode="wind"] .peek-from svg { width:11px; height:11px; fill:currentColor; }
-#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-chart { position:relative; display:block; align-self:stretch; height:60px; margin:6px -4px 0; }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-chart { position:relative; display:block; align-self:stretch; height:34px; margin:4px -4px 0; }
 #weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-chart svg { display:block; width:100%; height:100%; overflow:visible; }
 #weatherView .hourly-peek-list[data-mode="wind"] .wind-gust { fill:color-mix(in srgb,#5fd0c4 34%,transparent); stroke:none; }
 #weatherView .hourly-peek-list[data-mode="wind"] .wind-speed { fill:none; stroke:#5fd8e6; stroke-width:3; stroke-linecap:round; vector-effect:non-scaling-stroke; }
@@ -2018,12 +2018,34 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
   #weatherView .hourly-modes button { flex:1 1 0; width:auto; }
 }
 
-/* Troca de modo das Próximas horas (1.26.6, como no app Tempo): a fileira nova se revela da esquerda para a direita
-   (o gráfico do vento parece se desenhar) e as barras de chuva sobem do zero. Só clip-path e altura, pintura sem
-   camada; nada de transform/opacity. Movimento reduzido: troca na hora. */
-@keyframes pluvia-hourly-reveal { from { clip-path:inset(0 100% 0 0); } to { clip-path:inset(0 0 0 0); } }
+/* Troca de modo das Próximas horas (1.26.7, como no app Tempo): fade curto da fileira por View Transition
+   (app.js, setHourlyMode) e a mesma altura nos três modos, para a janela seca e o "Tá chovendo aí?" não pularem.
+   As barras de chuva sobem do zero (altura). Movimento reduzido: troca na hora. */
+#weatherView .hourly-peek-list { min-height:10rem; }
+::view-transition-old(pluvia-hourly) { animation:pluvia-hourly-out .16s ease-in both; }
+::view-transition-new(pluvia-hourly) { animation:pluvia-hourly-in .3s ease-out .08s both; }
+::view-transition-group(pluvia-hourly) { animation-duration:.38s; }
+@keyframes pluvia-hourly-out { to { opacity:0; } }
+@keyframes pluvia-hourly-in { from { opacity:0; } }
 @keyframes pluvia-hourly-bar { from { height:0; } }
 @media (prefers-reduced-motion:no-preference) {
-  #weatherView .hourly-peek-list[data-switching] { animation:pluvia-hourly-reveal .75s cubic-bezier(.33,1,.68,1) both; }
-  #weatherView .hourly-peek-list[data-switching][data-mode="rain"] .peek-bar i { animation:pluvia-hourly-bar .7s cubic-bezier(.22,1,.36,1) .12s both; }
+  #weatherView .hourly-peek-list[data-mode="rain"] .peek-bar i { animation:pluvia-hourly-bar .6s cubic-bezier(.22,1,.36,1) .1s both; }
+}
+
+
+/* 7 dias no modo das Próximas horas (1.27, como no app Tempo). Chuva: faixa com as 24 horas do dia, cada barra
+   enche de baixo pela mesma escala da fileira (só volume); hora ausente fica tracejada, nunca vazia como "seco".
+   Vento: a trilha da temperatura vira a faixa menor–maior velocidade, em escala comum aos 7 dias. */
+#weatherView .forecast-list .forecast-row > .temp-range.day-rain { display:flex; align-items:flex-end; gap:1px; height:26px; }
+#weatherView .forecast-list .day-rain i { position:relative; flex:1 1 0; height:100%; border-radius:2px; background:color-mix(in srgb,var(--reading-ink,#fff) 10%,transparent); overflow:hidden; }
+#weatherView .forecast-list .day-rain i::after { content:""; position:absolute; inset:auto 0 0; height:var(--fill,0%); background:linear-gradient(#8fdcff,#3fa9f5); }
+#weatherView .forecast-list .day-rain i[data-missing] { background:repeating-linear-gradient(180deg,color-mix(in srgb,var(--reading-ink,#fff) 14%,transparent) 0 2px,transparent 2px 5px); }
+#weatherView .forecast-list .day-wind .temp-fill { background:linear-gradient(90deg,#7fe3d6,#3fb8c9); }
+body[data-ink="dark"] #weatherView .forecast-list .day-wind .temp-fill { background:linear-gradient(90deg,#2aa69a,#0f7f95); }
+#weatherView .forecast-list[data-mode="rain"] .forecast-rain-volume, #weatherView .forecast-list[data-mode="wind"] .forecast-rain-volume { min-width:0; }
+::view-transition-old(pluvia-daily) { animation:pluvia-hourly-out .16s ease-in both; }
+::view-transition-new(pluvia-daily) { animation:pluvia-hourly-in .3s ease-out .08s both; }
+::view-transition-group(pluvia-daily) { animation-duration:.38s; }
+@media (prefers-reduced-motion:no-preference) {
+  #weatherView .forecast-list .day-rain i::after { animation:pluvia-hourly-bar .6s cubic-bezier(.22,1,.36,1) .1s both; }
 }

@@ -23,7 +23,7 @@ test('card solar escolhe o dia local atual, oculta o sol à noite e acompanha o 
 test('previsão diária não chama ontem de Hoje nem cria zero para chuva ausente',()=>{
  const list={innerHTML:''},data=forecast();
  data.daily.precipitation_sum[7]=null;data.daily.precipitation_probability_max[7]=null;
- const context=vm.createContext({PLUVIA:{time},activeCity:city,$:()=>list,fmt:value=>Number.isFinite(value)?String(value):'--',weather:()=>['Nublado'],weatherIcons:{markup:()=>'',markupName:()=>''}});
+ const context=vm.createContext({PLUVIA:{time},activeCity:city,$:()=>list,fmt:value=>Number.isFinite(value)?String(value):'--',weather:()=>['Nublado'],weatherIcons:{markup:()=>'',markupName:()=>''},hourlyMode:'conditions'});
  vm.runInContext(app.slice(app.indexOf('function renderForecast('),app.indexOf('function solarArcPoint(')),context);
  context.renderForecast(layerRows(null,{daily:data.daily}).daily,30,Date.parse('2026-10-02T00:01-04:00'));
  assert.equal((list.innerHTML.match(/<span class="day-full">Hoje/g)||[]).length,1);
