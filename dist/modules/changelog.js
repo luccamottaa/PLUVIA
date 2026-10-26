@@ -13,7 +13,7 @@
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
     {version:"1.25.5", date:"2026-10-26", title:"Topo alinhado", items:[
-      "A condição do tempo (\"Céu limpo\", \"Nublado\"…) ficou mais perto da temperatura, sem aquele vão entre os dois.","O número da temperatura ficou centralizado com a cidade e a condição (antes ficava um pouco para a esquerda)."]},
+      "A condição do tempo (\"Céu limpo\", \"Nublado\"…) ficou mais perto da temperatura, sem aquele vão entre os dois.","O número da temperatura ficou centralizado com a cidade e a condição (antes ficava um pouco para a esquerda).","No detalhe de cada hora, o ícone ficou maior e alinhado com a temperatura, e a nota de chuva não diz mais \"Chuva prevista\" quando a chance é 0%."]},
     {version:"1.25.4", date:"2026-10-21", title:"Visibilidade com número", items:[
       "Quando o aeroporto informa só \"10 km ou mais\", a visibilidade agora mostra a distância prevista pelo modelo (por exemplo, 24 km) em vez de ficar sempre em \"10+ km\". Com o modelo abaixo de 10 km, continua valendo a medida do aeroporto."]},
     {version:"1.25.3", date:"2026-10-21", title:"Próximos 7 dias alinhados", items:[

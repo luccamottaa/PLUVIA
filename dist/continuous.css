@@ -1947,3 +1947,11 @@ body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > str
    altura da fonte inteira, e embaixo dos algarismos sobra o espaço das letras com perna (~0,2 em): com o gap
    da coluna, a condição ficava ~37 px abaixo dos algarismos. Puxa a caixa de volta na proporção do número. */
 #weatherView .wx-copy { margin-bottom:calc(clamp(5.35rem,24.5vw,7.5rem) * -.17); }
+/* Detalhe por hora (1.25.5, pedido do usuário: ícone "desalinhado" e pequeno). O ícone ocupava as duas linhas
+   (número e condição) e ficava centrado no bloco, mais baixo que o número. Agora tem 96 px e fica na linha do
+   número, centrado nele; a condição vai embaixo do número. */
+.hourly-detail-weather { grid-template-columns:96px auto; column-gap:14px; row-gap:2px; text-align:left; }
+#hourlyDetailIcon { grid-row:1; width:96px; height:96px; }
+#hourlyDetailIcon .weather-icon { width:96px; height:96px; }
+#hourlyDetailTemperature { grid-column:2; align-self:center; line-height:1; }
+#hourlyDetailDialog #hourlyDetailCondition { grid-column:1 / -1; text-align:center; }
