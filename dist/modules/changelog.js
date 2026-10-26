@@ -12,6 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.29.1", date:"2026-10-26", title:"Nuvens mais nítidas", items:[
+      "As nuvens dos céus nublado, de chuva, de tempestade e de neblina foram refeitas em resolução bem maior: no celular elas apareciam esticadas e borradas, e agora ficam macias e definidas."]},
     {version:"1.29", date:"2026-10-26", title:"Gráfico do dia, protetor solar e radar adiante", items:[
       "Ao tocar num dos Próximos 7 dias, o detalhe abre com um gráfico como o do app Tempo: a curva da temperatura hora a hora, colorida do frio ao quente, com a mínima, a máxima e o \"Agora\" marcados, e embaixo as barras da chuva prevista.",
       "O Índice UV agora diz até quando usar protetor solar no resto do dia, como \"Proteção solar até 15:00\".",
