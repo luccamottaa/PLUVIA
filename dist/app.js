@@ -1521,7 +1521,9 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   // identificação da série modelada continuam para leitores de tela.
   const pressureNote = $("pressureNote"), pressureText = (pressureTrend ? (pressureTrend.trend==='stable' ? 'Estável nas últimas 3h' : `${pressureTrend.trend==='rising' ? 'Subindo' : 'Caindo'} ${fmt(Math.abs(pressureTrend.delta),1)} hPa em 3h`)+' · ' : '')+'estimativa do modelo';
   pressureNote.textContent = ""; const pressureHidden = document.createElement("span"); pressureHidden.className = "visually-hidden"; pressureHidden.textContent = pressureText; pressureNote.append(pressureHidden);
-  const uvNow = now.uvIndex; $("uv").textContent = fmt(uvNow, 0); $("uvNote").textContent = uvLabel(Number.isFinite(uvNow) ? Math.round(uvNow) : uvNow);
+  // Classe e, como no app Tempo, até quando usar protetor no resto do dia (UV ≥ 3; weatherInsights.uvWindow).
+  const uvNow = now.uvIndex, uvProtect = Number.isFinite(uvNow) ? weatherInsights?.uvWindow?.(data.hourly, start) : null;
+  $("uv").textContent = fmt(uvNow, 0); $("uvNote").textContent = uvLabel(Number.isFinite(uvNow) ? Math.round(uvNow) : uvNow) + (uvProtect ? ` · ${uvProtect.text}` : "");
   $("uvScale").hidden = !Number.isFinite(uvNow);
   if (Number.isFinite(uvNow)) $("uvScale").style.setProperty("--uv-position", `${Math.max(0, Math.min(100, uvNow / 11 * 100))}%`);
   renderAirQuality(air?.current?.us_aqi);

@@ -2086,3 +2086,29 @@ html body #accountDialog .capital-links summary::after { transition:rotate .32s 
 body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:#0f4aa8; }
 #weatherView .sun-table td:last-child { color:var(--reading-muted); }
 @media (max-width:359px) { #weatherView .sun-table :is(th,td) { font-size:.875rem; } }
+
+/* 1.29: gráfico do dia no detalhe diário (daily-detail.chart), no estilo do app Tempo. Traço e área no
+   degradê frio → quente da faixa do dia, barras de chuva só pelo volume. O traço se desenha ao abrir ou
+   trocar de dia (stroke-dashoffset: pintura dentro do SVG, sem camada); reduced-motion mostra pronto. */
+#dailyDetailDialog .day-chart { --day-chart-hot:#ffa63d; --day-chart-mild:#ffd84d; --day-chart-cold:#5ac8fa; margin:6px 0 18px; padding:14px 12px 8px; border-radius:20px; background:var(--dialog-surface, rgba(255,255,255,.06)); }
+#dailyDetailDialog .day-chart[hidden] { display:none; }
+#dailyDetailDialog .day-chart-svg { display:block; width:100%; height:auto; overflow:visible; font-family:inherit; }
+#dailyDetailDialog .day-chart-line { fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1; stroke-dashoffset:0; animation:pluvia-day-chart-draw 1s cubic-bezier(.3,.7,.2,1) both; }
+#dailyDetailDialog .day-chart-area { animation:pluvia-day-chart-fill .7s ease-out .35s both; }
+#dailyDetailDialog .day-chart-grid { stroke:var(--dialog-line, rgba(255,255,255,.12)); stroke-width:1; stroke-dasharray:2 4; }
+#dailyDetailDialog .day-chart-base { stroke:var(--dialog-line, rgba(255,255,255,.14)); stroke-width:1; }
+#dailyDetailDialog .day-chart-axis { fill:var(--dialog-muted, #9fb0cc); font-size:10.5px; font-weight:500; }
+#dailyDetailDialog .day-chart-mark { fill:var(--dialog-text, #fff); font-size:12.5px; font-weight:650; }
+#dailyDetailDialog .day-chart-dot { stroke:var(--dialog-bg, #101a33); stroke-width:2; }
+#dailyDetailDialog .day-chart-dot.is-high { fill:var(--day-chart-hot); }
+#dailyDetailDialog .day-chart-dot.is-low { fill:var(--day-chart-cold); }
+#dailyDetailDialog .day-chart-now { stroke:var(--dialog-text, #fff); stroke-opacity:.45; stroke-width:1.2; stroke-dasharray:3 3; }
+#dailyDetailDialog .day-chart-now-dot { fill:var(--dialog-text, #fff); stroke:var(--dialog-bg, #101a33); stroke-width:2.5; }
+#dailyDetailDialog .day-chart-now-label { fill:var(--dialog-text, #fff); font-weight:650; }
+#dailyDetailDialog .day-chart-rain { fill:#5ac8fa; }
+#dailyDetailDialog .day-chart-dry { font-style:italic; }
+body[data-ink="dark"] #dailyDetailDialog .day-chart { --day-chart-hot:#f08a24; --day-chart-mild:#e6b800; --day-chart-cold:#1e90d6; }
+body[data-ink="dark"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
+@keyframes pluvia-day-chart-draw { from { stroke-dashoffset:1; } }
+@keyframes pluvia-day-chart-fill { from { fill-opacity:0; } }
+@media (prefers-reduced-motion:reduce) { #dailyDetailDialog :is(.day-chart-line,.day-chart-area) { animation:none; } }

@@ -434,6 +434,33 @@
     return hidden;
   }
 
-  return {currentIndex, yesterday, pastRain, sunsetGlow, feelsLike, uv, pressure, rain, rainAnswer, rainGauge, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
+  // Quando usar protetor no resto do dia (OMS: UV 3 ou mais), como o app Tempo: "Proteção solar até 15:00".
+  // Bloco contínuo de horas com UV ≥ 3 a partir da hora atual, no dia municipal; uma hora sem leitura no meio
+  // ou no fim do bloco faz devolver null (não dá para dizer até quando). Leitura instantânea: sem deslocar índice.
+  function uvWindow(hourly, start) {
+    const times = hourly?.time || [];
+    if (!Number.isInteger(start) || start < 0 || !times[start]) return null;
+    const today = day(times[start]), value = index => { const raw = number(hourly?.uv_index?.[index]); return raw !== null && raw >= 0 ? raw : null; };
+    let first = -1;
+    for (let index = start; index < times.length && day(times[index]) === today; index += 1) {
+      const uvValue = value(index);
+      if (uvValue === null) return null;
+      if (uvValue >= 3) { first = index; break; }
+    }
+    if (first < 0) return null;
+    let last = first;
+    while (last + 1 < times.length && day(times[last + 1]) === today) {
+      const next = value(last + 1);
+      if (next === null) return null;
+      if (next < 3) break;
+      last += 1;
+    }
+    // O bloco vai até o fim da última hora com UV alto: protege até a hora seguinte.
+    const until = last + 1 < times.length ? clock(times[last + 1]) : null;
+    if (!until) return null;
+    return {from:clock(times[first]), until, now:first === start, text:first === start ? `Proteção solar até ${until}` : `Proteção solar das ${clock(times[first])} às ${until}`};
+  }
+
+  return {currentIndex, yesterday, pastRain, sunsetGlow, feelsLike, uv, uvWindow, pressure, rain, rainAnswer, rainGauge, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
 });
 
