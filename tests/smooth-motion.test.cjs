@@ -143,7 +143,8 @@ test('toque e ponteiros animam sem camadas e respeitam reduced-motion',()=>{
   assert.match(css,/:active:not\(:disabled\) \{ box-shadow:inset 0 0 0 100px color-mix\(in srgb, currentColor 14%, transparent\); transition-duration:0s; \}/,'toque é um véu por sombra interna, sem trocar o fundo');
   assert.match(css,/\.compass-needle \{ transition:transform [^}]+\}/);
   assert.match(css,/\.uv-scale span \{ transition:left [^}]+\}/);
-  const reduced=css.slice(css.lastIndexOf('@media (prefers-reduced-motion:reduce) {'));
+  // Todos os blocos de reduced-motion juntos: blocos novos no fim da folha não podem esconder os antigos.
+  const reduced=css.split('@media (prefers-reduced-motion:reduce) {').slice(1).join('\n@media ');
   assert.match(reduced,/\.compass-needle, \.uv-scale span, #weatherView \.sun-arc :is\(\.sun-dot,\.moon-dot\), #weatherView \.next-hour-bars span(, [^{]+)? \{ transition:none; \}/);
   assert.match(reduced,/summary::before[^{]*\{ transition:none; \}/,'setas dos details param com reduced-motion');
   assert.match(app,/compass\.pluviaTurn = turn \+ \(\(\(\(heading - turn\) % 360\) \+ 540\) % 360 - 180\)/,'agulha pelo menor caminho');
