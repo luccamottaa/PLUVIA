@@ -48,12 +48,10 @@ test('focos: o texto não atribui causa à qualidade do ar', () => {
   assert.doesNotMatch(note, /fumaça|qualidade do ar|queimada/i);
 });
 
-test('cartões escondidos no HTML, script versionado no shell e no SW', () => {
+test('desde a 1.26.4 os cartões de rio e focos saíram da Home (pedido do usuário): sem cartão nem script', () => {
   const html = fs.readFileSync('dist/index.html', 'utf8'), sw = fs.readFileSync('dist/sw.js', 'utf8');
-  assert.match(html, /<article class="metric station-metric panel card-detail" id="riverLevel"[^>]*hidden>/);
-  assert.match(html, /<article class="metric station-metric panel card-detail" id="fireSpots"[^>]*hidden>/);
-  assert.match(html, /modules\/environment-now\.js\?v=environment-1/);
-  assert.match(sw, /modules\/environment-now\.js\?v=environment-1/);
+  assert.doesNotMatch(html, /id="riverLevel"|id="fireSpots"|environment-now\.js/);
+  assert.doesNotMatch(sw, /environment-now\.js/);
   assert.match(html, /Programa Queimadas do INPE/);
   assert.match(html, />ANA<\/a>/);
 });

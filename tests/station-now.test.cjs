@@ -130,11 +130,10 @@ test('app: só leitura recente com temperatura aparece, com texto da estação, 
   assert.match(client.requestUrl({lat:-3.119,lon:-60.0217}),/station-now\?lat=-3\.12&lon=-60\.02$/);
   assert.equal(client.requestUrl({lat:null}),null);
 });
-test('app: cartão escondido até a leitura, some na troca de cidade e entra no fim das leituras', () => {
+test('app: sem o cartão "Medido agora" (saiu da Home na 1.26.4) a leitura continua chegando, e some na troca de cidade', () => {
   const html = fs.readFileSync('dist/index.html','utf8'), css = fs.readFileSync('dist/continuous.css','utf8'), sw = fs.readFileSync('dist/sw.js','utf8');
-  assert.match(html,/<article class="metric station-metric panel card-detail" id="stationNow" aria-labelledby="stationNowTitle" hidden>/);
-  assert.match(html,/id="airQualityCard">[\s\S]*?<\/article>\n\s*<article class="metric station-metric/,'depois do ar, sem empurrar o topo');
-  assert.match(html,/modules\/station-now\.js\?v=station-4/);assert.match(sw,/modules\/station-now\.js\?v=station-4/);
+  assert.doesNotMatch(html,/id="stationNow"/);
+  assert.match(html,/modules\/station-now\.js\?v=station-5/);assert.match(sw,/modules\/station-now\.js\?v=station-5/);
   assert.match(css,/#weatherView \.metrics \.station-metric\[hidden\] \{ display:none; \}/);
   const source = fs.readFileSync('dist/modules/station-now.js','utf8');
   assert.match(source,/'pluvia:city-changed', \(\) => \{ revision\+\+; pendingCity = null; controller\?\.abort\?\.\(\); hide\(\); \}/);
@@ -154,4 +153,20 @@ test('app: sem estação do INMET o cartão mostra o aeroporto; com estação, o
   assert.equal(client.weatherPhrase({thunder:true, rain:'moderate'}), 'trovoada com chuva agora');
   assert.equal(client.weatherPhrase({nearbyThunder:true}), 'trovoada nas proximidades');
   assert.equal(client.weatherPhrase({}), '');
+});
+test('sem o cartão no HTML, a leitura continua indo para a chuva observada do topo', async () => {
+  const client = require('../dist/modules/station-now.js');
+  const listeners = {}, events = [];
+  const data = {station:{ibge:'1302603',distanceKm:1.8},time:new Date().toISOString(),temperatureC:30.7,humidity:62,rainMm:2.4};
+  const root = {document:{getElementById:() => null}, PLUVIA:{http:{createClient:() => ({getJson:async () => data})}},
+    addEventListener:(name, fn) => { listeners[name] = fn; }, dispatchEvent:event => events.push(event.detail)};
+  globalThis.activeCity = {id:'1302603', lat:-3.119, lon:-60.0217, timezone:'America/Manaus'};
+  try {
+    client.mount(root);
+    await listeners['pluvia:weather-updated']();
+    assert.equal(events.at(-1)?.cityId, '1302603');
+    assert.equal(events.at(-1)?.reading?.rainMm, 2.4);
+    listeners['pluvia:city-changed']();
+    assert.equal(events.at(-1)?.reading, null, 'troca de cidade apaga a leitura');
+  } finally { delete globalThis.activeCity; }
 });

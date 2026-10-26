@@ -258,7 +258,8 @@ function setAlertState(state) {
   const before = section.dataset.alertState;
   section.dataset.alertState = state;
   // A leitura que chega depois (Consultando → avisos/sem avisos) desce no lugar, sem surgir de vez.
-  if ((before === "loading" || before === "pending") && state !== "loading" && state !== "pending" && state !== "banner") settleBlock(section);
+  // "clear" fica fora da tela desde a 1.26.2: animar a descida ali só mexia num bloco invisível.
+  if ((before === "loading" || before === "pending") && (state === "alerts" || state === "unavailable")) settleBlock(section);
 }
 // Bloco que aparece ou muda depois que a página já está à vista desce no lugar (cascata "descendo").
 // Bloco dentro de outro que já está descendo (ou guardado até a previsão) não desce de novo: os deslocamentos
@@ -2257,6 +2258,8 @@ function chooseCity(id, locatedCity = null) {
     clearWeatherInsights();
     // Por último: o conteúdo inicial (skeleton) não pode ser sobrescrito por textos de "indisponível".
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
+    // Trocar de modo (Condição/Chuva/Vento) antes da previsão nova chegar repintava as horas da cidade anterior.
+    lastHourly = null;
     // A janela seca só aparece com chuva agora ou provável: reservar a linha e tirá-la depois deslocava a página.
     const dryLine = $("dryWindow")?.closest?.(".dry-window-line");
     if (dryLine) dryLine.hidden = true;

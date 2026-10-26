@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-252" />
+    <meta name="pluvia-release" content="pluvia-panel-253" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -431,9 +431,6 @@
         <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>Pressão</span><span data-weather-icon-name="pressure" data-weather-icon-style="line"></span></div><strong id="pressure"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="pressureNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
         <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>Índice UV</span><span data-weather-icon-name="uv-index" data-weather-icon-style="line"></span></div><strong id="uv"><span class="sk sk-num" aria-hidden="true"></span></strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
         <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>Qualidade do ar</span><span data-weather-icon-name="air-quality" data-weather-icon-style="line"></span><details class="info-tip"><summary aria-label="Sobre a qualidade do ar"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p><small class="air-source">Estimativa regional · Open-Meteo / CAMS<span id="airOutlookNote" hidden> · próximos dias são previsão do modelo e podem mudar</span></small></p><p>O US AQI é um índice; as partículas e gases aparecem em µg/m³ em “Poluentes e origem”. Estimativa regional, não medição no seu endereço.</p></div></details></div><div class="air-reading"><div class="air-index"><b id="airValue"><span class="sk sk-num" aria-hidden="true"></span></b><span>US AQI</span></div><div class="air-description"><strong id="airQuality"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="airNote"><span class="sk sk-line" aria-hidden="true"></span></small><small id="airParticlesNote" hidden></small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div><section class="air-outlook" id="airOutlook" aria-labelledby="airOutlookTitle" hidden><h3 id="airOutlookTitle">Próximos dias</h3><ol id="airOutlookList"></ol></section><details id="airDetails" class="air-details" hidden><summary>Poluentes e origem</summary><p id="airDetailsTime"></p><p id="airParticles" hidden></p><dl id="airPollutants"></dl><p>PM2,5 e PM10 são partículas; ozônio, NO₂ e CO são gases. Concentrações em microgramas por metro cúbico. O US AQI é um índice próprio, não a soma desses valores.</p><p>Estimativa regional do CAMS via Open-Meteo; não é medição no seu endereço nem confirma a origem da poluição.</p></details></article>
-        <article class="metric station-metric panel card-detail" id="stationNow" aria-labelledby="stationNowTitle" hidden><div class="metric-head"><span id="stationNowTitle">Medido agora</span><span data-weather-icon-name="temperature" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="stationNowValue"></strong><small id="stationNowNote"></small></article>
-        <article class="metric station-metric panel card-detail" id="riverLevel" aria-labelledby="riverLevelTitle" hidden><div class="metric-head"><span id="riverLevelTitle">Nível do rio</span><span data-weather-icon-name="river" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="riverLevelValue"></strong><small id="riverLevelNote"></small></article>
-        <article class="metric station-metric panel card-detail" id="fireSpots" aria-labelledby="fireSpotsTitle" hidden><div class="metric-head"><span id="fireSpotsTitle">Focos de calor</span><span data-weather-icon-name="fire" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="fireSpotsValue"></strong><small id="fireSpotsNote"></small></article>
       </section>
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
         <dialog id="radarDialog" class="radar-dialog" aria-labelledby="radarDialogTitle"><div class="radar-dialog-heading"><h2 id="radarDialogTitle">Radar de chuva</h2><button id="closeRadar" type="button" aria-label="Fechar radar ampliado">Fechar <span aria-hidden="true">×</span></button></div><div id="radarDialogContent"></div></dialog>
@@ -575,11 +572,11 @@
     <script src="/modules/observed-rain.js?v=observed-rain-2" defer></script>
     <script src="/modules/weather-icons.js?v=core-51" defer></script>
     <script src="/modules/weather-icon-system.js?v=modern-13" defer></script>
-    <script src="/capitals.js?v=core-52" defer></script>
+    <script src="/capitals.js?v=core-53" defer></script>
     <script src="/modules/hourly-detail.js?v=detail-10" defer></script>
     <script src="/modules/daily-detail.js?v=daily-4" defer></script>
     <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="/app.js?v=panel-131" defer></script>
+    <script src="/app.js?v=panel-132" defer></script>
     <script src="/p0.js?v=panel-50" defer></script>
     <script src="/modules/risks.js?v=core-120" defer></script>
     <script src="/modules/adapters.js?v=core-110" defer></script>
@@ -596,10 +593,9 @@
     <script src="/saved-places.js?v=places-2" defer></script>
     <script src="/modules/brazil-now.js?v=brazil-5" defer></script>
     <script src="/modules/month-recap.js?v=month-2" defer></script>
-    <script src="/modules/station-now.js?v=station-4" defer></script>
-    <script src="/modules/environment-now.js?v=environment-1" defer></script>
+    <script src="/modules/station-now.js?v=station-5" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-2" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-287" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-2" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-288" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-37" defer></script>
