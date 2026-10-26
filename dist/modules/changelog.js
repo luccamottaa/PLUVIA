@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.26.4", date:"2026-10-26", title:"Correções", items:[
+      "Trocar entre Condição, Chuva e Vento enquanto a cidade nova carregava mostrava as horas da cidade anterior; não mostra mais.",
+      "\"Usar minha localização\" tenta de novo quando a lista de cidades falha por um instante na rede, em vez de desistir."]},
     {version:"1.26.3", date:"2026-10-26", title:"Chuva cinza", items:[
       "Com chuva forte ou trovoada de dia, o céu agora fica cinza, sem o fundo azul-marinho que aparecia embaixo das nuvens."]},
     {version:"1.26.2", date:"2026-10-26", title:"Nublado de verdade e menos texto no topo", items:[

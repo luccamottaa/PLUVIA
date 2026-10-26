@@ -209,13 +209,18 @@ async function ensureCityDetails(id) {
 function ensureMunicipalities() {
   if (municipalitiesReady || hydrateMunicipalities()) return Promise.resolve(CITIES);
   if (municipalitiesPromise) return municipalitiesPromise;
-  municipalitiesPromise = new Promise((resolve, reject) => {
+  // Uma falha de rede no arquivo (outubro/2026, PostHog: "Location Unavailable" por catálogo logo depois de um
+  // resource_error) tem uma segunda tentativa 1,2 s depois, antes de desistir da localização.
+  const load = () => new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = '/municipalities.js?v=cities-2';
     script.onload = () => hydrateMunicipalities() ? resolve(CITIES) : reject(new Error('Base de cidades inválida'));
-    script.onerror = () => reject(new Error('Base de cidades indisponível'));
+    script.onerror = () => { script.remove(); reject(new Error('Base de cidades indisponível')); };
     document.head.appendChild(script);
-  }).finally(() => { municipalitiesPromise = null; });
+  });
+  municipalitiesPromise = load()
+    .catch(error => error.message === 'Base de cidades indisponível' ? new Promise(r => setTimeout(r, 1200)).then(load) : Promise.reject(error))
+    .finally(() => { municipalitiesPromise = null; });
   return municipalitiesPromise;
 }
 

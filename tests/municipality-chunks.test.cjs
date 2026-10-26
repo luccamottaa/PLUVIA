@@ -44,3 +44,20 @@ assert.equal(vm.runInContext('searchCities("Parintins")[0].lat', runtime), -2.63
 assert.equal(vm.runInContext('searchCities("São Paulo")[0].needsDetails', runtime), undefined);
 
 console.log('PASS municipality chunks: índice leve, 27 UFs e 5.571 registros completos sem bloquear o primeiro paint.');
+
+// Uma falha de rede no catálogo completo (GPS) ganha uma segunda tentativa antes de desistir.
+(async () => {
+  const appended = [];
+  const ctx = vm.createContext({Intl, setTimeout:(fn) => fn(), localStorage:{getItem(){return null;},setItem(){}}, globalThis:null,
+    document:{createElement:() => ({remove(){}}), head:{appendChild:script => appended.push(script)}}});
+  ctx.globalThis = ctx;
+  vm.runInContext(read('capitals.js'), ctx);
+  const pending = vm.runInContext('ensureMunicipalities()', ctx);
+  appended[0].onerror();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(appended.length, 2, 'segunda tentativa');
+  vm.runInContext(read('municipalities.js'), ctx);
+  appended[1].onload();
+  const cities = await pending;
+  assert(cities.length >= 5571);
+})().catch(error => { console.error(error); process.exitCode = 1; });
