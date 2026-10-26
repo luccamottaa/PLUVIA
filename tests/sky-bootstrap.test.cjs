@@ -79,3 +79,22 @@ test('retomar à noite atualiza o céu de uma previsão diurna salva',()=>{
   assert.equal(body.dataset.phase,'night');
   assert.equal(fields.has('weatherGlyph'),false);
 });
+test('intro abre no céu da hora atual da previsão salva e no último céu mostrado pela Home',()=>{
+  const at=Date.parse('2026-09-30T15:30:00-04:00');
+  const forecast={current:{weather_code:0,is_day:1},utc_offset_seconds:-14400,
+    hourly:{time:['2026-09-30T14:00','2026-09-30T15:00','2026-09-30T16:00'],weather_code:[1,3,61],wind_speed_10m:[5,8,12]}};
+  let saved={};
+  const make=()=>{const {sky}=setup(manaus,forecast,at);const base=setup(manaus,forecast,at).storage;
+    return {sky,storage:{getItem:k=>k in saved?saved[k]:base.getItem(k),setItem:(k,v)=>{saved[k]=v;}}};};
+  let {sky,storage}=make();
+  assert.equal(sky.bootstrap(storage,at).weather,'cloud','15:30 usa a hora das 15:00 (nublado), não o current antigo (limpo)');
+  sky.remember(storage,manaus.id,63,10,at-10*60000);
+  ({sky}=make());
+  assert.equal(sky.bootstrap(storage,at).weather,'rain','o céu que a Home mostrou (chuva medida) vence');
+  sky.remember(storage,manaus.id,63,10,at-2*3600000);
+  ({sky}=make());
+  assert.equal(sky.bootstrap(storage,at).weather,'cloud','céu mostrado há mais de 1 h volta para a previsão');
+  sky.remember(storage,'4106902',95,10,at-60000);
+  ({sky}=make());
+  assert.equal(sky.bootstrap(storage,at).weather,'cloud','céu de outra cidade não vale');
+});

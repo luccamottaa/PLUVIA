@@ -91,6 +91,8 @@ function applyWeatherAtmosphere(code, isDay, daily = null, wind = null) {
   skyApplied = {id, code, isDay};
   if (code !== null && code !== undefined) skyShown = true;
   const atmosphere = globalThis.PLUVIA?.sky?.apply(code, isDay, daily, activeCity, undefined, wind);
+  // A próxima intro abre neste céu (com a chuva medida, quando houver), não no "current" da previsão salva.
+  if (code !== null && code !== undefined) { try { globalThis.PLUVIA?.sky?.remember?.(globalThis.localStorage, id, code, wind); } catch {} }
   fadeSky(old);
   return atmosphere;
 }
@@ -607,6 +609,16 @@ function setHourlyMode(mode) {
   try { localStorage.setItem("pluvia-hourly-mode", mode); } catch {}
   for (const button of globalThis.document?.querySelectorAll?.(".hourly-modes [data-mode]") || []) button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
   if (lastHourly) renderHourly(...lastHourly);
+  // Como no app Tempo (vídeo do usuário, 1.26.6): ao trocar de modo, a fileira nova se revela da esquerda para a
+  // direita e as barras de chuva sobem do zero. Só clip-path e altura (pintura), sem transform/opacity.
+  const peek = $("hourlyPeek");
+  if (peek && !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+    peek.removeAttribute("data-switching");
+    void peek.offsetWidth;
+    peek.setAttribute("data-switching", "");
+    clearTimeout(setHourlyMode.timer);
+    setHourlyMode.timer = setTimeout(() => peek.removeAttribute("data-switching"), 900);
+  }
   globalThis.pluviaAnalytics?.track?.("Hourly Mode Changed", {mode});
 }
 globalThis.document?.addEventListener?.("click", event => {
