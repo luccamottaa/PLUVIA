@@ -71,7 +71,9 @@ with sync_playwright() as p:
   # mede depois que a cascata termina, senão conta um texto ainda meio revelado.
   page.wait_for_function("sel=>!document.querySelector(sel)?.closest('[data-drop]')",arg=selector,timeout=5000)
   page.evaluate('document.fonts.ready')
-  page.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
+  # O radar entra na tela junto e, sem rede (fixtures), mostra a mensagem de erro e cresce: mede só depois
+  # que o texto fica parado por ~600 ms (o mapa inicia fora dos quadros de animação), senão o recorte pega a linha de cima.
+  page.evaluate("""sel=>new Promise(resolve=>{let last=null,same=0,tries=0;const tick=()=>{const top=document.querySelector(sel).getBoundingClientRect().top;same=top===last?same+1:0;last=top;if(same>=3||++tries>40)resolve();else setTimeout(tick,200)};setTimeout(tick,200)})""",selector)
   clip=node.bounding_box();assert clip,selector
   encoded=base64.b64encode(page.screenshot(clip=clip)).decode()
   colour=node.evaluate("el=>getComputedStyle(el).color.match(/[\\d.]+/g).slice(0,3).map(Number)")

@@ -12,6 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.27.1", date:"2026-10-26", title:"Horas e dias no mesmo cartão", items:[
+      "Os Próximos 7 dias agora ficam no mesmo cartão das Próximas horas, logo embaixo, como no app Tempo: os botões Condição, Chuva e Vento mudam os dois juntos."]},
     {version:"1.27", date:"2026-10-26", title:"Próximos 7 dias em Chuva e Vento", items:[
       "Os Próximos 7 dias agora seguem o modo das Próximas horas, como no app Tempo: em Chuva, cada dia mostra a chuva hora a hora numa faixa, com o total e a chance; em Vento, a menor e a maior velocidade do dia e a rajada mais forte.",
       "Ao trocar entre Condição, Chuva e Vento, as horas e os dias somem e reaparecem num fade curto, no lugar do efeito de varrer da esquerda.",

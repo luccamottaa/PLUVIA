@@ -12,10 +12,9 @@
   const KEY = 'pluvia-home-layout';
   const WIDE = '(min-width: 1100px)';
   const SECTIONS = [
-    {id:'hourly', label:'Próximas horas', selector:'section.hourly-peek', column:'left'},
+    {id:'hourly', label:'Próximas horas e 7 dias', selector:'section.hourly-peek', column:'left'},
     {id:'details', label:'Leituras, UV e qualidade do ar', selector:'section.metrics', column:'right'},
     {id:'radar', label:'Radar de chuva', selector:'section.weather-map-section', column:'left'},
-    {id:'week', label:'Próximos 7 dias', selector:'section.forecast-section', column:'left'},
     {id:'sky', label:'Ciclo do dia, Lua e céu', selector:'section.sun-section', column:'right'}
   ];
   const IDS = SECTIONS.map(section => section.id);
