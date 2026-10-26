@@ -2,7 +2,7 @@
   "id": "https://pluviaweather.com.br/",
   "name": "PLUVIA",
   "short_name": "PLUVIA",
-  "description": "O céu de cada cidade. Clima, alertas e condições para cidades do Brasil.",
+  "description": "O céu do Brasil agora. Clima, alertas e condições para cidades do Brasil.",
   "start_url": "https://pluviaweather.com.br/?source=pwa",
   "scope": "https://pluviaweather.com.br/",
   "display": "standalone",

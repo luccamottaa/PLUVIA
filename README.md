@@ -1,6 +1,6 @@
 # PLUVIA
 
-Painel climático brasileiro feito em Manaus, com chuva, previsão, qualidade do ar e alertas oficiais. “O céu de cada cidade.”
+Painel climático brasileiro feito em Manaus, com chuva, previsão, qualidade do ar e alertas oficiais. “O céu do Brasil agora.”
 
 ## Acessar
 

@@ -14,6 +14,12 @@
 - O `sitemap.xml` lista a Home e as 27 páginas.
 - O `robots.txt` já apontava para ele.
 
+## Palavras-chave (1.26.6)
+
+- Títulos das cidades: "Clima em Manaus (AM) hoje: previsão do tempo agora — PLUVIA" (as buscas mais comuns são "clima <cidade>", "tempo <cidade>" e "previsão do tempo <cidade>").
+- Descrição: "Clima e tempo em Manaus (AM) hoje: temperatura agora, chuva hora a hora, previsão de 7 dias, nascer e pôr do sol, radar e avisos do INMET." (o Search Console mostrou ~15 mil impressões em buscas de "pôr do sol hoje"/"nascer do sol" com as páginas de cidade na posição 7–9).
+- Home: "PLUVIA — O céu do Brasil agora | Clima e previsão do tempo".
+
 ## Como gerar
 
 ```sh

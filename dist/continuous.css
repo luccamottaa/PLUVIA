@@ -2017,3 +2017,13 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
   #weatherView .hourly-modes { flex:1 0 100%; }
   #weatherView .hourly-modes button { flex:1 1 0; width:auto; }
 }
+
+/* Troca de modo das Próximas horas (1.26.6, como no app Tempo): a fileira nova se revela da esquerda para a direita
+   (o gráfico do vento parece se desenhar) e as barras de chuva sobem do zero. Só clip-path e altura, pintura sem
+   camada; nada de transform/opacity. Movimento reduzido: troca na hora. */
+@keyframes pluvia-hourly-reveal { from { clip-path:inset(0 100% 0 0); } to { clip-path:inset(0 0 0 0); } }
+@keyframes pluvia-hourly-bar { from { height:0; } }
+@media (prefers-reduced-motion:no-preference) {
+  #weatherView .hourly-peek-list[data-switching] { animation:pluvia-hourly-reveal .75s cubic-bezier(.33,1,.68,1) both; }
+  #weatherView .hourly-peek-list[data-switching][data-mode="rain"] .peek-bar i { animation:pluvia-hourly-bar .7s cubic-bezier(.22,1,.36,1) .12s both; }
+}

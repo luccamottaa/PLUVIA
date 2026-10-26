@@ -118,7 +118,9 @@ const capitalIds = new Set(CAPITALS.map(city => city.id));
 const pageCityIds = new Set([...capitalIds, ...PAGE_CITY_IDS, ...MORE_PAGE_CITY_IDS]);
 const citySlug = city => normalizeName(city.name + ' ' + city.uf).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const cityPagePath = city => pageCityIds.has(city?.id) ? `/clima/${citySlug(city)}/` : null;
-const cityPageTitle = city => `Previsão do tempo em ${city.name} (${city.uf}) agora — PLUVIA`;
+// 1.26.6 (pedido do usuário: aparecer nas buscas "clima manaus", "tempo manaus"): o título começa pelas palavras
+// que as pessoas digitam (clima, tempo, previsão, hoje, agora) e o nome da cidade.
+const cityPageTitle = city => `Clima em ${city.name} (${city.uf}) hoje: previsão do tempo agora — PLUVIA`;
 
 let citySearchIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name + ' ' + city.uf + ' ' + city.state)]));
 let cityNameIndex = new Map(CITIES.map(city => [city.id,normalizeName(city.name)]));

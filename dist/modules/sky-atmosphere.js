@@ -61,6 +61,24 @@
   function cityTime(value, city) {
     return time?.parse(value,city) ?? NaN;
   }
+  // Hora da previsão salva que contém `at` (a última com horário até agora), só se ainda houver a seguinte.
+  function hourIndex(forecast, city, at) {
+    const times = forecast?.hourly?.time, codes = forecast?.hourly?.weather_code;
+    if (!Array.isArray(times) || !Array.isArray(codes)) return -1;
+    let found = -1;
+    for (let i = 0; i < times.length - 1; i++) {
+      const start = cityTime(times[i], city);
+      if (!Number.isFinite(start) || start > at) break;
+      if (Number.isFinite(codes[i]) && at < cityTime(times[i + 1], city)) found = i;
+    }
+    return found;
+  }
+  // Último céu mostrado pela Home (app.js grava a cada aplicação): a intro seguinte abre nele.
+  const SHOWN_KEY = 'pluvia-sky-shown', SHOWN_AGE_MS = 3600000;
+  function remember(storage, id, code, wind, at = Date.now()) {
+    if (!id || !Number.isFinite(code)) return;
+    try { storage?.setItem(SHOWN_KEY, JSON.stringify({id, code, wind:Number.isFinite(wind) ? wind : null, at})); } catch (_) {}
+  }
   function create({document, frame = null, sun = null, moon = null, moonView = null, now = () => Date.now()} = {}) {
     let city = null, rows = [], weather = 'unknown', providerPhase = 'unknown', code = null, wind = null;
     let lastUpdate = null;
@@ -275,7 +293,7 @@
       return update(at,false);
     }
     function bootstrap(storage, at = now()) {
-      let saved = null, selected = DEFAULT_CITY;
+      let saved = null, selected = DEFAULT_CITY, shown = null;
       try {
         const id = JSON.parse(storage?.getItem('pluvia-city') || 'null');
         const record = JSON.parse(storage?.getItem('pluvia-city-record') || 'null');
@@ -284,10 +302,20 @@
         }
         const cached = JSON.parse(storage?.getItem(`pluvia-weather-${selected.id}`) || 'null');
         if (cached && at - cached.at >= 0 && at - cached.at <= CACHE_AGE_MS) saved = cached.data?.forecast;
+        shown = JSON.parse(storage?.getItem(SHOWN_KEY) || 'null');
       } catch (_) { /* Storage may be blocked; the reference city still has a solar clock. */ }
-      return apply(saved?.current?.weather_code,saved?.current?.is_day,saved?.daily,selected,at,saved?.current?.wind_speed_10m);
+      // 1.26.6 (pedido do usuário: a intro abria num clima e a Home noutro, toda vez): a intro usa o céu que a
+      // Home mostrou por último nesta cidade (inclui a chuva medida pela estação/radar), se for recente; senão,
+      // a hora atual da previsão salva, e só por último o "current" do momento em que ela foi baixada.
+      let code = saved?.current?.weather_code, wind = saved?.current?.wind_speed_10m;
+      const hour = hourIndex(saved, selected, at);
+      if (hour >= 0) { code = saved.hourly.weather_code[hour]; wind = saved.hourly.wind_speed_10m?.[hour] ?? wind; }
+      if (shown?.id === selected.id && Number.isFinite(shown.code) && at - shown.at >= 0 && at - shown.at <= SHOWN_AGE_MS) {
+        code = shown.code; if (Number.isFinite(shown.wind)) wind = shown.wind;
+      }
+      return apply(code,saved?.current?.is_day,saved?.daily,selected,at,wind);
     }
-    return {apply,update,bootstrap,dayAt,astronomyAt};
+    return {apply,update,bootstrap,dayAt,astronomyAt,remember};
   }
   function observeMotion(document, Observer) {
     const scene = document?.querySelector?.('.sky-effects');

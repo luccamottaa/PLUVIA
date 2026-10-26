@@ -1,4 +1,4 @@
-"""Prévias sociais (Open Graph): a geral (dist/og-pluvia-v5.png, 1731×909, céu de pôr do sol desde a 1.18.2, logo nova na 1.26) e as das 27 capitais
+"""Prévias sociais (Open Graph): a geral (dist/og-pluvia-v6.png, 1731×909, céu de pôr do sol desde a 1.18.2, logo nova na 1.26) e as das 27 capitais
 (1200×630 JPEG em dist/og/<slug>-<versão>.jpg).
 
 Arte estática com as camadas do próprio céu do PLUVIA (pôr do sol do azul-noite ao laranja, estrelas só no alto e as duas
@@ -15,8 +15,8 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 from PIL import Image
 
-OG_VERSION = 'v4'   # v4: logo nova (1.26); v3: céu de pôr do sol (1.18.2); v2: marca nova da 1.18
-MAIN_OG = 'og-pluvia-v5.png'
+OG_VERSION = 'v5'   # v5: slogan O céu do Brasil agora (1.26.6); v4: logo nova (1.26); v3: céu de pôr do sol (1.18.2); v2: marca nova da 1.18
+MAIN_OG = 'og-pluvia-v6.png'   # v6: slogan O céu do Brasil agora (1.26.6)
 repo = Path(__file__).resolve().parent.parent
 dist = repo / 'dist'
 out = dist / 'og'
@@ -44,9 +44,10 @@ body { position:relative; background:linear-gradient(180deg,#0b1636 0%%,#1d2560 
 .kicker { font-size:34px; font-weight:500; color:#d4dcf2; text-shadow:0 2px 16px rgba(5,10,30,.5); letter-spacing:.01em; }
 .city { margin-top:6px; font-size:%(size)spx; font-weight:700; line-height:1.08; letter-spacing:-.02em; text-shadow:0 4px 24px #050b1a; }
 .tags { margin-top:22px; font-size:30px; font-weight:500; color:#eef2fb; text-shadow:0 2px 16px rgba(5,10,30,.55); }
+.slogan-small { margin-top:18px; font-size:24px; font-weight:500; letter-spacing:.06em; color:#d9e2f6; text-shadow:0 2px 14px rgba(5,10,30,.55); }
 </style></head><body><div class="stars"></div><div class="glow"></div><div class="veil"></div><div class="volume"></div>
 <div class="content"><img class="logo" src="%(logo)s" alt=""><div class="kicker">Previsão do tempo em</div>
-<div class="city">%(city)s</div><div class="tags">Chuva hora a hora · avisos do INMET · radar</div></div></body></html>"""
+<div class="city">%(city)s</div><div class="tags">Chuva hora a hora · avisos do INMET · radar</div><div class="slogan-small">O céu do Brasil agora</div></div></body></html>"""
 
 assets = {'inter':data('assets/fonts/inter-latin-v20.woff2', 'font/woff2'), 'stars':data('assets/sky-stars.svg', 'image/svg+xml'),
           'veil':data('assets/sky-cloud-veil.webp', 'image/webp'), 'volume':data('assets/sky-cloud-volume.webp', 'image/webp'),
@@ -56,8 +57,8 @@ with sync_playwright() as p:
     browser = p.chromium.launch(args=['--no-sandbox'], **({'executable_path':chromium} if chromium else {}))
     page = browser.new_page(viewport={'width':1200, 'height':630}, device_scale_factor=1)
     # Prévia geral do site: mesma arte, com a assinatura grande e o slogan, em 1731×909.
-    main = PAGE.replace('<div class="kicker">Previsão do tempo em</div>\n<div class="city">%(city)s</div><div class="tags">Chuva hora a hora · avisos do INMET · radar</div>',
-                        '<div class="slogan">O céu de cada cidade</div>').replace('.logo { height:96px; margin-bottom:42px; filter:drop-shadow(0 6px 30px rgba(5,10,30,.45)); }', '.logo { height:150px; margin-bottom:34px; filter:drop-shadow(0 6px 30px rgba(5,10,30,.45)); } .slogan { font-size:46px; font-weight:500; color:#e6eefb; text-shadow:0 3px 20px rgba(5,10,30,.5); }')
+    main = PAGE.replace('<div class="kicker">Previsão do tempo em</div>\n<div class="city">%(city)s</div><div class="tags">Chuva hora a hora · avisos do INMET · radar</div><div class="slogan-small">O céu do Brasil agora</div>',
+                        '<div class="slogan">O céu do Brasil agora</div>').replace('.logo { height:96px; margin-bottom:42px; filter:drop-shadow(0 6px 30px rgba(5,10,30,.45)); }', '.logo { height:150px; margin-bottom:34px; filter:drop-shadow(0 6px 30px rgba(5,10,30,.45)); } .slogan { font-size:46px; font-weight:500; color:#e6eefb; text-shadow:0 3px 20px rgba(5,10,30,.5); }')
     wide = browser.new_page(viewport={'width':1200, 'height':630}, device_scale_factor=1731 / 1200)
     wide.set_content(main % {**assets, 'size':0}, wait_until='load'); wide.evaluate('document.fonts.ready')
     Image.open(io.BytesIO(wide.screenshot(type='png'))).convert('RGB').save(dist / MAIN_OG, 'PNG', optimize=True)
