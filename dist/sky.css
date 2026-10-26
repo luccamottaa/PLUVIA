@@ -287,7 +287,10 @@ body.page-hidden :is(.sky-effects,.intro-sky) > * { visibility:hidden !important
    tingidos de lilás por filtro estático, a camada da frente bem discreta e, no lado noturno do pôr/nascer do sol, o
    tom puxa para o violeta e a película do crepúsculo vai a 90%. Só cor de fundo, filtro e opacidade. */
 :root[data-weather="cloud"][data-phase="night"] { --sky-base:#2a3153; --sky-color:linear-gradient(180deg,#20274a 0%,#2c3357 48%,#3a3e66 100%); --cloud-filter:brightness(.62) sepia(.3) hue-rotate(205deg) saturate(1.2); }
-:root[data-weather="cloud"][data-phase="night"]:is([data-solar="sunset"],[data-solar="sunrise"]) { --cloud-filter:brightness(.72) sepia(.45) hue-rotate(235deg) saturate(1.3); }
+:root[data-weather="cloud"][data-phase="night"]:is([data-solar="sunset"],[data-solar="sunrise"]) { --cloud-filter:brightness(.4) contrast(.85) sepia(.45) hue-rotate(235deg) saturate(1.2); }
+/* Lado do dia do pôr/nascer do sol com nublado (pedido do usuário: "deveriam ficar mais escuras que nem no Apple
+   Weather"): o deck prateado do dia escurece e pega o tom violeta-rosado do crepúsculo, em vez de ficar branco. */
+:root[data-weather="cloud"][data-phase="day"]:is([data-solar="sunset"],[data-solar="sunrise"]) { --cloud-filter:brightness(.7) contrast(.88) sepia(.4) hue-rotate(238deg) saturate(1.25); }
 :root[data-weather="cloud"][data-phase="night"] .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-stratus.webp?v=clouds-7"); }
 :root[data-weather="cloud"][data-phase="night"] .sky-clouds-front { opacity:.32; }
 :root[data-weather="cloud"]:is([data-solar="sunset"],[data-solar="sunrise"]) .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .9); }

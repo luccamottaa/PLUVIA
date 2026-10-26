@@ -14,7 +14,7 @@
   const VERSIONS = [
     {version:"1.29.1", date:"2026-10-26", title:"Nuvens mais nítidas e com a cor do céu", items:[
       "As nuvens dos céus nublado, de chuva, de tempestade e de neblina foram refeitas em resolução bem maior: no celular elas apareciam esticadas e borradas, e agora ficam macias e definidas.",
-      "O céu nublado da noite ficou azul-anil, com nuvens finas e naturais esticadas pelo vento, e no pôr e no nascer do sol elas pegam o lilás do céu, como no app Tempo, no lugar da massa cinza-escura."]},
+      "O céu nublado da noite ficou azul-anil, com nuvens finas e naturais esticadas pelo vento, e no pôr e no nascer do sol elas escurecem e pegam o violeta do céu, como no app Tempo, no lugar da massa cinza-escura ou das nuvens brancas demais."]},
     {version:"1.29", date:"2026-10-26", title:"Gráfico do dia, protetor solar e radar adiante", items:[
       "Ao tocar num dos Próximos 7 dias, o detalhe abre com um gráfico como o do app Tempo: a curva da temperatura hora a hora, colorida do frio ao quente, com a mínima, a máxima e o \"Agora\" marcados, e embaixo as barras da chuva prevista.",
       "O Índice UV agora diz até quando usar protetor solar no resto do dia, como \"Proteção solar até 15:00\".",
