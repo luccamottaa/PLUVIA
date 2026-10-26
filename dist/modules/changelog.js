@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.27.2", date:"2026-10-26", title:"\"Tá chovendo aí?\" no radar e setas suaves", items:[
+      "A pergunta \"Tá chovendo aí?\" mudou para o cartão do radar, embaixo do mapa da chuva, e saiu do meio entre as próximas horas e os 7 dias.",
+      "As setinhas de \"Mais sobre o céu\", \"Poluentes e origem\" e das opções da conta agora giram suavemente ao abrir e fechar, em vez de trocar de uma vez."]},
     {version:"1.27.1", date:"2026-10-26", title:"Horas e dias no mesmo cartão", items:[
       "Os Próximos 7 dias agora ficam no mesmo cartão das Próximas horas, logo embaixo, como no app Tempo: os botões Condição, Chuva e Vento mudam os dois juntos."]},
     {version:"1.27", date:"2026-10-26", title:"Próximos 7 dias em Chuva e Vento", items:[
