@@ -31,7 +31,7 @@ from PIL import Image
 WIDTH, HEIGHT = 2112, 704
 QUALITY = 80
 ALPHA_LEVELS = 64
-BUDGET_KIB = 360                   # véu + volume, que entram no precache
+BUDGET_KIB = 450                   # véu + volume, que entram no precache
 
 
 def set_size(width, height):
@@ -150,10 +150,10 @@ def soft_layer(seed, *, few_x=None, fib_beta=2.5, glow=.22, beta, stretch, masse
 FULL, LIGHT = (2112, 704), (3168, 1056)
 LAYERS = {
     # Fair weather (WMO 1/2 and base of every condition): in the precache, within the budget.
-    'sky-cloud-veil': dict(size=FULL, precache=True, seed=11, beta=3.3, stretch=3.2, masses=4, warp=70, low=-.7, high=1.4, wisp=.3,
+    'sky-cloud-veil': dict(size=LIGHT, precache=True, seed=11, beta=3.3, stretch=3.2, masses=4, warp=70, low=-.7, high=1.4, wisp=.3,
                            wisp_stretch=6.0, env=((0, .55), (.12, 1), (.7, 1), (.9, .7), (1, .4)), alpha_max=.92,
                            shadow=(158, 172, 198), lift=.8, few_x=.39, streak=.14),
-    'sky-cloud-volume': dict(size=FULL, precache=True, seed=29, beta=3.4, stretch=2.2, masses=5, warp=50, low=-.2, high=1.5,
+    'sky-cloud-volume': dict(size=LIGHT, precache=True, seed=29, beta=3.4, stretch=2.2, masses=5, warp=50, low=-.2, high=1.5,
                              wisp=.25, wisp_stretch=5.0, env=((0, .3), (.12, .85), (.35, 1), (.85, 1), (1, .7)), alpha_max=.97,
                              shadow=(136, 152, 182), lift=1.0, few_x=.46, streak=.12),
     # By condition: downloaded (and cached by the SW) only when that sky is shown.

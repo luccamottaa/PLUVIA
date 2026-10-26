@@ -97,10 +97,10 @@ O usuário pediu nuvens "bonitas e realistas" e mandou como referência um print
 - **Luz:** a nuvem logo acima (desfocada e deslocada) acinzenta a base, e as partes finas ficam mais claras. Os tons de cinza são frios, sem puxar para o bege.
 - **"Poucas nuvens":** cada camada recebe uma massa macia em 39% (véu) e 46% (volume) de cada meio tile, a 34% da altura, onde a máscara do CSS revela os bancos.
 - **Mantidos:** emenda periódica em x, alfa sem perdas de 64 níveis, mesmas regras de CSS, filtros por condição, noite e movimento.
-- **Tamanho de arquivo:** 2112 × 704 (3:1 e múltiplo de 16). Com 2100 × 700 o último bloco de 16 px do WebP era parcial, e a última coluna saía da compressão diferente da primeira (degrau na emenda, medido por `verify-clouds.py`).
+- **Tamanho de arquivo:** 3168 × 1056 desde a 1.29.2 (era 2112 × 704; 3:1 e múltiplo de 16). Com 2100 × 700 o último bloco de 16 px do WebP era parcial, e a última coluna saía da compressão diferente da primeira (degrau na emenda, medido por `verify-clouds.py`).
 - **Tamanho:** véu 136,4KiB + volume 109,0KiB = 245,4KiB no precache (antes 343,3KiB).
 - **Céu ao redor:** em volta de cada banco do perfil "poucas nuvens", o céu é limpo, para a máscara mostrar uma nuvem só (a cobertura medida pelo QA fica abaixo de 25% mesmo em 2560 × 1080).
-- **Versão:** URLs `?v=clouds-5`.
+- **Versão:** véu e volume `?v=clouds-8` (3168 × 1056 desde a 1.29.2, juntos < 450 KiB no precache); texturas de condição `?v=clouds-7`.
 
 Continua sendo decoração qualitativa: arte original gerada, não foto, sem asset da Apple, e não representa a nebulosidade observada.
 
