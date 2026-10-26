@@ -9,7 +9,7 @@ const fs = require('node:fs'), path = require('node:path'), vm = require('node:v
 const dist = path.resolve(__dirname, '../dist');
 const SITE = 'https://pluviaweather.com.br';
 // Mesmo valor de OG_VERSION em scripts/generate-og-cities.py.
-const OG_VERSION = 'v4';
+const OG_VERSION = 'v5';
 const START = '<!-- capitais:inicio -->', END = '<!-- capitais:fim -->';
 
 function capitalsApi() {
@@ -95,7 +95,7 @@ function cityPage(template, api, city) {
   const og = `og/${api.cityPagePath(city).split('/').filter(Boolean).pop()}-${OG_VERSION}.jpg`;
   if (api.CAPITALS.includes(city)) {
     if (!fs.existsSync(path.join(dist, og))) throw new Error('Prévia ausente: ' + og + ' (rode scripts/generate-og-cities.py)');
-    const image = `${SITE}/${og}`, alt = escapeHtml(`Logo do PLUVIA e o texto Previsão do tempo em ${city.name}/${city.uf} sobre céu de pôr do sol com nuvens.`);
+    const image = `${SITE}/${og}`, alt = escapeHtml(`Logo do PLUVIA, o texto Previsão do tempo em ${city.name}/${city.uf} e o slogan O céu do Brasil agora sobre céu de pôr do sol com nuvens.`);
     html = replaceOnce(html, /<meta property="og:image" content="[^"]*" \/>/, `<meta property="og:image" content="${image}" />`);
     html = replaceOnce(html, /<meta property="og:image:width" content="[^"]*" \/>/, '<meta property="og:image:width" content="1200" />');
     html = replaceOnce(html, /<meta property="og:image:height" content="[^"]*" \/>/, '<meta property="og:image:height" content="630" />');
@@ -104,7 +104,7 @@ function cityPage(template, api, city) {
     html = replaceOnce(html, /<meta name="twitter:image:alt" content="[^"]*" \/>/, `<meta name="twitter:image:alt" content="${alt}" />`);
   }
   const graph = {'@context':'https://schema.org','@graph':[
-    {'@type':'WebPage','@id':url,url,name:title,description:text,inLanguage:'pt-BR',isPartOf:{'@type':'WebSite',name:'PLUVIA',url:SITE + '/'},
+    {'@type':'WebPage','@id':url,url,name:title,description:text,inLanguage:'pt-BR',isPartOf:{'@type':'WebSite',name:'PLUVIA',alternateName:'PLUVIA — O céu do Brasil agora',url:SITE + '/'},
       about:{'@type':'City',name:city.name,containedInPlace:{'@type':'AdministrativeArea',name:city.state},geo:{'@type':'GeoCoordinates',latitude:city.lat,longitude:city.lon}}},
     {'@type':'BreadcrumbList',itemListElement:[
       {'@type':'ListItem',position:1,name:'PLUVIA',item:SITE + '/'},
