@@ -2070,3 +2070,19 @@ html body :is(#weatherView .air-details,#weatherView .astronomy-details,#account
 html body #accountDialog .account-group > summary::after { transition:transform .32s cubic-bezier(.3,.7,.2,1), margin .32s cubic-bezier(.3,.7,.2,1); }
 html body #accountDialog .capital-links summary::after { transition:rotate .32s cubic-bezier(.3,.7,.2,1); }
 @media (forced-colors:active) { html body :is(#weatherView .air-details,#weatherView .astronomy-details,#accountDialog .notification-checks,#accountDialog .account-delete,#alertDetail details) > summary::before { background:CanvasText; } }
+
+/* 1.28: nascer e pôr do sol dos próximos 14 dias em "Mais sobre o céu" (modules/sun-table.js). Astronomia
+   por coordenadas, não previsão; números tabulares para os horários ficarem na mesma vertical. */
+#weatherView .astronomy-details .sun-table { margin:20px 0 18px; text-align:left; }
+#weatherView .astronomy-details .sun-table h3 { margin:0; color:var(--reading-ink); font-size:1rem; font-weight:600; line-height:1.35; }
+#weatherView .astronomy-details .sun-table-note { margin:4px 0 0; color:var(--reading-muted); }
+#weatherView .astronomy-details .sun-table-note:empty { display:none; }
+#weatherView .sun-table table { width:100%; margin-top:10px; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+#weatherView .sun-table :is(th,td) { padding:9px 0; border-top:1px solid var(--reading-line); color:var(--reading-ink); font-size:.9375rem; font-weight:400; line-height:1.3; text-align:right; white-space:nowrap; }
+#weatherView .sun-table :is(th,td):first-child { text-align:left; }
+#weatherView .sun-table thead th { padding-top:0; border-top:0; color:var(--reading-muted); font-size:.8125rem; font-weight:500; }
+#weatherView .sun-table tbody th { font-weight:500; text-transform:capitalize; }
+#weatherView .sun-table tbody tr[data-today] th { color:#6fb1ff; font-weight:700; }
+body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:#0f4aa8; }
+#weatherView .sun-table td:last-child { color:var(--reading-muted); }
+@media (max-width:359px) { #weatherView .sun-table :is(th,td) { font-size:.875rem; } }

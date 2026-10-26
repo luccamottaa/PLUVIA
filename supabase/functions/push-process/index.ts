@@ -501,6 +501,65 @@ function rainOutlook(data: any, location: Location, day: string, now: Date) {
   return complete && rows.every((row: any) => row.precipitation < 0.5) ? { text: "Sem chuva prevista.", wet: false } : null;
 }
 
+// O dia em uma frase para os resumos: "Manhã com sol, tarde com chuva, noite nublada." Usa o código do tempo
+// das horas restantes do dia municipal (intervalo que termina no horário: manhã = 07:00–12:00, tarde = 13:00–18:00,
+// noite = 19:00–00:00). Chuva, garoa e trovoada só entram com evidência na mesma hora (≥ 0,5 mm ou chance ≥ 50%;
+// com essa evidência e código seco, "com chance de chuva"),
+// para a frase não dizer "tarde com chuva" e o resto do resumo dizer "Sem chuva prevista". Um período só entra com
+// pelo menos 3 horas restantes e todas com código válido; sem nenhum período, null e o resumo fica como antes.
+const DAY_PARTS: [string, number, number][] = [["manhã", 7, 12], ["tarde", 13, 18], ["noite", 19, 24]];
+const SKY_ORDER = ["clear", "partly", "fog", "cloudy"], WET_ORDER = ["maybe", "drizzle", "rain", "heavy", "storm"];
+function dayPhrase(data: any, location: Location, day: string, now: Date) {
+  const times = asArray(data?.hourly?.time);
+  const dayKey = (unix: number) => new Intl.DateTimeFormat("en-CA", { timeZone: location.timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(unix * 1000));
+  const hourOf = (unix: number) => Number(new Intl.DateTimeFormat("en-GB", { timeZone: location.timezone, hour: "2-digit", hourCycle: "h23" }).format(new Date(unix * 1000)));
+  const rows: any[] = times.flatMap((value: unknown, index: number) => {
+    const time = observed(value, 1);
+    if (time === null || time * 1000 <= now.getTime() || dayKey(time - 3600) !== day) return [];
+    const end = hourOf(time) || 24;
+    const code = weatherCode(data.hourly.weather_code?.[index]);
+    const mm = observed(data.hourly.precipitation?.[index], 0, 500), chance = observed(data.hourly.precipitation_probability?.[index], 0, 100);
+    const wet = (mm !== null && mm >= 0.5) || (chance !== null && chance >= 50);
+    let kind: string | null = null;
+    if (code !== null) {
+      if (code >= 95 && wet) kind = "storm";
+      else if ([65, 67, 82].includes(code) && wet) kind = "heavy";
+      else if (((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) && wet) kind = "rain";
+      else if (code >= 51 && code <= 57 && wet) kind = "drizzle";
+      // Chance alta com código seco (o código e a chance vêm de cálculos diferentes do modelo): não é "com sol".
+      else if (wet) kind = "maybe";
+      else kind = code <= 1 ? "clear" : code === 2 ? "partly" : code === 45 || code === 48 ? "fog" : "cloudy";
+    }
+    return [{ end, kind }];
+  });
+  const parts = DAY_PARTS.flatMap(([name, from, to]) => {
+    const hours = rows.filter((row: any) => row.end >= from && row.end <= to);
+    if (hours.length < 3 || hours.some((row: any) => row.kind === null)) return [];
+    const wet = hours.map((row: any) => WET_ORDER.indexOf(row.kind)).filter((rank: number) => rank >= 0);
+    let kind: string;
+    if (wet.length) kind = WET_ORDER[Math.max(...wet)];
+    else {
+      // Céu mais frequente; empate fica com o mais fechado.
+      const count = (sky: string) => hours.filter((row: any) => row.kind === sky).length;
+      kind = [...SKY_ORDER].reverse().reduce((best, sky) => count(sky) > count(best) ? sky : best, "cloudy");
+    }
+    const night = name === "noite";
+    const words: Record<string, string> = { clear: night ? "com céu limpo" : "com sol", partly: night ? "com algumas nuvens" : "com sol e nuvens", fog: "com neblina", cloudy: "nublada", maybe: "com chance de chuva", drizzle: "com garoa", rain: "com chuva", heavy: "com chuva forte", storm: "com trovoada" };
+    return [{ name, text: words[kind] }];
+  });
+  if (!parts.length) return null;
+  const groups: { names: string[]; text: string }[] = [];
+  for (const part of parts) {
+    const last = groups.at(-1);
+    if (last && last.text === part.text) last.names.push(part.name); else groups.push({ names: [part.name], text: part.text });
+  }
+  const label = (names: string[]) => names.length === 3 ? "dia todo" : names.join(" e ");
+  // "Dia todo nublado": o adjetivo concorda com "dia", não com manhã/tarde/noite.
+  const pieces = groups.map((group) => `${label(group.names)} ${group.names.length === 3 && group.text === "nublada" ? "nublado" : group.text}`);
+  const sentence = pieces.join(", ");
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1) + ".";
+}
+
 // Janela do resumo: de 4 min antes a 30 min depois do horário, com a virada da meia-noite. Com mais de 100
 // locais o cron visita cada um a cada 10–15 min, e a janela de ±4 min deixava locais sem resumo nenhum; a
 // impressão digital por dia impede repetição.
@@ -526,7 +585,9 @@ function dailySummaryCandidate(data: any, location: Location, preference: Prefer
   if (high === null || low === null || chance === null || low > high) return null;
   const max = Math.round(high), min = Math.round(low), rain = Math.round(chance);
   const outlook = rainOutlook(data, location, localDay, now);
-  const body = outlook ? `Máxima de ${max} °C e mínima de ${min} °C. ${outlook.text}` : `Máxima de ${max} °C, mínima de ${min} °C e até ${rain}% de chance de chuva.`;
+  const phrase = dayPhrase(data, location, localDay, now);
+  const lead = `${outlook?.wet ? "Leve guarda-chuva. " : ""}${phrase ? phrase + " " : ""}`;
+  const body = outlook ? `${lead}Máxima de ${max} °C e mínima de ${min} °C. ${outlook.text}` : `${lead}Máxima de ${max} °C, mínima de ${min} °C e até ${rain}% de chance de chuva.`;
   return { type: "daily_summary", severity: 1, title: `☀️ ${location.city_name} hoje`, body, source: "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 6 * 3_600_000), url: "./#previsao", fingerprintSeed: `daily_summary|${location.city_id}|${localDay}`, metadata: { max_c: max, min_c: min, rain_probability: rain, confidence: "moderate" } } satisfies EventCandidate;
 }
 
@@ -556,13 +617,14 @@ function eveningSummaryCandidate(data: any, location: Location, preference: Pref
   const volume = total !== null && total >= 1 ? ` (${Math.round(total)} mm)` : "";
   const wet = rain >= 50 && (total === null || total >= 1);
   const outlook = rainOutlook(data, location, tomorrow, now);
+  const phrase = dayPhrase(data, location, tomorrow, now);
   const body = outlook
     // Com a leitura por hora, o guarda-chuva segue ela: o diário pode discordar (modelo de chuva da cidade só
     // troca as horas, e o diário inclui a última hora de hoje) e saía "Leve guarda-chuva… Sem chuva prevista".
-    ? `${outlook.wet ? "Leve guarda-chuva. " : ""}Máxima de ${max} °C e mínima de ${min} °C. ${outlook.text}${outlook.wet && total !== null && total >= 1 ? ` Total previsto: ${Math.round(total)} mm.` : ""}`
+    ? `${outlook.wet ? "Leve guarda-chuva. " : ""}${phrase ? phrase + " " : ""}Máxima de ${max} °C e mínima de ${min} °C. ${outlook.text}${outlook.wet && total !== null && total >= 1 ? ` Total previsto: ${Math.round(total)} mm.` : ""}`
     : wet
-    ? `Leve guarda-chuva: até ${rain}% de chance de chuva${volume}. Máxima de ${max} °C e mínima de ${min} °C.`
-    : `Máxima de ${max} °C, mínima de ${min} °C e até ${rain}% de chance de chuva${volume}.`;
+    ? `Leve guarda-chuva: até ${rain}% de chance de chuva${volume}. ${phrase ? phrase + " " : ""}Máxima de ${max} °C e mínima de ${min} °C.`
+    : `${phrase ? phrase + " " : ""}Máxima de ${max} °C, mínima de ${min} °C e até ${rain}% de chance de chuva${volume}.`;
   return { type: "evening_summary", severity: 1, title: `🌙 ${location.city_name} amanhã`, body, source: "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 12 * 3_600_000), url: "./#previsao", fingerprintSeed: `evening_summary|${location.city_id}|${tomorrow}`, metadata: { day: tomorrow, max_c: max, min_c: min, rain_probability: rain, rain_mm: total === null ? null : Math.round(total * 10) / 10, confidence: "moderate" } } satisfies EventCandidate;
 }
 

@@ -71,7 +71,7 @@ test('retomar à noite atualiza o céu de uma previsão diurna salva',()=>{
   const at=Date.parse('2026-09-30T23:00:00-04:00');
   const fields=new Map();const el=id=>{if(!fields.has(id))fields.set(id,{});return fields.get(id);};
   const context={activeCity:manaus,displayedWeather:{forecast:{current:{weather_code:0,is_day:1}}},
-    document:{body},$:el,renderMoon(){},updateSolarAtmosphere:sky.update,weatherIconSvg:(code,day)=>day?'sun':'moon',
+    document:{body},$:el,renderMoon(){},updateSolarAtmosphere:sky.update,renderSunTable(){},weatherIconSvg:(code,day)=>day?'sun':'moon',
     Date:class extends Date{constructor(value){super(value ?? at);}}};
   const app=fs.readFileSync('dist/app.js','utf8');
   vm.runInNewContext(app.slice(app.indexOf('function updateClock()'),app.indexOf('function cityDate(')),context);
