@@ -20,10 +20,11 @@ export function parseDsn(dsn) {
   } catch { return null; }
 }
 
+// platform "node": com "javascript" o Sentry anota sozinho o IP de quem enviou (o servidor da função) como usuário.
 export function buildEnvelope(target, { component, code, level = "error", count, now = new Date(), eventId = crypto.randomUUID().replace(/-/g, "") }) {
   const tags = { component: safeCode(component), code: safeCode(code) };
   const event = {
-    event_id: eventId, timestamp: now.getTime() / 1000, platform: "javascript", logger: tags.component,
+    event_id: eventId, timestamp: now.getTime() / 1000, platform: "node", logger: tags.component,
     level: LEVELS.has(level) ? level : "error", environment: "production",
     message: { formatted: `${tags.component}: ${tags.code}` }, tags, fingerprint: [tags.component, tags.code],
     sdk: { name: "pluvia.edge-report", version: "1.0.0" },

@@ -470,7 +470,7 @@ function inmetForLocation(alerts: any[], location: Location, now = new Date()) {
     const when = start.getTime() > now.getTime() + 5 * 60_000
       ? `${severityLabel} previsto em ${area}, de ${alertWhen(start, now, location.timezone)} até ${alertWhen(end, now, location.timezone)}.`
       : `${severityLabel} em ${area}, válido até ${alertWhen(end, now, location.timezone)}.`;
-    return [{ type: "official_alert", severity, title: `⚠️ ${phenomenon}`, body: `${when} ${risk} Fonte: INMET.`, source: "INMET · alerta oficial", start, expires: end, url: "./#alertas", fingerprintSeed: `official_alert|${id}|${location.city_id}|${severity}`, metadata: { official_id: id, area: `${location.city_name}, ${location.uf}`, severity_label: severityLabel, valid_until: end.toISOString(), confidence: "high" } } satisfies EventCandidate];
+    return [{ type: "official_alert", severity, title: `⚠️ ${phenomenon}`, body: `${when} ${risk} Fonte: INMET.`, source: "INMET · alerta oficial", start, expires: end, url: "./#alertas", fingerprintSeed: `official_alert|${id}|${location.city_id}|${severity}`, metadata: { official_id: id, area: `${location.city_name}, ${location.uf}`, severity_label: severityLabel, valid_from: start.toISOString(), valid_until: end.toISOString(), confidence: "high" } } satisfies EventCandidate];
   });
 }
 
@@ -599,11 +599,11 @@ async function deliver(admin: any, event: any, preference: Preference, subscript
         .in('status',['accepted','pending']).gte('created_at',new Date(Date.now()-6*3600000).toISOString());
       if (recentError) throw new Error("dedup_lookup_failed");
       // "Parou de chover" fecha o ciclo: só depois de um "começou a chover"/"trovoada agora" entregue a este aparelho.
-      if (event.type === "rain_stopped" ? !stopAllowed(recent || []) : isRepeat(event,recent || [])) { skipped++; continue; }
+      if (event.type === "rain_stopped" ? !stopAllowed(recent || [], { observedAt: event.metadata?.observed_at }) : isRepeat(event,recent || [])) { skipped++; continue; }
     }
     if (event.type === "official_alert") {
       const { data: recent, error: recentError } = await admin.from("notification_deliveries")
-        .select("status,notification_events!inner(event_type,severity,city_id,title,metadata)")
+        .select("status,notification_events!inner(event_type,severity,city_id,title,started_at,metadata)")
         .eq("subscription_id", subscription.id).eq("notification_events.city_id", event.cityId).eq("notification_events.event_type", "official_alert")
         .in("status", ["accepted", "pending"]).gte("created_at", new Date(Date.now() - 72 * 3600000).toISOString());
       if (recentError) throw new Error("dedup_lookup_failed");
