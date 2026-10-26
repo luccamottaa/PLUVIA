@@ -48,7 +48,7 @@ function utcOffset(timezone) {
     .formatToParts(new Date(Date.UTC(2026, 0, 15))).find(item => item.type === 'timeZoneName').value;
   return part.replace('GMT', 'UTC').replace('-', '−');
 }
-const description = city => `Previsão do tempo em ${city.name} (${city.uf}) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET.`;
+const description = city => `Clima e tempo em ${city.name} (${city.uf}) hoje: temperatura agora, chuva hora a hora, previsão para os próximos 7 dias, radar, qualidade do ar e avisos do INMET. PLUVIA, o céu do Brasil agora.`;
 
 function linksBlock(api, current = null) {
   const list = cities => cities.map(city => `<li><a href="${api.cityPagePath(city)}"${city.id === current?.id ? ' aria-current="page"' : ''}>${escapeHtml(city.name)}</a></li>`).join('');
