@@ -177,7 +177,7 @@ test('chuva e trovoada observadas: estação começa a medir, aeroporto relata t
 
 // Notificações mais específicas (outubro/2026): o ciclo normal do dia não é "mudança no tempo",
 // os resumos dizem quando a chuva é mais provável e "chuva nas próximas horas" cala enquanto chove.
-const smart=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({detectWeather,dailySummaryCandidate,eveningSummaryCandidate,rainingNow,weatherUrl})',{Intl,Date,URL,URLSearchParams});
+const smart=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({detectWeather,dailySummaryCandidate,eveningSummaryCandidate,rainingNow,weatherUrl,dayPhrase})',{Intl,Date,URL,URLSearchParams});
 // 30 horas: 24 de ontem + agora + 6 à frente. Ciclo do dia de Manaus: 24 °C de madrugada, 32 °C à tarde.
 function day({shift=0,start='2026-10-01T05:00-04:00'}={}){
   const t0=Date.parse(start)/1000,times=Array.from({length:31},(_,i)=>t0+(i-24)*3600);
@@ -228,14 +228,14 @@ test('resumo da manhã diz quando a chuva é mais provável, e só afirma dia se
   // Horas 15:00 e 16:00 (intervalos 14–15 e 15–16) com 40% e 60%.
   const at=h=>data.hourly.time.indexOf(Date.parse(`2026-10-01T${h}:00-04:00`)/1000);
   data.hourly.precipitation_probability[at(15)]=40;data.hourly.precipitation_probability[at(16)]=60;
-  assert.equal(smart.dailySummaryCandidate(data,location,preference,now).body,'Máxima de 33 °C e mínima de 25 °C. Chuva mais provável entre 14:00 e 16:00 (até 60%).');
+  assert.equal(smart.dailySummaryCandidate(data,location,preference,now).body,'Leve guarda-chuva. Manhã com sol, tarde com chance de chuva, noite com céu limpo. Máxima de 33 °C e mínima de 25 °C. Chuva mais provável entre 14:00 e 16:00 (até 60%).');
   data.hourly.precipitation_probability[at(16)]=40;
-  assert.equal(smart.dailySummaryCandidate(data,location,preference,now).body,'Máxima de 33 °C e mínima de 25 °C. Pode chover entre 14:00 e 16:00 (até 40%).');
+  assert.equal(smart.dailySummaryCandidate(data,location,preference,now).body,'Manhã e tarde com sol, noite com céu limpo. Máxima de 33 °C e mínima de 25 °C. Pode chover entre 14:00 e 16:00 (até 40%).');
   const dry=forecastDays();dry.data.daily.precipitation_probability_max[0]=5;
-  assert.equal(smart.dailySummaryCandidate(dry.data,location,preference,dry.now).body,'Máxima de 33 °C e mínima de 25 °C. Sem chuva prevista.');
+  assert.equal(smart.dailySummaryCandidate(dry.data,location,preference,dry.now).body,'Manhã e tarde com sol, noite com céu limpo. Máxima de 33 °C e mínima de 25 °C. Sem chuva prevista.');
   // Uma hora sem leitura: não dá para dizer "sem chuva"; volta ao texto da chance máxima.
   const hole=forecastDays();hole.data.daily.precipitation_probability_max[0]=5;hole.data.hourly.precipitation_probability[at(20)]=null;
-  assert.equal(smart.dailySummaryCandidate(hole.data,location,preference,hole.now).body,'Máxima de 33 °C, mínima de 25 °C e até 5% de chance de chuva.');
+  assert.equal(smart.dailySummaryCandidate(hole.data,location,preference,hole.now).body,'Manhã e tarde com sol, noite com céu limpo. Máxima de 33 °C, mínima de 25 °C e até 5% de chance de chuva.');
 });
 test('resumo da noite usa as horas de amanhã para o horário da chuva',()=>{
   const evening=new Date('2026-10-02T00:00Z'),{data}=forecastDays();data.current.time=evening.getTime()/1000;
@@ -243,7 +243,7 @@ test('resumo da noite usa as horas de amanhã para o horário da chuva',()=>{
   for(const h of ['13','14','15']) data.hourly.precipitation_probability[at(h)]=70;
   const body=smart.eveningSummaryCandidate(data,location,{evening_summary:true,evening_summary_time:'20:00'},evening).body;
   // Série de 48 horas (01:00 de hoje até 00:00 do dia 3): o amanhã inteiro está coberto.
-  assert.equal(body,'Leve guarda-chuva. Máxima de 32 °C e mínima de 23 °C. Chuva mais provável entre 12:00 e 15:00 (até 70%). Total previsto: 6 mm.');
+  assert.equal(body,'Leve guarda-chuva. Manhã com sol, tarde com chance de chuva, noite com céu limpo. Máxima de 32 °C e mínima de 23 °C. Chuva mais provável entre 12:00 e 15:00 (até 70%). Total previsto: 6 mm.');
 });
 test('chovendo agora pela estação ou pelo aeroporto; leitura velha não conta',()=>{
   const now=new Date('2026-10-13T16:20:00Z');
@@ -348,4 +348,26 @@ test('chuva chegando pelo radar: 10 a 60 min de antecedência contados da imagem
   const data=weather();const t=Date.parse('2026-10-01T11:00Z');
   assert.equal(api.rainLikelySoon(data,new Date(t)),false);
   data.hourly.precipitation_probability[2]=40;assert.equal(api.rainLikelySoon(data,new Date(t)),true);
+});
+
+test('o dia em uma frase: chuva só com evidência, períodos iguais se juntam e lacuna tira o período',()=>{
+  const {now,data}=forecastDays(),day='2026-10-01';
+  const at=h=>data.hourly.time.indexOf(Date.parse(`2026-10-01T${h}:00-04:00`)/1000);
+  data.hourly.weather_code=data.hourly.time.map(()=>3);
+  assert.equal(smart.dayPhrase(data,location,day,now),'Dia todo nublado.');
+  // Código de chuva sem volume nem chance: o modelo não sustenta "com chuva", fica nublada.
+  for(const h of ['14','15','16']) data.hourly.weather_code[at(h)]=61;
+  assert.equal(smart.dayPhrase(data,location,day,now),'Dia todo nublado.');
+  data.hourly.precipitation[at('15')]=3;
+  assert.equal(smart.dayPhrase(data,location,day,now),'Manhã nublada, tarde com chuva, noite nublada.');
+  data.hourly.weather_code[at('16')]=95;data.hourly.precipitation_probability[at('16')]=70;
+  assert.equal(smart.dayPhrase(data,location,day,now),'Manhã nublada, tarde com trovoada, noite nublada.');
+  // Uma hora da noite sem código: a noite sai da frase, nunca vira "céu limpo".
+  data.hourly.weather_code[at('21')]=null;
+  assert.equal(smart.dayPhrase(data,location,day,now),'Manhã nublada, tarde com trovoada.');
+  // Às 21h só restam horas da noite (3): a manhã e a tarde já passaram.
+  const late=new Date(Date.parse('2026-10-01T21:00-04:00'));
+  const night=forecastDays();night.data.hourly.weather_code=night.data.hourly.time.map(()=>0);
+  assert.equal(smart.dayPhrase(night.data,location,day,late),'Noite com céu limpo.');
+  assert.equal(smart.dayPhrase({hourly:{time:[]}},location,day,now),null);
 });
