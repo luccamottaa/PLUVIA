@@ -2112,3 +2112,7 @@ body[data-ink="dark"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
 @keyframes pluvia-day-chart-draw { from { stroke-dashoffset:1; } }
 @keyframes pluvia-day-chart-fill { from { fill-opacity:0; } }
 @media (prefers-reduced-motion:reduce) { #dailyDetailDialog :is(.day-chart-line,.day-chart-area) { animation:none; } }
+
+/* 1.29: previsão de +10 a +30 min no radar ampliado (weather-map + radar-nowcast.forecastImages). O horário
+   diz "Previsão para HH:MM" no azul da marca, para não ser confundido com uma imagem observada. */
+#radarMapContent #weatherFrameTime[data-state="forecast"] { color:var(--brand-blue); font-weight:600; }

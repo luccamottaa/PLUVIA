@@ -143,6 +143,35 @@
     images.forEach((image, index) => ctx.drawImage(image, tiles[index].tx * 256 - left, tiles[index].ty * 256 - top));
     return mask(ctx.getImageData(0, 0, SIZE, SIZE).data, SIZE, SIZE);
   }
+  // Imagens de previsão para o radar ampliado (pedido do dono: "radar com previsão pra frente", como o app Tempo):
+  // a imagem mais recente numa janela de 512 × 512 pixels (zoom 7, ~±300 km) em volta da cidade, empurrada pelo
+  // passo medido (perStep, pixels a cada 10 min) `step` vezes. Extrapolação, não modelo: a chuva não nasce, não
+  // some nem muda de forma. Devolve {url, bounds} por passo (bounds em graus, para L.imageOverlay).
+  const FORECAST_SIZE = 512;
+  function lonLatOf(px, py, z = ZOOM) {
+    const n = 256 * 2 ** z, lon = px / n * 360 - 180;
+    const lat = Math.atan(Math.sinh(Math.PI * (1 - 2 * py / n))) * 180 / Math.PI;
+    return [lat, lon];
+  }
+  async function forecastImages(host, path, city, perStep, steps, signal) {
+    const load = scope.PLUVIA?.radar?.loadImage, doc = scope.document;
+    if (!load || !doc || !perStep || !Array.isArray(steps) || !steps.length) throw new Error('unsupported');
+    const {x, y} = pixelOf(city.lon, city.lat);
+    const left = Math.round(x) - FORECAST_SIZE / 2, top = Math.round(y) - FORECAST_SIZE / 2;
+    const base = doc.createElement('canvas'); base.width = FORECAST_SIZE; base.height = FORECAST_SIZE;
+    const ctx = base.getContext('2d');
+    const tiles = [];
+    for (let ty = Math.floor(top / 256); ty <= Math.floor((top + FORECAST_SIZE - 1) / 256); ty += 1)
+      for (let tx = Math.floor(left / 256); tx <= Math.floor((left + FORECAST_SIZE - 1) / 256); tx += 1) tiles.push({tx, ty});
+    const images = await Promise.all(tiles.map(({tx, ty}) => load(`${host}${path}/256/${ZOOM}/${tx}/${ty}/2/1_1.png`, signal)));
+    images.forEach((image, index) => ctx.drawImage(image, tiles[index].tx * 256 - left, tiles[index].ty * 256 - top));
+    const bounds = [lonLatOf(left, top + FORECAST_SIZE), lonLatOf(left + FORECAST_SIZE, top)];
+    return steps.map(step => {
+      const frame = doc.createElement('canvas'); frame.width = FORECAST_SIZE; frame.height = FORECAST_SIZE;
+      frame.getContext('2d').drawImage(base, Math.round(perStep.dx * step), Math.round(perStep.dy * step));
+      return {url:frame.toDataURL('image/png'), bounds, step};
+    });
+  }
   let client = null;
   async function check(city, {signal, now = Date.now()} = {}) {
     const id = String(city?.id || '');
@@ -169,5 +198,5 @@
     return result;
   }
 
-  return {SIZE, CENTER, mask, half, cityCoverage, motion, arrival, stepFor, estimate, answer, nextHour, check, clear:() => cache.clear()};
+  return {SIZE, CENTER, mask, half, cityCoverage, motion, arrival, stepFor, estimate, answer, nextHour, check, forecastImages, lonLatOf, clear:() => cache.clear()};
 });

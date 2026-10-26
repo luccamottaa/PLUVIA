@@ -12,9 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.29", date:"2026-10-26", title:"Gráfico do dia e protetor solar", items:[
+    {version:"1.29", date:"2026-10-26", title:"Gráfico do dia, protetor solar e radar adiante", items:[
       "Ao tocar num dos Próximos 7 dias, o detalhe abre com um gráfico como o do app Tempo: a curva da temperatura hora a hora, colorida do frio ao quente, com a mínima, a máxima e o \"Agora\" marcados, e embaixo as barras da chuva prevista.",
-      "O Índice UV agora diz até quando usar protetor solar no resto do dia, como \"Proteção solar até 15:00\"."]},
+      "O Índice UV agora diz até quando usar protetor solar no resto do dia, como \"Proteção solar até 15:00\".",
+      "O radar ampliado mostra também os próximos 30 minutos: a chuva segue andando pelo movimento das últimas imagens, com o horário marcado como \"Previsão para\"."]},
     {version:"1.28", date:"2026-10-26", title:"Nascer e pôr do sol dos próximos dias", items:[
       "Em \"Mais sobre o céu\", uma tabela com o nascer e o pôr do sol dos próximos 14 dias na sua cidade, com quanto tempo de luz cada dia tem e se o Sol vai se pôr mais cedo ou mais tarde na próxima semana."]},
     {version:"1.27.2", date:"2026-10-26", title:"\"Tá chovendo aí?\" no radar e setas suaves", items:[

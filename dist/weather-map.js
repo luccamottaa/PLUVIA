@@ -153,6 +153,8 @@
     }
     pendingTimeout=setTimeout(()=>fail('Esta imagem demorou para carregar. Tente outro horário ou tente novamente.'),10000);
     layer.setOpacity?.(0);
+    // Imagem de previsão (L.imageOverlay) não tem tiles: o próprio load confirma a imagem inteira.
+    if (options.image) { layer.on('load',()=>{loaded++;}); layer.on('error',()=>fail('A previsão deste horário não carregou.')); }
     layer.on('load',() => {
       if (state.nextOverlay !== layer) return;
       if (!loaded) {fail('A imagem deste horário não carregou. Tente outro horário ou tente novamente.');return;}
@@ -163,9 +165,18 @@
     });
     layer.addTo(state.map);
   }
+  const frameKey = frame => 'rain:'+(frame?.forecast ? 'f' : '')+frame?.time;
   function renderRainFrame() {
     const frame = state.frames[state.index]; if (!frame) return;
-    const key='rain:'+frame.time;
+    const key=frameKey(frame);
+    if (frame.forecast) {
+      fadeTileLayer(frameLayers.get(key) || L.imageOverlay(frame.url,frame.bounds,{opacity:.76,interactive:false,className:'pluvia-radar-forecast'}),.76,{
+        key,image:true,loading:'Preparando a previsão de '+zoneTime(frame.time)+'…',
+        onReady() {$('weatherFrameTime').textContent='Previsão para '+zoneTime(frame.time);$('weatherFrameTime').setAttribute?.('data-state','forecast');}
+      });
+      $('weatherSourceNote').textContent = 'Previsão pelo movimento das últimas imagens do radar: não mostra chuva que se forma ou some.';
+      return;
+    }
     fadeTileLayer(frameLayers.get(key) || L.tileLayer(`${frame.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:.76,maxNativeZoom:7,maxZoom:11,attribution:'Radar: RainViewer'}),.76,{
       key,loading:'Carregando imagem de '+zoneTime(frame.time)+'…',
       onReady(failed) {$('weatherFrameTime').textContent=zoneTime(frame.time);$('weatherFrameTime').setAttribute?.('data-state','ready');source('radar',{status:failed ? 'partial' : 'ready',dataAt:frame.time*1000});},
@@ -176,13 +187,39 @@
   }
   function renderFrame(force=false) {
     $('weatherTimeline').value = String(state.index);
-    const key=state.layer+':'+state.frames[state.index]?.time;
+    const key=frameKey(state.frames[state.index]);
     if (!force && state.nextOverlay && pendingFrameKey===key) return;
     if (!force && state.overlay && displayedFrameKey===key) {
       cancelPending();frameStatus(false,displayedPartial ? 'Parte da imagem não carregou.' : 'Imagem carregada.',displayedPartial);
       setError(displayedPartial ? 'Parte da imagem não carregou. Tente outro horário ou tente novamente.' : '');return;
     }
     if (state.layer === 'rain') renderRainFrame();
+  }
+  // Previsão curta no radar ampliado (pedido do dono, como o app Tempo): +10, +20 e +30 min depois da imagem
+  // mais recente, com a mancha empurrada pelo movimento medido em radar-nowcast. Só com movimento claro (senão
+  // o radar fica só com o passado) e só com o radar ampliado aberto; ao fechar, as imagens de previsão saem.
+  const FORECAST_STEPS = [1,2,3];
+  let forecastRevision = 0;
+  async function addForecastFrames() {
+    const nowcast=globalThis.PLUVIA?.nowcast, selected=city(), last=state.frames[state.frames.length-1];
+    if (!radarDialog?.open || !nowcast?.check || !nowcast.forecastImages || !selected || !last || last.forecast) return;
+    const revision=layerRevision, attempt=++forecastRevision;
+    try {
+      const result=await nowcast.check(selected);
+      if (revision!==layerRevision || attempt!==forecastRevision || !radarDialog.open || !result?.perStep || result.frameAt!==last.time*1000) return;
+      const images=await nowcast.forecastImages(last.host,last.path,selected,result.perStep,FORECAST_STEPS);
+      if (revision!==layerRevision || attempt!==forecastRevision || !radarDialog.open || state.frames[state.frames.length-1]!==last) return;
+      setFrames([...state.frames,...images.map(image=>({forecast:true,time:last.time+image.step*600,url:image.url,bounds:image.bounds}))],state.index);
+    } catch (_) { /* sem previsão: o radar continua só com as imagens observadas */ }
+  }
+  function dropForecastFrames() {
+    forecastRevision++;
+    const past=state.frames.filter(frame=>!frame.forecast);
+    if (past.length===state.frames.length) return;
+    const onForecast=state.frames[state.index]?.forecast;
+    for (const [key,layer] of frameLayers) if (key.startsWith('rain:f')) { frameLayers.delete(key); if (layer!==state.overlay) state.map?.removeLayer(layer); }
+    setFrames(past,onForecast ? past.length-1 : state.index);
+    if (onForecast) renderFrame(true);
   }
   async function loadRain(revision) {
     source('radar',{status:'loading'});
@@ -194,7 +231,7 @@
     if (typeof data?.host!=='string' || !/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(data.host)) throw new Error('O radar enviou uma referência inválida.');
     if (!frames.length) throw new Error('O radar não enviou frames recentes.');
     radarSnapshot={data,at:cached ? radarSnapshot.at : Date.now()};
-    setFrames(frames,frames.length-1); renderFrame(); autoplay();
+    setFrames(frames,frames.length-1); renderFrame(); autoplay(); addForecastFrames();
   }
   async function selectLayer(name) {
     if (name !== 'rain') return;
@@ -338,12 +375,12 @@
     radarDialog.showModal(); document.body.style.overflow='hidden';
     setInteractive(true);
     autoplayPending = true;
-    mapVisible=true; if (!state.map || state.cityId !== city()?.id) showMap(); else autoplay();
+    mapVisible=true; if (!state.map || state.cityId !== city()?.id) showMap(); else { autoplay(); addForecastFrames(); }
     resizeMap(); $('closeRadar').focus();
   });
   $('closeRadar')?.addEventListener('click',() => globalThis.PLUVIA?.dialogs?.close(radarDialog) ?? radarDialog.close());
   radarDialog?.addEventListener('close',() => {
-    autoplayPending = false; resumeOnVisible = false; stop(); radarHome?.appendChild(radarContent); document.body.style.overflow=previousOverflow;
+    autoplayPending = false; resumeOnVisible = false; stop(); dropForecastFrames(); radarHome?.appendChild(radarContent); document.body.style.overflow=previousOverflow;
     setInteractive(false);
     resizeMap(); $('expandRadar')?.focus();
   });
