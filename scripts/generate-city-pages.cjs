@@ -112,6 +112,8 @@ function cityPage(template, api, city) {
   html = replaceOnce(html, /<script type="application\/ld\+json">[^<]*<\/script>/, `<script type="application/ld+json">${jsonLd(graph)}</script>`);
   // O texto inicial do título já nomeia a cidade para quem lê o HTML sem executar o app.
   html = replaceOnce(html, /<span id="cityName">Sua cidade<\/span>/, `<span id="cityName">${escapeHtml(city.name)}</span>`);
+  // Título da tabela de nascer e pôr do sol com a cidade, já no HTML (os horários vêm do app, porque mudam todo dia).
+  html = replaceOnce(html, /<h3 id="sunTableTitle">Nascer e pôr do sol<\/h3>/, `<h3 id="sunTableTitle">Nascer e pôr do sol em ${escapeHtml(city.name)}</h3>`);
   // As páginas vivem em /clima/<slug>/: referências relativas ao shell passam à raiz do site.
   html = html.replace(/((?:src|href)=")\.\//g, '$1/').replace(/url\("\.\//g, 'url("/');
   if (/(?:src|href)="\.\.?\//.test(html)) throw new Error('Referência relativa restante em ' + city.name);

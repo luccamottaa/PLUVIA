@@ -12,6 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.28", date:"2026-10-26", title:"Nascer e pôr do sol dos próximos dias", items:[
+      "Em \"Mais sobre o céu\", uma tabela com o nascer e o pôr do sol dos próximos 14 dias na sua cidade, com quanto tempo de luz cada dia tem e se o Sol vai se pôr mais cedo ou mais tarde na próxima semana."]},
     {version:"1.27.2", date:"2026-10-26", title:"\"Tá chovendo aí?\" no radar e setas suaves", items:[
       "A pergunta \"Tá chovendo aí?\" mudou para o cartão do radar, embaixo do mapa da chuva, e saiu do meio entre as próximas horas e os 7 dias.",
       "As setinhas de \"Mais sobre o céu\", \"Poluentes e origem\" e das opções da conta agora giram suavemente ao abrir e fechar, em vez de trocar de uma vez."]},

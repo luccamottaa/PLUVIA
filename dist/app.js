@@ -460,6 +460,7 @@ function updateClock() {
   const now = new Date();
   globalThis.dispatchEvent?.(new CustomEvent("pluvia:clock-updated"));
   const atmosphere = updateSolarAtmosphere(now.getTime());
+  renderSunTable(now.getTime());
   if (displayedWeather?.forecast?.daily) {
     const saved = displayedWeather;
     const hour = selectCurrentHour(saved.forecast.hourly.time);
@@ -886,6 +887,26 @@ function moveArcDot(node, point) {
   node.pluviaArc = {left:point.left, top:point.top};
   node.style.left = `${point.left}%`; node.style.top = `${point.top}px`;
 }
+// Nascer e pôr do sol dos próximos 14 dias ("Mais sobre o céu", modules/sun-table.js): refeita só quando
+// a cidade ou o dia municipal mudam, não a cada tique do relógio.
+let sunTableKey = "";
+function renderSunTable(at) {
+  const body = $("sunTableBody"), table = globalThis.PLUVIA?.sunTable, time = globalThis.PLUVIA?.time;
+  if (!body || !table || !time || !activeCity?.timezone) return;
+  const key = `${activeCity.id}|${time.dayKey(at, activeCity)}`;
+  if (key === sunTableKey) return;
+  const list = table.rows({city:activeCity, at, days:14, sun:globalThis.PLUVIA?.sun, time});
+  if (!list.length) return;
+  sunTableKey = key;
+  if ($("sunTableTitle")) $("sunTableTitle").textContent = `Nascer e pôr do sol em ${activeCity.name}`;
+  const label = (date, i) => i === 0 ? "Hoje" : i === 1 ? "Amanhã" :
+    (time.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:"UTC", weekday:"short", day:"numeric", month:"numeric"}).format(new Date(date + "T12:00:00Z")).replace(".", "");
+  const clock = stamp => Number.isFinite(stamp) ? formatUpdateTime(stamp) : "—";
+  body.innerHTML = list.map((row, i) => `<tr${i === 0 ? ' data-today="true"' : ""}><th scope="row">${escapeHtml(label(row.date, i))}</th><td>${clock(row.rise)}</td><td>${clock(row.set)}</td><td>${table.lengthText(row.length)}</td></tr>`).join("");
+  const drift = table.setDrift(list, formatUpdateTime), note = $("sunTableNote");
+  if (note) note.textContent = drift === null ? "" : drift === 0 ? "Daqui a uma semana o Sol se põe no mesmo horário de hoje." :
+    `Daqui a uma semana o Sol se põe ${Math.abs(drift)} min mais ${drift > 0 ? "tarde" : "cedo"} que hoje.`;
+}
 function renderSun(daily, at = Date.now(), hourly = null) {
   const astronomy=globalThis.PLUVIA?.sky?.astronomyAt?.(at);
   const astronomyFields={civilDawn:astronomy?.dawn,civilDusk:astronomy?.dusk,moonrise:astronomy?.moonRise,moonset:astronomy?.moonSet};
@@ -900,6 +921,7 @@ function renderSun(daily, at = Date.now(), hourly = null) {
   if($('goldenHour')) $('goldenHour').textContent=windows(span(sunRise,astronomy?.goldenEnd),span(astronomy?.goldenStart,sunSet));
   if($('blueHour')) $('blueHour').textContent=windows(span(astronomy?.dawn,sunRise),span(sunSet,astronomy?.dusk));
   renderSkyEvents(at);
+  renderSunTable(at);
   if($('astronomyDate')) $('astronomyDate').textContent='Dia '+(globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:activeCity.timezone,day:'numeric',month:'long'}).format(at)+' · horário de '+activeCity.name+' · estimativa astronômica';
   const today = globalThis.PLUVIA.time.dayKey(at,activeCity);
   const index = daily.time?.indexOf(today) ?? -1;

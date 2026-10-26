@@ -33,7 +33,7 @@ test('previsão diária não chama ontem de Hoje nem cria zero para chuva ausent
 test('relógio avança previsão e card solar à meia-noite sem novo request',()=>{
  const calls=[],data=forecast('2026-10-01',23),at=Date.parse('2026-10-02T00:00:00-04:00');
  const saved={forecast:data,air:null,hour:1,day:'2026-10-01',weatherAt:at-3600000,airAt:null,fromCache:true,cacheAt:at-3600000};
- const context=vm.createContext({activeCity:city,displayedWeather:saved,PLUVIA:{time},weatherData:require('../dist/modules/weather-data-layer.js'),$:()=>({}),document:{hidden:false},updateSolarAtmosphere(){},selectCurrentHour:times=>time.hourIndex(times,city,at),render:(...args)=>calls.push(args),renderSun(){},Date:class extends Date {constructor(value){super(value??at);}static now(){return at;}}});
+ const context=vm.createContext({activeCity:city,displayedWeather:saved,PLUVIA:{time},weatherData:require('../dist/modules/weather-data-layer.js'),$:()=>({}),document:{hidden:false},updateSolarAtmosphere(){},renderSunTable(){},selectCurrentHour:times=>time.hourIndex(times,city,at),render:(...args)=>calls.push(args),renderSun(){},Date:class extends Date {constructor(value){super(value??at);}static now(){return at;}}});
  vm.runInContext(app.slice(app.indexOf('function updateClock('),app.indexOf('function cityDate(')),context);context.updateClock();
  assert.equal(calls.length,1);assert.equal(calls[0][0],data);assert.equal(calls[0][4].weatherAt,saved.weatherAt);
 });
@@ -41,7 +41,7 @@ test('relógio avança previsão e card solar à meia-noite sem novo request',()
 test('amanhecer entre duas horas atualiza ícones sem renovar a idade do dado',()=>{
  const data=forecast(),at=Date.parse('2026-10-01T06:01-04:00'),calls=[];
  const saved={forecast:data,air:null,hour:1,day:'2026-10-01',phase:'night',weatherAt:at-3600000,airAt:null};
- const context=vm.createContext({activeCity:city,displayedWeather:saved,PLUVIA:{time},weatherData:require('../dist/modules/weather-data-layer.js'),$:()=>({}),document:{hidden:false},updateSolarAtmosphere:()=>({phase:'day'}),selectCurrentHour:()=>1,render:(...args)=>calls.push(args),renderSun(){},Date:class extends Date{constructor(value){super(value??at);}}});
+ const context=vm.createContext({activeCity:city,displayedWeather:saved,PLUVIA:{time},weatherData:require('../dist/modules/weather-data-layer.js'),$:()=>({}),document:{hidden:false},updateSolarAtmosphere:()=>({phase:'day'}),renderSunTable(){},selectCurrentHour:()=>1,render:(...args)=>calls.push(args),renderSun(){},Date:class extends Date{constructor(value){super(value??at);}}});
  vm.runInContext(app.slice(app.indexOf('function updateClock('),app.indexOf('function cityDate(')),context);context.updateClock();
  assert.equal(calls.length,1);assert.equal(calls[0][4].weatherAt,saved.weatherAt);
 });
