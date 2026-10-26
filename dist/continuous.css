@@ -1049,7 +1049,7 @@ html body :is(details > summary,.account-more-item,#accountButton,#openCitySearc
 #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:pluvia-bar-grow .6s cubic-bezier(.22,1,.36,1) calc(var(--i,0) * 16ms) both; }
 @keyframes pluvia-bar-grow { from { height:0; min-height:0; } }
 @media (prefers-reduced-motion:reduce) {
-  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot), #weatherView .next-hour-bars span { transition:none; }
+  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), #weatherView .next-hour-bars span::after, .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot), #weatherView .next-hour-bars span { transition:none; }
   #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
 }
 
@@ -1957,3 +1957,38 @@ body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > str
 #hourlyDetailIcon .weather-icon { width:96px; height:96px; }
 #hourlyDetailTemperature { grid-column:2; align-self:center; line-height:1; }
 #hourlyDetailDialog #hourlyDetailCondition { grid-column:1 / -1; text-align:center; }
+/* Modos das Próximas horas (1.26, pedido do usuário, como no Apple Weather): Condição, Chuva e Vento. Seletor em
+   pílula com três ícones (alvos de 44 × 36 px, aria-pressed); só cor e fundo, sem transform. */
+#weatherView .hourly-peek-heading { flex-wrap:nowrap; }
+#weatherView .hourly-modes { flex:0 0 auto; display:inline-flex; gap:2px; padding:3px; border-radius:999px; background:color-mix(in srgb,var(--reading-ink,#fff) 10%,transparent); }
+#weatherView .hourly-modes button { display:grid; place-items:center; width:44px; height:36px; margin:0; padding:0; border:0; border-radius:999px; background:transparent; color:var(--reading-muted); cursor:pointer; }
+#weatherView .hourly-modes button[aria-pressed="true"] { background:color-mix(in srgb,var(--reading-ink,#fff) 18%,transparent); color:var(--reading-ink); }
+#weatherView .hourly-modes svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+#weatherView .hourly-modes button[aria-pressed="true"] svg:not(:has(path[d^="M3 9"])) { fill:currentColor; }
+/* Chuva: barra de intensidade num trilho com as marcas de 2,5 e 7,5 mm/h (raiz de mm/h até 10) e a chance embaixo. */
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-bar { position:relative; display:block; width:22px; height:64px; margin:6px auto 2px; overflow:hidden; border-radius:7px; background:color-mix(in srgb,var(--reading-ink,#fff) 9%,transparent); background-image:linear-gradient(to top,transparent calc(50% - .5px),color-mix(in srgb,var(--reading-ink,#fff) 28%,transparent) calc(50% - .5px),color-mix(in srgb,var(--reading-ink,#fff) 28%,transparent) calc(50% + .5px),transparent calc(50% + .5px),transparent calc(87% - .5px),color-mix(in srgb,var(--reading-ink,#fff) 28%,transparent) calc(87% - .5px),color-mix(in srgb,var(--reading-ink,#fff) 28%,transparent) calc(87% + .5px),transparent calc(87% + .5px)); }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-bar i { position:absolute; left:0; right:0; bottom:0; border-radius:7px 7px 0 0; background:linear-gradient(#8fdcff,#3fa9f5); }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-bar[data-known="0"] { opacity:.45; }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-chance { display:inline-flex; align-items:center; justify-content:center; gap:1px; font-size:.8125rem; font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums; color:var(--reading-ink); }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-chance[data-low="1"] { color:var(--reading-muted); font-weight:500; }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-chance[data-low="1"] .rain-metric-icon { display:none; }
+/* Vento: seta para onde o vento vai, velocidade e unidade embaixo. */
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind { display:grid; place-items:center; }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-arrow { display:block; width:24px; height:24px; fill:none; stroke:var(--reading-link); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-unit { font-size:.75rem; color:var(--reading-muted); }
+/* Próxima hora (1.26, pedido do usuário: "confuso"): trilho escuro da altura toda e a parte com chuva em azul,
+   enchendo de baixo (altura = fração da área da cidade com eco no radar, não intensidade). */
+#weatherView .next-hour-bars { height:56px; gap:4px; border-bottom:0; }
+#weatherView .next-hour-bars span { position:relative; height:100% !important; overflow:hidden; border-radius:6px; background:color-mix(in srgb,var(--reading-ink,#fff) 9%,transparent); transition:none; }
+#weatherView .next-hour-bars span::after { content:""; position:absolute; left:0; right:0; bottom:0; height:var(--fill,0%); background:color-mix(in srgb,var(--reading-ink,#fff) 30%,transparent); }
+@media (prefers-reduced-motion:no-preference) { #weatherView .next-hour-bars span::after { transition:height .6s cubic-bezier(.22,1,.36,1); } }
+body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #weatherView .next-hour-bars span[data-wet="1"] { background:color-mix(in srgb,var(--reading-ink,#fff) 9%,transparent); }
+#weatherView .next-hour-bars span[data-wet="1"]::after { background:linear-gradient(#8fdcff,#3fa9f5); }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-chance .rain-metric-icon { width:12px; height:12px; flex:0 0 12px; }
+/* Até 389 px o título e o seletor não cabem lado a lado ("Próximas horas" quebrava em duas linhas): o seletor
+   desce para uma linha própria, com os três botões dividindo a largura. */
+@media(max-width:389px) {
+  #weatherView .hourly-peek-heading { flex-wrap:wrap; row-gap:10px; }
+  #weatherView .hourly-modes { flex:1 0 100%; }
+  #weatherView .hourly-modes button { flex:1 1 0; width:auto; }
+}

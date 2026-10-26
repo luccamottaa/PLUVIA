@@ -12,9 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.26", date:"2026-10-26", title:"Logo nova e estrelas que piscam", items:[
+    {version:"1.26", date:"2026-10-26", title:"Logo nova, modos nas Próximas horas e estrelas que piscam", items:[
       "O PLUVIA tem logo nova: a gota com nuvem, sol e onda, em azul e ciano.",
-      "Ela aparece na abertura, no rodapé, no ícone da tela inicial, nas abas do navegador, nas prévias de links e na imagem de compartilhar.","Nas noites limpas, as estrelas do fundo deslizam bem devagar e algumas piscam, acendendo e apagando."]},
+      "Ela aparece na abertura, no rodapé, no ícone da tela inicial, nas abas do navegador, nas prévias de links e na imagem de compartilhar.","Nas noites limpas, as estrelas do fundo deslizam bem devagar e algumas piscam, acendendo e apagando.","Próximas horas ganhou três modos, como no app Tempo: condição, chuva (intensidade e chance) e vento (velocidade e direção).","\"Chuva na próxima hora\" ficou mais clara: cada coluna mostra quanto da cidade tem chuva no radar."]},
     {version:"1.25.5", date:"2026-10-26", title:"Topo alinhado", items:[
       "A condição do tempo (\"Céu limpo\", \"Nublado\"…) ficou mais perto da temperatura, sem aquele vão entre os dois.","O número da temperatura ficou centralizado com a cidade e a condição (antes ficava um pouco para a esquerda).","No detalhe de cada hora, o ícone ficou maior e alinhado com a temperatura, e a nota de chuva não diz mais \"Chuva prevista\" quando a chance é 0%."]},
     {version:"1.25.4", date:"2026-10-21", title:"Visibilidade com número", items:[
@@ -92,7 +92,7 @@
     {version:"1.18.1", date:"2026-10-20", title:"Ícone na Tela de Início", items:[
       "Adicionar o PLUVIA à Tela de Início do iPhone volta a mostrar a logo nova, em vez de só a letra P.",
     ]},
-    {version:"1.18", date:"2026-10-20", title:"Logo nova e estrelas que piscam", items:[
+    {version:"1.18", date:"2026-10-20", title:"Logo nova, modos nas Próximas horas e estrelas que piscam", items:[
       "O PLUVIA tem logo nova: uma gota caindo na água, com duas ondinhas.",
       "O nome PLUVIA agora acompanha o céu: branco à noite e azul-marinho de dia, com a gota em azul-claro.",
       "Ícone do app, favicon, abertura, rodapé, imagem de compartilhar e a prévia do link no WhatsApp já estão com a logo nova.",
