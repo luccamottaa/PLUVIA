@@ -12,9 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.26.2", date:"2026-10-26", title:"Nublado de verdade", items:[
+    {version:"1.26.2", date:"2026-10-26", title:"Nublado de verdade e menos texto no topo", items:[
       "O céu nublado agora tem nuvens cheias, com relevo, de ponta a ponta, como no app Tempo.",
-      "A condição de céu fechado passou a se chamar \"Nublado\" (antes aparecia \"Céu encoberto\")."]},
+      "A condição de céu fechado passou a se chamar \"Nublado\" (antes aparecia \"Céu encoberto\").",
+      "A linha \"INMET · Sem alertas\" saiu da tela: os avisos oficiais só aparecem quando existem."]},
     {version:"1.26.1", date:"2026-10-26", title:"Setas do vento mais claras e abertura rápida", items:[
       "No modo Vento das Próximas horas, cada hora mostra uma seta cheia dentro de um círculo e, embaixo, de onde o vento vem (\"de SE\").",
       "A abertura com a logo agora aparece toda vez que você abre o PLUVIA, na versão rápida, e some assim que a previsão chega."]},

@@ -906,7 +906,9 @@ body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="
 #weatherView .alert-banner[data-pending="strong"] strong { font-size:.9375rem; }
 #weatherView .alert-banner[data-pending] small { width:46%; }
 /* Com a faixa vazia no lugar, a linha "Consultando" do INMET sai da tela (continua para leitores de tela). */
-#weatherView #alertas[data-alert-state="pending"] { position:absolute !important; width:1px; height:1px; margin:0 !important; padding:0 !important; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+/* Sem aviso (1.26.2, pedido do usuário), a linha "INMET · Sem alertas" e o "Consultando" também saem da tela: o
+   cartão só aparece quando há aviso. Leitores de tela continuam ouvindo o estado. */
+#weatherView #alertas:is([data-alert-state="pending"],[data-alert-state="clear"],[data-alert-state="loading"]) { position:absolute !important; width:1px; height:1px; margin:0 !important; padding:0 !important; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 #weatherView .alert-banner[data-severity="orange"] { background:#f08c1e; color:#1a0d00; }
 #weatherView .alert-banner[data-severity="red"] { background:#b3261e; color:#fff; }
 /* Amarelo (perigo potencial) é frequente: faixa discreta, mais baixa e sem sombra, para laranja e
