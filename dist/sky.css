@@ -33,7 +33,7 @@
 :root[data-phase="day"][data-ink="light"][data-weather="storm"] { --sky-base:#1f2125; --sky-color:linear-gradient(165deg,#2a2c31,#1a1c20 70%,#1f2125); --cloud-filter:brightness(.4) saturate(.15); }
 /* Nublado, garoa e chuva fraca de dia (1.25, referência do usuário: o nublado do Apple Weather): céu cinza-chumbo,
    nuvens em textura cinza e tinta clara. Mais claro que a chuva forte e a trovoada, que continuam no teto escuro. */
-:root[data-phase="day"][data-ink="light"][data-weather="cloud"] { --sky-base:#4a525c; --sky-color:linear-gradient(180deg,#3f4751,#4e5761 55%,#5b646e); --cloud-filter:brightness(.44) contrast(1.4) saturate(.15); }
+:root[data-phase="day"][data-ink="light"][data-weather="cloud"] { --sky-base:#627084; --sky-color:linear-gradient(180deg,#5f6d80,#66748a 45%,#627084); --intro-muted:#e2ecf8; --cloud-filter:brightness(.5) contrast(1.15) saturate(.3); }
 :root[data-phase="day"][data-ink="light"][data-weather="rain"]:not([data-rain="moderate"]):not([data-rain="heavy"]) { --sky-base:#4d5660; --sky-color:linear-gradient(180deg,#3b434c,#4b545e 55%,#57606a); --cloud-filter:brightness(.42) saturate(.2); }
 :root[data-weather="fog"] { --sky-base:#111c2c; --sky-color:linear-gradient(180deg,#35405788,#111c2c); --cloud-opacity:.3; }
 :root[data-weather="fog"][data-phase="day"] { --sky-base:#c0d1dd; --sky-color:linear-gradient(165deg,#aabfcf,#e0e9ef); --cloud-opacity:.5; }
