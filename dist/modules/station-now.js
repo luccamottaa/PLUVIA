@@ -82,7 +82,9 @@
   function mount(root) {
     const doc = root.document, el = id => doc.getElementById(id);
     const card = el('stationNow'), value = el('stationNowValue'), note = el('stationNowNote');
-    if (!card || !value || !note) return;
+    // O cartão "Medido agora" saiu da Home na 1.26.4 (pedido do usuário); a leitura continua alimentando a chuva
+    // observada do topo e a visibilidade do aeroporto. Com o cartão no HTML, ele volta a ser pintado.
+    const ui = Boolean(card && value && note);
     const client = root.PLUVIA?.http?.createClient?.({defaultTimeoutMs:12000});
     const cache = new Map();
     let revision = 0, controller = null, pendingCity = null;
@@ -97,12 +99,15 @@
     };
     // A leitura também alimenta a chuva observada do topo (observed-rain.js, via app.js).
     const announce = (cityId, item, airport) => root.dispatchEvent?.(new CustomEvent('pluvia:station-reading', {detail:{cityId, reading:item, airport}}));
-    function hide() { card.hidden = true; value.textContent = ''; note.textContent = ''; delete card.dataset.city; announce(null, null, null); }
+    let shownCity = null;
+    function hide() { shownCity = null; if (ui) { card.hidden = true; value.textContent = ''; note.textContent = ''; delete card.dataset.city; } announce(null, null, null); }
     function show(city, data) {
       const item = reading(data), airport = airportReading(data);
       // Sem estação: o aeroporto ocupa o cartão (se tiver temperatura); sem nenhum dos dois, nada aparece.
       if (!item && (!airport || airport.temperature === null)) { hide(); announce(String(city.id), null, airport); return; }
       announce(String(city.id), item, airport);
+      shownCity = String(city.id);
+      if (!ui) return;
       const text = item ? describe(item, city, helpers()) : describeAirport(airport, helpers());
       const phrase = item && airport ? weatherPhrase(airport.weather) : '';
       if (phrase) text.note += ` · aeroporto (${airport.icao}): ${phrase}`;
@@ -116,7 +121,7 @@
     async function refresh() {
       const city = active(), url = requestUrl(city);
       if (!city || !url || !client?.getJson) { hide(); return; }
-      if (card.dataset.city && card.dataset.city !== String(city.id)) hide();
+      if (shownCity && shownCity !== String(city.id)) hide();
       const stored = cache.get(city.id);
       if (stored && Date.now() - stored.at < TTL_MS) { show(city, stored.data); return; }
       // A previsão avisa mais de uma vez por carga (Open-Meteo, depois MET): um pedido por cidade de cada vez.
