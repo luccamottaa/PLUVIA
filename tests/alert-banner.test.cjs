@@ -104,7 +104,7 @@ test('abertura: faixa vazia do mesmo formato guarda o lugar enquanto o INMET res
   assert.equal(banner.disabled,false);
   assert.equal(attrs['data-severity'],'yellow');
   // Linha "Consultando": some da tela com a faixa vazia; o link oficial não sobrepõe a frase no celular.
-  assert.match(css,/#weatherView #alertas\[data-alert-state="pending"\] \{ position:absolute !important;/);
+  assert.match(css,/#weatherView #alertas:is\(\[data-alert-state="pending"\],\[data-alert-state="clear"\],\[data-alert-state="loading"\]\) \{ position:absolute !important;/);
   assert.match(css,/@media\(max-width:420px\) \{[^}]*:is\(\[data-alert-state="clear"\],\[data-alert-state="loading"\]\) \.source-link \{ display:none; \}/);
   assert.match(app,/const held = holdAlertBanner\(expectedAlertShape\(city\.id\)\);/);
   assert.match(app,/if \(!stale\) rememberAlertShape\(activeCity\?\.id, bannerItem\);/);

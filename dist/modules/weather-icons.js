@@ -11,7 +11,7 @@
     0: ["clear", "Céu limpo"],
     1: ["mostly-clear", "Predomínio de sol"],
     2: ["partly-cloudy", "Parcialmente nublado"],
-    3: ["overcast", "Céu encoberto"],
+    3: ["overcast", "Nublado"],
     45: ["fog", "Neblina"], 48: ["fog", "Neblina com depósito"],
     51: ["drizzle", "Garoa fraca"], 53: ["drizzle", "Garoa"], 55: ["drizzle", "Garoa intensa"],
     56: ["freezing-drizzle", "Garoa congelante fraca"], 57: ["freezing-drizzle", "Garoa congelante intensa"],
