@@ -115,7 +115,7 @@
 .pluvia-intro.is-leaving { opacity:0; pointer-events:none; transition:opacity .38s ease .07s; }
 .pluvia-intro.is-leaving :is(.intro-wordmark,.intro-tagline,.intro-kicker) { opacity:0; transform:translateY(-22px); transition:opacity .28s ease,transform .32s cubic-bezier(.4,0,.6,1); }
 .pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; pointer-events:none; }
-.intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; gap:2px; color:var(--intro-ink,#f3f8ff); font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; }
+.intro-wordmark { position:relative; left:-.12em; z-index:1; display:flex; align-items:center; gap:2px; color:var(--intro-ink,#f3f8ff); font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; }
 .intro-wordmark strong { font-family:var(--font-brand,"Nunito",ui-rounded,system-ui,sans-serif); font-weight:900; }
 /* Marca nova (1.26, logo enviada pelo dono): a gota colorida cai e assenta com um leve amassado, depois o nome
    entra. Imagem com transparência (logo-mark.webp), só transform e opacity num elemento pequeno. */
@@ -175,7 +175,7 @@
       <p class="intro-kicker">Feito no Norte</p>
       <div class="intro-sky" aria-hidden="true"><span class="sky-twilight"></span><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
       <div class="intro-wordmark"><span class="intro-drop" aria-hidden="true"></span><strong>PLUVIA</strong></div>
-      <p class="intro-tagline">O céu de cada cidade</p>
+      <p class="intro-tagline">O céu do Brasil agora</p>
       <p class="intro-copy">Consulte o tempo antes de sair.</p>
     </div>
     <script>
@@ -466,7 +466,7 @@
       </section>
       </div>
     </main>
-    <footer class="shell"><div class="footer-brand"><span class="footer-brand-icon" aria-hidden="true"></span><div class="footer-brand-copy"><strong>PLUVIA</strong><span>O céu de cada cidade</span></div></div></footer>
+    <footer class="shell"><div class="footer-brand"><span class="footer-brand-icon" aria-hidden="true"></span><div class="footer-brand-copy"><strong>PLUVIA</strong><span>O céu do Brasil agora</span></div></div></footer>
     </div>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Sem confirmação atual.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>

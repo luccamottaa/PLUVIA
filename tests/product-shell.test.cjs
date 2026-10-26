@@ -52,7 +52,7 @@ const styles = read('styles.css');
 assert.match(styles, /--font-ui:\s*-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui/);
 assert.match(styles, /--font-brand:\s*"Nunito", ui-rounded, system-ui, sans-serif/);
 assert.doesNotMatch(styles, /Manrope|DM Mono/);
-assert.match(html, /class="footer-brand"[\s\S]*?<strong>PLUVIA<\/strong><span>O céu de cada cidade<\/span>/);
+assert.match(html, /class="footer-brand"[\s\S]*?<strong>PLUVIA<\/strong><span>O céu do Brasil agora<\/span>/);
 assert.doesNotMatch(html, /<section class="sobre|id="sobre"/);
 assert.doesNotMatch(html, /<p>PLUVIA · O céu de cada cidade\.<\/p>/);
 assert.doesNotMatch(sw, /assets\/pluvia-footer-logo\.jpeg/);
@@ -63,7 +63,7 @@ assert.doesNotMatch(app, /loadDefesaAlerts|civilDefense|DEFESA_NACIONAL/);
 // Atalhos em "Mais do PLUVIA", no fim da janela da conta; o rodapé fica com a marca e as cidades.
 assert.match(html, /<nav class="account-more" id="accountMore" aria-labelledby="accountMoreTitle"><h3 id="accountMoreTitle">Mais do PLUVIA<\/h3><div class="account-more-list"><button id="openHomeLayout"[^>]*>Personalizar a Home<\/button><button id="openChangelog"[^>]*>Novidades<\/button><button id="openSources"[^>]*>Fontes de dados<\/button><button id="openPrivacy"[^>]*>Privacidade<\/button><a class="account-more-item" href="\/privacidade\/">Política de Privacidade<\/a><a class="account-more-item" href="\/termos\/">Termos de uso<\/a><\/div><\/nav><!-- capitais:inicio -->/);
 // Links das páginas de cidade: saíram do rodapé (pedido do usuário) e ficam em "Mais do PLUVIA", na conta.
-assert.match(html, /<span>O céu de cada cidade<\/span><\/div><\/div><\/footer>/);
+assert.match(html, /<span>O céu do Brasil agora<\/span><\/div><\/div><\/footer>/);
 assert.match(html, /id="accountMore"[^]*?<\/nav><!-- capitais:inicio --><nav class="capital-links" aria-labelledby="capitalLinksTitle"><h3 id="capitalLinksTitle">Previsão por cidade<\/h3>[^]*?<!-- capitais:fim -->/);
 assert.doesNotMatch(html, /footer-details/);
 assert.match(html, /rel="icon" type="image\/png" sizes="192x192" href="\/icon-192\.png\?v=logo-\d+"/);
