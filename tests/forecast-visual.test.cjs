@@ -14,7 +14,7 @@ const renderForecast = vm.runInNewContext(`${renderForecastSource}\nrenderForeca
   PLUVIA:{time:require('../dist/modules/city-time.js')},
   activeCity:{timezone:'America/Manaus'},
   weather: () => ['Céu limpo'],
-  weatherIcons: {markup: () => '', markupName: () => ''},
+  weatherIcons: {markup: () => '', markupName: () => ''}, hourlyMode: 'conditions',
   fmt: number => Number.isFinite(number) ? String(number) : '--'
 });
 
