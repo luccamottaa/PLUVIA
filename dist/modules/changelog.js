@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.26.7", date:"2026-10-26", title:"Troca de modo mais suave", items:[
+      "Ao trocar entre Condição, Chuva e Vento nas Próximas horas, a fileira agora some e reaparece num fade curto, como no app Tempo, no lugar do efeito de varrer da esquerda.",
+      "Os três modos têm a mesma altura: a janela seca e o \"Tá chovendo aí?\" não pulam mais de lugar ao trocar de modo."]},
     {version:"1.26.6", date:"2026-10-26", title:"Abertura no clima certo e troca de modo animada", items:[
       "A abertura agora mostra o mesmo céu que a tela inicial vai mostrar, inclusive a chuva medida agora, em vez do tempo de quando a previsão foi baixada.",
       "Na abertura com céu nublado de dia, o nome PLUVIA fica branco com uma sombra suave, em vez do azul-claro que sumia no céu prateado.",

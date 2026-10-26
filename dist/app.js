@@ -608,16 +608,21 @@ function setHourlyMode(mode) {
   hourlyMode = mode;
   try { localStorage.setItem("pluvia-hourly-mode", mode); } catch {}
   for (const button of globalThis.document?.querySelectorAll?.(".hourly-modes [data-mode]") || []) button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
-  if (lastHourly) renderHourly(...lastHourly);
-  // Como no app Tempo (vídeo do usuário, 1.26.6): ao trocar de modo, a fileira nova se revela da esquerda para a
-  // direita e as barras de chuva sobem do zero. Só clip-path e altura (pintura), sem transform/opacity.
-  const peek = $("hourlyPeek");
-  if (peek && !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
-    peek.removeAttribute("data-switching");
-    void peek.offsetWidth;
-    peek.setAttribute("data-switching", "");
-    clearTimeout(setHourlyMode.timer);
-    setHourlyMode.timer = setTimeout(() => peek.removeAttribute("data-switching"), 900);
+  // Como no app Tempo (vídeos do usuário, 1.26.7): a fileira antiga some e a nova aparece num fade curto, no mesmo
+  // lugar e com a mesma altura nos três modos (a seção de baixo não pula). View Transition só com a fileira nomeada,
+  // como em slideToCity; sem a API ou com movimento reduzido, troca na hora.
+  const peek = $("hourlyPeek"), paint = () => { if (lastHourly) renderHourly(...lastHourly); };
+  const canFade = peek && typeof globalThis.document?.startViewTransition === "function" &&
+    !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if (!canFade) paint();
+  else {
+    peek.style.setProperty("view-transition-name", "pluvia-hourly");
+    const clear = () => peek.style.removeProperty("view-transition-name");
+    try {
+      const transition = document.startViewTransition(paint);
+      transition.updateCallbackDone?.catch(() => {});
+      transition.finished.catch(() => {}).finally(clear);
+    } catch { clear(); paint(); }
   }
   globalThis.pluviaAnalytics?.track?.("Hourly Mode Changed", {mode});
 }
