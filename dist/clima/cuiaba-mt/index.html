@@ -183,13 +183,11 @@
         globalThis.PLUVIA?.sky?.update();
         var seen = false, quick = false;
         try { seen = sessionStorage.getItem("pluvia-intro-seen") === "1"; sessionStorage.setItem("pluvia-intro-seen", "1"); } catch (_) {}
-        // O iPhone fecha o app instalado logo depois de ir para segundo plano, e cada volta virava uma
-        // abertura nova com a intro inteira (2,6 s). A intro só repete 3 h depois da última, e quem já viu
-        // uma intro ganha a versão rápida (1.25, pedido do usuário): mínimo de 0,9 s, sai quando a previsão chega.
+        // Toda abertura (sessão nova) mostra a intro; quem já viu uma ganha a versão rápida (1.26.1, pedido do
+        // usuário: "uma intro rápida pra toda vez que abrir"): mínimo de 0,9 s, sai quando a previsão chega.
+        // De 1.25 a 1.26 ela só repetia 3 h depois da última. Recarregar a mesma aba continua sem intro.
         try {
-          var lastIntro = Number(localStorage.getItem("pluvia-intro-at")) || 0, now = Date.now();
-          if (!seen && now - lastIntro >= 0 && now - lastIntro < 108e5) seen = true;
-          else if (!seen) { quick = lastIntro > 0; localStorage.setItem("pluvia-intro-at", String(now)); }
+          if (!seen) { quick = Number(localStorage.getItem("pluvia-intro-at")) > 0; localStorage.setItem("pluvia-intro-at", String(Date.now())); }
         } catch (_) {}
         function reveal() {
           var welcome = document.getElementById("locationWelcome");

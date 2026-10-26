@@ -12,8 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.26.1", date:"2026-10-26", title:"Setas do vento mais claras", items:[
-      "No modo Vento das Próximas horas, cada hora mostra uma seta cheia dentro de um círculo e, embaixo, de onde o vento vem (\"de SE\")."]},
+    {version:"1.26.1", date:"2026-10-26", title:"Setas do vento mais claras e abertura rápida", items:[
+      "No modo Vento das Próximas horas, cada hora mostra uma seta cheia dentro de um círculo e, embaixo, de onde o vento vem (\"de SE\").",
+      "A abertura com a logo agora aparece toda vez que você abre o PLUVIA, na versão rápida, e some assim que a previsão chega."]},
     {version:"1.26", date:"2026-10-26", title:"Logo nova, modos nas Próximas horas e estrelas que piscam", items:[
       "O PLUVIA tem logo nova: a gota com nuvem, sol e onda, em azul e ciano.",
       "Ela aparece na abertura, no rodapé, no ícone da tela inicial, nas abas do navegador, nas prévias de links e na imagem de compartilhar.","Nas noites limpas, as estrelas do fundo deslizam bem devagar e algumas piscam, acendendo e apagando.","Próximas horas ganhou três modos, como no app Tempo: condição, chuva (intensidade e chance) e vento (velocidade e direção).","\"Chuva na próxima hora\" ficou mais clara: cada coluna mostra quanto da cidade tem chuva no radar."]},
