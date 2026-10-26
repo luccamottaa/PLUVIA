@@ -53,9 +53,10 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const name of ['overcast','rain','storm','fog']) {
     const asset=`sky-cloud-${name}.webp`;
     assert.ok(fs.existsSync(path.join(root,'assets',asset)),asset);
-    assert.ok(skyCss.includes(`./assets/${asset}?v=clouds-5`),`${asset} usada pelo céu da condição`);
+    // O nublado (1.26.5) ganhou relevo e fiapos como no app Tempo: ~150 KiB, a versão nova da URL.
+    assert.ok(skyCss.includes(`./assets/${asset}?v=${name==='overcast'?'clouds-6':'clouds-5'}`),`${asset} usada pelo céu da condição`);
     assert.ok(!sw.includes(asset),`${asset} fica fora do precache`);
-    assert.ok(fs.statSync(path.join(root,'assets',asset)).size<128*1024,`${asset} leve para baixar sob demanda`);
+    assert.ok(fs.statSync(path.join(root,'assets',asset)).size<(name==='overcast'?160:128)*1024,`${asset} leve para baixar sob demanda`);
   }
   const starAssets=['sky-stars.svg','sky-stars-shimmer.svg'];
   for(const asset of starAssets) assert.ok(sw.includes(`./assets/${asset}`),'céu noturno disponível offline: '+asset);

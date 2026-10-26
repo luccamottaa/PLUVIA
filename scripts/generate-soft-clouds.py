@@ -151,10 +151,12 @@ LAYERS = {
                              wisp=.25, wisp_stretch=5.0, env=((0, .3), (.12, .85), (.35, 1), (.85, 1), (1, .7)), alpha_max=.97,
                              shadow=(136, 152, 182), lift=1.0, few_x=.46, streak=.12),
     # By condition: downloaded (and cached by the SW) only when that sky is shown.
-    # Overcast and snow: a continuous stratus deck with soft relief and fibres, almost no breaks.
-    'sky-cloud-overcast': dict(size=LIGHT, seed=41, beta=3.3, stretch=3.0, masses=3, warp=60, low=-2.4, high=.4, wisp=.2,
-                               wisp_stretch=6.0, fib_beta=2.9, env=((0, 1), (.8, 1), (1, .8)), alpha_max=.95,
-                               shadow=(150, 162, 184), lift=.9, streak=.08),
+    # Overcast and snow (1.26.5, referência do usuário: o nublado do app Tempo): deck prateado com relevo
+    # macio, massas médias, fiapos no sentido do vento e frestas azuladas entre elas; sombra clara (sem
+    # manchas escuras) e partes finas brilhando. Antes era um estrato quase liso, que parecia uma névoa.
+    'sky-cloud-overcast': dict(size=LIGHT, seed=47, beta=3.2, stretch=2.4, masses=6, warp=70, low=-1.4, high=1.2, wisp=.3,
+                               wisp_stretch=6.5, fib_beta=2.8, env=((0, 1), (.8, 1), (1, .85)), alpha_max=.97,
+                               shadow=(160, 172, 194), lift=.9, streak=.12, glow=.2),
     # Rain: nimbostratus, denser and darker underneath, with soft ragged fragments.
     'sky-cloud-rain': dict(size=LIGHT, seed=53, beta=3.2, stretch=2.6, masses=4, warp=70, low=-2.6, high=.2, wisp=.24,
                            wisp_stretch=5.0, fib_beta=2.9, env=((0, 1), (.85, 1), (1, .85)), alpha_max=.97,
