@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-247" />
+    <meta name="pluvia-release" content="pluvia-panel-248" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -28,22 +28,22 @@
     <meta property="og:title" content="Previsão do tempo em Cachoeirinha (RS) agora — PLUVIA" />
     <meta property="og:description" content="Previsão do tempo em Cachoeirinha (RS) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET." />
     <meta property="og:url" content="https://pluviaweather.com.br/clima/cachoeirinha-rs/" />
-    <meta property="og:image" content="https://pluviaweather.com.br/og-pluvia-v4.png" />
+    <meta property="og:image" content="https://pluviaweather.com.br/og-pluvia-v5.png" />
     <meta property="og:image:width" content="1731" />
     <meta property="og:image:height" content="909" />
     <meta property="og:image:alt" content="Logo do PLUVIA, uma gota caindo na água, e slogan O céu de cada cidade sobre céu de pôr do sol com nuvens e estrelas." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Previsão do tempo em Cachoeirinha (RS) agora — PLUVIA" />
     <meta name="twitter:description" content="Previsão do tempo em Cachoeirinha (RS) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET." />
-    <meta name="twitter:image" content="https://pluviaweather.com.br/og-pluvia-v4.png" />
+    <meta name="twitter:image" content="https://pluviaweather.com.br/og-pluvia-v5.png" />
     <meta name="twitter:image:alt" content="Logo do PLUVIA, uma gota caindo na água, e slogan O céu de cada cidade sobre céu de pôr do sol com nuvens e estrelas." />
     <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://pluviaweather.com.br/clima/cachoeirinha-rs/","url":"https://pluviaweather.com.br/clima/cachoeirinha-rs/","name":"Previsão do tempo em Cachoeirinha (RS) agora — PLUVIA","description":"Previsão do tempo em Cachoeirinha (RS) agora: temperatura, chuva por hora, próximos 7 dias, qualidade do ar e avisos oficiais do INMET.","inLanguage":"pt-BR","isPartOf":{"@type":"WebSite","name":"PLUVIA","url":"https://pluviaweather.com.br/"},"about":{"@type":"City","name":"Cachoeirinha","containedInPlace":{"@type":"AdministrativeArea","name":"Rio Grande do Sul"},"geo":{"@type":"GeoCoordinates","latitude":-29.9472,"longitude":-51.1016}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"PLUVIA","item":"https://pluviaweather.com.br/"},{"@type":"ListItem","position":2,"name":"Cachoeirinha (RS)","item":"https://pluviaweather.com.br/clima/cachoeirinha-rs/"}]}]}</script>
     <title>Previsão do tempo em Cachoeirinha (RS) agora — PLUVIA</title>
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=logo-4" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=logo-4" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=logo-4" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png?v=logo-4" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=logo-5" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=logo-5" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=logo-5" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png?v=logo-5" />
     <link rel="preload" href="/assets/fonts/nunito-wordmark-v32.woff2" as="font" type="font/woff2" crossorigin />
     <!-- A previsão e o ar começam já na abertura (prefetch): conexão aberta antes do primeiro script. -->
     <link rel="preconnect" href="https://api.open-meteo.com" crossorigin />
@@ -117,27 +117,19 @@
 .pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; pointer-events:none; }
 .intro-wordmark { position:relative; z-index:1; display:flex; align-items:center; gap:2px; color:var(--intro-ink,#f3f8ff); font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; }
 .intro-wordmark strong { font-family:var(--font-brand,"Nunito",ui-rounded,system-ui,sans-serif); font-weight:900; }
-/* A marca é a gota caindo na água (1.18): na intro ela cai de verdade, as ondinhas abrem quando ela toca a água
-   e o nome entra (1.25, pedido do usuário). SVG inline com a geometria de generate-brand-mark.py; só transform e
-   opacity num elemento pequeno. */
-.intro-drop { display:block; width:clamp(42px,11vw,70px); height:clamp(55px,14vw,88px); color:#cfe3ff; color:color-mix(in srgb,currentColor 72%,#7fb0ff); }
-.intro-drop svg { display:block; width:100%; height:100%; overflow:visible; fill:currentColor; stroke:currentColor; }
-.intro-tear { stroke:none; transform-box:fill-box; transform-origin:50% 100%; animation:intro-fall .52s cubic-bezier(.5,0,.9,.55) .12s both; }
-.intro-ripple { fill:none; transform-box:fill-box; transform-origin:50% 50%; animation:intro-ripple .6s cubic-bezier(.2,.8,.3,1) .56s both; }
-.intro-ripple-2 { animation-delay:.66s; }
+/* Marca nova (1.26, logo enviada pelo dono): a gota colorida cai e assenta com um leve amassado, depois o nome
+   entra. Imagem com transparência (logo-mark.webp), só transform e opacity num elemento pequeno. */
+.intro-drop { display:block; width:clamp(52px,14vw,86px); height:clamp(52px,14vw,86px); margin-right:6px; background:url("/logo-mark.webp?v=logo-5") center / contain no-repeat; transform-origin:50% 100%; animation:intro-fall .56s cubic-bezier(.5,0,.9,.55) .12s both; }
 .intro-wordmark strong { animation:intro-word-in .55s cubic-bezier(.2,.8,.3,1) .62s both; }
 .pluvia-intro .intro-tagline { position:relative; z-index:1; margin:16px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.2rem); letter-spacing:.08em; animation:intro-caption-in .6s ease-out .85s both; }
 .pluvia-intro .intro-kicker { position:absolute; bottom:calc(65px + env(safe-area-inset-bottom)); color:#e1ebf5; font-size:.65rem; font-weight:750; letter-spacing:.24em; text-transform:uppercase; }
 .pluvia-intro .intro-copy { display:none; }
 .pluvia-intro[data-quick] { animation-duration:.9s; }
-.pluvia-intro[data-quick] .intro-tear { animation-duration:.32s; animation-delay:0s; }
-.pluvia-intro[data-quick] .intro-ripple { animation-duration:.4s; animation-delay:.26s; }
-.pluvia-intro[data-quick] .intro-ripple-2 { animation-delay:.32s; }
+.pluvia-intro[data-quick] .intro-drop { animation-duration:.32s; animation-delay:0s; }
 .pluvia-intro[data-quick] .intro-wordmark strong { animation-duration:.4s; animation-delay:.28s; }
 .pluvia-intro[data-quick] .intro-tagline { animation-duration:.35s; animation-delay:.42s; }
 @keyframes intro-horizon { from { opacity:.4; transform:scale(1.05); } to { opacity:1; transform:scale(1); } }
 @keyframes intro-fall { 0% { opacity:0; transform:translateY(-150%) scaleY(1.1); } 20% { opacity:1; } 80% { transform:translateY(0) scaleY(1.1); } 90% { transform:translateY(0) scale(1.08,.9); } 100% { opacity:1; transform:none; } }
-@keyframes intro-ripple { from { opacity:0; transform:scale(.2,.35); } 35% { opacity:1; } to { opacity:1; transform:none; } }
 @keyframes intro-word-in { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:none; } }
 @keyframes intro-caption-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 @media(prefers-reduced-motion:reduce) { .pluvia-intro *,.pluvia-intro::before { animation:none !important; } .pluvia-intro.is-leaving,.pluvia-intro.is-leaving * { transform:none !important; } }
@@ -153,8 +145,8 @@
       try { localStorage.removeItem("pluvia-boot-pending"); localStorage.removeItem("pluvia-safe-until"); } catch (e) {}
     </script>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="/styles.css?v=core-133" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <noscript><link rel="stylesheet" href="/styles.css?v=core-133" /></noscript>
+    <link rel="stylesheet" href="/styles.css?v=core-134" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <noscript><link rel="stylesheet" href="/styles.css?v=core-134" /></noscript>
   </head>
   <body>
     <svg class="moon-definitions" width="0" height="0" aria-hidden="true" focusable="false">
@@ -182,7 +174,7 @@
     <div id="pluviaIntro" class="pluvia-intro">
       <p class="intro-kicker">Feito no Norte</p>
       <div class="intro-sky" aria-hidden="true"><span class="sky-twilight"></span><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
-      <div class="intro-wordmark"><span class="intro-drop" aria-hidden="true"><svg viewBox="0 0 1654 1654" focusable="false"><path class="intro-tear" d="M1198 728 L1211 754 L1221 780 L1230 808 L1237 836 L1242 864 L1245 892 L1246 921 L1246 950 L1243 979 L1238 1007 L1231 1035 L1223 1062 L1212 1089 L1200 1115 L1186 1140 L1170 1164 L1153 1187 L1134 1209 L1114 1229 L1092 1248 L1069 1266 L1045 1282 L1020 1296 L994 1308 L968 1319 L940 1327 L912 1334 L884 1339 L855 1342 L827 1343 L798 1342 L769 1339 L741 1334 L713 1327 L685 1319 L659 1308 L633 1296 L608 1282 L584 1266 L561 1248 L539 1229 L519 1209 L500 1187 L483 1164 L467 1140 L453 1115 L441 1089 L430 1062 L422 1035 L415 1007 L410 979 L407 950 L407 921 L408 892 L411 864 L416 836 L423 808 L432 780 L442 754 L455 728 L502 647 L547 569 L590 492 L630 418 L668 346 L705 277 L738 209 L770 144 L799 81 L826 20 L854 81 L883 144 L915 209 L948 277 L985 346 L1023 418 L1063 492 L1106 569 L1151 647Z"/><path class="intro-ripple" d="M273 1467A589 135 0 0 1 1380 1467" stroke-width="110"/><path class="intro-ripple intro-ripple-2" d="M506 1599A354 80 0 0 1 1147 1599" stroke-width="100"/></svg></span><strong>PLUVIA</strong></div>
+      <div class="intro-wordmark"><span class="intro-drop" aria-hidden="true"></span><strong>PLUVIA</strong></div>
       <p class="intro-tagline">O céu de cada cidade</p>
       <p class="intro-copy">Consulte o tempo antes de sair.</p>
     </div>
@@ -229,7 +221,7 @@
     </script>
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
-    <link rel="stylesheet" href="/redesign.css?v=panel-50" />
+    <link rel="stylesheet" href="/redesign.css?v=panel-51" />
     <link rel="stylesheet" href="/continuous.css?v=layout-127" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
@@ -602,7 +594,7 @@
     <script src="/modules/captcha.js?v=captcha-1" defer></script>
     <script src="/account.js?v=account-18" defer></script>
     <script src="/favorite-cities.js?v=favorites-11" defer></script>
-    <script src="/modules/share-card.js?v=share-card-6" defer></script>
+    <script src="/modules/share-card.js?v=share-card-7" defer></script>
     <script src="/modules/share-weather.js?v=share-12" defer></script>
     <script src="/saved-places.js?v=places-2" defer></script>
     <script src="/modules/brazil-now.js?v=brazil-5" defer></script>
@@ -610,7 +602,7 @@
     <script src="/modules/station-now.js?v=station-4" defer></script>
     <script src="/modules/environment-now.js?v=environment-1" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-7" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-2" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-281" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-2" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-282" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-37" defer></script>

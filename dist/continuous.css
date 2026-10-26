@@ -1879,7 +1879,9 @@ html body #weatherView .weather-hero .temperature { font-size:clamp(5.35rem,24.5
    O azul da marca continua nos botões, links e destaques; só a assinatura deixou de ser azul. */
 .topbar .brand { color:var(--intro-ink) !important; }
 footer.shell .footer-brand-copy strong { color:var(--intro-ink); }
-footer.shell .footer-brand-icon { background:#cfe3ff; background:color-mix(in srgb,var(--intro-ink) 72%,#7fb0ff); }
+/* Marca nova (1.26): imagem colorida com transparência, não mais máscara de cor única. */
+footer.shell .footer-brand-icon { width:64px; height:64px; flex-basis:64px; background:url("./logo-mark.webp?v=logo-5") center / contain no-repeat; -webkit-mask:none; mask:none; }
+@media(max-width:720px) { footer.shell .footer-brand-icon { width:50px; height:50px; flex-basis:50px; } }
 /* Cor nova dos destaques (1.18, pedido do usuário: "todos esses ícones azuis no novo padrão de cor do PLUVIA"):
    o azul vivo #2f6bff saiu. Na tinta clara (noite, chuva forte) o destaque é o azul-claro da gota nova, com texto
    azul-noite nos botões preenchidos; na tinta escura (céu claro de dia) é o azul-marinho da marca, com texto branco.

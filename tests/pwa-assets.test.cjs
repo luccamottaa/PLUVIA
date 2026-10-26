@@ -36,13 +36,13 @@ test('mantém o fundo azul escuro no aplicativo instalável', () => {
   assert.equal(manifest.theme_color, '#10233f');
   assert.equal(manifest.name, 'PLUVIA');
   assert.equal(manifest.id, 'https://pluviaweather.com.br/', 'o ID estável mantém a instalação existente atualizável');
-  assert.ok(manifest.icons.some(icon => icon.src === './icon-splash-512.png?v=logo-4' && icon.purpose === 'any'));
-  assert.ok(manifest.icons.some(icon => icon.src === './icon-splash-192.png?v=logo-4' && icon.purpose === 'any'));
+  assert.ok(manifest.icons.some(icon => icon.src === './icon-splash-512.png?v=logo-5' && icon.purpose === 'any'));
+  assert.ok(manifest.icons.some(icon => icon.src === './icon-splash-192.png?v=logo-5' && icon.purpose === 'any'));
   assert.ok(manifest.icons.some(icon => icon.purpose === 'any'));
   assert.ok(manifest.icons.some(icon => icon.purpose === 'maskable'));
 });
 
-test('ícones da marca: céu noturno de fundo e gota em cor única (a versão colorida foi aposentada)', () => {
+test('ícones da marca (logo nova da 1.26): azul-noite de fundo e marca colorida, sem fundo branco', () => {
   const {execFileSync} = require('node:child_process');
   // Lê pixels com Python/Pillow quando disponível; sem Pillow, confere só as dimensões acima.
   let report;
@@ -59,5 +59,5 @@ def hues(f):
 print(json.dumps({'corners':[corner(f) for f in ['icon-192.png','icon-maskable-512.png','apple-touch-icon-180.png']],'mark':hues('logo-mark.png'),'signature':hues('logo-pluvia.png'),'favicon':hues('favicon-96.png')}))
 `], {encoding:'utf8'})); } catch { return; }
   for (const [r, g, b] of report.corners) assert.ok(r < 40 && g < 60 && b < 90 && b > r, 'fundo noturno, não branco: ' + [r, g, b]);
-  for (const key of ['mark', 'signature', 'favicon']) assert.deepEqual(report[key], ['blue'], key + ' sem verde da versão colorida');
+  for (const key of ['mark', 'signature', 'favicon']) assert.ok(report[key].includes('blue'), key + ' com o azul da logo: ' + report[key]);
 });

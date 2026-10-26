@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.26", date:"2026-10-26", title:"Logo nova", items:[
+      "O PLUVIA tem logo nova: a gota com nuvem, sol e onda, em azul e ciano.",
+      "Ela aparece na abertura, no rodapé, no ícone da tela inicial, nas abas do navegador, nas prévias de links e na imagem de compartilhar."]},
     {version:"1.25.5", date:"2026-10-26", title:"Topo alinhado", items:[
       "A condição do tempo (\"Céu limpo\", \"Nublado\"…) ficou mais perto da temperatura, sem aquele vão entre os dois.","O número da temperatura ficou centralizado com a cidade e a condição (antes ficava um pouco para a esquerda).","No detalhe de cada hora, o ícone ficou maior e alinhado com a temperatura, e a nota de chuva não diz mais \"Chuva prevista\" quando a chance é 0%."]},
     {version:"1.25.4", date:"2026-10-21", title:"Visibilidade com número", items:[
