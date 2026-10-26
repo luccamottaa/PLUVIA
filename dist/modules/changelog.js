@@ -12,6 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.26.6", date:"2026-10-26", title:"Marca legível no nublado", items:[
+      "Na abertura com céu nublado de dia, o nome PLUVIA agora fica branco com uma sombra suave, em vez do azul-claro que sumia no céu prateado."]},
     {version:"1.26.5", date:"2026-10-26", title:"Vento e nublado mais bonitos", items:[
       "O modo Vento das Próximas horas ficou como no app Tempo: velocidade grande em cada hora e um gráfico contínuo embaixo, com a linha da velocidade sobre a área das rajadas.",
       "O céu nublado ficou claro e prateado, com nuvens macias, de relevo e fiapos, como no app Tempo, no lugar do cinza-chumbo."]},
