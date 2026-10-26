@@ -121,9 +121,12 @@ def soft_layer(seed, *, few_x=None, fib_beta=2.5, glow=.22, beta, stretch, masse
             # Clear sky around it (the mask ellipse reaches ~±18% of the tile) and one soft mass in the middle.
             value -= 1.3 * np.exp(-(dx / (.2 * WIDTH)) ** 2 - (dy / (.3 * HEIGHT)) ** 2)
             value += 2.6 * np.exp(-(dx / (.075 * WIDTH)) ** 2 - (dy / (.1 * HEIGHT)) ** 2)
-    density = np.clip(blur(smoothstep(low, high, value), 2.2), 0, 1)   # wide transition: soft, smoky edges
-    # Soft top light: brighter where the cloud is thin above (lit from the sky), greyer underneath.
+    # Desfoques em pixels crescem com a resolução (menos que proporcional): nas texturas grandes a borda
+    # continua esfumada, sem virar fiapo fino "arranhado", e ainda fica mais definida que a pequena esticada.
     k = HEIGHT / 704
+    soft = max(1, k * .75)
+    density = np.clip(blur(smoothstep(low, high, value), 2.2 * soft), 0, 1)   # wide transition: soft, smoky edges
+    # Soft top light: brighter where the cloud is thin above (lit from the sky), greyer underneath.
     above = blur(density, 18 * k, 26 * k)
     shift = max(1, round(24 * k))
     # The rows above the top edge repeat the first one (zeros left a white strip on dense decks).
@@ -131,7 +134,7 @@ def soft_layer(seed, *, few_x=None, fib_beta=2.5, glow=.22, beta, stretch, masse
     light = 1 - lift * .55 * above
     light += streak * fib                           # streak detail in the shading
     light += glow * (1 - density)                   # thin parts glow
-    light = np.clip(blur(light, 2.0), 0, 1)
+    light = np.clip(blur(light, 2.0 * soft), 0, 1)
     b, s = np.array(bright, np.float32), np.array(shadow, np.float32)
     rgb = s + (b - s) * light[..., None]
     a = np.clip(density * alpha_max, 0, 1)
@@ -141,7 +144,10 @@ def soft_layer(seed, *, few_x=None, fib_beta=2.5, glow=.22, beta, stretch, masse
     return Image.fromarray(np.dstack([rgb, a * 255]).round().clip(0, 255).astype(np.uint8), 'RGBA')
 
 
-FULL, LIGHT = (2112, 704), (1584, 528)
+# Condições (nublado, chuva, tempestade, neblina) em 3168 × 1056 desde a 1.29.1 (pedido do usuário: "a nuvem
+# tá em má definição"): com 528 px de altura esticados até ~640 px de tela, no iPhone (3×) a textura era
+# ampliada quase 4× e ficava borrada. Ficam fora do precache, baixadas só quando aquele céu aparece.
+FULL, LIGHT = (2112, 704), (3168, 1056)
 LAYERS = {
     # Fair weather (WMO 1/2 and base of every condition): in the precache, within the budget.
     'sky-cloud-veil': dict(size=FULL, precache=True, seed=11, beta=3.3, stretch=3.2, masses=4, warp=70, low=-.7, high=1.4, wisp=.3,
@@ -165,6 +171,12 @@ LAYERS = {
     'sky-cloud-storm': dict(size=LIGHT, seed=67, beta=3.1, stretch=1.7, masses=5, warp=55, low=-2.8, high=0., wisp=.18,
                             wisp_stretch=3.5, fib_beta=3.0, env=((0, 1), (1, 1)), alpha_max=.98, shadow=(82, 92, 116),
                             lift=1.5, streak=.06, glow=.04),
+    # Nublado à noite e no crepúsculo (1.29.1, pedido do usuário: "as do Apple Weather são bem naturais"): véus
+    # finos e muito esticados no sentido do vento, semitransparentes (o céu e a cor do crepúsculo aparecem por
+    # trás), no lugar do deck de manchas com buracos escuros, que à noite parecia camuflagem.
+    'sky-cloud-stratus': dict(size=LIGHT, seed=97, beta=3.2, stretch=8.0, masses=2.5, warp=110, low=-.8, high=2.0, wisp=.45,
+                              wisp_stretch=14, fib_beta=2.6, env=((0, 1), (.8, 1), (1, .7)), alpha_max=.7,
+                              shadow=(188, 198, 218), lift=.6, streak=.15, glow=.1),
     # Fog: low horizontal bands, very soft and translucent.
     'sky-cloud-fog': dict(size=LIGHT, seed=79, beta=3.4, stretch=7.0, masses=3, warp=40, low=-1.0, high=1.6, wisp=.22,
                           wisp_stretch=10.0, env=((0, .2), (.3, .6), (.55, 1), (1, 1)), alpha_max=.8, shadow=(196, 204, 216),

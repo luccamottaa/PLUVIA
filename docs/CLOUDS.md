@@ -118,6 +118,10 @@ Pedido do usuário: nuvens próprias para todas as condições com nuvem, em vez
 - **Onde entram:** substituem o véu na camada de fundo. A camada da frente continua com o volume, e a névoa uniforme atrás continua fechando o céu.
 - **Chuva moderada/forte e trovoada:** usam duas cópias deslocadas, como antes.
 - **Céu de fundo:** os filtros por condição, a noite e o teto escuro (`data-ink`) não mudaram.
-- **Download sob demanda:** as quatro ficam em 1584 × 528, entre 50 e 100KiB cada, **fora do precache**. O navegador só as baixa quando aquele céu aparece, e o SW as guarda no cache em tempo de execução.
+- **Download sob demanda:** as quatro ficam em 3168 × 1056 desde a 1.29.1 (antes 1584 × 528, que no iPhone eram ampliadas quase 4× e ficavam borradas), entre ~165 e ~530 KiB cada, **fora do precache**. Os desfoques em pixels do gerador crescem com a resolução (`soft`), para a borda continuar esfumada. O navegador só as baixa quando aquele céu aparece, e o SW as guarda no cache em tempo de execução.
 - **Offline:** no primeiro dia de uma condição, sem rede, aparece só a névoa da condição atrás do volume, até haver conexão.
 - **Testes:** `cache-contract` confere que as quatro existem, são usadas pelo CSS, ficam fora do precache e têm menos de 128KiB. `verify-clouds.py` confere emenda e alfa de todas as seis texturas.
+
+## Nublado à noite e no crepúsculo (1.29.1)
+
+À noite o nublado usa `sky-cloud-stratus.webp` (véus finos esticados pelo vento, 3168 × 1056, sob demanda) sobre céu anil, tingido de lilás por filtro estático; a camada da frente fica a .32. No pôr/nascer do sol com nublado as nuvens escurecem e puxam para o violeta, como no app Tempo: `brightness(.4)` no lado noturno e o deck prateado a `brightness(.7)` com tom violeta-rosado no lado diurno (tinta escura; `verify-contrast.py` precisa continuar verde).
