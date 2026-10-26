@@ -84,7 +84,7 @@
     const iconName = data.code === null ? null : icons?.icon?.(data.code, !data.night)?.src || null;
     const [icon, mark] = await Promise.all([
       iconName ? loadImage(doc, iconName) : null,
-      loadImage(doc, '/logo-mark.png')
+      loadImage(doc, '/logo-mark.png?v=logo-5')
     ]);
     const ink = data.night ? '#f1f7ff' : '#0f2a44', muted = data.night ? '#b9cbe3' : '#2d4a66';
     const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
@@ -92,15 +92,11 @@
     else {sky.addColorStop(0, '#5fb0f2'); sky.addColorStop(1, '#cfe9fa');}
     ctx.fillStyle = sky; ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    // Assinatura (1.18): gota clara à noite e azul-acinzentada de dia, nome na cor do texto; o azul da marca
+    // Nome na cor do texto; o azul da marca
     // fica no selo do dia marcante.
-    const brand = data.night ? '#b7d2ff' : '#2f557f', dropColor = data.night ? '#cfe3ff' : '#2f557f';
-    if (mark) {
-      const tint = doc.createElement('canvas'); tint.width = 96; tint.height = 96;
-      const t = tint.getContext('2d');
-      t.drawImage(mark, 0, 0, 96, 96); t.globalCompositeOperation = 'source-in'; t.fillStyle = dropColor; t.fillRect(0, 0, 96, 96);
-      ctx.drawImage(tint, WIDTH / 2 - 150, 132, 72, 72);
-    }
+    const brand = data.night ? '#b7d2ff' : '#2f557f';
+    // Marca nova (1.26): a logo colorida, desenhada como está (antes era uma gota pintada de uma cor só).
+    if (mark) ctx.drawImage(mark, WIDTH / 2 - 160, 124, 88, 88);
     ctx.fillStyle = ink; ctx.font = '900 64px Nunito, Inter, sans-serif'; ctx.textAlign = 'left';
     ctx.fillText('PLUVIA', WIDTH / 2 - 66, 192);
     ctx.textAlign = 'center';

@@ -1,46 +1,31 @@
-"""Gera os ícones da marca a partir do alfa de dist/logo-mark.png (gota caindo na água, 1.18).
+"""Gera os ícones da marca a partir de dist/logo-mark.png (logo nova da 1.26, colorida com transparência).
   python3 scripts/generate-brand-mark.py && python3 scripts/generate-brand-icons.py
-- Ícones de instalar/tela inicial: céu noturno do app (#10233f → #080f22) com a marca clara (combinação 2).
-- Favicon de 16 px: só a gota (as ondinhas viram uma linha nesse tamanho); 32 e 96 px: a marca completa.
-- logo-mark.png e logo-pluvia.png são feitos por generate-brand-mark.py (as cores ficam lá).
+- Ícones de instalar/tela inicial e favicons: o azul-noite da própria arte (#191e34) com a marca colorida.
+- logo-mark.png e logo-pluvia.png são feitos por generate-brand-mark.py.
 """
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 
 DIST = Path(__file__).resolve().parent.parent / 'dist'
-LIGHT = (207, 227, 255)        # marca clara sobre o céu noturno (combinação 2 escolhida pelo usuário)
-TOP, BOTTOM = (16, 35, 63), (8, 15, 34)   # theme_color e base do céu noturno
+NIGHT = (25, 30, 52)   # fundo da arte enviada pelo dono
 
-source = Image.open(DIST / 'logo-mark.png').getchannel('A')   # 256x256, só o alfa importa
-SIZE = 1024
-mark = source.resize((SIZE, SIZE), Image.LANCZOS)
-
-# Favicon de 16 px: só a gota, desenhada pelo mesmo script da marca.
-import importlib.util
-_spec = importlib.util.spec_from_file_location('brand_mark', Path(__file__).with_name('generate-brand-mark.py'))
-_brand = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(_brand)
-solid = _brand.drop_alpha(SIZE)
+mark = Image.open(DIST / 'logo-mark.png').convert('RGBA')
 
 def sky(size, radius=0):
-    """Gradiente vertical do céu noturno; radius>0 arredonda os cantos (favicon)."""
-    image = Image.new('RGB', (1, 256))
-    for y in range(256):
-        t = y / 255
-        image.putpixel((0, y), tuple(round(TOP[i] + (BOTTOM[i] - TOP[i]) * t) for i in range(3)))
-    image = image.resize((size, size), Image.BICUBIC).convert('RGBA')
+    """Fundo cheio no azul-noite da arte; radius>0 arredonda os cantos (favicon)."""
+    image = Image.new('RGBA', (size, size), NIGHT + (255,))
     if radius:
         mask = Image.new('L', (size * 4, size * 4), 0)
         ImageDraw.Draw(mask).rounded_rectangle((0, 0, size * 4 - 1, size * 4 - 1), radius=radius * 4, fill=255)
         image.putalpha(mask.resize((size, size), Image.LANCZOS))
     return image
 
-def place(canvas, alpha, color, scale):
-    """Centra a gota (pelo seu retângulo útil) ocupando `scale` da altura do canvas."""
-    box = alpha.getbbox(); crop = alpha.crop(box)
-    height = round(canvas.size[1] * scale); width = round(crop.size[0] * height / crop.size[1])
-    crop = crop.resize((width, height), Image.LANCZOS)
-    layer = Image.new('RGBA', crop.size, color + (255,)); layer.putalpha(crop)
-    canvas.alpha_composite(layer, ((canvas.size[0] - width) // 2, (canvas.size[1] - height) // 2))
+def place(canvas, image, scale):
+    """Centra a marca (pelo retângulo útil) ocupando `scale` do lado do canvas."""
+    crop = image.crop(image.getchannel('A').getbbox())
+    side = round(canvas.size[0] * scale); k = side / max(crop.size)
+    crop = crop.resize((round(crop.width * k), round(crop.height * k)), Image.LANCZOS)
+    canvas.alpha_composite(crop, ((canvas.size[0] - crop.width) // 2, (canvas.size[1] - crop.height) // 2))
     return canvas
 
 def save(image, name, mode='RGB'):
@@ -48,17 +33,15 @@ def save(image, name, mode='RGB'):
     image.save(DIST / name, optimize=True)
     print(f'{name:28} {image.size[0]}x{image.size[1]} {(DIST / name).stat().st_size:>7} B')
 
-# Instalação e tela inicial: fundo cheio (sem transparência), gota clara.
-for name, size, scale in [('icon-192.png', 192, .62), ('icon-512.png', 512, .62), ('apple-touch-icon-180.png', 180, .6),
-                          ('icon-splash-192.png', 192, .62), ('icon-splash-512.png', 512, .62), ('pwa-icon-source-1024.png', 1024, .62)]:
-    save(place(sky(size), mark, LIGHT, scale), name)
-# Maskable: a zona segura é o círculo de 80%; a gota fica dentro dela.
+for name, size, scale in [('icon-192.png', 192, .7), ('icon-512.png', 512, .7), ('apple-touch-icon-180.png', 180, .68),
+                          ('icon-splash-192.png', 192, .7), ('icon-splash-512.png', 512, .7), ('pwa-icon-source-1024.png', 1024, .7)]:
+    save(place(sky(size), mark, scale), name)
+# Maskable: a zona segura é o círculo de 80%; a marca fica dentro dela.
 for name, size in [('icon-maskable-192.png', 192), ('icon-maskable-512.png', 512)]:
-    save(place(sky(size), mark, LIGHT, .5), name)
-# Favicons: fundo noturno arredondado; 32 px usa a silhueta sólida, 96 px a gota completa.
-save(place(sky(32, radius=7), mark, LIGHT, .76), 'favicon-32.png', 'RGBA')
-save(place(sky(16, radius=4), solid, LIGHT, .8), 'favicon-16.png', 'RGBA')
-save(place(sky(96, radius=20), mark, LIGHT, .7), 'favicon-96.png', 'RGBA')
+    save(place(sky(size), mark, .56), name)
+save(place(sky(32, radius=7), mark, .86), 'favicon-32.png', 'RGBA')
+save(place(sky(16, radius=4), mark, .9), 'favicon-16.png', 'RGBA')
+save(place(sky(96, radius=20), mark, .78), 'favicon-96.png', 'RGBA')
 # Endereços que o iPhone procura sozinho na raiz quando não consegue o ícone pelo <link> (1.18.2).
 import shutil
 for name in ('apple-touch-icon.png', 'apple-touch-icon-precomposed.png'):

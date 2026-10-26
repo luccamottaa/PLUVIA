@@ -67,7 +67,7 @@ with sync_playwright() as p:
    assert stars.count()==1 and page.locator('.intro-sky > .sky-stars').count()==1
    # Tile 1:1 em px reais, repetido por toda a cena (a máscara da cena esmaece embaixo).
    star=stars.evaluate("el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,repeat:s.backgroundRepeat,size:s.backgroundSize,animation:getComputedStyle(el,'::after').animationName,height:el.offsetHeight,scene:el.parentElement.offsetHeight,width:el.offsetWidth};}")
-   assert star['repeat']=='repeat' and star['size']=='900px 1100px' and star['animation']=='none' and star['height']==star['scene'] and star['width']==width,star
+   assert star['repeat']=='repeat' and star['size']=='900px 1100px' and star['animation']=='none' and star['height']==star['scene'] and star['width']==width+900,star
    visible=name in ['clear-night','few-night','partly-night','moon-partly']
    assert (star['opacity']>0)==visible,(width,name,star)
    if name in ['moon-partly','moon-cloudy']:
@@ -229,7 +229,7 @@ with sync_playwright() as p:
    const quarter=at(.25),half=at(.5);return {tile:3*el.offsetHeight,quarter:quarter.m41,half:half.m41,y:half.m42,duration:t.duration,easing:t.easing};})""")
  assert all(abs(d['quarter']+d['tile']*.25)<=1 and abs(d['half']+d['tile']*.5)<=1 and d['y']==0 and d['easing']=='linear' for d in drift),drift
  assert drift[1]['duration']<drift[0]['duration'],drift
- # A few stars shimmer without drifting; condition updates keep the animation.
+ # Desde a 1.26 o campo desliza devagar (um tile de 900 px) e duas camadas de pontos piscam; atualizar a condição mantém as animações.
  normal_stars=[]
  mode.update(code=0,hour=22);page.clock.set_fixed_time(datetime.datetime(2026,10,2,2,tzinfo=datetime.timezone.utc))
  for width,height in [(390,844),(1366,768)]:
@@ -241,7 +241,7 @@ with sync_playwright() as p:
  star=page.locator('.sky-effects > .sky-stars')
  page.evaluate("window.starAnimation=document.querySelector('.sky-effects > .sky-stars').getAnimations({subtree:true}).find(a=>a.animationName==='sky-star-shimmer');PLUVIA.sky.apply(2,0,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert page.evaluate("document.querySelector('.sky-effects > .sky-stars').getAnimations({subtree:true}).includes(starAnimation)")
- assert star.evaluate("el=>getComputedStyle(el).transform==='none' && getComputedStyle(el,'::after').transform==='none'")
+ assert star.evaluate("el=>el.getAnimations().some(a=>a.animationName==='sky-star-drift') && getComputedStyle(el,'::before').animationName==='sky-star-twinkle' && el.getBoundingClientRect().width>=innerWidth+899")
  page.evaluate("document.body.classList.add('page-hidden')")
  assert star.evaluate("el=>getComputedStyle(el,'::after').animationPlayState==='paused'")
  assert page.evaluate("starAnimation.playState==='paused'")
@@ -250,7 +250,7 @@ with sync_playwright() as p:
  assert star.evaluate("el=>getComputedStyle(el,'::after').animationPlayState==='paused'")
  page.evaluate("window.scrollTo({top:0,behavior:'instant'})");page.wait_for_function("scrollY===0 && document.querySelector('.sky-effects').dataset.motion==='running'")
  page.emulate_media(reduced_motion='reduce')
- assert star.evaluate("el=>getComputedStyle(el,'::after').animationName==='none' && +getComputedStyle(el).opacity>0")
+ assert star.evaluate("el=>getComputedStyle(el,'::after').animationName==='none' && getComputedStyle(el).animationName==='none' && +getComputedStyle(el).opacity>0")
  # Night/weather CSS gates also protect against an old shell retaining brightness.
  page.evaluate("PLUVIA.sky.apply(95,0,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'});document.querySelectorAll('.intro-sky,.sky-effects,.sky-twilight-page').forEach(el=>el.style.setProperty('--stars-visibility','1'))")
  assert star.evaluate("el=>+getComputedStyle(el).opacity===0")

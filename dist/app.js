@@ -534,34 +534,73 @@ function showHourlyHint() {
 }
 // Próximas horas leem as linhas normalizadas (weatherData.rows); a validação e o alinhamento i+1 continuam
 // em hourlyDetail.detail. A janela seca ainda recebe o contrato bruto (raw).
+// Modos da fileira (1.26, pedido do usuário, como no Apple Weather): Condição (ícone e temperatura), Chuva (barra
+// de intensidade e chance) e Vento (velocidade e direção). A escolha fica neste aparelho; a cidade nova repinta no
+// mesmo modo. As barras de chuva são proporcionais só ao volume (raiz de mm/h até 10, com marcas em 2,5 e 7,5),
+// e a chance fica num rótulo separado, nunca aumentando a barra.
+const HOURLY_MODES = ["conditions", "rain", "wind"];
+let hourlyMode = "conditions", lastHourly = null;
+try { const saved = globalThis.localStorage?.getItem("pluvia-hourly-mode"); if (HOURLY_MODES.includes(saved)) hourlyMode = saved; } catch {}
+const rainFill = mm => Math.sqrt(Math.min(Math.max(mm, 0), 10) / 10);
+const WIND_SECTORS = ['N','NE','L','SE','S','SO','O','NO'];
+function hourlyItem(mode, rows, i, p, reading, daily) {
+  const time = p === 0 ? "Agora" : shortTime(rows[i].time);
+  const {temperature, probability, mm} = reading;
+  const volume = Number.isFinite(mm) && mm >= 0 ? `${fmt(mm, 1)} mm` : "Volume indisponível";
+  const rain = Number.isFinite(probability) ? `${Math.round(probability)}%` : "—";
+  const extra = `. ${fmt(temperature)}°, sensação ${fmt(reading.feelsLike)}°, ${rain} de chance de chuva, ${volume}. Ver detalhes`;
+  const open = `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span>`;
+  if (mode === "rain") {
+    const known = Number.isFinite(mm) && mm >= 0;
+    const fill = known ? Math.round(rainFill(mm) * 100) : 0;
+    const chance = Number.isFinite(probability) ? `${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}${rain}` : "—";
+    return `${open}<span class="peek-bar" data-known="${known ? 1 : 0}"><i style="height:${fill}%"></i></span><strong class="peek-chance" data-low="${Number(probability) < 20 ? 1 : 0}">${chance}</strong><span class="peek-extra">${extra}</span></button>`;
+  }
+  if (mode === "wind") {
+    const speed = Number.isFinite(reading.wind) ? Math.round(reading.wind) : null;
+    const direction = Number.isFinite(reading.direction) && speed ? reading.direction : null;
+    // A seta aponta para onde o vento vai (vem de N → aponta para S), como no app Tempo.
+    const arrow = direction === null ? `<span class="peek-wind-arrow" aria-hidden="true"></span>` : `<svg class="peek-wind-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="transform:rotate(${Math.round(direction + 180)}deg)"><path d="M12 4v16M6.5 9.5 12 4l5.5 5.5"/></svg>`;
+    const from = direction === null ? "" : `, vindo de ${WIND_SECTORS[Math.round(direction / 45) % 8]}`;
+    const gust = Number.isFinite(reading.gust) ? `, rajadas de ${Math.round(reading.gust)} km/h` : "";
+    return `${open}<span class="peek-icon peek-wind">${arrow}</span><strong>${speed ?? "--"}</strong><span class="peek-unit">km/h</span><span class="peek-extra">. Vento ${speed ?? "indisponível"}${speed === null ? "" : " km/h"}${from}${gust}. Ver detalhes</span></button>`;
+  }
+  const icon = weatherIcons.markup(rows[i].weatherCode, forecastIsDay(rows[i].time, daily), {className:"hourly-weather-icon", decorative:true});
+  // Resumo enxuto: hora, ícone, temperatura e a chance só quando relevante (≥ 20%); sensação e volume
+  // continuam no rótulo acessível e no detalhe do horário. A chance fica abaixo da temperatura: reservada
+  // entre o ícone e o número, ela abria um buraco em todas as horas sem chuva.
+  const showRain = Number.isFinite(probability) && probability >= 20;
+  // Sem aria-label: o nome acessível é o próprio texto visível (hora, chance, temperatura),
+  // como pede o WCAG 2.5.3, e o resto vai num trecho só para leitores de tela.
+  const solar = hourlySolarEvents(rows[i].time,rows[i+1]?.time,true);
+  return `${open}<span class="peek-icon">${icon}</span><strong>${fmt(temperature)}<span class="peek-deg">°</span></strong><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span><span class="peek-extra">. Sensação ${fmt(reading.feelsLike)}°, ${rain} de chance de chuva, ${volume}. Ver detalhes</span></button>${solar}`;
+}
+function setHourlyMode(mode) {
+  if (!HOURLY_MODES.includes(mode) || mode === hourlyMode) return;
+  hourlyMode = mode;
+  try { localStorage.setItem("pluvia-hourly-mode", mode); } catch {}
+  for (const button of globalThis.document?.querySelectorAll?.(".hourly-modes [data-mode]") || []) button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
+  if (lastHourly) renderHourly(...lastHourly);
+  globalThis.pluviaAnalytics?.track?.("Hourly Mode Changed", {mode});
+}
+globalThis.document?.addEventListener?.("click", event => {
+  const button = event.target?.closest?.(".hourly-modes [data-mode]");
+  if (button) setHourlyMode(button.dataset.mode);
+});
 function renderHourly(rows, start, daily, raw) {
+  lastHourly = [rows, start, daily, raw];
   const readings = new Map(Array.from({length:24}, (_, i) => start + i).filter(i => i < rows.length)
     .map(i => [i, PLUVIA.hourlyDetail.detail(rows, i)]).filter(([, reading]) => reading));
   const indices = [...readings.keys()];
   const peek = $("hourlyPeek");
+  for (const button of globalThis.document?.querySelectorAll?.(".hourly-modes [data-mode]") || []) button.setAttribute("aria-pressed", String(button.dataset.mode === hourlyMode));
+  if (peek) peek.dataset.mode = hourlyMode;
   if (peek) {
     // As 24 horas ficam na mesma fileira, arrastando para o lado (antes eram 6 e o resto só no gráfico).
     // Cidade nova volta ao começo; uma atualização da mesma cidade mantém a posição da rolagem.
     // Na primeira pintura a fileira já está no começo: escrever scrollLeft ali forçava um reflow (PageSpeed).
     if (peek.dataset.city !== activeCity?.id) { if (peek.dataset.city) peek.scrollLeft = 0; peek.dataset.city = activeCity?.id || ""; }
-    peek.innerHTML = indices.map((i, p) => {
-      const time = p === 0 ? "Agora" : shortTime(rows[i].time);
-      const temperature = readings.get(i).temperature;
-      const probability = readings.get(i).probability;
-      const icon = weatherIcons.markup(rows[i].weatherCode, forecastIsDay(rows[i].time, daily), {className:"hourly-weather-icon", decorative:true});
-      const mm = readings.get(i).mm;
-      const volume = Number.isFinite(mm) && mm >= 0 ? `${fmt(mm, 1)} mm` : "Volume indisponível";
-      const rain = Number.isFinite(probability) ? `${Math.round(probability)}%` : "—";
-      // Resumo enxuto: hora, ícone, temperatura e a chance só quando relevante (≥ 20%); sensação e volume
-      // continuam no rótulo acessível e no detalhe do horário. A chance fica abaixo da temperatura: reservada
-      // entre o ícone e o número, ela abria um buraco em todas as horas sem chuva.
-      const showRain = Number.isFinite(probability) && probability >= 20;
-      // Sem aria-label: o nome acessível é o próprio texto visível (hora, chance, temperatura),
-      // como pede o WCAG 2.5.3, e o resto vai num trecho só para leitores de tela.
-      const solar = hourlySolarEvents(rows[i].time,rows[i+1]?.time,true);
-      const extra = `. Sensação ${fmt(readings.get(i).feelsLike)}°, ${rain} de chance de chuva, ${volume}. Ver detalhes`;
-      return `<button type="button" class="hourly-peek-item ${p === 0 ? "is-now" : ""}" data-hour-index="${i}" aria-haspopup="dialog" aria-controls="hourlyDetailDialog"><span class="peek-time">${time} </span><span class="peek-icon">${icon}</span><strong>${fmt(temperature)}<span class="peek-deg">°</span></strong><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span><span class="peek-extra">${extra}</span></button>${solar}`;
-    }).join("") || '<p>Previsão por hora indisponível.</p>';
+    peek.innerHTML = indices.map((i, p) => hourlyItem(hourlyMode, rows, i, p, readings.get(i), daily)).join("") || '<p>Previsão por hora indisponível.</p>';
     // Sem nenhuma chance relevante nas 24 horas, a linha reservada da chuva some de todas (sem buraco).
     peek.dataset.rain = indices.some(i => Number(readings.get(i).probability) >= 20) ? "some" : "none";
   }
@@ -1205,7 +1244,9 @@ function paintNextHour() {
   node.hidden = false;
   [...($("nextHourBars")?.children || [])].forEach((bar, index) => {
     const coverage = data.points[index]?.coverage ?? 0;
-    bar.style.height = `${Math.max(8, Math.round(coverage * 100))}%`;
+    // Cada coluna é um trilho da altura toda; a parte azul é a fração da cidade com eco (1.26: só barras
+    // claras da mesma altura pareciam blocos vazios quando chovia na hora inteira).
+    bar.style.setProperty("--fill", `${Math.round(coverage * 100)}%`);
     bar.dataset.wet = coverage >= 0.25 ? "1" : "0";
   });
   $("nextHourText").textContent = data.text;

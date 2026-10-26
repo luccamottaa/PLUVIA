@@ -73,10 +73,15 @@ html,body { background:var(--sky-base); }
 :root:is([data-solar="sunrise"],[data-solar="sunset"]) .sky-twilight { display:block; }
 :root:is([data-weather="cloud"],[data-weather="rain"],[data-weather="fog"],[data-weather="snow"]) .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .6); }
 :root[data-weather="storm"] .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .3); }
-/* A fixed, irregular point field stays behind the clouds and celestial disks.
-   Only a few brighter points shimmer; the sky never rotates or restarts on open. */
-.sky-stars { position:absolute; inset:0; z-index:0; pointer-events:none; background:url("./assets/sky-stars.svg?v=stars-2") center top / 900px 1100px repeat; opacity:var(--stars-visibility,0); transition:opacity 4s ease,visibility 0s; } /* tile 1:1 em px reais; a cena (sky-effects) já esmaece embaixo */
-.sky-stars::after { content:""; position:absolute; inset:0; background:url("./assets/sky-stars-shimmer.svg?v=stars-2") center top / 1040px 1280px repeat; opacity:.8; animation:sky-star-shimmer 9s ease-in-out infinite alternate; animation-delay:-5s; animation-play-state:paused; }
+/* Campo de estrelas atrás das nuvens e dos astros. Desde a 1.26 (pedido do usuário, como no Apple Weather) o campo
+   desliza bem devagar para a esquerda (um tile de 900 px em 20 min, só transform na camada, que tem a largura da tela
+   mais um tile, para o laço não ter emenda) e duas camadas de pontos brilhantes, defasadas e em posições diferentes,
+   acendem e apagam em ritmos próprios: cada estrela parece piscar sozinha. Sem timer nem DOM por estrela. */
+.sky-stars { position:absolute; inset:0 auto 0 0; width:calc(100% + 900px); z-index:0; animation:sky-star-drift 1200s linear infinite; animation-play-state:paused; pointer-events:none; background:url("./assets/sky-stars.svg?v=stars-2") center top / 900px 1100px repeat; opacity:var(--stars-visibility,0); transition:opacity 4s ease,visibility 0s; } /* tile 1:1 em px reais; a cena (sky-effects) já esmaece embaixo */
+.sky-stars::before,.sky-stars::after { content:""; position:absolute; inset:0; background:url("./assets/sky-stars-shimmer.svg?v=stars-2") center top / 900px 1108px repeat; animation:sky-star-shimmer 6.5s ease-in-out infinite alternate; animation-delay:-3s; animation-play-state:paused; }
+.sky-stars::before { background-position:calc(50% + 450px) 554px; animation-name:sky-star-twinkle; animation-duration:4.7s; animation-delay:-1.2s; }
+:root[data-phase="night"]:is([data-weather="sun"],[data-weather="partly"]) .sky-stars,
+:root[data-phase="night"]:is([data-weather="sun"],[data-weather="partly"]) .sky-stars::before,
 :root[data-phase="night"]:is([data-weather="sun"],[data-weather="partly"]) .sky-stars::after { animation-play-state:running; }
 :root[data-sky-transition="live"] .sky-stars { transition:opacity 28s linear,visibility 0s; }
 :root:not([data-phase="night"]) .sky-stars,
@@ -192,7 +197,9 @@ html,body { background:var(--sky-base); }
 .sky-effects { -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); }
 @keyframes clouds-back { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-1 * var(--cloud-tile)),0,0); } }
 @keyframes clouds-front { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-1 * var(--cloud-tile)),0,0); } }
-@keyframes sky-star-shimmer { 0% { opacity:.55; } 40% { opacity:.82; } 70% { opacity:.65; } 100% { opacity:.95; } }
+@keyframes sky-star-shimmer { 0% { opacity:.12; } 35% { opacity:.9; } 65% { opacity:.4; } 100% { opacity:1; } }
+@keyframes sky-star-twinkle { 0% { opacity:.85; } 45% { opacity:.08; } 100% { opacity:.7; } }
+@keyframes sky-star-drift { from { transform:translate3d(0,0,0); } to { transform:translate3d(-900px,0,0); } }
 @keyframes sky-rain-fall { to { transform:translate3d(0,480px,0); } }
 @keyframes storm-bolt {
   0% { opacity:0; transform:translate3d(calc(34vw - 50%),0,0) scale(1,0.3); }

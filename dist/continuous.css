@@ -1049,7 +1049,7 @@ html body :is(details > summary,.account-more-item,#accountButton,#openCitySearc
 #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:pluvia-bar-grow .6s cubic-bezier(.22,1,.36,1) calc(var(--i,0) * 16ms) both; }
 @keyframes pluvia-bar-grow { from { height:0; min-height:0; } }
 @media (prefers-reduced-motion:reduce) {
-  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot), #weatherView .next-hour-bars span { transition:none; }
+  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), #weatherView .next-hour-bars span::after, .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot), #weatherView .next-hour-bars span { transition:none; }
   #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
 }
 
@@ -1863,10 +1863,10 @@ html body #weatherView .weather-hero.current-card { padding-top:0 !important; }
    (no iPhone, 34 e 96 pt), então os algarismos ocupam mais ou menos a mesma largura do nome logo acima. */
 #weatherView .intro h1 { font-size:clamp(1.9rem,8.7vw,2.65rem); }
 html body #weatherView .weather-hero .temperature { font-size:clamp(5.35rem,24.5vw,7.5rem) !important; }
-/* Eixo como no app Tempo (1.16.1, pedido do usuário com print do app da Apple): lá os algarismos ficam um pouco à
-   esquerda do centro do nome (o "29" começa junto do "M" de Manaus), porque o grau também pesa no conjunto. O grau
-   invisível perde .34 do próprio tamanho: os algarismos saem ~0,12 em para a esquerda do eixo (~12 px a 96 px). */
-#weatherView .temperature::before { margin-inline-end:-.34em; }
+/* Algarismos no eixo (1.25.5, pedido do usuário: "tem algo desalinhado"). Na 1.16.1 eles ficavam ~0,12 em à
+   esquerda (o grau invisível perdia .34 do tamanho), como no app Tempo, mas com a condição centrada logo embaixo
+   o número parecia torto (~12 px). Agora o grau invisível tem o tamanho inteiro e só o grau real fica pendurado. */
+#weatherView .temperature::before { margin-inline-end:0; }
 /* Sensação e máx./mín. entraram nos blocos de leitura (1.17): seis blocos, 2 colunas no celular e 3 a partir de
    721 px (com 4 sobravam dois na última fileira). A mínima fica menor, ao lado da máxima. */
 #weatherView .metrics .metric-sky .metric-min { font-size:.62em; font-weight:500; color:color-mix(in srgb,currentColor 75%,transparent); }
@@ -1879,7 +1879,9 @@ html body #weatherView .weather-hero .temperature { font-size:clamp(5.35rem,24.5
    O azul da marca continua nos botões, links e destaques; só a assinatura deixou de ser azul. */
 .topbar .brand { color:var(--intro-ink) !important; }
 footer.shell .footer-brand-copy strong { color:var(--intro-ink); }
-footer.shell .footer-brand-icon { background:#cfe3ff; background:color-mix(in srgb,var(--intro-ink) 72%,#7fb0ff); }
+/* Marca nova (1.26): imagem colorida com transparência, não mais máscara de cor única. */
+footer.shell .footer-brand-icon { width:64px; height:64px; flex-basis:64px; background:url("./logo-mark.webp?v=logo-5") center / contain no-repeat; -webkit-mask:none; mask:none; }
+@media(max-width:720px) { footer.shell .footer-brand-icon { width:50px; height:50px; flex-basis:50px; } }
 /* Cor nova dos destaques (1.18, pedido do usuário: "todos esses ícones azuis no novo padrão de cor do PLUVIA"):
    o azul vivo #2f6bff saiu. Na tinta clara (noite, chuva forte) o destaque é o azul-claro da gota nova, com texto
    azul-noite nos botões preenchidos; na tinta escura (céu claro de dia) é o azul-marinho da marca, com texto branco.
@@ -1943,3 +1945,50 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 #weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#6fb1ff; font-weight:700; }
 body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong,
 body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#0f4aa8; }
+/* Condição mais perto da temperatura (1.25.5, pedido do usuário: "muito separado"). A caixa do número tem a
+   altura da fonte inteira, e embaixo dos algarismos sobra o espaço das letras com perna (~0,2 em): com o gap
+   da coluna, a condição ficava ~37 px abaixo dos algarismos. Puxa a caixa de volta na proporção do número. */
+#weatherView .wx-copy { margin-bottom:calc(clamp(5.35rem,24.5vw,7.5rem) * -.17); }
+/* Detalhe por hora (1.25.5, pedido do usuário: ícone "desalinhado" e pequeno). O ícone ocupava as duas linhas
+   (número e condição) e ficava centrado no bloco, mais baixo que o número. Agora tem 96 px e fica na linha do
+   número, centrado nele; a condição vai embaixo do número. */
+.hourly-detail-weather { grid-template-columns:96px auto; column-gap:14px; row-gap:2px; text-align:left; }
+#hourlyDetailIcon { grid-row:1; width:96px; height:96px; }
+#hourlyDetailIcon .weather-icon { width:96px; height:96px; }
+#hourlyDetailTemperature { grid-column:2; align-self:center; line-height:1; }
+#hourlyDetailDialog #hourlyDetailCondition { grid-column:1 / -1; text-align:center; }
+/* Modos das Próximas horas (1.26, pedido do usuário, como no Apple Weather): Condição, Chuva e Vento. Seletor em
+   pílula com três ícones (alvos de 44 × 36 px, aria-pressed); só cor e fundo, sem transform. */
+#weatherView .hourly-peek-heading { flex-wrap:nowrap; }
+#weatherView .hourly-modes { flex:0 0 auto; display:inline-flex; gap:2px; padding:3px; border-radius:999px; background:color-mix(in srgb,var(--reading-ink,#fff) 10%,transparent); }
+#weatherView .hourly-modes button { display:grid; place-items:center; width:44px; height:36px; margin:0; padding:0; border:0; border-radius:999px; background:transparent; color:var(--reading-muted); cursor:pointer; }
+#weatherView .hourly-modes button[aria-pressed="true"] { background:color-mix(in srgb,var(--reading-ink,#fff) 18%,transparent); color:var(--reading-ink); }
+#weatherView .hourly-modes svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+#weatherView .hourly-modes button[aria-pressed="true"] svg:not(:has(path[d^="M3 9"])) { fill:currentColor; }
+/* Chuva: barra de intensidade num trilho com as marcas de 2,5 e 7,5 mm/h (raiz de mm/h até 10) e a chance embaixo. */
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-bar { position:relative; display:block; width:22px; height:64px; margin:6px auto 2px; overflow:hidden; border-radius:7px; background:color-mix(in srgb,var(--reading-ink,#fff) 9%,transparent); background-image:linear-gradient(to top,transparent calc(50% - .5px),color-mix(in srgb,var(--reading-ink,#fff) 28%,transparent) calc(50% - .5px),color-mix(in srgb,var(--reading-ink,#fff) 28%,transparent) calc(50% + .5px),transparent calc(50% + .5px),transparent calc(87% - .5px),color-mix(in srgb,var(--reading-ink,#fff) 28%,transparent) calc(87% - .5px),color-mix(in srgb,var(--reading-ink,#fff) 28%,transparent) calc(87% + .5px),transparent calc(87% + .5px)); }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-bar i { position:absolute; left:0; right:0; bottom:0; border-radius:7px 7px 0 0; background:linear-gradient(#8fdcff,#3fa9f5); }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-bar[data-known="0"] { opacity:.45; }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-chance { display:inline-flex; align-items:center; justify-content:center; gap:1px; font-size:.8125rem; font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums; color:var(--reading-ink); }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-chance[data-low="1"] { color:var(--reading-muted); font-weight:500; }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-chance[data-low="1"] .rain-metric-icon { display:none; }
+/* Vento: seta para onde o vento vai, velocidade e unidade embaixo. */
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind { display:grid; place-items:center; }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-arrow { display:block; width:24px; height:24px; fill:none; stroke:var(--reading-link); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-unit { font-size:.75rem; color:var(--reading-muted); }
+/* Próxima hora (1.26, pedido do usuário: "confuso"): trilho escuro da altura toda e a parte com chuva em azul,
+   enchendo de baixo (altura = fração da área da cidade com eco no radar, não intensidade). */
+#weatherView .next-hour-bars { height:56px; gap:4px; border-bottom:0; }
+#weatherView .next-hour-bars span { position:relative; height:100% !important; overflow:hidden; border-radius:6px; background:color-mix(in srgb,var(--reading-ink,#fff) 9%,transparent); transition:none; }
+#weatherView .next-hour-bars span::after { content:""; position:absolute; left:0; right:0; bottom:0; height:var(--fill,0%); background:color-mix(in srgb,var(--reading-ink,#fff) 30%,transparent); }
+@media (prefers-reduced-motion:no-preference) { #weatherView .next-hour-bars span::after { transition:height .6s cubic-bezier(.22,1,.36,1); } }
+body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #weatherView .next-hour-bars span[data-wet="1"] { background:color-mix(in srgb,var(--reading-ink,#fff) 9%,transparent); }
+#weatherView .next-hour-bars span[data-wet="1"]::after { background:linear-gradient(#8fdcff,#3fa9f5); }
+#weatherView .hourly-peek-list[data-mode="rain"] .peek-chance .rain-metric-icon { width:12px; height:12px; flex:0 0 12px; }
+/* Até 389 px o título e o seletor não cabem lado a lado ("Próximas horas" quebrava em duas linhas): o seletor
+   desce para uma linha própria, com os três botões dividindo a largura. */
+@media(max-width:389px) {
+  #weatherView .hourly-peek-heading { flex-wrap:wrap; row-gap:10px; }
+  #weatherView .hourly-modes { flex:1 0 100%; }
+  #weatherView .hourly-modes button { flex:1 1 0; width:auto; }
+}
