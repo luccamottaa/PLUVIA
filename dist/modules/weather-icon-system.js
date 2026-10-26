@@ -17,7 +17,7 @@
   const BASE = "/assets/weather-icons/";
   const LEGACY_BASE = "/vendor/weathericons/";
   const CONDITIONS = Object.freeze({
-    0: ["clear", "Céu limpo"], 1: ["mostly-clear", "Predomínio de céu limpo"], 2: ["partly-cloudy", "Parcialmente nublado"], 3: ["overcast", "Céu encoberto"],
+    0: ["clear", "Céu limpo"], 1: ["mostly-clear", "Predomínio de céu limpo"], 2: ["partly-cloudy", "Parcialmente nublado"], 3: ["overcast", "Nublado"],
     45: ["fog", "Neblina"], 48: ["fog", "Neblina com depósito"],
     51: ["drizzle", "Garoa fraca"], 53: ["drizzle", "Garoa"], 55: ["drizzle", "Garoa intensa"], 56: ["freezing-drizzle", "Garoa congelante fraca"], 57: ["freezing-drizzle", "Garoa congelante intensa"],
     61: ["light-rain", "Chuva fraca"], 63: ["rain", "Chuva moderada"], 65: ["heavy-rain", "Chuva forte"], 66: ["freezing-rain", "Chuva congelante fraca"], 67: ["freezing-rain", "Chuva congelante forte"],
