@@ -1972,10 +1972,13 @@ body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > str
 #weatherView .hourly-peek-list[data-mode="rain"] .peek-chance { display:inline-flex; align-items:center; justify-content:center; gap:1px; font-size:.8125rem; font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums; color:var(--reading-ink); }
 #weatherView .hourly-peek-list[data-mode="rain"] .peek-chance[data-low="1"] { color:var(--reading-muted); font-weight:500; }
 #weatherView .hourly-peek-list[data-mode="rain"] .peek-chance[data-low="1"] .rain-metric-icon { display:none; }
-/* Vento: seta para onde o vento vai, velocidade e unidade embaixo. */
+/* Vento (1.26.1): seta cheia dentro de um círculo fino, apontando para onde o vento vai; embaixo da velocidade,
+   de onde ele vem ("de SE"). Só a seta gira (transform estático no SVG, sem animação). */
 #weatherView .hourly-peek-list[data-mode="wind"] .peek-wind { display:grid; place-items:center; }
-#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-arrow { display:block; width:24px; height:24px; fill:none; stroke:var(--reading-link); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-dial { display:grid; place-items:center; width:32px; height:32px; border-radius:50%; border:1.5px solid color-mix(in srgb,var(--reading-ink,#fff) 28%,transparent); background:color-mix(in srgb,var(--reading-ink,#fff) 7%,transparent); }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-wind-dial svg { display:block; width:18px; height:18px; fill:var(--reading-link); stroke:none; }
 #weatherView .hourly-peek-list[data-mode="wind"] .peek-unit { font-size:.75rem; color:var(--reading-muted); }
+#weatherView .hourly-peek-list[data-mode="wind"] .peek-from { min-height:1.2em; font-size:.75rem; font-weight:600; color:var(--reading-ink); }
 /* Próxima hora (1.26, pedido do usuário: "confuso"): trilho escuro da altura toda e a parte com chuva em azul,
    enchendo de baixo (altura = fração da área da cidade com eco no radar, não intensidade). */
 #weatherView .next-hour-bars { height:56px; gap:4px; border-bottom:0; }

@@ -89,20 +89,17 @@ test('sessões já vistas ignoram a abertura; movimento reduzido encurta a dura�
   assert.ok(reduced.timers.some(timer => timer.delay === 1500));
 });
 
-test('voltar logo depois de o iPhone fechar o app não repete a intro; depois de 3 h ela volta', () => {
+test('toda abertura nova mostra a intro, rápida para quem já viu uma', () => {
   const now = Date.parse('2026-10-09T05:00:00Z');
   const local = {};
   const first = runIntro({ local, now });
   assert.equal(first.intro.hidden, false, 'primeira abertura mostra a intro');
+  assert.equal(first.intro.dataset.quick, undefined);
   assert.equal(Number(local['pluvia-intro-at']), now);
   const back = runIntro({ local, now: now + 20 * 60e3 });
-  assert.equal(back.intro.hidden, true, 'nova sessão 20 min depois abre direto');
-  assert.equal(back.timers.length, 0);
-  assert.equal(Number(local['pluvia-intro-at']), now, 'pular não renova o horário da última intro');
-  const later = runIntro({ local, now: now + 3 * 3600e3 + 1 });
-  assert.equal(later.intro.hidden, false, '3 h depois a intro completa volta');
-  const clockBack = runIntro({ local: { 'pluvia-intro-at': String(now + 3600e3) }, now });
-  assert.equal(clockBack.intro.hidden, false, 'relógio que voltou no tempo não esconde a intro para sempre');
+  assert.equal(back.intro.hidden, false, 'voltar 20 min depois também mostra');
+  assert.equal(back.intro.dataset.quick, '1');
+  assert.equal(Number(local['pluvia-intro-at']), now + 20 * 60e3);
 });
 
 test('quem já viu uma intro ganha a versão rápida: 0,9 s de mínimo e 2,5 s de limite', () => {

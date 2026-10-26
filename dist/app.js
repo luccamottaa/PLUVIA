@@ -559,11 +559,12 @@ function hourlyItem(mode, rows, i, p, reading, daily) {
   if (mode === "wind") {
     const speed = Number.isFinite(reading.wind) ? Math.round(reading.wind) : null;
     const direction = Number.isFinite(reading.direction) && speed ? reading.direction : null;
-    // A seta aponta para onde o vento vai (vem de N → aponta para S), como no app Tempo.
-    const arrow = direction === null ? `<span class="peek-wind-arrow" aria-hidden="true"></span>` : `<svg class="peek-wind-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="transform:rotate(${Math.round(direction + 180)}deg)"><path d="M12 4v16M6.5 9.5 12 4l5.5 5.5"/></svg>`;
-    const from = direction === null ? "" : `, vindo de ${WIND_SECTORS[Math.round(direction / 45) % 8]}`;
+    // 1.26.1 (pedido do usuário: setas "feias" e sem indicação): seta cheia num círculo, apontando para onde o
+    // vento vai (vem de N → aponta para S), e embaixo de onde ele vem ("de SE"). Sem direção, só o círculo.
+    const sector = direction === null ? "" : WIND_SECTORS[Math.round(direction / 45) % 8];
+    const arrow = direction === null ? "" : `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="transform:rotate(${Math.round(direction + 180)}deg)"><path d="M12 3.5 18 19l-6-3.4L6 19Z"/></svg>`;
     const gust = Number.isFinite(reading.gust) ? `, rajadas de ${Math.round(reading.gust)} km/h` : "";
-    return `${open}<span class="peek-icon peek-wind">${arrow}</span><strong>${speed ?? "--"}</strong><span class="peek-unit">km/h</span><span class="peek-extra">. Vento ${speed ?? "indisponível"}${speed === null ? "" : " km/h"}${from}${gust}. Ver detalhes</span></button>`;
+    return `${open}<span class="peek-icon peek-wind"><span class="peek-wind-dial" aria-hidden="true">${arrow}</span></span><strong>${speed ?? "--"}</strong><span class="peek-unit">km/h</span><span class="peek-from" aria-hidden="true">${sector ? `de ${sector}` : ""}</span><span class="peek-extra">. Vento ${speed ?? "indisponível"}${speed === null ? "" : " km/h"}${sector ? `, vindo de ${sector}` : ""}${gust}. Ver detalhes</span></button>`;
   }
   const icon = weatherIcons.markup(rows[i].weatherCode, forecastIsDay(rows[i].time, daily), {className:"hourly-weather-icon", decorative:true});
   // Resumo enxuto: hora, ícone, temperatura e a chance só quando relevante (≥ 20%); sensação e volume
