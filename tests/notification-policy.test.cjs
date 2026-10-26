@@ -73,14 +73,21 @@ test('resumo marcado e chuva que começou saem com prioridade alta; mudança no 
 });
 test('"parou de chover" só depois de um "começou" entregue e nunca junto de chuva',()=>{
  const {stopAllowed}=require('../supabase/functions/_shared/notification-policy.js');
- const d=(type,at,status='accepted')=>({status,sent_at:new Date(at).toISOString(),notification_events:{event_type:type,city_id:'1302603',severity:2}});
- assert.equal(stopAllowed([]),false);
- assert.equal(stopAllowed([d('rain_approaching',1000)]),false,'previsão não basta');
- assert.equal(stopAllowed([d('rain_now',1000)]),true);
- assert.equal(stopAllowed([d('storm_now',1000)]),true);
- assert.equal(stopAllowed([d('rain_now',1000),d('rain_stopped',2000)]),false,'já avisou que parou');
- assert.equal(stopAllowed([d('rain_now',1000),d('rain_stopped',2000),d('rain_now',3000)]),true,'voltou a chover e parou de novo');
- assert.equal(stopAllowed([d('rain_now',1000,'failed')]),false);
+ const d=(type,at,status='accepted',observed)=>({status,sent_at:new Date(at).toISOString(),notification_events:{event_type:type,city_id:'1302603',severity:2,metadata:observed?{observed_at:new Date(observed).toISOString()}:{}}});
+ const H=3600000, now=10*H, opts={now};
+ assert.equal(stopAllowed([],opts),false);
+ assert.equal(stopAllowed([d('rain_approaching',1000)],opts),false,'previsão não basta');
+ assert.equal(stopAllowed([d('rain_now',1000)],opts),true);
+ assert.equal(stopAllowed([d('storm_now',1000)],opts),true);
+ assert.equal(stopAllowed([d('rain_now',1000),d('rain_stopped',2000)],opts),false,'já avisou que parou');
+ assert.equal(stopAllowed([d('rain_now',1000),d('rain_stopped',2000),d('rain_now',3000)],opts),true,'voltou a chover e parou de novo');
+ assert.equal(stopAllowed([d('rain_now',1000,'failed')],opts),false);
+ // Rio, 23/10/2026: "começou" às 11:00 e "parou" às 11:05. Pancada curta não ganha "parou".
+ assert.equal(stopAllowed([d('rain_now',now-5*60000)],opts),false,'menos de 1 h depois do começou');
+ assert.equal(stopAllowed([d('rain_now',now-H)],opts),true);
+ // 25/10/2026: a estação mediu chuva até 23:00 (aviso às 23:20); o boletim das 23:00 do aeroporto não diz que parou depois disso.
+ assert.equal(stopAllowed([d('rain_now',now-H,'accepted',now-2*H)],{now,observedAt:new Date(now-2*H).toISOString()}),false,'leitura do parou não é posterior');
+ assert.equal(stopAllowed([d('rain_now',now-H,'accepted',now-2*H)],{now,observedAt:new Date(now-H).toISOString()}),true);
  const picked=selectCandidates([{type:'rain_stopped',severity:1},{type:'rain_now',severity:2}]);
  assert.deepEqual(picked.map(e=>e.type),['rain_now']);
  assert.deepEqual(selectCandidates([{type:'rain_stopped',severity:1}],{raining:true}),[]);
@@ -123,4 +130,17 @@ test('aviso do INMET republicado com outro número não chega de novo; grau maio
  assert.equal(isOfficialRepeat({...again,metadata:{valid_until:'2026-10-22T02:59:00.000Z'}},[sent]),false,'aviso do dia seguinte avisa');
  assert.equal(isOfficialRepeat({...again,title:'⚠️ Acumulado de Chuva'},[sent]),false);
  assert.equal(isOfficialRepeat(again,[]),false);
+ // Rio, 24/10/2026: "Perigo" do dia 25 inteiro às 08:10; às 23:00 "Perigo" só da manhã e "Perigo potencial" do dia todo.
+ const day={notification_events:{event_type:'official_alert',severity:3,title:'⚠️ Tempestade',started_at:'2026-10-25T03:00:00Z',metadata:{valid_until:'2026-10-26T02:59:00.000Z'}}};
+ const morning={type:'official_alert',severity:3,title:'⚠️ Tempestade',start:new Date('2026-10-25T03:00:00Z'),metadata:{valid_until:'2026-10-25T15:00:00.000Z'}};
+ const weaker={type:'official_alert',severity:2,title:'⚠️ Tempestade',start:new Date('2026-10-25T03:00:00Z'),metadata:{valid_until:'2026-10-26T02:59:00.000Z'}};
+ assert.equal(isOfficialRepeat(morning,[day]),true,'período dentro do já avisado');
+ assert.equal(isOfficialRepeat(weaker,[day]),true,'grau menor no mesmo período');
+ assert.equal(isOfficialRepeat({...weaker,metadata:{valid_until:'2026-10-27T02:59:00.000Z'}},[day]),false,'vai além do já avisado');
+ assert.equal(isOfficialRepeat({...morning,severity:4},[day]),false,'grau maior avisa');
+ // No mesmo lote, o mais grave que cobre o outro vai sozinho.
+ const batch=[{...weaker,expires:new Date('2026-10-26T02:59:00Z')},{...morning,expires:new Date('2026-10-26T02:59:00Z')}];
+ assert.deepEqual(selectCandidates(batch).map(e=>e.severity),[3]);
+ const other={...weaker,title:'⚠️ Acumulado de Chuva',expires:new Date('2026-10-26T02:59:00Z')};
+ assert.equal(selectCandidates([...batch,other]).length,2,'outro fenômeno continua');
 });
