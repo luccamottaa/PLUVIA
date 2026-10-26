@@ -560,12 +560,13 @@ function hourlyItem(mode, rows, i, p, reading, daily) {
   if (mode === "wind") {
     const speed = Number.isFinite(reading.wind) ? Math.round(reading.wind) : null;
     const direction = Number.isFinite(reading.direction) && speed ? reading.direction : null;
-    // 1.26.1 (pedido do usuário: setas "feias" e sem indicação): seta cheia num círculo, apontando para onde o
-    // vento vai (vem de N → aponta para S), e embaixo de onde ele vem ("de SE"). Sem direção, só o círculo.
+    // 1.26.5 (pedido do usuário: "o Apple Weather é muito mais bonito"): como no app Tempo, velocidade grande,
+    // km/h embaixo e um gráfico contínuo que atravessa a fileira (linha da velocidade sobre a área das rajadas).
+    // A direção ficou numa linha pequena (seta + "SE"); a seta aponta para onde o vento vai.
     const sector = direction === null ? "" : WIND_SECTORS[Math.round(direction / 45) % 8];
     const arrow = direction === null ? "" : `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="transform:rotate(${Math.round(direction + 180)}deg)"><path d="M12 3.5 18 19l-6-3.4L6 19Z"/></svg>`;
     const gust = Number.isFinite(reading.gust) ? `, rajadas de ${Math.round(reading.gust)} km/h` : "";
-    return `${open}<span class="peek-icon peek-wind"><span class="peek-wind-dial" aria-hidden="true">${arrow}</span></span><strong>${speed ?? "--"}</strong><span class="peek-unit">km/h</span><span class="peek-from" aria-hidden="true">${sector ? `de ${sector}` : ""}</span><span class="peek-extra">. Vento ${speed ?? "indisponível"}${speed === null ? "" : " km/h"}${sector ? `, vindo de ${sector}` : ""}${gust}. Ver detalhes</span></button>`;
+    return `${open}<strong>${speed ?? "--"}</strong><span class="peek-unit">km/h</span><span class="peek-from" aria-hidden="true">${arrow}${sector}</span>${windSlice(p)}<span class="peek-extra">. Vento ${speed ?? "indisponível"}${speed === null ? "" : " km/h"}${sector ? `, vindo de ${sector}` : ""}${gust}. Ver detalhes</span></button>`;
   }
   const icon = weatherIcons.markup(rows[i].weatherCode, forecastIsDay(rows[i].time, daily), {className:"hourly-weather-icon", decorative:true});
   // Resumo enxuto: hora, ícone, temperatura e a chance só quando relevante (≥ 20%); sensação e volume
@@ -576,6 +577,29 @@ function hourlyItem(mode, rows, i, p, reading, daily) {
   // como pede o WCAG 2.5.3, e o resto vai num trecho só para leitores de tela.
   const solar = hourlySolarEvents(rows[i].time,rows[i+1]?.time,true);
   return `${open}<span class="peek-icon">${icon}</span><strong>${fmt(temperature)}<span class="peek-deg">°</span></strong><span class="peek-rain">${showRain ? weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"}) + rain + " " : ""}</span><span class="peek-extra">. Sensação ${fmt(reading.feelsLike)}°, ${rain} de chance de chuva, ${volume}. Ver detalhes</span></button>${solar}`;
+}
+// Gráfico do vento: cada coluna desenha só o seu pedaço (da metade com a hora anterior até a metade com a
+// seguinte, curva pelo ponto da hora), então os pedaços se encontram na mesma altura e a fileira forma uma linha
+// contínua sem medir nada nem desenhar por cima do scroll. Escala comum às 24 horas (mínimo 20 km/h); valor
+// ausente interrompe o pedaço (nunca vira zero).
+let windSeries = null;
+function windSlice(p) {
+  const {speed, gust, top} = windSeries || {};
+  if (!speed) return "";
+  const y = v => Number.isFinite(v) ? +(54 - v / top * 46).toFixed(1) : null;
+  const edge = (list, a, b) => Number.isFinite(list[a]) && Number.isFinite(list[b]) ? (list[a] + list[b]) / 2 : list[a];
+  const curve = list => {
+    const mid = y(list[p]); if (mid === null) return null;
+    const left = y(p > 0 ? edge(list, p, p - 1) : list[p]) ?? mid, right = y(p < list.length - 1 ? edge(list, p, p + 1) : list[p]) ?? mid;
+    return {d:`M0 ${left} Q50 ${mid} 100 ${right}`, mid, left, right};
+  };
+  const line = curve(speed), area = curve(gust);
+  if (!line) return '<span class="peek-wind-chart" aria-hidden="true"></span>';
+  // A área passa 1 unidade de cada lado (overflow visível): sem isso, a suavização da borda deixava um fio escuro
+  // entre colunas vizinhas.
+  const fill = area ? `<path class="wind-gust" d="M-1 ${area.left} L${area.d.slice(1)} L101 ${area.right} V60 H-1 Z"/>` : "";
+  const now = p === 0 ? `<i class="wind-now" style="top:${(line.mid / 60 * 100).toFixed(1)}%"></i>` : "";
+  return `<span class="peek-wind-chart" aria-hidden="true"><svg viewBox="0 0 100 60" preserveAspectRatio="none" focusable="false">${fill}<path class="wind-speed" d="${line.d}"/></svg>${now}</span>`;
 }
 function setHourlyMode(mode) {
   if (!HOURLY_MODES.includes(mode) || mode === hourlyMode) return;
@@ -602,6 +626,11 @@ function renderHourly(rows, start, daily, raw) {
     // Cidade nova volta ao começo; uma atualização da mesma cidade mantém a posição da rolagem.
     // Na primeira pintura a fileira já está no começo: escrever scrollLeft ali forçava um reflow (PageSpeed).
     if (peek.dataset.city !== activeCity?.id) { if (peek.dataset.city) peek.scrollLeft = 0; peek.dataset.city = activeCity?.id || ""; }
+    if (hourlyMode === "wind") {
+      const speed = indices.map(i => readings.get(i).wind), gust = indices.map(i => readings.get(i).gust);
+      const top = Math.max(20, ...[...speed, ...gust].filter(Number.isFinite)) * 1.1;
+      windSeries = {speed, gust, top};
+    } else windSeries = null;
     peek.innerHTML = indices.map((i, p) => hourlyItem(hourlyMode, rows, i, p, readings.get(i), daily)).join("") || '<p>Previsão por hora indisponível.</p>';
     // Sem nenhuma chance relevante nas 24 horas, a linha reservada da chuva some de todas (sem buraco).
     peek.dataset.rain = indices.some(i => Number(readings.get(i).probability) >= 20) ? "some" : "none";
