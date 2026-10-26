@@ -1090,10 +1090,13 @@ body[data-phase="day"][data-ink="light"] #weatherView {
 /* Nublado de dia (1.26.6, referência do usuário: o nublado do app Tempo): céu cinza-azulado prateado e cartões
    de vidro azul-ardósia, em vez do cinza-chumbo. */
 body[data-phase="day"][data-ink="light"][data-weather="cloud"] #weatherView {
-  --card-bg:rgba(36,48,68,.42);
-  --card-fill:linear-gradient(rgba(36,48,68,.42),rgba(36,48,68,.42)) padding-box;
-  --card-border:rgba(255,255,255,.16);
+  --card-bg:rgba(36,48,68,.6);
+  --card-fill:linear-gradient(rgba(36,48,68,.6),rgba(36,48,68,.6)) padding-box;
+  --card-border:rgba(255,255,255,.18);
 }
+/* Céu claro como no app Tempo: o texto branco sobre o céu leva uma sombra suave e larga (a mesma solução do app
+   Tempo), em vez de escurecer o céu. Só no nublado de dia. */
+body[data-phase="day"][data-ink="light"][data-weather="cloud"] :is(.topbar,.weather-hero,.site-footer) { text-shadow:0 1px 3px rgba(20,32,52,.35),0 0 18px rgba(20,32,52,.28); }
 #weatherView .hero-range { margin:-8px 0 0; color:var(--reading-ink); font-size:1.05rem; font-weight:500; line-height:1.35; text-align:center; }
 #weatherView .hero-range:empty { display:none; }
 #weatherView .hero-range .sk-line { width:min(9rem,50%); }
