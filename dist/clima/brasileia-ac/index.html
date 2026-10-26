@@ -115,13 +115,17 @@
 .pluvia-intro.is-leaving { opacity:0; pointer-events:none; transition:opacity .38s ease .07s; }
 .pluvia-intro.is-leaving :is(.intro-wordmark,.intro-tagline,.intro-kicker) { opacity:0; transform:translateY(-22px); transition:opacity .28s ease,transform .32s cubic-bezier(.4,0,.6,1); }
 .pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; pointer-events:none; }
-.intro-wordmark { position:relative; left:-.12em; z-index:1; display:flex; align-items:center; gap:2px; color:var(--intro-ink,#f3f8ff); font-size:clamp(2.8rem,12vw,5rem); font-weight:900; line-height:1; letter-spacing:-.035em; }
+/* Marca (1.26.6, pedido do usuário: "alinhados certinhos centralizados"): o nome PLUVIA fica no centro da tela e
+   o slogan embaixo tem exatamente a largura dele (justificado), começando e terminando nas mesmas linhas; a gota
+   fica pendurada à esquerda, fora da caixa. O slogan acompanha o tamanho do nome (em do bloco). */
+.intro-lockup { position:relative; z-index:1; display:grid; font-size:clamp(2.8rem,12vw,5rem); }
+.intro-wordmark { position:relative; z-index:1; display:flex; justify-content:center; align-items:center; color:var(--intro-ink,#f3f8ff); font-size:1em; font-weight:900; line-height:1; letter-spacing:-.035em; }
 .intro-wordmark strong { font-family:var(--font-brand,"Nunito",ui-rounded,system-ui,sans-serif); font-weight:900; }
 /* Marca nova (1.26, logo enviada pelo dono): a gota colorida cai e assenta com um leve amassado, depois o nome
    entra. Imagem com transparência (logo-mark.webp), só transform e opacity num elemento pequeno. */
-.intro-drop { display:block; width:clamp(52px,14vw,86px); height:clamp(52px,14vw,86px); margin-right:6px; background:url("/logo-mark.webp?v=logo-5") center / contain no-repeat; transform-origin:50% 100%; animation:intro-fall .56s cubic-bezier(.5,0,.9,.55) .12s both; }
+.intro-drop { position:absolute; right:100%; top:calc(50% - clamp(52px,14vw,86px) / 2); display:block; width:clamp(52px,14vw,86px); height:clamp(52px,14vw,86px); margin-right:8px; background:url("/logo-mark.webp?v=logo-5") center / contain no-repeat; transform-origin:50% 100%; animation:intro-fall .56s cubic-bezier(.5,0,.9,.55) .12s both; }
 .intro-wordmark strong { animation:intro-word-in .55s cubic-bezier(.2,.8,.3,1) .62s both; }
-.pluvia-intro .intro-tagline { position:relative; z-index:1; margin:16px 0 0; color:#f1f6ff; font-size:clamp(.95rem,3vw,1.2rem); letter-spacing:.08em; animation:intro-caption-in .6s ease-out .85s both; }
+.pluvia-intro .intro-tagline { position:relative; z-index:1; width:0; min-width:100%; margin:16px 0 0; color:#f1f6ff; font-size:.325em; letter-spacing:.03em; white-space:nowrap; text-align:justify; text-align-last:justify; animation:intro-caption-in .6s ease-out .85s both; }
 .pluvia-intro .intro-kicker { position:absolute; bottom:calc(65px + env(safe-area-inset-bottom)); color:#e1ebf5; font-size:.65rem; font-weight:750; letter-spacing:.24em; text-transform:uppercase; }
 .pluvia-intro .intro-copy { display:none; }
 .pluvia-intro[data-quick] { animation-duration:.9s; }
@@ -174,8 +178,8 @@
     <div id="pluviaIntro" class="pluvia-intro">
       <p class="intro-kicker">Feito no Norte</p>
       <div class="intro-sky" aria-hidden="true"><span class="sky-twilight"></span><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
-      <div class="intro-wordmark"><span class="intro-drop" aria-hidden="true"></span><strong>PLUVIA</strong></div>
-      <p class="intro-tagline">O céu do Brasil agora</p>
+      <div class="intro-lockup"><div class="intro-wordmark"><span class="intro-drop" aria-hidden="true"></span><strong>PLUVIA</strong></div>
+      <p class="intro-tagline">O céu do Brasil agora</p></div>
       <p class="intro-copy">Consulte o tempo antes de sair.</p>
     </div>
     <script>
