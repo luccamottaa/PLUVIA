@@ -1051,7 +1051,7 @@ html body :is(details > summary,.account-more-item,#accountButton,#openCitySearc
 #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:pluvia-bar-grow .6s cubic-bezier(.22,1,.36,1) calc(var(--i,0) * 16ms) both; }
 @keyframes pluvia-bar-grow { from { height:0; min-height:0; } }
 @media (prefers-reduced-motion:reduce) {
-  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), #weatherView .next-hour-bars span::after, .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot), #weatherView .next-hour-bars span { transition:none; }
+  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), #weatherView .next-hour-bars span::after, .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot), #weatherView .next-hour-bars span, html body :is(#weatherView .air-details,#weatherView .astronomy-details,#accountDialog .notification-checks,#accountDialog .account-delete,#alertDetail details) > summary::before, html body #accountDialog :is(.account-group > summary,.capital-links summary)::after { transition:none; }
   #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
 }
 
@@ -2054,3 +2054,19 @@ body[data-ink="dark"] #weatherView .forecast-list .day-wind .temp-fill { backgro
    perde o próprio vidro e vira o fim do mesmo cartão, separado por uma linha fina. */
 #weatherView #chuva #previsao { margin:22px 0 0 !important; padding:18px 0 0 !important; border:0 !important; border-top:1px solid var(--reading-line) !important; border-radius:0 !important; background:none !important; box-shadow:none !important; }
 #weatherView #chuva #previsao .forecast-list { background:none; border:0; box-shadow:none; }
+
+/* 1.27.2 (pedido do usuário): "Tá chovendo aí?" mora no cartão do radar, embaixo do mapa
+   (relato de pessoas ao lado da chuva vista pelo radar), e não mais entre as horas e os 7 dias. */
+#weatherView .weather-map-card > .rain-report { grid-column:1 / -1; margin:2px 0 0; }
+
+/* Setas dos <details> giram em vez de trocar de desenho (pedido do usuário: "a setinha vira bem abrupta").
+   O triângulo nativo do navegador não anima; aqui ele é um ::before que gira 90° em 320 ms, junto com a
+   abertura pela altura de dialog-motion (data-closing devolve a seta no começo do fechamento). Só o
+   pseudo-elemento gira; nada de transform nos blocos. */
+html body :is(#weatherView .air-details,#weatherView .astronomy-details,#accountDialog .notification-checks,#accountDialog .account-delete,#alertDetail details) > summary { display:flex; align-items:center; gap:.5em; list-style:none; }
+html body :is(#weatherView .air-details,#weatherView .astronomy-details,#accountDialog .notification-checks,#accountDialog .account-delete,#alertDetail details) > summary::-webkit-details-marker { display:none; }
+html body :is(#weatherView .air-details,#weatherView .astronomy-details,#accountDialog .notification-checks,#accountDialog .account-delete,#alertDetail details) > summary::before { content:""; flex:none; width:.62em; height:.62em; background:currentColor; clip-path:polygon(18% 4%,96% 50%,18% 96%); transition:rotate .32s cubic-bezier(.3,.7,.2,1); }
+html body :is(#weatherView .air-details,#weatherView .astronomy-details,#accountDialog .notification-checks,#accountDialog .account-delete,#alertDetail details)[open]:not([data-closing]) > summary::before { rotate:90deg; }
+html body #accountDialog .account-group > summary::after { transition:transform .32s cubic-bezier(.3,.7,.2,1), margin .32s cubic-bezier(.3,.7,.2,1); }
+html body #accountDialog .capital-links summary::after { transition:rotate .32s cubic-bezier(.3,.7,.2,1); }
+@media (forced-colors:active) { html body :is(#weatherView .air-details,#weatherView .astronomy-details,#accountDialog .notification-checks,#accountDialog .account-delete,#alertDetail details) > summary::before { background:CanvasText; } }

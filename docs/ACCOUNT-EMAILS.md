@@ -2,7 +2,7 @@
 
 ## O que esta etapa entrega
 
-`supabase/templates/confirmation.html` e `recovery.html` usam a identidade do Pluvia, português, preheader, botão grande, link copiável e explicação para quem não solicitou o e-mail. Tabelas e estilos inline permitem leitura em clientes de e-mail; não há fontes remotas, pixels, script ou interpolação de nomes arbitrários. `{{ .ConfirmationURL }}` preserva o link seguro e descartável gerado pelo Supabase. Não fixar token, redirecionamento ou prazo de expiração no template.
+`supabase/templates/confirmation.html` e `recovery.html` usam a identidade do Pluvia (desde outubro/2026, a pedido do dono: céu de pôr do sol no topo com Sol e nuvem desenhados só com CSS e tabelas, sem imagem remota, folha azul-noite e botão em pílula no azul-claro da marca; `bgcolor` é o fallback onde o cliente ignora degradê, como Outlook e parte do Gmail), português, preheader, botão grande, link copiável e explicação para quem não solicitou o e-mail. Tabelas e estilos inline permitem leitura em clientes de e-mail; não há fontes remotas, pixels, script ou interpolação de nomes arbitrários. `{{ .ConfirmationURL }}` preserva o link seguro e descartável gerado pelo Supabase. Não fixar token, redirecionamento ou prazo de expiração no template.
 
 Assuntos: **Confirme seu e-mail e entre no Pluvia** e **Redefina sua senha do Pluvia**.
 
