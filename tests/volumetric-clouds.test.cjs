@@ -9,7 +9,10 @@ assert.equal(volume.mode({phase:'night',weather:'rain'}),'rain');
 assert.equal(volume.mode({phase:'night',weather:'rain',rain:'heavy'}),'heavy');
 assert.equal(volume.mode({phase:'night',weather:'storm'}),'heavy');
 for (const weather of ['sun','partly','few','fog','snow','unknown']) assert.equal(volume.mode({phase:'night',weather}),null,weather);
-for (const weather of ['cloud','rain','storm']) assert.equal(volume.mode({phase:'day',weather}),null,`dia ${weather}`);
+// De dia: só o céu parcial (onde o Sol aparece e passa atrás das nuvens); nublado e chuva ficam no CSS.
+assert.equal(volume.mode({phase:'day',weather:'partly'}),'day-partly');
+assert.equal(volume.mode({phase:'day',weather:'partly',clouds:'few'}),'day-few');
+for (const weather of ['cloud','rain','storm','sun','fog']) assert.equal(volume.mode({phase:'day',weather}),null,`dia ${weather}`);
 assert.equal(volume.mode(null),null);
 for (const palette of Object.values(volume.PALETTES)) {
   assert.match(palette.lit,/^#[0-9a-f]{6}$/); assert.match(palette.shade,/^#[0-9a-f]{6}$/);
@@ -17,6 +20,8 @@ for (const palette of Object.values(volume.PALETTES)) {
 }
 // O shader é WebGL 1 com laços de tamanho fixo (exigência do GLSL ES 1.0 no Safari).
 assert.match(volume.FS,/precision mediump float/);
+// Contraluz: espalhamento para a frente (Henyey-Greenstein) e o brilho atravessando a parte fina.
+assert.match(volume.FS,/float hg\(/); assert.match(volume.FS,/SUNI\*pow\(max\(cosA/);
 assert.doesNotMatch(volume.FS,/for\(int i=0;i<[a-zA-Z]/);
 
 const root = path.join(__dirname,'..','dist');
