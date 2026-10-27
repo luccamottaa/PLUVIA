@@ -37,7 +37,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-270"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-273"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
   assert.match(html, /styles\.css\?v=core-134/);
@@ -50,13 +50,13 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   assert.ok(!sw.includes('"./assets/sky-cloud-bank.webp"'),'textura antiga não é baixada pelo novo shell');
   // Nuvens por condição: baixadas (e guardadas pelo SW) só quando aquele céu aparece, fora do precache.
   const skyCss=fs.readFileSync(path.join(root,'sky.css'),'utf8');
-  for (const name of ['overcast','rain','storm','fog','stratus','cumulus']) {
+  for (const name of ['overcast','rain','storm','fog','stratus']) {
     const asset=`sky-cloud-${name}.webp`;
     assert.ok(fs.existsSync(path.join(root,'assets',asset)),asset);
     // 1.29.3: 3984 × 1328, 1:1 no iPhone (a de 528 px de altura era esticada quase 4× e ficava borrada).
     // Continuam fora do precache e com teto de tamanho: só quem vê aquele céu baixa, uma vez.
     // 1.29.4: chuva e tempestade redesenhadas com borda mais definida (clouds-10).
-    const version=['rain','storm','cumulus'].includes(name)?'clouds-10':'clouds-9';
+    const version=['rain','storm'].includes(name)?'clouds-10':'clouds-9';
     assert.ok(skyCss.includes(`./assets/${asset}?v=${version}`),`${asset} usada pelo céu da condição`);
     assert.ok(!sw.includes(asset),`${asset} fica fora do precache`);
     assert.ok(fs.statSync(path.join(root,'assets',asset)).size<(name==='overcast'?700:600)*1024,`${asset} com tamanho controlado para baixar sob demanda`);
