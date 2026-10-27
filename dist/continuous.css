@@ -1300,6 +1300,14 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 #weatherView .alert-nudge[hidden] { display:none; }
 #weatherView .alert-nudge p { flex:1 1 220px; margin:0; font-size:.9375rem; }
 #weatherView .alert-nudge-actions { display:flex; gap:4px; }
+/* Prévia do aviso no convite (1.31): um exemplo no formato da notificação do celular, só pintura. */
+#weatherView .alert-nudge-preview { flex:1 1 100%; display:grid; grid-template-columns:38px minmax(0,1fr); gap:10px; align-items:center; margin:6px 0 2px; padding:10px 12px; border-radius:18px; background:var(--card-fill, rgba(150,175,225,.085)); border:1px solid var(--card-border, rgba(190,210,245,.13)); }
+#weatherView .alert-nudge-preview img { width:38px; height:38px; border-radius:9px; }
+#weatherView .alert-nudge-preview-copy { display:grid; gap:1px; min-width:0; font-size:.8125rem; line-height:1.3; }
+#weatherView .alert-nudge-preview-app { display:flex; justify-content:space-between; color:var(--reading-muted); font-size:.8125rem; }
+#weatherView .alert-nudge-preview-app span { font-weight:400; }
+#weatherView .alert-nudge-preview strong { font-size:.875rem; font-weight:600; }
+#weatherView .alert-nudge[data-offer="done"] .alert-nudge-preview { display:none; }
 #weatherView .alert-nudge button { min-height:44px; padding:0 10px; border:0; background:none; color:var(--reading-link); font:inherit; font-size:.9375rem; font-weight:600; cursor:pointer; }
 #weatherView .alert-nudge .alert-nudge-dismiss { color:var(--reading-muted); font-weight:400; }
 /* Convite para instalar (só navegador do celular): linha discreta no fim dos 7 dias, ícone da marca. */

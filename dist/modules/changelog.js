@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.31", date:"2026-10-27", title:"Chuva com vento, prévia dos avisos e story com nuvens", items:[
+      "Com vento forte, a chuva do céu cai mais inclinada.",
+      "Quando o radar vê chuva chegando, o PLUVIA oferece os avisos no celular, e o convite mostra um exemplo de como o aviso chega.",
+      "Segurando o ícone do app no Android, há um atalho novo: Vai chover?",
+      "A imagem para compartilhar no story ganhou as nuvens do céu do app e a cor da condição: cinza na chuva, prata no nublado."]},
     {version:"1.30.1", date:"2026-10-27", title:"Chuva à noite em cinza", items:[
       "Com chuva ou trovoada à noite, o céu e os cartões ficam cinza-chumbo, como no app Tempo, em vez do azul-marinho."]},
     {version:"1.30", date:"2026-10-27", title:"Passe o dedo no gráfico do dia", items:[

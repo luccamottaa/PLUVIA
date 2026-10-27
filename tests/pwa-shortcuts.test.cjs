@@ -4,7 +4,7 @@ const dist=path.join(__dirname,'..','dist');
 
 test('manifest declara dois atalhos com URL dentro do escopo e ícones de 96px existentes',()=>{
  const manifest=JSON.parse(fs.readFileSync(path.join(dist,'manifest.webmanifest'),'utf8'));
- assert.deepEqual(manifest.shortcuts.map(item=>item.url),['/?abrir=cidades','/?abrir=radar']);
+ assert.deepEqual(manifest.shortcuts.map(item=>item.url),['/?abrir=cidades','/?abrir=radar','/?abrir=chuva']);
  for(const item of manifest.shortcuts){
   assert.ok(item.name && item.short_name.length<=12,item.name);
   assert.equal(new URL(item.url,manifest.scope).origin,new URL(manifest.scope).origin);

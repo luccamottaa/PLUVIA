@@ -51,6 +51,11 @@
   // Decorative cloud drift follows the current 10 m wind: calm air barely moves the
   // layers, strong wind speeds them up. 10 km/h keeps the CSS reference duration.
   // A missing reading is not calm: it keeps the neutral rate.
+  // Rain slant (1.31, user request: rain that follows the wind): from 25 km/h of current 10 m wind the rain
+  // streaks switch to a steeper drawing (static SVG, no transform or bigger layer). Missing/invalid reading is calm.
+  function rainWind(windKmh) {
+    return typeof windKmh === 'number' && Number.isFinite(windKmh) && windKmh >= 25 && windKmh <= 400 ? 'strong' : 'calm';
+  }
   function cloudRate(windKmh) {
     if (typeof windKmh !== 'number' || !Number.isFinite(windKmh) || windKmh < 0 || windKmh > 400) return 1;
     return Math.round(Math.min(2.4,Math.max(.4,.4 + windKmh * .06)) * 100) / 100;
@@ -197,7 +202,7 @@
       const darkDay = state.phase === 'day' && state.solar === 'none' && (greyDay || rain.kind === 'moderate' || rain.kind === 'heavy');
       const ink = state.phase === 'day' && !darkDay ? 'dark' : 'light';
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
-        for (const [key,value] of Object.entries({phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,ink,skyTransition:animate ? 'live' : 'instant'})) if (node.dataset[key] !== value) node.dataset[key] = value;
+        for (const [key,value] of Object.entries({phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,wind:rain.kind==='none' ? 'calm' : rainWind(wind),ink,skyTransition:animate ? 'live' : 'instant'})) if (node.dataset[key] !== value) node.dataset[key] = value;
       }
       for (const node of skyNodes()) {
         setVar(node,'--twilight-opacity',state.strength.toFixed(3));
@@ -340,5 +345,5 @@
     sync();
     return {sync};
   }
-  return {create,weatherType,cityTime,observeMotion,cloudRate};
+  return {create,weatherType,cityTime,observeMotion,cloudRate,rainWind};
 });

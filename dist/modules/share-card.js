@@ -44,6 +44,18 @@
     };
   }
 
+  // Céu do story pela condição, como na Home: azul limpo, prata no nublado, cinza-chumbo na chuva e na trovoada
+  // (de dia com texto claro), azul-noite ou cinza-escuro à noite. `clouds` é a opacidade das nuvens (0 = sem).
+  function skyLook(code, night) {
+    const c = finite(code);
+    const kind = c === null ? 'clear' : c >= 95 ? 'storm' : (c >= 51 && c <= 67) || (c >= 80 && c <= 82) ? 'rain' : c === 3 || c === 45 || c === 48 ? 'cloud' : c === 1 || c === 2 ? 'partly' : c >= 71 && c <= 86 ? 'cloud' : 'clear';
+    if (night) return kind === 'rain' || kind === 'storm'
+      ? {sky:['#24282e', '#15171b'], clouds:.9, tint:'rgba(70,76,86,.82)', light:true}
+      : {sky:['#10233f', '#080f22'], clouds:kind === 'clear' ? 0 : kind === 'partly' ? .55 : .75, tint:'rgba(52,62,96,.8)', light:true};
+    if (kind === 'rain' || kind === 'storm') return {sky:['#3b434c', '#57606a'], clouds:1, tint:'rgba(96,104,114,.7)', light:true};
+    if (kind === 'cloud') return {sky:['#8796aa', '#9eabbc'], clouds:1, tint:null, light:false};
+    return {sky:['#5fb0f2', '#cfe9fa'], clouds:kind === 'partly' ? 1 : 0, tint:null, light:false};
+  }
   function loadImage(doc, src) {
     return new Promise(resolve => {
       const image = new (doc.defaultView?.Image || Image)();
@@ -82,19 +94,33 @@
     try { await Promise.all(['300 300px Inter', '500 48px Inter', '600 72px Inter', '900 64px Nunito'].map(font => doc.fonts?.load?.(font))); } catch {}
     const icons = doc.defaultView?.PLUVIA?.weatherIcons;
     const iconName = data.code === null ? null : icons?.icon?.(data.code, !data.night)?.src || null;
-    const [icon, mark] = await Promise.all([
+    const look = skyLook(data.code, data.night);
+    const [icon, mark, veil] = await Promise.all([
       iconName ? loadImage(doc, iconName) : null,
-      loadImage(doc, '/logo-mark.png?v=logo-5')
+      loadImage(doc, '/logo-mark.png?v=logo-5'),
+      look.clouds ? loadImage(doc, '/assets/sky-cloud-veil.webp?v=clouds-9') : null
     ]);
-    const ink = data.night ? '#f1f7ff' : '#0f2a44', muted = data.night ? '#b9cbe3' : '#2d4a66';
+    const ink = look.light ? '#f1f7ff' : '#0f2a44', muted = look.light ? '#b9cbe3' : '#2d4a66';
     const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-    if (data.night) {sky.addColorStop(0, '#10233f'); sky.addColorStop(1, '#080f22');}
-    else {sky.addColorStop(0, '#5fb0f2'); sky.addColorStop(1, '#cfe9fa');}
+    sky.addColorStop(0, look.sky[0]); sky.addColorStop(1, look.sky[1]);
     ctx.fillStyle = sky; ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    // Nuvens do próprio céu do app (1.31): a mesma textura do véu, tingida pela condição numa tela à parte
+    // (source-atop pinta só onde há nuvem) e desenhada no alto do story. Sem a imagem, fica só o degradê.
+    if (veil) {
+      const layer = doc.createElement('canvas'), h = 760;
+      layer.width = WIDTH; layer.height = h;
+      const lc = layer.getContext('2d');
+      if (lc) {
+        lc.drawImage(veil, -260, 0, h * 3, h);
+        if (look.tint) {lc.globalCompositeOperation = 'source-atop'; lc.fillStyle = look.tint; lc.fillRect(0, 0, WIDTH, h);}
+        ctx.globalAlpha = look.clouds; ctx.drawImage(layer, 0, 40); ctx.globalAlpha = 1;
+        layer.width = layer.height = 0;
+      }
+    }
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     // Nome na cor do texto; o azul da marca
     // fica no selo do dia marcante.
-    const brand = data.night ? '#b7d2ff' : '#2f557f';
+    const brand = look.light ? '#b7d2ff' : '#2f557f';
     // Marca nova (1.26): a logo colorida, desenhada como está (antes era uma gota pintada de uma cor só).
     if (mark) ctx.drawImage(mark, WIDTH / 2 - 160, 124, 88, 88);
     ctx.fillStyle = ink; ctx.font = '900 64px Nunito, Inter, sans-serif'; ctx.textAlign = 'left';
@@ -106,7 +132,7 @@
       ctx.fillStyle = brand; ctx.beginPath();
       if (typeof ctx.roundRect === 'function') ctx.roundRect(x, y, width, h, h / 2); else ctx.rect(x, y, width, h);
       ctx.fill();
-      ctx.fillStyle = data.night ? '#0b1830' : '#ffffff'; ctx.fillText(data.badge, WIDTH / 2, y + 57);
+      ctx.fillStyle = look.light ? '#0b1830' : '#ffffff'; ctx.fillText(data.badge, WIDTH / 2, y + 57);
     }
     ctx.fillStyle = ink; ctx.font = '600 84px Inter, sans-serif';
     // Bloco central um pouco abaixo do meio-alto: equilibra com a fonte no rodapé e foge da barra do story.
@@ -134,5 +160,5 @@
     return new Promise(resolve => canvas.toBlob(blob => { canvas.width = canvas.height = 0; resolve(blob); }, 'image/png'));
   }
 
-  return {model, render, wrap, WIDTH, HEIGHT};
+  return {model, render, wrap, skyLook, WIDTH, HEIGHT};
 });

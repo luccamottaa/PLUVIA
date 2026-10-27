@@ -1,4 +1,5 @@
-/* Atalhos do PWA (manifest "shortcuts"): /?abrir=cidades|radar.
+/* Atalhos do PWA (manifest "shortcuts"): /?abrir=cidades|radar|chuva (chuva desde a 1.31: rola até as Próximas horas, onde
+   ficam o "Vai chover?" e a chuva hora a hora).
    Remove o parâmetro do endereço na hora, para um reload não reabrir o diálogo, e só age
    depois da intro e da primeira previsão. Sem o parâmetro, não faz nada. */
 (function(root, factory) {
@@ -8,7 +9,7 @@
   if (root.document && root.location) api.run(root);
 })(typeof globalThis !== 'undefined' ? globalThis : this, function() {
   'use strict';
-  const ACTIONS = ['cidades', 'radar'];
+  const ACTIONS = ['cidades', 'radar', 'chuva'];
   const WAIT_MS = 15000;
 
   // Ação pedida e o endereço sem o parâmetro (os demais parâmetros e o hash continuam).
@@ -39,6 +40,7 @@
       root.removeEventListener('pluvia:weather-updated', check);
       if (action === 'cidades' && typeof openCitySearch === 'function') openCitySearch();
       else if (action === 'radar') el('expandRadar')?.click();
+      else if (action === 'chuva') (el('tips') || el('chuva'))?.scrollIntoView?.({block:'start'});
     }
     function check() { if (ready()) act(); }
     root.addEventListener('pluvia:weather-updated', check);

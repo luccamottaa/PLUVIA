@@ -37,13 +37,13 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-268"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-269"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
   assert.match(html, /styles\.css\?v=core-134/);
   assert.match(html, /redesign\.css\?v=panel-51/);
   assert.doesNotMatch(sw, /glass\.js/);
-  assert.match(html, /app\.js\?v=panel-139/);
+  assert.match(html, /app\.js\?v=panel-140/);
   assert.ok(!sw.includes('"./assets/panel-night-sky.webp"'), 'não baixa a antiga foto sem uso no cache inicial');
   for (const asset of ['sky-sun.svg','sky-cloud-veil.webp','sky-cloud-volume.webp']) assert.ok(sw.includes(`./assets/${asset}`));
   assert.ok(['sky-cloud-veil.webp','sky-cloud-volume.webp'].reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<600*1024,'texturas das nuvens mantêm orçamento do shell mobile');
@@ -64,7 +64,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   const starAssets=['sky-stars.svg','sky-stars-shimmer.svg'];
   for(const asset of starAssets) assert.ok(sw.includes(`./assets/${asset}`),'céu noturno disponível offline: '+asset);
   assert.ok(starAssets.reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<16000,'campo estelar mantém orçamento leve');
-  const stormAssets=['rain-near.svg','rain-far.svg','lightning-bolt.svg'];
+  const stormAssets=['rain-near.svg','rain-far.svg','rain-near-wind.svg','rain-far-wind.svg','lightning-bolt.svg'];
   for(const asset of stormAssets) assert.ok(sw.includes(`./assets/${asset}`),'efeito disponível offline: '+asset);
   assert.ok(stormAssets.reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<15000,'efeitos vetoriais mantêm orçamento pequeno');
   assert.ok(!sw.includes('"./assets/rain-drops.svg"'),'asset antigo fica disponível para shells legados, sem precache novo');

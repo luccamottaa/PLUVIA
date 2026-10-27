@@ -27,8 +27,16 @@ def radar(draw):  # tela de radar: anéis, varredura e um eco
     draw.ellipse((cx - 14, cy - 14, cx + 14, cy + 14), fill=WHITE)
     draw.ellipse((cx - 70, cy + 20, cx - 38, cy + 52), fill=WHITE)
 
+def rain(draw):  # guarda-chuva: copa, cabo em gancho e duas gotas
+    draw.pieslice((72, 92, 312, 300), 180, 360, fill=WHITE)
+    draw.line((192, 196, 192, 286), fill=WHITE, width=W)
+    draw.arc((192, 256, 252, 316), 0, 180, fill=WHITE, width=W)
+    for x, y in ((112, 236), (282, 236)):
+        draw.ellipse((x - 13, y, x + 13, y + 26), fill=WHITE)
+        draw.polygon(((x - 12, y + 10), (x, y - 16), (x + 12, y + 10)), fill=WHITE)
+
 OUT.mkdir(parents=True, exist_ok=True)
-for name, glyph in (('cidades', cities), ('radar', radar)):
+for name, glyph in (('cidades', cities), ('radar', radar), ('chuva', rain)):
     image, draw = base(); glyph(draw)
     image.resize((96, 96), Image.LANCZOS).save(OUT / f'{name}.png', optimize=True)
     print(name, (OUT / f'{name}.png').stat().st_size, 'bytes')

@@ -36,3 +36,14 @@ test('dia marcante vira selo no story; sem momento ou valor desconhecido, nenhum
   assert.equal(card.model(snapshot,{now}).badge,null);
   assert.equal(card.model(snapshot,{now,moment:'toString'}).badge,null);
 });
+
+test('céu do story pela condição: cinza na chuva com texto claro, prata no nublado, nuvens só com nuvem',()=>{
+  const {skyLook}=require('../dist/modules/share-card.js');
+  assert.equal(skyLook(0,false).clouds,0);assert.equal(skyLook(0,false).light,false);
+  assert.equal(skyLook(2,false).clouds,1);
+  assert.deepEqual(skyLook(3,false).sky,['#8796aa','#9eabbc']);
+  for(const code of [61,63,81,95]) {const look=skyLook(code,false);assert.equal(look.light,true,`dia com ${code} usa texto claro`);assert.deepEqual(look.sky,['#3b434c','#57606a']);}
+  assert.deepEqual(skyLook(63,true).sky,['#24282e','#15171b'],'chuva à noite em cinza');
+  assert.equal(skyLook(0,true).clouds,0,'noite limpa sem nuvens');
+  assert.equal(skyLook(null,false).clouds,0,'condição ausente: céu limpo, nada inventado');
+});
