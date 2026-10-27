@@ -66,6 +66,19 @@
           "type": "image/png"
         }
       ]
+    },
+    {
+      "name": "Vai chover?",
+      "short_name": "Vai chover?",
+      "description": "Ver a chuva das próximas horas",
+      "url": "/?abrir=chuva",
+      "icons": [
+        {
+          "src": "/assets/shortcuts/chuva.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }

@@ -212,6 +212,10 @@ html,body { background:var(--sky-base); }
 @keyframes sky-star-shimmer { 0% { opacity:.12; } 35% { opacity:.9; } 65% { opacity:.4; } 100% { opacity:1; } }
 @keyframes sky-star-twinkle { 0% { opacity:.85; } 45% { opacity:.08; } 100% { opacity:.7; } }
 @keyframes sky-star-drift { from { transform:translate3d(0,0,0); } to { transform:translate3d(-900px,0,0); } }
+/* Chuva com vento (1.31, pedido do usuário): a partir de 25 km/h os traços trocam pelo desenho mais inclinado
+   (data-wind, escrito por sky-atmosphere); mesma camada, mesmo tile, sem transform nem camada maior. */
+:root[data-wind="strong"] .sky-rain { background-image:url("./assets/rain-near-wind.svg?v=rain-1"); }
+:root[data-wind="strong"] .sky-rain-back { background-image:url("./assets/rain-far-wind.svg?v=rain-1"); }
 @keyframes sky-rain-fall { to { transform:translate3d(0,480px,0); } }
 @keyframes storm-bolt {
   0% { opacity:0; transform:translate3d(calc(34vw - 50%),0,0) scale(1,0.3); }

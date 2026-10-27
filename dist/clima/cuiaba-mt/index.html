@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-268" />
+    <meta name="pluvia-release" content="pluvia-panel-269" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -69,8 +69,8 @@
     <link rel="preload" href="/assets/sky-cloud-veil.webp?v=clouds-9" as="image" type="image/webp" fetchpriority="high" />
     <link rel="preload" href="/vendor/suncalc.js?v=sky-3" as="script" />
     <link rel="preload" href="/modules/moon-view.js?v=moon-8" as="script" />
-    <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-21" as="script" />
-    <link rel="preload" href="/sky.css?v=sky-48" as="style" />
+    <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-22" as="script" />
+    <link rel="preload" href="/sky.css?v=sky-49" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       /* fonts.css inline (o mesmo texto do arquivo, conferido por teste): era uma folha bloqueante a mais na cadeia crítica. */
@@ -140,9 +140,9 @@
     <script src="/modules/city-time.js?v=time-2"></script>
     <script src="/vendor/suncalc.js?v=sky-3"></script>
     <script src="/modules/moon-view.js?v=moon-8"></script>
-    <script src="/modules/sky-atmosphere.js?v=sky-21"></script>
+    <script src="/modules/sky-atmosphere.js?v=sky-22"></script>
     <script src="/modules/sky-events.js?v=sky-events-3" defer></script><script src="/modules/sun-table.js?v=sun-table-1" defer></script><script src="/modules/eclipses.js?v=eclipses-3" defer></script>
-    <link rel="stylesheet" href="/sky.css?v=sky-48" />
+    <link rel="stylesheet" href="/sky.css?v=sky-49" />
     <script>
       /* O antigo modo seguro (céu parado depois de uma queda) saiu a pedido: limpa as marcas que ele deixou. */
       try { localStorage.removeItem("pluvia-boot-pending"); localStorage.removeItem("pluvia-safe-until"); } catch (e) {}
@@ -223,7 +223,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="/redesign.css?v=panel-51" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-140" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-141" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -401,7 +401,7 @@
         <p class="tips-rain"><span class="tip-icon" aria-hidden="true"><svg class="metric-line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12.5a9 9 0 0 1 18 0Z"/><path d="M12 12.5v6a2 2 0 0 1-4 0"/><path d="M12 3.5v-1"/></svg></span><span class="rain-answer" id="rainAnswer" data-tone="loading"><span class="sk sk-line" aria-hidden="true"></span></span></p>
         <ul class="tips-list" id="tipsList" hidden></ul>
       </section>
-      <div class="alert-nudge" id="alertNudge" role="region" aria-label="Avisos no celular" hidden><p id="alertNudgeText"></p><div class="alert-nudge-actions"><button id="alertNudgeEnable" type="button">Ativar avisos</button><button id="alertNudgeDismiss" class="alert-nudge-dismiss" type="button">Agora não</button></div></div>
+      <div class="alert-nudge" id="alertNudge" role="region" aria-label="Avisos no celular" hidden><p id="alertNudgeText"></p><div class="alert-nudge-preview" id="alertNudgePreview" aria-hidden="true"><img id="alertNudgePreviewIcon" src="/assets/notifications/rain.png" alt="" width="38" height="38" loading="lazy" decoding="async"><div class="alert-nudge-preview-copy"><span class="alert-nudge-preview-app">PLUVIA<span>agora</span></span><strong id="alertNudgePreviewTitle"></strong><span id="alertNudgePreviewBody"></span></div></div><div class="alert-nudge-actions"><button id="alertNudgeEnable" type="button">Ativar avisos</button><button id="alertNudgeDismiss" class="alert-nudge-dismiss" type="button">Agora não</button></div></div>
       <section class="hourly-peek panel" id="chuva" aria-labelledby="hourlyPeekTitle">
         <div class="hourly-peek-heading"><div class="heading-with-tip"><h2 id="hourlyPeekTitle">Próximas horas</h2><details class="info-tip"><summary aria-label="Sobre a previsão por hora"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p class="rain-phrase" id="rainPhraseWrap"><small id="rainPhraseMeta">Open-Meteo</small></p><p>Previsão por modelos no ponto de referência do município. A chance de chuva aparece quando passa de 20%; toque num horário para ver sensação, volume e rajadas.</p><p>No modo Chuva, a barra mostra só a intensidade prevista (as marcas são 2,5 e 7,5 mm/h, chuva fraca e forte) e a porcentagem embaixo é a chance; no modo Vento, a linha é a velocidade e a área clara embaixo dela, as rajadas; a seta pequena aponta para onde o vento vai.</p></div></details></div><div class="hourly-modes" role="group" aria-label="O que mostrar nas próximas horas"><button type="button" data-mode="conditions" aria-pressed="true" aria-label="Condição e temperatura"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 18h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7 11a3.5 3.5 0 0 0 0 7Z"/></svg></button><button type="button" data-mode="rain" aria-pressed="false" aria-label="Chuva"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.5c3 4 5.5 7.2 5.5 10.2a5.5 5.5 0 0 1-11 0c0-3 2.5-6.2 5.5-10.2Z"/></svg></button><button type="button" data-mode="wind" aria-pressed="false" aria-label="Vento"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 9h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h7"/></svg></button></div></div>
         <p id="hourlyDecision" class="hourly-decision">Toque em um horário para ver sensação, chuva e rajadas.</p>
@@ -563,7 +563,7 @@
       <button id="installDone" type="button">Entendi</button>
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="privacyTitle"><h3 id="privacyTitle">Privacidade</h3><p class="privacy-full"><a href="/privacidade/">Política de Privacidade completa</a>: dados, bases legais, prazos e seus direitos pela LGPD.</p><label for="analyticsConsent"><input id="analyticsConsent" type="checkbox"> Ajudar a melhorar o Pluvia</label><p>Compartilhe contagens de uso e tipos de falha com o PostHog (servidores nos EUA). Não enviamos nomes, e-mail, cidade, coordenadas ou texto pesquisado. Não gravamos sua tela nem vinculamos métricas à sua conta.</p><p id="analyticsChoiceStatus" role="status">Desativado. A previsão funciona sem compartilhar métricas.</p><p>O servidor recebe a conexão de rede; solicitamos que o IP não seja usado para geolocalização. <a href="https://posthog.com/privacy" target="_blank" rel="noreferrer">Política de privacidade do PostHog</a>.</p><p>A busca por voz usa o reconhecimento de fala do próprio navegador (no Chrome, o áudio é processado pelo Google). O PLUVIA não recebe nem guarda o áudio.</p><p>Quando você responde “Tá chovendo aí?”, guardamos por 2 dias a resposta, a cidade e o horário, com um código aleatório deste aparelho (só para evitar respostas repetidas). Sem conta, nome ou localização.</p><p>Para sabermos quantos aparelhos abrem o PLUVIA por dia, cada aparelho soma +1 num contador uma vez por dia. Só o total do dia fica guardado: nada de identificador, cidade, conta ou endereço de internet. Com “Do Not Track” ou GPC ligado, este aparelho não é contado.</p><p>O site é entregue pela Cloudflare, que recebe a conexão como qualquer serviço de hospedagem e guarda cópias dos arquivos do app para abrir mais rápido. A medição de visitas da Cloudflare fica desligada.</p></section><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Eclipses: <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noreferrer">Astronomy Engine</a> (MIT). Medido agora: estações automáticas do <a href="https://portal.inmet.gov.br/" target="_blank" rel="noreferrer">INMET</a>, pelo serviço WIS2 da OMM. Nível dos rios: telemetria da <a href="https://www.gov.br/ana/" target="_blank" rel="noreferrer">ANA</a>. Focos de calor: <a href="https://terrabrasilis.dpi.inpe.br/queimadas/portal/" target="_blank" rel="noreferrer">Programa Queimadas do INPE</a> (detecções de satélite, agrupadas por ~1 km). Boletins dos aeroportos (METAR/SPECI): <a href="https://www.decea.mil.br/" target="_blank" rel="noreferrer">DECEA</a>, pela API pública do <a href="https://aviationweather.gov/" target="_blank" rel="noreferrer">Aviation Weather Center</a> (NOAA). Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
-    <script src="/analytics.js?v=analytics-19" defer></script>
+    <script src="/analytics.js?v=analytics-20" defer></script>
     <script src="/modules/sources.js?v=panel-26" defer></script>
     <script src="/modules/dialog-motion.js?v=motion-4" defer></script>
     <script src="/modules/http-client.js?v=http-4" defer></script>
@@ -581,7 +581,7 @@
     <script src="/modules/hourly-detail.js?v=detail-10" defer></script>
     <script src="/modules/daily-detail.js?v=daily-6" defer></script>
     <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="/app.js?v=panel-139" defer></script>
+    <script src="/app.js?v=panel-140" defer></script>
     <script src="/p0.js?v=panel-50" defer></script>
     <script src="/modules/risks.js?v=core-120" defer></script>
     <script src="/modules/adapters.js?v=core-110" defer></script>
@@ -593,14 +593,14 @@
     <script src="/modules/captcha.js?v=captcha-1" defer></script>
     <script src="/account.js?v=account-18" defer></script>
     <script src="/favorite-cities.js?v=favorites-11" defer></script>
-    <script src="/modules/share-card.js?v=share-card-7" defer></script>
-    <script src="/modules/share-weather.js?v=share-12" defer></script>
+    <script src="/modules/share-card.js?v=share-card-8" defer></script>
+    <script src="/modules/share-weather.js?v=share-13" defer></script>
     <script src="/saved-places.js?v=places-2" defer></script>
     <script src="/modules/brazil-now.js?v=brazil-5" defer></script>
     <script src="/modules/month-recap.js?v=month-2" defer></script>
     <script src="/modules/station-now.js?v=station-5" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-8" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-2" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-2" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-303" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-3" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-2" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-304" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-37" defer></script>

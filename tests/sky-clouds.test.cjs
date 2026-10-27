@@ -94,3 +94,12 @@ test('no navegador o ritmo do vento entra no próximo quadro e escritas iguais n
   sky.apply(3,1,null,city,at,20);
   assert.equal(writes,before,'o mesmo estado não reescreve propriedades herdadas pela página inteira');
 });
+
+test('chuva com vento: a partir de 25 km/h os traços inclinam; leitura ausente é calmaria',()=>{
+  const {rainWind}=require('../dist/modules/sky-atmosphere.js');
+  assert.equal(rainWind(24.9),'calm');assert.equal(rainWind(25),'strong');assert.equal(rainWind(60),'strong');
+  for(const value of [null,undefined,'30',NaN,-5,900]) assert.equal(rainWind(value),'calm');
+  const css=fs.readFileSync(require.resolve('../dist/sky.css'),'utf8');
+  assert.match(css,/:root\[data-wind="strong"\] \.sky-rain \{ background-image:url\("\.\/assets\/rain-near-wind\.svg/);
+  assert.match(css,/:root\[data-wind="strong"\] \.sky-rain-back \{ background-image:url\("\.\/assets\/rain-far-wind\.svg/);
+});

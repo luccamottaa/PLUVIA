@@ -1066,6 +1066,7 @@ function setRainAnswer(answer) {
   node.textContent = answer.text;
   node.dataset.tone = answer.tone;
   if (typeof noteAlertNudge === "function") noteAlertNudge("rain", answer.tone === "rain" || answer.tone === "storm");
+  if (typeof noteAlertNudge === "function") noteAlertNudge("radar", Boolean(answer.nowcast));
   if (typeof noteShareMoment === "function") noteShareMoment("storm", answer.tone === "storm");
 }
 
@@ -1125,7 +1126,7 @@ function noteAlertNudge(reason, active) {
 function updateAlertNudge() {
   const box = $("alertNudge"), text = $("alertNudgeText");
   if (!box?.dataset || !text) return;
-  const nudgeRain = box.dataset.rain === "true", nudgeOfficial = box.dataset.official === "true", nudgeRegular = box.dataset.regular === "true";
+  const nudgeRain = box.dataset.rain === "true", nudgeOfficial = box.dataset.official === "true", nudgeRegular = box.dataset.regular === "true", nudgeRadar = box.dataset.radar === "true";
   const button = $("alertNudgeEnable"), dismiss = $("alertNudgeDismiss");
   // Logo depois de ativar, o convite vira a confirmação até a troca de cidade ou até os avisos desligarem.
   if (box.dataset.done && (box.dataset.done !== activeCity?.id || globalThis.PLUVIA?.alertOffer?.canOffer?.())) delete box.dataset.done;
@@ -1137,17 +1138,34 @@ function updateAlertNudge() {
   }
   if (button) button.hidden = false;
   if (dismiss) dismiss.hidden = false;
-  const show = (nudgeRain || nudgeOfficial || nudgeRegular) && Boolean(globalThis.PLUVIA?.alertOffer?.canOffer?.());
+  const show = (nudgeRain || nudgeOfficial || nudgeRegular || nudgeRadar) && Boolean(globalThis.PLUVIA?.alertOffer?.canOffer?.());
   const appearing = show && box.hidden;
   box.hidden = !show;
   if (!show) return;
   const install = Boolean(globalThis.PLUVIA?.alertOffer?.needsInstall?.());
-  const reason = nudgeOfficial ? "official" : nudgeRain ? "rain" : "regular";
+  // Chuva vista chegando no radar (1.31) é o melhor momento: a pessoa vê na hora o aviso que vai receber.
+  const reason = nudgeOfficial ? "official" : nudgeRadar ? "radar" : nudgeRain ? "rain" : "regular";
   text.textContent = reason === "official"
     ? "Tem aviso do INMET valendo agora. Quer receber os próximos no celular?"
-    : reason === "rain"
+    : reason === "radar"
+      ? "O radar está vendo chuva chegando. Quer que o PLUVIA te avise no celular assim, antes da chuva, nas próximas vezes?"
+      : reason === "rain"
       ? "Vai chover por aqui. Quer um aviso no celular quando a chuva estiver chegando?"
       : `Quer saber antes quando for chover${activeCity?.name ? ` em ${activeCity.name}` : ""}? Te aviso no celular, e às 7h chega o resumo do dia.`;
+  // Prévia de como o aviso chega (1.31): um exemplo do tipo de aviso daquele convite, com a cidade aberta.
+  // Decorativa (aria-hidden): o texto do convite já explica.
+  const place = (typeof activeCity !== "undefined" && activeCity?.name) || "sua cidade";
+  const preview = {
+    official:["alert-3", `INMET · Aviso oficial`, `Alerta para ${place}, com o horário e as recomendações do INMET.`],
+    radar:["rain", `Chuva chegando · ${place}`, "Pelo radar, a chuva deve chegar em cerca de 20 min."],
+    rain:["rain", `Chuva chegando · ${place}`, "Pelo radar, a chuva deve chegar em cerca de 20 min."],
+    regular:["daily", `Bom dia · ${place}`, "Manhã com sol, tarde com chuva. Leve guarda-chuva."]
+  }[reason];
+  if ($("alertNudgePreviewTitle")) {
+    $("alertNudgePreviewIcon").src = `./assets/notifications/${preview[0]}.png`;
+    $("alertNudgePreviewTitle").textContent = preview[1];
+    $("alertNudgePreviewBody").textContent = preview[2];
+  }
   if (button) button.textContent = install ? "Como ativar" : "Ativar avisos";
   box.dataset.offer = install ? "install" : "enable";
   box.dataset.reason = reason;
