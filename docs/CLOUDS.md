@@ -100,7 +100,7 @@ O usuário pediu nuvens "bonitas e realistas" e mandou como referência um print
 - **Tamanho de arquivo:** 3984 × 1328 desde a 1.29.3, 1:1 com os 1320 pixels reais da nuvem no iPhone (era 2112 × 704; 3:1 e múltiplo de 16). Com 2100 × 700 o último bloco de 16 px do WebP era parcial, e a última coluna saía da compressão diferente da primeira (degrau na emenda, medido por `verify-clouds.py`).
 - **Tamanho:** véu 136,4KiB + volume 109,0KiB = 245,4KiB no precache (antes 343,3KiB).
 - **Céu ao redor:** em volta de cada banco do perfil "poucas nuvens", o céu é limpo, para a máscara mostrar uma nuvem só (a cobertura medida pelo QA fica abaixo de 25% mesmo em 2560 × 1080).
-- **Versão:** `?v=clouds-9` em todas (3984 × 1328 desde a 1.29.3; véu e volume juntos < 600 KiB no precache).
+- **Versão:** `?v=clouds-9` (3984 × 1328 desde a 1.29.3; véu e volume juntos < 600 KiB no precache); chuva, tempestade e volume `?v=clouds-10`, redesenhadas com borda mais definida na 1.29.4.
 
 Continua sendo decoração qualitativa: arte original gerada, não foto, sem asset da Apple, e não representa a nebulosidade observada.
 
