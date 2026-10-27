@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.37", date:"2026-10-27", title:"Quanto o PLUVIA acerta", items:[
+      "Novo atalho no fim dos 7 dias: veja quantas chuvas o PLUVIA avisou e quantas vezes o “vai chover” deu certo, comparando com a estação do INMET nas próximas 3 e 12 horas.",
+      "Mostra os dois lados, os acertos e os alarmes que não deram em nada. Por enquanto a medição é feita nas capitais."]},
     {version:"1.36", date:"2026-10-27", title:"Raio dentro das nuvens, arco-íris e estrela cadente", items:[
       "Na trovoada, as nuvens em 3D se acendem por dentro em volta do raio, como numa tempestade de verdade.",
       "Com chuva fraca ou garoa e o Sol baixo, aparece um arco-íris do lado oposto ao Sol, onde ele estaria no céu.",

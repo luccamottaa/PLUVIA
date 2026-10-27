@@ -15,7 +15,7 @@
     <script src="./modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-278" />
+    <meta name="pluvia-release" content="pluvia-panel-279" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -222,7 +222,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="./redesign.css?v=panel-51" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-141" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-142" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-meteor"></span><span class="sky-rainbow"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -422,7 +422,7 @@
         <section class="forecast-section" id="previsao" aria-labelledby="forecastTitle">
           <div class="section-heading"><div><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 4h2m4 0h2m-8 4h2m4 0h2"/></svg></span><h2 id="forecastTitle">Próximos 7 dias</h2><details class="info-tip"><summary aria-label="Sobre a previsão de 7 dias"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p id="forecastCityLabel">Referência do município</p><p>Toque num dia para ver os detalhes e as horas daquele dia.</p></div></details></div></div>
           <div class="forecast-list panel" id="forecastList"><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div></div>
-          <nav class="home-shortcuts" aria-label="Explorar outras cidades"><button id="homeBrazil" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="brazilDialog">Brasil agora</button><button id="homeMonth" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="monthDialog">Últimos 30 dias</button></nav><div class="install-card" id="installCard" role="region" aria-label="Instalar o PLUVIA" hidden><span class="install-card-icon" aria-hidden="true"></span><p><strong>Tenha o PLUVIA na tela de início</strong><span id="installCardText">Abre direto, em tela cheia, como um app.</span></p><div class="install-card-actions"><button id="installCardAction" type="button">Instalar</button><button id="installCardDismiss" class="install-card-dismiss" type="button">Agora não</button></div></div>
+          <nav class="home-shortcuts" aria-label="Explorar outras cidades"><button id="homeBrazil" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="brazilDialog">Brasil agora</button><button id="homeMonth" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="monthDialog">Últimos 30 dias</button><button id="homeAccuracy" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="monthDialog">Quanto o PLUVIA acerta</button></nav><div class="install-card" id="installCard" role="region" aria-label="Instalar o PLUVIA" hidden><span class="install-card-icon" aria-hidden="true"></span><p><strong>Tenha o PLUVIA na tela de início</strong><span id="installCardText">Abre direto, em tela cheia, como um app.</span></p><div class="install-card-actions"><button id="installCardAction" type="button">Instalar</button><button id="installCardDismiss" class="install-card-dismiss" type="button">Agora não</button></div></div>
         </section>
       </section>
       <section class="metrics" aria-label="Detalhes meteorológicos">
@@ -498,6 +498,7 @@
         <p id="monthStatus" class="month-status" role="status" aria-live="polite"></p>
         <div id="monthBody"></div>
         <p class="month-note">Dias completos antes de hoje, pelo calendário da cidade. Os números são estimativas do modelo Open-Meteo no ponto de referência do município, não medições de estação. Dia com chuva: 1 mm ou mais.</p>
+        <section class="accuracy" aria-labelledby="accuracyTitle"><h3 id="accuracyTitle">Quanto o PLUVIA acertou</h3><p id="accuracyStatus" class="month-status" role="status" aria-live="polite"></p><div id="accuracyBody"></div><p class="month-note">A resposta do “Vai chover?” comparada com a estação automática do INMET mais próxima: conta como chuva 0,5 mm ou mais em alguma hora da janela. “Pode chover” não entra como acerto nem como erro. Com poucos dias de medição, os números ainda mudam.</p></section>
       </div>
     </dialog>
     <dialog id="hourlyDetailDialog" class="city-dialog hourly-detail-dialog" aria-labelledby="hourlyDetailTitle" aria-describedby="hourlyDetailCity">
@@ -597,9 +598,10 @@
     <script src="./saved-places.js?v=places-2" defer></script>
     <script src="./modules/brazil-now.js?v=brazil-5" defer></script>
     <script src="./modules/month-recap.js?v=month-2" defer></script>
+    <script src="./modules/forecast-accuracy.js?v=accuracy-1" defer></script>
     <script src="./modules/station-now.js?v=station-5" defer></script>
     <script src="./modules/home-layout.js?v=home-layout-8" defer></script>
-    <script src="./modules/pwa-shortcuts.js?v=shortcuts-3" defer></script><script src="./modules/voice-search.js?v=voice-2" defer></script><script src="./modules/rain-reports.js?v=rain-reports-2" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-1" defer></script><script src="./modules/changelog.js?v=changelog-313" defer></script>
+    <script src="./modules/pwa-shortcuts.js?v=shortcuts-3" defer></script><script src="./modules/voice-search.js?v=voice-2" defer></script><script src="./modules/rain-reports.js?v=rain-reports-2" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-1" defer></script><script src="./modules/changelog.js?v=changelog-314" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="./modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="./notifications.js?v=panel-37" defer></script>
