@@ -36,3 +36,16 @@ test('janela de proteção solar: bloco contínuo de UV ≥ 3 e lacuna não inve
   const hole=[...uv];hole[13]=null;
   assert.equal(insights.uvWindow({time,uv_index:hole},10),null);
 });
+
+test('dedo no gráfico: hora mais perto da posição, só entre horas com temperatura',()=>{
+  const reading=day(Array.from({length:24},(_,i)=>20+i),Array.from({length:24},(_,i)=>i===14?1.2:0));
+  const first=daily.chartPoint(reading,0),last=daily.chartPoint(reading,9999),mid=daily.chartPoint(reading,6+14/24*308);
+  assert.equal(first.hour.stamp,start,'antes do começo fica na primeira hora');
+  assert.equal(last.hour.stamp,start+23*H,'depois do fim fica na última hora');
+  assert.equal(mid.hour.stamp,start+14*H);assert.equal(mid.hour.temperature,34);assert.equal(mid.hour.mm,1.2);
+  assert.ok(mid.y<first.y,'temperatura maior fica mais alta no gráfico');
+  const holes=day(Array.from({length:24},(_,i)=>25));holes.hours[12].temperature=null;
+  assert.notEqual(daily.chartPoint(holes,6+12/24*308).hour.stamp,start+12*H,'hora sem temperatura não é escolhida');
+  assert.equal(daily.chartPoint(day([24,25,26]),100),null,'sem gráfico, sem leitura');
+  assert.equal(daily.chartPoint(reading,NaN),null);
+});

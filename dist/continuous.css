@@ -2109,6 +2109,15 @@ body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:#0
 #dailyDetailDialog .day-chart-dry { font-style:italic; }
 body[data-ink="dark"] #dailyDetailDialog .day-chart { --day-chart-hot:#f08a24; --day-chart-mild:#e6b800; --day-chart-cold:#1e90d6; }
 body[data-ink="dark"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
+/* Dedo no gráfico do dia (1.29.5, pedido do usuário): linha, bolinha e rótulo da hora tocada; os rótulos
+   fixos (máx./mín., Agora) esmaecem só pela cor enquanto o dedo está no gráfico. */
+#dailyDetailDialog .day-chart { touch-action:pan-y; -webkit-user-select:none; user-select:none; cursor:crosshair; }
+#dailyDetailDialog .day-chart-scrub { pointer-events:none; }
+#dailyDetailDialog .day-chart-scrub-line { stroke:var(--dialog-text, #fff); stroke-opacity:.7; stroke-width:1.4; }
+#dailyDetailDialog .day-chart-scrub-dot { fill:var(--dialog-text, #fff); stroke:var(--dialog-bg, #101a33); stroke-width:2.5; }
+#dailyDetailDialog .day-chart-scrub-label { fill:var(--dialog-text, #fff); font-size:12.5px; font-weight:650; font-variant-numeric:tabular-nums; }
+#dailyDetailDialog .day-chart[data-scrubbing] :is(.day-chart-mark,.day-chart-now-label) { fill-opacity:0; }
+#dailyDetailDialog .day-chart[data-scrubbing] :is(.day-chart-dot,.day-chart-now,.day-chart-now-dot) { fill-opacity:.25; stroke-opacity:.25; }
 @keyframes pluvia-day-chart-draw { from { stroke-dashoffset:1; } }
 @keyframes pluvia-day-chart-fill { from { fill-opacity:0; } }
 @media (prefers-reduced-motion:reduce) { #dailyDetailDialog :is(.day-chart-line,.day-chart-area) { animation:none; } }

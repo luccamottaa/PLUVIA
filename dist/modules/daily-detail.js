@@ -38,15 +38,30 @@
   // barra). Hora sem leitura quebra a curva em vez de ligar os pontos. SVG decorativo (aria-hidden): os
   // números continuam na lista acessível. Puro: devolve o markup ou '' sem pelo menos 4 temperaturas.
   const CHART={w:320,top:22,plot:96,rain:30,gap:14,left:6,right:6};
-  function chart(reading,{now=null,label=h=>String(h).padStart(2,'0')+'h'}={}) {
+  // Escala comum ao desenho e ao dedo (chartPoint): mesmas horas, mesma faixa de temperatura.
+  function scale(reading) {
     const span=Number.isFinite(reading?.start) && Number.isFinite(reading?.end) && reading.end>reading.start ? reading.end-reading.start : null;
     const temps=(reading?.hours||[]).filter(h=>typeof h.temperature==='number' && Number.isFinite(h.temperature));
-    if(!span || temps.length<4) return '';
+    if(!span || temps.length<4) return null;
     const {w,top,plot,rain,gap,left,right}=CHART,height=top+plot+gap+rain+18;
     const x=stamp=>left+Math.max(0,Math.min(1,(stamp-reading.start)/span))*(w-left-right);
     let low=Math.min(...temps.map(h=>h.temperature)),high=Math.max(...temps.map(h=>h.temperature));
     if(high-low<4){const mid=(high+low)/2;low=Math.min(low,mid-2);high=Math.max(high,mid+2);}
-    const y=t=>top+(1-(t-low)/(high-low))*plot,r=v=>Math.round(v*10)/10;
+    const y=t=>top+(1-(t-low)/(high-low))*plot;
+    return {span,temps,w,height,top,base:top+plot,rainBottom:top+plot+gap+rain,x,y};
+  }
+  // Hora mais perto de uma posição horizontal do gráfico (unidades do viewBox), para mostrar a leitura
+  // dela ao passar o dedo ou o mouse. Só horas com temperatura: hora sem leitura não vira valor inventado.
+  function chartPoint(reading,position) {
+    const s=scale(reading);
+    if(!s || !Number.isFinite(position)) return null;
+    const hour=s.temps.reduce((best,h)=>Math.abs(s.x(h.stamp)-position)<Math.abs(s.x(best.stamp)-position) ? h : best);
+    return {hour,x:Math.round(s.x(hour.stamp)*10)/10,y:Math.round(s.y(hour.temperature)*10)/10,top:s.top,bottom:s.rainBottom,width:s.w};
+  }
+  function chart(reading,{now=null,label=h=>String(h).padStart(2,'0')+'h'}={}) {
+    const s=scale(reading);
+    if(!s) return '';
+    const {span,temps,w,height,top,x,y}=s,{plot,rain,gap,left,right}=CHART,r=v=>Math.round(v*10)/10;
     // Segmentos contínuos (passo de uma hora); cada um vira uma curva suave (Catmull-Rom em Bézier).
     const segments=[];
     for(const h of temps){const last=segments.at(-1);if(last && h.stamp-last.at(-1).stamp<=3600000) last.push(h);else segments.push([h]);}
@@ -55,7 +70,7 @@
       const a=points[i-2]||points[i-1],b=points[i-1],c=p,d=points[i+1]||p;
       return `C${r(b[0]+(c[0]-a[0])/6)} ${r(b[1]+(c[1]-a[1])/6)} ${r(c[0]-(d[0]-b[0])/6)} ${r(c[1]-(d[1]-b[1])/6)} ${r(c[0])} ${r(c[1])}`;
     }).join('');
-    const base=top+plot,lines=[],areas=[];
+    const base=s.base,lines=[],areas=[];
     for(const segment of segments){
       const points=segment.map(h=>[x(h.stamp),y(h.temperature)]);
       if(points.length===1) points.push([points[0][0]+1,points[0][1]]);
@@ -107,7 +122,7 @@
       el('dailyDetailCondition').textContent=reading.code===null ? 'Condição indisponível' : root.PLUVIA.weatherIcons.condition(reading.code).label;
       const figure=el('dailyDetailChart');
       // Só troca o SVG quando o desenho muda: a atualização da mesma previsão não refaz a animação do traço.
-      if(figure) {const markup=chart(reading,{now:time.dayKey(Date.now(),state.city)===reading.date ? Date.now() : null});if(figure.pluviaChart!==markup){figure.innerHTML=markup;figure.pluviaChart=markup;}figure.hidden=!markup;}
+      if(figure) {const markup=chart(reading,{now:time.dayKey(Date.now(),state.city)===reading.date ? Date.now() : null});if(figure.pluviaChart!==markup){figure.innerHTML=markup;figure.pluviaChart=markup;scrubEnd();}figure.hidden=!markup;figure.pluviaReading=reading;}
       for(const [id,value,suffix,digits] of [
         ['dailyDetailMin',reading.min,'°'],['dailyDetailMax',reading.max,'°'],
         ['dailyDetailFeelsMin',reading.feelsMin,'°'],['dailyDetailFeelsMax',reading.feelsMax,'°'],
@@ -171,10 +186,46 @@
       selectedDate=days[position].date;paint();dialog.querySelector('.dialog-scroll').scrollTop=0;
       root.PLUVIA?.fadeText?.(Array.from(dialog.querySelectorAll('h2, .dialog-scroll :is(dd, #dailyDetailCondition, .daily-hour strong)')),280);
     }
+    // Passar o dedo (ou o mouse) no gráfico mostra a hora, a temperatura e a chuva daquele horário, como no
+    // app Tempo. Uma linha, uma bolinha e um rótulo dentro do próprio SVG, reaproveitados a cada movimento
+    // (só atributos e texto; nada de transform/opacity em blocos). touch-action:pan-y deixa a rolagem
+    // vertical da janela com o navegador: ela cancela o toque e o rótulo some.
+    const figure=el('dailyDetailChart'),svgNS='http://www.w3.org/2000/svg';
+    let scrub=null;
+    function scrubEnd() {scrub?.group.remove();scrub=null;figure?.removeAttribute('data-scrubbing');}
+    function scrubAt(event) {
+      const svg=figure.querySelector('svg'),reading=figure.pluviaReading;
+      if(!svg || !reading || !state) return;
+      const box=svg.getBoundingClientRect(),view=svg.viewBox.baseVal;
+      if(!box.width || !view?.width) return;
+      const point=chartPoint(reading,(event.clientX-box.left)/box.width*view.width);
+      if(!point) return scrubEnd();
+      if(!scrub || !scrub.group.isConnected) {
+        const make=(tag,cls)=>{const node=doc.createElementNS(svgNS,tag);node.setAttribute('class',cls);return node;};
+        const group=make('g','day-chart-scrub'),line=make('line','day-chart-scrub-line'),dot=make('circle','day-chart-scrub-dot'),text=make('text','day-chart-scrub-label');
+        dot.setAttribute('r','5');group.append(line,dot,text);svg.append(group);scrub={group,line,dot,text,stamp:null};
+      }
+      figure.setAttribute('data-scrubbing','');
+      if(scrub.stamp===point.hour.stamp) return;
+      scrub.stamp=point.hour.stamp;
+      const {line,dot,text}=scrub,hour=point.hour;
+      for(const [k,v] of [['x1',point.x],['x2',point.x],['y1',point.top-6],['y2',point.bottom]]) line.setAttribute(k,v);
+      dot.setAttribute('cx',point.x);dot.setAttribute('cy',point.y);
+      const rain=typeof hour.mm==='number' && hour.mm>=.1 ? ' · '+format(hour.mm,1)+' mm' : '';
+      text.textContent=`${stamp(hour.stamp)} · ${Math.round(hour.temperature)}°${rain}`;
+      text.setAttribute('x',point.x);text.setAttribute('y',point.top-10);
+      text.setAttribute('text-anchor',point.x<70 ? 'start' : point.x>point.width-70 ? 'end' : 'middle');
+    }
+    if(figure) {
+      figure.addEventListener('pointerdown',scrubAt);
+      figure.addEventListener('pointermove',event=>{if(event.pointerType==='mouse' || event.buttons || event.pressure>0) scrubAt(event);});
+      for(const type of ['pointerup','pointercancel','pointerleave']) figure.addEventListener(type,scrubEnd);
+      dialog.addEventListener('close',scrubEnd);
+    }
     el('dailyDetailPrev').addEventListener('click',()=>move(-1));el('dailyDetailNext').addEventListener('click',()=>move(1));
     root.addEventListener('pluvia:city-changed',()=>{if(dialog.open) dialog.close();state=null;selectedDate=null;});
     root.addEventListener('pluvia:forecast-spread',event=>{if(dialog.open && state?.city.id===event.detail?.cityId) paint();});
     root.PLUVIA.dailyDetail.update=update;
   }
-  return {detail,chart,mount};
+  return {detail,chart,chartPoint,mount};
 });
