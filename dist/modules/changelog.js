@@ -12,6 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.31.1", date:"2026-10-27", title:"Nuvens de chuva à noite mais naturais", items:[
+      "Com chuva ou trovoada à noite, o céu troca as manchas pesadas por véus finos esticados pelo vento, como no app Tempo."]},
     {version:"1.31", date:"2026-10-27", title:"Chuva com vento, prévia dos avisos e story com nuvens", items:[
       "Com vento forte, a chuva do céu cai mais inclinada.",
       "Quando o radar vê chuva chegando, o PLUVIA oferece os avisos no celular, e o convite mostra um exemplo de como o aviso chega.",
