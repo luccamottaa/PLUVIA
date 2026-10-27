@@ -18,6 +18,14 @@
   const STAR_FADE_MS = 45 * 60000;
   const DAY_MS = 24 * 3600000;
   const CLOCK_STEP_MS = 60000;
+  // Volta ao app depois de minutos ou horas (1.37.1, pedido do dono: o Sol e a Lua "teletransportavam"): o relógio
+  // vê um salto maior que um tique e, em vez de pular, os astros deslizam até a posição nova em ~2,4 s. Acima de
+  // 6 h (outro trecho do dia) continua instantâneo.
+  const CATCHUP_MAX_MS = 6 * 3600000;
+  function transitionFor(gap, allowMotion) {
+    if (!allowMotion || !Number.isFinite(gap) || gap <= 0) return 'instant';
+    return gap <= CLOCK_STEP_MS ? 'live' : gap <= CATCHUP_MAX_MS ? 'catchup' : 'instant';
+  }
   const ORBIT_MARGIN = .12;
   const CACHE_AGE_MS = 36 * 3600000;
   const DEFAULT_CITY = {id:'1302603',lat:-3.119,lon:-60.022,timezone:'America/Manaus'};
@@ -209,7 +217,7 @@
       const darkDay = state.phase === 'day' && state.solar === 'none' && (greyDay || rain.kind === 'moderate' || rain.kind === 'heavy');
       const ink = state.phase === 'day' && !darkDay ? 'dark' : 'light';
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
-        for (const [key,value] of Object.entries({phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,wind:rain.kind==='none' ? 'calm' : rainWind(wind),ink,rainbow:state.rainbow ? 'on' : 'off',skyTransition:animate ? 'live' : 'instant'})) if (node.dataset[key] !== value) node.dataset[key] = value;
+        for (const [key,value] of Object.entries({phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,wind:rain.kind==='none' ? 'calm' : rainWind(wind),ink,rainbow:state.rainbow ? 'on' : 'off',skyTransition:animate})) if (node.dataset[key] !== value) node.dataset[key] = value;
       }
       for (const node of skyNodes()) {
         setVar(node,'--twilight-opacity',state.strength.toFixed(3));
@@ -233,7 +241,7 @@
       return state;
     }
     function update(at = now(), allowMotion = true) {
-      const animate = allowMotion && Number.isFinite(lastUpdate) && at > lastUpdate && at - lastUpdate <= CLOCK_STEP_MS;
+      const animate = transitionFor(Number.isFinite(lastUpdate) ? at - lastUpdate : NaN, allowMotion);
       lastUpdate = Number.isFinite(at) ? at : null;
       let phase = providerPhase, solar = 'none', strength = 0, progress = 0;
       const today = dayAt(at);
@@ -359,5 +367,5 @@
     sync();
     return {sync};
   }
-  return {create,weatherType,cityTime,observeMotion,cloudRate,rainWind,rainbow};
+  return {create,weatherType,cityTime,observeMotion,cloudRate,rainWind,rainbow,transitionFor};
 });

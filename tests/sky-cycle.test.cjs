@@ -68,7 +68,7 @@ test('noite com mudança de horário de verão usa a duração real até o próx
   close(sky.update((start+end)/2).moonX,.5);
 });
 
-test('ticks de trinta segundos são suaves; abrir, retomar e trocar cidade acertam a posição imediatamente',()=>{
+test('ticks de trinta segundos são suaves; retomar o app desliza até a posição (1.37.1); abrir e trocar cidade acertam na hora',()=>{
   const {sky,root}=setup();
   sky.apply(0,1,null,cities[0],instant);
   assert.equal(root.dataset.skyTransition,'instant');
@@ -77,8 +77,13 @@ test('ticks de trinta segundos são suaves; abrir, retomar e trocar cidade acert
   const next=sky.update(instant+60000);
   assert.ok(next.sunX>start.sunX);
   const reopened=sky.update(instant+5*3600000);
-  assert.equal(root.dataset.skyTransition,'instant');
-  assert.deepEqual(reopened,setup().sky.apply(0,1,null,cities[0],instant+5*3600000));
+  assert.equal(root.dataset.skyTransition,'catchup','volta depois de horas: desliza, sem teletransporte');
+  assert.deepEqual(reopened,setup().sky.apply(0,1,null,cities[0],instant+5*3600000),'a posição final é a mesma');
+  sky.update(instant+12*3600000);
+  assert.equal(root.dataset.skyTransition,'instant','mais de 6 h: outro trecho do dia, acerta na hora');
+  const {transitionFor}=require('../dist/modules/sky-atmosphere.js');
+  assert.equal(transitionFor(30000,true),'live');assert.equal(transitionFor(5*60000,true),'catchup');
+  assert.equal(transitionFor(5*60000,false),'instant');assert.equal(transitionFor(NaN,true),'instant');assert.equal(transitionFor(-1,true),'instant');
   sky.apply(0,1,null,cities[1],instant+5*3600000);
   assert.equal(root.dataset.skyTransition,'instant');
 });

@@ -12,6 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.37.1", date:"2026-10-27", title:"Sol e Lua sem teletransporte", items:[
+      "Ao voltar para o app depois de um tempo, o Sol e a Lua deslizam até onde estão agora no céu, em vez de pular de lugar. Com o app aberto eles continuam andando sozinhos, na velocidade real."]},
     {version:"1.37", date:"2026-10-27", title:"Quanto o PLUVIA acerta", items:[
       "Novo atalho no fim dos 7 dias: veja quantas chuvas o PLUVIA avisou e quantas vezes o “vai chover” deu certo, comparando com a estação do INMET nas próximas 3 e 12 horas.",
       "Mostra os dois lados, os acertos e os alarmes que não deram em nada. Por enquanto a medição é feita nas capitais."]},
