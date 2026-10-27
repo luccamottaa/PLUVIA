@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.30.1", date:"2026-10-27", title:"Chuva à noite em cinza", items:[
+      "Com chuva ou trovoada à noite, o céu e os cartões ficam cinza-chumbo, como no app Tempo, em vez do azul-marinho."]},
+    {version:"1.30", date:"2026-10-27", title:"Passe o dedo no gráfico do dia", items:[
+      "No detalhe de cada dia, encoste e arraste o dedo no gráfico: uma linha acompanha e mostra a hora, a temperatura e a chuva prevista daquele horário, como no app Tempo."]},
     {version:"1.29.4", date:"2026-10-27", title:"Nuvens de chuva nítidas", items:[
       "As nuvens de chuva e de tempestade e a camada da frente do céu foram redesenhadas com bordas e fiapos mais definidos, iguais às outras nuvens: antes pareciam borradas mesmo com a resolução nova."]},
     {version:"1.29.3", date:"2026-10-27", title:"Nuvens na resolução da tela", items:[

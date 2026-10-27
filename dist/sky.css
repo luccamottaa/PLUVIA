@@ -294,3 +294,8 @@ body.page-hidden :is(.sky-effects,.intro-sky) > * { visibility:hidden !important
 :root[data-weather="cloud"][data-phase="night"] .sky-clouds:not(.sky-clouds-front) { background-image:url("./assets/sky-cloud-stratus.webp?v=clouds-9"); }
 :root[data-weather="cloud"][data-phase="night"] .sky-clouds-front { opacity:.32; }
 :root[data-weather="cloud"]:is([data-solar="sunset"],[data-solar="sunrise"]) .sky-twilight { opacity:calc(var(--twilight-opacity,0) * .9); }
+/* Chuva e trovoada à noite (1.30.1, pedido do usuário: "nas condições de chuva deveria ficar mais cinza no
+   fundo, ao invés de azul"): cinza-chumbo escuro, como no app Tempo, no lugar do azul-marinho da paleta
+   noturna; nuvens cinza sem o tom azul. Chuva forte e trovoada mais escuras. */
+:root[data-phase="night"]:is([data-weather="rain"],[data-weather="storm"]) { --sky-base:#1b1e23; --sky-color:linear-gradient(180deg,#24282e,#1b1e23 60%,#202429); --cloud-filter:brightness(.36) saturate(.12); }
+:root[data-phase="night"]:is([data-rain="heavy"],[data-weather="storm"]) { --sky-base:#15171b; --sky-color:linear-gradient(180deg,#1d2025,#15171b 60%,#191c20); --cloud-filter:brightness(.3) saturate(.1); }
