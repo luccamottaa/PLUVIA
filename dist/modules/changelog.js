@@ -12,6 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.35.2", date:"2026-10-27", title:"Garoa que não existe some do topo", items:[
+      "Quando o radar não vê chuva em cima da cidade e a estação do INMET ou o aeroporto confirmam tempo seco, o PLUVIA deixa de mostrar a garoa ou chuva fraca da previsão e mostra o céu como está."]},
     {version:"1.35.1", date:"2026-10-27", title:"Nuvens se formando no céu todo", items:[
       "As nuvens em 3D agora se formam e se desfazem em qualquer parte do céu, em vez de só entrarem pelo lado direito."]},
     {version:"1.35", date:"2026-10-27", title:"Nuvens em 3D em todos os céus, no pôr do sol e na abertura", items:[
