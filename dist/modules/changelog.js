@@ -13,7 +13,8 @@
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
     {version:"1.32.1", date:"2026-10-27", title:"Nuvens da noite como antes", items:[
-      "As nuvens com volume da noite saíram: o céu nublado, de chuva e de trovoada à noite voltou ao visual anterior. Os raios continuam acendendo as nuvens por dentro."]},
+      "As nuvens com volume da noite saíram: o céu nublado, de chuva e de trovoada à noite voltou ao visual anterior. Os raios continuam acendendo as nuvens por dentro.",
+      "O céu nublado da noite ficou num azul mais escuro."]},
     {version:"1.32", date:"2026-10-27", title:"Nuvens com volume e raios dentro das nuvens", items:[
       "À noite, o céu nublado, de chuva e de trovoada ganhou nuvens com volume: cúmulos com o topo iluminado e a base na sombra, como no app Tempo, no lugar das manchas chapadas.",
       "Nas trovoadas, o raio passa por trás das nuvens da frente e o clarão acende as nuvens por dentro, sem clarear o céu todo."]},
