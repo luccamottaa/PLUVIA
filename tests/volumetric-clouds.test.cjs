@@ -45,4 +45,6 @@ assert.match(css,/prefers-reduced-motion: reduce\) \{ \.sky-volume \{ display:no
 assert.match(src,/webglcontextlost/); assert.match(src,/off\('slow'\)/);
 // A automação de QA mede as camadas do CSS: sem a chave pluvia-volume-qa a nuvem volumétrica não liga.
 assert.match(src,/navigator\?\.webdriver/);
+// As nuvens também se formam no lugar (o campo anda na altura), não só entram pela direita.
+assert.match(volume.FS,/vec3 wind\(vec3 p\)\{return p\*SIZE\+vec3\(T\*[.0-9]+,T\*[.0-9]+,/);
 console.log('volumetric-clouds ok');
