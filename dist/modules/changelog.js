@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.34", date:"2026-10-27", title:"Nuvens em 3D de dia, com o brilho do Sol", items:[
+      "De dia, com poucas nuvens ou parcialmente nublado, as nuvens também são em 3D, macias e com sombra embaixo.",
+      "Quando o Sol passa atrás de uma nuvem, a borda dela se acende e o brilho atravessa a parte mais fina, como na vida real."]},
     {version:"1.33", date:"2026-10-27", title:"Nuvens em 3D à noite", items:[
       "À noite, no céu nublado, com chuva ou com trovoada, as nuvens agora são desenhadas em 3D em tempo real: macias, com o topo iluminado pela Lua e a base na sombra, maiores na chuva e na trovoada, mudando de forma devagar com o vento.",
       "Em aparelhos sem suporte, com movimento reduzido ou que fiquem lentos, o PLUVIA volta sozinho às nuvens de antes."]},
