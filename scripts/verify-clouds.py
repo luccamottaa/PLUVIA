@@ -11,12 +11,13 @@ base=json.loads(subprocess.check_output(['node','-e',"process.stdout.write(JSON.
 preview=os.environ.get('PLUVIA_PREVIEW_URL','http://127.0.0.1:4173')
 output=Path(os.environ.get('PLUVIA_QA_OUTPUT','/tmp/pluvia-clouds'))/'clouds';output.mkdir(parents=True,exist_ok=True)
 mode={'code':3,'hour':13};errors=[]
-# page.evaluate não tem prazo: no WebKit da CI um requestAnimationFrame que nunca chegava prendia o job
-# até o limite de 25 min (#313). Dois quadros, ou 1 s sem quadro; e o script inteiro falha em 10 min.
+# page.evaluate não tem prazo: dois quadros, ou 1 s sem quadro. No WebKit da CI este script leva ~11 min
+# (com os anteriores, o job passava do limite de 25 min, #313; o limite subiu para 40). Se travar de verdade,
+# falha em 20 min com mensagem, em vez de esperar o job ser cancelado.
 TWO_FRAMES="()=>new Promise(done=>{const t=setTimeout(done,1000);requestAnimationFrame(()=>requestAnimationFrame(()=>{clearTimeout(t);done()}))})"
 import signal
-def _stuck(*_):raise TimeoutError('verify-clouds passou de 10 min (travou)')
-signal.signal(signal.SIGALRM,_stuck);signal.alarm(600)
+def _stuck(*_):raise TimeoutError('verify-clouds passou de 20 min (travou)')
+signal.signal(signal.SIGALRM,_stuck);signal.alarm(1200)
 def weather(tz):
  data=json.loads(json.dumps(base));data['timezone']=tz
  data['current'].update(time='2026-10-01T%02d:00'%mode['hour'],weather_code=mode['code'],is_day=int(6<=mode['hour']<18))
