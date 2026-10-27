@@ -117,9 +117,9 @@ test('trovoada nas proximidades confirma tempestade com chuva medida; sem chuva,
 test('o app carrega o módulo antes de app.js e só repinta condição, céu e "Vai chover?"', () => {
   const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
   const sw = fs.readFileSync(path.join(__dirname, '../dist/sw.js'), 'utf8');
-  assert.ok(html.indexOf('modules/observed-rain.js?v=observed-rain-3') > 0);
+  assert.ok(html.indexOf('modules/observed-rain.js?v=observed-rain-4') > 0);
   assert.ok(html.indexOf('modules/observed-rain.js') < html.indexOf('app.js?v='));
-  assert.match(sw, /modules\/observed-rain\.js\?v=observed-rain-3/);
+  assert.match(sw, /modules\/observed-rain\.js\?v=observed-rain-4/);
   const app = fs.readFileSync(path.join(__dirname, '../dist/app.js'), 'utf8');
   const refresh = app.slice(app.indexOf('function refreshObservedRain()'), app.indexOf('globalThis.addEventListener?.("pluvia:station-reading"'));
   assert.doesNotMatch(refresh, /render\(|pluvia:weather-updated/, 'repintar não dispara outra rodada de consultas');
@@ -150,6 +150,22 @@ test('medição seca desmente garoa/chuva fraca do modelo (radar sem eco + terra
   for (const code of [63, 65, 81, 82, 95, 2, 3]) assert.equal(observed.dryCode(code, 30), code);
   // No app: sem chuva observada, a condição do topo usa o código seco e a chave de repintura muda com isso.
   const app = fs.readFileSync(path.join(__dirname, '../dist/app.js'), 'utf8');
-  assert.match(app, /api\?\.dryNow\?\.\(observedSources\(\)\) \? api\.dryCode\(current\.weather_code, current\.cloud_cover\)/);
+  assert.match(app, /api\?\.dryNow\?\.\(observedSources\(\)\) \|\| weak\) \? api\.dryCode\(current\.weather_code, current\.cloud_cover\)/);
   assert.match(app, /dryNow\?\.\(observedSources\(\)\) \? "dry" : ""/);
+});
+
+test('garoa que o próprio modelo não sustenta sai do topo (1.37.3, todas as cidades)', () => {
+  // Placar, 27 capitais: com 0,1–0,5 mm na hora o modelo acertou chuva em 15% das vezes; com chance < 30%, em 7%.
+  assert.equal(observed.weakModelRain(51, .1, 20), true);
+  assert.equal(observed.weakModelRain(61, .4, 45), true);
+  assert.equal(observed.weakModelRain(80, 0, 10), true);
+  assert.equal(observed.weakModelRain(61, .6, 20), false, 'meio milímetro ou mais: chuva do modelo continua');
+  assert.equal(observed.weakModelRain(51, .2, 50), false, 'chance de 50% ou mais continua');
+  assert.equal(observed.weakModelRain(63, .1, 10), false, 'chuva moderada não é tocada');
+  assert.equal(observed.weakModelRain(95, 0, 5), false, 'trovoada não é tocada');
+  assert.equal(observed.weakModelRain(51, null, 10), false, 'volume ausente não vira seco');
+  assert.equal(observed.weakModelRain(51, .1, undefined), false, 'chance ausente não vira seco');
+  assert.equal(observed.dryCode(51, 30), 1); assert.equal(observed.dryCode(51, 60), 2); assert.equal(observed.dryCode(51, 90), 3);
+  const app = fs.readFileSync(path.join(__dirname, '../dist/app.js'), 'utf8');
+  assert.match(app, /weakModelRain\?\.\(current\?\.weather_code, data\.hourly\?\.precipitation\?\.\[next\], data\.hourly\?\.precipitation_probability\?\.\[next\]\)/, 'intervalo que começa agora: i+1');
 });

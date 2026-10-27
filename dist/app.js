@@ -1313,8 +1313,11 @@ function withObservedRain(data) {
   const current = data?.current, observed = observedRainFor(data);
   if (!observed) {
     // Radar e medição em terra secos desmentem garoa/chuva fraca do modelo (o resto do modelo continua).
+    // Sem medição, o modelo que não sustenta a própria garoa (pouco volume e chance baixa na hora) também não a mostra.
     const api = globalThis.PLUVIA?.observedRain;
-    const dried = current && api?.dryNow?.(observedSources()) ? api.dryCode(current.weather_code, current.cloud_cover) : current?.weather_code;
+    const next = selectCurrentHour(data.hourly?.time || []) + 1;
+    const weak = next > 0 && api?.weakModelRain?.(current?.weather_code, data.hourly?.precipitation?.[next], data.hourly?.precipitation_probability?.[next]);
+    const dried = current && (api?.dryNow?.(observedSources()) || weak) ? api.dryCode(current.weather_code, current.cloud_cover) : current?.weather_code;
     return dried === current?.weather_code ? {current, observed:null, replaced:false} : {current:{...current, weather_code:dried}, observed:null, replaced:true, dried:true};
   }
   const code = globalThis.PLUVIA.observedRain.merge(current.weather_code, observed);

@@ -12,6 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.37.3", date:"2026-10-27", title:"Menos garoa que não existe, em todas as cidades", items:[
+      "Quando a previsão fala em garoa ou chuva fraca, mas ela mesma prevê pouquíssima chuva e chance baixa para a hora, o topo mostra o céu como está (nublado, parcial ou poucas nuvens). Se a estação, o aeroporto ou o radar virem chuva, ela continua aparecendo."]},
     {version:"1.37.2", date:"2026-10-27", title:"Ícones nos títulos", items:[
       "“Chuva na região” e “Ciclo do dia” ganharam ícones, no mesmo estilo dos outros blocos.",
       "O botão de informação da Qualidade do ar fica ao lado do título, como nas outras seções."]},
