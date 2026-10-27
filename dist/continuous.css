@@ -1013,6 +1013,8 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 .night-stage > .sky-fade > span { position:absolute; left:0; right:0; background-repeat:no-repeat; background-size:100% 100%; }
 .night-stage > .sky-fade > .sky-fade-scene { position:absolute; overflow:hidden; isolation:isolate; }
 @keyframes pluvia-sky-fade { from { opacity:1; } to { opacity:0; } }
+/* Virada de dia/noite pelo relógio (1.37.4): o céu de antes some em 12 s, como anoitecendo/amanhecendo. */
+.night-stage > .sky-fade.sky-fade-slow { animation-duration:12s; animation-timing-function:cubic-bezier(.45,0,.55,1); }
 @media (prefers-reduced-motion:reduce) { .night-stage > .sky-fade { display:none; } }
 /* Cascata "descendo" (app.js dropIn): o bloco desce 18 px enquanto é revelado de cima para baixo.
    Só top (position:relative) e clip-path: pintura, sem camada; transform/opacity em blocos derrubavam
