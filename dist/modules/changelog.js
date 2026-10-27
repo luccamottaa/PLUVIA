@@ -12,6 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.35.1", date:"2026-10-27", title:"Nuvens se formando no céu todo", items:[
+      "As nuvens em 3D agora se formam e se desfazem em qualquer parte do céu, em vez de só entrarem pelo lado direito."]},
     {version:"1.35", date:"2026-10-27", title:"Nuvens em 3D em todos os céus, no pôr do sol e na abertura", items:[
       "As nuvens em 3D agora aparecem em todo céu com nuvem, de dia e de noite: poucas nuvens, parcial, nublado, chuva e trovoada.",
       "No pôr e no nascer do sol, a luz baixa pinta as nuvens de laranja e rosa por baixo.",
