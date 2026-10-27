@@ -1013,8 +1013,9 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 .night-stage > .sky-fade > span { position:absolute; left:0; right:0; background-repeat:no-repeat; background-size:100% 100%; }
 .night-stage > .sky-fade > .sky-fade-scene { position:absolute; overflow:hidden; isolation:isolate; }
 @keyframes pluvia-sky-fade { from { opacity:1; } to { opacity:0; } }
-/* Virada de dia/noite pelo relógio (1.37.4): o céu de antes some em 12 s, como anoitecendo/amanhecendo. */
-.night-stage > .sky-fade.sky-fade-slow { animation-duration:12s; animation-timing-function:cubic-bezier(.45,0,.55,1); }
+/* Virada de dia/noite pelo relógio (1.37.4): a cópia do céu de antes não anima sozinha; o relógio baixa a opacidade
+   ao longo da meia hora seguinte (duskTick), e a transição de 30 s liga um tique ao outro. */
+.night-stage > .sky-fade.sky-fade-dusk { animation:none; transition:opacity 30s linear; }
 @media (prefers-reduced-motion:reduce) { .night-stage > .sky-fade { display:none; } }
 /* Cascata "descendo" (app.js dropIn): o bloco desce 18 px enquanto é revelado de cima para baixo.
    Só top (position:relative) e clip-path: pintura, sem camada; transform/opacity em blocos derrubavam
@@ -2161,3 +2162,8 @@ body[data-ink="dark"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
 #weatherView #airQualityCard .metric-head .info-tip { margin-left:0; }
 #weatherView #airQualityCard .metric-head .info-tip > summary { margin-right:-12px; }
 .info-tip-icon { display:grid; place-items:center; line-height:1; padding-top:.5px; box-sizing:border-box; }
+
+/* Até 420 px o botão do radar fica só com o ícone de ampliar (44 px; o nome "Abrir radar" continua no
+   aria-label): com o ícone novo do título, "Chuva na região" + ícone + ⓘ não cabiam ao lado do botão e o
+   ⓘ ficava embaixo dele (o toque abria o radar). */
+@media (max-width:420px) { #weatherView .weather-map-card .expand-radar { width:44px; padding:0; } #weatherView .expand-radar-word { display:none; } }
