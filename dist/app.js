@@ -1303,7 +1303,12 @@ function observedRainFor(data) {
 }
 function withObservedRain(data) {
   const current = data?.current, observed = observedRainFor(data);
-  if (!observed) return {current, observed:null, replaced:false};
+  if (!observed) {
+    // Radar e medição em terra secos desmentem garoa/chuva fraca do modelo (o resto do modelo continua).
+    const api = globalThis.PLUVIA?.observedRain;
+    const dried = current && api?.dryNow?.(observedSources()) ? api.dryCode(current.weather_code, current.cloud_cover) : current?.weather_code;
+    return dried === current?.weather_code ? {current, observed:null, replaced:false} : {current:{...current, weather_code:dried}, observed:null, replaced:true, dried:true};
+  }
   const code = globalThis.PLUVIA.observedRain.merge(current.weather_code, observed);
   return code === current.weather_code ? {current, observed, replaced:false} : {current:{...current, weather_code:code}, observed, replaced:true};
 }
@@ -1314,9 +1319,9 @@ function paintCurrentCondition(data) {
   const heatGap = current.apparent_temperature - current.temperature_2m;
   const atmosphere = applyWeatherAtmosphere(current.weather_code, current.is_day, data.daily, current.wind_speed_10m);
   const isDay = atmosphere?.phase === "night" ? false : atmosphere?.phase === "day" ? true : current.is_day !== 0;
-  const localCondition = replaced ? globalThis.PLUVIA.observedRain.label(observed, condition) : !isDay && current.weather_code === 1 ? "Céu quase limpo" : condition;
+  const localCondition = replaced && observed ? globalThis.PLUVIA.observedRain.label(observed, condition) : !isDay && current.weather_code === 1 ? "Céu quase limpo" : condition;
   // "Ar abafado" vem da sensação do modelo; com chuva medida agora (que costuma derrubar a temperatura) fica de fora.
-  $("condition").textContent = !replaced && heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition;
+  $("condition").textContent = !(replaced && observed) && heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition;
   observedRainState.key = observedRainKey(data);
   return atmosphere;
 }
@@ -1345,7 +1350,7 @@ function rainAnswerFor(data, start) {
 // Chave do que a observação muda no topo (condição/céu e "Vai chover?").
 function observedRainKey(data) {
   const api = globalThis.PLUVIA?.observedRain, close = api?.nearby?.(observedSources());
-  return `${api?.key?.(observedRainFor(data)) || ""}|${close ? `${close.icao}:${close.at}:${close.thunder}` : ""}|${nowcastAnswer()?.text || ""}`;
+  return `${api?.key?.(observedRainFor(data)) || ""}|${close ? `${close.icao}:${close.at}:${close.thunder}` : ""}|${nowcastAnswer()?.text || ""}|${api?.dryNow?.(observedSources()) ? "dry" : ""}`;
 }
 // Uma leitura nova (ou vencida) repinta só a condição, o céu e o "Vai chover?", sem refazer a Home.
 function refreshObservedRain() {

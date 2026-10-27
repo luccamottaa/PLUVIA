@@ -117,12 +117,39 @@ test('trovoada nas proximidades confirma tempestade com chuva medida; sem chuva,
 test('o app carrega o módulo antes de app.js e só repinta condição, céu e "Vai chover?"', () => {
   const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
   const sw = fs.readFileSync(path.join(__dirname, '../dist/sw.js'), 'utf8');
-  assert.ok(html.indexOf('modules/observed-rain.js?v=observed-rain-2') > 0);
+  assert.ok(html.indexOf('modules/observed-rain.js?v=observed-rain-3') > 0);
   assert.ok(html.indexOf('modules/observed-rain.js') < html.indexOf('app.js?v='));
-  assert.match(sw, /modules\/observed-rain\.js\?v=observed-rain-2/);
+  assert.match(sw, /modules\/observed-rain\.js\?v=observed-rain-3/);
   const app = fs.readFileSync(path.join(__dirname, '../dist/app.js'), 'utf8');
   const refresh = app.slice(app.indexOf('function refreshObservedRain()'), app.indexOf('globalThis.addEventListener?.("pluvia:station-reading"'));
   assert.doesNotMatch(refresh, /render\(|pluvia:weather-updated/, 'repintar não dispara outra rodada de consultas');
   const station = fs.readFileSync(path.join(__dirname, '../dist/modules/station-now.js'), 'utf8');
   assert.match(station, /pluvia:station-reading/);
+});
+
+test('medição seca desmente garoa/chuva fraca do modelo (radar sem eco + terra seca)', () => {
+  // Manaus, 27/10/2026: o modelo dava garoa fraca (51) com sol e poucas nuvens no céu.
+  const now = Date.parse('2026-10-27T19:30:00Z');
+  const radar = {status:'ready', precipitating:false, frameAt:now - 8 * 60_000};
+  const dryStation = {at:now - 20 * 60_000, rainMm:0};
+  const dryAirport = {at:now - 15 * 60_000, weather:{rain:null, drizzle:false, thunder:false}};
+  assert.equal(observed.dryNow({radar, station:dryStation, now}), true);
+  assert.equal(observed.dryNow({radar, airport:dryAirport, now}), true);
+  // Só o radar não basta (garoa fina pode passar abaixo do eco); radar velho, com eco ou estação molhada também não.
+  assert.equal(observed.dryNow({radar, now}), false);
+  assert.equal(observed.dryNow({radar:{...radar, frameAt:now - 40 * 60_000}, station:dryStation, now}), false);
+  assert.equal(observed.dryNow({radar:{...radar, precipitating:true}, station:dryStation, now}), false);
+  assert.equal(observed.dryNow({radar, station:{...dryStation, rainMm:0.4}, now}), false);
+  assert.equal(observed.dryNow({radar, airport:{...dryAirport, weather:{drizzle:true}}, now}), false);
+  assert.equal(observed.dryNow({radar, station:{...dryStation, at:now - 2 * 3600_000}, now}), false);
+  // Só os códigos fracos viram secos, pela cobertura de nuvens; moderada/forte e trovoada continuam.
+  assert.equal(observed.dryCode(51, 30), 1);
+  assert.equal(observed.dryCode(61, 60), 2);
+  assert.equal(observed.dryCode(80, 95), 3);
+  assert.equal(observed.dryCode(53, null), 3);
+  for (const code of [63, 65, 81, 82, 95, 2, 3]) assert.equal(observed.dryCode(code, 30), code);
+  // No app: sem chuva observada, a condição do topo usa o código seco e a chave de repintura muda com isso.
+  const app = fs.readFileSync(path.join(__dirname, '../dist/app.js'), 'utf8');
+  assert.match(app, /api\?\.dryNow\?\.\(observedSources\(\)\) \? api\.dryCode\(current\.weather_code, current\.cloud_cover\)/);
+  assert.match(app, /dryNow\?\.\(observedSources\(\)\) \? "dry" : ""/);
 });

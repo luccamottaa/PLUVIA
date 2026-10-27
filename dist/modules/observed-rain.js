@@ -77,6 +77,26 @@
     return {...observed, code:95, storm:true, stormSource:'cape'};
   }
 
+  // Medição seca desmente garoa/chuva fraca do modelo (1.35.2, pedido do dono: "tá falando garoa fraca mas tá sol
+  // com umas nuvens só"). Exige o radar recente sem eco em cima da cidade E uma medição em terra seca (estação do
+  // INMET na hora fechada < 0,2 mm, ou aeroporto sem chuva/garoa/trovoada). Só tira os códigos fracos: chuva
+  // moderada/forte e trovoada do modelo continuam, porque o radar público pode errar e a medição é pontual.
+  const LIGHT_WET = new Set([51, 53, 56, 61, 80]);
+  function dryNow({station = null, airport = null, radar = null, now = Date.now()} = {}) {
+    const radarDry = radar?.status === 'ready' && radar.precipitating === false && fresh(radar.frameAt, now, RADAR_MAX_AGE_MS);
+    if (!radarDry) return false;
+    const stationDry = Boolean(station) && finite(station.rainMm) && station.rainMm < STATION_MIN_MM && fresh(station.at, now, STATION_MAX_AGE_MS);
+    const w = airport?.weather;
+    const airportDry = Boolean(w) && fresh(airport.at, now, AIRPORT_MAX_AGE_MS) && !w.rain && !w.drizzle && !w.thunder;
+    return stationDry || airportDry;
+  }
+  // Código seco no lugar do fraco, pela cobertura de nuvens da hora (sem cobertura, nublado).
+  function dryCode(modelCode, cloudCover) {
+    if (!LIGHT_WET.has(modelCode)) return modelCode;
+    if (!finite(cloudCover)) return 3;
+    return cloudCover >= 85 ? 3 : cloudCover >= 40 ? 2 : 1;
+  }
+
   // Código mostrado: trovoada do modelo continua trovoada; chuva do modelo igual ou mais forte continua.
   function merge(modelCode, observed) {
     if (!observed) return modelCode;
@@ -123,5 +143,5 @@
   const key = observed => observed ? `${observed.source}:${observed.at}:${observed.code}:${observed.stormSource || ''}` : '';
 
   return {STATION_MAX_AGE_MS, STATION_MIN_MM, AIRPORT_MAX_AGE_MS, RADAR_MAX_AGE_MS, STORM_CAPE, codeFor,
-    fromStation, fromAirport, fromRadar, nearby, pick, withStorm, merge, answer, nearbyAnswer, label, key};
+    fromStation, fromAirport, fromRadar, nearby, pick, withStorm, merge, dryNow, dryCode, answer, nearbyAnswer, label, key};
 });
