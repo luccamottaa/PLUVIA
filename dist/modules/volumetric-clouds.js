@@ -18,9 +18,9 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   const SCALE = .5, FRAME_MS = 41, SLOW_MS = 90, SLOW_SECONDS = 5, OFF_KEY = 'pluvia-volume-off';
   const PALETTES = {
-    cloud: {lit:'#6c7298', shade:'#232846', cover:.47, dens:2.6},
-    rain: {lit:'#a2a6ae', shade:'#2b2e34', cover:.4, dens:2.9},
-    heavy: {lit:'#959aa2', shade:'#24272c', cover:.42, dens:3},
+    cloud: {lit:'#6c7298', shade:'#232846', cover:.46, dens:2.4, size:.3, edge:3.2, detail:.16},
+    rain: {lit:'#a2a6ae', shade:'#2b2e34', cover:.4, dens:2.6, size:.22, edge:2.8, detail:.12},
+    heavy: {lit:'#959aa2', shade:'#24272c', cover:.38, dens:2.8, size:.18, edge:2.6, detail:.1},
   };
   // Qual céu ganha a nuvem volumétrica: só noite com nublado, chuva ou trovoada.
   function mode(attrs) {
@@ -34,17 +34,17 @@
 
   const VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
   const FS = `precision mediump float;
-uniform vec2 R;uniform float T;uniform vec3 LIT,SHD,SUN;uniform float COVER,DENS;
+uniform vec2 R;uniform float T;uniform vec3 LIT,SHD,SUN;uniform float COVER,DENS,SIZE,EDGE,DETAIL;
 float h(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
 float n(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
 return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x),mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x),f.y),
 mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x),mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x),f.y),f.z);}
 float fbm4(vec3 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*n(p);p=p*2.03+vec3(.1,.2,.3);a*=.5;}return s+.03;}
 float fbm3(vec3 p){float a=.5,s=0.;for(int i=0;i<3;i++){s+=a*n(p);p=p*2.03+vec3(.1,.2,.3);a*=.5;}return s+.06;}
-vec3 wind(vec3 p){return p*.42+vec3(T*.02,0.,T*.006);}
-float shape(float s,float y){float prof=smoothstep(0.,.12,y)*smoothstep(1.,.45,y);return (s-COVER)*4.*prof-(1.-prof)*.3;}
+vec3 wind(vec3 p){return p*SIZE+vec3(T*.02,0.,T*.006);}
+float shape(float s,float y){float prof=smoothstep(0.,.12,y)*smoothstep(1.,.45,y);return (s-COVER)*EDGE*prof-(1.-prof)*.3;}
 float dens(vec3 p){vec3 q=wind(p);float d=shape(fbm4(q*vec3(1.,.9,1.)),p.y/2.4);
-  if(d<=0.)return 0.;d-=(fbm3(q*5.1)-.35)*.35*(1.-clamp(d*2.,0.,1.));return clamp(d*DENS,0.,1.);}
+  if(d<=0.)return 0.;d-=(fbm3(q*3.7)-.35)*DETAIL*(1.-clamp(d*2.,0.,1.));return clamp(d*DENS,0.,1.);}
 float densLow(vec3 p){float d=shape(fbm3(wind(p)*vec3(1.,.9,1.)),p.y/2.4);return clamp(d*DENS,0.,1.);}
 void main(){
   vec2 uv=(gl_FragCoord.xy-.5*R)/R.y;
@@ -58,9 +58,9 @@ void main(){
     vec3 p=ro+rd*t;float d=dens(p);
     if(d>.002){
       vec3 l=p;float s=0.;for(int j=0;j<3;j++){l+=SUN*.4;s+=densLow(l);}
-      float sh=exp(-s*1.5);float powder=1.-exp(-d*4.);float hgt=clamp(p.y/2.4,0.,1.);
+      float sh=exp(-s*1.1);float powder=1.-exp(-d*4.);float hgt=clamp(p.y/2.4,0.,1.);
       vec3 c=mix(SHD*.7,SHD*1.25,hgt)+LIT*sh*powder*1.35;
-      float a=1.-exp(-d*dt*6.);col+=c*a*trans;trans*=1.-a;
+      float a=1.-exp(-d*dt*3.5);col+=c*a*trans;trans*=1.-a;
     }
     t+=dt;
   }
@@ -80,6 +80,8 @@ void main(){
     // A automação de QA (navigator.webdriver) mede as camadas de nuvem do CSS; lá a nuvem volumétrica só liga
     // com pluvia-volume-qa no localStorage.
     function qaBlocked() { try { return !!win.navigator?.webdriver && !win.localStorage?.getItem('pluvia-volume-qa'); } catch (_) { return true; } }
+    // Com a chave de QA (WebGL por software na CI) a lentidão não desliga: o QA quer ver o desenho.
+    function qaForced() { try { return !!win.localStorage?.getItem('pluvia-volume-qa'); } catch (_) { return false; } }
     function reduced() { return !!win.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches; }
     function scene() { return doc.querySelector('.sky-effects'); }
     function setup() {
@@ -96,7 +98,7 @@ void main(){
         gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
         const at = gl.getAttribLocation(program,'p'); gl.enableVertexAttribArray(at); gl.vertexAttribPointer(at,2,gl.FLOAT,false,0,0);
-        uniforms = {}; for (const name of ['R','T','LIT','SHD','SUN','COVER','DENS']) uniforms[name] = gl.getUniformLocation(program,name);
+        uniforms = {}; for (const name of ['R','T','LIT','SHD','SUN','COVER','DENS','SIZE','EDGE','DETAIL']) uniforms[name] = gl.getUniformLocation(program,name);
         const sun = [-.5,.75,-.2], len = Math.hypot(...sun); gl.uniform3fv(uniforms.SUN,sun.map(v => v / len));
       } catch (_) { canvas = gl = null; return false; }
       canvas.addEventListener('webglcontextlost',event => { event.preventDefault(); off('lost'); });
@@ -115,6 +117,7 @@ void main(){
       const p = PALETTES[name];
       gl.uniform3fv(uniforms.LIT,hex(p.lit)); gl.uniform3fv(uniforms.SHD,hex(p.shade));
       gl.uniform1f(uniforms.COVER,p.cover); gl.uniform1f(uniforms.DENS,p.dens);
+      gl.uniform1f(uniforms.SIZE,p.size); gl.uniform1f(uniforms.EDGE,p.edge); gl.uniform1f(uniforms.DETAIL,p.detail);
     }
     function rate() { const value = parseFloat(scene()?.style.getPropertyValue('--cloud-rate')); return Number.isFinite(value) && value > 0 ? value : 1; }
     let clock = 0, lastNow = 0;
@@ -123,7 +126,7 @@ void main(){
       if (now - last < FRAME_MS) return;
       const gap = now - last; last = now;
       // Quadros lentos por 5 segundos seguidos: o aparelho não aguenta; volta às camadas do CSS.
-      if (lastNow && gap > SLOW_MS) { slow += gap; if (slow > SLOW_SECONDS * 1000) return off('slow'); } else slow = 0;
+      if (lastNow && gap > SLOW_MS && !qaForced()) { slow += gap; if (slow > SLOW_SECONDS * 1000) return off('slow'); } else slow = 0;
       clock += lastNow ? Math.min(gap,200) / 1000 * rate() : 0; lastNow = now;
       gl.uniform1f(uniforms.T,20 + clock); gl.drawArrays(gl.TRIANGLES,0,3);
     }
