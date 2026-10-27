@@ -2147,3 +2147,15 @@ body[data-ink="dark"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
 /* 1.29: previsão de +10 a +30 min no radar ampliado (weather-map + radar-nowcast.forecastImages). O horário
    diz "Previsão para HH:MM" no azul da marca, para não ser confundido com uma imagem observada. */
 #radarMapContent #weatherFrameTime[data-state="forecast"] { color:var(--brand-blue); font-weight:600; }
+
+/* Ícones nos títulos de "Chuva na região" e "Ciclo do dia" (1.37.2, pedido do dono), no mesmo traço azul dos blocos
+   de leitura, logo depois do título. O ⓘ da Qualidade do ar fica colado no título e no ícone, como nas seções,
+   em vez de ir para a borda direita; a letra fica centrada no círculo por grade, não pela altura da linha. */
+#weatherView .heading-icon { display:block; flex:none; width:24px; height:24px; color:var(--graphic-blue); }
+#weatherView .sun-section .sun-label { display:flex; align-items:center; gap:8px; }
+#weatherView .sun-section .sun-label .heading-icon svg { display:block; color:var(--graphic-blue); }
+#weatherView #airQualityCard .metric-head { justify-content:flex-start; }
+#weatherView #airQualityCard .metric-head > [data-weather-icon-name] { margin-right:0; }
+#weatherView #airQualityCard .metric-head .info-tip { margin-left:0; }
+#weatherView #airQualityCard .metric-head .info-tip > summary { margin-right:-12px; }
+.info-tip-icon { display:grid; place-items:center; line-height:1; padding-top:.5px; box-sizing:border-box; }

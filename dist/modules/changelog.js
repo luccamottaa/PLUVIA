@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.37.2", date:"2026-10-27", title:"Ícones nos títulos", items:[
+      "“Chuva na região” e “Ciclo do dia” ganharam ícones, no mesmo estilo dos outros blocos.",
+      "O botão de informação da Qualidade do ar fica ao lado do título, como nas outras seções."]},
     {version:"1.37.1", date:"2026-10-27", title:"Sol e Lua sem teletransporte", items:[
       "Ao voltar para o app depois de um tempo, o Sol e a Lua deslizam até onde estão agora no céu, em vez de pular de lugar. Com o app aberto eles continuam andando sozinhos, na velocidade real."]},
     {version:"1.37", date:"2026-10-27", title:"Quanto o PLUVIA acerta", items:[
