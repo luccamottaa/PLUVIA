@@ -12,8 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.29.2", date:"2026-10-26", title:"Nuvens na resolução da tela", items:[
+    {version:"1.29.3", date:"2026-10-27", title:"Nuvens na resolução da tela", items:[
       "Todas as nuvens do céu foram refeitas na resolução da tela do iPhone, pixel por pixel: o parcialmente nublado, a camada da frente de todos os céus e as nuvens de nublado, chuva, tempestade e neblina ficam nítidas, sem borrão."]},
+    {version:"1.29.2", date:"2026-10-26", title:"Nuvens do dia a dia em alta resolução", items:[
+      "As nuvens do céu parcialmente nublado e a camada da frente de todos os céus com nuvem também ganharam resolução bem maior, então ficam nítidas na tela do celular."]},
     {version:"1.29.1", date:"2026-10-26", title:"Nuvens mais nítidas e com a cor do céu", items:[
       "As nuvens dos céus nublado, de chuva, de tempestade e de neblina foram refeitas em resolução bem maior: no celular elas apareciam esticadas e borradas, e agora ficam macias e definidas.",
       "O céu nublado da noite ficou azul-anil, com nuvens finas e naturais esticadas pelo vento, e no pôr e no nascer do sol elas escurecem e pegam o violeta do céu, como no app Tempo, no lugar da massa cinza-escura ou das nuvens brancas demais."]},

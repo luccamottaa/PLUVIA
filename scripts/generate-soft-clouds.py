@@ -147,7 +147,7 @@ def soft_layer(seed, *, few_x=None, fib_beta=2.5, glow=.22, beta, stretch, masse
 # Condições (nublado, chuva, tempestade, neblina) em alta resolução desde a 1.29.1 (pedido do usuário: "a nuvem
 # tá em má definição"): com 528 px de altura esticados até ~640 px de tela, no iPhone (3×) a textura era
 # ampliada quase 4× e ficava borrada. Ficam fora do precache, baixadas só quando aquele céu aparece.
-# Desde a 1.29.2 (pedido do usuário: "aumenta mais") todas em 3984 × 1328: a nuvem tem 440 px de altura no
+# Desde a 1.29.3 (pedido do usuário: "aumenta mais") todas em 3984 × 1328: a nuvem tem 440 px de altura no
 # celular, 1320 pixels reais no iPhone (3×), então fica 1:1; acima disso a tela não mostra mais detalhe.
 # Múltiplo de 16 nos dois lados para a emenda sobreviver ao WebP.
 FULL = LIGHT = (3984, 1328)
