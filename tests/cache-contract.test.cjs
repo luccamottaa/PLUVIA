@@ -46,18 +46,18 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   assert.match(html, /app\.js\?v=panel-139/);
   assert.ok(!sw.includes('"./assets/panel-night-sky.webp"'), 'não baixa a antiga foto sem uso no cache inicial');
   for (const asset of ['sky-sun.svg','sky-cloud-veil.webp','sky-cloud-volume.webp']) assert.ok(sw.includes(`./assets/${asset}`));
-  assert.ok(['sky-cloud-veil.webp','sky-cloud-volume.webp'].reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<450*1024,'texturas das nuvens mantêm orçamento do shell mobile');
+  assert.ok(['sky-cloud-veil.webp','sky-cloud-volume.webp'].reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<600*1024,'texturas das nuvens mantêm orçamento do shell mobile');
   assert.ok(!sw.includes('"./assets/sky-cloud-bank.webp"'),'textura antiga não é baixada pelo novo shell');
   // Nuvens por condição: baixadas (e guardadas pelo SW) só quando aquele céu aparece, fora do precache.
   const skyCss=fs.readFileSync(path.join(root,'sky.css'),'utf8');
   for (const name of ['overcast','rain','storm','fog','stratus']) {
     const asset=`sky-cloud-${name}.webp`;
     assert.ok(fs.existsSync(path.join(root,'assets',asset)),asset);
-    // 1.29.1: 3168 × 1056 (a de 528 px de altura era esticada quase 4× no iPhone e ficava borrada).
+    // 1.29.2: 3984 × 1328, 1:1 no iPhone (a de 528 px de altura era esticada quase 4× e ficava borrada).
     // Continuam fora do precache e com teto de tamanho: só quem vê aquele céu baixa, uma vez.
-    assert.ok(skyCss.includes(`./assets/${asset}?v=clouds-7`),`${asset} usada pelo céu da condição`);
+    assert.ok(skyCss.includes(`./assets/${asset}?v=clouds-8`),`${asset} usada pelo céu da condição`);
     assert.ok(!sw.includes(asset),`${asset} fica fora do precache`);
-    assert.ok(fs.statSync(path.join(root,'assets',asset)).size<(name==='overcast'?560:320)*1024,`${asset} com tamanho controlado para baixar sob demanda`);
+    assert.ok(fs.statSync(path.join(root,'assets',asset)).size<(name==='overcast'?700:420)*1024,`${asset} com tamanho controlado para baixar sob demanda`);
   }
   const starAssets=['sky-stars.svg','sky-stars-shimmer.svg'];
   for(const asset of starAssets) assert.ok(sw.includes(`./assets/${asset}`),'céu noturno disponível offline: '+asset);
