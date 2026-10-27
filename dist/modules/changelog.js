@@ -12,6 +12,12 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.35", date:"2026-10-27", title:"Nuvens em 3D em todos os céus, no pôr do sol e na abertura", items:[
+      "As nuvens em 3D agora aparecem em todo céu com nuvem, de dia e de noite: poucas nuvens, parcial, nublado, chuva e trovoada.",
+      "No pôr e no nascer do sol, a luz baixa pinta as nuvens de laranja e rosa por baixo.",
+      "A luz vem de cima: o topo das nuvens fica claro e a base mais cinza.",
+      "A Lua e o Sol passam por trás das nuvens, sem atravessar a parte mais densa.",
+      "A abertura do app já mostra as nuvens em 3D."]},
     {version:"1.34", date:"2026-10-27", title:"Nuvens em 3D de dia, com o brilho do Sol", items:[
       "De dia, com poucas nuvens ou parcialmente nublado, as nuvens também são em 3D, macias e com sombra embaixo.",
       "Quando o Sol passa atrás de uma nuvem, a borda dela se acende e o brilho atravessa a parte mais fina, como na vida real."]},

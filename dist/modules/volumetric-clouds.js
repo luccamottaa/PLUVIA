@@ -1,11 +1,12 @@
-/* Nuvens volumétricas da noite (1.33, pedido do dono depois de ver o protótipo: "pode botar no pluvia").
-   No nublado, na chuva e na trovoada da noite, um <canvas> pequeno dentro de .sky-effects desenha nuvens em
-   3D por raymarching (WebGL): ruído fractal numa camada de céu, luz da Lua de cima com sombra própria e base
-   escura. O canvas tem ~35% da resolução da tela em CSS px e o navegador o amplia (nuvem é macia; isso deixa o
-   custo pequeno no celular). Fundo transparente: o céu e a Lua do CSS continuam atrás, e a nuvem cobre a Lua.
-   Desenha a ~24 quadros por segundo só com a cena rodando (data-motion="running", que já para com a página
-   oculta, fora da tela e na intro). Sem WebGL, com movimento reduzido, contexto perdido ou quadros lentos
-   demais, volta às camadas de nuvem do CSS (data-volume sai da raiz) e não tenta de novo nesta sessão.
+/* Nuvens volumétricas (1.33: noite; 1.34: dia com o brilho do Sol; 1.35: todos os céus com nuvem, pôr/nascer do
+   sol e intro, pedidos do dono). Um <canvas> pequeno desenha nuvens em 3D por raymarching (WebGL 1): ruído
+   fractal numa camada de céu, luz de cima com sombra própria e base mais cinza. O canvas tem 50% da resolução da
+   tela em CSS px e o navegador o amplia (nuvem é macia; isso deixa o custo pequeno no celular). Fundo
+   transparente: o céu, o Sol e a Lua do CSS continuam atrás, e a nuvem cobre os astros.
+   O mesmo canvas (um contexto só) fica na intro enquanto ela aparece e passa para .sky-effects quando ela sai.
+   Desenha a ~24 quadros por segundo só com a cena rodando (data-motion="running", que para com a página oculta
+   e fora da tela). Sem WebGL, com movimento reduzido, contexto perdido ou quadros lentos demais, volta às camadas
+   de nuvem do CSS (data-volume sai da raiz) e não tenta de novo nesta sessão.
    É decoração: cobertura e forma não representam medição. */
 (function (root, factory) {
   const api = factory();
@@ -17,34 +18,36 @@
   }
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   const SCALE = .5, FRAME_MS = 41, SLOW_MS = 90, SLOW_SECONDS = 5, OFF_KEY = 'pluvia-volume-off';
+  // cap: brilho máximo da nuvem. No nublado de dia o texto branco fica por cima da nuvem: até ~.7 ele continua
+  // legível como no deck prateado do CSS (escolha do dono, contraste medido por verify-contrast).
   const PALETTES = {
-    cloud: {lit:'#6c7298', shade:'#232846', cover:.46, dens:2.4, size:.3, edge:3.2, detail:.16},
-    rain: {lit:'#a2a6ae', shade:'#2b2e34', cover:.4, dens:2.6, size:.22, edge:2.8, detail:.12},
-    heavy: {lit:'#959aa2', shade:'#24272c', cover:.38, dens:2.8, size:.18, edge:2.6, detail:.1},
-    // Dia (1.34, pedido do dono: "se o sol ficar atrás dela podia ter o brilho do sol que nem na vida real").
-    'day-few': {lit:'#d3dbe7', shade:'#6c7f9c', cover:.58, dens:2.1, size:.3, edge:2, detail:.28},
-    'day-partly': {lit:'#d3dbe7', shade:'#687b98', cover:.52, dens:2.2, size:.3, edge:2, detail:.28},
+    'night-few': {lit:'#7a81aa', shade:'#1e2340', cover:.6, dens:2.2, size:.3, edge:2.6, detail:.2, cap:1},
+    'night-partly': {lit:'#757ca6', shade:'#1f2442', cover:.53, dens:2.3, size:.3, edge:2.8, detail:.18, cap:1},
+    'night-cloud': {lit:'#6c7298', shade:'#232846', cover:.46, dens:2.4, size:.3, edge:3.2, detail:.16, cap:1},
+    'night-rain': {lit:'#a2a6ae', shade:'#2b2e34', cover:.4, dens:2.6, size:.22, edge:2.8, detail:.12, cap:1},
+    'night-heavy': {lit:'#959aa2', shade:'#24272c', cover:.38, dens:2.8, size:.18, edge:2.6, detail:.1, cap:1},
+    'day-few': {lit:'#dfe6f0', shade:'#6a7d9a', cover:.58, dens:2.1, size:.3, edge:2, detail:.28, cap:1},
+    'day-partly': {lit:'#dfe6f0', shade:'#667996', cover:.52, dens:2.2, size:.3, edge:2, detail:.28, cap:1},
+    'day-cloud': {lit:'#a9b3c2', shade:'#6a7587', cover:.44, dens:2.4, size:.26, edge:2.8, detail:.14, cap:.72},
+    'day-rain': {lit:'#99a1ad', shade:'#575f6b', cover:.4, dens:2.6, size:.22, edge:2.6, detail:.12, cap:.66},
+    'day-heavy': {lit:'#858c97', shade:'#454b55', cover:.38, dens:2.8, size:.18, edge:2.4, detail:.1, cap:.58},
   };
-  // Qual céu ganha a nuvem volumétrica: noite com nublado, chuva ou trovoada; de dia o céu parcial
-  // (poucas nuvens ou parcialmente nublado), onde o Sol aparece e pode passar atrás delas.
+  // Todo céu com nuvem ganha a nuvem 3D: poucas nuvens, parcial, nublado (e neve), chuva e trovoada, de dia e
+  // de noite. Céu limpo não tem nuvem; a neblina continua com a camada própria do CSS.
   function mode(attrs) {
     if (!attrs || (attrs.phase !== 'night' && attrs.phase !== 'day')) return null;
     let name = null;
-    if (attrs.weather === 'cloud') name = 'cloud';
+    if (attrs.weather === 'cloud' || attrs.weather === 'snow') name = 'cloud';
     else if (attrs.weather === 'storm' || (attrs.weather === 'rain' && attrs.rain === 'heavy')) name = 'heavy';
     else if (attrs.weather === 'rain') name = 'rain';
-    else if (attrs.phase === 'day' && attrs.weather === 'partly') name = attrs.clouds === 'few' ? 'few' : 'partly';
-    if (!name) return null;
-    // De dia, nublado e chuva continuam com o deck do CSS (o prateado do nublado foi escolha do dono e o texto
-    // branco por cima tem contraste medido); só o céu parcial ganha nuvem 3D, onde o Sol pode passar atrás.
-    if (attrs.phase === 'day') return name === 'few' || name === 'partly' ? `day-${name}` : null;
-    return name;
+    else if (attrs.weather === 'partly') name = attrs.clouds === 'few' ? 'few' : 'partly';
+    return name ? `${attrs.phase}-${name}` : null;
   }
   function hex(value) { return [1,3,5].map(i => parseInt(value.slice(i,i + 2),16) / 255); }
 
   const VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
   const FS = `precision mediump float;
-uniform vec2 R,SUNPX;uniform float T,SUNI;uniform vec3 LIT,SHD,SUN;uniform float COVER,DENS,SIZE,EDGE,DETAIL;
+uniform vec2 R,SUNPX;uniform float T,SUNI,TW,SIDE,CAP;uniform vec3 LIT,SHD,SUN;uniform float COVER,DENS,SIZE,EDGE,DETAIL;
 vec3 ray(vec2 px){vec2 uv=(px-.5*R)/R.y;return normalize(vec3(uv.x*.9,uv.y*.9+.45,1.));}
 float hg(float c,float g){float g2=g*g;return (1.-g2)/(12.566*pow(1.+g2-2.*g*c,1.5));}
 float h(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
@@ -60,34 +63,42 @@ float dens(vec3 p){vec3 q=wind(p);float d=shape(fbm4(q*vec3(1.,.9,1.)),p.y/2.4);
 float densLow(vec3 p){float d=shape(fbm3(wind(p)*vec3(1.,.9,1.)),p.y/2.4);return clamp(d*DENS,0.,1.);}
 void main(){
   vec3 ro=vec3(0.,-2.2,0.);vec3 rd=ray(gl_FragCoord.xy);
-  // De dia a luz vem do Sol na posição dele na tela (SUNPX); à noite, da Lua ilustrada (SUN fixo).
-  vec3 L=SUNI>0.?ray(SUNPX):SUN;float cosA=dot(rd,L);
-  float fwd=SUNI*(hg(cosA,.6)*1.4+pow(max(cosA,0.),80.)*2.2);
   if(rd.y<=.01){gl_FragColor=vec4(0.);return;}
+  // Luz de cima: de dia, o Sol na posição dele na tela (SUNPX) ou o céu claro acima; à noite, a Lua ilustrada.
+  // No pôr/nascer do sol (TW) a luz vem baixa, do lado do Sol (SIDE), e pinta a base de laranja e rosa.
+  vec3 L=SUNI>0.?ray(SUNPX):SUN;
+  L=normalize(mix(L,vec3(SIDE*.9,.12,.45),TW));
+  float cosA=dot(rd,L);
+  float fwd=(SUNI+TW*.8)*(hg(cosA,.6)*1.4+pow(max(cosA,0.),80.)*2.2);
+  vec3 lit=mix(LIT,vec3(1.,.63,.42),TW*.85),shd=mix(SHD,vec3(.34,.27,.42),TW*.7),glow=mix(vec3(1.,.96,.86),vec3(1.,.55,.3),TW);
   float t0=-ro.y/rd.y,t1=min((2.4-ro.y)/rd.y,t0+9.);
   float dt=(t1-t0)/40.;float t=t0+dt*h(vec3(gl_FragCoord.xy,1.));
   vec3 col=vec3(0.);float trans=1.;float depth=0.;
   for(int i=0;i<40;i++){
-    if(trans<.03)break;
+    if(trans<.02)break;
     vec3 p=ro+rd*t;float d=dens(p);
     if(d>.002){
       vec3 l=p;float s=0.;for(int j=0;j<3;j++){l+=L*.4;s+=densLow(l);}
       float sh=exp(-s*1.1);float powder=1.-exp(-d*4.);float hgt=clamp(p.y/2.4,0.,1.);
-      // Contraluz: com o Sol atrás, a borda fina se acende (espalhamento para a frente, Henyey-Greenstein).
-      vec3 c=mix(SHD*.7,SHD*1.25,hgt)+LIT*sh*powder*1.35+vec3(1.,.96,.86)*sh*fwd*(1.-powder*.7);
+      // Topo iluminado e base mais cinza: a luz direta pesa mais no alto da nuvem e o ambiente escurece embaixo.
+      float top=.45+.55*smoothstep(.05,.85,hgt);
+      vec3 c=mix(shd*.55,shd*1.3,hgt)+lit*sh*powder*1.35*mix(top,1.,TW)+glow*sh*fwd*(1.-powder*.7);
       float a=1.-exp(-d*dt*3.5);col+=c*a*trans;trans*=1.-a;depth+=d*dt;
     }
     t+=dt;
   }
   // Sol escondido atrás da nuvem: o brilho atravessa a parte fina, como na vida real.
-  col+=vec3(1.,.97,.88)*SUNI*pow(max(cosA,0.),90.)*exp(-depth*1.2)*(1.-trans)*1.6;
+  col+=glow*SUNI*pow(max(cosA,0.),90.)*exp(-depth*1.2)*(1.-trans)*1.6;
   float keep=1.-clamp((t0-3.)/14.,0.,1.)*.8;
-  gl_FragColor=vec4(min(col,vec3(1.))*keep,(1.-trans)*keep);
+  // O miolo da nuvem fica opaco (a Lua e o Sol não atravessam), e a cor nunca passa do alfa (pré-multiplicado).
+  float A=1.-trans;float A2=min(1.,A*1.4);col*=A>0.?A2/A:0.;
+  col=min(col,vec3(A2*CAP));
+  gl_FragColor=vec4(col*keep,A2*keep);
 }`;
 
   function start(win) {
     const doc = win.document, html = doc.documentElement;
-    let canvas = null, gl = null, uniforms = null, current = null, raf = 0, last = 0, t0 = 0, slow = 0, dead = false;
+    let canvas = null, gl = null, uniforms = null, current = null, raf = 0, last = 0, slow = 0, dead = false;
     function off(reason) {
       dead = true; stop();
       try { win.sessionStorage?.setItem(OFF_KEY,reason || '1'); } catch (_) { /* sessão sem storage: só esta página */ }
@@ -100,9 +111,20 @@ void main(){
     // Com a chave de QA (WebGL por software na CI) a lentidão não desliga: o QA quer ver o desenho.
     function qaForced() { try { return !!win.localStorage?.getItem('pluvia-volume-qa'); } catch (_) { return false; } }
     function reduced() { return !!win.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches; }
-    function scene() { return doc.querySelector('.sky-effects'); }
+    function intro() {
+      const box = doc.getElementById('pluviaIntro');
+      return box && !box.hidden ? box.querySelector('.intro-sky') : null;
+    }
+    // A cena que está à vista: a da intro enquanto ela aparece, depois a da Home.
+    function scene() { return (intro()?.dataset.motion === 'running' && intro()) || doc.querySelector('.sky-effects'); }
+    function place() {
+      const host = scene(); if (!host || !canvas || canvas.parentNode === host) return;
+      const moon = host.querySelector('.sky-moon');
+      host.insertBefore(canvas,moon?.nextSibling || null);
+      resize(); sunUpdate(win.performance.now());
+    }
     function setup() {
-      const host = scene(); if (!host) return false;
+      if (!scene()) return false;
       canvas = doc.createElement('canvas'); canvas.className = 'sky-volume'; canvas.setAttribute('aria-hidden','true');
       try { gl = canvas.getContext('webgl',{alpha:true,premultipliedAlpha:true,antialias:false,depth:false,stencil:false,powerPreference:'low-power'}); } catch (_) { gl = null; }
       if (!gl) { canvas = null; return false; }
@@ -115,13 +137,12 @@ void main(){
         gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
         const at = gl.getAttribLocation(program,'p'); gl.enableVertexAttribArray(at); gl.vertexAttribPointer(at,2,gl.FLOAT,false,0,0);
-        uniforms = {}; for (const name of ['R','T','LIT','SHD','SUN','COVER','DENS','SIZE','EDGE','DETAIL','SUNPX','SUNI']) uniforms[name] = gl.getUniformLocation(program,name);
+        uniforms = {};
+        for (const name of ['R','T','LIT','SHD','SUN','COVER','DENS','SIZE','EDGE','DETAIL','SUNPX','SUNI','TW','SIDE','CAP']) uniforms[name] = gl.getUniformLocation(program,name);
         const sun = [-.5,.75,-.2], len = Math.hypot(...sun); gl.uniform3fv(uniforms.SUN,sun.map(v => v / len));
       } catch (_) { canvas = gl = null; return false; }
       canvas.addEventListener('webglcontextlost',event => { event.preventDefault(); off('lost'); });
-      const moon = host.querySelector('.sky-moon');
-      host.insertBefore(canvas,moon?.nextSibling || null);
-      resize(); t0 = win.performance.now();
+      place();
       return true;
     }
     function resize() {
@@ -135,17 +156,19 @@ void main(){
       gl.uniform3fv(uniforms.LIT,hex(p.lit)); gl.uniform3fv(uniforms.SHD,hex(p.shade));
       gl.uniform1f(uniforms.COVER,p.cover); gl.uniform1f(uniforms.DENS,p.dens);
       gl.uniform1f(uniforms.SIZE,p.size); gl.uniform1f(uniforms.EDGE,p.edge); gl.uniform1f(uniforms.DETAIL,p.detail);
+      gl.uniform1f(uniforms.CAP,p.cap);
     }
-    function rate() { const value = parseFloat(scene()?.style.getPropertyValue('--cloud-rate')); return Number.isFinite(value) && value > 0 ? value : 1; }
-    // Posição do Sol do céu (o mesmo .sky-sun do CSS) em pixels do canvas, relida a cada ~2 s: ele anda pelo
-    // relógio de 30 s e a página pode rolar. Sem Sol visível (noite, nublado, chuva), SUNI = 0.
+    function cssNumber(name) { const value = parseFloat(scene()?.style.getPropertyValue(name)); return Number.isFinite(value) ? value : NaN; }
+    function rate() { const value = cssNumber('--cloud-rate'); return value > 0 ? value : 1; }
+    // Sol do céu (o mesmo .sky-sun do CSS) em pixels do canvas e luz do crepúsculo, relidos a cada ~2 s: andam
+    // pelo relógio de 30 s e a página pode rolar. Sem Sol visível (noite, nublado, chuva), SUNI = 0.
     let sunAt = 0;
     function sunUpdate(now) {
+      if (!gl) return;
       sunAt = now || 0;
       const sun = scene()?.querySelector('.sky-sun');
-      const visibility = parseFloat(scene()?.style.getPropertyValue('--sun-visibility'));
+      const visibility = cssNumber('--sun-visibility');
       let intensity = 0;
-      // Só no céu parcial o Sol aparece; no nublado e na chuva ele fica escondido (sem brilho atrás).
       if ((current === 'day-few' || current === 'day-partly') && sun && canvas) {
         const box = sun.getBoundingClientRect(), area = canvas.getBoundingClientRect();
         if (box.width > 0 && area.height > 0) {
@@ -156,8 +179,15 @@ void main(){
         }
       }
       gl.uniform1f(uniforms.SUNI,intensity);
+      // Pôr/nascer do sol: a mesma força da luz do crepúsculo que o CSS usa (--twilight-opacity), do lado do Sol.
+      const solar = html.dataset.solar, strength = cssNumber('--twilight-opacity');
+      const twilight = (solar === 'sunset' || solar === 'sunrise') && Number.isFinite(strength) ? Math.max(0,Math.min(1,strength)) : 0;
+      const sx = cssNumber('--sun-orbit-x');
+      gl.uniform1f(uniforms.TW,twilight);
+      gl.uniform1f(uniforms.SIDE,Number.isFinite(sx) ? (sx < .5 ? -1 : 1) : (solar === 'sunrise' ? -1 : 1));
     }
     let clock = 0, lastNow = 0;
+    function frame() { gl.uniform1f(uniforms.T,20 + clock); gl.drawArrays(gl.TRIANGLES,0,3); }
     function draw(now) {
       raf = win.requestAnimationFrame(draw);
       if (now - last < FRAME_MS) return;
@@ -166,7 +196,7 @@ void main(){
       if (lastNow && gap > SLOW_MS && !qaForced()) { slow += gap; if (slow > SLOW_SECONDS * 1000) return off('slow'); } else slow = 0;
       clock += lastNow ? Math.min(gap,200) / 1000 * rate() : 0; lastNow = now;
       if (now - sunAt > 2000) sunUpdate(now);
-      gl.uniform1f(uniforms.T,20 + clock); gl.drawArrays(gl.TRIANGLES,0,3);
+      frame();
     }
     function run() { if (!raf) { last = 0; lastNow = 0; slow = 0; raf = win.requestAnimationFrame(draw); } }
     function stop() { if (raf) win.cancelAnimationFrame(raf); raf = 0; }
@@ -175,16 +205,23 @@ void main(){
       const next = mode({phase:html.dataset.phase,weather:html.dataset.weather,rain:html.dataset.rain,clouds:html.dataset.clouds});
       if (!next || reduced() || qaBlocked()) { stop(); if (current) { delete html.dataset.volume; current = null; } return; }
       if (!gl && !setup()) return off('unsupported');
-      if (next !== current) { palette(next); current = next; resize(); sunUpdate(win.performance.now()); gl.uniform1f(uniforms.T,20 + clock); gl.drawArrays(gl.TRIANGLES,0,3); }
+      place();
+      if (next !== current) { palette(next); current = next; resize(); sunUpdate(win.performance.now()); frame(); }
+      else if (html.dataset.solar !== lastSolar) sunUpdate(win.performance.now());
+      lastSolar = html.dataset.solar;
       html.dataset.volume = 'on';
       if (scene()?.dataset.motion === 'running') run(); else stop();
     }
+    let lastSolar;
     if (disabledBefore()) return {sync() {}};
     const observer = new win.MutationObserver(sync);
-    observer.observe(html,{attributes:true,attributeFilter:['data-phase','data-weather','data-rain','data-clouds']});
-    const watchScene = () => { const host = scene(); if (host) observer.observe(host,{attributes:true,attributeFilter:['data-motion']}); };
-    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded',() => { watchScene(); sync(); },{once:true}); else { watchScene(); sync(); }
-    win.addEventListener('resize',() => { if (gl) { resize(); if (!raf) gl.drawArrays(gl.TRIANGLES,0,3); } },{passive:true});
+    observer.observe(html,{attributes:true,attributeFilter:['data-phase','data-weather','data-rain','data-clouds','data-solar']});
+    const watch = () => {
+      for (const host of [doc.querySelector('.sky-effects'),doc.querySelector('#pluviaIntro .intro-sky')]) if (host) observer.observe(host,{attributes:true,attributeFilter:['data-motion']});
+      const box = doc.getElementById('pluviaIntro'); if (box) observer.observe(box,{attributes:true,attributeFilter:['hidden','class']});
+    };
+    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded',() => { watch(); sync(); },{once:true}); else { watch(); sync(); }
+    win.addEventListener('resize',() => { if (gl) { resize(); if (!raf) frame(); } },{passive:true});
     win.matchMedia?.('(prefers-reduced-motion: reduce)')?.addEventListener?.('change',sync);
     return {sync};
   }

@@ -310,12 +310,15 @@ body.page-hidden :is(.sky-effects,.intro-sky) > * { visibility:hidden !important
 :root[data-weather="storm"] .sky-clouds-front { z-index:3; }
 .sky-lightning::after { z-index:2; }
 .sky-lightning::before { mix-blend-mode:color-dodge; background:linear-gradient(180deg,#9aa0ab 0%,#8a909c 45%,#6f7582 75%,transparent 95%); }
-/* Nuvens volumétricas da noite (1.33, pedido do dono: "pode botar no pluvia", depois do protótipo): com
+/* Nuvens volumétricas (1.33, pedido do dono: "pode botar no pluvia", depois do protótipo): com
    data-volume="on" (modules/volumetric-clouds.js) o canvas .sky-volume desenha as nuvens em 3D e as duas camadas
    de textura somem depois do fade (visibility só no fim, sem duração). Sem WebGL, com movimento reduzido ou quadros
    lentos, o atributo não existe e as camadas continuam como antes. O canvas tem ~35% da resolução e é ampliado. */
-.sky-volume { position:absolute; z-index:2; left:0; top:0; width:100%; height:100vh; display:block; pointer-events:none; opacity:0; transition:opacity 1.1s ease; }
+.sky-volume { position:absolute; z-index:2; left:0; top:0; width:100%; height:100vh; display:block; pointer-events:none; opacity:0; transform:translateZ(0); transition:opacity 1.1s ease; }
+.intro-sky .sky-volume { height:100%; }
 :root[data-volume="on"] .sky-volume { opacity:1; }
-:root[data-volume="on"] .sky-effects > .sky-clouds { opacity:0; visibility:hidden; animation-play-state:paused; transition:opacity 1.1s ease,visibility 0s 1.1s; }
+/* 1.35: a nuvem 3D vale para todo céu com nuvem e também na intro (o canvas passa da intro para a Home).
+   translateZ põe o canvas numa camada própria: no Safari a Lua (translate3d) aparecia por cima da nuvem. */
+:root[data-volume="on"] :is(.sky-effects,.intro-sky) > .sky-clouds { opacity:0; visibility:hidden; animation-play-state:paused; transition:opacity 1.1s ease,visibility 0s 1.1s; }
 body.page-hidden .sky-volume { visibility:hidden; }
 @media (prefers-reduced-motion: reduce) { .sky-volume { display:none; } }
