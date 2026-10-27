@@ -156,9 +156,9 @@ LAYERS = {
     'sky-cloud-veil': dict(size=LIGHT, precache=True, seed=11, beta=3.3, stretch=3.2, masses=4, warp=70, low=-.7, high=1.4, wisp=.3,
                            wisp_stretch=6.0, env=((0, .55), (.12, 1), (.7, 1), (.9, .7), (1, .4)), alpha_max=.92,
                            shadow=(158, 172, 198), lift=.8, few_x=.39, streak=.14),
-    'sky-cloud-volume': dict(size=LIGHT, precache=True, seed=29, beta=3.4, stretch=2.2, masses=5, warp=50, low=-.2, high=1.5,
-                             wisp=.25, wisp_stretch=5.0, env=((0, .3), (.12, .85), (.35, 1), (.85, 1), (1, .7)), alpha_max=.97,
-                             shadow=(136, 152, 182), lift=1.0, few_x=.46, streak=.12),
+    'sky-cloud-volume': dict(size=LIGHT, precache=True, seed=29, beta=3.4, stretch=2.2, masses=5, warp=50, low=.15, high=1.1,
+                             wisp=.45, wisp_stretch=5.0, fib_beta=2.4, env=((0, .3), (.12, .85), (.35, 1), (.85, 1), (1, .7)), alpha_max=.97,
+                             shadow=(136, 152, 182), lift=1.3, few_x=.46, streak=.2),
     # By condition: downloaded (and cached by the SW) only when that sky is shown.
     # Overcast and snow (1.26.5, referência do usuário: o nublado do app Tempo): deck prateado com relevo
     # macio, massas médias, fiapos no sentido do vento e frestas azuladas entre elas; sombra clara (sem
@@ -167,13 +167,15 @@ LAYERS = {
                                wisp_stretch=6.5, fib_beta=2.8, env=((0, 1), (.8, 1), (1, .85)), alpha_max=.97,
                                shadow=(160, 172, 194), lift=.9, streak=.12, glow=.2),
     # Rain: nimbostratus, denser and darker underneath, with soft ragged fragments.
-    'sky-cloud-rain': dict(size=LIGHT, seed=53, beta=3.2, stretch=2.6, masses=4, warp=70, low=-2.6, high=.2, wisp=.24,
-                           wisp_stretch=5.0, fib_beta=2.9, env=((0, 1), (.85, 1), (1, .85)), alpha_max=.97,
-                           shadow=(110, 122, 144), lift=1.2, streak=.08),
+    # Desde a 1.29.3 (pedido do usuário: "essas de baixo tão em baixa resolução") chuva, tempestade e a camada
+    # da frente têm transição mais curta e mais fiapos: a borda larga parecia borrão mesmo em 1:1 com a tela.
+    'sky-cloud-rain': dict(size=LIGHT, seed=53, beta=3.0, stretch=2.6, masses=4, warp=70, low=-1.7, high=-.1, wisp=.5,
+                           wisp_stretch=5.0, fib_beta=2.5, env=((0, 1), (.85, 1), (1, .85)), alpha_max=.97,
+                           shadow=(110, 122, 144), lift=1.5, streak=.18),
     # Thunderstorm: heavy ceiling with bulging pouches and stronger light/dark contrast.
-    'sky-cloud-storm': dict(size=LIGHT, seed=67, beta=3.1, stretch=1.7, masses=5, warp=55, low=-2.8, high=0., wisp=.18,
-                            wisp_stretch=3.5, fib_beta=3.0, env=((0, 1), (1, 1)), alpha_max=.98, shadow=(82, 92, 116),
-                            lift=1.5, streak=.06, glow=.04),
+    'sky-cloud-storm': dict(size=LIGHT, seed=67, beta=3.0, stretch=1.7, masses=5, warp=55, low=-1.9, high=-.1, wisp=.4,
+                            wisp_stretch=3.5, fib_beta=2.5, env=((0, 1), (1, 1)), alpha_max=.98, shadow=(82, 92, 116),
+                            lift=1.5, streak=.14, glow=.04),
     # Nublado à noite e no crepúsculo (1.29.1, pedido do usuário: "as do Apple Weather são bem naturais"): véus
     # finos e muito esticados no sentido do vento, semitransparentes (o céu e a cor do crepúsculo aparecem por
     # trás), no lugar do deck de manchas com buracos escuros, que à noite parecia camuflagem.
