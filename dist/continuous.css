@@ -1087,6 +1087,13 @@ body[data-phase="day"][data-ink="light"] #weatherView {
   --card-fill:linear-gradient(rgba(24,30,38,.34),rgba(24,30,38,.34)) padding-box;
   --card-border:rgba(255,255,255,.14);
 }
+/* Chuva e trovoada à noite (1.30.1): o céu ficou cinza-chumbo, então o cartão perde o tom azulado e vira o
+   mesmo cinza translúcido da chuva de dia. */
+body[data-phase="night"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView {
+  --card-bg:rgba(30,34,40,.36);
+  --card-fill:linear-gradient(rgba(30,34,40,.36),rgba(30,34,40,.36)) padding-box;
+  --card-border:rgba(255,255,255,.12);
+}
 /* Nublado de dia (1.26.6, referência do usuário: o nublado do app Tempo): céu cinza-azulado prateado e cartões
    de vidro azul-ardósia, em vez do cinza-chumbo. */
 body[data-phase="day"][data-ink="light"][data-weather="cloud"] #weatherView {
