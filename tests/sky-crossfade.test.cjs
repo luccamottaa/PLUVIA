@@ -108,10 +108,12 @@ test('CSS: só opacidade numa camada do tamanho da tela, cópias sem camadas pr�
   assert.doesNotMatch(source.replace(/\/\/.*$/gm,''),/will-change|translate|requestAnimationFrame/);
 });
 
-test('virada de dia/noite pelo relógio some aos poucos (1.37.4), não de uma vez', () => {
+test('virada de dia/noite pelo relógio escurece/clareia ao longo da meia hora do crepúsculo (1.37.4)', () => {
   const fs=require('node:fs');
   const app=fs.readFileSync('dist/app.js','utf8'),css=fs.readFileSync('dist/continuous.css','utf8');
   assert.match(app,/const dusk = phaseFlipSky\(now\.getTime\(\)\);\s*const atmosphere = updateSolarAtmosphere\(now\.getTime\(\)\);\s*if \(dusk\) fadeSky\(dusk, \{slow:true\}\);/,'cópia antes de virar, fade depois');
   assert.match(app,/return phase !== document\.documentElement\?\.dataset\?\.phase \? captureSky\(\) : null;/,'só captura quando a fase vai mudar');
-  assert.match(css,/\.night-stage > \.sky-fade\.sky-fade-slow \{ animation-duration:12s;/);
+  assert.match(css,/\.night-stage > \.sky-fade\.sky-fade-dusk \{ animation:none; transition:opacity 30s linear; \}/);
+  assert.match(app,/const DUSK_MS = 30 \* 60000;/,'meia hora, a mesma janela do crepúsculo');
+  assert.match(app,/duskTick\(now\.getTime\(\)\);/);
 });
