@@ -97,10 +97,10 @@ O usuário pediu nuvens "bonitas e realistas" e mandou como referência um print
 - **Luz:** a nuvem logo acima (desfocada e deslocada) acinzenta a base, e as partes finas ficam mais claras. Os tons de cinza são frios, sem puxar para o bege.
 - **"Poucas nuvens":** cada camada recebe uma massa macia em 39% (véu) e 46% (volume) de cada meio tile, a 34% da altura, onde a máscara do CSS revela os bancos.
 - **Mantidos:** emenda periódica em x, alfa sem perdas de 64 níveis, mesmas regras de CSS, filtros por condição, noite e movimento.
-- **Tamanho de arquivo:** 3168 × 1056 desde a 1.29.2 (era 2112 × 704; 3:1 e múltiplo de 16). Com 2100 × 700 o último bloco de 16 px do WebP era parcial, e a última coluna saía da compressão diferente da primeira (degrau na emenda, medido por `verify-clouds.py`).
+- **Tamanho de arquivo:** 3984 × 1328 desde a 1.29.3, 1:1 com os 1320 pixels reais da nuvem no iPhone (era 2112 × 704; 3:1 e múltiplo de 16). Com 2100 × 700 o último bloco de 16 px do WebP era parcial, e a última coluna saía da compressão diferente da primeira (degrau na emenda, medido por `verify-clouds.py`).
 - **Tamanho:** véu 136,4KiB + volume 109,0KiB = 245,4KiB no precache (antes 343,3KiB).
 - **Céu ao redor:** em volta de cada banco do perfil "poucas nuvens", o céu é limpo, para a máscara mostrar uma nuvem só (a cobertura medida pelo QA fica abaixo de 25% mesmo em 2560 × 1080).
-- **Versão:** véu e volume `?v=clouds-8` (3168 × 1056 desde a 1.29.2, juntos < 450 KiB no precache); texturas de condição `?v=clouds-7`.
+- **Versão:** `?v=clouds-9` em todas (3984 × 1328 desde a 1.29.3; véu e volume juntos < 600 KiB no precache).
 
 Continua sendo decoração qualitativa: arte original gerada, não foto, sem asset da Apple, e não representa a nebulosidade observada.
 
@@ -118,10 +118,10 @@ Pedido do usuário: nuvens próprias para todas as condições com nuvem, em vez
 - **Onde entram:** substituem o véu na camada de fundo. A camada da frente continua com o volume, e a névoa uniforme atrás continua fechando o céu.
 - **Chuva moderada/forte e trovoada:** usam duas cópias deslocadas, como antes.
 - **Céu de fundo:** os filtros por condição, a noite e o teto escuro (`data-ink`) não mudaram.
-- **Download sob demanda:** as quatro ficam em 3168 × 1056 desde a 1.29.1 (antes 1584 × 528, que no iPhone eram ampliadas quase 4× e ficavam borradas), entre ~165 e ~530 KiB cada, **fora do precache**. Os desfoques em pixels do gerador crescem com a resolução (`soft`), para a borda continuar esfumada. O navegador só as baixa quando aquele céu aparece, e o SW as guarda no cache em tempo de execução.
+- **Download sob demanda:** as quatro ficam em 3984 × 1328 desde a 1.29.3 (3168 × 1056 na 1.29.1 e 1.29.2; antes 1584 × 528, que no iPhone eram ampliadas quase 4× e ficavam borradas), entre ~210 e ~655 KiB cada, **fora do precache**. Os desfoques em pixels do gerador crescem com a resolução (`soft`), para a borda continuar esfumada. O navegador só as baixa quando aquele céu aparece, e o SW as guarda no cache em tempo de execução.
 - **Offline:** no primeiro dia de uma condição, sem rede, aparece só a névoa da condição atrás do volume, até haver conexão.
 - **Testes:** `cache-contract` confere que as quatro existem, são usadas pelo CSS, ficam fora do precache e têm menos de 128KiB. `verify-clouds.py` confere emenda e alfa de todas as seis texturas.
 
 ## Nublado à noite e no crepúsculo (1.29.1)
 
-À noite o nublado usa `sky-cloud-stratus.webp` (véus finos esticados pelo vento, 3168 × 1056, sob demanda) sobre céu anil, tingido de lilás por filtro estático; a camada da frente fica a .32. No pôr/nascer do sol com nublado as nuvens escurecem e puxam para o violeta, como no app Tempo: `brightness(.4)` no lado noturno e o deck prateado a `brightness(.7)` com tom violeta-rosado no lado diurno (tinta escura; `verify-contrast.py` precisa continuar verde).
+À noite o nublado usa `sky-cloud-stratus.webp` (véus finos esticados pelo vento, 3984 × 1328, sob demanda) sobre céu anil, tingido de lilás por filtro estático; a camada da frente fica a .32. No pôr/nascer do sol com nublado as nuvens escurecem e puxam para o violeta, como no app Tempo: `brightness(.4)` no lado noturno e o deck prateado a `brightness(.7)` com tom violeta-rosado no lado diurno (tinta escura; `verify-contrast.py` precisa continuar verde).

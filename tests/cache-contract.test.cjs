@@ -28,7 +28,7 @@ test('fonts.css vai inline no shell (sem folha bloqueante) com o mesmo texto do 
   assert.ok(html.includes(css), 'o @font-face inline divergiu de fonts.css');
   assert.doesNotMatch(html, /<link rel="stylesheet" href="\.\/fonts\.css/);
   assert.match(html, /<link rel="preconnect" href="https:\/\/api\.open-meteo\.com" crossorigin \/>/);
-  assert.match(html, /<link rel="preload" href="\.\/assets\/sky-cloud-veil\.webp\?v=clouds-8" as="image" type="image\/webp" fetchpriority="high" \/>/);
+  assert.match(html, /<link rel="preload" href="\.\/assets\/sky-cloud-veil\.webp\?v=clouds-9" as="image" type="image\/webp" fetchpriority="high" \/>/);
 });
 
 test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
@@ -37,7 +37,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-264"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-265"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
   assert.match(html, /styles\.css\?v=core-134/);
@@ -46,18 +46,18 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   assert.match(html, /app\.js\?v=panel-139/);
   assert.ok(!sw.includes('"./assets/panel-night-sky.webp"'), 'não baixa a antiga foto sem uso no cache inicial');
   for (const asset of ['sky-sun.svg','sky-cloud-veil.webp','sky-cloud-volume.webp']) assert.ok(sw.includes(`./assets/${asset}`));
-  assert.ok(['sky-cloud-veil.webp','sky-cloud-volume.webp'].reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<450*1024,'texturas das nuvens mantêm orçamento do shell mobile');
+  assert.ok(['sky-cloud-veil.webp','sky-cloud-volume.webp'].reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<600*1024,'texturas das nuvens mantêm orçamento do shell mobile');
   assert.ok(!sw.includes('"./assets/sky-cloud-bank.webp"'),'textura antiga não é baixada pelo novo shell');
   // Nuvens por condição: baixadas (e guardadas pelo SW) só quando aquele céu aparece, fora do precache.
   const skyCss=fs.readFileSync(path.join(root,'sky.css'),'utf8');
   for (const name of ['overcast','rain','storm','fog','stratus']) {
     const asset=`sky-cloud-${name}.webp`;
     assert.ok(fs.existsSync(path.join(root,'assets',asset)),asset);
-    // 1.29.1: 3168 × 1056 (a de 528 px de altura era esticada quase 4× no iPhone e ficava borrada).
+    // 1.29.3: 3984 × 1328, 1:1 no iPhone (a de 528 px de altura era esticada quase 4× e ficava borrada).
     // Continuam fora do precache e com teto de tamanho: só quem vê aquele céu baixa, uma vez.
-    assert.ok(skyCss.includes(`./assets/${asset}?v=clouds-7`),`${asset} usada pelo céu da condição`);
+    assert.ok(skyCss.includes(`./assets/${asset}?v=clouds-9`),`${asset} usada pelo céu da condição`);
     assert.ok(!sw.includes(asset),`${asset} fica fora do precache`);
-    assert.ok(fs.statSync(path.join(root,'assets',asset)).size<(name==='overcast'?560:320)*1024,`${asset} com tamanho controlado para baixar sob demanda`);
+    assert.ok(fs.statSync(path.join(root,'assets',asset)).size<(name==='overcast'?700:420)*1024,`${asset} com tamanho controlado para baixar sob demanda`);
   }
   const starAssets=['sky-stars.svg','sky-stars-shimmer.svg'];
   for(const asset of starAssets) assert.ok(sw.includes(`./assets/${asset}`),'céu noturno disponível offline: '+asset);
