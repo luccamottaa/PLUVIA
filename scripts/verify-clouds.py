@@ -22,6 +22,10 @@ def weather(tz):
  data=json.loads(json.dumps(base));data['timezone']=tz
  data['current'].update(time='2026-10-01T%02d:00'%mode['hour'],weather_code=mode['code'],is_day=int(6<=mode['hour']<18))
  for i in range(72):data['hourly']['time'][i]=(datetime.datetime(2026,10,1,mode['hour'])+datetime.timedelta(hours=i-1)).isoformat(timespec='minutes')
+ # Chuva no céu exige que a própria previsão da hora a sustente (desde a 1.37.3 garoa sem volume nem chance some do topo).
+ if mode['code']>=51:
+  for key,value in (('precipitation',1.2),('precipitation_probability',80)):
+   if key in data['hourly']:data['hourly'][key]=[value]*len(data['hourly'][key])
  return data
 with sync_playwright() as p:
  browser=p.webkit.launch() if os.environ.get('PLUVIA_BROWSER')=='webkit' else p.chromium.launch(args=['--no-sandbox'],**({'executable_path':shutil.which('chromium')} if shutil.which('chromium') else {}))

@@ -97,6 +97,14 @@
     return cloudCover >= 85 ? 3 : cloudCover >= 40 ? 2 : 1;
   }
 
+  // Garoa/chuva fraca que o próprio modelo não sustenta (1.37.3, pedido do dono, depois de ver todas as capitais):
+  // código fraco com menos de 0,5 mm e chance abaixo de 50% na hora que começa agora (intervalo i+1). Nos dados do
+  // placar (outubro/2026, 27 capitais, estação do INMET) o modelo com 0,1–0,5 mm na hora acertou chuva em 15% das
+  // vezes, e com chance < 30% em 7%. Volume ou chance ausentes não contam como seco. Chuva observada continua vencendo.
+  function weakModelRain(modelCode, nextMm, nextProb) {
+    return LIGHT_WET.has(modelCode) && finite(nextMm) && nextMm >= 0 && nextMm < .5 && finite(nextProb) && nextProb >= 0 && nextProb < 50;
+  }
+
   // Código mostrado: trovoada do modelo continua trovoada; chuva do modelo igual ou mais forte continua.
   function merge(modelCode, observed) {
     if (!observed) return modelCode;
@@ -143,5 +151,5 @@
   const key = observed => observed ? `${observed.source}:${observed.at}:${observed.code}:${observed.stormSource || ''}` : '';
 
   return {STATION_MAX_AGE_MS, STATION_MIN_MM, AIRPORT_MAX_AGE_MS, RADAR_MAX_AGE_MS, STORM_CAPE, codeFor,
-    fromStation, fromAirport, fromRadar, nearby, pick, withStorm, merge, dryNow, dryCode, answer, nearbyAnswer, label, key};
+    fromStation, fromAirport, fromRadar, nearby, pick, withStorm, merge, dryNow, dryCode, weakModelRain, answer, nearbyAnswer, label, key};
 });

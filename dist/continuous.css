@@ -1013,6 +1013,8 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 .night-stage > .sky-fade > span { position:absolute; left:0; right:0; background-repeat:no-repeat; background-size:100% 100%; }
 .night-stage > .sky-fade > .sky-fade-scene { position:absolute; overflow:hidden; isolation:isolate; }
 @keyframes pluvia-sky-fade { from { opacity:1; } to { opacity:0; } }
+/* Virada de dia/noite pelo relógio (1.37.4): o céu de antes some em 12 s, como anoitecendo/amanhecendo. */
+.night-stage > .sky-fade.sky-fade-slow { animation-duration:12s; animation-timing-function:cubic-bezier(.45,0,.55,1); }
 @media (prefers-reduced-motion:reduce) { .night-stage > .sky-fade { display:none; } }
 /* Cascata "descendo" (app.js dropIn): o bloco desce 18 px enquanto é revelado de cima para baixo.
    Só top (position:relative) e clip-path: pintura, sem camada; transform/opacity em blocos derrubavam
@@ -1668,6 +1670,13 @@ html body #monthDialog .month-chart-axis { display:flex; justify-content:space-b
 html body #monthDialog .month-chart-axis .month-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 html body #monthDialog .month-note { font-size:.8rem; line-height:1.5; }
 @media (forced-colors:active) { html body #monthDialog .month-bar { fill:CanvasText; } }
+/* Quanto o PLUVIA acerta (1.37): seção da janela "Últimos 30 dias", com atalho próprio (largura toda). */
+#weatherView #homeAccuracy { grid-column:1 / -1; --shortcut-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Ccircle cx='12' cy='12' r='4.5'/%3E%3Ccircle cx='12' cy='12' r='.8' fill='black'/%3E%3C/svg%3E"); }
+html body #monthDialog .accuracy { margin-top:22px; padding-top:18px; border-top:1px solid var(--dialog-line, rgba(255,255,255,.14)); scroll-margin-top:12px; }
+html body #monthDialog .accuracy h3 { margin:0 0 6px; font-size:1.25rem; font-weight:650; letter-spacing:-.015em; }
+html body #monthDialog .accuracy-window { margin:14px 0 10px; font-size:.9375rem; font-weight:600; }
+html body #monthDialog .accuracy-stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
+@media (max-width:440px) { html body #monthDialog .accuracy-stats { grid-template-columns:minmax(0,1fr); gap:12px; } html body #monthDialog .accuracy-stats > div { display:flex; justify-content:space-between; align-items:baseline; gap:12px; } html body #monthDialog .accuracy-stats dd { text-align:right; flex:none; } }
 /* Nome da cidade fixo ao lado da marca do radar (weather-map.js): pequeno, sem seta, legível sobre o mapa claro. */
 #weatherMap .leaflet-tooltip.pluvia-city-label { padding:2px 8px; border:0; border-radius:999px; background:#0b1830e6; color:#fff; font:600 .8125rem/1.4 var(--font-ui,system-ui,sans-serif); box-shadow:0 1px 4px #0003; }
 #weatherMap .leaflet-tooltip.pluvia-city-label::before { display:none; }
@@ -2140,3 +2149,15 @@ body[data-ink="dark"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
 /* 1.29: previsão de +10 a +30 min no radar ampliado (weather-map + radar-nowcast.forecastImages). O horário
    diz "Previsão para HH:MM" no azul da marca, para não ser confundido com uma imagem observada. */
 #radarMapContent #weatherFrameTime[data-state="forecast"] { color:var(--brand-blue); font-weight:600; }
+
+/* Ícones nos títulos de "Chuva na região" e "Ciclo do dia" (1.37.2, pedido do dono), no mesmo traço azul dos blocos
+   de leitura, logo depois do título. O ⓘ da Qualidade do ar fica colado no título e no ícone, como nas seções,
+   em vez de ir para a borda direita; a letra fica centrada no círculo por grade, não pela altura da linha. */
+#weatherView .heading-icon { display:block; flex:none; width:24px; height:24px; color:var(--graphic-blue); }
+#weatherView .sun-section .sun-label { display:flex; align-items:center; gap:8px; }
+#weatherView .sun-section .sun-label .heading-icon svg { display:block; color:var(--graphic-blue); }
+#weatherView #airQualityCard .metric-head { justify-content:flex-start; }
+#weatherView #airQualityCard .metric-head > [data-weather-icon-name] { margin-right:0; }
+#weatherView #airQualityCard .metric-head .info-tip { margin-left:0; }
+#weatherView #airQualityCard .metric-head .info-tip > summary { margin-right:-12px; }
+.info-tip-icon { display:grid; place-items:center; line-height:1; padding-top:.5px; box-sizing:border-box; }

@@ -89,14 +89,14 @@ test('família completa fica disponível offline e diferencia precipitação', (
 test('blocos de leitura da Home usam ícones em traço, no mesmo estilo dos títulos de seção', () => {
   const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
   const names = [...html.matchAll(/data-weather-icon-name="([a-z-]+)" data-weather-icon-style="line"/g)].map(m => m[1]);
-  assert.deepEqual(names, ['feels-like','temperature','visibility','humidity','wind-speed','pressure','uv-index','air-quality']);
+  assert.deepEqual(names, ['feels-like','temperature','visibility','humidity','wind-speed','pressure','uv-index','air-quality','radar','sun-cycle'], 'blocos de leitura e, desde a 1.37.2, os títulos de Chuva na região e Ciclo do dia');
   for (const name of ['river','fire','temperature']) assert.match(icons.lineMarkup(name), /^<svg/, name + ' continua no conjunto');
   for (const name of names) {
     const svg = icons.lineMarkup(name);
     assert.match(svg, /^<svg class="metric-line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">/, name);
     assert.doesNotMatch(svg, /fill="|style=|<img/, 'cor e traço vêm do CSS (currentColor)');
   }
-  assert.equal(icons.lineMarkup('radar'), '', 'sem glifo em traço, nada de inventar ícone');
+  assert.equal(icons.lineMarkup('tornado'), '', 'sem glifo em traço, nada de inventar ícone');
   const node = name => ({ attrs:{'data-weather-icon-name':name,'data-weather-icon-style':'line'}, innerHTML:'', getAttribute(key){ return this.attrs[key] ?? null; } });
   const line = node('humidity'), colored = { ...node('rain-probability'), attrs:{'data-weather-icon-name':'rain-probability'} };
   icons.hydrate({ querySelectorAll: () => [line, colored] });

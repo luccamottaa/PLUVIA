@@ -459,7 +459,11 @@ function updateClock() {
   if (!activeCity || document.hidden) return;
   const now = new Date();
   globalThis.dispatchEvent?.(new CustomEvent("pluvia:clock-updated"));
+  // Virada de dia para noite (e de volta) pelo relógio: o céu anterior some aos poucos, como anoitecendo,
+  // em vez de trocar de degradê de uma vez (1.37.4, pedido do dono).
+  const dusk = phaseFlipSky(now.getTime());
   const atmosphere = updateSolarAtmosphere(now.getTime());
+  if (dusk) fadeSky(dusk, {slow:true});
   renderSunTable(now.getTime());
   if (displayedWeather?.forecast?.daily) {
     const saved = displayedWeather;
@@ -469,6 +473,15 @@ function updateClock() {
     if (hour !== saved.hour || day !== saved.day || air !== saved.air || atmosphere?.phase && atmosphere.phase !== saved.phase) render(saved.forecast,air,saved.fromCache,saved.cacheAt,{weatherAt:saved.weatherAt,airAt:saved.airAt,freshAir:saved.freshAir});
     else { renderSun(saved.forecast.daily,now.getTime(),saved.forecast.hourly); refreshObservedRain(); paintNextHour(); }
   }
+}
+
+// Cópia do céu só quando a fase prevista para agora (mesma linha solar do céu) difere da mostrada.
+function phaseFlipSky(now) {
+  if (typeof skyShown === "undefined" || !skyShown) return null;
+  const day = globalThis.PLUVIA?.sky?.dayAt?.(now);
+  if (!day || !Number.isFinite(day.rise) || !Number.isFinite(day.set)) return null;
+  const phase = now >= day.rise && now < day.set ? "day" : "night";
+  return phase !== document.documentElement?.dataset?.phase ? captureSky() : null;
 }
 
 function cityDate(value, city = activeCity) {
@@ -1313,8 +1326,11 @@ function withObservedRain(data) {
   const current = data?.current, observed = observedRainFor(data);
   if (!observed) {
     // Radar e medição em terra secos desmentem garoa/chuva fraca do modelo (o resto do modelo continua).
+    // Sem medição, o modelo que não sustenta a própria garoa (pouco volume e chance baixa na hora) também não a mostra.
     const api = globalThis.PLUVIA?.observedRain;
-    const dried = current && api?.dryNow?.(observedSources()) ? api.dryCode(current.weather_code, current.cloud_cover) : current?.weather_code;
+    const next = selectCurrentHour(data.hourly?.time || []) + 1;
+    const weak = next > 0 && api?.weakModelRain?.(current?.weather_code, data.hourly?.precipitation?.[next], data.hourly?.precipitation_probability?.[next]);
+    const dried = current && (api?.dryNow?.(observedSources()) || weak) ? api.dryCode(current.weather_code, current.cloud_cover) : current?.weather_code;
     return dried === current?.weather_code ? {current, observed:null, replaced:false} : {current:{...current, weather_code:dried}, observed:null, replaced:true, dried:true};
   }
   const code = globalThis.PLUVIA.observedRain.merge(current.weather_code, observed);
@@ -2073,13 +2089,13 @@ function skyCopy(layer) {
   if (layer.z && layer.z !== "auto") copy.style.zIndex = layer.z;
   return copy;
 }
-function fadeSky(old) {
+function fadeSky(old, {slow = false} = {}) {
   if (!old || !skyChanged(old)) return;
   const stage = document.querySelector(".night-stage"), effects = stage?.querySelector(".sky-effects");
   if (!stage || !effects) return;
   stage.querySelector(".sky-fade")?.remove();
   const veil = document.createElement("div");
-  veil.className = "sky-fade";
+  veil.className = slow ? "sky-fade sky-fade-slow" : "sky-fade";
   veil.setAttribute("aria-hidden", "true");
   veil.dataset.at = String(Date.now());
   if (old.base) veil.style.backgroundColor = old.base;
@@ -2104,7 +2120,7 @@ function fadeSky(old) {
     veil.append(box);
   }
   veil.addEventListener("animationend", () => veil.remove(), {once:true});
-  setTimeout(() => veil.remove(), 2000);
+  setTimeout(() => veil.remove(), slow ? 13000 : 2000);
   effects.after(veil);
 }
 // Efeito leve em poucos textos pequenos: o texto parte de transparente e volta à cor normal por

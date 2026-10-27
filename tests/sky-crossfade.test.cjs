@@ -107,3 +107,11 @@ test('CSS: s처 opacidade numa camada do tamanho da tela, c처pias sem camadas pr�
   assert.match(css,/@media \(prefers-reduced-motion:reduce\) \{ \.night-stage > \.sky-fade \{ display:none; \} \}/);
   assert.doesNotMatch(source.replace(/\/\/.*$/gm,''),/will-change|translate|requestAnimationFrame/);
 });
+
+test('virada de dia/noite pelo rel처gio some aos poucos (1.37.4), n찾o de uma vez', () => {
+  const fs=require('node:fs');
+  const app=fs.readFileSync('dist/app.js','utf8'),css=fs.readFileSync('dist/continuous.css','utf8');
+  assert.match(app,/const dusk = phaseFlipSky\(now\.getTime\(\)\);\s*const atmosphere = updateSolarAtmosphere\(now\.getTime\(\)\);\s*if \(dusk\) fadeSky\(dusk, \{slow:true\}\);/,'c처pia antes de virar, fade depois');
+  assert.match(app,/return phase !== document\.documentElement\?\.dataset\?\.phase \? captureSky\(\) : null;/,'s처 captura quando a fase vai mudar');
+  assert.match(css,/\.night-stage > \.sky-fade\.sky-fade-slow \{ animation-duration:12s;/);
+});
