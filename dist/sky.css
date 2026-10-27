@@ -310,6 +310,30 @@ body.page-hidden :is(.sky-effects,.intro-sky) > * { visibility:hidden !important
 :root[data-weather="storm"] .sky-clouds-front { z-index:3; }
 .sky-lightning::after { z-index:2; }
 .sky-lightning::before { mix-blend-mode:color-dodge; background:linear-gradient(180deg,#9aa0ab 0%,#8a909c 45%,#6f7582 75%,transparent 95%); }
+/* Arco-íris (1.36, pedido do dono): data-rainbow="on" (sky-atmosphere) só com chuva fraca/garoa e o Sol entre 3° e
+   42°. Sai do lado oposto ao Sol (--rainbow-x) e sobe mais quanto mais baixo o Sol (--rainbow-lift); a parte abaixo
+   do horizonte (72vh) some pela máscara. Atrás das nuvens (aparece nas frestas), só opacidade, sem animação. */
+.sky-rainbow { --rainbow-r:min(78vw,60vh); position:absolute; z-index:1; left:0; top:72vh; width:calc(var(--rainbow-r) * 2); aspect-ratio:1; border-radius:50%; pointer-events:none; mix-blend-mode:screen; transform:translate3d(calc(var(--rainbow-x,.5) * 100vw - 50%),calc(-50% + var(--rainbow-r) * (1 - var(--rainbow-lift,1))),0); background:radial-gradient(closest-side,transparent 86%,#8a4dff00 86.5%,#8a4dff59 88%,#3d6bff6b 89.6%,#2fd07a61 91.3%,#ffe24a6b 93%,#ff9a3a61 94.6%,#ff4a4a59 96.2%,transparent 98%); -webkit-mask-image:linear-gradient(#000 calc(var(--rainbow-lift,1) * 50% - 6%),transparent calc(var(--rainbow-lift,1) * 50%)); mask-image:linear-gradient(#000 calc(var(--rainbow-lift,1) * 50% - 6%),transparent calc(var(--rainbow-lift,1) * 50%)); opacity:0; visibility:hidden; transition:opacity 6s ease,visibility 0s 6s; }
+:root[data-rainbow="on"] .sky-rainbow { opacity:.6; visibility:visible; transition:opacity 6s ease,visibility 0s; }
+/* Estrela cadente (1.36, pedido do dono): só na noite de pico de uma chuva de meteoros visível da cidade
+   (data-meteors, escrito por renderSkyEvents com sky-events) e céu limpo/parcial. Dois traços em ciclos de 23 s e
+   37 s, cada um passa em 0,8 s e troca de lugar enquanto está invisível. Só transform/opacity; pausa com a cena e
+   some com movimento reduzido. Decoração: não é a taxa real de meteoros. */
+.sky-meteor { display:none; position:absolute; inset:0; z-index:0; pointer-events:none; }
+:root[data-meteors="on"][data-phase="night"]:is([data-weather="sun"],[data-weather="partly"]) .sky-meteor { display:block; }
+.sky-meteor::before,.sky-meteor::after { content:""; position:absolute; top:0; left:0; width:130px; height:2px; border-radius:2px; opacity:0; background:linear-gradient(90deg,transparent,#ffffffe6); transform-origin:100% 50%; animation:sky-meteor-a 23s linear infinite; }
+.sky-meteor::after { width:150px; animation-name:sky-meteor-b; animation-duration:37s; animation-delay:-11s; }
+@keyframes sky-meteor-a {
+  0%,40% { opacity:0; transform:translate3d(18vw,9vh,0) rotate(28deg); }
+  40.6% { opacity:1; }
+  43.5%,100% { opacity:0; transform:translate3d(calc(18vw + 260px),calc(9vh + 141px),0) rotate(28deg); }
+}
+@keyframes sky-meteor-b {
+  0%,62% { opacity:0; transform:translate3d(60vw,5vh,0) rotate(152deg); }
+  62.4% { opacity:.9; }
+  64.2%,100% { opacity:0; transform:translate3d(calc(60vw - 270px),calc(5vh + 144px),0) rotate(152deg); }
+}
+@media(prefers-reduced-motion:reduce) { .sky-meteor { display:none !important; } }
 /* Nuvens volumétricas (1.33, pedido do dono: "pode botar no pluvia", depois do protótipo): com
    data-volume="on" (modules/volumetric-clouds.js) o canvas .sky-volume desenha as nuvens em 3D e as duas camadas
    de textura somem depois do fade (visibility só no fim, sem duração). Sem WebGL, com movimento reduzido ou quadros

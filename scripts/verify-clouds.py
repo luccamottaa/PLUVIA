@@ -11,6 +11,12 @@ base=json.loads(subprocess.check_output(['node','-e',"process.stdout.write(JSON.
 preview=os.environ.get('PLUVIA_PREVIEW_URL','http://127.0.0.1:4173')
 output=Path(os.environ.get('PLUVIA_QA_OUTPUT','/tmp/pluvia-clouds'))/'clouds';output.mkdir(parents=True,exist_ok=True)
 mode={'code':3,'hour':13};errors=[]
+# page.evaluate não tem prazo: no WebKit da CI um requestAnimationFrame que nunca chegava prendia o job
+# até o limite de 25 min (#313). Dois quadros, ou 1 s sem quadro; e o script inteiro falha em 10 min.
+TWO_FRAMES="()=>new Promise(done=>{const t=setTimeout(done,1000);requestAnimationFrame(()=>requestAnimationFrame(()=>{clearTimeout(t);done()}))})"
+import signal
+def _stuck(*_):raise TimeoutError('verify-clouds passou de 10 min (travou)')
+signal.signal(signal.SIGALRM,_stuck);signal.alarm(600)
 def weather(tz):
  data=json.loads(json.dumps(base));data['timezone']=tz
  data['current'].update(time='2026-10-01T%02d:00'%mode['hour'],weather_code=mode['code'],is_day=int(6<=mode['hour']<18))
@@ -103,7 +109,7 @@ with sync_playwright() as p:
      # Cobertura em repouso: sem transição nas nuvens (o reaparecer depois da captura "sem nuvens" ainda
      # podia estar no meio no WebKit e medir o parcial com 6% de céu coberto) e dois quadros depois de aplicar.
      page.evaluate("code=>PLUVIA.sky.apply(code,null,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})",code)
-     page.evaluate("()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)))");page.wait_for_timeout(150)
+     page.evaluate(TWO_FRAMES);page.wait_for_timeout(150)
      clip={'x':0,'y':0,'width':width,'height':min(height,650)}
      # No WebKit da CI a composição às vezes ainda não refletia a troca quando a captura saía (o parcial
      # mediu 6–8% de céu coberto contra ~42% nas execuções boas, na intro e a 2560 px; #299, #304). Em vez
@@ -113,9 +119,9 @@ with sync_playwright() as p:
       painted=base64.b64encode(page.screenshot(clip=clip)).decode()
       hidden=page.add_style_tag(content='.sky-clouds{opacity:0!important;transition:none!important}')
       clear=base64.b64encode(page.screenshot(clip=clip)).decode();hidden.evaluate('el=>el.remove()')
-      page.evaluate("()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)))");page.wait_for_timeout(350)
+      page.evaluate(TWO_FRAMES);page.wait_for_timeout(350)
       measured=page.evaluate("""async images=>{
-       const data=await Promise.all(images.map(async image=>{const im=new Image();im.src='data:image/png;base64,'+image;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d');ctx.drawImage(im,0,0);return ctx.getImageData(0,0,c.width,c.height).data;}));
+       const data=await Promise.all(images.map(async image=>{const im=new Image();im.src='data:image/png;base64,'+image;await Promise.race([im.decode(),new Promise((_,fail)=>setTimeout(()=>fail(new Error('decode travou')),5000))]);const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d');ctx.drawImage(im,0,0);return ctx.getImageData(0,0,c.width,c.height).data;}));
        let painted=0;for(let i=0;i<data[0].length;i+=4)if(Math.abs(data[0][i]-data[1][i])+Math.abs(data[0][i+1]-data[1][i+1])+Math.abs(data[0][i+2]-data[1][i+2])>12)painted++;
        return painted/(data[0].length/4);
      }""",[painted,clear])

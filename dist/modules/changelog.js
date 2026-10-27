@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.36", date:"2026-10-27", title:"Raio dentro das nuvens, arco-íris e estrela cadente", items:[
+      "Na trovoada, as nuvens em 3D se acendem por dentro em volta do raio, como numa tempestade de verdade.",
+      "Com chuva fraca ou garoa e o Sol baixo, aparece um arco-íris do lado oposto ao Sol, onde ele estaria no céu.",
+      "Nas noites de pico de uma chuva de meteoros visível da sua cidade, com o céu limpo, passa uma estrela cadente de vez em quando.",
+      "A neblina ganhou uma névoa em 3D, densa perto do chão e sumindo para cima."]},
     {version:"1.35.2", date:"2026-10-27", title:"Garoa que não existe some do topo", items:[
       "Quando o radar não vê chuva em cima da cidade e a estação do INMET ou o aeroporto confirmam tempo seco, o PLUVIA deixa de mostrar a garoa ou chuva fraca da previsão e mostra o céu como está."]},
     {version:"1.35.1", date:"2026-10-27", title:"Nuvens se formando no céu todo", items:[

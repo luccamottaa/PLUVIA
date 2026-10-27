@@ -56,6 +56,13 @@
   function rainWind(windKmh) {
     return typeof windKmh === 'number' && Number.isFinite(windKmh) && windKmh >= 25 && windKmh <= 400 ? 'strong' : 'calm';
   }
+  // Arco-íris (1.36, pedido do dono): só onde ele existe de verdade, com chuva fraca ou garoa (gotas no ar e sol
+  // entre as nuvens, típico de pancada fraca) e o Sol acima do horizonte e abaixo de 42° (acima disso o arco fica
+  // todo abaixo do horizonte). Sai do lado oposto ao Sol, e quanto mais baixo o Sol, mais alto o arco.
+  const RAINBOW_CODES = [51,53,61,80];
+  function rainbow(code, phase, altitude) {
+    return phase === 'day' && RAINBOW_CODES.includes(code) && Number.isFinite(altitude) && altitude >= 3 && altitude <= 42;
+  }
   function cloudRate(windKmh) {
     if (typeof windKmh !== 'number' || !Number.isFinite(windKmh) || windKmh < 0 || windKmh > 400) return 1;
     return Math.round(Math.min(2.4,Math.max(.4,.4 + windKmh * .06)) * 100) / 100;
@@ -202,7 +209,7 @@
       const darkDay = state.phase === 'day' && state.solar === 'none' && (greyDay || rain.kind === 'moderate' || rain.kind === 'heavy');
       const ink = state.phase === 'day' && !darkDay ? 'dark' : 'light';
       for (const node of [document?.documentElement,document?.body].filter(Boolean)) {
-        for (const [key,value] of Object.entries({phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,wind:rain.kind==='none' ? 'calm' : rainWind(wind),ink,skyTransition:animate ? 'live' : 'instant'})) if (node.dataset[key] !== value) node.dataset[key] = value;
+        for (const [key,value] of Object.entries({phase:state.phase,solar:state.solar,weather,clouds:state.clouds,rain:rain.kind,wind:rain.kind==='none' ? 'calm' : rainWind(wind),ink,rainbow:state.rainbow ? 'on' : 'off',skyTransition:animate ? 'live' : 'instant'})) if (node.dataset[key] !== value) node.dataset[key] = value;
       }
       for (const node of skyNodes()) {
         setVar(node,'--twilight-opacity',state.strength.toFixed(3));
@@ -213,6 +220,8 @@
         setVar(node,'--sun-orbit-y',state.sunY.toFixed(6));
         setVar(node,'--moon-orbit-x',state.moonX.toFixed(6));
         setVar(node,'--moon-orbit-y',state.moonY.toFixed(6));
+        setVar(node,'--rainbow-x',(1 - state.sunX).toFixed(4));
+        setVar(node,'--rainbow-lift',(1 - (state.rainbowAltitude || 0) / 42).toFixed(4));
         setVar(node,'--rain-opacity',String(rain.opacity));
         setVar(node,'--rain-back-opacity',String(rain.backOpacity));
         setVar(node,'--rain-speed',`${rain.speed}s`);
@@ -275,7 +284,12 @@
       moonView?.update(at, city);
       // WMO 1 (mainly clear) shares the partly-cloudy palette, but needs fewer
       // cloud banks than WMO 2. Coverage is decorative, never an observation.
-      return write({phase,solar,weather,clouds:code === 1 ? 'few' : 'standard',strength,sunVisibility,moonVisibility,starVisibility,
+      let altitude = NaN;
+      if (phase === 'day' && RAINBOW_CODES.includes(code) && Number.isFinite(city?.lat) && Number.isFinite(city?.lon)) {
+        try { altitude = sun?.getPosition?.(new Date(at),city.lat,city.lon)?.altitude; } catch (_) { altitude = NaN; }
+      }
+      const showRainbow = rainbow(code,phase,altitude);
+      return write({phase,solar,weather,clouds:code === 1 ? 'few' : 'standard',strength,sunVisibility,moonVisibility,starVisibility,rainbow:showRainbow,rainbowAltitude:showRainbow ? altitude : 0,
         sunX:ORBIT_MARGIN + dayProgress * (1 - 2 * ORBIT_MARGIN),sunY:1 - Math.sin(Math.PI * dayProgress),
         moonX,moonY},animate);
     }
@@ -345,5 +359,5 @@
     sync();
     return {sync};
   }
-  return {create,weatherType,cityTime,observeMotion,cloudRate,rainWind};
+  return {create,weatherType,cityTime,observeMotion,cloudRate,rainWind,rainbow};
 });
