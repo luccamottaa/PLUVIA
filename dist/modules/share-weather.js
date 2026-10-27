@@ -49,7 +49,8 @@
       if(!cards || !snapshot || typeof root.File!=='function') return;
       const night=root.document.body?.dataset?.phase==='night';
       const moment=root.PLUVIA?.shareMoment?.() || null;
-      const data=cards.model(snapshot,{condition:conditionLabel(),night,moment});
+      const solar=root.document.body?.dataset?.solar||'none';
+      const data=cards.model(snapshot,{condition:conditionLabel(),night,solar,moment});
       if(!data) return;
       const idle=root.requestIdleCallback ? fn=>root.requestIdleCallback(fn,{timeout:2000}) : fn=>root.setTimeout(fn,300);
       // Fora da abertura: espera o primeiro toque/rolagem/tecla (ou 12 s), para o canvas (~150 ms no

@@ -47,3 +47,12 @@ test('céu do story pela condição: cinza na chuva com texto claro, prata no nu
   assert.equal(skyLook(0,true).clouds,0,'noite limpa sem nuvens');
   assert.equal(skyLook(null,false).clouds,0,'condição ausente: céu limpo, nada inventado');
 });
+
+test('story no pôr e no nascer do sol: degradê do crepúsculo só com céu limpo ou parcial',()=>{
+  const {skyLook}=require('../dist/modules/share-card.js');
+  const sunset=skyLook(2,false,'sunset');
+  assert.equal(sunset.twilight,true);assert.equal(sunset.light,true);assert.equal(sunset.sky.at(-1)[1],'#f4a463','horizonte laranja');
+  assert.equal(skyLook(0,true,'sunrise').twilight,true);assert.equal(skyLook(0,true,'sunrise').clouds,0);
+  assert.equal(skyLook(63,false,'sunset').twilight,undefined,'chuva mantém o céu cinza');
+  assert.equal(skyLook(2,false,'bogus').twilight,undefined);
+});
