@@ -459,11 +459,13 @@ function updateClock() {
   if (!activeCity || document.hidden) return;
   const now = new Date();
   globalThis.dispatchEvent?.(new CustomEvent("pluvia:clock-updated"));
-  // Virada de dia para noite (e de volta) pelo relógio: o céu anterior some aos poucos, como anoitecendo,
-  // em vez de trocar de degradê de uma vez (1.37.4, pedido do dono).
+  // Virada de dia para noite (e de volta) pelo relógio: no instante da virada o céu de antes fica por cima,
+  // igual, e vai sumindo durante a meia hora seguinte do crepúsculo, então o céu escurece (ou clareia) aos poucos
+  // até a noite (ou o dia), sem troca visível (1.37.4, pedido do dono).
   const dusk = phaseFlipSky(now.getTime());
   const atmosphere = updateSolarAtmosphere(now.getTime());
   if (dusk) fadeSky(dusk, {slow:true});
+  duskTick(now.getTime());
   renderSunTable(now.getTime());
   if (displayedWeather?.forecast?.daily) {
     const saved = displayedWeather;
@@ -475,6 +477,17 @@ function updateClock() {
   }
 }
 
+const DUSK_MS = 30 * 60000;
+// A cópia do crepúsculo some pelo relógio (opacidade + transição de 30 s entre tiques): sobrevive à página oculta,
+// e quem volta depois da meia hora já encontra só a noite (ou o dia).
+function duskTick(now) {
+  const veil = globalThis.document?.querySelector?.(".night-stage > .sky-fade-dusk");
+  if (!veil) return;
+  const progress = Math.max(0, (now - Number(veil.dataset.at)) / DUSK_MS);
+  if (!Number.isFinite(progress) || progress >= 1) { veil.remove(); return; }
+  const eased = progress * progress * (3 - 2 * progress);
+  veil.style.opacity = (1 - eased).toFixed(3);
+}
 // Cópia do céu só quando a fase prevista para agora (mesma linha solar do céu) difere da mostrada.
 function phaseFlipSky(now) {
   if (typeof skyShown === "undefined" || !skyShown) return null;
@@ -2095,7 +2108,7 @@ function fadeSky(old, {slow = false} = {}) {
   if (!stage || !effects) return;
   stage.querySelector(".sky-fade")?.remove();
   const veil = document.createElement("div");
-  veil.className = slow ? "sky-fade sky-fade-slow" : "sky-fade";
+  veil.className = slow ? "sky-fade sky-fade-dusk" : "sky-fade";
   veil.setAttribute("aria-hidden", "true");
   veil.dataset.at = String(Date.now());
   if (old.base) veil.style.backgroundColor = old.base;
@@ -2119,8 +2132,10 @@ function fadeSky(old, {slow = false} = {}) {
     box.append(...scene.layers.map(skyCopy));
     veil.append(box);
   }
-  veil.addEventListener("animationend", () => veil.remove(), {once:true});
-  setTimeout(() => veil.remove(), slow ? 13000 : 2000);
+  if (!slow) {
+    veil.addEventListener("animationend", () => veil.remove(), {once:true});
+    setTimeout(() => veil.remove(), 2000);
+  }
   effects.after(veil);
 }
 // Efeito leve em poucos textos pequenos: o texto parte de transparente e volta à cor normal por
