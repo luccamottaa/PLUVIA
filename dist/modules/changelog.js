@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.33", date:"2026-10-27", title:"Nuvens em 3D à noite", items:[
+      "À noite, no céu nublado, com chuva ou com trovoada, as nuvens agora são desenhadas em 3D em tempo real: topo iluminado pela Lua, base na sombra e forma que muda devagar com o vento.",
+      "Em aparelhos sem suporte, com movimento reduzido ou que fiquem lentos, o PLUVIA volta sozinho às nuvens de antes."]},
     {version:"1.32.1", date:"2026-10-27", title:"Nuvens da noite como antes", items:[
       "As nuvens com volume da noite saíram: o céu nublado, de chuva e de trovoada à noite voltou ao visual anterior. Os raios continuam acendendo as nuvens por dentro.",
       "O céu nublado da noite ficou num azul mais escuro."]},
