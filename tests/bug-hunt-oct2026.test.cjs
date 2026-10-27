@@ -68,7 +68,7 @@ test('eclipse que já terminou hoje deixa de ser o próximo',async()=>{
   assert.ok(next.solar.peak>after,'recalcula e mostra o eclipse seguinte');
 });
 test('chuva de meteoros: na madrugada do pico vale a noite de ontem',()=>{
-  assert.match(app,/nextShower\(globalThis\.PLUVIA\.time\.dayKey\(at-12\*3600000,activeCity\)/);
+  assert.match(app,/const tonight=globalThis\.PLUVIA\.time\.dayKey\(at-12\*3600000,activeCity\);\s*const shower=events\.nextShower\(tonight,/);
   const events=require('../dist/modules/sky-events.js');
   assert.equal(events.nextShower('2026-10-21',-3.1)?.night,events.nextShower('2026-10-20',-3.1)?.night,'a noite de 21→22 é a mesma vista da tarde do dia 21');
 });

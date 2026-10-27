@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const volume = require('../dist/modules/volumetric-clouds.js');
 
-// Todo céu com nuvem ganha a nuvem 3D, de dia e de noite; céu limpo e neblina continuam no CSS.
+// Todo céu com nuvem ganha a nuvem 3D, de dia e de noite, e a neblina (1.36); céu limpo continua no CSS.
 assert.equal(volume.mode({phase:'night',weather:'cloud'}),'night-cloud');
 assert.equal(volume.mode({phase:'night',weather:'snow'}),'night-cloud');
 assert.equal(volume.mode({phase:'night',weather:'rain'}),'night-rain');
@@ -14,14 +14,15 @@ assert.equal(volume.mode({phase:'day',weather:'partly',clouds:'few'}),'day-few')
 assert.equal(volume.mode({phase:'day',weather:'cloud'}),'day-cloud');
 assert.equal(volume.mode({phase:'day',weather:'rain'}),'day-rain');
 assert.equal(volume.mode({phase:'day',weather:'storm'}),'day-heavy');
-for (const phase of ['day','night']) for (const weather of ['sun','fog','unknown']) assert.equal(volume.mode({phase,weather}),null,`${phase} ${weather}`);
+for (const phase of ['day','night']) for (const weather of ['sun','unknown']) assert.equal(volume.mode({phase,weather}),null,`${phase} ${weather}`);
+assert.equal(volume.mode({phase:'day',weather:'fog'}),'day-fog'); assert.equal(volume.mode({phase:'night',weather:'fog'}),'night-fog');
 assert.equal(volume.mode(null),null);
-for (const name of ['few','partly','cloud','rain','heavy']) for (const phase of ['day','night']) assert.ok(volume.PALETTES[`${phase}-${name}`],`${phase}-${name}`);
+for (const name of ['few','partly','cloud','rain','heavy','fog']) for (const phase of ['day','night']) assert.ok(volume.PALETTES[`${phase}-${name}`],`${phase}-${name}`);
 // No nublado/chuva de dia o texto branco fica por cima: a nuvem tem teto de brilho.
 assert.ok(volume.PALETTES['day-cloud'].cap <= .75 && volume.PALETTES['day-rain'].cap <= .75);
 for (const palette of Object.values(volume.PALETTES)) {
   assert.match(palette.lit,/^#[0-9a-f]{6}$/); assert.match(palette.shade,/^#[0-9a-f]{6}$/);
-  assert.ok(palette.cover > .3 && palette.cover <= .6); assert.ok(palette.dens > 0);
+  assert.ok(palette.cover >= .3 && palette.cover <= .6); assert.ok(palette.dens > 0);
 }
 // O shader é WebGL 1 com laços de tamanho fixo (exigência do GLSL ES 1.0 no Safari).
 assert.match(volume.FS,/precision mediump float/);
@@ -48,3 +49,16 @@ assert.match(src,/navigator\?\.webdriver/);
 // As nuvens também se formam no lugar (o campo anda na altura), não só entram pela direita.
 assert.match(volume.FS,/vec3 wind\(vec3 p\)\{return p\*SIZE\+vec3\(T\*[.0-9]+,T\*[.0-9]+,/);
 console.log('volumetric-clouds ok');
+
+// Raio dentro da nuvem (1.36): o mesmo ciclo de 39 s do CSS (storm-bolt), três raios nas mesmas posições.
+assert.equal(volume.flash(0).k,0);
+assert.deepEqual(volume.flash(4680 + 80),{k:1,x:.34});
+assert.ok(volume.flash(4680 + 160).k < .5,'pisca depois do primeiro clarão');
+assert.ok(Math.abs(volume.flash(17940 + 80).k - .95) < 1e-9 && volume.flash(17940 + 80).x === .76);
+assert.ok(Math.abs(volume.flash(31200 + 80).k - .7) < 1e-9 && volume.flash(31200 + 80).x === .18);
+assert.equal(volume.flash(4680 + 2300).k,0,'apaga em ~2 s');
+assert.deepEqual(volume.flash(39000 + 4760),volume.flash(4760),'ciclo repete');
+assert.equal(volume.flash(NaN).k,0);
+for (const [share,x] of [[12,34],[46,76],[80,18]]) assert.ok(css.includes(`${share}.205%`) && css.includes(`calc(${x}vw - 50%)`),'posições batem com storm-bolt');
+assert.match(volume.FS,/uniform float COVER,DENS,SIZE,EDGE,DETAIL,FLASH,FLASHX,FOG/);
+assert.match(src,/animationName === 'storm-bolt'/);
