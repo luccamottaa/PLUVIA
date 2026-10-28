@@ -53,12 +53,13 @@ html,body { background:var(--sky-base); }
 :root[data-phase="day"][data-ink="light"][data-weather="cloud"] .pluvia-intro :is(.intro-wordmark,.intro-tagline,.intro-kicker) { text-shadow:0 1px 3px rgba(20,32,52,.4),0 0 22px rgba(20,32,52,.32); }
 .pluvia-intro .intro-tagline { color:var(--intro-ink); }
 .pluvia-intro .intro-kicker { z-index:1; color:var(--intro-muted); }
-.night-stage::before { content:""; position:absolute; inset:0 0 auto; z-index:-1; pointer-events:none; background-image:var(--sky-color); opacity:1; height:min(1450px,160vh); -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); }
+/* O céu é da tela, não da página (1.38.1, pedido do dono: as gotas ficavam paradas e as nuvens rolavam junto
+   com o conteúdo, e no crepúsculo o degradê ficava e as nuvens iam embora): degradê, nuvens, astros, chuva e
+   gotas ficam fixos e o conteúdo passa por cima, como no Apple Weather. lvh: a altura com a barra do Safari
+   recolhida, para não abrir faixa embaixo quando ela some. */
+.night-stage::before { content:""; position:fixed; inset:0 0 auto; z-index:-1; pointer-events:none; background-image:var(--sky-color); opacity:1; height:100vh; height:100lvh; }
 .night-stage::after { display:none; }
-/* Twilight belongs to the viewport, outside the masked weather effects.
-   The same sky remains behind every section while the page scrolls. */
-:root:is([data-solar="sunrise"],[data-solar="sunset"]) .night-stage::before { position:fixed; inset:0; height:auto; -webkit-mask-image:none; mask-image:none; }
-.sky-effects { position:absolute; inset:0 0 auto; height:min(1450px,160vh); overflow:hidden; pointer-events:none; z-index:-1; }
+.sky-effects { position:fixed; inset:0 0 auto; height:100vh; height:100lvh; overflow:hidden; pointer-events:none; z-index:-1; }
 .pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; overflow:hidden; pointer-events:none; }
 .sky-effects,.intro-sky { isolation:isolate; contain:layout paint; --orbit-top:clamp(38px,6vw,52px); --orbit-height:260px; }
 .intro-sky { --orbit-top:clamp(64px,10svh,120px); --orbit-height:clamp(180px,32svh,360px); }
@@ -208,7 +209,6 @@ html,body { background:var(--sky-base); }
 /* Canal: halo suave próprio, origem no alto para crescer para baixo. */
 .sky-lightning::after { top:calc(env(safe-area-inset-top,0px) - 24px); left:0; height:clamp(420px,62svh,700px); aspect-ratio:440 / 800; background:url("./assets/lightning-bolt.svg?v=lightning-2") center / 100% 100% no-repeat,radial-gradient(closest-side,#c7d6ff38,transparent); transform-origin:50% 0; animation-name:storm-bolt; }
 :root[data-weather="storm"] .sky-lightning { display:block; }
-.sky-effects { -webkit-mask-image:linear-gradient(#000 0%,#000 65%,transparent); mask-image:linear-gradient(#000 0%,#000 65%,transparent); }
 @keyframes clouds-back { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-1 * var(--cloud-tile)),0,0); } }
 @keyframes clouds-front { from { transform:translate3d(0,0,0); } to { transform:translate3d(calc(-1 * var(--cloud-tile)),0,0); } }
 @keyframes sky-star-shimmer { 0% { opacity:.12; } 35% { opacity:.9; } 65% { opacity:.4; } 100% { opacity:1; } }

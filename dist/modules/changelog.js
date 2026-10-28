@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.38.1", date:"2026-10-28", title:"Céu fixo na tela", items:[
+      "O céu agora fica parado atrás de tudo: nuvens, Sol, Lua, gotas e as cores do pôr e do nascer do sol não rolam mais junto com a página."
+    ]},
     {version:"1.38", date:"2026-10-27", title:"Gotas de chuva na tela", items:[
       "Quando chove, gotinhas aparecem na tela como num vidro: pousam, crescem, secam e algumas escorrem. Quanto mais forte a chuva, mais gotas.",
       "Depois do pôr do sol o céu vai escurecendo aos poucos durante o crepúsculo até virar noite, e de manhã clareia do mesmo jeito, sem troca de uma vez."]},
