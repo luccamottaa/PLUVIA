@@ -114,10 +114,9 @@ html,body { background:var(--sky-base); }
 .sky-moon > svg { display:block; position:relative; width:100%; height:100%; }
 /* Brilho da Lua (1.40, pedido do dono: "o brilho que eu falo é no centro dela"): a luz fica dentro do disco
    (#pluviaMoonGlow no #moonDisc, só na parte iluminada pela máscara da fase) e o disco do céu fica um pouco mais
-   claro; em volta, só o halo fraco de antes e uma borda fina de luz pela fração iluminada (--moon-light). Um
-   halo largo (~3,6× o disco) foi testado e recusado: não parecia natural. */
+   claro; em volta, só o halo fraco de antes. Um halo largo (~3,6× o disco) e uma borda clara colada no disco
+   (1.40.1: "não gostei desse branco ao redor da lua") foram recusados; não voltar a eles. */
 .sky-moon::before { content:""; position:absolute; inset:-65%; border-radius:50%; background:radial-gradient(circle,#c3dfff1f,transparent 64%); opacity:var(--moon-light,0); }
-.sky-moon::after { content:""; position:absolute; inset:-12%; z-index:-1; border-radius:50%; background:radial-gradient(circle,#eef4ff47 58%,transparent 72%); opacity:calc(var(--moon-light,0) * .8); pointer-events:none; }
 .sky-moon > svg { filter:brightness(1.12); }
 :root[data-phase="night"] .sky-moon { display:block; }
 .intro-sky .sky-moon { width:64px; }
@@ -356,11 +355,3 @@ body.page-hidden :is(.sky-effects,.intro-sky) > * { visibility:hidden !important
 :root[data-volume="on"] :is(.sky-effects,.intro-sky) > .sky-clouds { opacity:0; visibility:hidden; animation-play-state:paused; transition:opacity 1.1s ease,visibility 0s 1.1s; }
 body.page-hidden .sky-volume { visibility:hidden; }
 @media (prefers-reduced-motion: reduce) { .sky-volume { display:none; } }
-
-/* Gotas na tela (1.38, modules/rain-drops.js): canvas fixo na tela, atrás do conteúdo e na frente do céu, só com
-   chuva (data-glass="on"). Aparece e some só por opacidade; com a página oculta sai da composição; movimento
-   reduzido não mostra. */
-.sky-glass { position:fixed; inset:0; z-index:-1; width:100%; height:100%; display:block; pointer-events:none; opacity:0; transition:opacity 2s ease; }
-:root[data-glass="on"] .sky-glass { opacity:1; }
-body.page-hidden .sky-glass { visibility:hidden; }
-@media (prefers-reduced-motion: reduce) { .sky-glass { display:none; } }

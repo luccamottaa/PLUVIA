@@ -62,3 +62,21 @@ assert.equal(volume.flash(NaN).k,0);
 for (const [share,x] of [[12,34],[46,76],[80,18]]) assert.ok(css.includes(`${share}.205%`) && css.includes(`calc(${x}vw - 50%)`),'posições batem com storm-bolt');
 assert.match(volume.FS,/uniform float COVER,DENS,SIZE,EDGE,DETAIL,FLASH,FLASHX,FOG/);
 assert.match(src,/animationName === 'storm-bolt'/);
+
+// Lento cai para menos detalhe antes de desligar, contexto perdido religa uma vez e o motivo vai ao PostHog (1.40.1).
+{
+  const src = fs.readFileSync(path.join(root, 'modules/volumetric-clouds.js'), 'utf8');
+  assert.match(src, /LOW_SCALE = \.33/);
+  assert.match(src, /if \(scale === SCALE\) \{ scale = LOW_SCALE; frameMs = LOW_FRAME_MS; slow = 0; resize\(\); \}\s*else return off\('slow'\);/);
+  assert.match(src, /if \(\+\+lost > 1\) return off\('lost'\);/);
+  assert.match(src, /track\?\.\('Sky Effect Off',\{effect:'volume',reason:reason \|\| 'unsupported'\}\)/);
+  const analytics = fs.readFileSync(path.join(root, 'analytics.js'), 'utf8');
+  assert.match(analytics, /'Sky Effect Off'/);
+  assert.match(analytics, /effect:new Set\(\['volume'\]\)/);
+  assert.match(analytics, /'slow','lost'\]/);
+  // As gotas na tela saíram (1.40.1, o dono não gostou).
+  assert.ok(!fs.existsSync(path.join(root, 'modules/rain-drops.js')));
+  assert.doesNotMatch(fs.readFileSync(path.join(root, 'index.html'), 'utf8'), /rain-drops|sky-glass/);
+  // Nada de borda clara em volta da Lua (recusada pelo dono).
+  assert.doesNotMatch(fs.readFileSync(path.join(root, 'sky.css'), 'utf8'), /\.sky-moon::after/);
+}

@@ -19,7 +19,7 @@
     if (root.document) api.start(root);
   }
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
-  const SCALE = .5, FRAME_MS = 41, SLOW_MS = 90, SLOW_SECONDS = 5, OFF_KEY = 'pluvia-volume-off';
+  const SCALE = .5, LOW_SCALE = .33, FRAME_MS = 41, LOW_FRAME_MS = 66, SLOW_MS = 90, SLOW_SECONDS = 5, OFF_KEY = 'pluvia-volume-off';
   // cap: brilho máximo da nuvem. No nublado de dia o texto branco fica por cima da nuvem: até ~.7 ele continua
   // legível como no deck prateado do CSS (escolha do dono, contraste medido por verify-contrast).
   const PALETTES = {
@@ -133,10 +133,20 @@ void main(){
   function start(win) {
     const doc = win.document, html = doc.documentElement;
     let canvas = null, gl = null, uniforms = null, current = null, raf = 0, last = 0, slow = 0, dead = false;
+    // 1.40.1 (o dono não via as nuvens 3D no iPhone com chuva, quando as gotas da 1.38 também usavam WebGL): lento, antes de
+    // desligar, tenta em resolução e ritmo menores; contexto perdido religa uma vez. O motivo do desligamento vai
+    // para o PostHog (Sky Effect Off), sem nada além do efeito e do motivo.
+    let scale = SCALE, frameMs = FRAME_MS, lost = 0;
     function off(reason) {
       dead = true; stop();
       try { win.sessionStorage?.setItem(OFF_KEY,reason || '1'); } catch (_) { /* sessão sem storage: só esta página */ }
       delete html.dataset.volume; if (canvas) canvas.remove(); canvas = gl = null;
+      try { win.pluviaAnalytics?.track?.('Sky Effect Off',{effect:'volume',reason:reason || 'unsupported'}); } catch (_) { /* telemetria nunca quebra o céu */ }
+    }
+    function lose() {
+      stop(); delete html.dataset.volume; if (canvas) canvas.remove(); canvas = gl = null; current = null;
+      if (++lost > 1) return off('lost');
+      win.setTimeout(() => { if (!dead) sync(); },3000);
     }
     function disabledBefore() { try { return !!win.sessionStorage?.getItem(OFF_KEY); } catch (_) { return false; } }
     // A automação de QA (navigator.webdriver) mede as camadas de nuvem do CSS; lá a nuvem volumétrica só liga
@@ -175,13 +185,13 @@ void main(){
         for (const name of ['R','T','LIT','SHD','SUN','COVER','DENS','SIZE','EDGE','DETAIL','SUNPX','SUNI','TW','SIDE','CAP','FLASH','FLASHX','FOG']) uniforms[name] = gl.getUniformLocation(program,name);
         const sun = [-.5,.75,-.2], len = Math.hypot(...sun); gl.uniform3fv(uniforms.SUN,sun.map(v => v / len));
       } catch (_) { canvas = gl = null; return false; }
-      canvas.addEventListener('webglcontextlost',event => { event.preventDefault(); off('lost'); });
+      canvas.addEventListener('webglcontextlost',event => { event.preventDefault(); lose(); });
       place();
       return true;
     }
     function resize() {
       if (!canvas || !gl) return;
-      const w = Math.max(1,Math.round(canvas.clientWidth * SCALE)), h = Math.max(1,Math.round(canvas.clientHeight * SCALE));
+      const w = Math.max(1,Math.round(canvas.clientWidth * scale)), h = Math.max(1,Math.round(canvas.clientHeight * scale));
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0,0,w,h); }
       gl.uniform2f(uniforms.R,w,h);
     }
@@ -237,10 +247,16 @@ void main(){
     function frame() { gl.uniform1f(uniforms.T,20 + clock); gl.drawArrays(gl.TRIANGLES,0,3); }
     function draw(now) {
       raf = win.requestAnimationFrame(draw);
-      if (now - last < FRAME_MS) return;
+      if (now - last < frameMs) return;
       const gap = now - last; last = now;
       // Quadros lentos por 5 segundos seguidos: o aparelho não aguenta; volta às camadas do CSS.
-      if (lastNow && gap > SLOW_MS && !qaForced()) { slow += gap; if (slow > SLOW_SECONDS * 1000) return off('slow'); } else slow = 0;
+      if (lastNow && gap > SLOW_MS && !qaForced()) {
+        slow += gap;
+        if (slow > SLOW_SECONDS * 1000) {
+          if (scale === SCALE) { scale = LOW_SCALE; frameMs = LOW_FRAME_MS; slow = 0; resize(); }
+          else return off('slow');
+        }
+      } else slow = 0;
       clock += lastNow ? Math.min(gap,200) / 1000 * rate() : 0; lastNow = now;
       if (now - sunAt > 2000) sunUpdate(now);
       lightning(now);
