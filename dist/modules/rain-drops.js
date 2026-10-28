@@ -93,6 +93,7 @@ void main(){
       dead = true; stop(); delete html.dataset.glass;
       try { win.sessionStorage?.setItem(OFF_KEY, reason || '1'); } catch (_) { /* só esta página */ }
       canvas?.remove(); canvas = gl = null;
+      try { win.pluviaAnalytics?.track?.('Sky Effect Off', {effect:'glass', reason:reason || 'unsupported'}); } catch (_) { /* telemetria nunca quebra o céu */ }
     }
     function setup() {
       const effects = scene(); if (!effects) return false;
@@ -128,7 +129,8 @@ void main(){
     }
     function draw(now) {
       raf = win.requestAnimationFrame(draw);
-      if (now - last < FRAME_MS) return;
+      // Com as nuvens 3D ligadas (outro contexto WebGL), as gotas andam num ritmo menor para sobrar GPU para as duas.
+      if (now - last < (html.dataset.volume === 'on' ? FRAME_MS * 1.5 : FRAME_MS)) return;
       const gap = last ? now - last : 0; last = now;
       if (gap > SLOW_MS && !qaForced()) { slow += gap; if (slow > SLOW_SECONDS * 1000) return off('slow'); } else slow = 0;
       const dt = Math.min(gap, 200) / 1000;

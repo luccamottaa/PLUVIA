@@ -114,10 +114,9 @@ html,body { background:var(--sky-base); }
 .sky-moon > svg { display:block; position:relative; width:100%; height:100%; }
 /* Brilho da Lua (1.40, pedido do dono: "o brilho que eu falo é no centro dela"): a luz fica dentro do disco
    (#pluviaMoonGlow no #moonDisc, só na parte iluminada pela máscara da fase) e o disco do céu fica um pouco mais
-   claro; em volta, só o halo fraco de antes e uma borda fina de luz pela fração iluminada (--moon-light). Um
-   halo largo (~3,6× o disco) foi testado e recusado: não parecia natural. */
+   claro; em volta, só o halo fraco de antes. Um halo largo (~3,6× o disco) e uma borda clara colada no disco
+   (1.40.1: "não gostei desse branco ao redor da lua") foram recusados; não voltar a eles. */
 .sky-moon::before { content:""; position:absolute; inset:-65%; border-radius:50%; background:radial-gradient(circle,#c3dfff1f,transparent 64%); opacity:var(--moon-light,0); }
-.sky-moon::after { content:""; position:absolute; inset:-12%; z-index:-1; border-radius:50%; background:radial-gradient(circle,#eef4ff47 58%,transparent 72%); opacity:calc(var(--moon-light,0) * .8); pointer-events:none; }
 .sky-moon > svg { filter:brightness(1.12); }
 :root[data-phase="night"] .sky-moon { display:block; }
 .intro-sky .sky-moon { width:64px; }
