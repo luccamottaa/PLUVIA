@@ -859,11 +859,11 @@ body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="
 /* Ícone do ⓘ (1.40, pedido do dono: "troca por ícones clicáveis bonitos que combinem com o PLUVIA"): círculo
    suave tingido pelo azul da marca com um "i" arredondado desenhado por máscara (a letra do HTML só some da
    tela); aberto, o círculo fica cheio no azul e o "i" na cor do texto dos botões. Só cor: sem camada. */
-.info-tip-icon { position:relative; display:block; width:28px; height:28px; border-radius:50%; overflow:hidden; color:transparent; font-size:0; background:#b7d2ff26; background:color-mix(in srgb,var(--brand-blue,#b7d2ff) 18%,transparent); box-shadow:inset 0 0 0 1px #b7d2ff33; box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand-blue,#b7d2ff) 30%,transparent); transition:background-color .2s ease,box-shadow .2s ease; }
-.info-tip-icon::before { content:""; position:absolute; inset:0; background:var(--brand-blue,#b7d2ff); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='8.6' r='1.75'/%3E%3Crect x='12.4' y='12' width='3.2' height='9' rx='1.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='8.6' r='1.75'/%3E%3Crect x='12.4' y='12' width='3.2' height='9' rx='1.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat; transition:background-color .2s ease; }
-.info-tip[open] > summary > .info-tip-icon { background:var(--brand-blue,#b7d2ff); box-shadow:none; }
+.info-tip-icon { position:relative; display:block; width:28px; height:28px; border-radius:50%; overflow:hidden; color:transparent; font-size:0; background:#7cc0ff26; background:color-mix(in srgb,var(--brand-blue,#7cc0ff) 18%,transparent); box-shadow:inset 0 0 0 1px #7cc0ff33; box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand-blue,#7cc0ff) 30%,transparent); transition:background-color .2s ease,box-shadow .2s ease; }
+.info-tip-icon::before { content:""; position:absolute; inset:0; background:var(--brand-blue,#7cc0ff); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='8.6' r='1.75'/%3E%3Crect x='12.4' y='12' width='3.2' height='9' rx='1.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='8.6' r='1.75'/%3E%3Crect x='12.4' y='12' width='3.2' height='9' rx='1.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat; transition:background-color .2s ease; }
+.info-tip[open] > summary > .info-tip-icon { background:var(--brand-blue,#7cc0ff); box-shadow:none; }
 .info-tip[open] > summary > .info-tip-icon::before { background:var(--on-accent,#0c1a33); }
-@media (hover:hover) { .info-tip > summary:hover > .info-tip-icon { background:#b7d2ff40; background:color-mix(in srgb,var(--brand-blue,#b7d2ff) 30%,transparent); } }
+@media (hover:hover) { .info-tip > summary:hover > .info-tip-icon { background:#7cc0ff40; background:color-mix(in srgb,var(--brand-blue,#7cc0ff) 30%,transparent); } }
 @media (prefers-reduced-motion:reduce) { .info-tip-icon,.info-tip-icon::before { transition:none; } }
 @media (forced-colors:active) { .info-tip-icon { border:1px solid CanvasText; } .info-tip-icon::before { background:CanvasText; } }
 .info-tip > summary:focus-visible { outline:2px solid var(--brand-blue); outline-offset:-6px; }
@@ -1329,7 +1329,7 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 .install-card p strong { display:block; color:#fff; font-size:.9375rem; font-weight:600; }
 .install-card-actions { display:flex; gap:6px; margin-left:auto; }
 .install-card button { min-height:44px; padding:0 14px; border:0; border-radius:999px; background:none; color:#c9d6ea; font:inherit; font-size:.9375rem; cursor:pointer; }
-.install-card #installCardAction { background:#b7d2ff; color:#0c1a33; font-weight:700; }
+.install-card #installCardAction { background:#7cc0ff; color:#0c1a33; font-weight:700; }
 .install-card button:focus-visible { outline:3px solid #9cc0ff; outline-offset:2px; }
 /* Nascer/pôr como coluna própria entre as horas (horário, símbolo, nome), nas mesmas linhas das horas:
    dentro da coluna da hora ele abria uma linha vazia embaixo de todas as outras. */
@@ -1932,12 +1932,12 @@ footer.shell .footer-brand-icon { width:64px; height:64px; flex-basis:64px; back
    o azul vivo #2f6bff saiu. Na tinta clara (noite, chuva forte) o destaque é o azul-claro da gota nova, com texto
    azul-noite nos botões preenchidos; na tinta escura (céu claro de dia) é o azul-marinho da marca, com texto branco.
    Ícones em traço, links, bolinhas, interruptores, selos e botões preenchidos herdam pelos mesmos tokens. */
-:root { --brand-blue:#b7d2ff; --on-accent:#0c1a33; }
-:root[data-ink="dark"] { --brand-blue:#2f557f; --on-accent:#fff; }
+:root { --brand-blue:#7cc0ff; --on-accent:#0c1a33; }
+:root[data-ink="dark"] { --brand-blue:#0a4cba; --on-accent:#fff; }
 #weatherView, .weather-map-section, body[data-phase="night"] .weather-map-section { --map-link:var(--brand-blue); }
 /* O mapa segue a fase (claro de dia), não a tinta: no céu cinza de dia (tinta clara, 1.25) o azul-claro dos links e
    botões sobre a superfície clara do mapa ficava em 1,5:1. De dia o mapa usa sempre o azul-marinho da marca. */
-body[data-phase="day"] .weather-map-section { --map-link:#2f557f; }
+body[data-phase="day"] .weather-map-section { --map-link:#0a4cba; }
 nav a:hover, nav a.active, #welcomeLocate, #installPushReload, #installDone { color:var(--on-accent); }
 html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked::before { background:var(--on-accent); }
 /* Chuva na próxima hora (1.19): barras do nowcast do radar, de agora a +60 min a cada 5 min. A altura é a fração da
@@ -1980,7 +1980,7 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 /* 7 dias (1.25.3, pedido do usuário: "centraliza tudo" e a cor do dia atual "nas letras, não no fundo"):
    chance e volume centrados na própria coluna (alinhados à direita, as linhas só com a chance pareciam tortas)
    e hoje sem fundo, com o nome num azul vivo: #6fb1ff com tinta clara (7,5:1) e #0f4aa8 com tinta escura
-   (4,7:1 no cartão de dia). O azul da marca à noite (#b7d2ff) quase não se distinguia do branco. Só pintura. */
+   (4,7:1 no cartão de dia). O azul da marca à noite (#7cc0ff) quase não se distinguia do branco. Só pintura. */
 #weatherView .forecast-list .forecast-row > .forecast-condition { justify-self:center; align-self:center; }
 @media(max-width:720px) {
   #weatherView .forecast-list .forecast-rain-values { justify-items:center; text-align:center; }
@@ -1988,9 +1988,9 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 }
 /* O nome fica num <span> que outras folhas pintam: a cor vai também nele. */
 #weatherView .forecast-row[data-today] .forecast-day > strong,
-#weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#6fb1ff; font-weight:700; }
+#weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#4dabff; font-weight:700; }
 body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong,
-body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#0f4aa8; }
+body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#0a4cba; }
 /* Condição mais perto da temperatura (1.25.5, pedido do usuário: "muito separado"). A caixa do número tem a
    altura da fonte inteira, e embaixo dos algarismos sobra o espaço das letras com perna (~0,2 em): com o gap
    da coluna, a condição ficava ~37 px abaixo dos algarismos. Puxa a caixa de volta na proporção do número. */
@@ -2116,8 +2116,8 @@ html body #accountDialog .capital-links summary::after { transition:rotate .32s 
 #weatherView .sun-table :is(th,td):first-child { text-align:left; }
 #weatherView .sun-table thead th { padding-top:0; border-top:0; color:var(--reading-muted); font-size:.8125rem; font-weight:500; }
 #weatherView .sun-table tbody th { font-weight:500; text-transform:capitalize; }
-#weatherView .sun-table tbody tr[data-today] th { color:#6fb1ff; font-weight:700; }
-body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:#0f4aa8; }
+#weatherView .sun-table tbody tr[data-today] th { color:#4dabff; font-weight:700; }
+body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:#0a4cba; }
 #weatherView .sun-table td:last-child { color:var(--reading-muted); }
 @media (max-width:359px) { #weatherView .sun-table :is(th,td) { font-size:.875rem; } }
 
