@@ -1312,7 +1312,10 @@ function paintCurrentCondition(data) {
   const isDay = atmosphere?.phase === "night" ? false : atmosphere?.phase === "day" ? true : current.is_day !== 0;
   const localCondition = replaced && observed ? globalThis.PLUVIA.observedRain.label(observed, condition) : !isDay && current.weather_code === 1 ? "Céu quase limpo" : condition;
   // "Ar abafado" vem da sensação do modelo; com chuva medida agora (que costuma derrubar a temperatura) fica de fora.
-  $("condition").textContent = !(replaced && observed) && heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition;
+  const conditionNode = $("condition");
+  conditionNode.textContent = !(replaced && observed) && heatGap >= 4 && current.relative_humidity_2m >= 70 ? `${localCondition} · ar abafado` : localCondition;
+  // O cabeçalho compacto desenha o ícone desta condição; `data-text` diz a que texto o código pertence.
+  Object.assign(conditionNode.dataset, {code:String(current.weather_code), day:isDay ? "1" : "0", text:conditionNode.textContent});
   observedRainState.key = observedRainKey(data);
   return atmosphere;
 }
