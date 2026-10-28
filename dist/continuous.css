@@ -2167,3 +2167,15 @@ body[data-ink="dark"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
    aria-label): com o ícone novo do título, "Chuva na região" + ícone + ⓘ não cabiam ao lado do botão e o
    ⓘ ficava embaixo dele (o toque abria o radar). */
 @media (max-width:420px) { #weatherView .weather-map-card .expand-radar { width:44px; padding:0; } #weatherView .expand-radar-word { display:none; } }
+/* Cabeçalho compacto (1.39, modules/compact-header.js): com a temperatura fora da tela, "Cidade" e "30° | Condição"
+   ficam no topo, como no app Tempo. O fundo é o próprio degradê do céu na mesma geometria de .night-stage::before
+   (100% × 100lvh a partir do topo), mais a película do crepúsculo (a .sky-twilight-page de dentro recebe as mesmas
+   variáveis de sky-atmosphere), então ele some no céu e o conteúdo desaparece por baixo dele pelo fade da máscara.
+   Uma camada só, sem blur; só opacidade na troca. */
+.night-stage > .compact-head { position:fixed; z-index:30; inset:0 0 auto; height:calc(env(safe-area-inset-top,0px) + 96px); display:flex; flex-direction:column; align-items:center; gap:1px; padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 0; box-sizing:border-box; pointer-events:none; contain:paint; background-image:var(--sky-color); background-color:var(--sky-base); background-size:100% 100vh; background-size:100% 100lvh; background-repeat:no-repeat; -webkit-mask-image:linear-gradient(#000 calc(100% - 34px),transparent); mask-image:linear-gradient(#000 calc(100% - 34px),transparent); opacity:0; visibility:hidden; transition:opacity .22s ease,visibility 0s .22s; }
+.night-stage > .compact-head[data-on] { opacity:1; visibility:visible; transition:opacity .22s ease; }
+.compact-head > .sky-twilight-page { inset:0 0 auto; height:100vh; height:100lvh; }
+.compact-head > .compact-city { position:relative; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:1.2rem; font-weight:500; line-height:1.25; }
+.compact-head > .compact-now { position:relative; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.95rem; font-weight:500; line-height:1.3; opacity:.82; font-variant-numeric:tabular-nums; }
+body[data-phase="day"][data-ink="light"][data-weather="cloud"] .compact-head { text-shadow:0 1px 3px rgba(20,32,52,.35),0 0 18px rgba(20,32,52,.28); }
+@media (prefers-reduced-motion:reduce) { .night-stage > .compact-head { transition:none; } }

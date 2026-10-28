@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.39", date:"2026-10-28", title:"Cabeçalho que acompanha a rolagem", items:[
+      "Ao rolar a página, o nome da cidade, a temperatura e a condição ficam no topo, e o conteúdo some por baixo deles, sem passar por trás do relógio do celular.",
+      "O Sol e a Lua esmaecem quando você rola, para não ficarem por cima dos textos."
+    ]},
     {version:"1.38.1", date:"2026-10-28", title:"Céu fixo na tela", items:[
       "O céu agora fica parado atrás de tudo: nuvens, Sol, Lua, gotas e as cores do pôr e do nascer do sol não rolam mais junto com a página."
     ]},
