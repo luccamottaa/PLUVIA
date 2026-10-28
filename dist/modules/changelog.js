@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.41", date:"2026-10-28", title:"Cabeçalho novo ao rolar", items:[
+      "Ao descer a tela, a cidade e a temperatura ficam numa pílula no topo, com o ícone do tempo de agora."
+    ]},
     {version:"1.40.1", date:"2026-10-28", title:"Nuvens 3D mais firmes", items:[
       "As gotas de chuva na tela saíram.",
       "As nuvens 3D não se desligam mais à toa: o app tenta de novo com menos detalhe antes de voltar às nuvens comuns.",

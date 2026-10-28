@@ -26,8 +26,8 @@ test('cabeçalho no HTML, no precache e sobre o degradê do céu, sem blur', () 
   assert.match(html, /<div class="compact-head" aria-hidden="true"><span class="sky-twilight sky-twilight-page"><\/span>/);
   // A película do crepúsculo de dentro vem depois da principal (captureSky lê a primeira).
   assert.ok(html.indexOf('class="compact-head"') > html.indexOf('sky-twilight-page'));
-  assert.match(html, /modules\/compact-header\.js\?v=compact-2" defer/);
-  assert.match(sw, /modules\/compact-header\.js\?v=compact-2/);
+  assert.match(html, /modules\/compact-header\.js\?v=compact-3" defer/);
+  assert.match(sw, /modules\/compact-header\.js\?v=compact-3/);
   const rule = css.slice(css.indexOf('.night-stage > .compact-head {'));
   assert.match(rule, /background-image:var\(--sky-color\)/);
   assert.match(rule, /background-size:100% 100lvh/);
@@ -37,4 +37,42 @@ test('cabeçalho no HTML, no precache e sobre o degradê do céu, sem blur', () 
 test('sem títulos grudados nem cartões cortados (1.39.1: o dono achou feio, conteúdo passava atrás dos títulos)', () => {
   const css = fs.readFileSync('dist/continuous.css', 'utf8');
   assert.doesNotMatch(css, /pluvia-tuck|--tuck-|animation-timeline:view/);
+});
+
+test('pílula com o ícone da condição só quando o código é do texto à vista (1.41)', () => {
+  const cond = (text, data) => ({textContent:text, dataset:data});
+  assert.equal(api.iconKey(cond('Nublado', {code:'3', day:'0', text:'Nublado'})), '3:0');
+  assert.equal(api.iconKey(cond('Chuva', {code:'61', day:'1', text:'Chuva'})), '61:1');
+  // Troca de cidade ("Consultando o tempo…") e falha ("Tempo indisponível") trocam o texto: sem ícone velho.
+  assert.equal(api.iconKey(cond('Consultando o tempo…', {code:'3', day:'1', text:'Nublado'})), '');
+  assert.equal(api.iconKey(cond('Nublado', {})), '');
+  const html = fs.readFileSync('dist/index.html', 'utf8'), css = fs.readFileSync('dist/continuous.css', 'utf8');
+  const app = fs.readFileSync('dist/app.js', 'utf8');
+  assert.match(html, /<span class="compact-pill"><span class="compact-icon"><\/span><strong class="compact-city"><\/strong><span class="compact-now"><\/span><\/span>/);
+  assert.match(app, /Object\.assign\(conditionNode\.dataset, \{code:String\(current\.weather_code\), day:isDay \? "1" : "0", text:conditionNode\.textContent\}\)/);
+  const pill = css.slice(css.indexOf('.compact-head > .compact-pill {'));
+  assert.doesNotMatch(pill.slice(0, pill.indexOf('}')), /backdrop-filter|blur|transform/);
+});
+
+test('ícone da pílula acompanha a condição num DOM simulado', () => {
+  const nodes = {};
+  const el = (text = '') => ({textContent:text, dataset:{}, innerHTML:'', closest:() => null});
+  nodes.cityName = el('Porto Alegre'); nodes.temperature = el('15'); nodes.condition = el('Nublado');
+  Object.assign(nodes.condition.dataset, {code:'3', day:'0', text:'Nublado'});
+  const parts = {'.compact-city':el(), '.compact-now':el(), '.compact-icon':el()};
+  const head = {offsetHeight:150, querySelector:sel => parts[sel], hasAttribute:() => false, toggleAttribute() {}};
+  let observer;
+  const root = {
+    PLUVIA:{weatherIcons:{markup:(code, day) => `<img data-code="${code}" data-day="${day}">`}},
+    document:{readyState:'complete', querySelector:sel => sel === '.compact-head' ? head : null, querySelectorAll:() => [],
+      getElementById:id => nodes[id]},
+    MutationObserver:class { constructor(fn) { observer = fn; } observe() {} },
+    requestAnimationFrame:fn => fn(), addEventListener() {}, scrollY:0
+  };
+  api.start(root);
+  assert.equal(parts['.compact-city'].textContent, 'Porto Alegre');
+  assert.equal(parts['.compact-now'].textContent, '15° | Nublado');
+  assert.equal(parts['.compact-icon'].innerHTML, '<img data-code="3" data-day="false">');
+  nodes.condition.textContent = 'Consultando o tempo…'; observer();
+  assert.equal(parts['.compact-icon'].innerHTML, '');
 });
