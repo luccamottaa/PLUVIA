@@ -15,7 +15,7 @@
     {version:"1.40", date:"2026-10-28", title:"PLUVIA na tela de início", items:[
       "No navegador do celular, um convite embaixo da tela mostra como colocar o PLUVIA na tela de início: abre direto na sua cidade, funciona sem internet e avisa quando vai chover.",
       "Os botões de informação (o “i” ao lado dos títulos) ganharam um ícone novo, no azul do PLUVIA.",
-      "A Lua no céu brilha mais: um halo suave de luz em volta dela, mais forte na lua cheia."
+      "A Lua no céu brilha mais: a luz fica no centro do disco, como se ela estivesse acesa, mais forte na lua cheia."
     ]},
     {version:"1.39.2", date:"2026-10-28", title:"Intro e cabeçalho ajustados", items:[
       "Com neblina, a abertura não deixa mais a página aparecer por trás do PLUVIA.",

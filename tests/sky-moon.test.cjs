@@ -18,7 +18,9 @@ test('intro, céu e card compartilham um disco e uma textura lunar',()=>{
   // em alta definição, com a mesma máscara de fase.
   assert.equal([...html.matchAll(/href="#moonDisc"/g)].length,3);
   assert.equal([...html.matchAll(/href="#moonDiscHd"/g)].length,1);
-  assert.equal([...html.matchAll(/mask="url\(#pluviaMoonPhase\)"/g)].length,2);
+  // Textura do céu, textura do cartão e a luz do centro do disco do céu (1.40): todas sob a mesma máscara de fase.
+  assert.equal([...html.matchAll(/mask="url\(#pluviaMoonPhase\)"/g)].length,3);
+  assert.match(html,/<circle cx="40" cy="40" r="34" fill="url\(#pluviaMoonGlow\)" mask="url\(#pluviaMoonPhase\)"\/>/);
   assert.equal([...html.matchAll(/href="\.\/assets\/moon-surface\.webp\?v=moon-1"/g)].length,1);
   assert.ok(html.indexOf('modules/moon-view.js?v=')<html.indexOf('modules/sky-atmosphere.js?v='));
 });

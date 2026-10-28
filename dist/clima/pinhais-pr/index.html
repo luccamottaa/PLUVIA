@@ -159,12 +159,13 @@
         <clipPath id="pluviaMoonDisc"><circle cx="40" cy="40" r="34"/></clipPath>
         <filter id="pluviaMoonSoftEdge" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation=".6"/></filter>
         <mask id="pluviaMoonPhase" maskUnits="userSpaceOnUse" x="0" y="0" width="80" height="80" mask-type="alpha" style="mask-type:alpha"><g id="moonLimb"><path id="moonIcon" fill="white" filter="url(#pluviaMoonSoftEdge)" d=""/><image id="moonShade" x="6" y="6" width="68" height="68" preserveAspectRatio="none"/></g></mask>
-        <radialGradient id="pluviaMoonRim"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset=".88" stop-color="#000" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></radialGradient>
+        <radialGradient id="pluviaMoonGlow" cx=".46" cy=".44" r=".5"><stop offset="0" stop-color="#fffdf6" stop-opacity=".62"/><stop offset=".45" stop-color="#fbf7ee" stop-opacity=".3"/><stop offset=".85" stop-color="#f4f1ea" stop-opacity="0"/></radialGradient><radialGradient id="pluviaMoonRim"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset=".88" stop-color="#000" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></radialGradient>
         <image id="pluviaMoonSurface" href="/assets/moon-surface.webp?v=moon-1" x="6" y="6" width="68" height="68"/>
         <g id="moonDisc" visibility="hidden" clip-path="url(#pluviaMoonDisc)">
           <circle cx="40" cy="40" r="34" fill="#60758e" opacity=".08"/>
           <g class="moon-tilt"><use href="#pluviaMoonSurface" opacity=".14"/>
-          <use href="#pluviaMoonSurface" mask="url(#pluviaMoonPhase)"/></g>
+          <use href="#pluviaMoonSurface" mask="url(#pluviaMoonPhase)"/>
+          <circle cx="40" cy="40" r="34" fill="url(#pluviaMoonGlow)" mask="url(#pluviaMoonPhase)"/></g>
           <circle cx="40" cy="40" r="34" fill="url(#pluviaMoonRim)"/>
         </g>
         <image id="pluviaMoonSurfaceHd" href="/assets/moon-surface-hd.webp?v=moon-hd-1" x="6" y="6" width="68" height="68"/>
