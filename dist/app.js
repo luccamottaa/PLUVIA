@@ -149,7 +149,6 @@ function aqiLevel(value) {
 function renderAirQuality(value) {
   const [label, note] = aqiLabel(value);
   const card = $("airQualityCard");
-  if (!Number.isFinite(value) && $("airDetails")) $("airDetails").hidden = true;
   const level = aqiLevel(value);
   if (level) card.dataset.aqiLevel = level;
   else delete card.dataset.aqiLevel;
@@ -1255,61 +1254,16 @@ function clearWeatherInsights() {
 
 function renderAirParticles(air) {
   const reading = weatherInsights?.particles?.(air?.pm25Mean24h);
-  if ($("airParticles")) {
-    $("airParticles").hidden = !reading;
-    $("airParticles").textContent = reading ? `PM2,5 média de 24h: ${fmt(reading.value,1)} µg/m³ · ${reading.label} (15 µg/m³).` : '';
-  }
   if ($("airParticlesNote")) {
     $("airParticlesNote").hidden = !reading?.notable;
     $("airParticlesNote").textContent = reading?.notable ? `${reading.label} · PM2,5 24h ${fmt(reading.value,0)} µg/m³` : '';
   }
 }
 
-// Ar nos próximos dias: pior US AQI horário previsto pelo CAMS em cada dia municipal seguinte.
-// Só dias depois de hoje (no fuso da cidade), para uma leitura salva de ontem não virar "amanhã".
-function renderAirOutlook(air) {
-  const section = $("airOutlook"), list = $("airOutlookList");
-  if (!section || !list) return;
-  const today = air?.outlook?.length ? globalThis.PLUVIA.time.dayKey(Date.now(), activeCity) : "";
-  const days = today ? air.outlook.filter(day => day.date > today).slice(0, 3) : [];
-  section.hidden = !days.length;
-  if ($("airOutlookNote")) $("airOutlookNote").hidden = !days.length;
-  if (!days.length) { list.textContent = ""; return; }
-  const tomorrow = new Date(today + "T12:00:00Z"); tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  const tomorrowKey = tomorrow.toISOString().slice(0, 10);
-  list.replaceChildren(...days.map(day => {
-    // Rótulo curto na coluna estreita; a categoria completa é a mesma escala do card.
-    const label = day.aqiMax > 100 && day.aqiMax <= 150 ? "Ruim para sensíveis" : aqiLabel(day.aqiMax)[0];
-    const item = document.createElement("li"), name = document.createElement("span"), level = document.createElement("b"), value = document.createElement("small");
-    const date = new Date(day.date + "T12:00:00Z");
-    name.textContent = day.date === tomorrowKey ? "Amanhã" : (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:"UTC", weekday:"short", day:"2-digit", month:"2-digit"}).format(date);
-    level.textContent = label;
-    level.dataset.aqiLevel = aqiLevel(day.aqiMax) || "";
-    // Números só para leitores de tela (pedido do usuário, 1.14.5): na tela fica o dia e a categoria.
-    value.className = "visually-hidden";
-    value.textContent = `AQI até ${day.aqiMax}` + (Number.isFinite(day.pm25Mean) ? ` · PM2,5 ${fmt(day.pm25Mean, 0)} µg/m³` : "");
-    item.append(name, level, value);
-    return item;
-  }));
-}
-
+// "Próximos dias" e "Poluentes e origem" saíram do cartão do ar (1.39.2, pedido do dono): fica só a nota
+// das partículas finas de 24 h ao lado do índice.
 function renderAirDetails(snapshot) {
-  renderAirOutlook(snapshot?.airQuality);
-  const details = $("airDetails");
-  if (!details) return;
-  const air = snapshot?.airQuality;
-  details.hidden = !air;
-  renderAirParticles(air);
-  if (!air) return;
-  const fields = [['pm25','PM2,5'],['pm10','PM10'],['ozone','Ozônio'],['nitrogenDioxide','NO₂'],['carbonMonoxide','CO']];
-  const readings = fields.filter(([key]) => Number.isFinite(air[key]) && air[key]>=0).map(([key,label]) => {
-    const row = document.createElement('div'), name = document.createElement('dt'), value = document.createElement('dd');
-    name.textContent = label; value.textContent = fmt(air[key],1)+' µg/m³'; row.append(name,value); return row;
-  });
-  $("airPollutants").replaceChildren(...readings);
-  const at = globalThis.PLUVIA.time.parse(air.time,activeCity);
-  const stamp = Number.isFinite(at) ? (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:activeCity.timezone,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(at) : 'horário indisponível';
-  $("airDetailsTime").textContent = `${snapshot.airSource.freshness==='current' ? 'Estimativa de' : 'Leitura anterior de'} ${stamp} · horário de ${activeCity.name}.`;
+  renderAirParticles(snapshot?.airQuality);
 }
 
 // Chuva observada no topo (modules/observed-rain.js): o aeroporto mais próximo e a estação do INMET (via
@@ -2431,7 +2385,6 @@ function chooseCity(id, locatedCity = null) {
     $("humidity").closest?.(".metric")?.removeAttribute("data-humidity-level");
     renderAirQuality(null);
     renderAirParticles(null);
-    renderAirOutlook(null);
     $("uvScale").hidden = true;
     $("windCompass").style.setProperty?.("--wind-visible","0");
     clearWeatherInsights();

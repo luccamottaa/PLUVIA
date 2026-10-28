@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.39.2", date:"2026-10-28", title:"Intro e cabeçalho ajustados", items:[
+      "Com neblina, a abertura não deixa mais a página aparecer por trás do PLUVIA.",
+      "O cabeçalho que aparece ao rolar desceu um pouco, longe do relógio e da Dynamic Island do iPhone.",
+      "A qualidade do ar ficou mais enxuta: saíram os próximos dias e a lista de poluentes."
+    ]},
     {version:"1.39.1", date:"2026-10-28", title:"Cartões inteiros ao rolar", items:[
       "Os títulos dos cartões não ficam mais grudados no topo nem o conteúdo cortado embaixo deles: ao rolar, os cartões somem suavemente sob o cabeçalho.",
       "De dia, o nome da cidade e a temperatura no cabeçalho ficam escuros no céu claro, como o resto do topo, em vez de brancos quase sumindo."

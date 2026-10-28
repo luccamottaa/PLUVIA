@@ -26,8 +26,8 @@ test('cabeçalho no HTML, no precache e sobre o degradê do céu, sem blur', () 
   assert.match(html, /<div class="compact-head" aria-hidden="true"><span class="sky-twilight sky-twilight-page"><\/span>/);
   // A película do crepúsculo de dentro vem depois da principal (captureSky lê a primeira).
   assert.ok(html.indexOf('class="compact-head"') > html.indexOf('sky-twilight-page'));
-  assert.match(html, /modules\/compact-header\.js\?v=compact-1" defer/);
-  assert.match(sw, /modules\/compact-header\.js\?v=compact-1/);
+  assert.match(html, /modules\/compact-header\.js\?v=compact-2" defer/);
+  assert.match(sw, /modules\/compact-header\.js\?v=compact-2/);
   const rule = css.slice(css.indexOf('.night-stage > .compact-head {'));
   assert.match(rule, /background-image:var\(--sky-color\)/);
   assert.match(rule, /background-size:100% 100lvh/);
