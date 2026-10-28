@@ -1,0 +1,68 @@
+// Cabeçalho compacto (1.39, pedido do dono com o app Tempo de referência): quando a temperatura sai da tela,
+// aparece no topo "Cidade" e "30° | Condição" sobre o mesmo degradê do céu, e o conteúdo some por baixo dele.
+// Sol e Lua esmaecem nos primeiros ~240 px de rolagem: sem blur nos cartões (derrubava o Safari), eles
+// apareciam nítidos por cima das letras. Um IntersectionObserver e um scroll passivo com rAF; sem timer.
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;
+  root.PLUVIA = root.PLUVIA || {};
+  root.PLUVIA.compactHeader = api;
+  if (root.document) api.start(root);
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  const HEAD_PX = 96, FADE_FROM = 40, FADE_PX = 200;
+
+  function format(temp, condition) {
+    const t = String(temp || "").trim(), c = String(condition || "").trim();
+    return /^-?\d+$/.test(t) ? (c ? `${t}° | ${c}` : `${t}°`) : c;
+  }
+  // 1 no topo, 0 depois de FADE_FROM + FADE_PX; em passos de 5% para não reescrever o estilo a cada pixel.
+  function fadeFor(scrollY) {
+    const f = 1 - (Number(scrollY) - FADE_FROM) / FADE_PX;
+    if (!Number.isFinite(f)) return 1;
+    return Math.round(Math.min(1, Math.max(0, f)) * 20) / 20;
+  }
+
+  function start(root) {
+    const doc = root.document;
+    const init = () => {
+      const head = doc.querySelector(".compact-head"), city = doc.getElementById("cityName");
+      const temp = doc.getElementById("temperature"), cond = doc.getElementById("condition");
+      if (!head || !city || !temp || !cond) return;
+      const cityOut = head.querySelector(".compact-city"), nowOut = head.querySelector(".compact-now");
+      const copy = () => {
+        const name = city.textContent.trim(), now = format(temp.textContent, cond.textContent);
+        if (cityOut.textContent !== name) cityOut.textContent = name;
+        if (nowOut.textContent !== now) nowOut.textContent = now;
+      };
+      copy();
+      if (typeof root.MutationObserver === "function") {
+        const watch = new root.MutationObserver(copy);
+        for (const node of [city, temp, cond]) watch.observe(node, {childList:true, subtree:true, characterData:true});
+      }
+      const anchor = temp.closest(".temperature") || temp;
+      if (typeof root.IntersectionObserver === "function") {
+        new root.IntersectionObserver(([entry]) => {
+          const on = !entry.isIntersecting && entry.boundingClientRect.top < HEAD_PX;
+          if (on !== head.hasAttribute("data-on")) head.toggleAttribute("data-on", on);
+        }, {rootMargin:`-${HEAD_PX}px 0px 0px 0px`}).observe(anchor);
+      }
+      const astros = Array.from(doc.querySelectorAll(".sky-effects > .sky-sun, .sky-effects > .sky-moon"));
+      let last = 1, queued = false;
+      const paint = () => {
+        queued = false;
+        const f = fadeFor(root.scrollY);
+        if (f === last) return;
+        last = f;
+        for (const node of astros) node.style.filter = f < 1 ? `opacity(${f})` : "";
+      };
+      root.addEventListener?.("scroll", () => {
+        if (!queued) { queued = true; root.requestAnimationFrame(paint); }
+      }, {passive:true});
+      paint();
+    };
+    if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", init, {once:true});
+    else init();
+  }
+
+  return {format, fadeFor, start, HEAD_PX};
+});

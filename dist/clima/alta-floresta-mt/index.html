@@ -15,7 +15,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-286" />
+    <meta name="pluvia-release" content="pluvia-panel-287" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -142,7 +142,7 @@
     <script src="/vendor/suncalc.js?v=sky-4"></script>
     <script src="/modules/moon-view.js?v=moon-8"></script>
     <script src="/modules/sky-atmosphere.js?v=sky-24"></script>
-    <script src="/modules/volumetric-clouds.js?v=volume-6" defer></script><script src="/modules/rain-drops.js?v=drops-1" defer></script><script src="/modules/sky-events.js?v=sky-events-3" defer></script><script src="/modules/sun-table.js?v=sun-table-1" defer></script><script src="/modules/eclipses.js?v=eclipses-3" defer></script>
+    <script src="/modules/volumetric-clouds.js?v=volume-6" defer></script><script src="/modules/rain-drops.js?v=drops-1" defer></script><script src="/modules/compact-header.js?v=compact-1" defer></script><script src="/modules/sky-events.js?v=sky-events-3" defer></script><script src="/modules/sun-table.js?v=sun-table-1" defer></script><script src="/modules/eclipses.js?v=eclipses-3" defer></script>
     <link rel="stylesheet" href="/sky.css?v=sky-58" />
     <script>
       /* O antigo modo seguro (céu parado depois de uma queda) saiu a pedido: limpa as marcas que ele deixou. */
@@ -224,10 +224,11 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="/redesign.css?v=panel-51" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-146" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-147" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-meteor"></span><span class="sky-rainbow"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
+    <div class="compact-head" aria-hidden="true"><span class="sky-twilight sky-twilight-page"></span><strong class="compact-city"></strong><span class="compact-now"></span></div>
     <header class="topbar shell" id="top">
       <button id="accountButton" class="account-trigger" type="button" aria-haspopup="dialog" aria-controls="accountDialog" title="Entrar / cadastrar" data-signed-in="false"><svg class="account-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6"/></svg><span class="account-label">Entrar / cadastrar</span></button>
       <a class="brand" href="#top" aria-label="PLUVIA, início"><span>PLUVIA</span></a>
@@ -603,7 +604,7 @@
     <script src="/modules/forecast-accuracy.js?v=accuracy-1" defer></script>
     <script src="/modules/station-now.js?v=station-5" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-8" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-3" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-2" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-320" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-3" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-2" defer></script><script src="/modules/visit-counter.js?v=visits-1" defer></script><script src="/modules/install-prompt.js?v=install-1" defer></script><script src="/modules/changelog.js?v=changelog-321" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-37" defer></script>
