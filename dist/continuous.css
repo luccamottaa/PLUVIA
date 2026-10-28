@@ -856,9 +856,16 @@ body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="
 .info-tip > summary { display:grid; place-items:center; width:44px; height:44px; margin:-10px -12px; list-style:none; cursor:pointer; border-radius:50%; }
 .info-tip > summary::-webkit-details-marker { display:none; }
 /* Letra i reta (sem itálico) num círculo de borda; texto simples, sem SVG. */
-.info-tip-icon { display:block; width:20px; height:20px; border:1.5px solid currentColor; border-radius:50%; color:var(--reading-muted,#8aa0b8); font:700 12px/17px var(--font-ui); font-style:normal; text-align:center; }
-.info-tip[open] > summary > .info-tip-icon { color:var(--brand-blue); }
-@media (hover:hover) { .info-tip > summary:hover > .info-tip-icon { color:var(--brand-blue); } }
+/* Ícone do ⓘ (1.40, pedido do dono: "troca por ícones clicáveis bonitos que combinem com o PLUVIA"): círculo
+   suave tingido pelo azul da marca com um "i" arredondado desenhado por máscara (a letra do HTML só some da
+   tela); aberto, o círculo fica cheio no azul e o "i" na cor do texto dos botões. Só cor: sem camada. */
+.info-tip-icon { position:relative; display:block; width:28px; height:28px; border-radius:50%; overflow:hidden; color:transparent; font-size:0; background:#b7d2ff26; background:color-mix(in srgb,var(--brand-blue,#b7d2ff) 18%,transparent); box-shadow:inset 0 0 0 1px #b7d2ff33; box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand-blue,#b7d2ff) 30%,transparent); transition:background-color .2s ease,box-shadow .2s ease; }
+.info-tip-icon::before { content:""; position:absolute; inset:0; background:var(--brand-blue,#b7d2ff); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='8.6' r='1.75'/%3E%3Crect x='12.4' y='12' width='3.2' height='9' rx='1.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='8.6' r='1.75'/%3E%3Crect x='12.4' y='12' width='3.2' height='9' rx='1.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat; transition:background-color .2s ease; }
+.info-tip[open] > summary > .info-tip-icon { background:var(--brand-blue,#b7d2ff); box-shadow:none; }
+.info-tip[open] > summary > .info-tip-icon::before { background:var(--on-accent,#0c1a33); }
+@media (hover:hover) { .info-tip > summary:hover > .info-tip-icon { background:#b7d2ff40; background:color-mix(in srgb,var(--brand-blue,#b7d2ff) 30%,transparent); } }
+@media (prefers-reduced-motion:reduce) { .info-tip-icon,.info-tip-icon::before { transition:none; } }
+@media (forced-colors:active) { .info-tip-icon { border:1px solid CanvasText; } .info-tip-icon::before { background:CanvasText; } }
 .info-tip > summary:focus-visible { outline:2px solid var(--brand-blue); outline-offset:-6px; }
 .info-tip-body { position:absolute; z-index:600; top:calc(100% + 4px); left:-12px; width:min(300px,calc(100vw - 48px)); padding:12px 14px; border:1px solid #a4c7e533; border-radius:14px; background:#0d2239; color:#e3eefb; box-shadow:0 16px 40px #0008; text-align:left; text-transform:none; letter-spacing:0; font:400 .8125rem/1.5 var(--font-ui); }
 .info-tip-body p { margin:0; color:inherit !important; font-size:inherit !important; }
@@ -2163,7 +2170,6 @@ body[data-ink="dark"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
 #weatherView #airQualityCard .metric-head > [data-weather-icon-name] { margin-right:0; }
 #weatherView #airQualityCard .metric-head .info-tip { margin-left:0; }
 #weatherView #airQualityCard .metric-head .info-tip > summary { margin-right:-12px; }
-.info-tip-icon { display:grid; place-items:center; line-height:1; padding-top:.5px; box-sizing:border-box; }
 
 /* Até 420 px o botão do radar fica só com o ícone de ampliar (44 px; o nome "Abrir radar" continua no
    aria-label): com o ícone novo do título, "Chuva na região" + ícone + ⓘ não cabiam ao lado do botão e o
