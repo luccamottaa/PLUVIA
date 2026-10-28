@@ -132,7 +132,7 @@
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     // Nome na cor do texto; o azul da marca
     // fica no selo do dia marcante.
-    const brand = look.twilight ? '#ffffff' : look.light ? '#b7d2ff' : '#2f557f';
+    const brand = look.twilight ? '#ffffff' : look.light ? '#7cc0ff' : '#0a4cba';
     // Marca nova (1.26): a logo colorida, desenhada como está (antes era uma gota pintada de uma cor só).
     if (mark) ctx.drawImage(mark, WIDTH / 2 - 160, 124, 88, 88);
     ctx.fillStyle = ink; ctx.font = '900 64px Nunito, Inter, sans-serif'; ctx.textAlign = 'left';

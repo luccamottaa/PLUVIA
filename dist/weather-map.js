@@ -3,7 +3,7 @@
   const $ = id => document.getElementById(id);
   // Cor da marca da tinta atual (azul-claro de noite, azul-marinho de dia), lida do CSS ao criar a marca da cidade.
   // De dia o mapa é claro: azul-marinho mesmo com tinta clara (céu cinza); à noite, o azul da marca da tinta.
-  const brandColor = () => document.body?.dataset?.phase === 'day' ? '#2f557f' : getComputedStyle(document.documentElement).getPropertyValue('--brand-blue').trim() || '#2f557f';
+  const brandColor = () => document.body?.dataset?.phase === 'day' ? '#0a4cba' : getComputedStyle(document.documentElement).getPropertyValue('--brand-blue').trim() || '#0a4cba';
   const mapCard = document.querySelector('.weather-map-card');
   if (!mapCard || !$('weatherMap')) return;
 

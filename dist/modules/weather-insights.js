@@ -343,6 +343,20 @@
     if (gust && gust.value >= 50) result.push({kind:"wind", text:`Rajadas de até ${Math.round(gust.value)} km/h por volta ${hourPhrase(times[gust.index])}: atenção a objetos soltos e galhos.`});
     const heat = peakOf("apparent_temperature");
     if (heat && heat.value >= 41) result.push({kind:"heat", text:`Sensação de até ${Math.round(heat.value)}° por volta ${hourPhrase(times[heat.index])}: beba água e evite esforço no sol.`});
+    // Umidade (pedido do dono): a hora mais seca das próximas horas pelas faixas da Defesa Civil, e abaixo de 40%
+    // (fora do conforto da OMS) um lembrete leve. Leitura instantânea, sem deslocar índice; ausente é ignorada.
+    const driest = ahead.reduce((best, index) => {
+      const value = humidityValue(hourly.relative_humidity_2m?.[index]);
+      return value !== null && (!best || value < best.value) ? {value, index} : best;
+    }, null);
+    if (driest && driest.value < 40) {
+      const at = `até ${Math.round(driest.value)}% por volta ${hourPhrase(times[driest.index])}`;
+      const text = driest.value < 12 ? `Ar extremamente seco (${at}): beba muita água, fique em lugar fresco e evite atividade ao ar livre.`
+        : driest.value < 20 ? `Ar muito seco (${at}): beba bastante água, hidrate pele e olhos e evite exercício entre 10h e 16h.`
+        : driest.value < 30 ? `Ar seco (${at}): beba água ao longo do dia e use soro no nariz e nos olhos se incomodar.`
+        : `Ar um pouco seco (${at}): lembre de beber água.`;
+      result.push({kind:"humidity", text});
+    }
     const aqi = number(air?.current?.us_aqi);
     if (aqi !== null && aqi > 150) result.push({kind:"air", text:"Ar ruim: prefira atividades leves e em ambientes internos."});
     else if (aqi !== null && aqi > 100) result.push({kind:"air", text:"Ar ruim para grupos sensíveis: evite exercício intenso ao ar livre."});

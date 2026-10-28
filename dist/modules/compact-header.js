@@ -58,8 +58,9 @@
       }
       const anchor = temp.closest(".temperature") || temp;
       // A faixa já inclui a área segura do aparelho (relógio/Dynamic Island): a temperatura conta como fora
-      // quando passa da parte opaca dela, medida uma vez (a faixa existe escondida desde o início).
-      const line = Math.max(HEAD_PX, Math.round(head.offsetHeight || 0) - 44);
+      // quando passa por baixo da pílula, medida uma vez (a pílula existe escondida desde o início).
+      const pill = head.querySelector(".compact-pill");
+      const line = Math.max(HEAD_PX, Math.round(pill ? pill.offsetTop + pill.offsetHeight + 6 : (head.offsetHeight || 0) - 44));
       if (typeof root.IntersectionObserver === "function") {
         new root.IntersectionObserver(([entry]) => {
           const on = !entry.isIntersecting && entry.boundingClientRect.top < line;

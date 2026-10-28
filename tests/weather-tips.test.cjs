@@ -27,3 +27,13 @@ test('ausência não vira zero nem dica',()=>{
  assert.deepEqual(tips(f,{current:{us_aqi:null}},0),[]);
  assert.deepEqual(tips({},null,0),[]);
 });
+test('umidade baixa vira dica de hidratação pela hora mais seca (faixas da Defesa Civil)',()=>{
+ const withRh=fn=>{const f=forecast();f.hourly.relative_humidity_2m=f.hourly.time.map((t,i)=>fn(8+i));return f;};
+ assert.deepEqual(tips(withRh(()=>60),null,0),[],'úmido não gera dica');
+ assert.deepEqual(tips(withRh(h=>h===15?35:60),null,0),[{kind:'humidity',text:'Ar um pouco seco (até 35% por volta das 15h): lembre de beber água.'}]);
+ assert.equal(tips(withRh(h=>h===15?25:60),null,0)[0].text,'Ar seco (até 25% por volta das 15h): beba água ao longo do dia e use soro no nariz e nos olhos se incomodar.');
+ assert.equal(tips(withRh(h=>h===14?15:40),null,0)[0].text,'Ar muito seco (até 15% por volta das 14h): beba bastante água, hidrate pele e olhos e evite exercício entre 10h e 16h.');
+ assert.equal(tips(withRh(h=>h===14?10:40),null,0)[0].text,'Ar extremamente seco (até 10% por volta das 14h): beba muita água, fique em lugar fresco e evite atividade ao ar livre.');
+ assert.deepEqual(tips(withRh(()=>null),null,0),[],'ausente não vira ar seco');
+ assert.deepEqual(tips(withRh(h=>h>=21?20:60),null,0),[],'só olha as próximas 12 horas');
+});

@@ -1069,7 +1069,7 @@ function formatUpdateTime(at) {
 
 
 // Dicas contextuais: somem quando não há nada para fazer. Texto entra como textContent.
-const TIP_ICONS = {wind:"wind-speed", heat:"feels-like", air:"air-quality", uv:"uv-index"};
+const TIP_ICONS = {wind:"wind-speed", heat:"feels-like", humidity:"humidity", air:"air-quality", uv:"uv-index"};
 // Desde a 1.23.2 o cartão de dicas sempre aparece: a primeira linha é o "Vai chover?" (#rainAnswer, saiu do topo a
 // pedido do usuário). Só a lista das demais dicas some quando não há nada a fazer.
 function renderTips(list) {
