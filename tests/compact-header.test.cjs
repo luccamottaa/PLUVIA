@@ -80,3 +80,11 @@ test('ícone da pílula acompanha a condição num DOM simulado', () => {
   nodes.condition.textContent = 'Consultando o tempo…'; observer();
   assert.equal(parts['.compact-icon'].innerHTML, '');
 });
+
+test('segurar o dedo não seleciona texto, mas campos continuam selecionáveis (1.41.3)', () => {
+  const css = fs.readFileSync('dist/continuous.css', 'utf8');
+  assert.match(css, /\nbody \{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; \}/);
+  assert.match(css, /body :is\(input,textarea,select,\[contenteditable="true"\]\) \{ -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; \}/);
+  // O compartilhar sem Web Share/clipboard depende de selecionar este textarea.
+  assert.match(fs.readFileSync('dist/index.html', 'utf8'), /<textarea[^>]*id="shareWeatherText"/);
+});

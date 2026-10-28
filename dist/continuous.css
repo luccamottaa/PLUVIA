@@ -2205,3 +2205,7 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) .compact-
 body[data-ink="light"] .compact-head { text-shadow:0 1px 2px rgba(8,16,34,.3); }
 body[data-phase="day"][data-ink="light"][data-weather="cloud"] .compact-head { text-shadow:0 1px 3px rgba(20,32,52,.35),0 0 18px rgba(20,32,52,.28); }
 @media (prefers-reduced-motion:reduce) { .night-stage > .compact-head { transition:none; } }
+/* Sem seleção nem o menu "Copiar" ao segurar o dedo sem querer (1.41.3, pedido do dono), no site e no PWA. Campos de
+   texto continuam selecionáveis (busca, conta e o texto de compartilhar, que é escolhido para copiar à mão). */
+body { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+body :is(input,textarea,select,[contenteditable="true"]) { -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
