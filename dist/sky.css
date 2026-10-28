@@ -43,7 +43,9 @@
 :root[data-phase="night"]:is([data-solar="sunrise"],[data-solar="sunset"]) { --intro-ink:#f3f8ff; --intro-muted:#c4d7f0; }
 :root[data-solar="sunset"] { --twilight-color:radial-gradient(ellipse at 78% 35%,#ffd69899,transparent 48%),linear-gradient(180deg,#39446f,#9d789c 27%,#eaa286 52%,#cf9a84 100%); }
 html,body { background:var(--sky-base); }
-.pluvia-intro { background:var(--sky-color); color:var(--intro-ink); }
+/* Fundo opaco: o degradê da neblina começa semitransparente (#35405788) e a Home aparecia através da intro
+   (1.39.2, vídeo do dono com neblina em Manaus: duas Luas e a página por trás do PLUVIA). */
+.pluvia-intro { background-image:var(--sky-color); background-color:var(--sky-base,#080f22); color:var(--intro-ink); }
 .pluvia-intro::before { background:linear-gradient(180deg,transparent 25%,#03142924); }
 .pluvia-intro .intro-wordmark { color:var(--brand-blue,#2f6bff); }
 /* Nublado de dia (1.26.6, pedido do usuário: o "PLUVIA" azul-claro sumia no céu prateado): o nome fica branco e,
@@ -57,7 +59,7 @@ html,body { background:var(--sky-base); }
    com o conteúdo, e no crepúsculo o degradê ficava e as nuvens iam embora): degradê, nuvens, astros, chuva e
    gotas ficam fixos e o conteúdo passa por cima, como no Apple Weather. lvh: a altura com a barra do Safari
    recolhida, para não abrir faixa embaixo quando ela some. */
-.night-stage::before { content:""; position:fixed; inset:0 0 auto; z-index:-1; pointer-events:none; background-image:var(--sky-color); opacity:1; height:100vh; height:100lvh; }
+.night-stage::before { content:""; position:fixed; inset:0 0 auto; z-index:-1; pointer-events:none; background-image:var(--sky-color); background-color:var(--sky-base,#080f22); opacity:1; height:100vh; height:100lvh; }
 .night-stage::after { display:none; }
 .sky-effects { position:fixed; inset:0 0 auto; height:100vh; height:100lvh; overflow:hidden; pointer-events:none; z-index:-1; }
 .pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; overflow:hidden; pointer-events:none; }

@@ -40,11 +40,14 @@
         for (const node of [city, temp, cond]) watch.observe(node, {childList:true, subtree:true, characterData:true});
       }
       const anchor = temp.closest(".temperature") || temp;
+      // A faixa já inclui a área segura do aparelho (relógio/Dynamic Island): a temperatura conta como fora
+      // quando passa da parte opaca dela, medida uma vez (a faixa existe escondida desde o início).
+      const line = Math.max(HEAD_PX, Math.round(head.offsetHeight || 0) - 44);
       if (typeof root.IntersectionObserver === "function") {
         new root.IntersectionObserver(([entry]) => {
-          const on = !entry.isIntersecting && entry.boundingClientRect.top < HEAD_PX;
+          const on = !entry.isIntersecting && entry.boundingClientRect.top < line;
           if (on !== head.hasAttribute("data-on")) head.toggleAttribute("data-on", on);
-        }, {rootMargin:`-${HEAD_PX}px 0px 0px 0px`}).observe(anchor);
+        }, {rootMargin:`-${line}px 0px 0px 0px`}).observe(anchor);
       }
       const astros = Array.from(doc.querySelectorAll(".sky-effects > .sky-sun, .sky-effects > .sky-moon"));
       let last = 1, queued = false;

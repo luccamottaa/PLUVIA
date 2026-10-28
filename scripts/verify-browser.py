@@ -44,7 +44,9 @@ with sync_playwright() as p:
  page.goto(preview,wait_until='domcontentloaded')
  page.wait_for_function("document.getElementById('temperature').textContent==='30'",timeout=20000)
  page.wait_for_function("document.getElementById('pluviaIntro').hidden")
- page.wait_for_function("!document.getElementById('airDetails').hidden && !document.getElementById('shareWeather').disabled")
+ page.wait_for_function("/\\d/.test(document.getElementById('airValue').textContent) && !document.getElementById('shareWeather').disabled")
+ # Próximos dias e "Poluentes e origem" saíram do cartão do ar (1.39.2, pedido do dono).
+ assert page.locator('#airOutlook,#airDetails,#airPollutants').count()==0
  assert page.locator('#localClock,#localDate,#cityTimezone,#weatherView .clock-wrap').count()==0
  def verify_brand():
   brand=page.locator('.topbar .brand')
@@ -95,9 +97,6 @@ with sync_playwright() as p:
   assert page.locator(selector).count()==0
  assert 'pico' not in page.locator('#uvNote').inner_text().lower()
  assert 'Moderado' in page.locator('#uvNote').inner_text()
- page.locator('#airDetails summary').click()
- assert '8,0 µg/m³' in page.locator('#airPollutants').inner_text()
- assert 'Estimativa de' in page.locator('#airDetailsTime').inner_text()
  page.evaluate("Object.defineProperty(navigator,'share',{value:undefined,configurable:true});Object.defineProperty(navigator,'clipboard',{value:undefined,configurable:true})")
  page.locator('#shareWeather').click()
  assert page.locator('#shareWeatherDialog').evaluate('(el)=>el.open')
@@ -175,7 +174,6 @@ with sync_playwright() as p:
  page.wait_for_function("document.getElementById('condition').textContent==='Tempo indisponível'")
  assert page.locator('#temperature').inner_text()=='--'
  assert page.locator('#shareWeather').is_disabled()
- assert page.locator('#airDetails').is_hidden()
  assert page.locator('#uvDayChart').count()==0
  assert page.locator('#cityName').inner_text()=='Recife'
  assert not errors,errors
