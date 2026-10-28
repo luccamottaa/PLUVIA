@@ -33,3 +33,13 @@ test('cabeçalho no HTML, no precache e sobre o degradê do céu, sem blur', () 
   assert.match(rule, /background-size:100% 100lvh/);
   assert.doesNotMatch(rule.slice(0, rule.indexOf('}')), /backdrop-filter|blur/);
 });
+
+test('cartões cortados na linha do cabeçalho só por clip-path guiado pela rolagem', () => {
+  const css = fs.readFileSync('dist/continuous.css', 'utf8');
+  const block = css.slice(css.indexOf('@supports (animation-timeline: view())'));
+  assert.match(block, /animation-timeline:view\(block var\(--tuck-line\) 0px\); animation-range:exit-crossing/);
+  assert.match(block, /:not\(\[data-drop\]\)/);
+  assert.match(css, /@keyframes pluvia-tuck \{ from \{ clip-path:inset\(0 0 0 0 round 24px\); \} to \{ clip-path:inset\(100% 0 0 0 round 24px\); \} \}/);
+  const tuck = block.slice(0, block.indexOf('@keyframes pluvia-tuck '));
+  assert.doesNotMatch(tuck, /transform|opacity|z-index|backdrop-filter/);
+});

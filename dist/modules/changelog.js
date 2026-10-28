@@ -14,6 +14,7 @@
   const VERSIONS = [
     {version:"1.39", date:"2026-10-28", title:"Cabeçalho que acompanha a rolagem", items:[
       "Ao rolar a página, o nome da cidade, a temperatura e a condição ficam no topo, e o conteúdo some por baixo deles, sem passar por trás do relógio do celular.",
+      "Os cartões entram embaixo do cabeçalho: vão sendo cortados com a borda redonda, e o título de Próximas horas, das dicas e dos avisos fica grudado até o cartão sumir.",
       "O Sol e a Lua esmaecem quando você rola, para não ficarem por cima dos textos."
     ]},
     {version:"1.38.1", date:"2026-10-28", title:"Céu fixo na tela", items:[
