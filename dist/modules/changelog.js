@@ -13,7 +13,8 @@
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
     {version:"1.41.3", date:"2026-10-28", title:"Azul mais vivo", items:[
-      "O azul dos destaques (Hoje, chance de chuva, atalhos, ícones e links) ficou mais forte e nítido, de dia e de noite."
+      "O azul dos destaques (Hoje, chance de chuva, atalhos, ícones e links) ficou mais forte e nítido, de dia e de noite.",
+      "O fundo atrás da pílula do topo some aos poucos, sem a borda reta de antes."
     ]},
     {version:"1.41.2", date:"2026-10-28", title:"Ícone na pílula do iPhone", items:[
       "O ícone do tempo agora aparece na pílula do topo também no iPhone."

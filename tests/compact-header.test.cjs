@@ -27,12 +27,12 @@ test('cabeçalho no HTML, no precache e sobre o degradê do céu, sem blur', () 
   assert.match(html, /<div class="compact-head" aria-hidden="true"><span class="compact-band"><span class="sky-twilight sky-twilight-page"><\/span><\/span><span class="compact-pill">/);
   // A película do crepúsculo de dentro vem depois da principal (captureSky lê a primeira).
   assert.ok(html.indexOf('class="compact-head"') > html.indexOf('sky-twilight-page'));
-  assert.match(html, /modules\/compact-header\.js\?v=compact-4" defer/);
-  assert.match(sw, /modules\/compact-header\.js\?v=compact-4/);
+  assert.match(html, /modules\/compact-header\.js\?v=compact-5" defer/);
+  assert.match(sw, /modules\/compact-header\.js\?v=compact-5/);
   const head = css.slice(css.indexOf('.night-stage > .compact-head {'));
   assert.doesNotMatch(head.slice(0, head.indexOf('}')), /mask-image|contain:paint/);
   const rule = css.slice(css.indexOf('.compact-head > .compact-band {'));
-  assert.match(rule.slice(0, rule.indexOf('}')), /mask-image:linear-gradient\(#000 calc\(100% - 44px\),transparent\)/);
+  assert.match(rule.slice(0, rule.indexOf('}')), /mask-image:linear-gradient\(#000 35%,rgba\(0,0,0,\.85\) 55%,transparent\)/);
   assert.match(rule, /background-image:var\(--sky-color\)/);
   assert.match(rule, /background-size:100% 100lvh/);
   assert.doesNotMatch(rule.slice(0, rule.indexOf('}')), /backdrop-filter|blur/);

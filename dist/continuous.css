@@ -2180,10 +2180,11 @@ body[data-ink="dark"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
    (100% × 100lvh a partir do topo), mais a película do crepúsculo (a .sky-twilight-page de dentro recebe as mesmas
    variáveis de sky-atmosphere), então ele some no céu e o conteúdo desaparece por baixo dele pelo fade da máscara.
    Uma camada só, sem blur; só opacidade na troca. */
-.night-stage > .compact-head { position:fixed; z-index:30; inset:0 0 auto; height:calc(env(safe-area-inset-top,0px) + 140px); display:flex; flex-direction:column; align-items:center; padding:calc(env(safe-area-inset-top,0px) + 32px) 16px 0; box-sizing:border-box; pointer-events:none; opacity:0; visibility:hidden; transition:opacity .22s ease,visibility 0s .22s; }
-/* Faixa (fundo do céu, película do crepúsculo e o fade de 44 px) numa camada própria, irmã da pílula: com a pílula
+.night-stage > .compact-head { position:fixed; z-index:30; inset:0 0 auto; height:calc(env(safe-area-inset-top,0px) + 190px); display:flex; flex-direction:column; align-items:center; padding:calc(env(safe-area-inset-top,0px) + 32px) 16px 0; box-sizing:border-box; pointer-events:none; opacity:0; visibility:hidden; transition:opacity .22s ease,visibility 0s .22s; }
+/* Faixa (fundo do céu, película do crepúsculo e o fade) numa camada própria; desde a 1.41.3 (opção B do dono) ela desce
+   mais e some devagar, sem a borda de onde acabava,, irmã da pílula: com a pílula
    dentro do elemento com máscara, o Safari do iPhone não pintava o ícone (1.41.2). */
-.compact-head > .compact-band { position:absolute; inset:0; contain:paint; background-image:var(--sky-color); background-color:var(--sky-base); background-size:100% 100vh; background-size:100% 100lvh; background-repeat:no-repeat; -webkit-mask-image:linear-gradient(#000 calc(100% - 44px),transparent); mask-image:linear-gradient(#000 calc(100% - 44px),transparent); }
+.compact-head > .compact-band { position:absolute; inset:0; contain:paint; background-image:var(--sky-color); background-color:var(--sky-base); background-size:100% 100vh; background-size:100% 100lvh; background-repeat:no-repeat; -webkit-mask-image:linear-gradient(#000 35%,rgba(0,0,0,.85) 55%,transparent); mask-image:linear-gradient(#000 35%,rgba(0,0,0,.85) 55%,transparent); }
 .night-stage > .compact-head[data-on] { opacity:1; visibility:visible; transition:opacity .22s ease; }
 .compact-band > .sky-twilight-page { inset:0 0 auto; height:100vh; height:100lvh; }
 /* Pílula (1.41, pedido do dono, opção B; desde a 1.41.1 a safe area + 32 px: o iOS 26 desfoca a faixa logo abaixo do
