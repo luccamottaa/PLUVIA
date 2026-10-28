@@ -235,8 +235,14 @@ with sync_playwright() as p:
  rates=page.evaluate("""async()=>{const out=[];const frame=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));for(const wind of [30,2,null]){PLUVIA.sky.apply(3,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'},undefined,wind);await frame();
    out.push([...document.querySelectorAll('.sky-effects > .sky-clouds')].map((el,i)=>{const a=el.getAnimations().find(a=>a.animationName?.startsWith('clouds-'));return a===cloudAnimations[i]?a.playbackRate:-1;}));}return out;}""")
  assert rates==[[2.2,2.2],[0.52,0.52],[1,1]],rates
- page.evaluate("window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})");page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
+ # Since 1.38.1 the sky is fixed to the viewport: at the bottom of the page it is still on screen and keeps moving;
+ # it stops when the page goes to the background.
+ page.evaluate("window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})");page.wait_for_timeout(300)
+ assert page.evaluate("document.querySelector('.sky-effects').dataset.motion")=='running'
+ page.evaluate("Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'))")
+ page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
  assert all(s=='paused' for s in page.locator('.sky-effects > .sky-clouds').evaluate_all("els=>els.map(el=>getComputedStyle(el).animationPlayState)"))
+ page.evaluate("delete document.hidden;document.dispatchEvent(new Event('visibilitychange'))")
  page.evaluate("window.scrollTo({top:0,behavior:'instant'})");page.wait_for_function("scrollY===0 && document.querySelector('.sky-effects').dataset.motion==='running'")
  page.evaluate("PLUVIA.sky.apply(0,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert all(s=='paused' for s in page.locator('.sky-effects > .sky-clouds').evaluate_all("els=>els.map(el=>getComputedStyle(el).animationPlayState)"))
