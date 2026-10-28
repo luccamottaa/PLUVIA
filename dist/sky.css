@@ -112,7 +112,12 @@ html,body { background:var(--sky-base); }
 /* Volta ao app depois de minutos/horas (1.37.1): o astro desliza até onde está agora, sem teletransporte. */
 :root[data-sky-transition="catchup"] :is(.sky-sun,.sky-moon) { transition:transform 2.4s cubic-bezier(.45,0,.2,1),opacity 2.4s ease; }
 .sky-moon > svg { display:block; position:relative; width:100%; height:100%; }
-.sky-moon::before { content:""; position:absolute; inset:-65%; border-radius:50%; background:radial-gradient(circle,#c3dfff1f,transparent 64%); opacity:var(--moon-light,0); }
+/* Brilho da Lua (1.40, pedido do dono: "mais brilho, a luz dela refletindo"): um halo largo e suave no céu em volta
+   (::before, ~3,6× o disco) e uma coroa mais clara colada na borda (::after, atrás do disco), os dois pela fração
+   iluminada (--moon-light, de moon-view): Lua cheia brilha mais, crescente quase nada. Ficam atrás das nuvens
+   (astros z 1, nuvens z 2), então uma nuvem fina deixa a luz passar. Só degradê estático: sem filtro nem camada. */
+.sky-moon::before { content:""; position:absolute; inset:-260%; border-radius:50%; background:radial-gradient(circle,#e6eeff80 0,#d0e0ff4d 13%,#b9ceff29 28%,#a6c0ff10 45%,transparent 64%); opacity:calc(.12 + var(--moon-light,0) * .88); pointer-events:none; }
+.sky-moon::after { content:""; position:absolute; inset:-38%; z-index:-1; border-radius:50%; background:radial-gradient(circle,#f2f7ffa6 34%,#dde9ff4d 50%,transparent 74%); opacity:calc(var(--moon-light,0) * .9); pointer-events:none; }
 :root[data-phase="night"] .sky-moon { display:block; }
 .intro-sky .sky-moon { width:64px; }
 /* Two generated cloud layers (scripts/generate-soft-clouds.py): a distant veil and a volumetric foreground.
