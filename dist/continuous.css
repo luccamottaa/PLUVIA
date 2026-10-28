@@ -819,7 +819,7 @@ html body #shareWeatherDialog #shareWeatherDownload { color:#fff; }
 #weatherView .rain-report-summary { min-height:1.45em; margin:10px 0 0; color:var(--reading-muted); font-size:.8125rem; line-height:1.45; }
 /* De dia a borda do cartão é branca (vidro azulado, 1.23) e somia no fundo claro: botões e divisórias usam a tinta escura. */
 body[data-ink="dark"] #weatherView .rain-report-options button:not([aria-pressed="true"]) { border-color:rgba(19,35,61,.24); background:rgba(255,255,255,.32); }
-body[data-ink="dark"] #weatherView :is(.rain-report,.install-card) { border-top-color:rgba(19,35,61,.12); }
+body[data-ink="dark"] #weatherView .rain-report { border-top-color:rgba(19,35,61,.12); }
 body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="future"]) { border-color:rgba(19,35,61,.16); }
 @media (forced-colors:active) { #weatherView .rain-report-options button { border-color:ButtonText; } #weatherView .rain-report-options button[aria-pressed="true"] { forced-color-adjust:none; background:Highlight; color:HighlightText; } }
 #weatherView .hourly-peek .rain-phrase { margin:10px 0 0; padding:0; border:0; background:none; box-shadow:none; }
@@ -1314,14 +1314,16 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 #weatherView .alert-nudge button { min-height:44px; padding:0 10px; border:0; background:none; color:var(--reading-link); font:inherit; font-size:.9375rem; font-weight:600; cursor:pointer; }
 #weatherView .alert-nudge .alert-nudge-dismiss { color:var(--reading-muted); font-weight:400; }
 /* Convite para instalar (só navegador do celular): linha discreta no fim dos 7 dias, ícone da marca. */
-#weatherView .install-card { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; margin:14px 0 0; padding:12px 0 0; border-top:1px solid var(--card-border, #aac7e526); color:var(--reading-ink); }
-#weatherView .install-card[hidden] { display:none; }
-#weatherView .install-card-icon { flex:0 0 40px; width:40px; height:40px; border-radius:10px; background:url("/icon-192.png") center / cover no-repeat; }
-#weatherView .install-card p { flex:1 1 180px; margin:0; font-size:.875rem; line-height:1.4; color:var(--reading-muted); }
-#weatherView .install-card p strong { display:block; color:var(--reading-ink); font-size:.9375rem; font-weight:600; }
-#weatherView .install-card-actions { display:flex; gap:4px; margin-left:auto; }
-#weatherView .install-card button { min-height:44px; padding:0 10px; border:0; background:none; color:var(--reading-link); font:inherit; font-size:.9375rem; font-weight:600; cursor:pointer; }
-#weatherView .install-card .install-card-dismiss { color:var(--reading-muted); font-weight:400; }
+/* Convite para instalar (1.40): barra fixa embaixo da tela, como o aviso dos Termos (que nunca aparece junto). */
+.install-card { position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:30; display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; max-width:34rem; margin:0 auto; padding:12px 12px 10px 14px; border-radius:18px; background:#0b1830f2; color:#fff; box-shadow:0 10px 30px #0006; }
+.install-card[hidden] { display:none; }
+.install-card-icon { flex:0 0 40px; width:40px; height:40px; border-radius:10px; background:url("/icon-192.png") center / cover no-repeat; }
+.install-card p { flex:1 1 180px; min-width:0; margin:0; font-size:.875rem; line-height:1.4; color:#c9d6ea; }
+.install-card p strong { display:block; color:#fff; font-size:.9375rem; font-weight:600; }
+.install-card-actions { display:flex; gap:6px; margin-left:auto; }
+.install-card button { min-height:44px; padding:0 14px; border:0; border-radius:999px; background:none; color:#c9d6ea; font:inherit; font-size:.9375rem; cursor:pointer; }
+.install-card #installCardAction { background:#b7d2ff; color:#0c1a33; font-weight:700; }
+.install-card button:focus-visible { outline:3px solid #9cc0ff; outline-offset:2px; }
 /* Nascer/pôr como coluna própria entre as horas (horário, símbolo, nome), nas mesmas linhas das horas:
    dentro da coluna da hora ele abria uma linha vazia embaixo de todas as outras. */
 #weatherView .hourly-solar-item { cursor:default; color:var(--reading-link); }
