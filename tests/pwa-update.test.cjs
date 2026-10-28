@@ -115,14 +115,17 @@ function worker(failCritical = false) {
     add: async item => {
       requests.push(item);
       if (item.url.includes('logo-mark.png')) throw new Error('image unavailable');
-    }
+    },
+    put: async () => {}
   };
   vm.runInNewContext(fs.readFileSync('dist/sw.js', 'utf8'), {
     self: { location: { href: 'https://pluviaweather.com.br/sw.js' },
       addEventListener: (name, fn) => { events[name] = fn; },
       skipWaiting: async () => { skipped = true; }
     },
-    caches: { open: async () => cache }, Request, URL
+    caches: { open: async () => cache }, Request, Response, URL,
+    // O shell é baixado à parte (o Cloudflare Pages redireciona /index.html) e entra na lista de pedidos.
+    fetch: async request => { requests.push(request); return new Response('shell'); }
   });
   let installing;
   events.install({ waitUntil: promise => { installing = promise; } });

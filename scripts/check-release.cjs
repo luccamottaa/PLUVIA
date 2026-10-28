@@ -52,8 +52,9 @@ if(require.main===module)(async()=>{
  const origin=process.env.PLUVIA_PUBLIC_URL||'https://pluviaweather.com.br/';
  if(new URL(origin).protocol!=='https:')throw new Error('Public check requires HTTPS');
  const assets=manifest(path.resolve(__dirname,'../dist'));
- // Wait for the HTML publication before checking its assets to limit needless requests.
- const shell=await verify(assets.slice(0,1),origin);
+ // Wait for the HTML publication before checking its assets to limit needless requests. Até 6 min: no
+ // Cloudflare Pages a publicação é feita pelo próprio Cloudflare e pode terminar depois deste job começar.
+ const shell=await verify(assets.slice(0,1),origin,{attempts:24,pause:()=>new Promise(resolve=>setTimeout(resolve,15000))});
  const results=shell[0].ok ? [...shell,...await verify(assets.slice(1),origin)] : shell;
  console.log(JSON.stringify({origin,checkedAt:new Date().toISOString(),results:results.map(({url,ok,code})=>({url,ok,code}))},null,2));
  if(results.some(result=>!result.ok))process.exitCode=1;

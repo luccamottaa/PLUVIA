@@ -1,4 +1,4 @@
-const CACHE = "pluvia-panel-296";
+const CACHE = "pluvia-panel-297";
 const SHELL = "./index.html";
 const PRECACHE = [
     "./", SHELL, "./fonts.css?v=type-2", "./assets/fonts/nunito-wordmark-v32.woff2", "./modules/pwa-gestures.js?v=pwa-1", "./modules/city-time.js?v=time-2", "./sky.css?v=sky-61", "./modules/sky-atmosphere.js?v=sky-24", "./modules/volumetric-clouds.js?v=volume-7", "./modules/compact-header.js?v=compact-5", "./modules/sky-events.js?v=sky-events-3", "./modules/sun-table.js?v=sun-table-1", "./modules/eclipses.js?v=eclipses-3", "./modules/moon-view.js?v=moon-8", "./assets/sky-sun.svg?v=sun-2", "./assets/moon-surface.webp?v=moon-1", "./assets/moon-surface-hd.webp?v=moon-hd-1", "./assets/sky-cloud-veil.webp?v=clouds-9", "./assets/sky-cloud-volume.webp?v=clouds-10", "./assets/sky-stars.svg?v=stars-2", "./assets/sky-stars-shimmer.svg?v=stars-2", "./analytics.js?v=analytics-21", "./styles.css?v=core-134", "./redesign.css?v=panel-51", "./continuous.css?v=layout-155", "./capitals.js?v=core-54", "./app.js?v=panel-148", "./p0.js?v=panel-50", "./modules/account-sync.js?v=sync-2", "./modules/social-auth.js?v=oauth-3", "./modules/avatars.js?v=avatars-9", "./modules/terms.js?v=terms-2", "./modules/captcha.js?v=captcha-1", "./account.js?v=account-18", "./saved-places.js?v=places-2", "./modules/brazil-now.js?v=brazil-5", "./modules/month-recap.js?v=month-2", "./modules/forecast-accuracy.js?v=accuracy-1", "./modules/station-now.js?v=station-5", "./modules/home-layout.js?v=home-layout-8", "./modules/pwa-shortcuts.js?v=shortcuts-3", "./modules/voice-search.js?v=voice-2", "./modules/rain-reports.js?v=rain-reports-2", "./modules/visit-counter.js?v=visits-1", "./modules/changelog.js?v=changelog-330", "./modules/install-prompt.js?v=install-2", "./modules/push-style.js?v=push-style-5", "./assets/notifications/rain.png", "./assets/notifications/heavy-rain.png", "./assets/notifications/storm.png", "./assets/notifications/wind.png", "./assets/notifications/heat.png", "./assets/notifications/air.png", "./assets/notifications/change.png", "./assets/notifications/daily.png", "./assets/notifications/alert-2.png", "./assets/notifications/alert-3.png", "./assets/notifications/alert-4.png", "./modules/account-summary.js?v=account-summary-1", "./notifications.js?v=panel-37", "./weather-map.js?v=map-23",
@@ -8,6 +8,11 @@ const PRECACHE = [
     "./assets/weather-icons/conditions/clear-day.svg?v=modern-8", "./assets/weather-icons/conditions/clear-night.svg?v=modern-8", "./assets/weather-icons/conditions/few-clouds-day.svg?v=modern-8", "./assets/weather-icons/conditions/few-clouds-night.svg?v=modern-8", "./assets/weather-icons/conditions/partly-cloudy-day.svg?v=modern-8", "./assets/weather-icons/conditions/partly-cloudy-night.svg?v=modern-8", "./assets/weather-icons/conditions/cloudy.svg?v=modern-8", "./assets/weather-icons/conditions/overcast.svg?v=modern-8", "./assets/weather-icons/conditions/drizzle.svg?v=modern-8", "./assets/weather-icons/conditions/light-rain.svg?v=modern-8", "./assets/weather-icons/conditions/moderate-rain.svg?v=modern-8", "./assets/weather-icons/conditions/heavy-rain.svg?v=modern-8", "./assets/weather-icons/conditions/showers.svg?v=modern-8", "./assets/weather-icons/conditions/showers-night.svg?v=modern-8", "./assets/weather-icons/conditions/thunderstorm.svg?v=modern-8", "./assets/weather-icons/conditions/thunderstorm-rain.svg?v=modern-8", "./assets/weather-icons/conditions/thunderstorm-hail.svg?v=modern-8", "./assets/weather-icons/conditions/snow.svg?v=modern-8", "./assets/weather-icons/conditions/sleet.svg?v=modern-8", "./assets/weather-icons/conditions/fog.svg?v=modern-8", "./assets/weather-icons/conditions/haze.svg?v=modern-8", "./assets/weather-icons/conditions/windy.svg?v=modern-8", "./assets/weather-icons/metrics/temperature.svg?v=modern-8", "./assets/weather-icons/metrics/feels-like.svg?v=modern-8", "./assets/weather-icons/metrics/temperature-high.svg?v=modern-8", "./assets/weather-icons/metrics/temperature-low.svg?v=modern-8", "./assets/weather-icons/metrics/humidity.svg?v=modern-8", "./assets/weather-icons/metrics/dew-point.svg?v=modern-8", "./assets/weather-icons/metrics/pressure.svg?v=modern-8", "./assets/weather-icons/metrics/visibility.svg?v=modern-8", "./assets/weather-icons/metrics/wind-speed.svg?v=modern-8", "./assets/weather-icons/metrics/wind-gust.svg?v=modern-8", "./assets/weather-icons/metrics/wind-direction.svg?v=modern-8", "./assets/weather-icons/metrics/cloud-cover.svg?v=modern-8", "./assets/weather-icons/metrics/uv-index.svg?v=modern-8", "./assets/weather-icons/metrics/air-quality.svg?v=modern-8", "./assets/weather-icons/metrics/rain-probability.svg?v=modern-8", "./assets/weather-icons/metrics/rain-volume.svg?v=modern-8", "./assets/weather-icons/astronomy/sunrise.svg?v=modern-8", "./assets/weather-icons/astronomy/sunset.svg?v=modern-8", "./assets/weather-icons/astronomy/daylight.svg?v=modern-8", "./assets/weather-icons/maps/radar.svg?v=modern-8", "./assets/weather-icons/maps/satellite.svg?v=modern-8", "./assets/weather-icons/maps/lightning.svg?v=modern-8", "./assets/weather-icons/fallback/weather-unknown.svg?v=modern-8"
   ];
 try { importScripts("./modules/push-style.js?v=push-style-5"); } catch {}
+// Resposta que chegou por redirecionamento vira uma resposta comum com o mesmo corpo e cabeçalhos.
+async function unwrap(response) {
+  if (!response.redirected) return response;
+  return new Response(await response.blob(), {status: response.status, statusText: response.statusText, headers: response.headers});
+}
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
@@ -16,7 +21,13 @@ self.addEventListener("install", event => {
     // página acabou de encher. Antes tudo era baixado de novo, ~0,5 MB a mais na primeira visita (1.25).
     // Sem versão (shell, manifest, ícones) continua indo à rede.
     const request = url => new Request(new URL(url, self.location.href), /[?&]v=/.test(url) ? {} : { cache: "reload" });
-    await cache.addAll(PRECACHE.filter(critical).map(request));
+    // O Cloudflare Pages responde /index.html com 308 para "/": a resposta guardada viria "redirecionada", e o
+    // Safari recusa uma navegação servida pelo SW com redirecionamento (offline não abriria). O shell é
+    // buscado à parte e guardado limpo; os demais continuam no addAll.
+    const shell = await fetch(request(SHELL));
+    if (!shell.ok) throw new Error("shell");
+    await cache.put(new URL(SHELL, self.location.href).href, await unwrap(shell));
+    await cache.addAll(PRECACHE.filter(url => critical(url) && url !== SHELL).map(request));
     // A missing decorative icon must not prevent an otherwise complete update.
     await Promise.allSettled(PRECACHE.filter(url => !critical(url)).map(url => cache.add(request(url))));
     await self.skipWaiting();
@@ -40,7 +51,7 @@ self.addEventListener("fetch", event => {
   function remember(key, response) {
     if (response.ok) {
       const copy = response.clone();
-      writes.push(caches.open(CACHE).then(cache => cache.put(key,copy)).catch(() => {}));
+      writes.push(Promise.all([caches.open(CACHE), unwrap(copy)]).then(([cache, clean]) => cache.put(key,clean)).catch(() => {}));
     }
     return response;
   }
