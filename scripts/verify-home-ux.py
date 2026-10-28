@@ -70,6 +70,21 @@ with sync_playwright() as p:
             return page
 
         page = open_page()
+        if mobile:
+            # Cabeçalho compacto (1.41.2): o ícone da pílula precisa ser pintado de verdade (no iPhone ele ficava
+            # invisível dentro da faixa com máscara). Compara a área do ícone com e sem ele.
+            page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
+            page.wait_for_function("document.querySelector('.compact-head[data-on] .compact-icon img')?.complete", timeout=10000)
+            page.wait_for_timeout(400)
+            box = page.evaluate("""() => { const r = document.querySelector('.compact-icon').getBoundingClientRect();
+              return {x:r.x, y:r.y, width:r.width, height:r.height}; }""")
+            assert box['width'] >= 40 and box['height'] >= 40, ('ícone da pílula', box)
+            shown = page.screenshot(clip=box)
+            page.evaluate("document.querySelector('.compact-icon img').style.visibility='hidden'")
+            hidden = page.screenshot(clip=box)
+            page.evaluate("document.querySelector('.compact-icon img').style.visibility=''")
+            assert shown != hidden, 'ícone da pílula não foi pintado'
+            page.evaluate("window.scrollTo(0, 0)"); page.wait_for_timeout(300)
         # Conta deslogada: ícone com alvo de 44 px e nome acessível.
         account = page.evaluate("""() => { const b = document.getElementById('accountButton'), r = b.getBoundingClientRect(), icon = b.querySelector('.account-icon');
           return {w:r.width, h:r.height, icon:Boolean(icon && icon.getBoundingClientRect().width), label:b.textContent.trim() + ' ' + (b.getAttribute('aria-label') || '')}; }""")
