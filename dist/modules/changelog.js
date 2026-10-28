@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.42", date:"2026-10-28", title:"Dica para o ar seco", items:[
+      "Quando a umidade vai cair nas próximas horas, as dicas avisam o horário mais seco e lembram de beber água, com conselhos mais fortes conforme o ar fica mais seco."
+    ]},
     {version:"1.41.3", date:"2026-10-28", title:"Azul mais vivo", items:[
       "O azul dos destaques (Hoje, chance de chuva, atalhos, ícones e links) ficou mais forte e nítido, de dia e de noite.",
       "O fundo atrás da pílula do topo some aos poucos, sem a borda reta de antes.",
