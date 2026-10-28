@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.41.2", date:"2026-10-28", title:"Ícone na pílula do iPhone", items:[
+      "O ícone do tempo agora aparece na pílula do topo também no iPhone."
+    ]},
     {version:"1.41.1", date:"2026-10-28", title:"Pílula mais nítida", items:[
       "A pílula do topo desceu um pouco e não fica mais borrada embaixo do relógio do iPhone."
     ]},

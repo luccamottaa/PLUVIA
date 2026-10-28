@@ -23,12 +23,16 @@ test('Sol e Lua esmaecem nos primeiros pixels de rolagem, em passos de 5%', () =
 test('cabeçalho no HTML, no precache e sobre o degradê do céu, sem blur', () => {
   const html = fs.readFileSync('dist/index.html', 'utf8'), sw = fs.readFileSync('dist/sw.js', 'utf8');
   const css = fs.readFileSync('dist/continuous.css', 'utf8');
-  assert.match(html, /<div class="compact-head" aria-hidden="true"><span class="sky-twilight sky-twilight-page"><\/span>/);
+  // A faixa com máscara é irmã da pílula (1.41.2): com o ícone dentro do elemento mascarado o Safari não o pintava.
+  assert.match(html, /<div class="compact-head" aria-hidden="true"><span class="compact-band"><span class="sky-twilight sky-twilight-page"><\/span><\/span><span class="compact-pill">/);
   // A película do crepúsculo de dentro vem depois da principal (captureSky lê a primeira).
   assert.ok(html.indexOf('class="compact-head"') > html.indexOf('sky-twilight-page'));
-  assert.match(html, /modules\/compact-header\.js\?v=compact-3" defer/);
-  assert.match(sw, /modules\/compact-header\.js\?v=compact-3/);
-  const rule = css.slice(css.indexOf('.night-stage > .compact-head {'));
+  assert.match(html, /modules\/compact-header\.js\?v=compact-4" defer/);
+  assert.match(sw, /modules\/compact-header\.js\?v=compact-4/);
+  const head = css.slice(css.indexOf('.night-stage > .compact-head {'));
+  assert.doesNotMatch(head.slice(0, head.indexOf('}')), /mask-image|contain:paint/);
+  const rule = css.slice(css.indexOf('.compact-head > .compact-band {'));
+  assert.match(rule.slice(0, rule.indexOf('}')), /mask-image:linear-gradient\(#000 calc\(100% - 44px\),transparent\)/);
   assert.match(rule, /background-image:var\(--sky-color\)/);
   assert.match(rule, /background-size:100% 100lvh/);
   assert.doesNotMatch(rule.slice(0, rule.indexOf('}')), /backdrop-filter|blur/);

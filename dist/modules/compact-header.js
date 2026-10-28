@@ -47,6 +47,8 @@
         shownIcon = key;
         const [code, day] = key.split(":");
         iconOut.innerHTML = key ? icons.markup(Number(code), day === "1", {className:"compact-icon-img", eager:true}) : "";
+        // Decodifica junto com o resto da pílula: com "async" o Safari podia deixar o ícone sem pintar.
+        if (iconOut.firstElementChild) iconOut.firstElementChild.decoding = "sync";
       };
       copy();
       if (typeof root.MutationObserver === "function") {
