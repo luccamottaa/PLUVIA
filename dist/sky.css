@@ -355,11 +355,3 @@ body.page-hidden :is(.sky-effects,.intro-sky) > * { visibility:hidden !important
 :root[data-volume="on"] :is(.sky-effects,.intro-sky) > .sky-clouds { opacity:0; visibility:hidden; animation-play-state:paused; transition:opacity 1.1s ease,visibility 0s 1.1s; }
 body.page-hidden .sky-volume { visibility:hidden; }
 @media (prefers-reduced-motion: reduce) { .sky-volume { display:none; } }
-
-/* Gotas na tela (1.38, modules/rain-drops.js): canvas fixo na tela, atrás do conteúdo e na frente do céu, só com
-   chuva (data-glass="on"). Aparece e some só por opacidade; com a página oculta sai da composição; movimento
-   reduzido não mostra. */
-.sky-glass { position:fixed; inset:0; z-index:-1; width:100%; height:100%; display:block; pointer-events:none; opacity:0; transition:opacity 2s ease; }
-:root[data-glass="on"] .sky-glass { opacity:1; }
-body.page-hidden .sky-glass { visibility:hidden; }
-@media (prefers-reduced-motion: reduce) { .sky-glass { display:none; } }

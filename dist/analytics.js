@@ -21,7 +21,7 @@
     error_code:new Set(['timeout','network_error','invalid_response','rate_limited','provider_unavailable','http_error','client_unavailable','unexpected','resource_error']),
     error_type:new Set(['Error','TypeError','ReferenceError','SyntaxError','RangeError','RequestError']),
     kind:new Set(['dry','drizzle','rain','heavy']),metric:new Set(['LCP','INP','CLS','FCP','TTFB']),rating:new Set(['good','needs-improvement','poor']),
-    outcome:new Set(['chosen','typed','no_results','empty']),moment:new Set(['storm','glow']),effect:new Set(['volume','glass']),visit_days:new Set(['1','2-3','4-7','8-14','15+'])
+    outcome:new Set(['chosen','typed','no_results','empty']),moment:new Set(['storm','glow']),effect:new Set(['volume']),visit_days:new Set(['1','2-3','4-7','8-14','15+'])
   };
   // Busca abandonada: uma escolha durante o diálogo de cidades vira "chosen" no fechamento.
   let searchChose = false;

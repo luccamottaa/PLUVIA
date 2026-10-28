@@ -133,7 +133,7 @@ void main(){
   function start(win) {
     const doc = win.document, html = doc.documentElement;
     let canvas = null, gl = null, uniforms = null, current = null, raf = 0, last = 0, slow = 0, dead = false;
-    // 1.40.1 (o dono não via as nuvens 3D no iPhone com chuva, quando as gotas também usam WebGL): lento, antes de
+    // 1.40.1 (o dono não via as nuvens 3D no iPhone com chuva, quando as gotas da 1.38 também usavam WebGL): lento, antes de
     // desligar, tenta em resolução e ritmo menores; contexto perdido religa uma vez. O motivo do desligamento vai
     // para o PostHog (Sky Effect Off), sem nada além do efeito e do motivo.
     let scale = SCALE, frameMs = FRAME_MS, lost = 0;

@@ -13,7 +13,8 @@
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
     {version:"1.40.1", date:"2026-10-28", title:"Nuvens 3D mais firmes", items:[
-      "As nuvens 3D não se desligam mais à toa quando também tem gotas na tela: o app tenta de novo com menos detalhe antes de voltar às nuvens comuns.",
+      "As gotas de chuva na tela saíram.",
+      "As nuvens 3D não se desligam mais à toa: o app tenta de novo com menos detalhe antes de voltar às nuvens comuns.",
       "Saiu o brilho branco em volta da Lua; fica só a luz no centro dela."
     ]},
     {version:"1.40", date:"2026-10-28", title:"PLUVIA na tela de início", items:[

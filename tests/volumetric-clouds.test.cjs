@@ -72,8 +72,11 @@ assert.match(src,/animationName === 'storm-bolt'/);
   assert.match(src, /track\?\.\('Sky Effect Off',\{effect:'volume',reason:reason \|\| 'unsupported'\}\)/);
   const analytics = fs.readFileSync(path.join(root, 'analytics.js'), 'utf8');
   assert.match(analytics, /'Sky Effect Off'/);
-  assert.match(analytics, /effect:new Set\(\['volume','glass'\]\)/);
+  assert.match(analytics, /effect:new Set\(\['volume'\]\)/);
   assert.match(analytics, /'slow','lost'\]/);
+  // As gotas na tela saíram (1.40.1, o dono não gostou).
+  assert.ok(!fs.existsSync(path.join(root, 'modules/rain-drops.js')));
+  assert.doesNotMatch(fs.readFileSync(path.join(root, 'index.html'), 'utf8'), /rain-drops|sky-glass/);
   // Nada de borda clara em volta da Lua (recusada pelo dono).
   assert.doesNotMatch(fs.readFileSync(path.join(root, 'sky.css'), 'utf8'), /\.sky-moon::after/);
 }
