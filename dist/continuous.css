@@ -2172,55 +2172,15 @@ body[data-ink="dark"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
    (100% × 100lvh a partir do topo), mais a película do crepúsculo (a .sky-twilight-page de dentro recebe as mesmas
    variáveis de sky-atmosphere), então ele some no céu e o conteúdo desaparece por baixo dele pelo fade da máscara.
    Uma camada só, sem blur; só opacidade na troca. */
-.night-stage > .compact-head { position:fixed; z-index:30; inset:0 0 auto; height:calc(env(safe-area-inset-top,0px) + 96px); display:flex; flex-direction:column; align-items:center; gap:1px; padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 0; box-sizing:border-box; pointer-events:none; contain:paint; background-image:var(--sky-color); background-color:var(--sky-base); background-size:100% 100vh; background-size:100% 100lvh; background-repeat:no-repeat; -webkit-mask-image:linear-gradient(#000 calc(100% - 34px),transparent); mask-image:linear-gradient(#000 calc(100% - 34px),transparent); opacity:0; visibility:hidden; transition:opacity .22s ease,visibility 0s .22s; }
+.night-stage > .compact-head { position:fixed; z-index:30; inset:0 0 auto; height:calc(env(safe-area-inset-top,0px) + 104px); display:flex; flex-direction:column; align-items:center; gap:1px; padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 0; box-sizing:border-box; pointer-events:none; contain:paint; background-image:var(--sky-color); background-color:var(--sky-base); background-size:100% 100vh; background-size:100% 100lvh; background-repeat:no-repeat; -webkit-mask-image:linear-gradient(#000 calc(100% - 44px),transparent); mask-image:linear-gradient(#000 calc(100% - 44px),transparent); opacity:0; visibility:hidden; transition:opacity .22s ease,visibility 0s .22s; }
 .night-stage > .compact-head[data-on] { opacity:1; visibility:visible; transition:opacity .22s ease; }
 .compact-head > .sky-twilight-page { inset:0 0 auto; height:100vh; height:100lvh; }
 .compact-head > .compact-city { position:relative; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:1.2rem; font-weight:500; line-height:1.25; }
 .compact-head > .compact-now { position:relative; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.95rem; font-weight:500; line-height:1.3; opacity:.82; font-variant-numeric:tabular-nums; }
+/* O texto segue a tinta do céu, como o topo: escuro no céu claro de dia. A faixa fica opaca (meio transparente,
+   o conteúdo de baixo aparecia atrás do nome da cidade), com 44 px de transição embaixo. */
+body[data-ink="dark"] .compact-head { color:#082744; }
+body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) .compact-head { color:#041a2e; }
+body[data-ink="light"] .compact-head { text-shadow:0 1px 2px rgba(8,16,34,.3); }
 body[data-phase="day"][data-ink="light"][data-weather="cloud"] .compact-head { text-shadow:0 1px 3px rgba(20,32,52,.35),0 0 18px rgba(20,32,52,.28); }
 @media (prefers-reduced-motion:reduce) { .night-stage > .compact-head { transition:none; } }
-/* Cartões que entram embaixo do cabeçalho (1.39, pedido do dono com o app Tempo): rolando, cada cartão é cortado
-   na linha do cabeçalho compacto (--tuck-line), com os cantos redondos no corte, até sumir; nos que têm título
-   (avisos, dicas, Próximas horas) o título gruda logo abaixo da linha e o resto do cartão é cortado embaixo dele.
-   Só clip-path guiado pela rolagem (animation-timeline: view(), exit-crossing), sem camada nem script; o título
-   grudado é position:sticky sem z-index. Durante a cascata da troca de cidade ([data-drop], que usa o mesmo
-   clip-path) o corte fica de fora. Sem suporte (Safari antes do 26), os cartões passam sob o degradê do cabeçalho. */
-:root { --tuck-line:calc(env(safe-area-inset-top,0px) + 64px); }
-@supports (animation-timeline: view()) {
-  .night-stage > .compact-head { height:var(--tuck-line); -webkit-mask-image:linear-gradient(#000 calc(100% - 12px),transparent); mask-image:linear-gradient(#000 calc(100% - 12px),transparent); }
-  #weatherView :is(#alertas,#tips,#chuva,.metrics,.weather-map-section,.sun-section):not([data-drop]) {
-    animation:pluvia-tuck linear both; animation-timeline:view(block var(--tuck-line) 0px); animation-range:exit-crossing;
-  }
-  /* Títulos que grudam (como os do app Tempo): todo cartão ou bloco com título. --tuck-head = 14 px de
-     afastamento + altura do título + folga; o resto do bloco é cortado embaixo dele. O UV fica de fora: o valor
-     está na mesma linha do título e sumiria ao lado do título grudado. */
-  #weatherView :is(#alertas > .section-heading,#tips > .tips-title,#chuva > .hourly-peek-heading,.metrics .metric:not(.uv-metric) > .metric-head,
-    .weather-map-card > .weather-map-copy,.weather-map-card > .expand-radar,.sun-section > .sun-copy) { position:sticky; top:calc(var(--tuck-line) + 14px); }
-  #weatherView #alertas { --tuck-head:47px; }
-  #weatherView #tips { --tuck-head:41px; }
-  #weatherView #chuva { --tuck-head:71px; }
-  #weatherView .metrics .metric { --tuck-head:44px; }
-  #weatherView .weather-map-card { --tuck-head:78px; }
-  #weatherView .sun-section { --tuck-head:76px; }
-  #weatherView :is(#alertas:not([data-drop]) > :not(.section-heading),#tips:not([data-drop]) > :not(.tips-title),#chuva:not([data-drop]) > :not(.hourly-peek-heading),
-    .metrics:not([data-drop]) .metric:not(.uv-metric) > :not(.metric-head),.weather-map-section:not([data-drop]) .weather-map-card > :not(.weather-map-copy,.expand-radar),
-    .sun-section:not([data-drop]) > :not(.sun-copy)) {
-    animation:pluvia-tuck-body linear both; animation-timeline:view(block calc(var(--tuck-line) + var(--tuck-head)) 0px); animation-range:exit-crossing;
-  }
-}
-/* Próximos 7 dias fica dentro do cartão de Próximas horas: o título dele também gruda e, quando chega, empurra
-   o de Próximas horas (que é cortado de baixo para cima pela linha de tempo do #previsao, timeline-scope).
-   Sem timeline-scope, os 7 dias continuam cortados embaixo do título de Próximas horas, sem dois títulos sobrepostos. */
-@supports (animation-timeline: view()) and (timeline-scope: none) {
-  #weatherView #chuva { timeline-scope:--pluvia-week; }
-  #weatherView #chuva > #previsao { --tuck-head:47px; view-timeline:--pluvia-week block; view-timeline-inset:calc(var(--tuck-line) + 63px) 0px; }
-  #weatherView #chuva:not([data-drop]) > #previsao { animation:none; }
-  #weatherView #chuva > #previsao > .section-heading { position:sticky; top:calc(var(--tuck-line) + 14px); }
-  #weatherView #chuva:not([data-drop]) > #previsao > :not(.section-heading) {
-    animation:pluvia-tuck-body linear both; animation-timeline:view(block calc(var(--tuck-line) + var(--tuck-head)) 0px); animation-range:exit-crossing;
-  }
-  #weatherView #chuva:not([data-drop]) > .hourly-peek-heading { animation:pluvia-tuck-push linear both; animation-timeline:--pluvia-week; animation-range:exit-crossing 0px exit-crossing 49px; }
-}
-@keyframes pluvia-tuck-push { from { clip-path:inset(0); } to { clip-path:inset(0 0 100% 0); } }
-@keyframes pluvia-tuck { from { clip-path:inset(0 0 0 0 round 24px); } to { clip-path:inset(100% 0 0 0 round 24px); } }
-@keyframes pluvia-tuck-body { from { clip-path:inset(0); } to { clip-path:inset(100% 0 0 0); } }

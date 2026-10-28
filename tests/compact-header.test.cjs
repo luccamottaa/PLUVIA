@@ -34,22 +34,7 @@ test('cabeçalho no HTML, no precache e sobre o degradê do céu, sem blur', () 
   assert.doesNotMatch(rule.slice(0, rule.indexOf('}')), /backdrop-filter|blur/);
 });
 
-test('cartões cortados na linha do cabeçalho só por clip-path guiado pela rolagem', () => {
+test('sem títulos grudados nem cartões cortados (1.39.1: o dono achou feio, conteúdo passava atrás dos títulos)', () => {
   const css = fs.readFileSync('dist/continuous.css', 'utf8');
-  const block = css.slice(css.indexOf('@supports (animation-timeline: view())'));
-  assert.match(block, /animation-timeline:view\(block var\(--tuck-line\) 0px\); animation-range:exit-crossing/);
-  assert.match(block, /:not\(\[data-drop\]\)/);
-  assert.match(css, /@keyframes pluvia-tuck \{ from \{ clip-path:inset\(0 0 0 0 round 24px\); \} to \{ clip-path:inset\(100% 0 0 0 round 24px\); \} \}/);
-  const tuck = block.slice(0, block.indexOf('@keyframes pluvia-tuck '));
-  assert.doesNotMatch(tuck, /transform|opacity|z-index|backdrop-filter/);
-});
-
-test('títulos grudados em todos os blocos com título e 7 dias empurrando Próximas horas', () => {
-  const css = fs.readFileSync('dist/continuous.css', 'utf8');
-  for (const head of ['#alertas > .section-heading', '#tips > .tips-title', '#chuva > .hourly-peek-heading', '.metrics .metric:not(.uv-metric) > .metric-head',
-    '.weather-map-card > .weather-map-copy', '.weather-map-card > .expand-radar', '.sun-section > .sun-copy']) assert.ok(css.includes(head), head);
-  const week = css.slice(css.indexOf('@supports (animation-timeline: view()) and (timeline-scope: none)'));
-  assert.match(week, /timeline-scope:--pluvia-week/);
-  assert.match(week, /#previsao > \.section-heading \{ position:sticky/);
-  assert.match(week, /animation-timeline:--pluvia-week; animation-range:exit-crossing 0px exit-crossing 49px/);
+  assert.doesNotMatch(css, /pluvia-tuck|--tuck-|animation-timeline:view/);
 });

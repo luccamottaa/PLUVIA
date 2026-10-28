@@ -269,9 +269,13 @@ with sync_playwright() as p:
  page.evaluate("document.body.classList.add('page-hidden')")
  assert star.evaluate("el=>getComputedStyle(el,'::after').animationPlayState==='paused'")
  assert page.evaluate("starAnimation.playState==='paused'")
- page.evaluate("document.body.classList.remove('page-hidden');window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})")
+ # Fixed sky (1.38.1): the stars keep twinkling at the bottom of the page and stop in the background.
+ page.evaluate("document.body.classList.remove('page-hidden');window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})");page.wait_for_timeout(300)
+ assert page.evaluate("document.querySelector('.sky-effects').dataset.motion")=='running'
+ page.evaluate("Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'))")
  page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
  assert star.evaluate("el=>getComputedStyle(el,'::after').animationPlayState==='paused'")
+ page.evaluate("delete document.hidden;document.dispatchEvent(new Event('visibilitychange'))")
  page.evaluate("window.scrollTo({top:0,behavior:'instant'})");page.wait_for_function("scrollY===0 && document.querySelector('.sky-effects').dataset.motion==='running'")
  page.emulate_media(reduced_motion='reduce')
  assert star.evaluate("el=>getComputedStyle(el,'::after').animationName==='none' && getComputedStyle(el).animationName==='none' && +getComputedStyle(el).opacity>0")
@@ -314,9 +318,12 @@ with sync_playwright() as p:
  page.evaluate("window.stormAnimations=document.querySelector('.sky-effects').getAnimations({subtree:true}).filter(a=>['sky-rain-fall','storm-bolt','storm-glow'].includes(a.animationName));document.body.classList.add('page-hidden')")
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>['::before','::after'].every(p=>getComputedStyle(el,p).animationPlayState==='paused')")
  assert page.evaluate("stormAnimations.every(a=>a.playState==='paused')")
- page.evaluate("document.body.classList.remove('page-hidden');window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})")
+ page.evaluate("document.body.classList.remove('page-hidden');window.scrollTo({top:document.body.scrollHeight,behavior:'instant'})");page.wait_for_timeout(300)
+ assert page.evaluate("document.querySelector('.sky-effects').dataset.motion")=='running'
+ page.evaluate("Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'))")
  page.wait_for_function("document.querySelector('.sky-effects').dataset.motion==='paused'")
  assert page.locator('.sky-effects > .sky-lightning').evaluate("el=>['::before','::after'].every(p=>getComputedStyle(el,p).animationPlayState==='paused')")
+ page.evaluate("delete document.hidden;document.dispatchEvent(new Event('visibilitychange'))")
  page.evaluate("window.scrollTo({top:0,behavior:'instant'})");page.wait_for_function("scrollY===0 && document.querySelector('.sky-effects').dataset.motion==='running'")
  page.evaluate("window.rainAnimations=[...document.querySelectorAll('.sky-effects > .sky-rain')].map(el=>el.getAnimations().find(a=>a.animationName==='sky-rain-fall'));PLUVIA.sky.apply(65,1,null,{lat:-3.119,lon:-60.022,timezone:'America/Manaus'})")
  assert page.evaluate("[...document.querySelectorAll('.sky-effects > .sky-rain')].every((el,i)=>el.getAnimations().includes(rainAnimations[i]))")
