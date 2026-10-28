@@ -2191,13 +2191,36 @@ body[data-phase="day"][data-ink="light"][data-weather="cloud"] .compact-head { t
   #weatherView :is(#alertas,#tips,#chuva,.metrics,.weather-map-section,.sun-section):not([data-drop]) {
     animation:pluvia-tuck linear both; animation-timeline:view(block var(--tuck-line) 0px); animation-range:exit-crossing;
   }
-  #weatherView :is(#alertas > .section-heading,#tips > .tips-title,#chuva > .hourly-peek-heading) { position:sticky; top:calc(var(--tuck-line) + 14px); }
+  /* Títulos que grudam (como os do app Tempo): todo cartão ou bloco com título. --tuck-head = 14 px de
+     afastamento + altura do título + folga; o resto do bloco é cortado embaixo dele. O UV fica de fora: o valor
+     está na mesma linha do título e sumiria ao lado do título grudado. */
+  #weatherView :is(#alertas > .section-heading,#tips > .tips-title,#chuva > .hourly-peek-heading,.metrics .metric:not(.uv-metric) > .metric-head,
+    .weather-map-card > .weather-map-copy,.weather-map-card > .expand-radar,.sun-section > .sun-copy) { position:sticky; top:calc(var(--tuck-line) + 14px); }
   #weatherView #alertas { --tuck-head:47px; }
   #weatherView #tips { --tuck-head:41px; }
   #weatherView #chuva { --tuck-head:71px; }
-  #weatherView :is(#alertas:not([data-drop]) > :not(.section-heading),#tips:not([data-drop]) > :not(.tips-title),#chuva:not([data-drop]) > :not(.hourly-peek-heading)) {
+  #weatherView .metrics .metric { --tuck-head:44px; }
+  #weatherView .weather-map-card { --tuck-head:78px; }
+  #weatherView .sun-section { --tuck-head:76px; }
+  #weatherView :is(#alertas:not([data-drop]) > :not(.section-heading),#tips:not([data-drop]) > :not(.tips-title),#chuva:not([data-drop]) > :not(.hourly-peek-heading),
+    .metrics:not([data-drop]) .metric:not(.uv-metric) > :not(.metric-head),.weather-map-section:not([data-drop]) .weather-map-card > :not(.weather-map-copy,.expand-radar),
+    .sun-section:not([data-drop]) > :not(.sun-copy)) {
     animation:pluvia-tuck-body linear both; animation-timeline:view(block calc(var(--tuck-line) + var(--tuck-head)) 0px); animation-range:exit-crossing;
   }
 }
+/* Próximos 7 dias fica dentro do cartão de Próximas horas: o título dele também gruda e, quando chega, empurra
+   o de Próximas horas (que é cortado de baixo para cima pela linha de tempo do #previsao, timeline-scope).
+   Sem timeline-scope, os 7 dias continuam cortados embaixo do título de Próximas horas, sem dois títulos sobrepostos. */
+@supports (animation-timeline: view()) and (timeline-scope: none) {
+  #weatherView #chuva { timeline-scope:--pluvia-week; }
+  #weatherView #chuva > #previsao { --tuck-head:47px; view-timeline:--pluvia-week block; view-timeline-inset:calc(var(--tuck-line) + 63px) 0px; }
+  #weatherView #chuva:not([data-drop]) > #previsao { animation:none; }
+  #weatherView #chuva > #previsao > .section-heading { position:sticky; top:calc(var(--tuck-line) + 14px); }
+  #weatherView #chuva:not([data-drop]) > #previsao > :not(.section-heading) {
+    animation:pluvia-tuck-body linear both; animation-timeline:view(block calc(var(--tuck-line) + var(--tuck-head)) 0px); animation-range:exit-crossing;
+  }
+  #weatherView #chuva:not([data-drop]) > .hourly-peek-heading { animation:pluvia-tuck-push linear both; animation-timeline:--pluvia-week; animation-range:exit-crossing 0px exit-crossing 49px; }
+}
+@keyframes pluvia-tuck-push { from { clip-path:inset(0); } to { clip-path:inset(0 0 100% 0); } }
 @keyframes pluvia-tuck { from { clip-path:inset(0 0 0 0 round 24px); } to { clip-path:inset(100% 0 0 0 round 24px); } }
 @keyframes pluvia-tuck-body { from { clip-path:inset(0); } to { clip-path:inset(100% 0 0 0); } }
