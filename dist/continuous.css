@@ -2209,3 +2209,21 @@ body[data-phase="day"][data-ink="light"][data-weather="cloud"] .compact-head { t
    texto continuam selecionáveis (busca, conta e o texto de compartilhar, que é escolhido para copiar à mão). */
 body { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
 body :is(input,textarea,select,[contenteditable="true"]) { -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
+/* Qualidade do ar com cara de alerta (1.42.1, pedido do dono: "cores mais fortes e vivas", "dependendo da severidade
+   fica maiúscula e negrito"). Cores mais saturadas por faixa e por tinta; o texto engrossa com a faixa e, de "Ruim para
+   grupos sensíveis" em diante, vira caixa-alta mais justa (texto grande: 3:1 basta, conferido por verify-contrast). */
+#weatherView .air-metric[data-aqi-level="good"] { --aqi-accent:#3ee08f; }
+#weatherView .air-metric[data-aqi-level="moderate"] { --aqi-accent:#ffd23a; }
+#weatherView .air-metric[data-aqi-level="sensitive"] { --aqi-accent:#ff9a3c; }
+#weatherView .air-metric[data-aqi-level="poor"] { --aqi-accent:#ff5c6a; }
+#weatherView .air-metric[data-aqi-level="very-poor"] { --aqi-accent:#c58bff; }
+#weatherView .air-metric[data-aqi-level="hazardous"] { --aqi-accent:#ff4f9a; }
+body[data-ink="dark"] #weatherView article.air-metric[data-aqi-level="good"] { --aqi-accent:#006b3c; }
+body[data-ink="dark"] #weatherView article.air-metric[data-aqi-level="moderate"] { --aqi-accent:#7a5000; }
+body[data-ink="dark"] #weatherView article.air-metric[data-aqi-level="sensitive"] { --aqi-accent:#c2410c; }
+body[data-ink="dark"] #weatherView article.air-metric[data-aqi-level="poor"] { --aqi-accent:#c8102e; }
+body[data-ink="dark"] #weatherView article.air-metric[data-aqi-level="very-poor"] { --aqi-accent:#7b2cbf; }
+body[data-ink="dark"] #weatherView article.air-metric[data-aqi-level="hazardous"] { --aqi-accent:#a1124f; }
+html body #weatherView .air-metric .air-description strong { font-weight:700; }
+html body #weatherView .air-metric[data-aqi-level="sensitive"] .air-description strong { font-weight:800; text-transform:uppercase; letter-spacing:.01em; font-size:1.12rem; line-height:1.15; }
+html body #weatherView .air-metric:is([data-aqi-level="poor"],[data-aqi-level="very-poor"],[data-aqi-level="hazardous"]) .air-description strong { font-weight:900; text-transform:uppercase; letter-spacing:.02em; font-size:1.3rem; line-height:1.1; }
