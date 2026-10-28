@@ -1,6 +1,8 @@
 // Convite para colocar o PLUVIA na tela de início. Só no navegador do celular (nunca no app já
-// instalado nem no computador), a partir da segunda visita e até "Agora não" (30 dias, só neste
-// aparelho). Android/Chrome usa o pedido nativo (beforeinstallprompt); sem ele, e no iPhone, um passo a
+// instalado nem no computador) e até "Agora não" (30 dias, só neste aparelho). Desde a 1.40 (pedido do
+// dono: "incentivar as pessoas a pôr o PWA"; em 30 dias o cartão no fim dos 7 dias apareceu 2 vezes) vale
+// já na primeira visita, numa barra fixa embaixo da tela, depois que a pessoa rola quase uma tela ou
+// passa 20 s no app, e nunca junto com o aviso dos Termos. Android/Chrome usa o pedido nativo (beforeinstallprompt); sem ele, e no iPhone, um passo a
 // passo curto. No iPhone fora da Tela de Início o convite de avisos já explica a instalação: quando ele
 // está à vista, este cartão não aparece.
 (function (root, factory) {
@@ -32,7 +34,7 @@
       if (Number.isFinite(dismissed) && dismissed > 0 && now - dismissed < DISMISS_MS && dismissed <= now) return false;
       let visits = Number(storage.getItem(VISITS_KEY)) || 0;
       if (session.getItem(SESSION_KEY) !== "1") { visits = Math.min(visits + 1, 99); storage.setItem(VISITS_KEY, String(visits)); session.setItem(SESSION_KEY, "1"); }
-      return visits >= 2;
+      return visits >= 1;
     } catch { return false; }
   }
   function steps(os, hasNativePrompt) {
@@ -40,7 +42,8 @@
     return hasNativePrompt ? [] : ["Toque no menu do navegador (<strong>⋮</strong>, no canto da tela).", "Toque em <strong>Instalar app</strong> ou <strong>Adicionar à tela inicial</strong>.", "Confirme em <strong>Instalar</strong>."];
   }
 
-  function mount({doc = runtime.document, win = runtime, storage = runtime.localStorage, session = runtime.sessionStorage, now = () => Date.now()} = {}) {
+  const ENGAGE_MS = 20000;
+  function mount({doc = runtime.document, win = runtime, storage = runtime.localStorage, session = runtime.sessionStorage, now = () => Date.now(), wait = true} = {}) {
     const card = doc?.getElementById?.("installCard"), action = doc?.getElementById?.("installCardAction");
     if (!card || !action) return null;
     const os = platform(win.navigator), dialog = doc.getElementById("installDialog");
@@ -50,12 +53,28 @@
     const hide = () => { card.hidden = true; };
     const nudgeCoversInstall = () => os === "ios" && doc.getElementById("alertNudge")?.hidden === false;
 
+    // Espera a pessoa usar o app (rolar quase uma tela ou 20 s) e o aviso dos Termos sair da tela.
+    let engaged = !wait;
+    const terms = doc.getElementById("termsNotice");
+    const blocked = () => terms?.hidden === false || doc.getElementById("pluviaIntro")?.hidden === false;
     function paint() {
-      if (done || standalone(win) || nudgeCoversInstall()) { hide(); return; }
+      if (done || !engaged || standalone(win) || nudgeCoversInstall() || blocked()) { hide(); return; }
       action.textContent = os === "android" && deferred ? "Instalar" : "Como instalar";
       if (card.hidden) { card.hidden = false; if (!shown) { shown = true; track("Install Prompt Shown"); } }
     }
     const offer = shouldOffer({storage, session, now:now(), os, installed:standalone(win)});
+    if (offer && wait) {
+      const engage = () => {
+        if (engaged) return;
+        engaged = true; win.removeEventListener?.("scroll", onScroll); paint();
+      };
+      const onScroll = () => { if ((win.scrollY || 0) > (win.innerHeight || 700) * .8) engage(); };
+      win.addEventListener?.("scroll", onScroll, {passive:true});
+      (runtime.setTimeout || setTimeout)(engage, ENGAGE_MS);
+      for (const node of [terms, doc.getElementById("pluviaIntro")]) {
+        if (node && typeof runtime.MutationObserver === "function") new runtime.MutationObserver(() => paint()).observe(node, {attributes:true, attributeFilter:["hidden"]});
+      }
+    }
 
     win.addEventListener?.("beforeinstallprompt", event => {
       event.preventDefault?.(); // o convite próprio substitui a barra automática do Chrome

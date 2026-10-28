@@ -10,10 +10,9 @@ test('plataforma: iPhone, iPad com cara de Mac, Android e computador',()=>{
   assert.equal(install.platform({userAgent:'Mozilla/5.0 (Windows NT 10.0)'}),'other');
 });
 
-test('só a partir da segunda visita, nunca instalado, computador ou depois de "Agora não"',()=>{
+test('já na primeira visita, nunca instalado, computador ou depois de "Agora não"',()=>{
   const storage=store();
-  assert.equal(install.shouldOffer({storage,session:store(),now:1e12,os:'ios',installed:false}),false,'primeira visita');
-  assert.equal(install.shouldOffer({storage,session:store(),now:1e12,os:'ios',installed:false}),true,'segunda visita');
+  assert.equal(install.shouldOffer({storage,session:store(),now:1e12,os:'ios',installed:false}),true,'primeira visita (1.40)');
   const session=store();
   assert.equal(install.shouldOffer({storage,session,now:1e12,os:'android',installed:true}),false,'app instalado');
   assert.equal(install.shouldOffer({storage,session,now:1e12,os:'other',installed:false}),false,'computador');
@@ -32,13 +31,27 @@ test('passo a passo do iPhone e do Android sem pedido nativo',()=>{
 
 test('Android com pedido nativo: botão Instalar chama prompt e some ao aceitar',async()=>{
   const listeners={},els={};
-  const el=id=>els[id]||(els[id]={id,hidden:id==='installCard'||id==='alertNudge',textContent:'',open:false,addEventListener(t,f){listeners[id+':'+t]=f;},showModal(){this.open=true;}});
+  const el=id=>els[id]||(els[id]={id,hidden:['installCard','alertNudge','termsNotice','pluviaIntro'].includes(id),textContent:'',open:false,addEventListener(t,f){listeners[id+':'+t]=f;},showModal(){this.open=true;}});
   const win={navigator:{userAgent:'Android 14'},matchMedia:()=>({matches:false}),addEventListener:(t,f)=>{listeners['win:'+t]=f;}};
   const storage=store();storage.setItem('pluvia-install-visits','1');
-  const api=install.mount({doc:{getElementById:el},win,storage,session:store(),now:()=>1e12});
+  const api=install.mount({doc:{getElementById:el},win,storage,session:store(),now:()=>1e12,wait:false});
   assert.equal(api.offered,true);assert.equal(els.installCard.hidden,false);assert.equal(els.installCardAction.textContent,'Como instalar');
   let prompted=0;listeners['win:beforeinstallprompt']({preventDefault(){},prompt:()=>{prompted++;return Promise.resolve();},userChoice:Promise.resolve({outcome:'accepted'})});
   assert.equal(els.installCardAction.textContent,'Instalar');
   await listeners['installCardAction:click']();
   assert.equal(prompted,1);assert.equal(els.installCard.hidden,true);
+});
+
+test('barra só depois de rolar quase uma tela, e nunca junto com o aviso dos Termos',()=>{
+  const listeners={},els={};
+  const el=id=>els[id]||(els[id]={id,hidden:['installCard','alertNudge','pluviaIntro'].includes(id),textContent:'',open:false,addEventListener(t,f){listeners[id+':'+t]=f;},showModal(){}});
+  els.termsNotice={id:'termsNotice',hidden:false,addEventListener(){}};
+  const win={navigator:{userAgent:'iPhone'},matchMedia:()=>({matches:false}),scrollY:0,innerHeight:800,addEventListener:(t,f)=>{listeners['win:'+t]=f;},removeEventListener(){}};
+  const api=install.mount({doc:{getElementById:el},win,storage:store(),session:store(),now:()=>1e12});
+  assert.equal(api.offered,true);
+  assert.equal(els.installCard.hidden,true,'antes de usar o app');
+  win.scrollY=700;listeners['win:scroll']();
+  assert.equal(els.installCard.hidden,true,'aviso dos Termos ainda na tela');
+  els.termsNotice.hidden=true;api.paint();
+  assert.equal(els.installCard.hidden,false,'depois de rolar e sem os Termos');
 });
