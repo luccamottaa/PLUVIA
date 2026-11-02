@@ -84,10 +84,14 @@ with sync_playwright() as p:
             box = page.evaluate("""() => { const r = document.querySelector('.compact-icon').getBoundingClientRect();
               return {x:r.x, y:r.y, width:r.width, height:r.height}; }""")
             assert box['width'] >= 40 and box['height'] >= 40, ('ícone da pílula', box)
-            shown = page.screenshot(clip=box)
-            page.evaluate("document.querySelector('.compact-icon img').style.visibility='hidden'")
-            hidden = page.screenshot(clip=box)
-            page.evaluate("document.querySelector('.compact-icon img').style.visibility=''")
+            # Captura do próprio elemento (não clip): com a página rolada, o WebKit lia o clip a partir do topo do
+            # documento e as duas capturas saíam de outra área, iguais. Dois quadros depois de cada troca.
+            frames = "new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))"
+            icon = page.locator('.compact-icon')
+            shown = icon.screenshot()
+            page.evaluate("document.querySelector('.compact-icon img').style.visibility='hidden'"); page.evaluate(frames)
+            hidden = icon.screenshot()
+            page.evaluate("document.querySelector('.compact-icon img').style.visibility=''"); page.evaluate(frames)
             assert shown != hidden, 'ícone da pílula não foi pintado'
             page.evaluate("window.scrollTo(0, 0)"); page.wait_for_timeout(300)
         # Conta deslogada: ícone com alvo de 44 px e nome acessível.
