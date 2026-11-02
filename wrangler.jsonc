@@ -1,0 +1,11 @@
+// Publicação no Cloudflare (Worker só com arquivos estáticos, sem código): a mesma pasta dist/ do GitHub Pages.
+// "404-page" serve dist/404.html com status 404; sem isso, um endereço inexistente não pode virar o index.html com 200.
+{
+  "name": "pluviaweather",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}
