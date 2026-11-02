@@ -1,0 +1,15 @@
+// Publicação no Cloudflare: Worker com a mesma pasta dist/ do GitHub Pages. worker/pluvia.mjs só acerta os
+// cabeçalhos (cache de um ano para ?v=, sw.js sem cache, segurança) e manda o www para o domínio sem www.
+// "404-page" serve dist/404.html com status 404; sem isso, um endereço inexistente não pode virar o index.html com 200.
+{
+  "name": "pluviaweather",
+  "main": "worker/pluvia.mjs",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}
