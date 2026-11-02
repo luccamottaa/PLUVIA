@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.44", date:"2026-11-02", title:"Fotos de perfil novas", items:[
+      "As fotos de perfil foram trocadas por 12 ilustrações de chuva: crianças de capa, vovó de guarda-chuva, cachorro, gato, sapo e a nuvenzinha.",
+      "Quem usava uma foto antiga volta à inicial do nome até escolher uma nova em Minha conta."
+    ]},
     {version:"1.43.1", date:"2026-11-02", title:"X de fechar novo", items:[
       "O X que fecha as janelas ficou maior, mais grosso e bem no centro do botão.",
       "Sumiu o quadrado que aparecia em volta da foto da conta depois de fechar a janela."

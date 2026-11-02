@@ -1696,7 +1696,8 @@ html body #monthDialog .accuracy-stats { grid-template-columns:repeat(3,minmax(0
 /* Fotos de perfil (modules/avatars.js): desenho de tempo sobre círculo colorido, no botão da conta,
    no topo de "Minha conta" e na escolha. Só pintura, sem transform/z-index. */
 .topbar .account-trigger .account-avatar { display:grid; place-items:center; width:32px; height:32px; border-radius:50%; overflow:hidden; background:var(--avatar-bg,var(--brand-blue)); box-shadow:0 0 0 2px var(--brand-blue); }
-.topbar .account-trigger .account-avatar img,html body #accountDialog .profile-avatar[data-avatar] img,#accountDialog .avatar-face img { width:78%; height:78%; object-fit:contain; }
+/* 1.44: as fotos são ilustrações redondas inteiras (antes, desenho de tempo a 78% sobre um círculo colorido). */
+.topbar .account-trigger .account-avatar img,html body #accountDialog .profile-avatar[data-avatar] img,#accountDialog .avatar-face img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
 html body #accountDialog .profile-avatar[data-avatar] { overflow:hidden; background:var(--avatar-bg); }
 #accountDialog .avatar-picker { margin:4px 0 18px; padding:0; border:0; min-width:0; }
 #accountDialog .avatar-picker legend { margin-bottom:10px; padding:0; color:var(--dialog-muted); font-size:.9375rem; }

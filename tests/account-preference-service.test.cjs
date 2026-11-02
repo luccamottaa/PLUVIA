@@ -78,9 +78,9 @@ test('nome é validado e gravação concorrente preserva favoritos e locais',asy
 test('foto de perfil: só desenhos conhecidos ou null, e o mesmo conjunto do app',()=>{
   const {AVATAR_IDS}=require('../supabase/functions/_shared/account-preferences.js');
   assert.deepEqual([...AVATAR_IDS],require('../dist/modules/avatars.js').AVATARS.map(a=>a.id),'servidor e app aceitam as mesmas fotos');
-  assert.equal(snapshot({}).avatar,null);assert.equal(snapshot({avatar_id:'lua'}).avatar,'lua');assert.equal(snapshot({avatar_id:'<img>'}).avatar,null);
-  assert.deepEqual(applyOperations({name:'Nome'},operationsInput({avatar:'sol'})),{avatar_id:'sol'});
-  assert.deepEqual(applyOperations({avatar_id:'sol'},operationsInput({avatar:null})),{avatar_id:null},'voltar à inicial');
-  assert.deepEqual(applyOperations({avatar_id:'sol'},operationsInput({avatar:'sol'})),{},'repetir não grava');
-  for(const value of [{avatar:'x'},{avatar:1},{avatar:''},{avatar:'https://evil.test/a.png'}]) assert.throws(()=>operationsInput(value),/invalid_operations/);
+  assert.equal(snapshot({}).avatar,null);assert.equal(snapshot({avatar_id:'sapo'}).avatar,'sapo');assert.equal(snapshot({avatar_id:'<img>'}).avatar,null);
+  assert.deepEqual(applyOperations({name:'Nome'},operationsInput({avatar:'sapo'})),{avatar_id:'sapo'});
+  assert.deepEqual(applyOperations({avatar_id:'sapo'},operationsInput({avatar:null})),{avatar_id:null},'voltar à inicial');
+  assert.deepEqual(applyOperations({avatar_id:'sapo'},operationsInput({avatar:'sapo'})),{},'repetir não grava');
+  for(const value of [{avatar:'x'},{avatar:'sol'},{avatar:1},{avatar:''},{avatar:'https://evil.test/a.png'}]) assert.throws(()=>operationsInput(value),/invalid_operations/);
 });
