@@ -97,6 +97,22 @@
     return cloudCover >= 85 ? 3 : cloudCover >= 40 ? 2 : 1;
   }
 
+  // Neblina do modelo que a visibilidade desmente (1.42.2, pedido do dono: "Neblina" em Manaus com o aeroporto
+  // medindo 10+ km). Neblina (WMO 45/48) é visibilidade abaixo de 1 km; com 5 km ou mais não é neblina nem névoa.
+  // Vale a medida do aeroporto (boletim de até 75 min); sem ela, a visibilidade do próprio modelo na hora.
+  const FOG = new Set([45, 48]);
+  function fogCleared({airport = null, now = Date.now()} = {}, modelVisibility = null) {
+    const measured = airport?.visibility;
+    if (measured && finite(measured.meters) && fresh(airport.at, now, AIRPORT_MAX_AGE_MS)) return measured.meters >= 5000;
+    return finite(modelVisibility) && modelVisibility >= 5000;
+  }
+  // Código sem a neblina, pela cobertura de nuvens da hora (sem cobertura, nublado).
+  function clearFogCode(modelCode, cloudCover) {
+    if (!FOG.has(modelCode)) return modelCode;
+    if (!finite(cloudCover)) return 3;
+    return cloudCover >= 85 ? 3 : cloudCover >= 40 ? 2 : cloudCover >= 10 ? 1 : 0;
+  }
+
   // Garoa/chuva fraca que o próprio modelo não sustenta (1.37.3, pedido do dono, depois de ver todas as capitais):
   // código fraco com menos de 0,5 mm e chance abaixo de 50% na hora que começa agora (intervalo i+1). Nos dados do
   // placar (outubro/2026, 27 capitais, estação do INMET) o modelo com 0,1–0,5 mm na hora acertou chuva em 15% das
@@ -151,5 +167,5 @@
   const key = observed => observed ? `${observed.source}:${observed.at}:${observed.code}:${observed.stormSource || ''}` : '';
 
   return {STATION_MAX_AGE_MS, STATION_MIN_MM, AIRPORT_MAX_AGE_MS, RADAR_MAX_AGE_MS, STORM_CAPE, codeFor,
-    fromStation, fromAirport, fromRadar, nearby, pick, withStorm, merge, dryNow, dryCode, weakModelRain, answer, nearbyAnswer, label, key};
+    fromStation, fromAirport, fromRadar, nearby, pick, withStorm, merge, dryNow, dryCode, weakModelRain, fogCleared, clearFogCode, answer, nearbyAnswer, label, key};
 });

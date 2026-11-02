@@ -1297,7 +1297,9 @@ function withObservedRain(data) {
     const api = globalThis.PLUVIA?.observedRain;
     const next = selectCurrentHour(data.hourly?.time || []) + 1;
     const weak = next > 0 && api?.weakModelRain?.(current?.weather_code, data.hourly?.precipitation?.[next], data.hourly?.precipitation_probability?.[next]);
-    const dried = current && (api?.dryNow?.(observedSources()) || weak) ? api.dryCode(current.weather_code, current.cloud_cover) : current?.weather_code;
+    let dried = current && (api?.dryNow?.(observedSources()) || weak) ? api.dryCode(current.weather_code, current.cloud_cover) : current?.weather_code;
+    // Neblina do modelo com o aeroporto (ou o próprio modelo) vendo 5 km ou mais vira o céu da hora.
+    if (current && api?.fogCleared?.(observedSources(), data.hourly?.visibility?.[next - 1])) dried = api.clearFogCode(dried, current.cloud_cover);
     return dried === current?.weather_code ? {current, observed:null, replaced:false} : {current:{...current, weather_code:dried}, observed:null, replaced:true, dried:true};
   }
   const code = globalThis.PLUVIA.observedRain.merge(current.weather_code, observed);
@@ -1344,7 +1346,7 @@ function rainAnswerFor(data, start) {
 // Chave do que a observação muda no topo (condição/céu e "Vai chover?").
 function observedRainKey(data) {
   const api = globalThis.PLUVIA?.observedRain, close = api?.nearby?.(observedSources());
-  return `${api?.key?.(observedRainFor(data)) || ""}|${close ? `${close.icao}:${close.at}:${close.thunder}` : ""}|${nowcastAnswer()?.text || ""}|${api?.dryNow?.(observedSources()) ? "dry" : ""}`;
+  return `${api?.key?.(observedRainFor(data)) || ""}|${close ? `${close.icao}:${close.at}:${close.thunder}` : ""}|${nowcastAnswer()?.text || ""}|${api?.dryNow?.(observedSources()) ? "dry" : ""}|${api?.fogCleared?.(observedSources(), data.hourly?.visibility?.[selectCurrentHour(data.hourly?.time || [])]) ? "clear" : ""}`;
 }
 // Uma leitura nova (ou vencida) repinta só a condição, o céu e o "Vai chover?", sem refazer a Home.
 function refreshObservedRain() {

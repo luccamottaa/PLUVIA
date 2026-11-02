@@ -117,9 +117,9 @@ test('trovoada nas proximidades confirma tempestade com chuva medida; sem chuva,
 test('o app carrega o módulo antes de app.js e só repinta condição, céu e "Vai chover?"', () => {
   const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
   const sw = fs.readFileSync(path.join(__dirname, '../dist/sw.js'), 'utf8');
-  assert.ok(html.indexOf('modules/observed-rain.js?v=observed-rain-4') > 0);
+  assert.ok(html.indexOf('modules/observed-rain.js?v=observed-rain-5') > 0);
   assert.ok(html.indexOf('modules/observed-rain.js') < html.indexOf('app.js?v='));
-  assert.match(sw, /modules\/observed-rain\.js\?v=observed-rain-4/);
+  assert.match(sw, /modules\/observed-rain\.js\?v=observed-rain-5/);
   const app = fs.readFileSync(path.join(__dirname, '../dist/app.js'), 'utf8');
   const refresh = app.slice(app.indexOf('function refreshObservedRain()'), app.indexOf('globalThis.addEventListener?.("pluvia:station-reading"'));
   assert.doesNotMatch(refresh, /render\(|pluvia:weather-updated/, 'repintar não dispara outra rodada de consultas');
@@ -168,4 +168,18 @@ test('garoa que o próprio modelo não sustenta sai do topo (1.37.3, todas as ci
   assert.equal(observed.dryCode(51, 30), 1); assert.equal(observed.dryCode(51, 60), 2); assert.equal(observed.dryCode(51, 90), 3);
   const app = fs.readFileSync(path.join(__dirname, '../dist/app.js'), 'utf8');
   assert.match(app, /weakModelRain\?\.\(current\?\.weather_code, data\.hourly\?\.precipitation\?\.\[next\], data\.hourly\?\.precipitation_probability\?\.\[next\]\)/, 'intervalo que começa agora: i+1');
+});
+
+test('neblina do modelo sai com o aeroporto (ou o modelo) vendo 5 km ou mais (1.42.2)', () => {
+  // Manaus, 02/11/2026 00:22: o modelo dizia "Neblina" com o aeroporto SBMN em 9999.
+  const now = Date.parse('2026-11-02T04:22:00Z');
+  const airport = {icao:'SBMN', at:now - 20 * 60_000, weather:{}, visibility:{meters:10000, plus:true}};
+  assert.equal(observed.fogCleared({airport, now}, 400), true, 'a medida vence a visibilidade do modelo');
+  assert.equal(observed.fogCleared({airport:{...airport, visibility:{meters:800, plus:false}}, now}, 20000), false, 'aeroporto com neblina mantém');
+  assert.equal(observed.fogCleared({airport:{...airport, at:now - 2 * 3600_000}, now}, 400), false, 'boletim velho não vale; modelo baixo mantém');
+  assert.equal(observed.fogCleared({now}, 12000), true, 'sem aeroporto, o próprio modelo desmente');
+  assert.equal(observed.fogCleared({now}, null), false, 'sem leitura nenhuma, nada muda');
+  assert.equal(observed.clearFogCode(45, 95), 3); assert.equal(observed.clearFogCode(48, 50), 2);
+  assert.equal(observed.clearFogCode(45, 20), 1); assert.equal(observed.clearFogCode(45, 0), 0);
+  assert.equal(observed.clearFogCode(45, null), 3); assert.equal(observed.clearFogCode(61, 0), 61, 'só neblina é tocada');
 });

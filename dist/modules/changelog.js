@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.42.2", date:"2026-11-02", title:"Sem neblina inventada", items:[
+      "Quando o aeroporto mais próximo mede boa visibilidade, a previsão não mostra mais \"Neblina\" no topo.",
+      "Ícones maiores nos próximos 7 dias.",
+      "A Lua no arco do Ciclo do dia não fica mais transparente."
+    ]},
     {version:"1.42.1", date:"2026-10-28", title:"Qualidade do ar em destaque", items:[
       "A classificação da qualidade do ar ganhou cores mais vivas e, quando o ar fica ruim, aparece em letras maiúsculas e mais grossas."
     ]},
