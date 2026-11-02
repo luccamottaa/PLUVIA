@@ -2252,3 +2252,56 @@ html body .dialog-close::before {
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 4l12 12M16 4L4 16' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 @media (forced-colors:active) { html body .dialog-close::before { background:ButtonText; } }
+
+/* Vidro líquido nos botões do topo (1.45, pedido do dono com vídeo do app Fotos do iOS 26): a conta é um
+   círculo e compartilhar + lupa uma cápsula, como as barras do iOS. O vidro fica num ::before (o
+   box-shadow:none !important dos botões do topo não o alcança) atrás do ícone: desfoque leve do céu,
+   saturação, borda de luz mais forte em cima à esquerda e embaixo à direita, brilho interno e sombra.
+   No Chromium a borda também refrata o que passa atrás (lente por feDisplacementMap, filtros
+   pluviaGlassCircle/Capsule no SVG compartilhado; p0 marca data-glass-lens só onde há userAgentData):
+   o Safari ignora url() no backdrop-filter e ficaria sem vidro nenhum. Só esses três botões pequenos
+   têm backdrop-filter (nos cartões de tela inteira, sobre as nuvens animadas, o Safari do iPhone caía).
+   Estático: nada anima o filtro. */
+.topbar .top-actions { position:relative; gap:8px; height:44px; border-radius:22px; }
+.topbar .account-trigger[data-signed-in] { position:relative; justify-items:center; padding-left:0; border-radius:50%; }
+.topbar .account-trigger::before,.topbar .top-actions::before {
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05) 55%,rgba(255,255,255,.1));
+  -webkit-backdrop-filter:blur(4px) saturate(1.8) brightness(1.08);
+  backdrop-filter:blur(4px) saturate(1.8) brightness(1.08);
+  box-shadow:
+    inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.75),
+    inset -1px -1px 0 -.5px rgba(255,255,255,.45),
+    inset 0 0 0 .5px rgba(255,255,255,.28),
+    inset 0 0 14px rgba(255,255,255,.14),
+    0 4px 16px rgba(4,14,34,.22);
+}
+html[data-glass-lens] .topbar .account-trigger::before {
+  -webkit-backdrop-filter:url(#pluviaGlassCircle);
+  backdrop-filter:url(#pluviaGlassCircle);
+}
+html[data-glass-lens] .topbar .top-actions::before {
+  -webkit-backdrop-filter:url(#pluviaGlassCapsule);
+  backdrop-filter:url(#pluviaGlassCapsule);
+}
+/* Céu claro (tinta escura): vidro mais leitoso, como o iOS sobre fundo claro; sombra mais suave. */
+body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before {
+  background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.2) 55%,rgba(255,255,255,.3));
+  box-shadow:
+    inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),
+    inset -1px -1px 0 -.5px rgba(255,255,255,.7),
+    inset 0 0 0 .5px rgba(255,255,255,.5),
+    inset 0 0 14px rgba(255,255,255,.3),
+    0 4px 14px rgba(20,40,70,.14);
+}
+.topbar :is(.account-trigger,.top-actions) > *,.topbar .search-trigger svg { position:relative; }
+.topbar .top-actions .search-trigger { border-radius:22px; }
+/* Toque: o ícone esmaece, o vidro fica (antes o botão inteiro esmaecia). */
+html body .topbar :is(#accountButton,#openCitySearch,#shareWeather):active { opacity:1; }
+html body .topbar :is(#accountButton,#openCitySearch,#shareWeather):active > * { opacity:.45; }
+html body .topbar :is(#accountButton,#openCitySearch,#shareWeather) > * { transition:opacity .28s ease; }
+@media (prefers-reduced-transparency:reduce) {
+  .topbar :is(.account-trigger,.top-actions)::before { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; background:rgba(22,34,58,.82); }
+  body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before { background:rgba(244,247,252,.9); }
+}
+@media (forced-colors:active) { .topbar :is(.account-trigger,.top-actions)::before { display:none; } }

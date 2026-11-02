@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.45", date:"2026-11-02", title:"Botões de vidro no topo", items:[
+      "A conta, o compartilhar e a busca no topo viraram botões de vidro, como os do iPhone: o céu aparece desfocado por trás, com brilho na borda.",
+      "No Chrome e no Android a borda do vidro também entorta o céu atrás, como uma lente."
+    ]},
     {version:"1.44.1", date:"2026-11-02", title:"Abertura com brilho", items:[
       "A logo e o nome PLUVIA ganharam um brilho suave na abertura, e o \"Feito no Norte\" agora entra por último, depois do slogan."
     ]},
