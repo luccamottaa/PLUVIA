@@ -74,7 +74,12 @@ with sync_playwright() as p:
             # Cabeçalho compacto (1.41.2): o ícone da pílula precisa ser pintado de verdade (no iPhone ele ficava
             # invisível dentro da faixa com máscara). Compara a área do ícone com e sem ele.
             page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
-            page.wait_for_function("document.querySelector('.compact-head[data-on] .compact-icon img')?.complete", timeout=10000)
+            # Espera a imagem decodificada e o fade da faixa terminar: no WebKit da CI, com a página ainda
+            # aparecendo (opacidade perto de 0), as duas capturas saíam iguais.
+            page.wait_for_function("(() => { const img = document.querySelector('.compact-head[data-on] .compact-icon img');"
+                                   " return img?.complete && img.naturalWidth > 0"
+                                   " && getComputedStyle(document.querySelector('.compact-head')).opacity === '1'; })()", timeout=10000)
+            page.evaluate("document.querySelector('.compact-icon img').decode().catch(() => {})")
             page.wait_for_timeout(400)
             box = page.evaluate("""() => { const r = document.querySelector('.compact-icon').getBoundingClientRect();
               return {x:r.x, y:r.y, width:r.width, height:r.height}; }""")
