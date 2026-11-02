@@ -19,10 +19,21 @@ Nada muda no código do app: o Pages publica a mesma pasta `dist/`, sem build.
   `?v=` (ver `docs/CLOUDFLARE.md`).
 - `scripts/check-release.cjs` espera até 6 min pelo HTML novo: no Pages quem publica é o Cloudflare, e o job de
   verificação do GitHub pode começar antes.
-- `wrangler.jsonc` (raiz): o projeto criado no painel em 28/10/2026 é um **Worker só com arquivos estáticos**
-  (`pluviaweather`, sem código), não um projeto Pages clássico. O arquivo fixa a pasta `dist/`, a página 404 com
-  status 404 (`not_found_handling: "404-page"`) e o `/index.html` → `/` (`auto-trailing-slash`, tratado pelo
-  `unwrap`). O `_headers` vale do mesmo jeito em Workers. O comando de publicação do painel é `npx wrangler deploy`.
+- `wrangler.jsonc` (raiz) e `worker/pluvia.mjs`: o projeto criado no painel em 28/10/2026 é um **Worker**
+  (`pluviaweather`) que entrega a pasta `dist/` pelo binding `ASSETS`, não um projeto Pages clássico. O
+  `wrangler.jsonc` fixa a pasta, a página 404 com status 404 (`not_found_handling: "404-page"`) e o
+  `/index.html` → `/` (`auto-trailing-slash`, tratado pelo `unwrap`). O comando de publicação do painel é
+  `npx wrangler deploy`.
+- **Por que há código no Worker** (`run_worker_first`): atrás de um Worker, as Cache Rules da zona de
+  `docs/CLOUDFLARE.md` não valem mais. Em 02/11/2026, logo depois da troca do domínio, o `app.js?v=…` saía com
+  `max-age=0`. O Worker devolve o cache de um ano aos arquivos com `?v=` e às fontes, deixa `/sw.js` sem cache,
+  manda o `www` para o domínio sem www (301; antes o GitHub fazia), acrescenta cabeçalhos de segurança
+  (`nosniff`, `Referrer-Policy`, HSTS sem preload, `Permissions-Policy` com localização e microfone só na própria
+  página, `X-Frame-Options: SAMEORIGIN`) e põe as pré-conexões do `<head>` num cabeçalho `Link` no HTML, que o
+  Early Hints da zona transforma em resposta 103. Cada pedido conta como uma execução do Worker (plano gratuito:
+  100 mil por dia; o PLUVIA fica muito abaixo, e quem volta é servido pelo service worker).
+- `dist/.assetsignore`: `CNAME`, `.nojekyll` e `dev-server.cjs` não sobem para o Worker (são do GitHub Pages e
+  do preview local).
 - `CNAME` e `.nojekyll` continuam em `dist/` só para o GitHub Pages, que segue como reserva durante a troca.
 
 ## Passo a passo (painel da Cloudflare, quem tem acesso)
@@ -45,3 +56,12 @@ Nada muda no código do app: o Pages publica a mesma pasta `dist/`, sem build.
 Remover o domínio personalizado do projeto no Pages e recriar no DNS os quatro `A` do GitHub
 (`185.199.108.153` a `185.199.111.153`, com proxy) e o `CNAME www` → `luccamottaa.github.io`. O GitHub Pages
 continua publicando enquanto o `pages.yml` não for mudado.
+
+## Painel da zona depois da troca (recomendado)
+
+- **Velocidade → Otimização → Early Hints**: ligado (usa o `Link` que o Worker manda no HTML).
+- **HTTP/3** e **Brotli**: já vêm ligados (conferido: `alt-svc: h3` e `content-encoding: br`).
+- **SSL/TLS → Certificados de borda → Sempre usar HTTPS**: ligado.
+- Continuam desligados: **Rocket Loader**, ofuscação de e-mail e **Web Analytics/RUM** (ver `docs/CLOUDFLARE.md`).
+- As Cache Rules antigas ("Arquivos versionados" e "Service worker sem cache") ficam inofensivas; o Worker faz o
+  trabalho delas.
