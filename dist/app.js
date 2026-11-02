@@ -1542,7 +1542,10 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   pressureNote.textContent = ""; const pressureHidden = document.createElement("span"); pressureHidden.className = "visually-hidden"; pressureHidden.textContent = pressureText; pressureNote.append(pressureHidden);
   // Classe e, como no app Tempo, até quando usar protetor no resto do dia (UV ≥ 3; weatherInsights.uvWindow).
   const uvNow = now.uvIndex, uvProtect = Number.isFinite(uvNow) ? weatherInsights?.uvWindow?.(data.hourly, start) : null;
-  $("uv").textContent = fmt(uvNow, 0); $("uvNote").textContent = uvLabel(Number.isFinite(uvNow) ? Math.round(uvNow) : uvNow) + (uvProtect ? ` · ${uvProtect.text}` : "");
+  $("uv").textContent = fmt(uvNow, 0); // Com a janela de protetor, a classe vai curta ("Moderado · proteção solar até 15:00"): o conselho da classe e a
+  // janela diziam a mesma coisa duas vezes.
+  const uvText = uvLabel(Number.isFinite(uvNow) ? Math.round(uvNow) : uvNow);
+  $("uvNote").textContent = uvProtect ? `${uvText.split(" — ")[0]} · ${uvProtect.text.replace(/^P/, "p")}` : uvText;
   $("uvScale").hidden = !Number.isFinite(uvNow);
   if (Number.isFinite(uvNow)) $("uvScale").style.setProperty("--uv-position", `${Math.max(0, Math.min(100, uvNow / 11 * 100))}%`);
   renderAirQuality(air?.current?.us_aqi);
