@@ -2235,3 +2235,19 @@ html body #weatherView .air-metric:is([data-aqi-level="poor"],[data-aqi-level="v
    ("Visibilidad/e"). O rótulo nunca quebra dentro da palavra e, até 359 px, fica um pouco menor. */
 #weatherView .metric-head > span:first-child { overflow-wrap:normal; word-break:normal; hyphens:none; }
 @media (max-width:359px) { #weatherView .metrics .metric-head > span:first-child { font-size:.875rem; } }
+
+/* Anel de foco (1.43.1, pedido do dono: um quadrado aparecia em volta da foto da conta depois de fechar a janela):
+   redondo como os botões do topo, e só para quem navega pelo teclado (p0.js marca data-pointer no toque/clique). */
+.topbar :is(a,button):focus-visible { border-radius:50%; }
+html[data-pointer] :is(.topbar :is(a,button), .dialog-close):focus-visible { outline:none; }
+
+/* X de fechar (1.43.1, pedido do dono: "maior e mais grosso e alinhado"): o caractere "×" da fonte ficava fino,
+   pequeno e fora do centro (a Sora o desenha mais alto que o meio da linha). O texto continua no HTML para
+   leitores sem CSS; o desenho é um traço de 2,4 px centrado por grade, na cor do texto do botão. */
+html body .dialog-close { display:grid !important; place-items:center; padding:0 !important; font-size:0 !important; line-height:0 !important; }
+html body .dialog-close::before {
+  content:""; width:20px; height:20px; background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 4l12 12M16 4L4 16' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 4l12 12M16 4L4 16' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+@media (forced-colors:active) { html body .dialog-close::before { background:ButtonText; } }
