@@ -188,3 +188,9 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
     if (event.key === 'Tab' || event.key.startsWith('Arrow')) delete root.dataset.pointer;
   }, true);
 })();
+
+// Vidro dos botões do topo: a lente da borda (url() no backdrop-filter) só funciona no Chromium. O Safari
+// descarta o backdrop-filter inteiro quando ele tem url(), então só quem tem userAgentData (Chromium) recebe.
+(function glassLens() {
+  try { if (navigator.userAgentData && CSS.supports('backdrop-filter', 'blur(1px)')) document.documentElement.dataset.glassLens = '1'; } catch {}
+})();
