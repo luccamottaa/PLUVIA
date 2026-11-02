@@ -141,9 +141,9 @@ with sync_playwright() as p:
  page.evaluate("chooseCity('4106902')")
  page.wait_for_function("document.getElementById('cityName').textContent.includes('Curitiba') && !document.getElementById('weatherView').classList.contains('initial-loading')")
  page.locator('.hourly-peek-item').first.click();assert page.locator('#hourlyDetailDialog').evaluate('(el)=>el.open')
- assert page.locator('#hourlyDetailUv').inner_text()=='4,0'
+ assert page.locator('#hourlyDetailUv').inner_text()=='4'
  assert page.locator('#hourlyDetailDirection').inner_text()=='Vindo de L'
- assert page.locator('#hourlyDetailPressure').inner_text()=='1.010 hPa'
+ assert page.locator('#hourlyDetailPressure').inner_text()=='1010 hPa'
  page.keyboard.press('Escape')
  page.emulate_media(reduced_motion='reduce');assert page.evaluate("matchMedia('(prefers-reduced-motion:reduce)').matches")
  assert not errors,errors

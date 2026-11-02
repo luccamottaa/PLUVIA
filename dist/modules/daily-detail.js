@@ -8,7 +8,7 @@
   'use strict';
   const number=(v,min,max)=>typeof v==='number' && Number.isFinite(v) && v>=min && v<=max ? v : null;
   const numberFormats=new Map();
-  const format=(v,digits=0)=>v===null ? 'Indisponível' : (numberFormats.get(digits) || numberFormats.set(digits,new Intl.NumberFormat('pt-BR',{maximumFractionDigits:digits})).get(digits)).format(v);
+  const format=(v,digits=0)=>v===null ? 'Indisponível' : (numberFormats.get(digits) || numberFormats.set(digits,new Intl.NumberFormat('pt-BR',{maximumFractionDigits:digits,useGrouping:false})).get(digits)).format(v);
   function detail(daily,hourly,index,city) {
     const date=daily?.time?.[index];
     if(!Number.isInteger(index) || index<0 || !/^\d{4}-\d{2}-\d{2}$/.test(date||'') || !Number.isFinite(time.wallTime(date+'T12:00'))) return null;

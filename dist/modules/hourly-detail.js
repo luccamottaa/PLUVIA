@@ -8,7 +8,7 @@
   const number=(value,min=-Infinity,max=Infinity)=>typeof value==='number' && Number.isFinite(value) && value>=min && value<=max ? value : null;
   // A timeline chama detail() em cada hora: toLocaleString criava um formatador por número.
   const numberFormats=new Map();
-  const numberFormat=digits=>numberFormats.get(digits) || numberFormats.set(digits,new Intl.NumberFormat('pt-BR',{minimumFractionDigits:digits,maximumFractionDigits:digits})).get(digits);
+  const numberFormat=digits=>numberFormats.get(digits) || numberFormats.set(digits,new Intl.NumberFormat('pt-BR',{minimumFractionDigits:digits,maximumFractionDigits:digits,useGrouping:false})).get(digits);
   const format=(value,digits=0)=>value===null || !Number.isFinite(value) ? 'Indisponível' : numberFormat(digits).format(value);
   const clock=time=>typeof time==='string' ? time.slice(11,16) : '';
   // Linhas normalizadas (weatherData.rows: nomes do PLUVIA) viram colunas com os nomes do provedor só aqui,
@@ -71,7 +71,7 @@
       el('hourlyDetailHumidity').textContent=unit(reading.humidity,'%');
       const direction = reading.wind === null || reading.wind === 0 || reading.direction === null ? 'Indisponível ou vento calmo' : 'Vindo de '+['N','NE','L','SE','S','SO','O','NO'][Math.round(reading.direction/45)%8];
       if(el('hourlyDetailDirection')) el('hourlyDetailDirection').textContent=direction;
-      if(el('hourlyDetailUv')) el('hourlyDetailUv').textContent=unit(reading.uv,'',1);
+      if(el('hourlyDetailUv')) el('hourlyDetailUv').textContent=unit(reading.uv,'',0);
       if(el('hourlyDetailPressure')) el('hourlyDetailPressure').textContent=unit(reading.pressure,' hPa');
       el('hourlyDetailRainInterval').textContent=reading.rainEnd ? `Chance e chuva prevista valem de ${clock(reading.time)} a ${clock(reading.rainEnd)}${reading.rainEnd.slice(0,10)!==reading.time.slice(0,10) ? ' do dia seguinte' : ''}.` : 'Intervalo de chuva indisponível.';
       el('hourlyDetailSource').textContent=(state.fromCache ? 'Leitura salva · ' : 'Previsão por modelos · ')+`horário de ${state.city.name}.`;

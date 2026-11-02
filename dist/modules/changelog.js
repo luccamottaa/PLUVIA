@@ -12,6 +12,12 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.42.3", date:"2026-11-02", title:"Ajustes finos", items:[
+      "O Índice UV não repete mais o conselho de proteção solar duas vezes.",
+      "No detalhe da hora, o UV e a pressão aparecem do mesmo jeito que na tela principal.",
+      "Menos espaço vazio embaixo da fileira de Próximas horas.",
+      "\"Privacidade\" no menu da conta virou \"Métricas e privacidade\", para não confundir com a Política de Privacidade."
+    ]},
     {version:"1.42.2", date:"2026-11-02", title:"Sem neblina inventada", items:[
       "Quando o aeroporto mais próximo mede boa visibilidade, a previsão não mostra mais \"Neblina\" no topo.",
       "Ícones maiores nos próximos 7 dias.",

@@ -2058,7 +2058,7 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 /* Troca de modo das Próximas horas (1.26.7, como no app Tempo): fade curto da fileira por View Transition
    (app.js, setHourlyMode) e a mesma altura nos três modos, para a janela seca e o "Tá chovendo aí?" não pularem.
    As barras de chuva sobem do zero (altura). Movimento reduzido: troca na hora. */
-#weatherView .hourly-peek-list { min-height:10rem; }
+#weatherView .hourly-peek-list { min-height:9.25rem; }
 ::view-transition-old(pluvia-hourly) { animation:pluvia-hourly-out .16s ease-in both; }
 ::view-transition-new(pluvia-hourly) { animation:pluvia-hourly-in .3s ease-out .08s both; }
 ::view-transition-group(pluvia-hourly) { animation-duration:.38s; }

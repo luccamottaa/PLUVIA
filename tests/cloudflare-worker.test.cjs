@@ -7,7 +7,7 @@ const assets = (status = 200, type = 'text/javascript') => ({fetch: async () => 
 const get = async (path, env = {ASSETS: assets()}) => (await load()).default.fetch(new Request(`https://pluviaweather.com.br${path}`), env);
 
 test('arquivos com ?v= e fontes saem com cache de um ano; o resto fica como o Cloudflare manda', async () => {
-  assert.equal((await get('/app.js?v=panel-149')).headers.get('Cache-Control'), 'public, max-age=31536000, immutable');
+  assert.equal((await get('/app.js?v=panel-150')).headers.get('Cache-Control'), 'public, max-age=31536000, immutable');
   assert.equal((await get('/assets/fonts/nunito-wordmark-v32.woff2')).headers.get('Cache-Control'), 'public, max-age=31536000, immutable');
   assert.equal((await get('/manifest.webmanifest')).headers.get('Cache-Control'), 'public, max-age=0, must-revalidate', 'sem versão: revalida');
   assert.equal((await get('/vendor/weathericons/Sun.svg')).headers.get('Cache-Control'), 'public, max-age=0, must-revalidate');
