@@ -74,15 +74,24 @@ with sync_playwright() as p:
             # Cabeçalho compacto (1.41.2): o ícone da pílula precisa ser pintado de verdade (no iPhone ele ficava
             # invisível dentro da faixa com máscara). Compara a área do ícone com e sem ele.
             page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
-            page.wait_for_function("document.querySelector('.compact-head[data-on] .compact-icon img')?.complete", timeout=10000)
+            # Espera a imagem decodificada e o fade da faixa terminar: no WebKit da CI, com a página ainda
+            # aparecendo (opacidade perto de 0), as duas capturas saíam iguais.
+            page.wait_for_function("(() => { const img = document.querySelector('.compact-head[data-on] .compact-icon img');"
+                                   " return img?.complete && img.naturalWidth > 0"
+                                   " && getComputedStyle(document.querySelector('.compact-head')).opacity === '1'; })()", timeout=10000)
+            page.evaluate("document.querySelector('.compact-icon img').decode().catch(() => {})")
             page.wait_for_timeout(400)
             box = page.evaluate("""() => { const r = document.querySelector('.compact-icon').getBoundingClientRect();
               return {x:r.x, y:r.y, width:r.width, height:r.height}; }""")
             assert box['width'] >= 40 and box['height'] >= 40, ('ícone da pílula', box)
-            shown = page.screenshot(clip=box)
-            page.evaluate("document.querySelector('.compact-icon img').style.visibility='hidden'")
-            hidden = page.screenshot(clip=box)
-            page.evaluate("document.querySelector('.compact-icon img').style.visibility=''")
+            # Captura do próprio elemento (não clip): com a página rolada, o WebKit lia o clip a partir do topo do
+            # documento e as duas capturas saíam de outra área, iguais. Dois quadros depois de cada troca.
+            frames = "new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))"
+            icon = page.locator('.compact-icon')
+            shown = icon.screenshot()
+            page.evaluate("document.querySelector('.compact-icon img').style.visibility='hidden'"); page.evaluate(frames)
+            hidden = icon.screenshot()
+            page.evaluate("document.querySelector('.compact-icon img').style.visibility=''"); page.evaluate(frames)
             assert shown != hidden, 'ícone da pílula não foi pintado'
             page.evaluate("window.scrollTo(0, 0)"); page.wait_for_timeout(300)
         # Conta deslogada: ícone com alvo de 44 px e nome acessível.

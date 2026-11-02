@@ -1274,8 +1274,10 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 @media(max-width:720px) {
   /* 1.25.1 (pedido do usuário): nome do dia maior (1,125rem, coluna até 4,9rem: cabe "Domingo") e o ícone no meio do
      espaço entre o dia e a chuva (coluna flexível, ícone centrado), em vez de colado no nome. */
-  #weatherView .forecast-list .forecast-row { grid-template-columns:minmax(3.6rem,4.9rem) 44px 3.5rem minmax(6.4rem,1fr); column-gap:6px; }
+  /* 1.42.2 (pedido do dono: "aumenta mais os ícones"): ícone de 44 px numa coluna de 48 px (antes 32 em 44). */
+  #weatherView .forecast-list .forecast-row { grid-template-columns:minmax(3.6rem,4.9rem) 48px 3.5rem minmax(6.4rem,1fr); column-gap:6px; }
   #weatherView .forecast-list .forecast-row > .forecast-condition { justify-self:center; }
+  #weatherView .forecast-list .forecast-weather-icon { width:44px; height:44px; }
   #weatherView .forecast-list .forecast-row > .temp-range { grid-template-columns:3.4ch minmax(24px,1fr) 3.4ch; column-gap:6px; }
   #weatherView .forecast-list .forecast-day > strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 }
@@ -1283,7 +1285,8 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 /* Telas estreitas (até 374 px): "Sáb", "Dom"… em vez de cortar o nome; o nome inteiro segue para leitores de tela. */
 @media(max-width:374px) {
   /* Até 374 px a barra ficava com ~30 px: chuva em 3rem (cabe "100%" e "12,5 mm") e espaços menores. */
-  #weatherView .forecast-list .forecast-row { grid-template-columns:2.6rem 32px 3rem minmax(0,1fr); column-gap:6px; }
+  #weatherView .forecast-list .forecast-row { grid-template-columns:2.6rem 36px 3rem minmax(0,1fr); column-gap:6px; }
+  #weatherView .forecast-list .forecast-weather-icon { width:36px; height:36px; }
   #weatherView .forecast-list .forecast-row > .temp-range { column-gap:5px; }
   #weatherView .forecast-list .forecast-day .day-short { display:inline; }
   #weatherView .forecast-list .forecast-day .day-short ~ .weekend-note { display:none; }
