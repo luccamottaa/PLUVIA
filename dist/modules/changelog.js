@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.43.1", date:"2026-11-02", title:"X de fechar novo", items:[
+      "O X que fecha as janelas ficou maior, mais grosso e bem no centro do botão.",
+      "Sumiu o quadrado que aparecia em volta da foto da conta depois de fechar a janela."
+    ]},
     {version:"1.43", date:"2026-11-02", title:"Fonte nova", items:[
       "O PLUVIA ganhou uma fonte própria, a Sora: letras e números com cara de PLUVIA, em todo o app.",
       "A fonte vem junto com o app e funciona também sem internet."

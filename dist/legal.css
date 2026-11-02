@@ -42,7 +42,7 @@ footer a { display:inline-flex; align-items:center; min-height:44px; }
 :focus-visible { outline:2px solid var(--link); outline-offset:3px; border-radius:4px; }
 /* Fechar: fixo no alto, fora de .page (a animação de entrada move .page e prenderia o fixed). */
 .close { position:fixed; top:max(24px,env(safe-area-inset-top)); right:max(16px,env(safe-area-inset-right)); z-index:2; display:grid; place-items:center; width:44px; height:44px; border:1px solid var(--line); border-radius:50%; background:var(--close-bg); color:var(--ink); text-decoration:none; box-shadow:0 6px 18px var(--shadow); }
-.close svg { width:18px; height:18px; }
+.close svg { width:22px; height:22px; }
 /* Entrada suave e saída antes de voltar ao app. */
 @keyframes legal-enter { from { opacity:0; transform:translateY(18px); } }
 .page, .close { animation:legal-enter .44s cubic-bezier(.2,.8,.2,1) backwards; }

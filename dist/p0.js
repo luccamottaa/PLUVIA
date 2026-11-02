@@ -178,3 +178,13 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
   document.addEventListener('toggle', event => { if (event.target?.tagName === 'DIALOG') sync(); }, true);
   schedule();
 })();
+
+// Quem usa toque ou mouse não precisa do anel de foco que o Safari desenha quando a janela fechada devolve o
+// foco ao botão que a abriu (aparecia um quadrado em volta da foto da conta). Teclado continua com o anel.
+(function trackInputModality() {
+  const root = document.documentElement;
+  document.addEventListener('pointerdown', () => { root.dataset.pointer = '1'; }, {capture:true, passive:true});
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Tab' || event.key.startsWith('Arrow')) delete root.dataset.pointer;
+  }, true);
+})();
