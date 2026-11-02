@@ -45,4 +45,4 @@ jobs:
           FUNCTION: ${{ inputs.function }}
         run: |
           if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then echo "Falta o segredo SUPABASE_ACCESS_TOKEN no repositório."; exit 1; fi
-          supabase functions deploy "$FUNCTION" --project-ref dszyyrcvwrpyiypwyvxe --use-api
+          supabase functions deploy "$FUNCTION" --project-ref dszyyrcvwrpyiypwyvxe --use-api --yes
