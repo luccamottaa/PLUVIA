@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.43", date:"2026-11-02", title:"Fonte nova", items:[
+      "O PLUVIA ganhou uma fonte própria, a Sora: letras e números com cara de PLUVIA, em todo o app.",
+      "A fonte vem junto com o app e funciona também sem internet."
+    ]},
     {version:"1.42.3", date:"2026-11-02", title:"Ajustes finos", items:[
       "O Índice UV não repete mais o conselho de proteção solar duas vezes.",
       "No detalhe da hora, o UV e a pressão aparecem do mesmo jeito que na tela principal.",

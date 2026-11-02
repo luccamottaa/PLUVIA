@@ -2230,3 +2230,8 @@ body[data-ink="dark"] #weatherView article.air-metric[data-aqi-level="hazardous"
 html body #weatherView .air-metric .air-description strong { font-weight:700; }
 html body #weatherView .air-metric[data-aqi-level="sensitive"] .air-description strong { font-weight:800; text-transform:uppercase; letter-spacing:.01em; font-size:1.12rem; line-height:1.15; }
 html body #weatherView .air-metric:is([data-aqi-level="poor"],[data-aqi-level="very-poor"],[data-aqi-level="hazardous"]) .air-description strong { font-weight:900; text-transform:uppercase; letter-spacing:.02em; font-size:1.3rem; line-height:1.1; }
+
+/* Sora (1.43) é mais larga que a fonte do sistema: a 320 px "Visibilidade" quebrava no meio da palavra
+   ("Visibilidad/e"). O rótulo nunca quebra dentro da palavra e, até 359 px, fica um pouco menor. */
+#weatherView .metric-head > span:first-child { overflow-wrap:normal; word-break:normal; hyphens:none; }
+@media (max-width:359px) { #weatherView .metrics .metric-head > span:first-child { font-size:.875rem; } }
