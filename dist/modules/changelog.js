@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.44.1", date:"2026-11-02", title:"Abertura com brilho", items:[
+      "A logo e o nome PLUVIA ganharam um brilho suave na abertura, e o \"Feito no Norte\" agora entra por último, depois do slogan."
+    ]},
     {version:"1.44", date:"2026-11-02", title:"Fotos de perfil novas", items:[
       "As fotos de perfil foram trocadas por 12 ilustrações de chuva: crianças de capa, vovó de guarda-chuva, cachorro, gato, sapo e a nuvenzinha.",
       "Quem usava uma foto antiga volta à inicial do nome até escolher uma nova em Minha conta."
