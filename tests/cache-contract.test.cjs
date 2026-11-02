@@ -10,7 +10,7 @@ const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 test('fontes locais leves têm formato válido e estão disponíveis no precache offline', () => {
   const css = fs.readFileSync(path.join(root, 'fonts.css'), 'utf8');
   const urls = [...css.matchAll(/src:url\("(\.\/assets\/fonts\/[^"?]+\.woff2)"\)/g)].map(match => match[1]);
-  assert.deepEqual(urls, ['./assets/fonts/nunito-wordmark-v32.woff2'], 'só a marca tem fonte local; o texto usa a do sistema (SF Pro)');
+  assert.deepEqual(urls, ['./assets/fonts/sora-latin-v1.woff2', './assets/fonts/nunito-wordmark-v32.woff2'], 'texto em Sora (1.43) e a marca em Nunito, ambas locais');
   let total = 0;
   for (const url of urls) {
     const data = fs.readFileSync(path.join(root, url));
@@ -20,7 +20,7 @@ test('fontes locais leves têm formato válido e estão disponíveis no precache
     total += data.length;
   }
   assert.ok(total < 64 * 1024, 'fontes excedem o orçamento do shell mobile');
-  for (const name of ['INTER', 'NUNITO']) assert.match(fs.readFileSync(path.join(root, `assets/fonts/${name}-OFL.txt`), 'utf8'), /SIL OPEN FONT LICENSE/);
+  for (const name of ['INTER', 'NUNITO', 'SORA']) assert.match(fs.readFileSync(path.join(root, `assets/fonts/${name}-OFL.txt`), 'utf8'), /SIL OPEN FONT LICENSE/);
 });
 
 test('fonts.css vai inline no shell (sem folha bloqueante) com o mesmo texto do arquivo', () => {
@@ -37,13 +37,13 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-299"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-300"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
-  assert.match(html, /styles\.css\?v=core-134/);
+  assert.match(html, /styles\.css\?v=core-135/);
   assert.match(html, /redesign\.css\?v=panel-51/);
   assert.doesNotMatch(sw, /glass\.js/);
-  assert.match(html, /app\.js\?v=panel-150/);
+  assert.match(html, /app\.js\?v=panel-151/);
   assert.ok(!sw.includes('"./assets/panel-night-sky.webp"'), 'não baixa a antiga foto sem uso no cache inicial');
   for (const asset of ['sky-sun.svg','sky-cloud-veil.webp','sky-cloud-volume.webp']) assert.ok(sw.includes(`./assets/${asset}`));
   assert.ok(['sky-cloud-veil.webp','sky-cloud-volume.webp'].reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<600*1024,'texturas das nuvens mantêm orçamento do shell mobile');

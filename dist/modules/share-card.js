@@ -135,38 +135,38 @@
     const brand = look.twilight ? '#ffffff' : look.light ? '#7cc0ff' : '#0a4cba';
     // Marca nova (1.26): a logo colorida, desenhada como está (antes era uma gota pintada de uma cor só).
     if (mark) ctx.drawImage(mark, WIDTH / 2 - 160, 124, 88, 88);
-    ctx.fillStyle = ink; ctx.font = '900 64px Nunito, Inter, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillStyle = ink; ctx.font = '900 64px Nunito, Sora, sans-serif'; ctx.textAlign = 'left';
     ctx.fillText('PLUVIA', WIDTH / 2 - 66, 192);
     ctx.textAlign = 'center';
     if (data.badge) {
-      ctx.font = '600 44px Inter, sans-serif';
+      ctx.font = '600 44px Sora, sans-serif';
       const width = ctx.measureText(data.badge).width + 88, x = (WIDTH - width) / 2, y = 268, h = 84;
       ctx.fillStyle = brand; ctx.beginPath();
       if (typeof ctx.roundRect === 'function') ctx.roundRect(x, y, width, h, h / 2); else ctx.rect(x, y, width, h);
       ctx.fill();
       ctx.fillStyle = look.light ? '#0b1830' : '#ffffff'; ctx.fillText(data.badge, WIDTH / 2, y + 57);
     }
-    ctx.fillStyle = ink; ctx.font = '600 84px Inter, sans-serif';
+    ctx.fillStyle = ink; ctx.font = '600 84px Sora, sans-serif';
     // Bloco central um pouco abaixo do meio-alto: equilibra com a fonte no rodapé e foge da barra do story.
     const top = 110;
     ctx.fillText(wrap(ctx, data.city, 940, 1)[0], WIDTH / 2, 420 + top);
     if (icon) ctx.drawImage(icon, WIDTH / 2 - 150, 470 + top, 300, 300);
-    ctx.font = '300 300px Inter, sans-serif';
+    ctx.font = '300 300px Sora, sans-serif';
     ctx.fillText(`${data.temperature}°`, WIDTH / 2 + 40, 1060 + top);
-    ctx.font = '500 60px Inter, sans-serif';
+    ctx.font = '500 60px Sora, sans-serif';
     let y = 1170 + top;
     for (const line of wrap(ctx, data.condition, 940, 2)) {ctx.fillText(line, WIDTH / 2, y); y += 74;}
-    ctx.fillStyle = muted; ctx.font = '400 46px Inter, sans-serif';
+    ctx.fillStyle = muted; ctx.font = '400 46px Sora, sans-serif';
     const details = [data.feels === null ? null : `Sensação ${data.feels}°`, data.high === null || data.low === null ? null : `Máx. ${data.high}° · Mín. ${data.low}°`].filter(Boolean).join('   ·   ');
     if (details) {ctx.fillText(details, WIDTH / 2, y + 20); y += 96;}
     if (data.rain) {
-      ctx.fillStyle = ink; ctx.font = '500 48px Inter, sans-serif';
+      ctx.fillStyle = ink; ctx.font = '500 48px Sora, sans-serif';
       for (const line of wrap(ctx, data.rain, 900, 3)) {ctx.fillText(line, WIDTH / 2, y + 40); y += 62;}
     }
-    ctx.fillStyle = muted; ctx.font = '400 36px Inter, sans-serif';
+    ctx.fillStyle = muted; ctx.font = '400 36px Sora, sans-serif';
     ctx.fillText(data.stamp, WIDTH / 2, 1700);
     ctx.fillText(data.source, WIDTH / 2, 1752);
-    ctx.fillStyle = brand; ctx.font = '600 40px Inter, sans-serif';
+    ctx.fillStyle = brand; ctx.font = '600 40px Sora, sans-serif';
     ctx.fillText('pluviaweather.com.br', WIDTH / 2, 1830);
     // Depois do PNG pronto, o bitmap de 1080×1920 (~8 MB) é liberado: no iPhone essa memória pesa.
     return new Promise(resolve => canvas.toBlob(blob => { canvas.width = canvas.height = 0; resolve(blob); }, 'image/png'));

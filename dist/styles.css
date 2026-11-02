@@ -1,6 +1,6 @@
 :root {
   color-scheme: light dark;
-  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-ui: "Sora", -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-brand: "Nunito", ui-rounded, system-ui, sans-serif;
   --brand-blue: #075dff;
   --bg: #f6f3ed;
