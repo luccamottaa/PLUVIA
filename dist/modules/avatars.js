@@ -1,6 +1,7 @@
-/* Fotos de perfil: desenhos de tempo do próprio app (assets/weather-icons/conditions, já no precache)
-   sobre um círculo colorido. A escolha fica só neste aparelho, por conta (id do Supabase), em
-   pluvia-avatars; não vai para o servidor nem para a telemetria. Sem escolha, a conta mostra a inicial. */
+/* Fotos de perfil: ilustrações de chuva (1.44, enviadas pelo dono em 02/11/2026, que pediu para trocar todas as
+   anteriores), recortadas em círculo de 256 px por scripts/crop-avatars.py a partir de design/avatars/. A escolha
+   sincroniza com a conta (user_metadata.avatar_id, só ids desta lista) e fica copiada em pluvia-avatars; não vai
+   para a telemetria. Sem escolha, ou com um id antigo, a conta mostra a inicial. */
 (function(root, factory) {
   const api = factory(root);
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -8,26 +9,20 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
   'use strict';
   const KEY = 'pluvia-avatars', MAX_ACCOUNTS = 5;
-  const icon = name => `/assets/weather-icons/conditions/${name}.svg?v=modern-8`;
+  const photo = name => `/assets/avatars/${name}.webp?v=avatars-1`;
   const AVATARS = Object.freeze([
-    {id:'sol', label:'Sol', src:icon('clear-day'), bg:'linear-gradient(145deg,#ffe08a,#ffb648)'},
-    {id:'lua', label:'Lua', src:icon('clear-night'), bg:'linear-gradient(145deg,#3150a8,#101f4a)'},
-    {id:'nuvem', label:'Sol entre nuvens', src:icon('partly-cloudy-day'), bg:'linear-gradient(145deg,#a9d8ff,#5aa2f5)'},
-    {id:'chuva', label:'Chuva', src:icon('moderate-rain'), bg:'linear-gradient(145deg,#8fa9c8,#4c6688)'},
-    {id:'trovoada', label:'Trovoada', src:icon('thunderstorm'), bg:'linear-gradient(145deg,#7d6bb8,#352a66)'},
-    {id:'neve', label:'Neve', src:icon('snow'), bg:'linear-gradient(145deg,#f1f7ff,#c3dbf4)'},
-    {id:'vento', label:'Vento', src:icon('windy'), bg:'linear-gradient(145deg,#b6f0d6,#4cc79a)'},
-    {id:'neblina', label:'Neblina', src:icon('fog'), bg:'linear-gradient(145deg,#dde3ea,#a3b0c0)'},
-    {id:'noite-nublada', label:'Noite com nuvens', src:icon('partly-cloudy-night'), bg:'linear-gradient(145deg,#4a3f8f,#1a1640)'},
-    {id:'garoa', label:'Garoa', src:icon('drizzle'), bg:'linear-gradient(145deg,#c9e6f2,#7fb4cf)'},
-    {id:'temporal', label:'Chuva forte', src:icon('heavy-rain'), bg:'linear-gradient(145deg,#5f7fa8,#22364f)'},
-    {id:'granizo', label:'Granizo', src:icon('thunderstorm-hail'), bg:'linear-gradient(145deg,#9fb4d6,#46557a)'},
-    {id:'nublado', label:'Nublado', src:icon('overcast'), bg:'linear-gradient(145deg,#cfd8e3,#8494a8)'},
-    {id:'pancada', label:'Pancada de chuva', src:icon('showers'), bg:'linear-gradient(145deg,#ffd9a0,#f08a5d)'},
-    {id:'bruma', label:'Bruma', src:icon('haze'), bg:'linear-gradient(145deg,#f6e3c4,#d9a86c)'},
-    {id:'chuva-noite', label:'Chuva à noite', src:icon('showers-night'), bg:'linear-gradient(145deg,#2c4f7c,#0d1b33)'},
-    {id:'poucas-nuvens', label:'Poucas nuvens', src:icon('few-clouds-day'), bg:'linear-gradient(145deg,#ffe6f0,#ff9fc4)'},
-    {id:'raio-chuva', label:'Trovoada com chuva', src:icon('thunderstorm-rain'), bg:'linear-gradient(145deg,#2b2140,#7a3fd1)'}
+    {id:'menina-capa-roxa', label:'Menina de capa roxa', src:photo('menina-capa-roxa')},
+    {id:'cachorro-capa', label:'Cachorro de capa amarela', src:photo('cachorro-capa')},
+    {id:'sol-arco-iris', label:'Sol, nuvem e arco-íris', src:photo('sol-arco-iris')},
+    {id:'menino-barquinho', label:'Menino com barquinho de papel', src:photo('menino-barquinho')},
+    {id:'gato-capa', label:'Gato de capa azul', src:photo('gato-capa')},
+    {id:'vovo-guarda-chuva', label:'Vovó de guarda-chuva', src:photo('vovo-guarda-chuva')},
+    {id:'menina-capa-amarela', label:'Menina de capa amarela', src:photo('menina-capa-amarela')},
+    {id:'nuvenzinha', label:'Nuvenzinha de chuva', src:photo('nuvenzinha')},
+    {id:'menino-cachecol', label:'Menino de cachecol', src:photo('menino-cachecol')},
+    {id:'sapo', label:'Sapo de chapéu de folha', src:photo('sapo')},
+    {id:'menina-guarda-chuva', label:'Menina de guarda-chuva', src:photo('menina-guarda-chuva')},
+    {id:'menino-caneca', label:'Menino com caneca', src:photo('menino-caneca')}
   ].map(Object.freeze));
   const find = id => AVATARS.find(avatar => avatar.id === id) || null;
   function read(storage) {
@@ -48,17 +43,16 @@
     const kept = Object.entries(map).filter(([, value]) => find(value)).slice(-MAX_ACCOUNTS);
     try { storage.setItem(KEY, JSON.stringify(Object.fromEntries(kept))); return true; } catch { return false; }
   }
-  // Pinta um elemento como foto: fundo colorido e o desenho (decorativo; o nome acessível fica no botão).
-  // lazy: as 18 opções de "Minha conta" ficam numa janela fechada; com loading=lazy (antes do src) elas só baixam
+  // Pinta um elemento como foto (decorativa; o nome acessível fica no botão).
+  // lazy: as opções de "Minha conta" ficam numa janela fechada; com loading=lazy (antes do src) elas só baixam
   // quando a janela abre, em vez de disputar a rede com a previsão na abertura (1.25).
   function paint(node, avatar, documentRef = root.document, {lazy = false} = {}) {
     if (!node) return;
-    if (!avatar) { node.style?.removeProperty?.('--avatar-bg'); delete node.dataset?.avatar; return; }
+    if (!avatar) { delete node.dataset?.avatar; return; }
     node.dataset.avatar = avatar.id;
-    node.style.setProperty('--avatar-bg', avatar.bg);
     const image = documentRef.createElement('img');
     if (lazy) image.loading = 'lazy';
-    image.src = avatar.src; image.alt = ''; image.width = 64; image.height = 64; image.decoding = 'async';
+    image.src = avatar.src; image.alt = ''; image.width = 128; image.height = 128; image.decoding = 'async';
     node.replaceChildren(image);
   }
   return {KEY, AVATARS, find, get, set, paint};
