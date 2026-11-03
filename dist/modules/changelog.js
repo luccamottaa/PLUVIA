@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.50.4", date:"2026-11-03", title:"Interruptores alinhados", items:[
+      "Em Minha conta, os interruptores dos avisos ficam centrados no texto de cada linha (antes pareciam um pouco para baixo), com a bolinha branca no meio da chave."
+    ]},
     {version:"1.50.3", date:"2026-11-03", title:"Busca de cidades mais bonita", items:[
       "Cada cidade da busca virou um cartão próprio, com o nome em destaque, a sigla do estado numa pílula, o estado e \"capital\" embaixo, estrela amarela nas favoritas e um contorno na cidade aberta."
     ]},

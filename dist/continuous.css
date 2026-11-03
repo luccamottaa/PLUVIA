@@ -2577,3 +2577,11 @@ html body #cityDialog .city-result[data-current=true],html body #cityDialog .cit
 html body[data-phase="day"] #cityDialog .city-result[data-current=true],html body[data-phase="day"] #cityDialog .city-result[aria-selected="true"] { background:#fff; box-shadow:inset 0 0 0 1.5px #111; }
 html body[data-phase="day"] #cityDialog .city-result .city-fav { background:#e0a100; }
 @media (forced-colors:active) { html body #cityDialog .city-result { border:1px solid ButtonText; } html body #cityDialog .city-result .city-fav { background:Highlight; } }
+
+/* Interruptores alinhados ao bloco de texto (1.50.4, pedido do dono: "desalinhadas meio pra baixo"): o texto da linha
+   (título + descrição) vira uma coluna sem margens soltas e o interruptor fica centrado nela. A bolinha também
+   estava 1 px abaixo do centro da chave por causa da borda do campo (zerada em 1.50.2). */
+html body #accountDialog .notification-types label:not(.notification-summary-time) { align-items:center; }
+html body #accountDialog .notification-types label:not(.notification-summary-time) > span { display:flex; flex-direction:column; justify-content:center; gap:2px; align-self:center; margin:0; padding:0; }
+html body #accountDialog .notification-types label:not(.notification-summary-time) > span > :is(strong,small) { display:block; margin:0 !important; padding:0; line-height:1.35; }
+html body #accountDialog .notification-types label:not(.notification-summary-time) > input[type=checkbox] { align-self:center; margin:0 !important; }
