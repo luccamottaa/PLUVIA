@@ -2543,7 +2543,7 @@ html body[data-phase="day"] #accountDialog #notificationPreferencesForm[data-sav
 html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
   --dialog-link:#111; --map-link:#111;
 }
-html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after,#cityDialog #locateCity) { color:#111 !important; }
+html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#111 !important; }
 html body[data-phase="day"] #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#111; }
 html body[data-phase="day"] #accountDialog .notification-status.is-on { color:#1c7a36; border-color:#1c7a3659; background:#30d1581f; }
 html body[data-phase="day"] #accountDialog .notification-status.is-on::before { background:#30d158; }
@@ -2585,3 +2585,18 @@ html body #accountDialog .notification-types label:not(.notification-summary-tim
 html body #accountDialog .notification-types label:not(.notification-summary-time) > span { display:flex; flex-direction:column; justify-content:center; gap:2px; align-self:center; margin:0; padding:0; }
 html body #accountDialog .notification-types label:not(.notification-summary-time) > span > :is(strong,small) { display:block; margin:0 !important; padding:0; line-height:1.35; }
 html body #accountDialog .notification-types label:not(.notification-summary-time) > input[type=checkbox] { align-self:center; margin:0 !important; }
+
+/* Suas cidades: "Usar localização" branco e favoritas menores, sem contorno azul (1.50.5, pedido do dono). À noite o
+   botão é branco com texto e ícone pretos; de dia (janela clara) é o espelho, preto com texto e ícone brancos. O cartão
+   da cidade favorita perde o azul (a aberta fica só um pouco mais clara) e fica compacto: texto e temperatura menores,
+   menos respiro. As linhas continuam as mesmas (subgrid e classes dos campos preservadas). */
+html body:not([data-phase="day"]) #cityDialog #locateCity { background:#fff; background-color:#fff; border-color:#fff; color:#000; }
+html body:not([data-phase="day"]) #cityDialog #locateCity::before { background:#000; }
+html body[data-phase="day"] #cityDialog #locateCity { background:#111; background-color:#111; border-color:#111; color:#fff !important; }
+html body[data-phase="day"] #cityDialog #locateCity::before { background:#fff; }
+html body #cityDialog .favorite-city-card { min-height:0; padding:11px 12px; gap:2px; border-radius:18px; border:0; }
+html body #cityDialog .favorite-city-card[aria-current=true],html body[data-phase="day"] #cityDialog .favorite-city-card[aria-current=true] { border:0; background:var(--dialog-surface-2); box-shadow:none; }
+html body #cityDialog .favorite-city-card > strong { font-size:.875rem; }
+html body #cityDialog .favorite-city-card .favorite-reading { font-size:1.5rem; letter-spacing:-.02em; line-height:1.1; }
+html body #cityDialog .favorite-city-card .favorite-summary:not(.favorite-feels-like) { font-size:.8125rem; }
+html body #cityDialog .favorite-city-card :is(.favorite-feels-like,.favorite-range,.favorite-local-time,.favorite-updated,.favorite-alert) { font-size:.75rem; line-height:1.35; }
