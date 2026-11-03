@@ -2515,3 +2515,11 @@ html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#al
 /* Campo de texto nunca abaixo de 16 px: o Safari do iPhone amplia a página ao focar um campo menor (com o A− ou o
    Tamanho do Texto pequeno, 1rem ficava abaixo disso e tocar na busca dava zoom). */
 html body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { font-size:max(16px,1rem) !important; }
+/* Botões preenchidos nas janelas pretas (1.50, pedido do dono): brancos com letra preta no lugar do azul
+   (Entrar, Salvar, Ativar alertas, Entendi, Aceitar, Baixar imagem, play do radar). Interruptores e links
+   continuam no azul da marca. */
+html body:not([data-ink="dark"]) :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#shareWeatherDialog #shareWeatherDownload,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry) {
+  border-color:#fff; background:#fff; color:#000;
+}
+html body:not([data-ink="dark"]) #accountDialog #notificationPreferencesSave:disabled,html body:not([data-ink="dark"]) :is(#termsDialog #termsAccept,#accountDialog #accountSubmit):disabled { border-color:#ffffff40; background:#ffffff40; color:#000000a0; }
+html body:not([data-ink="dark"]) #accountDialog #notificationPreferencesForm[data-saved] #notificationPreferencesSave { background:var(--dialog-surface-2); color:#fff; }
