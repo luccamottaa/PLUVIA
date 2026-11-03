@@ -2397,3 +2397,9 @@ body[data-ink="dark"] #weatherView .hourly-modes { box-shadow:inset 0 0 0 1px rg
   #cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes, .info-tip-icon { -webkit-backdrop-filter:none; backdrop-filter:none; box-shadow:none; }
   #cityDialog .city-actions > button::after, #weatherView .rain-report-options button::after, #weatherView .hourly-modes button::after { display:none; }
 }
+
+/* Letra grande do iPhone (1.48: o topo do index.html aplica o Tamanho do Texto do sistema, de 14 a 22 px na raiz): a
+   tabela de nascer/pôr do sol, sem quebra de linha, passava da largura em telas estreitas. Rola de lado só se precisar. */
+#weatherView .sun-table { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+#weatherView .sun-table table { min-width:max-content; }
+@media (min-width:0) { #weatherView .sun-table :is(th,td) + :is(th,td) { padding-left:12px; } }
