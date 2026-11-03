@@ -67,6 +67,14 @@
           if (on !== head.hasAttribute("data-on")) head.toggleAttribute("data-on", on);
         }, {rootMargin:`-${line}px 0px 0px 0px`}).observe(anchor);
       }
+      // Tocar na pílula volta ao topo, como tocar na barra do relógio no iPhone (1.46). Só com a pílula à vista;
+      // a faixa continua sem receber toque, então o conteúdo embaixo dela segue tocável.
+      pill?.addEventListener?.("click", () => {
+        if (!head.hasAttribute("data-on")) return;
+        let smooth = true;
+        try { smooth = !root.matchMedia?.("(prefers-reduced-motion: reduce)").matches; } catch {}
+        root.scrollTo?.({top:0, behavior: smooth ? "smooth" : "auto"});
+      });
       const astros = Array.from(doc.querySelectorAll(".sky-effects > .sky-sun, .sky-effects > .sky-moon"));
       let last = 1, queued = false;
       const paint = () => {

@@ -2302,10 +2302,8 @@ body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before {
 }
 .topbar :is(.account-trigger,.top-actions) > *,.topbar .search-trigger svg { position:relative; }
 .topbar .top-actions .search-trigger { border-radius:22px; }
-/* Toque: o ícone esmaece, o vidro fica (antes o botão inteiro esmaecia). */
+/* Toque: o vidro cresce e acende (modules/glass-touch.js, bloco no fim do arquivo); nada esmaece. */
 html body .topbar :is(#accountButton,#openCitySearch,#shareWeather):active { opacity:1; }
-html body .topbar :is(#accountButton,#openCitySearch,#shareWeather):active > * { opacity:.45; }
-html body .topbar :is(#accountButton,#openCitySearch,#shareWeather) > * { transition:opacity .28s ease; }
 @media (prefers-reduced-transparency:reduce) {
   .topbar :is(.account-trigger,.top-actions)::before { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; background:rgba(22,34,58,.82); }
   body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before { background:rgba(244,247,252,.9); }
@@ -2341,3 +2339,19 @@ html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourly
 html[data-glass-lens] .compact-head > .compact-pill { -webkit-backdrop-filter:url(#pluviaGlassPill); backdrop-filter:url(#pluviaGlassPill); }
 body[data-ink="dark"] .compact-head > .compact-pill { background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.34)); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),0 6px 18px rgba(24,64,120,.16); }
 @media (prefers-reduced-transparency:reduce) { .compact-head > .compact-pill { -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(22,34,58,.92); } body[data-ink="dark"] .compact-head > .compact-pill { background:rgba(244,247,252,.94); } }
+
+/* Vidro que reage ao toque (1.46, modules/glass-touch.js): o script põe data-glass-press e escreve --gx/--gy (ponto do
+   dedo) e o transform do próprio botão (crescer, esticar atrás do dedo, voltar com mola). Aqui só o brilho que acende no
+   ponto do toque e a borda de luz mais forte enquanto o dedo está no vidro: opacidade e pintura, sem camada nova.
+   touch-action:none nesses alvos pequenos para o arraste esticar o vidro em vez de começar a rolar a página. */
+.topbar :is(.account-trigger,.top-actions), .compact-head .compact-pill, html body .dialog-close { touch-action:none; -webkit-tap-highlight-color:transparent; }
+.topbar :is(.account-trigger,.top-actions)::after, .compact-head .compact-pill::after, html body .dialog-close::after {
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; opacity:0;
+  background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.5),rgba(255,255,255,.14) 42%,transparent 72%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);
+  transition:opacity .5s ease;
+}
+.topbar :is(.account-trigger,.top-actions)[data-glass-press]::after, .compact-head .compact-pill[data-glass-press]::after, html body .dialog-close[data-glass-press]::after { opacity:1; transition-duration:.12s; }
+.topbar .top-actions .search-trigger:active { background:transparent !important; }
+.night-stage > .compact-head[data-on] .compact-pill { pointer-events:auto; cursor:pointer; }
+@media (forced-colors:active) { .topbar :is(.account-trigger,.top-actions)::after, .compact-head .compact-pill::after, html body .dialog-close::after { display:none; } }
