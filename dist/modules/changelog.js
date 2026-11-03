@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.50.2", date:"2026-11-03", title:"Janelas claras de dia", items:[
+      "De dia, as janelas (conta, busca, detalhes…) ficam claras mesmo com céu nublado ou chuva; só à noite ficam pretas.",
+      "Botões de aviso com a mesma altura e cantos, interruptor ligado com bolinha branca e divisórias alinhadas nos cartões."
+    ]},
     {version:"1.50.1", date:"2026-11-03", title:"Topo da conta mais leve", items:[
       "O topo da janela Minha conta ficou mais leve: o título continua em vidro, mas sem o desfoque que podia travar o Safari."
     ]},
