@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.47", date:"2026-11-03", title:"Vidro nos controles", items:[
+      "A busca de cidades, os botões Favorita, Usar localização e Brasil agora, as respostas de \"Tá chovendo aí?\", a escolha de Chuva e Vento e o ⓘ ganharam o vidro dos botões do topo.",
+      "Esses controles reagem ao toque como o resto do vidro: crescem e acendem no dedo e voltam com mola."
+    ]},
     {version:"1.46", date:"2026-11-03", title:"Vidro que reage ao toque", items:[
       "Os botões de vidro (conta, compartilhar, busca, o X das janelas e a pílula do topo) agora reagem ao dedo: crescem e acendem no ponto do toque, esticam quando você arrasta e voltam com um quique ao soltar.",
       "Tocar na pílula que aparece ao rolar volta para o topo da página."

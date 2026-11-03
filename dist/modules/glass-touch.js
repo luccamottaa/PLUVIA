@@ -11,7 +11,7 @@
   root.PLUVIA.glassTouch = api;
   if (root.document) api.start(root);
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
-  const SELECTOR = ".topbar .account-trigger, .topbar .top-actions, .compact-head[data-on] .compact-pill, .dialog-close";
+  const SELECTOR = ".topbar .account-trigger, .topbar .top-actions, .compact-head[data-on] .compact-pill, .dialog-close, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes button";
   const MAX = 6, GROW = 1.12;
   // Mola com um pequeno quique na volta (curva de mola amostrada; navegador sem linear() usa o cubic-bezier).
   const SPRING = "linear(0, 0.06 1.6%, 0.24 4.4%, 0.58 9%, 0.9 14%, 1.06 18.6%, 1.12 22.7%, 1.11 26%, 1.07 30%, 1.01 36%, 0.98 42%, 0.975 47%, 0.99 56%, 1.003 68%, 1)";
