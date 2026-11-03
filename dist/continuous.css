@@ -2417,3 +2417,135 @@ html body #accountDialog .text-size-row > span:first-child { min-width:0; }
 #accountDialog .text-size-controls { flex:none; }
 html body #accountDialog .text-size-controls button { flex:none; aspect-ratio:1; }
 html body #accountDialog :is(#textSizeDown,#textSizeUp) { width:44px; height:44px; min-height:44px; padding:0; border-radius:50%; }
+
+/* ===== Minha conta mais limpa (1.50, pedido do dono: "muito poluída" e "liquid glass onde tá escrito Minha conta") =====
+   Cabeçalho (no fluxo, com margem negativa embaixo): o conteúdo rola por baixo de uma faixa de vidro (desfoque só nessa faixa, que fica sobre o fundo
+   opaco da janela), e o título fica numa cápsula de vidro como o X (sem desfoque próprio: desfoque dentro de
+   desfoque confunde o backdrop). Perfil numa linha que abre a edição; os quatro ajustes de aviso num cartão só,
+   Cidades/Aparelhos noutro; "Salvar avisos" só aparece quando algo mudou; Sair/Excluir num cartão discreto;
+   "Previsão por cidade" num cartão. Só #accountDialog. */
+html body #accountDialog .dialog-heading {
+  position:relative; z-index:2; margin:0 0 -76px; padding:14px 14px 18px 16px; background:transparent;
+}
+html body #accountDialog .dialog-heading::before {
+  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--dialog-bg) 92%,transparent),color-mix(in srgb,var(--dialog-bg) 62%,transparent));
+  -webkit-backdrop-filter:blur(18px) saturate(1.6); backdrop-filter:blur(18px) saturate(1.6);
+  -webkit-mask-image:linear-gradient(#000 calc(100% - 16px),transparent); mask-image:linear-gradient(#000 calc(100% - 16px),transparent);
+}
+html body #accountDialog .dialog-heading h2 {
+  display:inline-flex; align-items:center; min-height:44px; margin:0; padding:0 18px; border-radius:999px; font-size:1.1875rem; font-weight:650; letter-spacing:-.015em;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06) 55%,rgba(255,255,255,.1));
+  box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.6),inset -1px -1px 0 -.5px rgba(255,255,255,.3),inset 0 0 0 .5px rgba(255,255,255,.22),inset 0 0 12px rgba(255,255,255,.1);
+}
+html body[data-ink="dark"] #accountDialog .dialog-heading h2 {
+  background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,.45));
+  box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),inset 0 0 0 .5px rgba(19,35,61,.14),0 2px 8px rgba(19,35,61,.08);
+}
+html body #accountDialog .dialog-scroll { padding-top:84px; scroll-padding-top:84px; }
+@media (prefers-reduced-transparency:reduce) { html body #accountDialog .dialog-heading::before { -webkit-backdrop-filter:none; backdrop-filter:none; background:var(--dialog-bg); -webkit-mask-image:none; mask-image:none; } }
+@media (forced-colors:active) { html body #accountDialog .dialog-heading::before { -webkit-backdrop-filter:none; backdrop-filter:none; background:Canvas; } html body #accountDialog .dialog-heading h2 { box-shadow:none; border:1px solid CanvasText; } }
+
+/* Perfil: foto, nome e e-mail numa linha; tocar abre foto e nome. */
+html body #accountDialog .account-identity > summary { min-height:72px; gap:12px; }
+html body #accountDialog .account-identity .profile-identity {
+  display:flex; flex:1; flex-direction:row; align-items:center; gap:14px; min-width:0; margin:0; padding:10px 0; border-radius:0; background:none; text-align:left;
+}
+html body #accountDialog .account-identity .profile-avatar { flex:none; width:52px; height:52px; font-size:1.375rem; box-shadow:none; }
+html body #accountDialog .account-identity .profile-text { display:grid; gap:1px; min-width:0; }
+html body #accountDialog .account-identity .profile-text strong { overflow:hidden; font-size:1.0625rem; font-weight:650; text-overflow:ellipsis; white-space:nowrap; }
+html body #accountDialog .account-identity #accountIdentity { overflow:hidden; margin:0; color:var(--dialog-muted); font-size:.8125rem; font-weight:400; text-overflow:ellipsis; white-space:nowrap; }
+html body #accountDialog .account-identity .account-group-value { max-width:none; }
+
+/* Avisos: título discreto como os outros grupos, selo menor e o botão de desligar como uma linha. */
+html body #accountDialog .notification-settings { margin:22px 0 0; }
+html body #accountDialog .notification-settings-head { align-items:center; margin:0 0 8px; }
+html body #accountDialog .notification-settings-head h3 { color:var(--dialog-muted); font-size:.875rem; font-weight:600; }
+html body #accountDialog .notification-status { min-height:26px; padding:3px 10px; font-size:.75rem; }
+html body #accountDialog #notificationSupportNote { margin:0 4px 10px; font-size:.875rem; }
+html body #accountDialog .notification-actions { margin:0 0 12px; }
+html body #accountDialog .notification-actions button { min-height:48px; }
+html body #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle {
+  min-height:52px; border-radius:var(--sheet-radius); background:var(--dialog-surface); color:var(--dialog-link,var(--brand-blue)); font-weight:500;
+}
+
+/* Os quatro ajustes num cartão; Cidades e Aparelhos noutro. Divisória recuada como nas listas do iPhone. */
+html body #accountDialog .alert-preferences { gap:0; }
+html body #accountDialog .alert-preferences > .account-group,html body #accountDialog :is(#notificationLocationsGroup,#notificationDevicesGroup) { margin:0; border-radius:0; }
+html body #accountDialog .alert-preferences > .account-group + .account-group,html body #accountDialog #notificationDevicesGroup {
+  background:linear-gradient(var(--dialog-line),var(--dialog-line)) 16px 0/calc(100% - 16px) 1px no-repeat,var(--dialog-surface);
+}
+html body #accountDialog #notificationTypesGroup,html body #accountDialog #notificationLocationsGroup { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #accountDialog #notificationCitiesGroup,html body #accountDialog #notificationDevicesGroup { border-radius:0 0 var(--sheet-radius) var(--sheet-radius); }
+html body #accountDialog #notificationLocationsGroup { margin-top:16px; }
+html body #accountDialog #notificationPreferencesSave { margin-top:12px; min-height:48px; }
+html body #accountDialog #notificationPreferencesForm:not([data-dirty]):not([data-saved]) #notificationPreferencesSave { display:none; }
+html body #accountDialog #notificationPreferencesForm[data-saved] #notificationPreferencesSave { background:var(--dialog-surface-2); color:var(--dialog-text); pointer-events:none; }
+html body #accountDialog #notificationTest.account-row-action {
+  display:flex; align-items:center; width:100%; min-height:48px; margin:0; padding:0; border:0; border-top:1px solid var(--dialog-line); border-radius:0;
+  background:none; color:var(--dialog-link,var(--brand-blue)); font-size:.9375rem; font-weight:500; text-align:left;
+}
+html body #accountDialog #notificationTest.account-row-action[hidden] { display:none; }
+
+/* Sair e Excluir: um cartão com duas linhas. */
+html body #accountDialog .account-exit { margin:22px 0 0; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog .account-exit #accountLogout { display:flex; align-items:center; justify-content:center; width:100%; min-height:52px; margin:0; border:0; border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; background:none; font-weight:500; }
+html body #accountDialog .account-exit .account-delete { margin:0; border-radius:0 0 var(--sheet-radius) var(--sheet-radius); background:linear-gradient(var(--dialog-line),var(--dialog-line)) 16px 0/calc(100% - 32px) 1px no-repeat; }
+
+/* Previsão por cidade: as duas listas num cartão. */
+html body #accountDialog .capital-links details { border-radius:0; }
+html body #accountDialog .capital-links details:first-of-type { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #accountDialog .capital-links details:last-of-type { border-radius:0 0 var(--sheet-radius) var(--sheet-radius); }
+html body #accountDialog .capital-links details + details { margin-top:0; background:linear-gradient(var(--dialog-line),var(--dialog-line)) 16px 0/calc(100% - 16px) 1px no-repeat,var(--dialog-surface); }
+
+/* ===== Janelas pretas no escuro (1.50, pedido do dono: "não tô gostando desse azul", escolheu preto com letras
+   brancas, em todas as janelas). Com tinta clara (noite, chuva, trovoada), as folhas trocam o azul-noite por preto,
+   cartões em branco translúcido e texto branco; secundário em cinza neutro. De dia (tinta escura) continuam claras.
+   Só cores, redefinindo os mesmos tokens. */
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
+  --dialog-bg:#000; --dialog-surface:#ffffff12; --dialog-surface-2:#ffffff1f; --dialog-line:#ffffff1c;
+  --dialog-text:#fff; --dialog-muted:#a1a1a6; --dialog-link:var(--brand-blue);
+  --text:#fff; --muted:#a1a1a6; --line:#ffffff1c; --panel:#ffffff12; --panel-strong:#ffffff1f; --panel-subtle:#ffffff0a;
+  border-color:#ffffff1f; background:#000; color:#fff; box-shadow:0 30px 90px #000c,inset 0 1px 0 #ffffff14;
+}
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(.dialog-heading,.dialog-heading h2,h3,strong,label,legend,summary) { color:#fff; }
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(input:not([type=checkbox]):not([type=range]),select,textarea) { border-color:#ffffff24; background:#ffffff0f; color:#fff; }
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(input,textarea)::placeholder { color:#8e8e93; }
+
+/* Campo de texto nunca abaixo de 16 px: o Safari do iPhone amplia a página ao focar um campo menor (com o A− ou o
+   Tamanho do Texto pequeno, 1rem ficava abaixo disso e tocar na busca dava zoom). */
+html body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { font-size:max(16px,1rem) !important; }
+/* Botões preenchidos nas janelas pretas (1.50, pedido do dono): brancos com letra preta no lugar do azul
+   (Entrar, Salvar, Ativar alertas, Entendi, Aceitar, Baixar imagem, play do radar). Interruptores e links
+   continuam no azul da marca. */
+html body:not([data-ink="dark"]) :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#shareWeatherDialog #shareWeatherDownload,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry) {
+  border-color:#fff; background:#fff; color:#000;
+}
+html body:not([data-ink="dark"]) #accountDialog #notificationPreferencesSave:disabled,html body:not([data-ink="dark"]) :is(#termsDialog #termsAccept,#accountDialog #accountSubmit):disabled { border-color:#ffffff40; background:#ffffff40; color:#000000a0; }
+html body:not([data-ink="dark"]) #accountDialog #notificationPreferencesForm[data-saved] #notificationPreferencesSave { background:var(--dialog-surface-2); color:#fff; }
+/* Interruptores ligados em verde e links brancos (1.50, pedido do dono, janelas pretas): o azul sai dos
+   interruptores (verde, para ver que está ligado, de dia e de noite) e, no escuro, links e ações em texto ficam
+   brancos. Botões preenchidos continuam brancos com letra preta. */
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked,html body[data-ink="dark"] :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked { background:#30d158; }
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:focus-visible { outline-color:#30d158; }
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
+  --dialog-link:#fff; --map-link:#fff;
+}
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#fff !important; }
+html body:not([data-ink="dark"]) #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#fff; }
+html body:not([data-ink="dark"]) #accountDialog .notification-status.is-on { color:#30d158; border-color:#30d15859; background:#30d1581a; }
+html body:not([data-ink="dark"]) #accountDialog .notification-status.is-on::before { background:#30d158; }
+/* Janelas claras de dia (1.50, pedido do dono: "no branco de dia tu põe preto"): o espelho das janelas pretas. Botões
+   preenchidos ficam pretos com letra branca e links/ações em texto ficam pretos, no lugar do azul. */
+html body[data-ink="dark"] :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#shareWeatherDialog #shareWeatherDownload,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) {
+  border-color:#111; background:#111; color:#fff;
+}
+html body[data-ink="dark"] #accountDialog :is(#notificationPreferencesSave,#accountSubmit):disabled,html body[data-ink="dark"] #termsDialog #termsAccept:disabled { border-color:#11111140; background:#11111140; color:#ffffffb0; }
+html body[data-ink="dark"] #accountDialog #notificationPreferencesForm[data-saved] #notificationPreferencesSave { background:var(--dialog-surface-2); color:#111; }
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
+  --dialog-link:#111; --map-link:#111;
+}
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after,#cityDialog #locateCity) { color:#111 !important; }
+html body[data-ink="dark"] #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#111; }
+html body[data-ink="dark"] #accountDialog .notification-status.is-on { color:#1c7a36; border-color:#1c7a3659; background:#30d1581f; }
+html body[data-ink="dark"] #accountDialog .notification-status.is-on::before { background:#30d158; }
