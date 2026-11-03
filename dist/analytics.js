@@ -74,6 +74,22 @@
     try{localStorage.setItem(CHOICE_KEY,consent ? '1' : '0');}catch{}
     paintChoice();if(enabled())track('PLUVIA Opened',opened());
   }
+  // Pedido de consentimento (1.51, pedido do dono: "deveria vir ligado de padrão mas pedir consentimento"): na primeira
+  // vez (sem escolha guardada), depois da intro e do aviso dos Termos, um cartão pergunta. "Permitir" liga a coleta
+  // anônima; "Agora não" desliga e não pergunta de novo. Nada é coletado antes do toque: consentimento é ato da pessoa,
+  // então a opção em destaque é a de permitir, mas ela não vem ligada sozinha. Navegador com DNT/GPC nunca é perguntado.
+  let syncNotice=()=>{};
+  function mountNotice(on) {
+    const doc=document,notice=doc.getElementById('analyticsNotice');
+    if(!notice)return;
+    const waiting=[doc.getElementById('pluviaIntro'),doc.getElementById('termsNotice')];
+    const undecided=()=>{try{return localStorage.getItem(CHOICE_KEY)==null;}catch{return false;}};
+    syncNotice=()=>{notice.hidden=!(configured() && !protectedBrowser() && undecided() && !waiting.some(node=>node?.hidden===false));};
+    for(const node of waiting)if(node && typeof MutationObserver==='function')new MutationObserver(syncNotice).observe(node,{attributes:true,attributeFilter:['hidden']});
+    on('analyticsNoticeYes','click',()=>{setConsent(true);syncNotice();});
+    on('analyticsNoticeNo','click',()=>{setConsent(false);syncNotice();});
+    syncNotice();
+  }
   function track(name,properties={}) {
     if(name==='City Selected')searchChose=true;
     if(!enabled() || !events.has(name) || sent>=100 || queue.length>=50 || !id())return;
@@ -146,7 +162,7 @@
   window.pluviaAnalytics={track,identify(){},resetUser:clear,enabled,sanitize,setConsent,flush,reportFailure,reportVitals};
   window.addEventListener('online',()=>flush());
   window.addEventListener('pagehide',()=>{reportVitals();flush();});
-  window.addEventListener('storage',event=>{if(event.key===CHOICE_KEY){clear();consent=event.newValue==='1';paintChoice();}});
+  window.addEventListener('storage',event=>{if(event.key===CHOICE_KEY){clear();consent=event.newValue==='1';paintChoice();syncNotice();}});
   window.addEventListener('error',event=>{
     if(event.target?.tagName==='SCRIPT' || event.target?.tagName==='LINK')reportFailure({component:'asset',error_code:'resource_error'});
     else reportFailure({component:'application',error_code:'unexpected',error_type:event.error?.name});
@@ -155,7 +171,8 @@
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){reportVitals();flush();}});
   document.addEventListener('DOMContentLoaded',()=>{
     const on=(id,event,fn)=>document.getElementById(id)?.addEventListener(event,fn);
-    paintChoice();on('analyticsConsent','change',event=>setConsent(event.target.checked));
+    paintChoice();on('analyticsConsent','change',event=>{setConsent(event.target.checked);syncNotice();});
+    mountNotice(on);
     on('openPrivacy','click',()=>{document.getElementById('openSources')?.click();document.getElementById('analyticsConsent')?.focus();});
     track('PLUVIA Opened',opened());
     on('welcomeSearch','click',()=>track('City Search Opened',{source:'welcome'}));

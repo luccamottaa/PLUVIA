@@ -151,3 +151,21 @@ test('PLUVIA Opened leva só a faixa de dias de uso do aparelho, nunca a contage
   assert.doesNotMatch(JSON.stringify(opened.properties),/2026-10-12|"count"|last/);
  }
 });
+test('pedido de consentimento: só na primeira vez, nada é coletado antes do toque e Permitir/Agora não guardam a escolha',async()=>{
+ // Sem escolha guardada: o cartão aparece e a coleta continua desligada.
+ let app=setup({choice:null});
+ assert.equal(app.node('analyticsNotice').hidden,false);
+ await app.api.flush();assert.equal(app.calls.length,0,'sem consentimento não sai nada');
+ app.node('analyticsNoticeYes').click();
+ assert.equal(app.storage.get('pluvia-analytics-consent-v1'),'1');assert.equal(app.node('analyticsNotice').hidden,true);assert.equal(app.api.enabled(),true);
+ app=setup({choice:null});app.node('analyticsNoticeNo').click();
+ assert.equal(app.storage.get('pluvia-analytics-consent-v1'),'0');assert.equal(app.node('analyticsNotice').hidden,true);assert.equal(app.api.enabled(),false);
+ // Já escolheu (ligado ou desligado): não pergunta de novo.
+ for(const choice of ['0','1']){app=setup({choice});assert.equal(app.node('analyticsNotice').hidden,true,choice);}
+ // Navegador com privacidade (DNT/GPC) e domínio de teste nunca são perguntados.
+ assert.equal(setup({choice:null,dnt:'1'}).node('analyticsNotice').hidden,true);
+ assert.equal(setup({choice:null,gpc:true}).node('analyticsNotice').hidden,true);
+ assert.equal(setup({choice:null,host:'localhost'}).node('analyticsNotice').hidden,true);
+ // Espera a intro e o aviso dos Termos saírem da tela.
+ app=setup({choice:null});app.node('termsNotice').hidden=false;app.node('analyticsNoticeNo').click();
+});

@@ -31,7 +31,7 @@ test('passo a passo do iPhone e do Android sem pedido nativo',()=>{
 
 test('Android com pedido nativo: botão Instalar chama prompt e some ao aceitar',async()=>{
   const listeners={},els={};
-  const el=id=>els[id]||(els[id]={id,hidden:['installCard','alertNudge','termsNotice','pluviaIntro'].includes(id),textContent:'',open:false,addEventListener(t,f){listeners[id+':'+t]=f;},showModal(){this.open=true;}});
+  const el=id=>els[id]||(els[id]={id,hidden:['installCard','alertNudge','termsNotice','analyticsNotice','pluviaIntro'].includes(id),textContent:'',open:false,addEventListener(t,f){listeners[id+':'+t]=f;},showModal(){this.open=true;}});
   const win={navigator:{userAgent:'Android 14'},matchMedia:()=>({matches:false}),addEventListener:(t,f)=>{listeners['win:'+t]=f;}};
   const storage=store();storage.setItem('pluvia-install-visits','1');
   const api=install.mount({doc:{getElementById:el},win,storage,session:store(),now:()=>1e12,wait:false});
@@ -44,7 +44,7 @@ test('Android com pedido nativo: botão Instalar chama prompt e some ao aceitar'
 
 test('barra só depois de rolar quase uma tela, e nunca junto com o aviso dos Termos',()=>{
   const listeners={},els={};
-  const el=id=>els[id]||(els[id]={id,hidden:['installCard','alertNudge','pluviaIntro'].includes(id),textContent:'',open:false,addEventListener(t,f){listeners[id+':'+t]=f;},showModal(){}});
+  const el=id=>els[id]||(els[id]={id,hidden:['installCard','alertNudge','analyticsNotice','pluviaIntro'].includes(id),textContent:'',open:false,addEventListener(t,f){listeners[id+':'+t]=f;},showModal(){}});
   els.termsNotice={id:'termsNotice',hidden:false,addEventListener(){}};
   const win={navigator:{userAgent:'iPhone'},matchMedia:()=>({matches:false}),scrollY:0,innerHeight:800,addEventListener:(t,f)=>{listeners['win:'+t]=f;},removeEventListener(){}};
   const api=install.mount({doc:{getElementById:el},win,storage:store(),session:store(),now:()=>1e12});
@@ -54,4 +54,14 @@ test('barra só depois de rolar quase uma tela, e nunca junto com o aviso dos Te
   assert.equal(els.installCard.hidden,true,'aviso dos Termos ainda na tela');
   els.termsNotice.hidden=true;api.paint();
   assert.equal(els.installCard.hidden,false,'depois de rolar e sem os Termos');
+});
+test('a barra de instalar também espera o pedido de consentimento sair da tela',()=>{
+  const listeners={},els={};
+  const el=id=>els[id]||(els[id]={id,hidden:['installCard','alertNudge','termsNotice','pluviaIntro'].includes(id),textContent:'',open:false,addEventListener(t,f){listeners[id+':'+t]=f;},showModal(){}});
+  els.analyticsNotice={id:'analyticsNotice',hidden:false,addEventListener(){}};
+  const win={navigator:{userAgent:'iPhone'},matchMedia:()=>({matches:false}),scrollY:0,innerHeight:800,addEventListener:(t,f)=>{listeners['win:'+t]=f;},removeEventListener(){}};
+  const api=install.mount({doc:{getElementById:el},win,storage:store(),session:store(),now:()=>1e12,wait:false});
+  assert.equal(els.installCard.hidden,true,'consentimento ainda na tela');
+  els.analyticsNotice.hidden=true;api.paint();
+  assert.equal(els.installCard.hidden,false,'sem o pedido de consentimento');
 });

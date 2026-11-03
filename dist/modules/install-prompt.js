@@ -56,7 +56,8 @@
     // Espera a pessoa usar o app (rolar quase uma tela ou 20 s) e o aviso dos Termos sair da tela.
     let engaged = !wait;
     const terms = doc.getElementById("termsNotice");
-    const blocked = () => terms?.hidden === false || doc.getElementById("pluviaIntro")?.hidden === false;
+    const consentCard = doc.getElementById("analyticsNotice");
+    const blocked = () => terms?.hidden === false || consentCard?.hidden === false || doc.getElementById("pluviaIntro")?.hidden === false;
     function paint() {
       if (done || !engaged || standalone(win) || nudgeCoversInstall() || blocked()) { hide(); return; }
       action.textContent = os === "android" && deferred ? "Instalar" : "Como instalar";
@@ -71,7 +72,7 @@
       const onScroll = () => { if ((win.scrollY || 0) > (win.innerHeight || 700) * .8) engage(); };
       win.addEventListener?.("scroll", onScroll, {passive:true});
       (runtime.setTimeout || setTimeout)(engage, ENGAGE_MS);
-      for (const node of [terms, doc.getElementById("pluviaIntro")]) {
+      for (const node of [terms, consentCard, doc.getElementById("pluviaIntro")]) {
         if (node && typeof runtime.MutationObserver === "function") new runtime.MutationObserver(() => paint()).observe(node, {attributes:true, attributeFilter:["hidden"]});
       }
     }
