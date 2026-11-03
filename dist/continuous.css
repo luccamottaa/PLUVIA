@@ -2419,8 +2419,7 @@ html body #accountDialog .text-size-controls button { flex:none; aspect-ratio:1;
 html body #accountDialog :is(#textSizeDown,#textSizeUp) { width:44px; height:44px; min-height:44px; padding:0; border-radius:50%; }
 
 /* ===== Minha conta mais limpa (1.50, pedido do dono: "muito poluída" e "liquid glass onde tá escrito Minha conta") =====
-   Cabeçalho (no fluxo, com margem negativa embaixo): o conteúdo rola por baixo de uma faixa de vidro (desfoque só nessa faixa, que fica sobre o fundo
-   opaco da janela), e o título fica numa cápsula de vidro como o X (sem desfoque próprio: desfoque dentro de
+   Cabeçalho (no fluxo, com margem negativa embaixo): o conteúdo rola por baixo de uma faixa quase opaca (sem desfoque: o WebKit da CI caiu com blur ali), e o título fica numa cápsula de vidro como o X (sem desfoque próprio: desfoque dentro de
    desfoque confunde o backdrop). Perfil numa linha que abre a edição; os quatro ajustes de aviso num cartão só,
    Cidades/Aparelhos noutro; "Salvar avisos" só aparece quando algo mudou; Sair/Excluir num cartão discreto;
    "Previsão por cidade" num cartão. Só #accountDialog. */
@@ -2429,8 +2428,7 @@ html body #accountDialog .dialog-heading {
 }
 html body #accountDialog .dialog-heading::before {
   content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--dialog-bg) 92%,transparent),color-mix(in srgb,var(--dialog-bg) 62%,transparent));
-  -webkit-backdrop-filter:blur(18px) saturate(1.6); backdrop-filter:blur(18px) saturate(1.6);
+  background:linear-gradient(180deg,var(--dialog-bg) 55%,color-mix(in srgb,var(--dialog-bg) 82%,transparent));
   -webkit-mask-image:linear-gradient(#000 calc(100% - 16px),transparent); mask-image:linear-gradient(#000 calc(100% - 16px),transparent);
 }
 html body #accountDialog .dialog-heading h2 {
