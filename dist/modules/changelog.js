@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.46", date:"2026-11-03", title:"Vidro que reage ao toque", items:[
+      "Os botões de vidro (conta, compartilhar, busca, o X das janelas e a pílula do topo) agora reagem ao dedo: crescem e acendem no ponto do toque, esticam quando você arrasta e voltam com um quique ao soltar.",
+      "Tocar na pílula que aparece ao rolar volta para o topo da página."
+    ]},
     {version:"1.45.1", date:"2026-11-03", title:"Ajustes de visual", items:[
       "O X de fechar das janelas ficou centrado no círculo e com o mesmo vidro dos botões do topo.",
       "As barras de temperatura dos 7 dias ficaram mais compridas: os dias aparecem abreviados (Ter, Qua…), como no app Tempo.",
