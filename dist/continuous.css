@@ -2523,3 +2523,15 @@ html body:not([data-ink="dark"]) :is(#cityDialog #savedPlaceSave,#accountDialog 
 }
 html body:not([data-ink="dark"]) #accountDialog #notificationPreferencesSave:disabled,html body:not([data-ink="dark"]) :is(#termsDialog #termsAccept,#accountDialog #accountSubmit):disabled { border-color:#ffffff40; background:#ffffff40; color:#000000a0; }
 html body:not([data-ink="dark"]) #accountDialog #notificationPreferencesForm[data-saved] #notificationPreferencesSave { background:var(--dialog-surface-2); color:#fff; }
+/* Interruptores ligados em verde e links brancos (1.50, pedido do dono, janelas pretas): o azul sai dos
+   interruptores (verde, para ver que está ligado, de dia e de noite) e, no escuro, links e ações em texto ficam
+   brancos. Botões preenchidos continuam brancos com letra preta. */
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked,html body[data-ink="dark"] :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked { background:#30d158; }
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:focus-visible { outline-color:#30d158; }
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
+  --dialog-link:#fff; --map-link:#fff;
+}
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#fff !important; }
+html body:not([data-ink="dark"]) #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#fff; }
+html body:not([data-ink="dark"]) #accountDialog .notification-status.is-on { color:#30d158; border-color:#30d15859; background:#30d1581a; }
+html body:not([data-ink="dark"]) #accountDialog .notification-status.is-on::before { background:#30d158; }
