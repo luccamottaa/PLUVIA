@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.49", date:"2026-11-03", title:"A− e A+ no texto", items:[
+      "Em Minha conta › Mais do PLUVIA tem A− e A+ para deixar o texto menor ou maior só neste aparelho, em qualquer celular. No iPhone ele soma com o Tamanho do Texto do sistema."
+    ]},
     {version:"1.48", date:"2026-11-03", title:"Texto no tamanho do seu iPhone", items:[
       "No iPhone e no iPad, o PLUVIA segue o Tamanho do Texto escolhido em Ajustes › Tela e Brilho: letra maior no sistema, letra maior no app (com limite, para a tela não quebrar).",
       "Os textos que ficavam fixos em pixels passaram a acompanhar esse tamanho."
