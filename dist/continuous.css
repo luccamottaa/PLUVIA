@@ -2403,3 +2403,17 @@ body[data-ink="dark"] #weatherView .hourly-modes { box-shadow:inset 0 0 0 1px rg
 #weatherView .sun-table { overflow-x:auto; -webkit-overflow-scrolling:touch; }
 #weatherView .sun-table table { min-width:max-content; }
 @media (min-width:0) { #weatherView .sun-table :is(th,td) + :is(th,td) { padding-left:12px; } }
+/* Linha "Tamanho do texto" em Mais do PLUVIA (1.48, modules/text-size.js): nome à esquerda, A− 100% A+ à direita. */
+html body #accountDialog .text-size-row { display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:default; }
+html body #accountDialog .text-size-row:active { opacity:1; }
+#accountDialog .text-size-controls { display:inline-flex; align-items:center; gap:6px; }
+html body #accountDialog .text-size-controls button { display:grid; place-items:center; width:44px; height:44px; min-height:44px; padding:0; border:0; border-radius:50%; background:rgba(255,255,255,.1); color:var(--dialog-text); font:600 1rem/1 var(--font-ui); box-shadow:inset 1px 1px 0 -.3px rgba(255,255,255,.5), inset 0 0 0 .5px rgba(255,255,255,.2); cursor:pointer; }
+html body #accountDialog .text-size-controls button:disabled { opacity:.35; cursor:default; }
+html body #accountDialog #textSizeDown { font-size:.8125rem; }
+#accountDialog #textSizeValue { min-width:3.2em; text-align:center; color:var(--dialog-muted); font-variant-numeric:tabular-nums; }
+html body[data-ink="dark"] #accountDialog .text-size-controls button { background:rgba(19,35,61,.06); box-shadow:inset 0 0 0 1px rgba(19,35,61,.12); }
+html body #accountDialog .text-size-row::after { display:none !important; }
+html body #accountDialog .text-size-row > span:first-child { min-width:0; }
+#accountDialog .text-size-controls { flex:none; }
+html body #accountDialog .text-size-controls button { flex:none; aspect-ratio:1; }
+html body #accountDialog :is(#textSizeDown,#textSizeUp) { width:44px; height:44px; min-height:44px; padding:0; border-radius:50%; }

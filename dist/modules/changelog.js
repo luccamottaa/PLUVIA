@@ -14,7 +14,7 @@
   const VERSIONS = [
     {version:"1.48", date:"2026-11-03", title:"Texto no tamanho do seu iPhone", items:[
       "No iPhone e no iPad, o PLUVIA segue o Tamanho do Texto escolhido em Ajustes › Tela e Brilho: letra maior no sistema, letra maior no app (com limite, para a tela não quebrar).",
-      "Os textos que ficavam fixos em pixels passaram a acompanhar esse tamanho."
+      "Em Minha conta › Mais do PLUVIA tem A− e A+ para deixar o texto menor ou maior só neste aparelho, em qualquer celular.", "Os textos que ficavam fixos em pixels passaram a acompanhar esse tamanho."
     ]},
     {version:"1.47", date:"2026-11-03", title:"Vidro nos controles", items:[
       "A busca de cidades, os botões Favorita, Usar localização e Brasil agora, as respostas de \"Tá chovendo aí?\", a escolha de Chuva e Vento e o ⓘ ganharam o vidro dos botões do topo.",
