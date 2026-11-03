@@ -2355,3 +2355,45 @@ body[data-ink="dark"] .compact-head > .compact-pill { background:linear-gradient
 .topbar .top-actions .search-trigger:active { background:transparent !important; }
 .night-stage > .compact-head[data-on] .compact-pill { pointer-events:auto; cursor:pointer; }
 @media (forced-colors:active) { .topbar :is(.account-trigger,.top-actions)::after, .compact-head .compact-pill::after, html body .dialog-close::after { display:none; } }
+
+/* Vidro nos controles das fotos (1.47, pedido do dono: "adiciona o liquid glass em tudo que tá nas fotos"): busca de
+   cidades, Favorita / Usar localização / Brasil agora, Sem chuva / Garoa / Chuva / Chuva forte, a pílula de modos da
+   previsão e o ⓘ. Mesmo recurso dos botões do topo (1.45): desfoque pequeno, saturação, borda de luz em cima e embaixo;
+   no Chromium a lente (url() no backdrop-filter) também. Só elementos pequenos recebem blur (os cartões continuam sem).
+   O segmento selecionado da pílula não tem blur próprio: blur dentro de blur confunde o backdrop. Movimento do toque em
+   modules/glass-touch.js (SELECTOR). Para tirar só o desfoque (se o Safari pesar), apague as linhas backdrop-filter. */
+#cityDialog #citySearch,
+#cityDialog .city-actions > button,
+#weatherView .rain-report-options button,
+#weatherView .hourly-modes,
+.info-tip-icon {
+  -webkit-backdrop-filter:blur(10px) saturate(1.7) brightness(1.06);
+  backdrop-filter:blur(10px) saturate(1.7) brightness(1.06);
+}
+.info-tip-icon { -webkit-backdrop-filter:blur(6px) saturate(1.6); backdrop-filter:blur(6px) saturate(1.6); box-shadow:inset 1px 1px 0 -.3px rgba(255,255,255,.55), inset 0 0 0 .5px rgba(255,255,255,.3), 0 2px 8px rgba(4,8,20,.18); }
+html body #cityDialog #citySearch { background-color:rgba(255,255,255,.1); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.55), inset -1px -1px 0 -.5px rgba(255,255,255,.22), inset 0 0 0 .5px rgba(255,255,255,.2), 0 4px 14px rgba(4,8,20,.18); }
+html body #cityDialog .city-actions > button { position:relative; background-color:rgba(255,255,255,.11); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.6), inset -1px -1px 0 -.5px rgba(255,255,255,.25), inset 0 0 0 .5px rgba(255,255,255,.22), inset 0 0 14px rgba(255,255,255,.08), 0 6px 18px rgba(4,8,20,.2); }
+html body #cityDialog #locateCity { background-color:color-mix(in srgb,var(--brand-blue) 84%,transparent); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.7), inset -1px -1px 0 -.5px rgba(255,255,255,.3), inset 0 0 0 .5px rgba(255,255,255,.3), 0 6px 18px rgba(4,8,20,.2); }
+html body[data-ink="dark"] #cityDialog #citySearch { background-color:rgba(255,255,255,.7); box-shadow:inset 0 0 0 1px rgba(19,35,61,.12), 0 4px 14px rgba(20,40,70,.08); }
+html body[data-ink="dark"] #cityDialog .city-actions > button { background-color:rgba(255,255,255,.55); box-shadow:inset 0 0 0 1px rgba(19,35,61,.1), 0 6px 18px rgba(20,40,70,.1); }
+#weatherView .rain-report-options button { position:relative; background:rgba(255,255,255,.1); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.55), inset -1px -1px 0 -.5px rgba(255,255,255,.2), inset 0 0 0 .5px rgba(255,255,255,.2), 0 4px 12px rgba(4,8,20,.14); }
+#weatherView .rain-report-options button[aria-pressed="true"] { background-color:color-mix(in srgb,var(--brand-blue) 84%,transparent); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.6), inset 0 0 0 .5px rgba(255,255,255,.3), 0 4px 14px rgba(4,14,34,.2); }
+body[data-ink="dark"] #weatherView .rain-report-options button:not([aria-pressed="true"]) { background-color:rgba(255,255,255,.42); border-color:rgba(19,35,61,.18); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.9), inset 0 0 0 .5px rgba(19,35,61,.12), 0 4px 12px rgba(20,40,70,.1); }
+#weatherView .hourly-modes { box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.5), inset -1px -1px 0 -.5px rgba(255,255,255,.2), inset 0 0 0 .5px rgba(255,255,255,.2), 0 4px 14px rgba(4,8,20,.16); }
+#weatherView .hourly-modes button { position:relative; }
+#weatherView .hourly-modes button[aria-pressed="true"] { background:color-mix(in srgb,var(--reading-ink,#fff) 22%,transparent); box-shadow:inset 1px 1px 0 rgba(255,255,255,.4), inset 0 0 0 .5px rgba(255,255,255,.22), 0 2px 8px rgba(4,8,20,.18); }
+body[data-ink="dark"] #weatherView .hourly-modes { box-shadow:inset 0 0 0 1px rgba(19,35,61,.1), 0 4px 12px rgba(20,40,70,.1); }
+/* Brilho que acende no ponto do dedo (glass-touch.js põe data-glass-press e --gx/--gy). */
+#cityDialog .city-actions > button::after, #weatherView .rain-report-options button::after, #weatherView .hourly-modes button::after {
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; opacity:0;
+  background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.5),rgba(255,255,255,.14) 42%,transparent 72%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.5); transition:opacity .5s ease;
+}
+#cityDialog .city-actions > button[data-glass-press]::after, #weatherView .rain-report-options button[data-glass-press]::after, #weatherView .hourly-modes button[data-glass-press]::after { opacity:1; transition-duration:.12s; }
+@media (prefers-reduced-transparency:reduce) {
+  #cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes, .info-tip-icon { -webkit-backdrop-filter:none; backdrop-filter:none; }
+}
+@media (forced-colors:active) {
+  #cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes, .info-tip-icon { -webkit-backdrop-filter:none; backdrop-filter:none; box-shadow:none; }
+  #cityDialog .city-actions > button::after, #weatherView .rain-report-options button::after, #weatherView .hourly-modes button::after { display:none; }
+}
