@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.51", date:"2026-11-03", title:"Ajude a melhorar o PLUVIA", items:[
+      "Na primeira vez, o PLUVIA pergunta se você quer ajudar a melhorar o app com contagem anônima de usos e erros (sem nome, cidade ou GPS). Só começa depois de você tocar em Permitir; \"Agora não\" não pergunta de novo, e dá para mudar depois em Fontes de dados.",
+      "Os avisos fixos de baixo (Termos e esse pedido) ficaram pretos, com botão branco."
+    ]},
     {version:"1.50.5", date:"2026-11-03", title:"Suas cidades mais limpa", items:[
       "\"Usar localização\" ficou branco com ícone e texto pretos (de dia, preto com letra branca).",
       "O cartão das cidades favoritas perdeu o contorno azul e ficou menor, com letras e temperatura mais compactas."
