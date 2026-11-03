@@ -39,5 +39,7 @@ test('wrangler publica dist/ pelo Worker, com 404 real e sem os arquivos só do 
   assert.match(config, /"directory": "\.\/dist"/);
   assert.match(config, /"not_found_handling": "404-page"/);
   assert.match(config, /"run_worker_first": true/);
+  // Worker Previews (npx wrangler preview, o comando dos builds de PR) exige o bloco "previews", mesmo vazio.
+  assert.match(config, /"previews": \{\}/);
   assert.deepEqual(fs.readFileSync('dist/.assetsignore', 'utf8').trim().split('\n'), ['CNAME', '.nojekyll', 'dev-server.cjs']);
 });

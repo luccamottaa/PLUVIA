@@ -11,5 +11,8 @@
     "run_worker_first": true,
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
-  }
+  },
+  // Worker Previews (o "npx wrangler preview" que roda nos PRs): o bloco "previews" é obrigatório, mesmo vazio.
+  // Sem ele o build de cada PR falhava no Cloudflare; a produção (npx wrangler deploy) usa só o resto do arquivo.
+  "previews": {}
 }
