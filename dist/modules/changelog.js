@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.50", date:"2026-11-03", title:"Minha conta mais limpa", items:[
+      "O título \"Minha conta\" virou uma cápsula de vidro, e o que rola por baixo do topo fica desfocado.",
+      "Foto, nome e e-mail ficam numa linha só (toque para mudar a foto ou o nome), e os ajustes de aviso ficam juntos num cartão.",
+      "\"Salvar avisos\" só aparece quando você muda alguma coisa; o teste de notificação foi para Aparelhos, e Sair e Excluir ficaram num cartão discreto."
+    ]},
     {version:"1.49", date:"2026-11-03", title:"A− e A+ no texto", items:[
       "Em Minha conta › Mais do PLUVIA tem A− e A+ para deixar o texto menor ou maior só neste aparelho, em qualquer celular. No iPhone ele soma com o Tamanho do Texto do sistema."
     ]},

@@ -125,6 +125,7 @@
   }
 
   function paintPreferences(preferences) {
+    settleDirty();
     preferences=allAlertPreferences(preferences);
     for (const field of boolFields) {
       const input = form.elements.namedItem(field);
@@ -238,9 +239,9 @@
     const subscription = await browserSubscription().catch(() => null);
     const active = Notification.permission === "granted" && Boolean(subscription) && Boolean(localSubscriptionId());
     status(active ? "on" : "off", active ? "Alertas ativos" : "Alertas desativados");
-    toggle.disabled = false; toggle.textContent = active ? "Desativar neste dispositivo" : "Ativar alertas";
+    toggle.disabled = false; toggle.textContent = active ? "Desligar avisos neste aparelho" : "Ativar alertas";
     testButton.hidden = !active;
-    if (!keep) message(active ? "Este dispositivo pode receber notificações mesmo com o PLUVIA fechado." : pendingEnable && currentUser() ? "Conta conectada. Toque em “Ativar alertas” para solicitar permissão." : "A permissão será solicitada após o toque em “Ativar alertas”.");
+    if (!keep) message(active ? "" : pendingEnable && currentUser() ? "Conta conectada. Toque em “Ativar alertas” para solicitar permissão." : "A permissão será solicitada após o toque em “Ativar alertas”.");
     pushActive = active;
     // Sem conta, o desligar fica na própria janela da conta (as preferências exigem conta).
     if (anonStatus) anonStatus.hidden = !(active && !currentUser());
@@ -322,7 +323,7 @@
       setPendingEnable(false);
       track("Push Enabled", { platform: deviceInfo().platform, city: currentLocation()?.cityId || "" });
       window.dispatchEvent(new CustomEvent("pluvia:alerts-enabled", { detail: { cityId: currentLocation()?.cityId || "", label: cityLabel() } }));
-      message(currentUser() ? `Alertas ligados para ${cityLabel()}. INMET, chuva nas próximas horas e o resumo do dia às 7h (dá para mudar nas preferências). Envie um teste se quiser conferir.` : `Avisos ligados para ${cityLabel()} neste aparelho. Para escolher os tipos de aviso e outras cidades, entre na conta.`);
+      message(currentUser() ? `Alertas ligados para ${cityLabel()}. INMET, chuva nas próximas horas e o resumo do dia às 7h (dá para mudar nas preferências). Para conferir, envie um teste em Aparelhos.` : `Avisos ligados para ${cityLabel()} neste aparelho. Para escolher os tipos de aviso e outras cidades, entre na conta.`);
     } catch (error) { message(error.message || "Não foi possível ativar os alertas."); }
     finally { busy = false; await paintState({keep:true}); }
   }
@@ -382,6 +383,24 @@
     try { const result = await invoke("push-send", { action: "test", subscriptionId: localSubscriptionId() }); if (!result?.accepted) throw new Error("O serviço push não confirmou o envio."); message("Notificação aceita pelo serviço push. Confira a notificação do sistema."); track("Push Test Accepted", { platform: deviceInfo().platform }); }
     catch (error) { message(error.message || "O teste não chegou ao serviço push."); }
     finally { busy = false; testButton.disabled = false; }
+  });
+  // "Salvar avisos" só aparece quando algo mudou (1.50, pedido do dono: a janela da conta estava poluída, e o botão
+  // azul ficava sempre à vista). Mudar um campo marca data-dirty; os dados do servidor (paintPreferences) desmarcam, e
+  // se isso acontece no meio de uma gravação o botão diz "Avisos salvos" por um instante antes de sumir.
+  let savedTimer = 0;
+  function settleDirty() {
+    if (!form?.dataset) return;
+    const saved = form.dataset.dirty === "1" && busy;
+    delete form.dataset.dirty;
+    if (!saved) return;
+    const button = el("notificationPreferencesSave");
+    form.dataset.saved = "1"; button.textContent = "Avisos salvos";
+    clearTimeout(savedTimer);
+    savedTimer = setTimeout(() => { delete form.dataset.saved; button.textContent = "Salvar avisos"; }, 2400);
+  }
+  for (const type of ["input", "change"]) form.addEventListener(type, () => {
+    form.dataset.dirty = "1";
+    if (form.dataset.saved) { clearTimeout(savedTimer); delete form.dataset.saved; el("notificationPreferencesSave").textContent = "Salvar avisos"; }
   });
   form.addEventListener("submit", async event => {
     event.preventDefault(); if (busy || !currentUser()) return;
