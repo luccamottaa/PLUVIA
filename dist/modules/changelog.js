@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.50.3", date:"2026-11-03", title:"Busca de cidades mais bonita", items:[
+      "Cada cidade da busca virou um cartão próprio, com o nome em destaque, a sigla do estado numa pílula, o estado e \"capital\" embaixo, estrela amarela nas favoritas e um contorno na cidade aberta."
+    ]},
     {version:"1.50.2", date:"2026-11-03", title:"Janelas claras de dia", items:[
       "De dia, as janelas (conta, busca, detalhes…) ficam claras mesmo com céu nublado ou chuva; só à noite ficam pretas.",
       "Botões de aviso com a mesma altura e cantos, interruptor ligado com bolinha branca e divisórias alinhadas nos cartões."

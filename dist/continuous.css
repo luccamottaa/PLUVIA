@@ -2556,3 +2556,24 @@ html body[data-phase="day"] #accountDialog .notification-status.is-on::before { 
 html body #accountDialog :is(#notificationToggle,#notificationPreferencesSave,#accountSubmit,#profileSave) { min-height:50px; border-radius:999px; font-size:.9375rem; font-weight:600; }
 html body :is(#accountDialog,#sourcesDialog) input[type=checkbox] { border:0 !important; box-shadow:none !important; }
 html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked { background:#30d158 !important; }
+
+/* Resultados da busca de cidades mais bonitos (1.50.3, pedido do dono: "tão muito feias"): cada cidade é um cartão
+   próprio com espaço entre eles (antes uma lista corrida com linhas), nome em destaque com a sigla do estado numa
+   pílula, estado e "capital" embaixo em cinza, estrela amarela para as favoritas e anel branco (preto de dia) na
+   cidade aberta. Só pintura; mesmos botões, papéis e ids. */
+html body #cityDialog .city-results { display:grid; gap:8px; margin:6px 0 0; padding:0; border:0; border-radius:0; background:none; overflow:visible; }
+html body #cityDialog .city-results li { margin:0; list-style:none; }
+html body #cityDialog .city-result {
+  position:relative; display:grid; gap:3px; width:100%; min-height:64px; padding:13px 18px 13px 16px; border:0; border-radius:20px;
+  background:var(--dialog-surface); text-align:left;
+}
+html body #cityDialog .city-results li:last-child .city-result { border-bottom:0; }
+html body #cityDialog .city-result .city-result-name { display:flex; align-items:center; gap:8px; min-width:0; font-size:1.0625rem; font-weight:650; letter-spacing:-.01em; line-height:1.25; }
+html body #cityDialog .city-result .city-uf { flex:none; padding:2px 8px; border-radius:999px; background:var(--dialog-surface-2); color:var(--dialog-muted); font-size:.6875rem; font-weight:700; letter-spacing:.04em; line-height:1.4; }
+html body #cityDialog .city-result .city-fav { flex:none; width:16px; height:16px; margin-left:auto; background:#ffd60a; -webkit-mask:var(--star) center/contain no-repeat; mask:var(--star) center/contain no-repeat; --star:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z'/%3E%3C/svg%3E"); }
+html body #cityDialog .city-result small { display:block; color:var(--dialog-muted); font-size:.8125rem; line-height:1.3; }
+html body #cityDialog .city-result:active { background:var(--dialog-surface-2); }
+html body #cityDialog .city-result[data-current=true],html body #cityDialog .city-result[aria-selected="true"] { background:var(--dialog-surface-2); box-shadow:inset 0 0 0 1.5px #fff; padding-left:16px; }
+html body[data-phase="day"] #cityDialog .city-result[data-current=true],html body[data-phase="day"] #cityDialog .city-result[aria-selected="true"] { background:#fff; box-shadow:inset 0 0 0 1.5px #111; }
+html body[data-phase="day"] #cityDialog .city-result .city-fav { background:#e0a100; }
+@media (forced-colors:active) { html body #cityDialog .city-result { border:1px solid ButtonText; } html body #cityDialog .city-result .city-fav { background:Highlight; } }
