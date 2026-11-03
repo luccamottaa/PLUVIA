@@ -2337,5 +2337,7 @@ html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourly
   background:linear-gradient(180deg,rgba(150,175,225,.22),rgba(150,175,225,.12));
   box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.55),inset -1px -1px 0 -.5px rgba(255,255,255,.25),0 6px 18px rgba(4,8,20,.22);
 }
+/* Lente na borda também na pílula (Chromium, pedido do dono: "quero que a pílula seja liquid glass também"). */
+html[data-glass-lens] .compact-head > .compact-pill { -webkit-backdrop-filter:url(#pluviaGlassPill); backdrop-filter:url(#pluviaGlassPill); }
 body[data-ink="dark"] .compact-head > .compact-pill { background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.34)); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),0 6px 18px rgba(24,64,120,.16); }
 @media (prefers-reduced-transparency:reduce) { .compact-head > .compact-pill { -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(22,34,58,.92); } body[data-ink="dark"] .compact-head > .compact-pill { background:rgba(244,247,252,.94); } }
