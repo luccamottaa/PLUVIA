@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.45.1", date:"2026-11-03", title:"Ajustes de visual", items:[
+      "O X de fechar das janelas ficou centrado no círculo e com o mesmo vidro dos botões do topo.",
+      "As barras de temperatura dos 7 dias ficaram mais compridas: os dias aparecem abreviados (Ter, Qua…), como no app Tempo.",
+      "A Lua do Ciclo do dia ficou menor, e a pílula que aparece ao rolar ganhou vidro desfocado: o texto de trás não aparece mais através dela."
+    ]},
     {version:"1.45", date:"2026-11-02", title:"Botões de vidro no topo", items:[
       "A conta, o compartilhar e a busca no topo viraram botões de vidro, como os do iPhone: o céu aparece desfocado por trás, com brilho na borda.",
       "No Chrome e no Android a borda do vidro também entorta o céu atrás, como uma lente."

@@ -1224,7 +1224,7 @@ body[data-phase="day"][data-ink="light"][data-weather="cloud"] :is(.topbar,.weat
 #weatherView .sun-section .moon-card-rows div:last-child { border-bottom:0; }
 #weatherView .sun-section .moon-card-rows dt { margin:0; color:var(--reading-muted); font:400 .9375rem/1.35 var(--font-ui); letter-spacing:0; text-align:left; white-space:nowrap; }
 #weatherView .sun-section .moon-card-rows dd { margin:0; color:var(--reading-ink); font:500 .9375rem/1.35 var(--font-ui); font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
-#weatherView .sun-section .moon-card-disc { display:block; width:clamp(104px,28vw,148px); height:auto; aspect-ratio:1; padding:6px; border-radius:50%; background:radial-gradient(circle closest-side,rgba(214,226,255,.16) 78%,rgba(214,226,255,.05) 90%,transparent 100%); }
+#weatherView .sun-section .moon-card-disc { display:block; width:clamp(84px,23vw,112px); height:auto; aspect-ratio:1; padding:6px; border-radius:50%; background:radial-gradient(circle closest-side,rgba(214,226,255,.16) 78%,rgba(214,226,255,.05) 90%,transparent 100%); }
 body[data-ink="dark"] #weatherView .sun-section .moon-card-disc { background:radial-gradient(circle closest-side,rgba(19,35,61,.22) 80%,rgba(19,35,61,.06) 92%,transparent 100%); }
 @media (max-width:359px) { #weatherView .sun-section .moon-card { gap:10px; } #weatherView .sun-section .moon-card-disc { width:84px; padding:4px; } #weatherView .sun-section .moon-card-rows div { display:grid; gap:2px; padding:7px 0; } #weatherView .sun-section .moon-card-rows dd { text-align:left; } }
 /* Respiro entre o último cartão e a linha do rodapé (a borda do cartão encostava nela). */
@@ -1275,10 +1275,16 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
   /* 1.25.1 (pedido do usuário): nome do dia maior (1,125rem, coluna até 4,9rem: cabe "Domingo") e o ícone no meio do
      espaço entre o dia e a chuva (coluna flexível, ícone centrado), em vez de colado no nome. */
   /* 1.42.2 (pedido do dono: "aumenta mais os ícones"): ícone de 44 px numa coluna de 48 px (antes 32 em 44). */
-  #weatherView .forecast-list .forecast-row { grid-template-columns:minmax(3.6rem,4.9rem) 48px 3.5rem minmax(6.4rem,1fr); column-gap:6px; }
+  #weatherView .forecast-list .forecast-row { grid-template-columns:minmax(2.9rem,3.4rem) 48px 3.4rem minmax(6.4rem,1fr); column-gap:6px; }
   #weatherView .forecast-list .forecast-row > .forecast-condition { justify-self:center; }
   #weatherView .forecast-list .forecast-weather-icon { width:44px; height:44px; }
   #weatherView .forecast-list .forecast-row > .temp-range { grid-template-columns:3.4ch minmax(24px,1fr) 3.4ch; column-gap:6px; }
+  /* 1.45.1 (pedido do dono: "as barras da temperatura ficaram pequenas"): com a Sora o nome inteiro não cabia
+     ("Domin…") e a coluna de 4,9rem deixava a barra com ~42 px. O dia vira abreviação (Ter, Qua… como no app Tempo),
+     o nome inteiro continua para leitores de tela e no detalhe; a barra passa de ~70 px a 393 px. */
+  #weatherView .forecast-list .forecast-day .day-short { display:inline; }
+  #weatherView .forecast-list .forecast-day .day-short ~ .weekend-note { display:none; }
+  #weatherView .forecast-list .forecast-day .day-full:has(+ .day-short) { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
   #weatherView .forecast-list .forecast-day > strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 }
 #weatherView .forecast-day .day-short { display:none; }
@@ -2305,3 +2311,31 @@ html body .topbar :is(#accountButton,#openCitySearch,#shareWeather) > * { transi
   body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before { background:rgba(244,247,252,.9); }
 }
 @media (forced-colors:active) { .topbar :is(.account-trigger,.top-actions)::before { display:none; } }
+
+/* X de fechar centrado e de vidro (1.45.1, pedido do dono: "ajeita esses x aí que tão tudo feio"): com a grade, o
+   "×" escondido do HTML virava uma segunda linha e empurrava o desenho para cima do centro do círculo. O desenho agora
+   é absoluto e centrado no botão, e o círculo usa o mesmo vidro dos botões do topo (degradê claro, borda de luz),
+   sem backdrop-filter (o fundo da janela já é opaco). */
+html body .dialog-close { position:relative; }
+html body .dialog-close::before { position:absolute; inset:0; margin:auto; width:18px; height:18px; }
+html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#changelogDialog,#whatsNewDialog,#alertDetail,#installPushDialog,#installDialog,#termsDialog,#radarDialog) .dialog-close {
+  border-radius:50%; border:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06) 55%,rgba(255,255,255,.1));
+  box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.6),inset -1px -1px 0 -.5px rgba(255,255,255,.3),inset 0 0 0 .5px rgba(255,255,255,.22),inset 0 0 12px rgba(255,255,255,.1) !important;
+}
+html body[data-ink="dark"] :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#changelogDialog,#whatsNewDialog,#alertDetail,#installPushDialog,#installDialog,#termsDialog,#radarDialog) .dialog-close {
+  background:linear-gradient(180deg,rgba(19,35,61,.06),rgba(19,35,61,.1));
+  box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),inset 0 0 0 .5px rgba(19,35,61,.14),0 2px 8px rgba(19,35,61,.08) !important;
+}
+@media (forced-colors:active) { html body .dialog-close { box-shadow:none !important; border:1px solid ButtonText; } }
+
+/* Pílula do cabeçalho compacto com vidro de verdade (1.45.1): a faixa some devagar embaixo, e a pílula fica nessa
+   parte translúcida, onde o texto rolando aparecia nítido atrás dela ("Ninguém relatou…" por baixo de "Manaus").
+   Um desfoque só na pílula (pequena, ~350 × 58) resolve como no iOS; os cartões continuam sem blur. */
+.compact-head > .compact-pill {
+  -webkit-backdrop-filter:blur(16px) saturate(1.7); backdrop-filter:blur(16px) saturate(1.7);
+  background:linear-gradient(180deg,rgba(150,175,225,.22),rgba(150,175,225,.12));
+  box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.55),inset -1px -1px 0 -.5px rgba(255,255,255,.25),0 6px 18px rgba(4,8,20,.22);
+}
+body[data-ink="dark"] .compact-head > .compact-pill { background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.34)); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),0 6px 18px rgba(24,64,120,.16); }
+@media (prefers-reduced-transparency:reduce) { .compact-head > .compact-pill { -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(22,34,58,.92); } body[data-ink="dark"] .compact-head > .compact-pill { background:rgba(244,247,252,.94); } }
