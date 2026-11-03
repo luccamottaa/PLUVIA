@@ -1,6 +1,6 @@
 /* Páginas legais (/termos/, /privacidade/): mesmo visual, claro de dia e escuro à noite na cidade
    aberta no app (data-theme escrito por modules/legal-page.js antes do primeiro desenho). */
-:root { color-scheme:dark; --bg:#080f22; --sky:#10233f; --ink:#e8eefc; --muted:#a9b6d3; --line:#ffffff1f; --brand:#2f6bff; --link:#7aa7ff; --card:#ffffff08; --notice:#2f6bff14; --close-bg:#10233fe6; --shadow:#0006; --mark:#ffd479; }
+:root { color-scheme:dark; --bg:#000; --sky:#000; --ink:#fff; --muted:#a1a1a6; --line:#ffffff1f; --brand:#2f6bff; --link:#7cc0ff; --card:#ffffff0d; --notice:#7cc0ff14; --close-bg:#1c1c1ee6; --shadow:#0008; --mark:#ffd479; }
 :root[data-theme="day"] { color-scheme:light; --bg:#f5f7fb; --sky:#cfe2ff; --ink:#13233d; --muted:#4f5d72; --line:#13233d24; --link:#1f56d6; --card:#ffffffb8; --notice:#2f6bff12; --close-bg:#ffffffeb; --shadow:#13233d26; --mark:#8a5a00; }
 * { box-sizing:border-box; }
 html { -webkit-text-size-adjust:100%; background:var(--bg); }

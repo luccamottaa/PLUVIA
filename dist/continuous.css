@@ -2497,3 +2497,21 @@ html body #accountDialog .capital-links details { border-radius:0; }
 html body #accountDialog .capital-links details:first-of-type { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
 html body #accountDialog .capital-links details:last-of-type { border-radius:0 0 var(--sheet-radius) var(--sheet-radius); }
 html body #accountDialog .capital-links details + details { margin-top:0; background:linear-gradient(var(--dialog-line),var(--dialog-line)) 16px 0/calc(100% - 16px) 1px no-repeat,var(--dialog-surface); }
+
+/* ===== Janelas pretas no escuro (1.50, pedido do dono: "não tô gostando desse azul", escolheu preto com letras
+   brancas, em todas as janelas). Com tinta clara (noite, chuva, trovoada), as folhas trocam o azul-noite por preto,
+   cartões em branco translúcido e texto branco; secundário em cinza neutro. De dia (tinta escura) continuam claras.
+   Só cores, redefinindo os mesmos tokens. */
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
+  --dialog-bg:#000; --dialog-surface:#ffffff12; --dialog-surface-2:#ffffff1f; --dialog-line:#ffffff1c;
+  --dialog-text:#fff; --dialog-muted:#a1a1a6; --dialog-link:var(--brand-blue);
+  --text:#fff; --muted:#a1a1a6; --line:#ffffff1c; --panel:#ffffff12; --panel-strong:#ffffff1f; --panel-subtle:#ffffff0a;
+  border-color:#ffffff1f; background:#000; color:#fff; box-shadow:0 30px 90px #000c,inset 0 1px 0 #ffffff14;
+}
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(.dialog-heading,.dialog-heading h2,h3,strong,label,legend,summary) { color:#fff; }
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(input:not([type=checkbox]):not([type=range]),select,textarea) { border-color:#ffffff24; background:#ffffff0f; color:#fff; }
+html body:not([data-ink="dark"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(input,textarea)::placeholder { color:#8e8e93; }
+
+/* Campo de texto nunca abaixo de 16 px: o Safari do iPhone amplia a página ao focar um campo menor (com o A− ou o
+   Tamanho do Texto pequeno, 1rem ficava abaixo disso e tocar na busca dava zoom). */
+html body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { font-size:max(16px,1rem) !important; }
