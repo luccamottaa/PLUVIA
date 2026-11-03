@@ -13,7 +13,7 @@
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
     {version:"1.50", date:"2026-11-03", title:"Janelas pretas e Minha conta mais limpa", items:[
-      "À noite e com chuva, todas as janelas (busca, conta, detalhes, fontes…) e as páginas de Privacidade e Termos ficaram pretas com letras brancas, no lugar do azul. Os botões de confirmar (Entrar, Salvar, Entendi…) ficaram brancos com letra preta, os interruptores ligados ficaram verdes e os links ficaram brancos.",
+      "À noite e com chuva, todas as janelas (busca, conta, detalhes, fontes…) e as páginas de Privacidade e Termos ficaram pretas com letras brancas, no lugar do azul. Os botões de confirmar (Entrar, Salvar, Entendi…) ficaram brancos com letra preta, os interruptores ligados ficaram verdes e os links ficaram brancos. De dia, nas janelas claras, é o contrário: botões pretos com letra branca e links pretos.",
       "Tocar na busca de cidades não amplia mais a tela no iPhone.",
       "O título \"Minha conta\" virou uma cápsula de vidro, e o que rola por baixo do topo fica desfocado.",
       "Foto, nome e e-mail ficam numa linha só (toque para mudar a foto ou o nome), e os ajustes de aviso ficam juntos num cartão.",
