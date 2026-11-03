@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.50.5", date:"2026-11-03", title:"Suas cidades mais limpa", items:[
+      "\"Usar localização\" ficou branco com ícone e texto pretos (de dia, preto com letra branca).",
+      "O cartão das cidades favoritas perdeu o contorno azul e ficou menor, com letras e temperatura mais compactas."
+    ]},
     {version:"1.50.4", date:"2026-11-03", title:"Interruptores alinhados", items:[
       "Em Minha conta, os interruptores dos avisos ficam centrados no texto de cada linha (antes pareciam um pouco para baixo), com a bolinha branca no meio da chave."
     ]},
