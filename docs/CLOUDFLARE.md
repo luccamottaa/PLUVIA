@@ -61,3 +61,9 @@ evita uma resposta guardada antes de uma mudança na regra).
   até um ano. Os testes de contrato já travam as versões; nunca contorne isso. Vale também para imagens e SVGs
   referenciados por CSS/HTML (logo, Lua, chuva, raios já levam `?v=`): trocar o arquivo exige trocar a versão.
 - Para desfazer: voltar os servidores DNS antigos no registro.br. Nada no código depende do Cloudflare.
+
+## Verificação do build de PR
+
+O check "Workers Builds" roda `wrangler preview` em cada PR e exige o bloco `"previews": {}` no `wrangler.jsonc`
+(sem ele falhava em todo PR, 11/2026). Para conferir depois de mexer no Worker: abrir um PR com uma mudança
+de documentação e ver se o check fica verde. Publicação de produção (`wrangler deploy`) não é afetada por esse check.
