@@ -1,0 +1,12 @@
+{
+  "name": "pluvia",
+  "version": "1.0.0",
+  "description": "Brazilian weather panel - O céu do Brasil agora",
+  "private": true,
+  "scripts": {
+    "dev": "cd dist && node dev-server.cjs"
+  },
+  "devDependencies": {
+    "@vercel/analytics": "^1.3.1"
+  }
+}
