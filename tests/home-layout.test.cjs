@@ -38,14 +38,15 @@ test('mover troca vizinhos e ignora as pontas', () => {
 
 test('colunas do desktop mantêm cada seção do seu lado, na ordem escolhida', () => {
   const custom = layout.normalize({order:['sky', 'week', 'summary', 'hourly', 'details', 'radar']}); // 'summary' e 'week' (cartões que saíram ou entraram em outro) são ignorados
-  assert.deepEqual(layout.columns(custom), {left:['hourly', 'radar'], right:['sky', 'details']});
+  // 'tips' (dicas) não estava na ordem salva: entra no fim, na coluna da esquerda.
+  assert.deepEqual(layout.columns(custom), {left:['hourly', 'radar', 'tips'], right:['sky', 'details']});
 });
 
 test('todas as seções configuráveis existem no HTML da Home', () => {
   const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
   for (const section of layout.SECTIONS) {
-    const className = section.selector.split('.')[1];
-    assert.match(html, new RegExp(`<section class="[^"]*\\b${className}\\b`), section.id);
+    if (section.selector.startsWith('#')) assert.match(html, new RegExp(`id="${section.selector.slice(1)}"`), section.id);
+    else assert.match(html, new RegExp(`<section class="[^"]*\\b${section.selector.split('.')[1]}\\b`), section.id);
   }
   assert.match(html, /id="homeLayoutDialog"/);
   assert.match(html, /modules\/home-layout\.js\?v=/);
