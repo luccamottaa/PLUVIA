@@ -51,7 +51,7 @@
     <script src="./modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-319" />
+    <meta name="pluvia-release" content="pluvia-panel-320" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -454,11 +454,6 @@
           <article class="source-card panel" id="inmetCard"><div class="source-head"><span class="source-badge inmet">INMET</span><span class="source-state" id="inmetState"><i></i>Consultando</span></div><small id="inmetUpdated" class="source-updated">Buscando leitura oficial…</small><div id="inmetContent" class="source-content"></div><a class="source-link" href="https://alertas2.inmet.gov.br/" target="_blank" rel="noreferrer">Abrir mapa oficial</a></article>
         </div>
       </section>
-      <section class="tips-section" id="tips" aria-labelledby="tipsTitle">
-        <h2 id="tipsTitle" class="tips-title">Dicas para as próximas horas</h2>
-        <p class="tips-rain"><span class="tip-icon" aria-hidden="true"><svg class="metric-line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12.5a9 9 0 0 1 18 0Z"/><path d="M12 12.5v6a2 2 0 0 1-4 0"/><path d="M12 3.5v-1"/></svg></span><span class="rain-answer" id="rainAnswer" data-tone="loading"><span class="sk sk-line" aria-hidden="true"></span></span></p>
-        <ul class="tips-list" id="tipsList" hidden></ul>
-      </section>
       <div class="alert-nudge" id="alertNudge" role="region" aria-label="Avisos no celular" hidden><p id="alertNudgeText"></p><div class="alert-nudge-preview" id="alertNudgePreview" aria-hidden="true"><img id="alertNudgePreviewIcon" src="./assets/notifications/rain.png" alt="" width="38" height="38" loading="lazy" decoding="async"><div class="alert-nudge-preview-copy"><span class="alert-nudge-preview-app">PLUVIA<span>agora</span></span><strong id="alertNudgePreviewTitle"></strong><span id="alertNudgePreviewBody"></span></div></div><div class="alert-nudge-actions"><button id="alertNudgeEnable" type="button">Ativar avisos</button><button id="alertNudgeDismiss" class="alert-nudge-dismiss" type="button">Agora não</button></div></div>
       <section class="hourly-peek panel" id="chuva" aria-labelledby="hourlyPeekTitle">
         <div class="hourly-peek-heading"><div class="heading-with-tip"><h2 id="hourlyPeekTitle">Próximas horas</h2><details class="info-tip"><summary aria-label="Sobre a previsão por hora"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p class="rain-phrase" id="rainPhraseWrap"><small id="rainPhraseMeta">Open-Meteo</small></p><p>Previsão por modelos no ponto de referência do município. A chance de chuva aparece quando passa de 20%; toque num horário para ver sensação, volume e rajadas.</p><p>No modo Chuva, a barra mostra só a intensidade prevista (as marcas são 2,5 e 7,5 mm/h, chuva fraca e forte) e a porcentagem embaixo é a chance; no modo Vento, a linha é a velocidade e a área clara embaixo dela, as rajadas; a seta pequena aponta para onde o vento vai.</p></div></details></div><div class="hourly-modes" role="group" aria-label="O que mostrar nas próximas horas"><button type="button" data-mode="conditions" aria-pressed="true" aria-label="Condição e temperatura"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 18h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7 11a3.5 3.5 0 0 0 0 7Z"/></svg></button><button type="button" data-mode="rain" aria-pressed="false" aria-label="Chuva"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.5c3 4 5.5 7.2 5.5 10.2a5.5 5.5 0 0 1-11 0c0-3 2.5-6.2 5.5-10.2Z"/></svg></button><button type="button" data-mode="wind" aria-pressed="false" aria-label="Vento"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 9h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h7"/></svg></button></div></div>
@@ -483,6 +478,11 @@
           <div class="forecast-list panel" id="forecastList"><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div></div>
           <nav class="home-shortcuts" aria-label="Explorar outras cidades"><button id="homeBrazil" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="brazilDialog">Brasil agora</button><button id="homeMonth" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="monthDialog">Últimos 30 dias</button><button id="homeAccuracy" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="monthDialog">Quanto o PLUVIA acerta</button></nav>
         </section>
+      <section class="tips-section" id="tips" aria-labelledby="tipsTitle">
+        <h2 id="tipsTitle" class="tips-title">Dicas para as próximas horas</h2>
+        <p class="tips-rain"><span class="tip-icon" aria-hidden="true"><svg class="metric-line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12.5a9 9 0 0 1 18 0Z"/><path d="M12 12.5v6a2 2 0 0 1-4 0"/><path d="M12 3.5v-1"/></svg></span><span class="rain-answer" id="rainAnswer" data-tone="loading"><span class="sk sk-line" aria-hidden="true"></span></span></p>
+        <ul class="tips-list" id="tipsList" hidden></ul>
+      </section>
       </section>
       <section class="metrics" aria-label="Detalhes meteorológicos">
         <article class="metric metric-sky feels-metric panel card-detail"><div class="metric-head"><span>Sensação</span><span data-weather-icon-name="feels-like" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="feelsValue"><span class="sk sk-num" aria-hidden="true"></span></strong><small id="feelsNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
@@ -661,8 +661,8 @@
     <script src="./modules/month-recap.js?v=month-2" defer></script>
     <script src="./modules/forecast-accuracy.js?v=accuracy-1" defer></script>
     <script src="./modules/station-now.js?v=station-5" defer></script>
-    <script src="./modules/home-layout.js?v=home-layout-8" defer></script>
-    <script src="./modules/pwa-shortcuts.js?v=shortcuts-3" defer></script><script src="./modules/voice-search.js?v=voice-2" defer></script><script src="./modules/rain-reports.js?v=rain-reports-3" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-3" defer></script><script src="./modules/changelog.js?v=changelog-353" defer></script>
+    <script src="./modules/home-layout.js?v=home-layout-9" defer></script>
+    <script src="./modules/pwa-shortcuts.js?v=shortcuts-3" defer></script><script src="./modules/voice-search.js?v=voice-2" defer></script><script src="./modules/rain-reports.js?v=rain-reports-3" defer></script><script src="./modules/visit-counter.js?v=visits-1" defer></script><script src="./modules/install-prompt.js?v=install-3" defer></script><script src="./modules/changelog.js?v=changelog-354" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="./modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="./notifications.js?v=panel-38" defer></script>
