@@ -1085,7 +1085,7 @@ html body :is(details > summary,.account-more-item,#accountButton,#openCitySearc
 body[data-ink="dark"] #weatherView {
   --card-bg:rgba(214,234,255,.24);
   --card-line:rgba(255,255,255,.5);
-  --card-fill:linear-gradient(#f4f8fe,#f4f8fe) padding-box;
+  --card-fill:linear-gradient(rgba(232,242,252,.9),rgba(232,242,252,.9)) padding-box;
   --card-rim:linear-gradient(transparent,transparent);
   --card-glow:0 6px 20px rgba(28,72,128,.08);
   --card-border:rgba(255,255,255,.55);
