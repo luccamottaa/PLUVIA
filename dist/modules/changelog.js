@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.57", date:"2026-11-05", title:"Cartões de dia mais transparentes", items:[
+      "De dia, os cartões da Home ficaram um pouco mais transparentes, para o céu aparecer melhor por trás.",
+      "À noite, nada muda."
+    ]},
     {version:"1.56", date:"2026-11-05", title:"Cartões de dia mais leves", items:[
       "De dia, os cartões da Home ficaram um pouco transparentes, com tom azulado, para o céu aparecer por trás.",
       "À noite, nada muda."

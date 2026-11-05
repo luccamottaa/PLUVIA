@@ -189,12 +189,12 @@ with sync_playwright() as p:
         dialog = page.evaluate("""() => { const d = document.getElementById('homeLayoutDialog'), r = d.getBoundingClientRect();
           return {items:document.querySelectorAll('#homeLayoutList li').length, inside:r.left >= 0 && r.right <= innerWidth + 0.5,
             small:[...d.querySelectorAll('#homeLayoutList button,#homeLayoutReset')].filter(b => b.getBoundingClientRect().height < 44).length}; }""")
-        assert dialog == {'items': 4, 'inside': True, 'small': 0}, dialog
+        assert dialog == {'items': 5, 'inside': True, 'small': 0}, dialog
         page.uncheck('#homeLayoutList input[data-toggle="radar"]')
         page.click('#homeLayoutList [data-move="sky"][data-delta="-1"]')
         state = page.evaluate("""() => ({radar:document.querySelector('section.weather-map-section').getClientRects().length,
           order:JSON.parse(localStorage.getItem('pluvia-home-layout')).order})""")
-        assert state['radar'] == 0 and state['order'].index('sky') == 2, state
+        assert state['radar'] == 0 and state['order'].index('sky') == 3, state
         page.screenshot(path=str(output / f'{engine}-{width}-layout.png'))
         page.keyboard.press('Escape'); page.wait_for_function("!document.getElementById('homeLayoutDialog').open", timeout=5000)
         page.keyboard.press('Escape'); page.wait_for_function("!document.getElementById('accountDialog').open", timeout=5000)
