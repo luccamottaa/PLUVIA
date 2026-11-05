@@ -57,6 +57,7 @@
         button.setAttribute("aria-pressed", String(button.dataset.kind === recent));
         button.disabled = Boolean(recent);
       }
+      if (recent) clearPending();
       box.toggleAttribute("data-answered", Boolean(recent));
       // Com o app aberto, os botões voltam sozinhos quando os 15 min passam (antes ficavam desabilitados até
       // trocar de cidade) e o resumo da última hora é relido.
@@ -127,9 +128,73 @@
       loadSummary();
     }
 
+    // 1.54 (pedido do dono, "faz o efeito de deslizar"): arrastar o dedo sobre as opções move uma bolha de vidro até a
+    // opção sob o dedo. Soltar só escolhe ("Toque em … para enviar"); o relato continua saindo no toque, então
+    // arrastar nunca envia nada sem querer. Toque simples segue igual.
+    const options = buttons[0]?.parentElement;
+    const thumb = doc.createElement?.("span");
+    let drag = null, pending = null, suppressClick = false;
+    if (options && thumb) {
+      thumb.className = "rain-report-thumb";
+      thumb.setAttribute("aria-hidden", "true");
+      options.prepend(thumb);
+    }
+    const buttonAt = event => {
+      const hit = doc.elementFromPoint?.(event.clientX, event.clientY)?.closest?.("[data-kind]");
+      return hit && options?.contains(hit) && !hit.disabled ? hit : null;
+    };
+    const moveThumb = button => {
+      if (!thumb || !button) return;
+      thumb.style.transform = `translate(${button.offsetLeft}px, ${button.offsetTop}px)`;
+      thumb.style.width = `${button.offsetWidth}px`;
+      thumb.style.height = `${button.offsetHeight}px`;
+    };
+    function clearPending() {
+      pending = null;
+      if (options) delete options.dataset.thumb;
+    }
+    function choose(button) {
+      pending = button.dataset.kind;
+      moveThumb(button);
+      if (options) options.dataset.thumb = "on";
+      summary.textContent = `Toque em “${button.textContent.trim()}” para enviar.`;
+    }
+    if (options) {
+      options.addEventListener("pointerdown", event => {
+        if (event.button > 0 || !buttons.some(button => !button.disabled)) return;
+        drag = { id: event.pointerId, x: event.clientX, moved: false, last: null };
+      });
+      options.addEventListener("pointermove", event => {
+        if (!drag || event.pointerId !== drag.id) return;
+        if (!drag.moved) {
+          if (Math.abs(event.clientX - drag.x) < 6) return;
+          drag.moved = true;
+          options.dataset.dragging = "";
+          options.dataset.thumb = "on";
+          try { options.setPointerCapture(event.pointerId); } catch {}
+        }
+        const button = buttonAt(event);
+        if (button && button !== drag.last) { drag.last = button; moveThumb(button); }
+      });
+      const finish = (event, cancelled) => {
+        if (!drag || event.pointerId !== drag.id) return;
+        const done = drag;
+        drag = null;
+        delete options.dataset.dragging;
+        if (!done.moved) return;
+        suppressClick = true;
+        setTimeout(() => { suppressClick = false; }, 0);
+        if (!cancelled && done.last) choose(done.last);
+        else if (!pending) clearPending();
+      };
+      options.addEventListener("pointerup", event => finish(event, false));
+      options.addEventListener("pointercancel", event => finish(event, true));
+    }
+
     box.addEventListener("click", event => {
+      if (suppressClick) return;
       const button = event.target.closest?.("[data-kind]");
-      if (button && !button.disabled) report(button.dataset.kind);
+      if (button && !button.disabled) { clearPending(); report(button.dataset.kind); }
     });
     // Voltando ao app (o iPhone congela timers em segundo plano): confere o prazo e relê o resumo (cache de 2 min).
     doc.addEventListener?.("visibilitychange", () => { if (doc.visibilityState === "visible" && city) { paintAnswer(); loadSummary(); } });
