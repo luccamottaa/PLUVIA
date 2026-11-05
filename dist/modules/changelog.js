@@ -12,6 +12,13 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.52", date:"2026-11-05", title:"Cards mais limpos", items:[
+      "Os cartões da Home têm fundo sólido: as estrelas e o céu não aparecem mais por trás do texto.",
+      "Os cabeçalhos das seções têm o mesmo tamanho e espaçamento; os ícones de seção sumiram, exceto em Chuva na região e Ciclo do dia.",
+      "Em telas de até 430 px o seletor de Próximas horas desce para a linha de baixo, sem apertar o título.",
+      "Os ícones das horas carregam logo, em vez de só aparecerem quando a fileira é rolada.",
+      "Respiro maior entre os cartões e dentro deles."
+    ]},
     {version:"1.51", date:"2026-11-03", title:"Ajude a melhorar o PLUVIA", items:[
       "Na primeira vez, o PLUVIA pergunta se você quer ajudar a melhorar o app com contagem anônima de usos e erros (sem nome, cidade ou GPS). Só começa depois de você tocar em Permitir; \"Agora não\" não pergunta de novo, e dá para mudar depois em Fontes de dados.",
       "Os avisos fixos de baixo (Termos e esse pedido) ficaram pretos, com botão branco."

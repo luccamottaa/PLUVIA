@@ -596,7 +596,7 @@ function hourlyItem(mode, rows, i, p, reading, daily) {
     const gust = Number.isFinite(reading.gust) ? `, rajadas de ${Math.round(reading.gust)} km/h` : "";
     return `${open}<strong>${speed ?? "--"}</strong><span class="peek-unit">km/h</span><span class="peek-from" aria-hidden="true">${arrow}${sector}</span>${windSlice(p)}<span class="peek-extra">. Vento ${speed ?? "indisponível"}${speed === null ? "" : " km/h"}${sector ? `, vindo de ${sector}` : ""}${gust}. Ver detalhes</span></button>`;
   }
-  const icon = weatherIcons.markup(rows[i].weatherCode, forecastIsDay(rows[i].time, daily), {className:"hourly-weather-icon", decorative:true});
+  const icon = weatherIcons.markup(rows[i].weatherCode, forecastIsDay(rows[i].time, daily), {className:"hourly-weather-icon", decorative:true, eager:true});
   // Resumo enxuto: hora, ícone, temperatura e a chance só quando relevante (≥ 20%); sensação e volume
   // continuam no rótulo acessível e no detalhe do horário. A chance fica abaixo da temperatura: reservada
   // entre o ícone e o número, ela abria um buraco em todas as horas sem chuva.
