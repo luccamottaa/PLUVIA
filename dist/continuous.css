@@ -1075,7 +1075,7 @@ html body :is(details > summary,.account-more-item,#accountButton,#openCitySearc
 #weatherView {
   --card-bg:rgba(160,190,240,.08);
   --card-line:rgba(184,212,239,.14);
-  --card-fill:linear-gradient(rgba(150,175,225,.085),rgba(150,175,225,.085)) padding-box;
+  --card-fill:linear-gradient(#141c33,#141c33) padding-box;
   --card-rim:linear-gradient(transparent,transparent);
   --card-border:rgba(190,210,245,.13);
   --card-glow:none;
@@ -1085,7 +1085,7 @@ html body :is(details > summary,.account-more-item,#accountButton,#openCitySearc
 body[data-ink="dark"] #weatherView {
   --card-bg:rgba(214,234,255,.24);
   --card-line:rgba(255,255,255,.5);
-  --card-fill:linear-gradient(rgba(214,234,255,.26),rgba(214,234,255,.26)) padding-box;
+  --card-fill:linear-gradient(#f4f8fe,#f4f8fe) padding-box;
   --card-rim:linear-gradient(transparent,transparent);
   --card-glow:0 6px 20px rgba(28,72,128,.08);
   --card-border:rgba(255,255,255,.55);
@@ -1094,21 +1094,21 @@ body[data-ink="dark"] #weatherView {
    Apple Weather. O vidro azulado da noite clareava o cinza e o texto secundário ficava abaixo de 4,5:1. */
 body[data-phase="day"][data-ink="light"] #weatherView {
   --card-bg:rgba(24,30,38,.34);
-  --card-fill:linear-gradient(rgba(24,30,38,.34),rgba(24,30,38,.34)) padding-box;
+  --card-fill:linear-gradient(#242b36,#242b36) padding-box;
   --card-border:rgba(255,255,255,.14);
 }
 /* Chuva e trovoada à noite (1.30.1): o céu ficou cinza-chumbo, então o cartão perde o tom azulado e vira o
    mesmo cinza translúcido da chuva de dia. */
 body[data-phase="night"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView {
   --card-bg:rgba(30,34,40,.36);
-  --card-fill:linear-gradient(rgba(30,34,40,.36),rgba(30,34,40,.36)) padding-box;
+  --card-fill:linear-gradient(#1d2129,#1d2129) padding-box;
   --card-border:rgba(255,255,255,.12);
 }
 /* Nublado de dia (1.26.6, referência do usuário: o nublado do app Tempo): céu cinza-azulado prateado e cartões
    de vidro azul-ardósia, em vez do cinza-chumbo. */
 body[data-phase="day"][data-ink="light"][data-weather="cloud"] #weatherView {
   --card-bg:rgba(36,48,68,.6);
-  --card-fill:linear-gradient(rgba(36,48,68,.6),rgba(36,48,68,.6)) padding-box;
+  --card-fill:linear-gradient(#243044,#243044) padding-box;
   --card-border:rgba(255,255,255,.18);
 }
 /* Céu claro como no app Tempo: o texto branco sobre o céu leva uma sombra suave e larga (a mesma solução do app
@@ -1128,8 +1128,8 @@ body[data-phase="day"][data-ink="light"][data-weather="cloud"] :is(.topbar,.weat
 #weatherView .favorite-suggest-extra { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 #weatherView .favorite-suggest-save { position:relative; }
 #weatherView :is(#alertas,#tips,#chuva,.quick-metrics,.metrics,.weather-map-section,#previsao,#notificationPrompt,.sun-section) {
-  margin:12px 0 0 !important;
-  padding:18px 16px !important;
+  margin:16px 0 0 !important;
+  padding:22px 20px !important;
   border:1px solid var(--card-border,transparent) !important;
   border-radius:24px !important;
   background:var(--card-fill), var(--card-rim) border-box !important;
@@ -2056,7 +2056,7 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 #weatherView .hourly-peek-list[data-mode="rain"] .peek-chance .rain-metric-icon { width:12px; height:12px; flex:0 0 12px; }
 /* Até 389 px o título e o seletor não cabem lado a lado ("Próximas horas" quebrava em duas linhas): o seletor
    desce para uma linha própria, com os três botões dividindo a largura. */
-@media(max-width:389px) {
+@media(max-width:430px) {
   #weatherView .hourly-peek-heading { flex-wrap:wrap; row-gap:10px; }
   #weatherView .hourly-modes { flex:1 0 100%; }
   #weatherView .hourly-modes button { flex:1 1 0; width:auto; }
@@ -2610,3 +2610,11 @@ html body .terms-notice button.secondary { background:transparent; color:#fff; b
 .analytics-notice p { flex:1 1 100%; }
 .analytics-notice .notice-actions { display:flex; gap:8px; width:100%; }
 .analytics-notice .notice-actions button { flex:1; font-size:.9375rem; }
+
+/* 1.52 (pedido do dono, depois de ver a Home à noite: "esses cards tão feios"): cartões com fundo opaco, para as
+   estrelas e o céu não atravessarem o texto. Os tokens acima já trazem a cor sólida de cada tema; aqui só o
+   cabeçalho das seções fica padronizado: um título, sem ícone de seção (os dois ícones em traço do pedido de 1.37.2
+   continuam em "Chuva na região" e "Ciclo do dia"), e o respiro entre os blocos. */
+#weatherView .section-icon { display:none; }
+#weatherView :is(.section-heading,.hourly-peek-heading) { margin-bottom:16px; }
+#weatherView .hourly-peek-heading { padding-bottom:0; }
