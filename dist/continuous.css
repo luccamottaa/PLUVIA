@@ -2636,3 +2636,13 @@ html body .terms-notice button.secondary { background:transparent; color:#fff; b
 #weatherView .hourly-modes[data-glass-segment="on"] button { position:relative; z-index:1; }
 #weatherView .hourly-modes[data-glass-segment="on"] button[aria-pressed="true"] { background:transparent; box-shadow:none; }
 @media (prefers-reduced-motion:reduce) { #weatherView .hourly-modes[data-glass-segment="on"]::before { transition:none; } }
+
+/* 1.54 (pedido do dono: "faz o efeito de deslizar"): no "Tá chovendo aí?", arrastar o dedo sobre as opções move uma
+   bolha de vidro até a opção sob o dedo (rain-reports.js). Soltar só escolhe; o envio segue no toque. Só transform,
+   sem blur extra; sem JS a bolha fica escondida e nada muda. */
+#weatherView .rain-report-options { position:relative; touch-action:pan-y; }
+#weatherView .rain-report-thumb { position:absolute; left:0; top:0; z-index:0; border-radius:14px; pointer-events:none; opacity:0; background:color-mix(in srgb,var(--reading-ink,#fff) 22%,transparent); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.5), inset 0 0 0 .5px rgba(255,255,255,.22), 0 3px 10px rgba(4,8,20,.14); transition:transform 340ms cubic-bezier(.34,1.56,.64,1), width 340ms cubic-bezier(.34,1.56,.64,1), height 340ms cubic-bezier(.34,1.56,.64,1), opacity 200ms ease; }
+#weatherView .rain-report-options[data-thumb="on"] .rain-report-thumb { opacity:1; }
+#weatherView .rain-report-options[data-dragging] .rain-report-thumb { transition:none; }
+#weatherView .rain-report-options button { z-index:1; }
+@media (prefers-reduced-motion:reduce) { #weatherView .rain-report-thumb { transition:none; } }

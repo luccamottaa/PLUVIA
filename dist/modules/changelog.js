@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.54", date:"2026-11-05", title:"Deslizar para escolher", items:[
+      "No “Tá chovendo aí?”, arrastar o dedo sobre as opções move uma bolha de vidro até a opção sob o dedo.",
+      "Soltar só escolhe: o relato é enviado quando você tocar na opção, como antes."
+    ]},
     {version:"1.53", date:"2026-11-05", title:"Seletor que segue o dedo", items:[
       "Nas Próximas horas, o seletor de Condição, Chuva e Vento virou um vidro só: a bolha acompanha o dedo ao deslizar, estica um pouco e encaixa no modo mais próximo.",
       "Tocar continua funcionando como antes."
