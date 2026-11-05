@@ -12,9 +12,13 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.55", date:"2026-11-05", title:"Cartões de dia mais leves", items:[
+    {version:"1.56", date:"2026-11-05", title:"Cartões de dia mais leves", items:[
       "De dia, os cartões da Home ficaram um pouco transparentes, com tom azulado, para o céu aparecer por trás.",
       "À noite, nada muda."
+    ]},
+    {version:"1.55", date:"2026-11-05", title:"Dicas depois da previsão", items:[
+      "As dicas para as próximas horas ficaram depois dos 7 dias, para a leitura de agora ficar mais limpa.",
+      "Dá para esconder ou mudar a ordem em Personalizar a Home."
     ]},
     {version:"1.54", date:"2026-11-05", title:"Deslizar para escolher", items:[
       "No “Tá chovendo aí?”, arrastar o dedo sobre as opções move uma bolha de vidro até a opção sob o dedo.",

@@ -1,6 +1,6 @@
 /* Personalizar a Home: mostrar/esconder e reordenar as seções abaixo do topo (salvo só neste aparelho)
-   e, a partir de 1100 px, distribuí-las em duas colunas. O topo (cidade, temperatura, avisos e dicas)
-   é fixo. Seções escondidas ficam fora do layout (o radar escondido nem é consultado). Sem timer:
+   e, a partir de 1100 px, distribuí-las em duas colunas. O topo (cidade, temperatura e avisos)
+   é fixo; as dicas são uma seção depois de Próximas horas. Seções escondidas ficam fora do layout (o radar escondido nem é consultado). Sem timer:
    aplica na abertura, ao mudar a escolha e quando a largura cruza o limite. */
 (function(root, factory) {
   const api = factory();
@@ -13,6 +13,7 @@
   const WIDE = '(min-width: 1100px)';
   const SECTIONS = [
     {id:'hourly', label:'Próximas horas e 7 dias', selector:'section.hourly-peek', column:'left'},
+    {id:'tips', label:'Dicas para as próximas horas', selector:'#tips', column:'left'},
     {id:'details', label:'Leituras, UV e qualidade do ar', selector:'section.metrics', column:'right'},
     {id:'radar', label:'Radar de chuva', selector:'section.weather-map-section', column:'left'},
     {id:'sky', label:'Ciclo do dia, Lua e céu', selector:'section.sun-section', column:'right'}
@@ -54,9 +55,9 @@
     const read = () => { try { return normalize(JSON.parse(root.localStorage.getItem(KEY) || 'null')); } catch { return normalize(null); } };
     const write = layout => { try { root.localStorage.setItem(KEY, JSON.stringify(layout)); } catch {} };
     const nodes = new Map(SECTIONS.map(section => [section.id, view.querySelector(':scope > ' + section.selector) || view.querySelector(section.selector)]));
-    // As seções vêm depois do topo fixo: dicas e os convites logo abaixo delas (avisos, compartilhar).
-    // Ancorar só em #tips jogava os convites para o fim da página.
-    const fixed = ['#tips', '#alertNudge'].map(selector => view.querySelector(':scope > ' + selector)).filter(Boolean);
+    // As seções vêm depois do topo fixo: o convite de avisos fica logo abaixo dos alertas. As dicas agora são uma
+    // seção da Personalização (depois de Próximas horas e 7 dias).
+    const fixed = ['#alertNudge'].map(selector => view.querySelector(':scope > ' + selector)).filter(Boolean);
     const anchor = fixed[fixed.length - 1] || null;
     const media = root.matchMedia?.(WIDE);
     let layout = read(), wrapper = null;
