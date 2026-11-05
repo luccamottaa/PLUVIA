@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.53", date:"2026-11-05", title:"Seletor que segue o dedo", items:[
+      "Nas Próximas horas, o seletor de Condição, Chuva e Vento virou um vidro só: a bolha acompanha o dedo ao deslizar, estica um pouco e encaixa no modo mais próximo.",
+      "Tocar continua funcionando como antes."
+    ]},
     {version:"1.52", date:"2026-11-05", title:"Cards mais limpos", items:[
       "Os cartões da Home têm fundo sólido: as estrelas e o céu não aparecem mais por trás do texto.",
       "Os cabeçalhos das seções têm o mesmo tamanho e espaçamento; os ícones de seção sumiram, exceto em Chuva na região e Ciclo do dia.",
