@@ -11,6 +11,7 @@
   const ENDPOINT = "https://dszyyrcvwrpyiypwyvxe.supabase.co/rest/v1/rpc/pluvia_count_visit";
   const KEY = "sb_publishable_SdPTXhk3Q7aD-ra0S9dm_A_rnXSS4Jc";
   const DAY_KEY = "pluvia-visit-day";
+  const CONSENT_KEY = "pluvia-analytics-consent-v1";
   const DEVICE_KEY = "pluvia-visit-device";
   const HOSTS = new Set(["pluviaweather.com.br", "www.pluviaweather.com.br"]);
 
@@ -41,7 +42,7 @@
   async function count({storage = runtime.localStorage, fetchImpl = runtime.fetch, navigator = runtime.navigator, window = runtime, crypto = runtime.crypto, host = runtime.location?.hostname, now = new Date()} = {}) {
     let day = null, marked = false;
     try {
-      if (!HOSTS.has(host) || optedOut(navigator, window) || typeof fetchImpl !== "function" || !storage) return false;
+      if (!HOSTS.has(host) || optedOut(navigator, window) || typeof fetchImpl !== "function" || !storage || storage.getItem(CONSENT_KEY) !== "1") return false;
       day = today(now);
       if (!day || storage.getItem(DAY_KEY) === day) return false;
       const id = deviceId(storage, crypto);
@@ -61,6 +62,8 @@
       return false;
     }
   }
+
+  if (runtime.addEventListener) runtime.addEventListener("pluvia:analytics-consent", () => { count(); });
 
   if (runtime.document && runtime.addEventListener) {
     const start = () => runtime.setTimeout(() => { count(); }, 4000);
