@@ -72,6 +72,7 @@
   function setConsent(value) {
     clear();consent=value===true && !protectedBrowser();
     try{localStorage.setItem(CHOICE_KEY,consent ? '1' : '0');}catch{}
+    try{window.dispatchEvent(new Event('pluvia:analytics-consent'));}catch{}
     paintChoice();if(enabled())track('PLUVIA Opened',opened());
   }
   // Pedido de consentimento (1.51, pedido do dono: "deveria vir ligado de padrão mas pedir consentimento"): na primeira
