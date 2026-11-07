@@ -25,12 +25,13 @@ async function getText(url: string, timeout: number) {
 }
 
 // Três estações por vez: a ANA responde 429 com muitas consultas simultâneas.
+// Timeout curto por estação evita que as cinco rodadas sequenciais ultrapassem o limite do gateway.
 async function rivers(now: number) {
   const data: Record<string, unknown> = {};
   let failures = 0;
   for (let start = 0; start < RIVER_STATIONS.length; start += 3) {
     const batch = RIVER_STATIONS.slice(start, start + 3);
-    const settled = await Promise.allSettled(batch.map(async station => ({ station, reading: parseAna(await getText(anaUrl(station.code, now), 20_000) ?? "", now) })));
+    const settled = await Promise.allSettled(batch.map(async station => ({ station, reading: parseAna(await getText(anaUrl(station.code, now), 8_000) ?? "", now) })));
     for (const item of settled) {
       if (item.status === "rejected") { failures++; continue; }
       const { station, reading } = item.value;
