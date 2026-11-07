@@ -47,15 +47,23 @@ async function verify(assets,origin,{fetchImpl=fetch,pause=ms=>new Promise(resol
  }
  return assets.map(asset=>results.get(asset.url));
 }
-module.exports={manifest,check,verify};
-if(require.main===module)(async()=>{
- const origin=process.env.PLUVIA_PUBLIC_URL||'https://pluviaweather.com.br/';
- if(new URL(origin).protocol!=='https:')throw new Error('Public check requires HTTPS');
- const assets=manifest(path.resolve(__dirname,'../dist'));
- // Wait for the HTML publication before checking its assets to limit needless requests. Até 6 min: no
- // Cloudflare Pages a publicação é feita pelo próprio Cloudflare e pode terminar depois deste job começar.
- const shell=await verify(assets.slice(0,1),origin,{attempts:24,pause:()=>new Promise(resolve=>setTimeout(resolve,15000))});
- const results=shell[0].ok ? [...shell,...await verify(assets.slice(1),origin)] : shell;
- console.log(JSON.stringify({origin,checkedAt:new Date().toISOString(),results:results.map(({url,ok,code})=>({url,ok,code}))},null,2));
+function verifyLocal(assets,directory) {
+ const root=path.resolve(directory)+path.sep;
+ return assets.map(asset=>{
+  const file=path.resolve(directory,asset.file);
+  if(!file.startsWith(root))return {...asset,ok:false,code:'invalid_path'};
+  try {
+   const bytes=fs.readFileSync(file);
+   const ok=bytes.length>0 && hash(bytes)===asset.hash;
+   return {...asset,ok,code:ok?'local_match':bytes.length?'content_mismatch':'empty_file'};
+  } catch { return {...asset,ok:false,code:'missing_file'}; }
+ });
+}
+module.exports={manifest,check,verify,verifyLocal};
+if(require.main===module)(()=>{
+ const directory=path.resolve(__dirname,'../dist');
+ const assets=manifest(directory);
+ const results=verifyLocal(assets,directory);
+ console.log(JSON.stringify({source:'local-build',checkedAt:new Date().toISOString(),assetCount:results.length,results:results.map(({url,file,ok,code})=>({url,file,ok,code}))},null,2));
  if(results.some(result=>!result.ok))process.exitCode=1;
-})().catch(error=>{console.error(error.message);process.exitCode=1;});
+})();
