@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Regenerar páginas públicas de cidades
+        run: node scripts/generate-city-pages.cjs
       - name: Validar regras críticas do PLUVIA
         run: node --test tests/*.test.cjs
       - name: Configurar o GitHub Pages
