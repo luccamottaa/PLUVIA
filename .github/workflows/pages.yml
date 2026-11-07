@@ -41,6 +41,10 @@ jobs:
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          # 625 páginas municipais levam mais tempo para sincronizar no GitHub Pages.
+          # Aumenta a janela sem alterar o conteúdo nem relaxar as verificações.
+          timeout: 1800000
   verify-public:
     needs: deploy
     runs-on: ubuntu-latest
