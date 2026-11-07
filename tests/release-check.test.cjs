@@ -1,6 +1,6 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');
-const {manifest,check,verify}=require('../scripts/check-release.cjs');
+const {manifest,check,verify,verifyLocal}=require('../scripts/check-release.cjs');
 const digest=value=>crypto.createHash('sha256').update(value).digest('hex');
 test('release check includes daily detail and versioned shell assets without external SDKs',()=>{
  const assets=manifest('dist');assert.equal(assets[0].file,'index.html');assert.ok(assets.some(a=>a.file==='sw.js'));
@@ -32,4 +32,9 @@ test('arquivos sem versão escapam do cache de borda; os versionados vão como e
  await check({url:'',hash:digest('x')},'https://site.test/',fetchImpl);
  await check({url:'./app.js?v=panel-1',hash:digest('x')},'https://site.test/',fetchImpl);
  assert.deepEqual(seen,[`https://site.test/sw.js?release-check=${digest('x').slice(0,12)}`,`https://site.test/?release-check=${digest('x').slice(0,12)}`,'https://site.test/app.js?v=panel-1']);
+});
+
+test('local release validation confirms every referenced build asset exists and matches its digest',()=>{
+ const assets=manifest('dist');const results=verifyLocal(assets,'dist');
+ assert.equal(results.length,assets.length);assert.ok(results.every(result=>result.ok),results.filter(result=>!result.ok));
 });
