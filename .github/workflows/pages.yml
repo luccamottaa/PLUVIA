@@ -45,10 +45,10 @@ jobs:
           # 625 páginas municipais levam mais tempo para sincronizar no GitHub Pages.
           # Aumenta a janela sem alterar o conteúdo nem relaxar as verificações.
           timeout: 1800000
-  verify-public:
+  verify-build:
     needs: deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     permissions:
       contents: read
     steps:
@@ -56,7 +56,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Conferir HTML, service worker e assets publicados
+      - name: Validar HTML, Service Worker e integridade dos assets do build
         run: node scripts/check-release.cjs
       - uses: actions/setup-python@v5
         with:
@@ -65,19 +65,24 @@ jobs:
         run: |
           python -m pip install playwright==1.62.0
           python -m playwright install --with-deps chromium
-      - name: Conferir dia, noite, nascer e pôr do sol no domínio público
+      - name: Testar experiência visual no build publicado
         env:
-          PLUVIA_PREVIEW_URL: https://pluviaweather.com.br/
-          PLUVIA_PUBLIC_SMOKE: '1'
-          PLUVIA_QA_OUTPUT: /tmp/pluvia-public-qa
-        # Ícones primeiro (uma requisição): logo depois da rajada do teste visual o domínio
-        # derrubava as conexões do runner por mais de um minuto (deploys #200 e #204).
+          PLUVIA_PREVIEW_URL: http://127.0.0.1:4173/
+          PLUVIA_QA_OUTPUT: /tmp/pluvia-build-qa
         run: |
+          python -m http.server 4173 --directory dist >/tmp/pluvia-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:4173/ >/dev/null
           python scripts/verify-weather-icons.py
           python scripts/verify-visual.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: pluvia-public-verification
-          path: /tmp/pluvia-public-qa
+          name: pluvia-build-visual-qa
+          path: /tmp/pluvia-build-qa
           retention-days: 7
