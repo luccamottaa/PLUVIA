@@ -16,7 +16,9 @@ const SECURITY = {
   "Strict-Transport-Security": "max-age=31536000",
   // Localização e microfone (busca por voz) só na própria página; nada de câmera.
   "Permissions-Policy": "geolocation=(self), microphone=(self), camera=()",
-  "X-Frame-Options": "SAMEORIGIN"
+  "X-Frame-Options": "SAMEORIGIN",
+  // CSP incremental: bloqueia plugins, alteração de base URL e framing externo sem limitar os scripts/APIs atuais.
+  "Content-Security-Policy": "object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
 };
 
 // A URL muda quando o conteúdo muda (a regra do ?v= no AGENTS.md), então guardar um ano é seguro.
