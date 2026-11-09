@@ -14,6 +14,11 @@
    densidade segue a intensidade que o céu já mostra (data-rain), nunca a probabilidade. Mesmo contexto WebGL das
    nuvens: dois contextos derrubavam o iPhone (1.40.1). Desde a 1.60 a intro não tem mais céu (pedido do dono),
    então o canvas fica só na Home.
+   1.62 (pedido do dono, print da Lua "atravessando" a nuvem: "não tá natural"): o disco do Sol e da Lua (CSS) não
+   aparece mais nítido e apagado através da nuvem fina. Onde há nuvem sobre o disco, a nuvem o esconde e o shader
+   desenha a luz que atravessa: nuvem fina deixa um brilho borrado e forte, nuvem grossa só um clarão fraco, com uma
+   coroa suave em volta; numa brecha o disco nítido do CSS aparece. O Sol, numa brecha que vai abrindo, vai
+   aparecendo com brilho e raios (a cobertura medida no próprio centro do Sol, AST, a cada quadro).
    É decoração: cobertura, forma e gotas não representam medição. */
 (function (root, factory) {
   const api = factory();
@@ -97,6 +102,7 @@
 #endif
 uniform vec2 R,SUNPX;uniform float T,SUNI,TW,SIDE,CAP;uniform vec3 LIT,SHD,SUN;uniform float COVER,DENS,SIZE,EDGE,DETAIL,FLASH,FLASHX,FOG;
 uniform float RAIN,RWIND;uniform vec4 RY;
+uniform vec2 AST;uniform float ASTR,ASTI,ASTS;uniform vec3 ASTC,SKYC;
 float hr(HP vec2 p){p=fract(p*vec2(.1031,.1030));p+=dot(p,p.yx+33.33);return fract((p.x+p.y)*p.x);}
 // Chuva 3D: cada camada é uma grade de células altas; cada célula tem no máximo um traço, em posição sorteada.
 // A camada perto tem poucas células grandes (traço comprido, largo e macio, como fora de foco); a longe, muitas
@@ -142,6 +148,13 @@ float shape(float s,float y){float prof=smoothstep(0.,.12,y)*smoothstep(1.,.45,y
 float dens(vec3 p){vec3 q=wind(p);float d=shape(fbm4(q*vec3(1.,.9,1.)),p.y/2.4);
   if(d<=0.)return 0.;d-=(fbm3(q*3.7)-.35)*DETAIL*(1.-clamp(d*2.,0.,1.));return clamp(d*DENS,0.,1.);}
 float densLow(vec3 p){float d=shape(fbm3(wind(p)*vec3(1.,.9,1.)),p.y/2.4);return clamp(d*DENS,0.,1.);}
+// Quanto de luz do astro passa pela nuvem no centro dele (marcha curta, mesma nuvem em baixa resolução).
+float astroVis(){
+  vec3 ro=vec3(0.,-2.2,0.),rd=ray(AST);if(rd.y<=.01)return 1.;
+  float a=-ro.y/rd.y,b=min((2.4-ro.y)/rd.y,a+9.),dt=(b-a)/10.,dep=0.;
+  for(int i=0;i<10;i++){dep+=densLow(ro+rd*(a+dt*(float(i)+.5)))*dt;}
+  return exp(-dep*1.6);
+}
 void main(){
   vec3 ro=vec3(0.,-2.2,0.);vec3 rd=ray(gl_FragCoord.xy);
   if(rd.y<=.01){gl_FragColor=rain(gl_FragCoord.xy);return;}
@@ -181,9 +194,37 @@ void main(){
   // Neblina: densa embaixo da tela, sumindo para cima (FOG = 0 nas outras condições).
   float fm=mix(1.,smoothstep(.95,.18,sy),FOG);A2*=fm;col*=fm;
   col=min(col,vec3(A2*(CAP+FLASH*.2)));
+  vec3 base=col*keep;float baseA=A2*keep;
+  // Sol e Lua atrás da nuvem (1.62): onde há nuvem sobre o disco, ela esconde o disco nítido do CSS (alfa sobe só
+  // ali) e no lugar entra a luz que atravessa a nuvem, borrada (disco largo) e com uma coroa; a força cai com a
+  // espessura da nuvem no próprio pixel (tr). Numa brecha (A ~ 0) nada muda e o disco nítido aparece.
+  if(ASTI>0.){
+    vec2 dv=gl_FragCoord.xy-AST;float ad=length(dv)/max(ASTR,1.);
+    // Dentro do disco o que fica atrás do canvas é o próprio astro (não o céu). Qualquer nuvem visível ali (vA) o
+    // esconde por inteiro, mantendo a cor real da nuvem (sem escurecer a borda fina); a luz dele volta borrada e
+    // conservando a energia: o quanto a nuvem deixaria passar (1 − vA), sem borda nítida. Fora do disco nada muda.
+    // Dentro do disco o fundo vira a mesma mistura do entorno (nuvem por cima do céu, SKYC), em vez de deixar o
+    // disco nítido aparecer; numa brecha (vA ~ 0) o disco do CSS continua nítido.
+    float vA=baseA,c=smoothstep(.0,.06,vA)*(1.-smoothstep(.95,1.12,ad));
+    vec3 cu=vA>.0001?clamp(base/vA,0.,1.):vec3(0.);
+    base=mix(base,cu*vA+SKYC*(1.-vA),c);baseA=mix(vA,1.,c);
+    // Coroa: mesmo atrás de nuvem grossa a nuvem em volta clareia de leve (a luz espalha), sem formar disco.
+    float g=ASTI*smoothstep(.0,.06,vA)*(exp(-ad*ad*1.1)*(1.-vA*.75)+exp(-ad*.65)*.2*(1.-vA*.5));
+    // Sol numa brecha: brilho e raios que crescem conforme a nuvem sai da frente (vis no centro do Sol), mais
+    // fortes no meio do caminho (brecha abrindo) e discretos com o céu todo limpo. Ruído na direção a partir do
+    // Sol (sem emenda no ângulo), oscilando devagar.
+    if(ASTS>0.){
+      float vis=astroVis();vec2 v=dv/R.y;float r=length(v);vec2 dir=r>0.?v/r:vec2(0.,1.);
+      float streak=smoothstep(.55,.92,n(vec3(dir*6.,T*.015)))*.7+smoothstep(.62,.95,n(vec3(dir*14.,3.1+T*.02)))*.3;
+      float open=vis*(1.+3.*vis*(1.-vis));
+      g+=ASTI*(open*streak*exp(-r*5.)*.24*(.4+.6*(1.-vA))+vis*exp(-r*r*90.)*.26);
+    }
+    g=min(g,.85);
+    base+=ASTC*g;baseA=baseA+g*(1.-baseA);
+  }
   // A chuva passa na frente da nuvem (pré-multiplicado: chuva por cima, nuvem atrás).
   vec4 rn=rain(gl_FragCoord.xy);
-  gl_FragColor=vec4(rn.rgb+col*keep*(1.-rn.a),rn.a+A2*keep*(1.-rn.a));
+  gl_FragColor=vec4(rn.rgb+base*(1.-rn.a),rn.a+baseA*(1.-rn.a));
 }`;
 
   function start(win) {
@@ -234,7 +275,7 @@ void main(){
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
         const at = gl.getAttribLocation(program,'p'); gl.enableVertexAttribArray(at); gl.vertexAttribPointer(at,2,gl.FLOAT,false,0,0);
         uniforms = {};
-        for (const name of ['R','T','LIT','SHD','SUN','COVER','DENS','SIZE','EDGE','DETAIL','SUNPX','SUNI','TW','SIDE','CAP','FLASH','FLASHX','FOG','RAIN','RWIND','RY']) uniforms[name] = gl.getUniformLocation(program,name);
+        for (const name of ['R','T','LIT','SHD','SUN','COVER','DENS','SIZE','EDGE','DETAIL','SUNPX','SUNI','TW','SIDE','CAP','FLASH','FLASHX','FOG','RAIN','RWIND','RY','AST','ASTR','ASTI','ASTS','ASTC','SKYC']) uniforms[name] = gl.getUniformLocation(program,name);
         const sun = [-.5,.75,-.2], len = Math.hypot(...sun); gl.uniform3fv(uniforms.SUN,sun.map(v => v / len));
       } catch (_) { canvas = gl = null; return false; }
       canvas.addEventListener('webglcontextlost',event => { event.preventDefault(); lose(); });
@@ -288,12 +329,45 @@ void main(){
         }
       }
       gl.uniform1f(uniforms.SUNI,intensity);
+      astroUpdate();
       // Pôr/nascer do sol: a mesma força da luz do crepúsculo que o CSS usa (--twilight-opacity), do lado do Sol.
       const solar = html.dataset.solar, strength = cssNumber('--twilight-opacity');
       const twilight = (solar === 'sunset' || solar === 'sunrise') && Number.isFinite(strength) ? Math.max(0,Math.min(1,strength)) : 0;
       const sx = cssNumber('--sun-orbit-x');
       gl.uniform1f(uniforms.TW,twilight);
       gl.uniform1f(uniforms.SIDE,Number.isFinite(sx) ? (sx < .5 ? -1 : 1) : (solar === 'sunrise' ? -1 : 1));
+    }
+    // Sol (de dia, quando o CSS o mostra) ou Lua (à noite) em pixels do canvas, para a nuvem cobri-los com luz
+    // difusa em vez de deixar o disco nítido aparecer apagado através dela. Raio do disco: no sky-sun.svg o disco tem
+    // ~51% da caixa (o resto é halo); no disco da Lua, a caixa inteira. Lido no mesmo ritmo do Sol (~2 s).
+    // Cor do céu atrás do astro (--sky-base da raiz), para o disco escondido pela nuvem virar o mesmo céu do entorno.
+    function skyColor() {
+      const raw = (win.getComputedStyle?.(html).getPropertyValue('--sky-base') || '').trim();
+      const hexed = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(raw);
+      if (hexed) { const h = hexed[1].length === 3 ? hexed[1].split('').map(x => x + x).join('') : hexed[1]; return [0,2,4].map(i => parseInt(h.slice(i,i + 2),16) / 255); }
+      const rgb = /rgba?\(([^)]+)\)/i.exec(raw);
+      if (rgb) { const parts = rgb[1].split(',').map(Number); if (parts.length >= 3 && parts.slice(0,3).every(Number.isFinite)) return parts.slice(0,3).map(v => v / 255); }
+      return html.dataset.phase === 'night' ? [.03,.06,.13] : [.6,.82,.92];
+    }
+    function astroUpdate() {
+      if (!gl || !canvas) return;
+      const night = html.dataset.phase === 'night';
+      const node = scene()?.querySelector(night ? '.sky-moon' : '.sky-sun');
+      const visibility = cssNumber(night ? '--moon-visibility' : '--sun-visibility');
+      const box = node?.getBoundingClientRect?.(), area = canvas.getBoundingClientRect();
+      let intensity = 0;
+      if (box && box.width > 0 && area.width > 0 && area.height > 0 && Number.isFinite(visibility) && visibility > 0) {
+        const sx = canvas.width / area.width, sy = canvas.height / area.height;
+        gl.uniform2f(uniforms.AST,(box.left + box.width / 2 - area.left) * sx,(1 - (box.top + box.height / 2 - area.top) / area.height) * canvas.height);
+        gl.uniform1f(uniforms.ASTR,box.width * (night ? .5 : .255) * sx);
+        // A Lua brilha conforme a parte iluminada (moon-view escreve --moon-light na raiz).
+        const lit = parseFloat(html.style.getPropertyValue('--moon-light'));
+        intensity = Math.min(1,visibility) * (night ? .35 + .5 * (Number.isFinite(lit) ? Math.max(0,Math.min(1,lit)) : 1) : 1);
+        gl.uniform3fv(uniforms.ASTC,night ? [.82,.88,1] : [1,.93,.74]);
+        gl.uniform3fv(uniforms.SKYC,skyColor());
+      }
+      gl.uniform1f(uniforms.ASTI,intensity);
+      gl.uniform1f(uniforms.ASTS,!night && intensity > 0 ? 1 : 0);
     }
     let clock = 0, lastNow = 0, rainClock = 0, raining = 0;
     // Intensidade e inclinação da chuva 3D (data-rain e data-wind do céu). data-rain3d tira a chuva do CSS.

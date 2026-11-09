@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.62", date:"2026-11-09", title:"Sol e Lua atrás das nuvens", items:[
+      "A Lua não aparece mais como um círculo apagado através da nuvem: atrás de nuvem ela vira um brilho suave e borrado, mais fraco quanto mais grossa a nuvem, e só fica nítida numa brecha.",
+      "O Sol também: atrás da nuvem ele acende a borda dela, e quando abre uma brecha ele vai aparecendo com brilho e raios."
+    ]},
     {version:"1.61", date:"2026-11-09", title:"Janelas no visual novo", items:[
       "Minha conta, Suas cidades, Fontes de dados, Novidades e as outras janelas ganharam o visual das páginas novas: o céu da hora, as gotas no vidro no alto e os cartões da tela principal.",
       "Botões e links voltaram ao azul do PLUVIA, no lugar do branco à noite e do preto de dia. Os interruptores ligados continuam verdes.",
