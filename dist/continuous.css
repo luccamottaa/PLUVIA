@@ -1397,10 +1397,10 @@ html body :is(#accountDialog,#sourcesDialog) input[type=checkbox] {
 }
 html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]::before {
   content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff;
-  box-shadow:0 1px 3px #0006; transition:left .2s ease;
+  box-shadow:0 1px 3px #0006;
 }
 html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked { background:var(--brand-blue); }
-html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked::before { left:23px; }
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked::before { translate:20px 0; }
 html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:disabled { opacity:.45; cursor:default; }
 html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
 @media (forced-colors:active) { html body :is(#accountDialog,#sourcesDialog) input[type=checkbox] { -webkit-appearance:auto; appearance:auto; width:20px !important; height:20px !important; } html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]::before { content:none; } }
@@ -2633,7 +2633,7 @@ html body .terms-notice button.secondary { background:transparent; color:#fff; b
    - corpo transparente com tom de Fresnel na borda e a luz concentrada no pé (degradês);
    - lente: .glass-knob-strip é uma cópia dos ícones nas coordenadas do trilho (anda ao contrário da cápsula, então
      fica parada em relação ao trilho) e .glass-knob-lens amplia 1,28× pelo centro; ícones sempre acesos;
-   - os ícones de verdade somem embaixo da cápsula (máscara no svg de cada botão, pela posição --seg e pelo índice --i);
+   - os ícones de verdade somem embaixo da cápsula (clip-path no svg de cada botão, pela posição --seg e pelo índice --i);
    - borda (.glass-knob-rim): fio claro, faixa escura de refração, franja vermelha de um lado e azul do outro, brilho
      comprido em cima à esquerda e ponto embaixo à direita; sombra suave no trilho;
    - a borda que entorta e separa as cores de verdade é um filtro SVG ligado pelo script (.glass-knob-refract).
@@ -2688,15 +2688,17 @@ body[data-ink="dark"] #weatherView .hourly-modes .glass-knob-rim {
     inset -4px 0 3px -2px rgba(64,150,255,.65),
     inset 0 0 7px 3px rgba(19,35,61,.3);
 }
-/* O ícone do trilho some no trecho coberto pela cápsula: --hole é a borda esquerda da cápsula na caixa do svg. */
+/* O ícone do trilho some no trecho coberto pela cápsula: --hole é a borda esquerda da cápsula na caixa do svg, e o
+   recorte é o retângulo do ícone menos o retângulo da cápsula (polígono par-ímpar). É clip-path, não máscara: máscara
+   cria uma camada com bitmap próprio por ícone, e o WebKit da CI travou com ela na terceira tela do verify-alignment. */
 #weatherView .hourly-modes[data-glass-segment="on"] button > svg {
   --hole:calc((var(--seg,0) - var(--i,0)) * var(--seg-step,46px) - (var(--seg-w,44px) - var(--seg-icon)) / 2);
-  -webkit-mask-image:linear-gradient(90deg,#000 calc(var(--hole) - 2px),transparent calc(var(--hole) + 2px),transparent calc(var(--hole) + var(--seg-w,44px) - 2px),#000 calc(var(--hole) + var(--seg-w,44px) + 2px));
-  mask-image:linear-gradient(90deg,#000 calc(var(--hole) - 2px),transparent calc(var(--hole) + 2px),transparent calc(var(--hole) + var(--seg-w,44px) - 2px),#000 calc(var(--hole) + var(--seg-w,44px) + 2px));
+  --hole-end:calc(var(--hole) + var(--seg-w,44px));
+  clip-path:polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, var(--hole) 0, var(--hole-end) 0, var(--hole-end) 100%, var(--hole) 100%, var(--hole) 0);
 }
 @media (forced-colors:active) {
   #weatherView .hourly-modes .glass-knob { display:none; }
-  #weatherView .hourly-modes[data-glass-segment="on"] button > svg { -webkit-mask-image:none; mask-image:none; }
+  #weatherView .hourly-modes[data-glass-segment="on"] button > svg { clip-path:none; }
   #weatherView .hourly-modes[data-glass-segment="on"] button[aria-pressed="true"] { outline:2px solid Highlight; outline-offset:-2px; }
 }
 
@@ -3063,9 +3065,9 @@ html body #homeLayoutDialog li[data-section] > label:not(#_) { display:flex; fle
 html body #homeLayoutDialog li[data-section] input[type=checkbox] {
   -webkit-appearance:none; appearance:none; flex:none; position:relative; width:50px; height:30px; margin:0; border-radius:999px; background:#ffffff2e; cursor:pointer; transition:background-color .2s ease;
 }
-html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 1px 3px #0006; transition:left .2s ease; }
+html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 1px 3px #0006; }
 html body #homeLayoutDialog li[data-section] input[type=checkbox]:checked { background:#30d158; }
-html body #homeLayoutDialog li[data-section] input[type=checkbox]:checked::before { left:23px; }
+html body #homeLayoutDialog li[data-section] input[type=checkbox]:checked::before { translate:20px 0; }
 html body #homeLayoutDialog li[data-section] input[type=checkbox]:focus-visible { outline:2px solid var(--dialog-link); outline-offset:2px; }
 html body[data-phase="day"] #homeLayoutDialog li[data-section] input[type=checkbox]:not(:checked) { background:#0827441f; }
 html body #homeLayoutDialog li[data-section] > label > span { font-size:.9375rem; line-height:1.3; }
@@ -3138,3 +3140,100 @@ html body #accountDialog #accountMore .tomorrow-test small { font-size:.8125rem;
 html body #accountDialog #tomorrowTest { --tile:#ff9f0a; --ico:var(--i-sun); }
 html body #accountDialog #accountMore .account-more-state { flex:none; margin-left:auto; font-size:.875rem; font-weight:500; color:var(--dialog-muted); }
 html body #accountDialog #accountMore .tomorrow-test[aria-pressed="true"] .account-more-state { color:var(--dialog-link); font-weight:600; }
+
+/* ===== Animações: molas e vidro (1.68, pedido do dono: "melhoria de animações do site todo", na linha do vidro de
+   gelatina da 1.67) =====
+   Curvas do movimento: --ease-out para quem chega e para; --ease-spring para quem encaixa com um quique (a mesma
+   curva de mola amostrada do glass-touch.js; sem linear(), o cubic-bezier com ultrapassagem). São constantes na
+   raiz: nada as reescreve em tempo de execução. */
+:root { --ease-out:cubic-bezier(.22,1,.36,1); --ease-spring:cubic-bezier(.34,1.56,.64,1); }
+@supports (transition-timing-function:linear(0,1)) {
+  :root { --ease-spring:linear(0, 0.06 1.6%, 0.24 4.4%, 0.58 9%, 0.9 14%, 1.06 18.6%, 1.12 22.7%, 1.11 26%, 1.07 30%, 1.01 36%, 0.98 42%, 0.975 47%, 0.99 56%, 1.003 68%, 1); }
+}
+
+/* Interruptores de gelatina: a bolinha anda por translate (antes era left, que recalculava o layout a cada quadro)
+   e encaixa com mola. Com o dedo em cima ela vira uma cápsula de vidro transparente, mais larga na direção para
+   onde vai (como a chave do iOS 26 e a cápsula da 1.67): fio claro, franja vermelha/azul, faixa de refração e a cor
+   do trilho aparecendo por dentro. Soltou, volta a ser branca. Só translate/scale e pintura na própria bolinha. */
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]::before,
+html body #homeLayoutDialog li[data-section] input[type=checkbox]::before {
+  left:3px; transform-origin:0 50%;
+  background-image:
+    radial-gradient(70% 44% at 50% 100%,rgba(255,255,255,.5),rgba(255,255,255,0) 72%),
+    radial-gradient(closest-side,rgba(255,255,255,0) 52%,rgba(255,255,255,.32));
+  transition:translate .5s var(--ease-spring), scale .42s var(--ease-spring), background-color .18s ease, box-shadow .18s ease;
+}
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:checked::before,
+html body #homeLayoutDialog li[data-section] input[type=checkbox]:checked::before { left:3px; translate:20px 0; transform-origin:100% 50%; }
+html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]:active:not(:disabled)::before,
+html body #homeLayoutDialog li[data-section] input[type=checkbox]:active:not(:disabled)::before {
+  scale:1.3 1.14; background-color:rgba(255,255,255,.14);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.88),
+    inset 2.5px 0 2px -1.5px rgba(255,72,96,.6),
+    inset -2.5px 0 2px -1.5px rgba(64,150,255,.65),
+    inset 0 0 4px 1px rgba(6,20,48,.3),
+    0 3px 9px rgba(4,8,20,.32);
+}
+html body #accountDialog .terms-check input[type=checkbox]::before { transition:none; }
+@media (prefers-reduced-motion:reduce) {
+  html body :is(#accountDialog,#sourcesDialog) input[type=checkbox]::before,
+  html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { transition:none; scale:none; }
+}
+
+/* Vidro vivo: a borda da cápsula da 1.67 nos outros vidros pequenos. Aos fios claros que já existiam somam-se a
+   franja vermelha de um lado e azul do outro e, nos botões do topo, o brilho comprido em cima à esquerda. É pintura
+   a mais na mesma camada (nenhum blur novo, nada anima); os valores antigos de cada sombra estão repetidos aqui. */
+.topbar .account-trigger::before,.topbar .top-actions::before {
+  background:
+    radial-gradient(44% 17% at 31% 21%,rgba(255,255,255,.5),rgba(255,255,255,0)),
+    linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05) 55%,rgba(255,255,255,.1));
+  box-shadow:
+    inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.75),
+    inset -1px -1px 0 -.5px rgba(255,255,255,.45),
+    inset 0 0 0 .5px rgba(255,255,255,.28),
+    inset 2.5px 0 2px -1.5px rgba(255,72,96,.42),
+    inset -2.5px 0 2px -1.5px rgba(64,150,255,.48),
+    inset 0 0 14px rgba(255,255,255,.14),
+    0 4px 16px rgba(4,14,34,.22);
+}
+body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before {
+  background:
+    radial-gradient(44% 17% at 31% 21%,rgba(255,255,255,.75),rgba(255,255,255,0)),
+    linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.2) 55%,rgba(255,255,255,.3));
+  box-shadow:
+    inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),
+    inset -1px -1px 0 -.5px rgba(255,255,255,.7),
+    inset 0 0 0 .5px rgba(255,255,255,.5),
+    inset 2.5px 0 2px -1.5px rgba(255,72,96,.4),
+    inset -2.5px 0 2px -1.5px rgba(64,150,255,.46),
+    inset 0 0 14px rgba(255,255,255,.3),
+    0 4px 14px rgba(20,40,70,.14);
+}
+.compact-head > .compact-pill { box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.55),inset -1px -1px 0 -.5px rgba(255,255,255,.25),inset 3px 0 3px -2px rgba(255,72,96,.38),inset -3px 0 3px -2px rgba(64,150,255,.44),0 6px 18px rgba(4,8,20,.22); }
+body[data-ink="dark"] .compact-head > .compact-pill { box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),inset 3px 0 3px -2px rgba(255,72,96,.36),inset -3px 0 3px -2px rgba(64,150,255,.42),0 6px 18px rgba(24,64,120,.16); }
+.topbar .home-search { box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(255,255,255,.1),inset 3px 0 3px -2px rgba(255,72,96,.34),inset -3px 0 3px -2px rgba(64,150,255,.4),0 8px 24px rgba(4,14,34,.18); }
+body[data-ink="dark"] .topbar .home-search { box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 3px 0 3px -2px rgba(255,72,96,.32),inset -3px 0 3px -2px rgba(64,150,255,.38),0 8px 22px rgba(28,72,128,.14); }
+/* Bolha do "Tá chovendo aí?": mesma borda e a mola da casa no encaixe (largura e altura continuam: a opção muda de tamanho). */
+#weatherView .rain-report-thumb {
+  box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.5),inset 0 0 0 .5px rgba(255,255,255,.22),inset 3px 0 3px -2px rgba(255,72,96,.4),inset -3px 0 3px -2px rgba(64,150,255,.46),0 3px 10px rgba(4,8,20,.14);
+  transition:transform .5s var(--ease-spring), width .5s var(--ease-spring), height .5s var(--ease-spring), opacity .2s ease;
+}
+#weatherView .rain-report-options[data-dragging] .rain-report-thumb { transition:none; }
+@media (prefers-reduced-motion:reduce) { #weatherView .rain-report-thumb { transition:none; } }
+@media (forced-colors:active) { .compact-head > .compact-pill,.topbar .home-search,#weatherView .rain-report-thumb { box-shadow:none; } }
+
+/* Janelas e listas. As janelas chegam com um assentamento curto no fim (--ease-settle passa 2% do lugar e volta:
+   na queda de uma tela inteira são ~18 px), em vez de só frear; a saída continua a mesma. Linhas tocáveis afundam
+   um pouco sob o dedo e voltam com mola (só scale na própria linha). */
+:root { --ease-settle:cubic-bezier(.22,1,.36,1); }
+@supports (transition-timing-function:linear(0,1)) {
+  :root { --ease-settle:linear(0, 0.3 9%, 0.6 19%, 0.84 30%, 0.97 41%, 1.016 50%, 1.022 58%, 1.014 68%, 1.004 81%, 1); }
+}
+@media (prefers-reduced-motion:no-preference) {
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#changelogDialog,#whatsNewDialog,#alertDetail,#radarDialog,#installPushDialog)[open] { animation-duration:.5s; animation-timing-function:var(--ease-settle); }
+  html body :is(#cityDialog,#accountDialog,#sourcesDialog,#hourlyDetailDialog,#dailyDetailDialog,#shareWeatherDialog,#brazilDialog,#monthDialog,#homeLayoutDialog,#changelogDialog,#whatsNewDialog,#alertDetail,#radarDialog,#installPushDialog)[open]::backdrop { animation-duration:.28s; animation-timing-function:ease-out; }
+  #weatherView [data-day-index] { transition:background-color .16s ease, scale .45s var(--ease-spring); }
+  html body #brazilDialog .brazil-row, html body #cityDialog .city-result { transition:background-color .16s ease, scale .45s var(--ease-spring); }
+  #weatherView [data-day-index]:active, html body #brazilDialog .brazil-row:active, html body #cityDialog .city-result:active { scale:.975; transition-duration:.08s; }
+}
