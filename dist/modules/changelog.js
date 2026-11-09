@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.64.2", date:"2026-11-09", title:"Ícones do tempo redesenhados", items:[
+      "Os ícones em traço foram refeitos: o sol e a lua param antes da nuvem, os raios do sol não encostam nela e a chuva, a garoa, a neve e o raio ficam centrados embaixo."
+    ]},
     {version:"1.64.1", date:"2026-11-09", title:"Brasil agora em 3D corrigido", items:[
       "No iPhone, as temperaturas do mapa 3D apareciam longe das capitais e empilhadas. Agora cada temperatura fica em cima da sua capital, inclusive enquanto o mapa gira, e o mapa ficou menos inclinado para os números não se amontoarem."
     ]},
