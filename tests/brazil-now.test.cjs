@@ -115,8 +115,22 @@ test('mapa acessível e carregado só ao abrir o diálogo', () => {
   assert.match(tag, /role="group"/); assert.match(tag, /aria-label="[^"]+"/); assert.match(tag, /aria-describedby="brazilMapHint"/);
   assert.match(html, /id="brazilMapHint"/);
   // Contorno e projeção não entram na abertura da Home: só via loadMapModules, ao abrir.
-  for (const script of brazil.MAP_SCRIPTS) assert.ok(!html.includes(script.split('?')[0]), `${script} fora do HTML`);
+  const sw = read('dist/sw.js');
+  for (const script of brazil.MAP_SCRIPTS) {
+    assert.ok(!html.includes(script.split('?')[0]), `${script} fora do HTML`);
+    assert.ok(sw.includes(`".${script}"`), `${script} no precache (mapa abre offline)`);
+  }
   assert.match(src, /loadMapModules\(\)/);
   assert.match(css, /button\.brazil-chip::before|\.brazil-chip::before \{[^}]*height:44px/, 'área de toque de 44 px');
   assert.match(css, /@media \(prefers-reduced-motion:reduce\) \{ html body #brazilDialog #brazilMap button\.brazil-chip \{ transition:none; \} \}/);
+});
+
+// O bug da 1.64: etiquetas em posições de tela escritas à mão (LABELS) e um contorno colado no código, num mapa 3D.
+test('sem posições de tela fixas, contorno embutido ou 3D', () => {
+  const src = read('dist/modules/brazil-now.js'), css = read('dist/continuous.css');
+  for (const name of ['LABELS', 'OUTLINE', 'MAP', 'project', 'spinFor', 'field']) assert.equal(brazil[name], undefined, `${name} saiu do módulo`);
+  assert.doesNotMatch(src, /const (LABELS|OUTLINE) =|getBoundingClientRect|--spin|brazil-anchor/);
+  assert.doesNotMatch(css, /brazil-plane|brazil-slab|brazil-anchor|preserve-3d[^}]*brazil/);
+  // As posições do mapa saem só da projeção dos dados (lat/lon) e do layout das etiquetas.
+  assert.doesNotMatch(read('dist/modules/brazil-map.js'), /\b(AM|PA|RJ|SP|RS):\s*\[\d/, 'nenhuma posição por UF');
 });
