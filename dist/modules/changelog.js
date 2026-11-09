@@ -14,7 +14,8 @@
   const VERSIONS = [
     {version:"1.61", date:"2026-11-09", title:"Janelas no visual novo", items:[
       "Minha conta, Suas cidades, Fontes de dados, Novidades e as outras janelas ganharam o visual das páginas novas: o céu da hora, as gotas no vidro no alto e os cartões da tela principal.",
-      "Botões e links voltaram ao azul do PLUVIA, no lugar do branco à noite e do preto de dia. Os interruptores ligados continuam verdes."
+      "Botões e links voltaram ao azul do PLUVIA, no lugar do branco à noite e do preto de dia. Os interruptores ligados continuam verdes.",
+      "O seletor Condição, Chuva e Vento das Próximas horas mede os botões com mais calma quando a tela muda de tamanho, sem disparar avisos de erro no Safari."
     ]},
     {version:"1.60", date:"2026-11-09", title:"Chuva 3D e abertura fixa", items:[
       "A chuva agora é em 3D: gotas perto e longe, em profundidades diferentes, inclinadas pelo vento e caindo na frente das nuvens.",

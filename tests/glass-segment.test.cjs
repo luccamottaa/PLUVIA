@@ -30,3 +30,37 @@ test('o esticão cresce com a velocidade e para no máximo', () => {
   assert.equal(stretch(10), 1.14);
   assert.equal(stretch(-0.5), stretch(0.5));
 });
+
+// O ResizeObserver só agenda a medição para o próximo quadro (uma por quadro): medir e escrever estilo dentro do
+// callback fazia o WebKit soltar "ResizeObserver loop completed with undelivered notifications".
+test('redimensionar agenda uma medição por quadro, fora do callback do observer', () => {
+  const { start } = require('../dist/modules/glass-segment.js');
+  const writes = [], frames = [];
+  let observed = null;
+  const button = (left, pressed) => ({ offsetLeft: left, offsetWidth: 44, getAttribute: () => (pressed ? 'true' : 'false') });
+  const buttons = [button(2, true), button(48, false), button(94, false)];
+  const group = {
+    dataset: {},
+    style: { setProperty: (name, value) => writes.push([name, value]) },
+    querySelectorAll: () => buttons,
+    addEventListener() {},
+  };
+  const root = {
+    PointerEvent: function () {},
+    document: { readyState: 'complete', addEventListener() {}, querySelectorAll: () => [group] },
+    ResizeObserver: function (callback) { this.observe = () => { observed = callback; }; },
+    requestAnimationFrame: callback => { frames.push(callback); return frames.length; },
+    matchMedia: () => ({ matches: false }),
+  };
+  start(root);
+  assert.equal(group.dataset.glassSegment, 'on');
+  assert.ok(observed, 'observa o grupo');
+  writes.length = 0;
+  observed(); observed(); observed();
+  assert.equal(writes.length, 0, 'nada é medido nem escrito dentro do callback');
+  assert.equal(frames.length, 1, 'três notificações no mesmo quadro viram uma medição');
+  frames.shift()();
+  assert.deepEqual(writes.map(([name]) => name), ['--seg-x0', '--seg-w', '--seg-step']);
+  observed();
+  assert.equal(frames.length, 1, 'depois do quadro, uma nova notificação agenda de novo');
+});

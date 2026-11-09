@@ -73,7 +73,16 @@
         group.style.setProperty("--seg-stretch", String(velocity === undefined ? 1 : stretch(velocity)));
       };
       measure();
-      if (typeof root.ResizeObserver === "function") new root.ResizeObserver(measure).observe(group);
+      // O observer só agenda: medir (offsetLeft/offsetWidth) e escrever as variáveis dentro do próprio callback
+      // fazia o WebKit adiar notificações e disparar "ResizeObserver loop completed with undelivered
+      // notifications" (erro de página que derrubava o QA visual intermitentemente). Uma medição por quadro.
+      let measuring = 0;
+      const later = () => {
+        if (measuring) return;
+        if (typeof root.requestAnimationFrame !== "function") { measure(); return; }
+        measuring = root.requestAnimationFrame(() => { measuring = 0; measure(); });
+      };
+      if (typeof root.ResizeObserver === "function") new root.ResizeObserver(later).observe(group);
 
       group.addEventListener("pointerdown", event => {
         if (event.button !== undefined && event.button !== 0) return;
