@@ -2646,3 +2646,51 @@ html body .terms-notice button.secondary { background:transparent; color:#fff; b
 #weatherView .rain-report-options[data-dragging] .rain-report-thumb { transition:none; }
 #weatherView .rain-report-options button { z-index:1; }
 @media (prefers-reduced-motion:reduce) { #weatherView .rain-report-thumb { transition:none; } }
+
+
+/* ===== Janelas no visual novo (1.61, pedido do dono: "era nessas janelas que eu tava pensando", depois das páginas
+   legais da 1.59) =====
+   As 16 janelas trocam o preto da noite e o off-white do dia (1.50) pelo céu da fase do dia: degradê azul-noite à
+   noite e azul-claro de dia, com as gotas no vidro da intro no alto da folha (camada de fundo que esmaece até a cor
+   do céu em ~300 px, sem pseudo-elemento), cartões no tom dos cartões da Home e botões preenchidos, links e ações
+   no azul da marca (#7cc0ff com texto escuro à noite, #0a4cba com texto branco de dia). Os interruptores ligados
+   continuam verdes (escolha do dono na 1.50). Segue a fase, não a nuvem (1.50.2). Só cores e fundo: sem blur,
+   transform ou z-index; o X já é o vidro do topo. */
+html body:not([data-phase="day"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
+  --dialog-bg:#121836; --dialog-surface:#182240; --dialog-surface-2:#22305a; --dialog-line:#b8d4ef26;
+  --dialog-text:#f2f7ff; --dialog-muted:#b9c8dc; --dialog-link:#7cc0ff; --map-link:#7cc0ff;
+  --text:#f2f7ff; --muted:#b9c8dc; --line:#b8d4ef26; --panel:#182240; --panel-strong:#22305a; --panel-subtle:#ffffff08;
+  border-color:#bed2f529; color:#f2f7ff; box-shadow:0 30px 90px #000a,inset 0 1px 0 #ffffff1a;
+  background:linear-gradient(180deg,#0b122900 0,#0b122900 70px,#0b1229 300px),url("/assets/intro-glass.webp?v=glass-1") center top / 100% auto no-repeat,linear-gradient(180deg,#121836 0,#0b1229 300px,#080f22);
+}
+html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
+  --dialog-bg:#5bb2e3; --dialog-surface:#eef7fe; --dialog-surface-2:#0a4cba14; --dialog-line:#08274421;
+  --dialog-text:#082744; --dialog-muted:#2c4a66; --dialog-link:#0a4cba; --map-link:#0a4cba;
+  --text:#082744; --muted:#2c4a66; --line:#08274421; --panel:#eef7fe; --panel-strong:#fff; --panel-subtle:#0827440a;
+  border-color:#ffffff99; color:#082744; box-shadow:0 30px 90px #0b183040,inset 0 1px 0 #ffffffcc;
+  background:linear-gradient(180deg,#a9dbf100 0,#a9dbf100 70px,#a9dbf1 300px),url("/assets/intro-glass.webp?v=glass-1") center top / 100% auto no-repeat,linear-gradient(180deg,#5bb2e3 0,#a9dbf1 300px,#bce7f5);
+}
+html body:not([data-phase="day"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { border-color:var(--dialog-line); background-color:var(--dialog-surface); color:var(--dialog-text); }
+html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { border-color:var(--dialog-line); background-color:#fff; color:var(--dialog-text); }
+/* Botões preenchidos: o azul da marca no lugar do branco (noite) e do preto (dia). */
+html body:not([data-phase="day"]) :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#shareWeatherDialog #shareWeatherDownload,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) { border-color:#7cc0ff; background:#7cc0ff; color:#0c1a33; }
+html body[data-phase="day"] :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#shareWeatherDialog #shareWeatherDownload,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) { border-color:#0a4cba; background:#0a4cba; color:#fff; }
+html body:not([data-phase="day"]) #accountDialog #notificationPreferencesSave:disabled,html body:not([data-phase="day"]) :is(#termsDialog #termsAccept,#accountDialog #accountSubmit):disabled { border-color:#7cc0ff59; background:#7cc0ff59; color:#0c1a33b3; }
+html body[data-phase="day"] #accountDialog :is(#notificationPreferencesSave,#accountSubmit):disabled,html body[data-phase="day"] #termsDialog #termsAccept:disabled { border-color:#0a4cba59; background:#0a4cba59; color:#ffffffd9; }
+/* Links e ações em texto: azul da marca (no lugar do branco/preto da 1.50). */
+html body:not([data-phase="day"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#7cc0ff !important; }
+html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#0a4cba !important; }
+html body:not([data-phase="day"]) #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#7cc0ff; }
+html body[data-phase="day"] #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#0a4cba; }
+/* Suas cidades: "Usar localização" no azul da marca e a cidade aberta com anel azul (antes branco/preto). */
+html body:not([data-phase="day"]) #cityDialog #locateCity { background:#7cc0ff; background-color:#7cc0ff; border-color:#7cc0ff; color:#0c1a33; }
+html body:not([data-phase="day"]) #cityDialog #locateCity::before { background:#0c1a33; }
+html body[data-phase="day"] #cityDialog #locateCity { background:#0a4cba; background-color:#0a4cba; border-color:#0a4cba; color:#fff !important; }
+html body[data-phase="day"] #cityDialog #locateCity::before { background:#fff; }
+html body:not([data-phase="day"]) #cityDialog .city-result[data-current=true],html body:not([data-phase="day"]) #cityDialog .city-result[aria-selected="true"] { background:var(--dialog-surface-2); box-shadow:inset 0 0 0 1.5px #7cc0ff; }
+html body[data-phase="day"] #cityDialog .city-result[data-current=true],html body[data-phase="day"] #cityDialog .city-result[aria-selected="true"] { background:#fff; box-shadow:inset 0 0 0 1.5px #0a4cba; }
+@media (prefers-reduced-transparency:reduce) {
+  html body:not([data-phase="day"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) { background:#0b1229; }
+  html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) { background:#a9dbf1; }
+}
+@media (forced-colors:active) { html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) { background:Canvas; } }
