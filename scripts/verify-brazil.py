@@ -79,6 +79,25 @@ with sync_playwright() as p:
         assert state['ranges'] != [None] or width <= 360, (width, state)
         assert state['label'].startswith('Belém/PA:') and 'Abrir cidade' in state['label'], state['label']
         page.screenshot(path=str(output / f'{engine}-{width}.png'))
+        # Mapa 3D (1.64.1): cada etiqueta no ponto projetado da sua âncora, dentro do mapa, inclusive depois de girar.
+        # Na 1.64 as etiquetas eram 3D e no Safari do iPhone saíam do lugar; a captura do mapa fica para conferência.
+        page.wait_for_function("document.querySelector('#brazilMap .brazil-labels[data-ready]')", timeout=5000)
+        page.locator('#brazilMap').scroll_into_view_if_needed()
+        def labels_ok(tag):
+            geo = page.evaluate("""() => { const map = document.getElementById('brazilMap').getBoundingClientRect();
+              const anchors = [...document.querySelectorAll('#brazilMap .brazil-anchor')], chips = [...document.querySelectorAll('#brazilMap .brazil-chip')];
+              return {count:chips.length, anchors:anchors.length, worst:Math.max(...chips.map((chip, i) => { const c = chip.getBoundingClientRect(), a = anchors[i].getBoundingClientRect();
+                return Math.hypot(c.left + c.width / 2 - a.left, c.top + c.height / 2 - a.top); })),
+                outside:chips.filter(chip => { const c = chip.getBoundingClientRect(); return c.left < map.left - 24 || c.right > map.right + 24 || c.top < map.top - 24 || c.bottom > map.bottom + 24; }).length}; }""")
+            assert geo['count'] == 27 and geo['anchors'] == 27 and geo['worst'] <= 2 and geo['outside'] == 0, (width, tag, geo)
+            page.locator('#brazilMap').screenshot(path=str(output / f'{engine}-{width}-map-{tag}.png'))
+        labels_ok('tilted')
+        if not mobile:
+            box = page.locator('#brazilMap').bounding_box()
+            page.mouse.move(box['x'] + box['width'] / 2, box['y'] + box['height'] / 2); page.mouse.down()
+            page.mouse.move(box['x'] + box['width'] / 2 + 60, box['y'] + box['height'] / 2, steps=6); page.mouse.up()
+            page.wait_for_timeout(200)
+            labels_ok('spun')
         page.locator('.brazil-row[data-city-id="4314902"]').click()
         page.wait_for_function("!document.getElementById('brazilDialog').open && /Porto Alegre/.test(document.getElementById('cityName').textContent)", timeout=10000)
         assert not errors, (width, errors)

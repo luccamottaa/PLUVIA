@@ -122,3 +122,18 @@ test('condições em traço (1.63): mesmo mapeamento WMO, uma por nome, acessív
   assert.match(icons.markup(3, true, {className:'x"><script>'}), /^<svg class="xscript weather-line-icon"/, 'classe sanitizada');
   assert.match(icons.markup(0, false), /data-weather-icon="clear-night"/);
 });
+
+test('condições em traço saem do gerador geométrico (1.64.2): sol, lua e nuvem de trás nunca cruzam a nuvem', () => {
+  const src = fs.readFileSync(path.join(__dirname, '../dist/modules/weather-icon-system.js'), 'utf8');
+  assert.match(src, /\/\/ linha:inicio \(gerado por scripts\/generate-line-icons\.py; não editar à mão\)/);
+  assert.ok(fs.existsSync(path.join(__dirname, '../scripts/generate-line-icons.py')));
+  // Cada número dos caminhos fica na grade de 24 (com folga para o traço).
+  for (const [name, markup] of Object.entries(icons.LINE_CONDITIONS)) {
+    for (const value of markup.match(/-?\d+(?:\.\d+)?/g) || []) assert.ok(Number(value) >= -3 && Number(value) <= 25, `${name}: ${value}`); // relativos do raio (l-2.2) entram
+    assert.doesNotMatch(markup, /NaN|undefined/, name);
+  }
+  // Parcial de dia: o sol tem arco e raios, mas nenhum ponto do arco dentro da nuvem (o recorte deixa folga).
+  const partly = icons.LINE_CONDITIONS['partly-cloudy-day'];
+  assert.match(partly, /class="wl-sun"/);
+  assert.match(icons.LINE_CONDITIONS.overcast, /^<path d="M[^"]+"\/><path d="M[\d.]+ [\d.]+A/, 'nuvem de trás recortada e a da frente em arcos');
+});

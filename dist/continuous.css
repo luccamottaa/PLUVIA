@@ -2807,23 +2807,22 @@ html body .brazil-weather-icon.weather-line-icon { width:26px; height:26px; }
 html body .daily-detail-hours .weather-line-icon { width:26px; height:26px; margin-inline:auto; }
 @media (forced-colors:active) { .weather-line-icon, .weather-line-icon * { stroke:CanvasText !important; } }
 
-/* Brasil agora em 3D (1.64, pedido do dono): o mapa deita em perspectiva (--tilt), gira pelo arrasto (--spin, até
-   ±35°) e tem espessura (cinco cópias escuras do contorno, .brazil-slab, mais fundas). Cada capital é uma coluna de
-   pé (.brazil-bar, rotateX(-90°) a partir da base, altura --h pela temperatura) com a etiqueta no topo, girada ao
-   contrário do mapa para ficar sempre de frente. Só CSS 3D, com o diálogo aberto; o mapa continua aria-hidden e a
-   lista é o caminho acessível. Movimento reduzido: já deitado, sem transição. */
-.brazil-map { --tilt:0deg; --spin:0deg; perspective:1100px; perspective-origin:50% 30%; touch-action:pan-y; -webkit-user-select:none; user-select:none; margin-top:20px; margin-bottom:6px; }
-.brazil-pin .brazil-chip { font-size:.75rem; }
-.brazil-map[data-tilted] { --tilt:46deg; }
-.brazil-plane { position:absolute; inset:0; transform-style:preserve-3d; transform:scale(.84) rotateX(var(--tilt)) rotateZ(var(--spin)); transition:transform 1s cubic-bezier(.2,.8,.2,1); }
+/* Brasil agora em 3D (1.64; refeito na 1.64.1 depois do print do iPhone): o mapa deita em perspectiva (--tilt),
+   gira pelo arrasto (--spin, até ±35°) e tem espessura (cinco cópias escuras do contorno, .brazil-slab, mais fundas).
+   As etiquetas ficam numa camada plana por cima (.brazil-labels), cada uma no ponto que o navegador projetou para a
+   sua âncora no plano (.brazil-anchor, medida em JS): na 1.64 elas eram 3D (de pé, com rotação inversa) e no Safari
+   saíam fora do lugar. Só CSS 3D, com o diálogo aberto; o mapa continua aria-hidden e a lista é o caminho acessível. */
+.brazil-map { --tilt:0deg; --spin:0deg; perspective:1100px; perspective-origin:50% 40%; touch-action:pan-y; -webkit-user-select:none; user-select:none; margin-top:4px; margin-bottom:6px; }
+.brazil-map[data-tilted] { --tilt:32deg; }
+.brazil-plane { position:absolute; inset:0; transform-style:preserve-3d; transform:scale(.9) rotateX(var(--tilt)) rotateZ(var(--spin)); transition:transform 1s cubic-bezier(.2,.8,.2,1); }
 .brazil-plane > svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
 .brazil-plane .brazil-slab { transform:translateZ(calc(var(--z) * -2.2px)); }
 .brazil-plane .brazil-slab path { fill:color-mix(in srgb,#0b1430 calc(48% + var(--z) * 8%),#5d7aa8); stroke:none; }
 .brazil-plane .brazil-top .brazil-land { fill:#22355a; }
-.brazil-pin { position:absolute; width:0; height:0; transform-style:preserve-3d; }
-.brazil-bar { position:absolute; left:-3.5px; bottom:0; width:7px; height:var(--h,0px); border-radius:3.5px 3.5px 0 0; background:linear-gradient(var(--chip),color-mix(in srgb,var(--chip) 60%,#0b1430)); transform-origin:50% 100%; transform:rotateX(-90deg); transform-style:preserve-3d; }
-.brazil-bar::after { content:""; position:absolute; inset:0; border-radius:inherit; background:inherit; transform:rotateY(90deg); }
-.brazil-pin .brazil-chip { left:0; top:0; background:var(--chip,#8a96ad); transform:translateZ(var(--h,0px)) rotateZ(calc(var(--spin) * -1)) rotateX(calc(var(--tilt) * -1)) translate(-50%,-112%); transition:transform 1s cubic-bezier(.2,.8,.2,1); cursor:pointer; }
-.brazil-map[data-dragging] :is(.brazil-plane,.brazil-chip) { transition:none; }
-@media (prefers-reduced-motion:reduce) { .brazil-plane, .brazil-pin .brazil-chip { transition:none; } }
-@media (forced-colors:active) { .brazil-map { --tilt:0deg !important; --spin:0deg !important; } .brazil-slab, .brazil-bar { display:none; } }
+.brazil-anchor { position:absolute; width:0; height:0; }
+.brazil-labels { position:absolute; inset:0; opacity:0; pointer-events:none; }
+.brazil-labels[data-ready] { opacity:1; }
+.brazil-labels .brazil-chip { pointer-events:auto; font-size:.75rem; cursor:pointer; }
+.brazil-map[data-dragging] .brazil-plane { transition:none; }
+@media (prefers-reduced-motion:reduce) { .brazil-plane { transition:none; } }
+@media (forced-colors:active) { .brazil-map { --tilt:0deg !important; --spin:0deg !important; } .brazil-slab { display:none; } }

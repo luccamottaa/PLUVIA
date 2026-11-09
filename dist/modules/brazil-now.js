@@ -30,11 +30,6 @@
   const project = (lat, lon) => [(lon - MAP.lon0) * MAP.k * MAP.scale, (MAP.lat0 - lat) * MAP.scale];
   // Escala de temperatura própria do mapa (não reutiliza o azul da marca): frio azul → calor vermelho.
   const STOPS = [[5,[91,140,255]],[15,[76,195,230]],[22,[95,211,141]],[27,[242,208,75]],[32,[243,154,61]],[37,[229,83,61]]];
-  // Altura da coluna no mapa 3D: 6 px a 5° até 60 px a 37° (a mesma faixa da escala de cores); ausente não tem coluna.
-  function barHeight(value) {
-    if (!Number.isFinite(value)) return 0;
-    return 6 + Math.min(Math.max((value - 5) / 32, 0), 1) * 54;
-  }
   // Giro pelo arrasto: 0,35° por pixel, preso em ±35° para o Brasil não ficar de lado.
   function spinFor(start, dx) { return Math.min(35, Math.max(-35, start + dx * .35)); }
   function tempColor(value) {
@@ -170,11 +165,12 @@
         svg.append(defs, image, edge);
       }
       if (legend) legend.hidden = !heat;
-      // Mapa em 3D (1.64, pedido do dono): o Brasil fica deitado em perspectiva CSS, com uma espessura (cópias
-      // escuras do contorno mais fundas) e, em cada capital, uma coluna de pé com a altura pela temperatura e a
-      // etiqueta no topo, sempre virada para a tela. Só CSS 3D (nenhum WebGL a mais: o céu já usa um contexto).
-      // A coluna fica no ponto da etiqueta (o litoral do Nordeste vai para o mar), com a linha até o ponto real.
-      const pins = [];
+      // Mapa em 3D (1.64, refeito na 1.64.1): o Brasil fica deitado em perspectiva CSS, com espessura (cópias escuras
+      // do contorno mais fundas). As etiquetas NÃO ficam no 3D: na 1.64 elas ficavam de pé dentro do plano
+      // (preserve-3d com rotação inversa) e no Safari do iPhone saíam longe das colunas e empilhadas. Agora cada
+      // etiqueta é plana, numa camada por cima, posicionada pelo ponto que o próprio navegador projetou: uma âncora
+      // de tamanho zero no plano, medida por getBoundingClientRect (vale em qualquer motor). Colunas saíram.
+      const anchors = [], chips = [];
       for (const row of rows) {
         const [x, y] = project(row.lat, row.lon), [lx, ly] = LABELS[row.uf] || [x, y];
         if (Math.hypot(lx - x, ly - y) > 12) {
@@ -185,17 +181,15 @@
         const dot = doc.createElementNS(ns, 'circle'); dot.setAttribute('class', 'brazil-dot');
         dot.setAttribute('cx', x.toFixed(1)); dot.setAttribute('cy', y.toFixed(1)); dot.setAttribute('r', '4');
         svg.append(dot);
-        const pin = doc.createElement('span'); pin.className = 'brazil-pin';
-        pin.style.left = (lx / MAP.width * 100).toFixed(2) + '%'; pin.style.top = (ly / MAP.height * 100).toFixed(2) + '%';
-        const color = tempColor(row.temperature);
+        const anchor = doc.createElement('i'); anchor.className = 'brazil-anchor';
+        anchor.style.left = (lx / MAP.width * 100).toFixed(2) + '%'; anchor.style.top = (ly / MAP.height * 100).toFixed(2) + '%';
+        anchors.push(anchor);
         const chip = doc.createElement('span'); chip.className = 'brazil-chip'; chip.dataset.cityId = row.id;
-        if (color) { pin.style.setProperty('--chip', color); pin.style.setProperty('--h', barHeight(row.temperature).toFixed(1) + 'px'); }
-        else chip.dataset.missing = '';
+        const color = tempColor(row.temperature);
+        if (color) chip.style.setProperty('--chip', color); else chip.dataset.missing = '';
         chip.textContent = degrees(row.temperature);
         chip.title = `${row.name}/${row.uf}`;
-        if (color) { const bar = doc.createElement('i'); bar.className = 'brazil-bar'; pin.append(bar); }
-        pin.append(chip);
-        pins.push(pin);
+        chips.push(chip);
       }
       const plane = doc.createElement('div'); plane.className = 'brazil-plane';
       const slabs = [1, 2, 3, 4, 5].map(depth => {
@@ -205,20 +199,46 @@
         return slab;
       });
       svg.setAttribute('class', 'brazil-top');
-      plane.append(...slabs.reverse(), svg, ...pins);
-      mapBox.replaceChildren(plane);
+      plane.append(...slabs.reverse(), svg, ...anchors);
+      const labels = doc.createElement('div'); labels.className = 'brazil-labels'; labels.append(...chips);
+      mapBox.replaceChildren(plane, labels);
+      mapLabels = {anchors, chips, labels};
       mapBox.hidden = false;
       tilt();
+    }
+    // Etiquetas no ponto projetado de cada âncora (px relativos ao mapa). Só leitura de layout e escrita de
+    // left/top nas etiquetas; roda na entrada (enquanto o mapa deita), no arrasto e quando o tamanho muda.
+    let mapLabels = null, followUntil = 0, following = 0;
+    function placeLabels() {
+      if (!mapLabels || !mapBox || mapBox.hidden) return;
+      const box = mapBox.getBoundingClientRect();
+      const points = mapLabels.anchors.map(anchor => anchor.getBoundingClientRect());
+      points.forEach((point, index) => {
+        const chip = mapLabels.chips[index];
+        chip.style.left = (point.left - box.left).toFixed(1) + 'px'; chip.style.top = (point.top - box.top).toFixed(1) + 'px';
+      });
+      mapLabels.labels.dataset.ready = '';
+    }
+    function follow(ms) {
+      followUntil = Math.max(followUntil, (root.performance?.now?.() || Date.now()) + ms);
+      if (following || typeof root.requestAnimationFrame !== 'function') { placeLabels(); return; }
+      const step = now => {
+        placeLabels();
+        if (now < followUntil) following = root.requestAnimationFrame(step); else following = 0;
+      };
+      following = root.requestAnimationFrame(step);
     }
     // Entra plano e deita em perspectiva; arrastar para o lado gira o mapa (até 35°). Toque sem arrasto continua
     // abrindo a cidade (pick). Movimento reduzido: já deitado, sem transição.
     function tilt() {
       if (!mapBox) return;
       const reduce = root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-      if (reduce || typeof root.requestAnimationFrame !== 'function') { mapBox.dataset.tilted = ''; return; }
+      if (reduce || typeof root.requestAnimationFrame !== 'function') { mapBox.dataset.tilted = ''; placeLabels(); return; }
       delete mapBox.dataset.tilted;
-      root.requestAnimationFrame(() => root.requestAnimationFrame(() => { mapBox.dataset.tilted = ''; }));
+      placeLabels();
+      root.requestAnimationFrame(() => root.requestAnimationFrame(() => { mapBox.dataset.tilted = ''; follow(1200); }));
     }
+    if (mapBox && typeof root.ResizeObserver === 'function') new root.ResizeObserver(() => follow(0)).observe(mapBox);
     let drag = null, dragged = false;
     if (mapBox) {
       mapBox.addEventListener('pointerdown', event => {
@@ -235,8 +255,9 @@
           try { mapBox.setPointerCapture?.(event.pointerId); } catch (_) {}
         }
         mapBox.style.setProperty('--spin', spinFor(drag.spin, dx).toFixed(1) + 'deg');
+        follow(0);
       });
-      const end = () => { drag = null; delete mapBox.dataset.dragging; };
+      const end = () => { drag = null; delete mapBox.dataset.dragging; follow(0); };
       mapBox.addEventListener('pointerup', end); mapBox.addEventListener('pointercancel', end);
     }
 
@@ -316,5 +337,5 @@
     mapBox?.addEventListener('click', event => { if (dragged) { dragged = false; return; } pick(event); });
   }
 
-  return {buildUrl, parse, split, field, FIELD_POINTS, group, REGIONS, tempColor, barHeight, spinFor, project, LABELS, MAP, mount, open:() => openDialog?.()};
+  return {buildUrl, parse, split, field, FIELD_POINTS, group, REGIONS, tempColor, spinFor, project, LABELS, MAP, mount, open:() => openDialog?.()};
 });
