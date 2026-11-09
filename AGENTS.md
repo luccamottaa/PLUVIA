@@ -176,7 +176,7 @@ for file in tests/*.test.cjs; do node "$file" || exit; done
 Com Deno disponível:
 
 ```sh
-deno check supabase/functions/*/index.ts supabase/functions/met-forecast/index.js supabase/functions/station-now/index.js supabase/functions/lightning/index.js
+deno check --node-modules-dir=none supabase/functions/*/index.ts supabase/functions/met-forecast/index.js supabase/functions/station-now/index.js supabase/functions/lightning/index.js
 ```
 
 A validação de PR também verifica tipos das funções. Não há lint, `tsconfig` frontend ou build de produção configurado: não invente resultados desses comandos. Publicação é dos arquivos estáticos.
