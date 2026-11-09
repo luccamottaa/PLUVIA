@@ -2633,7 +2633,7 @@ html body .terms-notice button.secondary { background:transparent; color:#fff; b
    - corpo transparente com tom de Fresnel na borda e a luz concentrada no pé (degradês);
    - lente: .glass-knob-strip é uma cópia dos ícones nas coordenadas do trilho (anda ao contrário da cápsula, então
      fica parada em relação ao trilho) e .glass-knob-lens amplia 1,28× pelo centro; ícones sempre acesos;
-   - os ícones de verdade somem embaixo da cápsula (máscara no svg de cada botão, pela posição --seg e pelo índice --i);
+   - os ícones de verdade somem embaixo da cápsula (clip-path no svg de cada botão, pela posição --seg e pelo índice --i);
    - borda (.glass-knob-rim): fio claro, faixa escura de refração, franja vermelha de um lado e azul do outro, brilho
      comprido em cima à esquerda e ponto embaixo à direita; sombra suave no trilho;
    - a borda que entorta e separa as cores de verdade é um filtro SVG ligado pelo script (.glass-knob-refract).
@@ -2688,15 +2688,17 @@ body[data-ink="dark"] #weatherView .hourly-modes .glass-knob-rim {
     inset -4px 0 3px -2px rgba(64,150,255,.65),
     inset 0 0 7px 3px rgba(19,35,61,.3);
 }
-/* O ícone do trilho some no trecho coberto pela cápsula: --hole é a borda esquerda da cápsula na caixa do svg. */
+/* O ícone do trilho some no trecho coberto pela cápsula: --hole é a borda esquerda da cápsula na caixa do svg, e o
+   recorte é o retângulo do ícone menos o retângulo da cápsula (polígono par-ímpar). É clip-path, não máscara: máscara
+   cria uma camada com bitmap próprio por ícone, e o WebKit da CI travou com ela na terceira tela do verify-alignment. */
 #weatherView .hourly-modes[data-glass-segment="on"] button > svg {
   --hole:calc((var(--seg,0) - var(--i,0)) * var(--seg-step,46px) - (var(--seg-w,44px) - var(--seg-icon)) / 2);
-  -webkit-mask-image:linear-gradient(90deg,#000 calc(var(--hole) - 2px),transparent calc(var(--hole) + 2px),transparent calc(var(--hole) + var(--seg-w,44px) - 2px),#000 calc(var(--hole) + var(--seg-w,44px) + 2px));
-  mask-image:linear-gradient(90deg,#000 calc(var(--hole) - 2px),transparent calc(var(--hole) + 2px),transparent calc(var(--hole) + var(--seg-w,44px) - 2px),#000 calc(var(--hole) + var(--seg-w,44px) + 2px));
+  --hole-end:calc(var(--hole) + var(--seg-w,44px));
+  clip-path:polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, var(--hole) 0, var(--hole-end) 0, var(--hole-end) 100%, var(--hole) 100%, var(--hole) 0);
 }
 @media (forced-colors:active) {
   #weatherView .hourly-modes .glass-knob { display:none; }
-  #weatherView .hourly-modes[data-glass-segment="on"] button > svg { -webkit-mask-image:none; mask-image:none; }
+  #weatherView .hourly-modes[data-glass-segment="on"] button > svg { clip-path:none; }
   #weatherView .hourly-modes[data-glass-segment="on"] button[aria-pressed="true"] { outline:2px solid Highlight; outline-offset:-2px; }
 }
 
