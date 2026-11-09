@@ -1599,7 +1599,11 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   if (air && !metadata.freshAir) $("airNote").textContent += ' · leitura anterior';
   const observedAt = current.time ? cityDate(current.time).getTime() : Date.now();
   setDataStatus(fromCache ? savedStatus(cacheAt || observedAt, isOffline() ? "offline" : "failure")
-    : data.pluviaReduced ? `Previsão reduzida · MET Norway · ${formatUpdateTime(observedAt)}` : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache || Boolean(data.pluviaReduced));
+    : data.pluviaReduced ? `Previsão reduzida · MET Norway · ${formatUpdateTime(observedAt)}`
+    : data.pluviaSource === "tomorrow" ? `Tomorrow.io (teste) · Atualizado ${formatUpdateTime(observedAt)}`
+    : data.pluviaTomorrow === "limited" ? `Tomorrow.io sem cota agora · Open-Meteo · ${formatUpdateTime(observedAt)}`
+    : data.pluviaTomorrow === "failed" ? `Tomorrow.io não respondeu · Open-Meteo · ${formatUpdateTime(observedAt)}`
+    : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache || Boolean(data.pluviaReduced) || Boolean(data.pluviaSource || data.pluviaTomorrow));
   renderVisibility(now.visibility, fromCache);
   const lines = weatherData?.rows?.(snapshot, data);
   renderHourly(lines?.hourly || [], start, day, data.hourly);
@@ -1621,16 +1625,24 @@ async function loadWeather(revision = cityRevision) {
   const optional = Promise.allSettled([
     Promise.resolve().then(() => services.airQuality.getCurrent(city))
   ]);
+  // Modelo de chuva da cidade (placar) e o teste do Tomorrow.io: consultas em paralelo, esperadas no máximo
+  // 2,5 s depois da previsão principal. A previsão salva no aparelho continua sendo a do Open-Meteo.
+  let extras = null;
+  try { extras = globalThis.PLUVIA?.forecastSources?.start?.(city) || null; } catch {}
   try {
     const prefetched = takePrefetchedForecast(city);
-    const original = await (prefetched ? prefetched.catch(() => fetchForecast(city,revision)) : fetchForecast(city,revision));
+    const fetched = await (prefetched ? prefetched.catch(() => fetchForecast(city,revision)) : fetchForecast(city,revision));
     if (revision !== cityRevision) return false;
+    let shown = fetched;
+    if (extras) { try { shown = await globalThis.PLUVIA.forecastSources.apply(fetched, extras, {valid:validForecast}); } catch { shown = fetched; } }
+    if (revision !== cityRevision) return false;
+    const original = shown;
     // Optional sources must not hold the first usable forecast behind their timeout.
     if (!displayedWeather || displayedWeather.fromCache) {
       const savedAir = weatherData.cachedAir(cached());
       const fromSkeleton = $("weatherView")?.classList?.contains?.('initial-loading');
       render(original,savedAir.air,false,0,{airAt:savedAir.at});
-      cache({forecast:original,air:savedAir.air},{weatherAt:Date.now(),airAt:savedAir.at});
+      cache({forecast:fetched,air:savedAir.air},{weatherAt:Date.now(),airAt:savedAir.at});
       globalThis.PLUVIA?.sources.set('weather',{status:'ready',checkedAt:Date.now(),dataAt:cityDate(original.current.time,city).getTime()});
       $("weatherView")?.classList.remove('initial-loading');
       // Cidade sem nada salvo: os esqueletos viram dados com o mesmo fade do topo e a cascata. Com a
@@ -1648,7 +1660,7 @@ async function loadWeather(revision = cityRevision) {
     const air = freshAir ? airResult.value : savedAir.air;
     const airAt = freshAir ? Date.now() : savedAir.at;
     render(data,air,false,0,{airAt,freshAir});
-    cache({forecast:data,air},{weatherAt:Date.now(),airAt});
+    cache({forecast:fetched,air},{weatherAt:Date.now(),airAt});
     globalThis.PLUVIA?.sources.set("weather",{status:"ready",checkedAt:Date.now(),dataAt:cityDate(data.current.time,city).getTime()});
     globalThis.PLUVIA?.sources.set('met-norway',{status:'idle',checkedAt:null,dataAt:null});
     globalThis.PLUVIA?.sources.set("air-quality",{status:freshAir ? "ready" : air ? "stale" : "error",checkedAt:freshAir ? Date.now() : airAt,dataAt:air?.current?.time ? cityDate(air.current.time,city).getTime() : null});
@@ -2714,6 +2726,8 @@ clearAppBadge();
 document.addEventListener("visibilitychange", () => { if (!document.hidden) clearAppBadge(); });
 window.addEventListener("pageshow", () => { updateClock(); refreshIfStale(); });
 window.addEventListener("online", () => refreshAll());
+// Ligar/desligar "Testar Tomorrow.io" refaz a previsão da cidade aberta na hora.
+window.addEventListener("pluvia:tomorrow-test-changed", () => refreshAll());
 // A queda da conexão aparece na hora, sem esperar a próxima consulta falhar.
 window.addEventListener("offline", () => {
   if (displayedWeather) setDataStatus(savedStatus(displayedWeather.weatherAt, "offline"), true);

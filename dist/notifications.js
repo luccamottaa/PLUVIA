@@ -350,10 +350,17 @@
 
   // Toque numa notificação abre ./?push_delivery=<id>: registra a abertura uma vez (com conta ou sessão
   // anônima) e tira o parâmetro do endereço logo, antes da resposta.
-  function reportOpened() {
-    const url = new URL(location.href), deliveryId = url.searchParams.get("push_delivery");
-    if (!deliveryId) return;
-    url.searchParams.delete("push_delivery"); history.replaceState(history.state, "", url.pathname + url.search + url.hash);
+  // `from` é o endereço que o service worker mandou quando não conseguiu navegar a janela já aberta (sem
+  // WindowClient.navigate, como no Safari): aí só o id vem dele, e o endereço atual não muda.
+  function reportOpened(from) {
+    let deliveryId = null;
+    if (from) {
+      try { const target = new URL(from, location.href); if (target.origin === location.origin) deliveryId = target.searchParams.get("push_delivery"); } catch {}
+    } else {
+      const url = new URL(location.href); deliveryId = url.searchParams.get("push_delivery");
+      if (deliveryId) { url.searchParams.delete("push_delivery"); history.replaceState(history.state, "", url.pathname + url.search + url.hash); }
+    }
+    if (!deliveryId || !/^[0-9a-f-]{36}$/i.test(deliveryId)) return;
     invoke("push-subscriptions", { action: "opened", deliveryId }).catch(() => {});
   }
 
@@ -473,6 +480,12 @@
   });
   // Na abertura só com sessão anônima o SDK não carrega (pushUser vazio): a sessão é lida aqui, sem criar outra.
   navigator.serviceWorker?.addEventListener("message", event => {
+    if (event.data?.type === "push-opened") {
+      const from = String(event.data.url || "");
+      reportOpened(from);
+      try { const target = new URL(from, location.href); if (target.origin === location.origin && /^#[a-z][a-z0-9-]{0,40}$/i.test(target.hash)) location.hash = target.hash; } catch {}
+      return;
+    }
     if (event.data?.type !== "push-subscription-changed") return;
     Promise.resolve(pushUser() || window.pluviaAccount?.ensurePushUser?.({ create: false }))
       .then(user => user ? loadConfig() : null)
@@ -484,4 +497,8 @@
   window.addEventListener('pluvia:favorites-loaded',paintCityChoices);
   window.pluviaPush = { beforeLogout, enable, disable };
   paintState().catch(() => {});
+  // Sem sessão de conta salva, account.js avisa "sem conta" (pluvia:auth-changed) antes deste script
+  // carregar, e o toque na notificação nunca era registrado (novembro/2026: 12 aberturas em ~1.200 avisos).
+  // invoke lê a sessão (anônima ou de conta) sob demanda; com o parâmetro já tirado, a segunda chamada não faz nada.
+  reportOpened();
 })();

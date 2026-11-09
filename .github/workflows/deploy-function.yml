@@ -17,6 +17,7 @@ on:
           - push-send
           - station-now
           - met-forecast
+          - tomorrow-forecast
           - account-preferences
           - account-delete
           - environment-refresh

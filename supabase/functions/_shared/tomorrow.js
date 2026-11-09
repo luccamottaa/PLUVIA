@@ -23,11 +23,11 @@ export const COOLDOWN_MS = 30 * 60_000;
 const TIMEOUT_MS = 5000;
 const MAX_CACHE = 64;
 
-export function tomorrowUrl(lat, lon, key, now = Date.now()) {
+export function tomorrowUrl(lat, lon, key, now = Date.now(), fields = TOMORROW_FIELDS) {
   const start = Math.floor(now / 3_600_000) * 3_600_000;
   const url = new URL(TOMORROW_ENDPOINT);
   url.search = new URLSearchParams({
-    location: `${lat.toFixed(3)},${lon.toFixed(3)}`, fields: TOMORROW_FIELDS.join(','), timesteps: '1h', units: 'metric',
+    location: `${lat.toFixed(3)},${lon.toFixed(3)}`, fields: fields.join(','), timesteps: '1h', units: 'metric',
     startTime: new Date(start).toISOString(), endTime: new Date(start + HORIZON_H * 3_600_000).toISOString(), timezone: 'UTC', apikey: key,
   }).toString();
   return url.toString();
@@ -35,7 +35,7 @@ export function tomorrowUrl(lat, lon, key, now = Date.now()) {
 
 // Pontos horários { at (ms), values } da resposta. Timelines: data.timelines[] com timestep "1h" e
 // intervals[].startTime. O formato do /v4/weather/forecast (timelines.hourly[].time) continua aceito.
-function hourlyPoints(json) {
+export function hourlyPoints(json) {
   const timelines = Array.isArray(json?.data?.timelines) ? json.data.timelines : [];
   const hourly = timelines.find(timeline => timeline?.timestep === '1h');
   if (hourly) return (Array.isArray(hourly.intervals) ? hourly.intervals : []).map(item => ({ at: Date.parse(item?.startTime), values: item?.values }));
