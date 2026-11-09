@@ -1,7 +1,8 @@
 /* Páginas legais (/termos/, /privacidade/). Carregado no <head>, sem defer:
    1. tema claro de dia e escuro à noite, pelo Sol na cidade aberta no app (pluvia-city-record),
       ou em Manaus sem cidade salva; escrito antes do primeiro desenho, sem consulta de rede;
-   2. X, marca e "Voltar para a previsão" (data-leave) voltam ao app pelo histórico quando ele está
+   2. vidro com gotas da intro (1.59): baixado depois do primeiro desenho e mostrado já pronto (data-glass);
+   3. X, marca e "Voltar para a previsão" (data-leave) voltam ao app pelo histórico quando ele está
       logo atrás (cidade e rolagem preservadas); aba nova tenta fechar e senão abre a previsão. */
 (function (root, factory) {
   const api = factory(root);
@@ -11,6 +12,7 @@
   'use strict';
   const MANAUS = {lat:-3.119, lon:-60.022};
   const RAD = Math.PI / 180;
+  const GLASS = '/assets/intro-glass.webp?v=glass-1';
 
   // Altura do Sol em graus (mesmas fórmulas do SunCalc, precisão de décimos de grau).
   function sunAltitude(at, lat, lon) {
@@ -45,6 +47,17 @@
     const paint = () => { html.dataset.theme = theme(Date.now(), place(storage)); };
     paint();
     doc.addEventListener('visibilitychange', () => { if (!doc.hidden) paint(); });
+    const glass = () => {
+      if (!doc.querySelector?.('.sky-glass') || typeof runtime.Image !== 'function') return;
+      const img = new runtime.Image();
+      img.decoding = 'async';
+      img.onload = () => { html.dataset.glass = 'ready'; };
+      img.src = GLASS;
+    };
+    // Este script roda no <head>: espera o corpo existir e o primeiro quadro (o texto é o que importa abrir rápido).
+    const later = () => (typeof runtime.requestAnimationFrame === 'function' ? runtime.requestAnimationFrame(glass) : glass());
+    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', later, {once:true});
+    else later();
     const reduce = runtime.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
     function leave(go) {
       if (reduce) { go(); return; }
@@ -65,5 +78,5 @@
     // Voltou para cá pelo histórico (cache de página): sem o estado de saída.
     runtime.addEventListener('pageshow', () => { html.classList.remove('leaving'); paint(); });
   }
-  return {sunAltitude, place, theme, mount};
+  return {sunAltitude, place, theme, mount, GLASS};
 });

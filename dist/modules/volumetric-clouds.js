@@ -3,13 +3,18 @@
    fractal numa camada de céu, luz de cima com sombra própria e base mais cinza. O canvas tem 50% da resolução da
    tela em CSS px e o navegador o amplia (nuvem é macia; isso deixa o custo pequeno no celular). Fundo
    transparente: o céu, o Sol e a Lua do CSS continuam atrás, e a nuvem cobre os astros.
-   O mesmo canvas (um contexto só) fica na intro enquanto ela aparece e passa para .sky-effects quando ela sai.
    Desenha a ~24 quadros por segundo só com a cena rodando (data-motion="running", que para com a página oculta
    e fora da tela). Sem WebGL, com movimento reduzido, contexto perdido ou quadros lentos demais, volta às camadas
    de nuvem do CSS (data-volume sai da raiz) e não tenta de novo nesta sessão.
    1.36 (pedido do dono): com trovoada o raio acende a nuvem por dentro, no ponto e na hora do raio do CSS
    (o mesmo ciclo de 39 s de .sky-lightning, lido da animação dele), e a neblina ganha uma névoa 3D baixa.
-   É decoração: cobertura e forma não representam medição. */
+   1.60 (pedido do dono: "quero chuva 3D no PLUVIA"): com chuva ou trovoada o mesmo shader desenha a chuva em
+   quatro profundidades (perto: traços grossos, macios e rápidos; longe: finos, fracos e lentos), inclinada pelo
+   vento e na frente das nuvens; enquanto ela aparece (data-rain3d="on"), as camadas de chuva do CSS somem. A
+   densidade segue a intensidade que o céu já mostra (data-rain), nunca a probabilidade. Mesmo contexto WebGL das
+   nuvens: dois contextos derrubavam o iPhone (1.40.1). Desde a 1.60 a intro não tem mais céu (pedido do dono),
+   então o canvas fica só na Home.
+   É decoração: cobertura, forma e gotas não representam medição. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -19,6 +24,19 @@
     if (root.document) api.start(root);
   }
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  // Chuva 3D: densidade por intensidade (data-rain) e as quatro camadas (colunas por altura da tela e velocidade em
+  // alturas de tela por segundo; a camada 0 é a mais perto). O deslocamento de cada camada é calculado aqui em
+  // precisão dupla e volta a zero a cada RAIN_WRAP células, para o shader nunca perder precisão com o tempo.
+  const RAIN_LEVEL = {drizzle:.2, light:.55, moderate:.85, heavy:1};
+  const RAIN_LAYERS = [{cols:7, speed:2.3}, {cols:16, speed:1.7}, {cols:25, speed:1.25}, {cols:34, speed:.95}];
+  const RAIN_ROWS = .3, RAIN_WRAP = 512;
+  function rainLevel(attrs) {
+    if (!attrs || (attrs.weather !== 'rain' && attrs.weather !== 'storm')) return 0;
+    return RAIN_LEVEL[attrs.rain] || 0;
+  }
+  function rainOffsets(seconds) {
+    return RAIN_LAYERS.map(layer => ((seconds * layer.speed * layer.cols * RAIN_ROWS) % RAIN_WRAP + RAIN_WRAP) % RAIN_WRAP);
+  }
   const SCALE = .5, LOW_SCALE = .33, FRAME_MS = 41, LOW_FRAME_MS = 66, SLOW_MS = 90, SLOW_SECONDS = 5, OFF_KEY = 'pluvia-volume-off';
   // cap: brilho máximo da nuvem. No nublado de dia o texto branco fica por cima da nuvem: até ~.7 ele continua
   // legível como no deck prateado do CSS (escolha do dono, contraste medido por verify-contrast).
@@ -72,7 +90,43 @@
 
   const VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
   const FS = `precision mediump float;
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+#define HP highp
+#else
+#define HP mediump
+#endif
 uniform vec2 R,SUNPX;uniform float T,SUNI,TW,SIDE,CAP;uniform vec3 LIT,SHD,SUN;uniform float COVER,DENS,SIZE,EDGE,DETAIL,FLASH,FLASHX,FOG;
+uniform float RAIN,RWIND;uniform vec4 RY;
+float hr(HP vec2 p){p=fract(p*vec2(.1031,.1030));p+=dot(p,p.yx+33.33);return fract((p.x+p.y)*p.x);}
+// Chuva 3D: cada camada é uma grade de células altas; cada célula tem no máximo um traço, em posição sorteada.
+// A camada perto tem poucas células grandes (traço comprido, largo e macio, como fora de foco); a longe, muitas
+// pequenas. A inclinação (RWIND, x por y na tela) entra no próprio deslocamento, então a gota anda na diagonal.
+vec4 rain(vec2 px){
+  vec4 acc=vec4(0.);
+  if(RAIN<=0.)return acc;
+  HP vec2 uv=px/R.y;
+  vec3 rc=mix(LIT,vec3(1.),.45);
+  for(int i=0;i<4;i++){
+    float z=float(i)/3.;
+    float cols=7.+27.*z;
+    float off=i==0?RY.x:i==1?RY.y:i==2?RY.z:RY.w;
+    HP float qy=uv.y*cols*${RAIN_ROWS}+off;
+    HP vec2 q=vec2(uv.x*cols+qy*RWIND/${RAIN_ROWS},qy);
+    HP vec2 c=floor(q);vec2 f=fract(q);
+    c=mod(c,${RAIN_WRAP}.);
+    float r=hr(c+float(i)*17.31);
+    if(r<1.-RAIN*mix(.55,.85,z))continue;
+    float x0=.2+.6*hr(c+vec2(3.1,float(i)));
+    float len=mix(.62,.34,z);
+    float y0=hr(c+vec2(float(i),7.7))*(1.-len);
+    float w=mix(.034,.06,z);
+    float yy=(f.y-y0)/len;
+    float a=(1.-smoothstep(0.,1.,abs(f.x-x0)/w))*smoothstep(0.,.08,yy)*smoothstep(1.,.2,yy)*(1.-yy*.45);
+    a*=mix(.34,.15,z)*(.6+.4*RAIN);
+    acc.rgb+=rc*a*(1.-acc.a);acc.a+=a*(1.-acc.a);
+  }
+  return acc;
+}
 vec3 ray(vec2 px){vec2 uv=(px-.5*R)/R.y;return normalize(vec3(uv.x*.9,uv.y*.9+.45,1.));}
 float hg(float c,float g){float g2=g*g;return (1.-g2)/(12.566*pow(1.+g2-2.*g*c,1.5));}
 float h(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
@@ -90,7 +144,7 @@ float dens(vec3 p){vec3 q=wind(p);float d=shape(fbm4(q*vec3(1.,.9,1.)),p.y/2.4);
 float densLow(vec3 p){float d=shape(fbm3(wind(p)*vec3(1.,.9,1.)),p.y/2.4);return clamp(d*DENS,0.,1.);}
 void main(){
   vec3 ro=vec3(0.,-2.2,0.);vec3 rd=ray(gl_FragCoord.xy);
-  if(rd.y<=.01){gl_FragColor=vec4(0.);return;}
+  if(rd.y<=.01){gl_FragColor=rain(gl_FragCoord.xy);return;}
   // Luz de cima: de dia, o Sol na posição dele na tela (SUNPX) ou o céu claro acima; à noite, a Lua ilustrada.
   // No pôr/nascer do sol (TW) a luz vem baixa, do lado do Sol (SIDE), e pinta a base de laranja e rosa.
   vec3 L=SUNI>0.?ray(SUNPX):SUN;
@@ -127,7 +181,9 @@ void main(){
   // Neblina: densa embaixo da tela, sumindo para cima (FOG = 0 nas outras condições).
   float fm=mix(1.,smoothstep(.95,.18,sy),FOG);A2*=fm;col*=fm;
   col=min(col,vec3(A2*(CAP+FLASH*.2)));
-  gl_FragColor=vec4(col*keep,A2*keep);
+  // A chuva passa na frente da nuvem (pré-multiplicado: chuva por cima, nuvem atrás).
+  vec4 rn=rain(gl_FragCoord.xy);
+  gl_FragColor=vec4(rn.rgb+col*keep*(1.-rn.a),rn.a+A2*keep*(1.-rn.a));
 }`;
 
   function start(win) {
@@ -140,11 +196,11 @@ void main(){
     function off(reason) {
       dead = true; stop();
       try { win.sessionStorage?.setItem(OFF_KEY,reason || '1'); } catch (_) { /* sessão sem storage: só esta página */ }
-      delete html.dataset.volume; if (canvas) canvas.remove(); canvas = gl = null;
+      delete html.dataset.volume; delete html.dataset.rain3d; if (canvas) canvas.remove(); canvas = gl = null;
       try { win.pluviaAnalytics?.track?.('Sky Effect Off',{effect:'volume',reason:reason || 'unsupported'}); } catch (_) { /* telemetria nunca quebra o céu */ }
     }
     function lose() {
-      stop(); delete html.dataset.volume; if (canvas) canvas.remove(); canvas = gl = null; current = null;
+      stop(); delete html.dataset.volume; delete html.dataset.rain3d; if (canvas) canvas.remove(); canvas = gl = null; current = null;
       if (++lost > 1) return off('lost');
       win.setTimeout(() => { if (!dead) sync(); },3000);
     }
@@ -155,12 +211,8 @@ void main(){
     // Com a chave de QA (WebGL por software na CI) a lentidão não desliga: o QA quer ver o desenho.
     function qaForced() { try { return !!win.localStorage?.getItem('pluvia-volume-qa'); } catch (_) { return false; } }
     function reduced() { return !!win.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches; }
-    function intro() {
-      const box = doc.getElementById('pluviaIntro');
-      return box && !box.hidden ? box.querySelector('.intro-sky') : null;
-    }
-    // A cena que está à vista: a da intro enquanto ela aparece, depois a da Home.
-    function scene() { return (intro()?.dataset.motion === 'running' && intro()) || doc.querySelector('.sky-effects'); }
+    // Só a Home tem céu (desde a 1.60 a intro tem fundo fixo).
+    function scene() { return doc.querySelector('.sky-effects'); }
     function place() {
       const host = scene(); if (!host || !canvas || canvas.parentNode === host) return;
       const moon = host.querySelector('.sky-moon');
@@ -182,7 +234,7 @@ void main(){
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
         const at = gl.getAttribLocation(program,'p'); gl.enableVertexAttribArray(at); gl.vertexAttribPointer(at,2,gl.FLOAT,false,0,0);
         uniforms = {};
-        for (const name of ['R','T','LIT','SHD','SUN','COVER','DENS','SIZE','EDGE','DETAIL','SUNPX','SUNI','TW','SIDE','CAP','FLASH','FLASHX','FOG']) uniforms[name] = gl.getUniformLocation(program,name);
+        for (const name of ['R','T','LIT','SHD','SUN','COVER','DENS','SIZE','EDGE','DETAIL','SUNPX','SUNI','TW','SIDE','CAP','FLASH','FLASHX','FOG','RAIN','RWIND','RY']) uniforms[name] = gl.getUniformLocation(program,name);
         const sun = [-.5,.75,-.2], len = Math.hypot(...sun); gl.uniform3fv(uniforms.SUN,sun.map(v => v / len));
       } catch (_) { canvas = gl = null; return false; }
       canvas.addEventListener('webglcontextlost',event => { event.preventDefault(); lose(); });
@@ -243,8 +295,19 @@ void main(){
       gl.uniform1f(uniforms.TW,twilight);
       gl.uniform1f(uniforms.SIDE,Number.isFinite(sx) ? (sx < .5 ? -1 : 1) : (solar === 'sunrise' ? -1 : 1));
     }
-    let clock = 0, lastNow = 0;
-    function frame() { gl.uniform1f(uniforms.T,20 + clock); gl.drawArrays(gl.TRIANGLES,0,3); }
+    let clock = 0, lastNow = 0, rainClock = 0, raining = 0;
+    // Intensidade e inclinação da chuva 3D (data-rain e data-wind do céu). data-rain3d tira a chuva do CSS.
+    function rainSet() {
+      raining = rainLevel({weather:html.dataset.weather,rain:html.dataset.rain});
+      gl.uniform1f(uniforms.RAIN,raining);
+      gl.uniform1f(uniforms.RWIND,html.dataset.wind === 'strong' ? .34 : .1);
+      if (raining > 0) html.dataset.rain3d = 'on'; else delete html.dataset.rain3d;
+    }
+    function frame() {
+      gl.uniform1f(uniforms.T,20 + clock);
+      if (raining > 0) gl.uniform4fv(uniforms.RY,rainOffsets(rainClock));
+      gl.drawArrays(gl.TRIANGLES,0,3);
+    }
     function draw(now) {
       raf = win.requestAnimationFrame(draw);
       if (now - last < frameMs) return;
@@ -257,7 +320,9 @@ void main(){
           else return off('slow');
         }
       } else slow = 0;
-      clock += lastNow ? Math.min(gap,200) / 1000 * rate() : 0; lastNow = now;
+      clock += lastNow ? Math.min(gap,200) / 1000 * rate() : 0;
+      // A chuva cai no tempo real (o ritmo do vento só mexe nas nuvens).
+      rainClock += lastNow ? Math.min(gap,200) / 1000 : 0; lastNow = now;
       if (now - sunAt > 2000) sunUpdate(now);
       lightning(now);
       frame();
@@ -267,9 +332,10 @@ void main(){
     function sync() {
       if (dead) return;
       const next = mode({phase:html.dataset.phase,weather:html.dataset.weather,rain:html.dataset.rain,clouds:html.dataset.clouds});
-      if (!next || reduced() || qaBlocked()) { stop(); if (current) { delete html.dataset.volume; current = null; } return; }
+      if (!next || reduced() || qaBlocked()) { stop(); if (current) { delete html.dataset.volume; current = null; } delete html.dataset.rain3d; return; }
       if (!gl && !setup()) return off('unsupported');
       place();
+      rainSet();
       if (next !== current) { palette(next); current = next; resize(); sunUpdate(win.performance.now()); frame(); }
       else if (html.dataset.solar !== lastSolar) sunUpdate(win.performance.now());
       lastSolar = html.dataset.solar;
@@ -279,15 +345,14 @@ void main(){
     let lastSolar;
     if (disabledBefore()) return {sync() {}};
     const observer = new win.MutationObserver(sync);
-    observer.observe(html,{attributes:true,attributeFilter:['data-phase','data-weather','data-rain','data-clouds','data-solar']});
+    observer.observe(html,{attributes:true,attributeFilter:['data-phase','data-weather','data-rain','data-clouds','data-solar','data-wind']});
     const watch = () => {
-      for (const host of [doc.querySelector('.sky-effects'),doc.querySelector('#pluviaIntro .intro-sky')]) if (host) observer.observe(host,{attributes:true,attributeFilter:['data-motion']});
-      const box = doc.getElementById('pluviaIntro'); if (box) observer.observe(box,{attributes:true,attributeFilter:['hidden','class']});
+      const host = doc.querySelector('.sky-effects'); if (host) observer.observe(host,{attributes:true,attributeFilter:['data-motion']});
     };
     if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded',() => { watch(); sync(); },{once:true}); else { watch(); sync(); }
     win.addEventListener('resize',() => { if (gl) { resize(); if (!raf) frame(); } },{passive:true});
     win.matchMedia?.('(prefers-reduced-motion: reduce)')?.addEventListener?.('change',sync);
     return {sync};
   }
-  return {mode,PALETTES,start,FS,flash,STRIKES};
+  return {mode,PALETTES,start,FS,flash,STRIKES,rainLevel,rainOffsets,RAIN_LAYERS,RAIN_WRAP};
 }));

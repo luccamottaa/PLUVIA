@@ -45,16 +45,14 @@
 html,body { background:var(--sky-base); }
 /* Fundo opaco: o degradê da neblina começa semitransparente (#35405788) e a Home aparecia através da intro
    (1.39.2, vídeo do dono com neblina em Manaus: duas Luas e a página por trás do PLUVIA). */
-.pluvia-intro { background-image:var(--sky-color); background-color:var(--sky-base,#080f22); color:var(--intro-ink); }
+/* Intro com fundo fixo (1.60, pedido do dono: "não quero mais o céu dinâmico na intro"): sempre o azul-noite da
+   marca com as gotas no vidro, igual em qualquer hora, tempo ou cidade; o céu da cidade só aparece na Home. Até a
+   1.59 a intro mostrava o céu do momento (nuvens, Sol, Lua e chuva) e a cor do texto seguia a fase do dia. */
+.pluvia-intro { background-image:linear-gradient(165deg,#10142d,#080f22 85%); background-color:#080f22; color:#f3f8ff; }
 .pluvia-intro::before { background:linear-gradient(180deg,transparent 25%,#03142924); }
-.pluvia-intro .intro-wordmark { color:var(--brand-blue,#2f6bff); }
-/* Nublado de dia (1.26.6, pedido do usuário: o "PLUVIA" azul-claro sumia no céu prateado): o nome fica branco e,
-   como o slogan e o "Feito no Norte", ganha a mesma sombra suave do topo da Home. Nos outros céus o azul da marca
-   já se destaca (azul-claro no escuro, azul-marinho no céu claro). */
-:root[data-phase="day"][data-ink="light"][data-weather="cloud"] .pluvia-intro .intro-wordmark { color:#fff; }
-:root[data-phase="day"][data-ink="light"][data-weather="cloud"] .pluvia-intro :is(.intro-wordmark,.intro-tagline,.intro-kicker) { text-shadow:0 1px 3px rgba(20,32,52,.4),0 0 22px rgba(20,32,52,.32); }
-.pluvia-intro .intro-tagline { color:var(--intro-ink); }
-.pluvia-intro .intro-kicker { z-index:1; color:var(--intro-muted); }
+.pluvia-intro .intro-wordmark { color:#7cc0ff; }
+.pluvia-intro .intro-tagline { color:#f3f8ff; }
+.pluvia-intro .intro-kicker { z-index:1; color:#c4d7f0; }
 /* O céu é da tela, não da página (1.38.1, pedido do dono: as gotas ficavam paradas e as nuvens rolavam junto
    com o conteúdo, e no crepúsculo o degradê ficava e as nuvens iam embora): degradê, nuvens, astros, chuva e
    gotas ficam fixos e o conteúdo passa por cima, como no Apple Weather. lvh: a altura com a barra do Safari
@@ -201,6 +199,9 @@ html,body { background:var(--sky-base); }
 .sky-rain { display:block; position:absolute; z-index:4; inset:-480px 0 0; background:url("./assets/rain-near.svg?v=rain-1") 17px 0 / var(--rain-width,380px) 480px repeat; opacity:var(--rain-opacity); animation:sky-rain-fall var(--rain-speed,2.2s) linear infinite; animation-delay:-.7s; transition:opacity 2s ease,visibility 0s; }
 .sky-rain-back { z-index:3; background-image:url("./assets/rain-far.svg?v=rain-1"); background-size:var(--rain-back-width,640px) 480px; background-position:83px 37px; opacity:var(--rain-back-opacity); animation-duration:var(--rain-back-speed,4.3s); animation-delay:-2.1s; }
 :root:not([data-weather="rain"]):not([data-weather="storm"]) .sky-rain { opacity:0; animation-play-state:paused; visibility:hidden; transition:opacity 2s ease,visibility 0s 2s; }
+/* Chuva 3D (1.60): com o canvas das nuvens desenhando a chuva (data-rain3d, modules/volumetric-clouds.js), as duas
+   camadas de traços do CSS saem depois do fade; sem WebGL ou com movimento reduzido elas continuam. */
+:root[data-rain3d="on"] .sky-effects > .sky-rain { opacity:0; animation-play-state:paused; visibility:hidden; transition:opacity 1.1s ease,visibility 0s 1.1s; }
 /* Raio no estilo do Apple Weather (pedido do usuário, outubro/2026): um canal longo e ramificado
    (lightning-bolt.svg, scripts/generate-lightning.cjs) que cresce de cima para baixo em 80 ms, um
    clarão e um re-strike (no máximo dois clarões em um segundo) e o canal apagando em ~1,3 s, enquanto

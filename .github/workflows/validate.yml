@@ -21,4 +21,6 @@ jobs:
         with:
           deno-version: v2.5.0
       - name: Verificar tipos das funções Supabase
-        run: deno check supabase/functions/*/index.ts supabase/functions/met-forecast/index.js supabase/functions/station-now/index.js supabase/functions/lightning/index.js
+        # --node-modules-dir=none: com o package.json da raiz o Deno procurava os pacotes npm dos tipos do
+        # Supabase (desde a functions-js 2.119.0, npm:openai) num node_modules local que não existe.
+        run: deno check --node-modules-dir=none supabase/functions/*/index.ts supabase/functions/met-forecast/index.js supabase/functions/station-now/index.js supabase/functions/lightning/index.js

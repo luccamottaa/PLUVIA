@@ -80,3 +80,30 @@ assert.match(src,/animationName === 'storm-bolt'/);
   // Nada de borda clara em volta da Lua (recusada pelo dono).
   assert.doesNotMatch(fs.readFileSync(path.join(root, 'sky.css'), 'utf8'), /\.sky-moon::after/);
 }
+
+// Chuva 3D (1.60): densidade pela intensidade que o céu já mostra (data-rain), nunca pela probabilidade; só com
+// chuva ou trovoada; quatro camadas; deslocamento calculado aqui e reiniciado num período inteiro de células.
+assert.equal(volume.rainLevel({weather:'rain',rain:'drizzle'}),.2);
+assert.equal(volume.rainLevel({weather:'rain',rain:'heavy'}),1);
+assert.equal(volume.rainLevel({weather:'storm',rain:'moderate'}),.85);
+assert.equal(volume.rainLevel({weather:'storm',rain:'none'}),0,'trovoada sem chuva não inventa chuva');
+assert.equal(volume.rainLevel({weather:'cloud',rain:'heavy'}),0);
+assert.equal(volume.rainLevel(null),0);
+assert.equal(volume.RAIN_LAYERS.length,4);
+assert.deepEqual(volume.RAIN_LAYERS.map(l => l.cols),[7,16,25,34],'mesmas colunas da fórmula do shader (7 + 27z)');
+assert.ok(volume.RAIN_LAYERS.every((l,i,a) => !i || l.speed < a[i - 1].speed),'perto cai mais rápido');
+for (const t of [0,1,60,3600,86400 * 3]) for (const off of volume.rainOffsets(t)) assert.ok(off >= 0 && off < volume.RAIN_WRAP,`offset ${off} em ${t}s`);
+// Em altura de tela, cada camada desce na velocidade dela: offset / (colunas × .3) por segundo.
+const [a0] = volume.rainOffsets(1), [b0] = volume.rainOffsets(2);
+assert.ok(Math.abs((b0 - a0) / (7 * .3) - volume.RAIN_LAYERS[0].speed) < 1e-9);
+assert.match(volume.FS,/vec4 rain\(vec2 px\)/);
+assert.match(volume.FS,/uniform float RAIN,RWIND;uniform vec4 RY;/);
+assert.match(volume.FS,/#ifdef GL_FRAGMENT_PRECISION_HIGH/,'sem highp o shader ainda compila');
+assert.match(volume.FS,/gl_FragColor=vec4\(rn\.rgb\+col\*keep\*\(1\.-rn\.a\),rn\.a\+A2\*keep\*\(1\.-rn\.a\)\)/,'chuva na frente da nuvem');
+// Com a chuva 3D, a do CSS sai; sem ela (sem WebGL, movimento reduzido), continua.
+assert.match(css,/:root\[data-rain3d="on"\] \.sky-effects > \.sky-rain \{ opacity:0;[^}]*visibility:hidden/);
+assert.match(src,/delete html\.dataset\.rain3d; if \(canvas\) canvas\.remove\(\)/,'desligar devolve a chuva do CSS');
+// Desde a 1.60 a intro não tem céu: o canvas fica só na Home.
+assert.match(src,/function scene\(\) \{ return doc\.querySelector\('\.sky-effects'\); \}/);
+assert.doesNotMatch(src,/querySelector\('\.intro-sky'\)|#pluviaIntro \.intro-sky/);
+console.log('chuva 3D ok');

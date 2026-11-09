@@ -1,0 +1,187 @@
+@import 'tailwindcss';
+
+/*
+ * Tokens do PLUVIA. Os valores vêm do app real (dist/sky.css e dist/continuous.css).
+ * A fase (dia/noite) e a tinta (texto claro ou escuro) mudam por atributo na raiz,
+ * nunca por media query de tema do aparelho: o céu manda, como no app.
+ */
+:root,
+:root[data-phase='night'] {
+  --sky-base: #080f22;
+  --sky: linear-gradient(165deg, #10142d, #080f22 85%);
+  --ink: #f2f7ff;
+  --muted: #cbdceb;
+  --line: #b8d4ef30;
+  --card: #141c33e6;
+  --card-border: #bed2f521;
+  --brand: #7cc0ff;
+  --on-brand: #0c1a33;
+  --glass: #ffffff14;
+  --glass-edge: #ffffff40;
+}
+:root[data-phase='day'] {
+  --sky-base: #a7d7ec;
+  --sky: linear-gradient(165deg, #57b0e2, #bce7f5 70%, #a7d7ec);
+  --ink: #082744;
+  --muted: #173c58;
+  --line: #12345730;
+  --card: #e8f2fce6;
+  --card-border: #ffffff8c;
+  --brand: #0a4cba;
+  --on-brand: #ffffff;
+  --glass: #ffffff59;
+  --glass-edge: #ffffffb3;
+}
+/* Chuva/trovoada de dia: céu cinza-chumbo e tinta clara, como data-ink="light" no app. */
+:root[data-phase='day'][data-weather='rain'],
+:root[data-phase='day'][data-weather='storm'] {
+  --sky-base: #26292d;
+  --sky: linear-gradient(165deg, #30343a, #212428 70%, #26292d);
+  --ink: #f2f7ff;
+  --muted: #cfd6df;
+  --line: #ffffff26;
+  --card: #242b36eb;
+  --card-border: #ffffff24;
+  --brand: #7cc0ff;
+  --on-brand: #0c1a33;
+  --glass: #ffffff14;
+  --glass-edge: #ffffff40;
+}
+:root[data-phase='night'][data-weather='rain'],
+:root[data-phase='night'][data-weather='storm'] {
+  --sky-base: #1b1e23;
+  --sky: linear-gradient(165deg, #24282e, #1b1e23 85%);
+  --card: #1d2129eb;
+}
+
+@theme inline {
+  --font-ui: 'Sora', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  --font-brand: 'Nunito', ui-rounded, system-ui, sans-serif;
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+  --color-glass: var(--glass);
+  --color-glass-edge: var(--glass-edge);
+  --color-alert-yellow: #f3d046;
+  --color-alert-orange: #f08c1e;
+  --color-alert-red: #b3261e;
+  --color-range-cool: #32b8ff;
+  --color-range-warm: #ffd34a;
+  --color-range-hot: #ff762f;
+  --color-rain-top: #22b8ff;
+  --color-rain-bottom: #2673ff;
+  --radius-card: 22px;
+}
+
+html {
+  background: var(--sky-base);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--sky-base);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  transition: color 0.6s ease;
+}
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* ---------- Céu fixo atrás do conteúdo ---------- */
+.sky {
+  position: fixed;
+  inset: 0;
+  height: 100lvh;
+  background: var(--sky-base) var(--sky);
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Chuva: um tile de 480 px que desce exatamente um tile (laço sem emenda). Só transform. */
+.rain-layer {
+  position: absolute;
+  inset: -480px 0 0;
+  background-repeat: repeat;
+  will-change: transform;
+  animation: rain-fall linear infinite;
+}
+.rain-layer[data-depth='far'] { opacity: 0.55; animation-duration: 1.6s; }
+.rain-layer[data-depth='near'] { opacity: 0.9; animation-duration: 0.9s; }
+@keyframes rain-fall { to { transform: translate3d(-40px, 480px, 0); } }
+
+/* Clarão do raio: o céu inteiro, pico limitado para o texto continuar legível. */
+.lightning {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#eef4ff, #eef4ff00 75%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: lightning 39s linear infinite;
+}
+@keyframes lightning {
+  0%, 11.9%, 13.6%, 45.9%, 47.2%, 79.9%, 80.9%, 100% { opacity: 0; }
+  12% { opacity: 0.34; }
+  12.25% { opacity: 0.06; }
+  12.5% { opacity: 0.28; }
+  46% { opacity: 0.3; }
+  80% { opacity: 0.18; }
+}
+[data-paused] .rain-layer,
+[data-paused] .lightning { animation-play-state: paused; }
+
+/* ---------- Vidro: só em controles pequenos (busca, seletor, botões) ---------- */
+.glass {
+  background: linear-gradient(160deg, #ffffff2e, #ffffff0d) , var(--glass);
+  border: 1px solid var(--glass-edge);
+  box-shadow: inset 0 1px 0 #ffffff59, inset 0 -1px 0 #ffffff1a, 0 8px 24px #0000002e;
+  -webkit-backdrop-filter: blur(12px) saturate(1.6);
+  backdrop-filter: blur(12px) saturate(1.6);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* ---------- Cartões: translúcidos, SEM blur (blur em cartão grande derruba o Safari) ---------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-card);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+/* Listas que abrem por cima do conteúdo: opacas, para o texto de trás não atravessar. */
+.popover { background: linear-gradient(var(--card), var(--card)), var(--sky-base); }
+
+/* Hover só onde existe mouse e só em cartão clicável: hover em leitura sugere clique que não existe. */
+@media (hover: hover) and (pointer: fine) {
+  .card[data-interactive]:hover {
+    border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+    animation: glow-pulse 2.4s ease-in-out infinite;
+  }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand) 18%, transparent), 0 0 18px color-mix(in srgb, var(--brand) 14%, transparent); }
+  50% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand) 32%, transparent), 0 0 30px color-mix(in srgb, var(--brand) 26%, transparent); }
+}
+.card:focus-visible,
+button:focus-visible,
+[role='slider']:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .rain-layer, .lightning { display: none; }
+}

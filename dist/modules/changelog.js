@@ -12,6 +12,29 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.61", date:"2026-11-09", title:"Janelas no visual novo", items:[
+      "Minha conta, Suas cidades, Fontes de dados, Novidades e as outras janelas ganharam o visual das páginas novas: o céu da hora, as gotas no vidro no alto e os cartões da tela principal.",
+      "Botões e links voltaram ao azul do PLUVIA, no lugar do branco à noite e do preto de dia. Os interruptores ligados continuam verdes.",
+      "O seletor Condição, Chuva e Vento das Próximas horas mede os botões com mais calma quando a tela muda de tamanho, sem disparar avisos de erro no Safari."
+    ]},
+    {version:"1.60", date:"2026-11-09", title:"Chuva 3D e abertura fixa", items:[
+      "A chuva agora é em 3D: gotas perto e longe, em profundidades diferentes, inclinadas pelo vento e caindo na frente das nuvens.",
+      "A garoa fica fina e rala; a chuva forte, densa.",
+      "A abertura do PLUVIA ficou sempre igual: o azul-noite da marca com as gotas no vidro, sem o céu do momento. O céu da sua cidade aparece logo depois, na tela principal."
+    ]},
+    {version:"1.59", date:"2026-11-09", title:"Páginas no visual novo", items:[
+      "Política de Privacidade, Termos de uso e a página de endereço não encontrado ganharam o visual do app: o céu da hora, as gotas no vidro da abertura e os textos em cartões.",
+      "Privacidade e Termos têm um índice no topo para pular direto para cada parte.",
+      "A página de endereço não encontrado agora leva de volta à previsão ou direto para a busca de cidades."
+    ]},
+    {version:"1.58", date:"2026-11-09", title:"Intro nova: chuva no vidro", items:[
+      "A abertura do PLUVIA ficou nova: gotas de chuva num vidro na frente do céu de agora da sua cidade.",
+      "A gota da marca cai no vidro e abre ondas, e o nome aparece letra por letra.",
+      "Com o movimento reduzido ligado no aparelho, a abertura continua parada."
+    ]},
+    {version:"1.57.1", date:"2026-11-09", title:"Novo e-mail de contato", items:[
+      "O PLUVIA ganhou um e-mail próprio: pluviaweather@gmail.com. Ele aparece na Política de Privacidade e nos Termos de uso para dúvidas e pedidos sobre seus dados."
+    ]},
     {version:"1.57", date:"2026-11-05", title:"Cartões de dia mais transparentes", items:[
       "De dia, os cartões da Home ficaram um pouco mais transparentes, para o céu aparecer melhor por trás.",
       "À noite, nada muda."

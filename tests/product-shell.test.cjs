@@ -20,9 +20,10 @@ assert.match(html, /id="openCitySearch"[^>]+aria-label="Buscar ou trocar cidade"
 assert.match(p0, /setTimeout\([\s\S]+1500\)/, 'Manaus precisa abrir em até 1,5 s');
 assert.match(html, /sessionStorage/, 'a introdução deve aparecer uma vez por sessão');
 assert.doesNotMatch(html, /id="skipIntro"|class="skip-intro"/);
-assert.match(html, /class="intro-sky"[\s\S]*?class="sky-sun"[\s\S]*?class="sky-clouds/);
+// Desde a 1.60 a intro não tem céu dinâmico (pedido do dono): só o fundo fixo e o vidro com gotas.
+assert.doesNotMatch(html.slice(html.indexOf('id="pluviaIntro"'),html.indexOf('</div>',html.indexOf('intro-tagline'))), /intro-sky|sky-sun|sky-clouds|sky-moon/);
 assert.doesNotMatch(html, /class="intro-sun"/);
-assert.match(html, /class="intro-wordmark"[\s\S]*?<strong>PLUVIA<\/strong>/);
+assert.match(html, /class="intro-wordmark"[\s\S]*?<strong><span class="intro-name" aria-hidden="true">(?:<span style="--i:\d">[A-Z]<\/span>){6}<\/span><span class="intro-sr">PLUVIA<\/span><\/strong>/);
 assert.doesNotMatch(html, /pluvia-footer-logo\.jpeg/);
 assert.doesNotMatch(html, /class="intro-progress"/, "a gota caindo substitui a barrinha de carregamento");
 assert.match(html, /\.intro-drop \{[^}]*logo-mark\.webp\?v=logo-\d+/);
@@ -73,7 +74,7 @@ assert.match(styles, /footer \{ margin-top: 48px; padding-block: 28px/);
 assert.match(styles, /footer \{ margin-top: 28px; align-items:start;/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-panel-323/);
+assert.match(sw, /pluvia-panel-325/);
 assert.match(html, /redesign\.css\?v=panel-51/);
 assert.match(sw, /assets\/sky-cloud-veil\.webp/);
 assert.match(html, /id="weatherView" class="initial-loading" aria-busy="true"/);

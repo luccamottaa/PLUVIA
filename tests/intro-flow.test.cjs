@@ -10,7 +10,8 @@ assert.ok(script, 'o controlador da introdução deve rodar sem depender do carr
 
 test('a intro recebe estilo e cor do tema antes dos recursos externos', () => {
   assert.ok(html.indexOf('.pluvia-intro {') < html.indexOf('href="./styles.css'), 'o estilo inicial deve estar no HTML');
-  assert.match(html, /\.pluvia-intro \{[\s\S]*?background:var\(--sky-color/);
+  // Desde a 1.60 a intro tem fundo fixo (sem céu dinâmico, pedido do dono).
+  assert.match(html, /\.pluvia-intro \{[\s\S]*?background:linear-gradient\(165deg,#10142d,#080f22 85%\);/);
   assert.ok(html.indexOf('src="./modules/sky-atmosphere.js') < html.indexOf('<body>'));
   assert.ok(html.indexOf('href="./sky.css') < html.indexOf('<body>'));
   assert.match(html, /rel="stylesheet" href="\.\/styles\.css\?v=core-136" media="print"/);
@@ -19,7 +20,7 @@ test('a intro recebe estilo e cor do tema antes dos recursos externos', () => {
 
 function runIntro({ saved = false, storageBlocked = false, reduced = false, local = null, now = Date.parse('2026-10-09T05:00:00Z') } = {}) {
   const timers = [], listeners = {};
-  const intro = { hidden: false, dataset: {}, classList: { classes: [], add(name) { this.classes.push(name); } } };
+  const intro = { hidden: false, dataset: {}, querySelector: () => null, classList: { classes: [], add(name) { this.classes.push(name); } } };
   const view = { hidden: true }, welcome = { hidden: false };
   const nodes = { pluviaIntro: intro, locationWelcome: welcome, weatherView: view };
   const context = {

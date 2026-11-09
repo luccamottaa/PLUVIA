@@ -28,7 +28,9 @@ test('fonts.css vai inline no shell (sem folha bloqueante) com o mesmo texto do 
   assert.ok(html.includes(css), 'o @font-face inline divergiu de fonts.css');
   assert.doesNotMatch(html, /<link rel="stylesheet" href="\.\/fonts\.css/);
   assert.match(html, /<link rel="preconnect" href="https:\/\/api\.open-meteo\.com" crossorigin \/>/);
-  assert.match(html, /<link rel="preload" href="\.\/assets\/sky-cloud-veil\.webp\?v=clouds-9" as="image" type="image\/webp" fetchpriority="high" \/>/);
+  // 1.60: o vidro da intro é o LCP (prioridade alta); a nuvem da Home continua pré-carregada, sem disputar com ele.
+  assert.match(html, /<link rel="preload" href="\/assets\/intro-glass\.webp\?v=glass-1" as="image" type="image\/webp" fetchpriority="high" \/>/);
+  assert.match(html, /<link rel="preload" href="\.\/assets\/sky-cloud-veil\.webp\?v=clouds-9" as="image" type="image\/webp" \/>/);
 });
 
 test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
@@ -37,7 +39,7 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-323"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-325"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
   assert.match(html, /styles\.css\?v=core-136/);
