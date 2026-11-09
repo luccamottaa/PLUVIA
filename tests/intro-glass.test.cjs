@@ -16,6 +16,8 @@ assert.doesNotMatch(sky,/\.pluvia-intro[^{]*\{[^}]*var\(--(?:sky-color|sky-base|
 assert.match(html,/<link rel="preload" href="\/assets\/intro-glass\.webp\?v=glass-1" as="image" type="image\/webp" fetchpriority="high" \/>/);
 assert.match(style,/\.pluvia-intro \.intro-glass \{[^}]*background:url\("\/assets\/intro-glass\.webp\?v=glass-1"\)[^}]*animation:intro-glass-in/);
 assert.doesNotMatch(html,/glass\.dataset\.ready|data-ready\]/,'sem carregamento tardio');
+// Pré-carregado em toda abertura: precisa estar no precache, senão o reload sem rede recebe erro do SW.
+assert.ok(fs.readFileSync('dist/sw.js','utf8').includes('"./assets/intro-glass.webp?v=glass-1"'),'vidro da intro no PRECACHE');
 assert.match(style,/\.pluvia-intro\.is-leaving \.intro-glass \{ animation:none;/,'a animação de entrada não segura o vidro na saída');
 
 // Letras animadas escondidas dos leitores de tela; o nome inteiro continua lá.
