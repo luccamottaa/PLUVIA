@@ -356,3 +356,6 @@ body.page-hidden :is(.sky-effects,.intro-sky) > * { visibility:hidden !important
 :root[data-volume="on"] :is(.sky-effects,.intro-sky) > .sky-clouds { opacity:0; visibility:hidden; animation-play-state:paused; transition:opacity 1.1s ease,visibility 0s 1.1s; }
 body.page-hidden .sky-volume { visibility:hidden; }
 @media (prefers-reduced-motion: reduce) { .sky-volume { display:none; } }
+/* Raio 3D (1.64): com a nuvem 3D ligada na trovoada, o canal é desenhado dentro do céu 3D (volumetric-clouds,
+   data-bolt3d); o canal chapado do CSS sai. O clarão do céu inteiro (::before) continua. */
+:root[data-bolt3d="on"] .sky-effects .sky-lightning::after { visibility:hidden; }

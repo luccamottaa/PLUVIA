@@ -79,3 +79,24 @@ test('campo contínuo: interior entra na mesma consulta, ausentes ficam fora e o
   assert.ok(Math.abs(at(-30, -51) - 10) < 2, 'perto do ponto frio, frio');
   assert.equal(brazil.field([{lat:0,lon:-60,temperature:20}]), null, 'poucas leituras: sem campo');
 });
+
+// Mapa 3D (1.64): altura da coluna pela temperatura (ausente sem coluna) e giro preso em ±35°.
+{
+  const assert = require('node:assert/strict');
+  const brazil = require('../dist/modules/brazil-now.js');
+  assert.equal(brazil.barHeight(5), 6);
+  assert.equal(brazil.barHeight(37), 60);
+  assert.equal(brazil.barHeight(50), 60, 'acima da escala não passa do teto');
+  assert.equal(brazil.barHeight(-10), 6);
+  assert.equal(brazil.barHeight(null), 0, 'ausente não vira coluna');
+  assert.equal(brazil.barHeight(NaN), 0);
+  assert.ok(brazil.barHeight(30) > brazil.barHeight(20));
+  assert.equal(brazil.spinFor(0, 1000), 35);
+  assert.equal(brazil.spinFor(0, -1000), -35);
+  assert.equal(brazil.spinFor(10, -20), 3);
+  const css = require('node:fs').readFileSync(require('node:path').join(__dirname, '../dist/continuous.css'), 'utf8');
+  assert.match(css, /\.brazil-plane \{[^}]*transform-style:preserve-3d;[^}]*rotateX\(var\(--tilt\)\) rotateZ\(var\(--spin\)\)/);
+  assert.match(css, /\.brazil-pin \.brazil-chip \{[^}]*rotateZ\(calc\(var\(--spin\) \* -1\)\) rotateX\(calc\(var\(--tilt\) \* -1\)\)/, 'etiqueta sempre de frente');
+  assert.match(css, /@media \(prefers-reduced-motion:reduce\) \{ \.brazil-plane, \.brazil-pin \.brazil-chip \{ transition:none; \} \}/);
+  assert.doesNotMatch(require('node:fs').readFileSync(require('node:path').join(__dirname, '../dist/modules/brazil-now.js'), 'utf8'), /getContext\(['"]webgl/, 'sem um segundo contexto WebGL');
+}

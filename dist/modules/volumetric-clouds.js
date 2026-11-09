@@ -74,10 +74,47 @@
       if (u < 0 || u > PROFILE[PROFILE.length - 1][0]) continue;
       for (let i = 1; i < PROFILE.length; i++) {
         const [t0,v0] = PROFILE[i - 1], [t1,v1] = PROFILE[i];
-        if (u <= t1) return {k:strike.peak * (v0 + (v1 - v0) * (u - t0) / (t1 - t0)), x:strike.x};
+        if (u <= t1) return {k:strike.peak * (v0 + (v1 - v0) * (u - t0) / (t1 - t0)), x:strike.x, u, index:STRIKES.indexOf(strike), cycle:Math.floor(ms / CYCLE_MS)};
       }
     }
     return {k:0, x:.5};
+  }
+  // Raio 3D (1.64, pedido do dono): o canal é desenhado dentro do próprio céu 3D, nítido abaixo da nuvem e
+  // borrado (luz espalhada) onde atravessa a nuvem. Forma sorteada por raio e por ciclo (semente fixa: o mesmo
+  // raio do mesmo ciclo tem a mesma forma), por deslocamento do ponto médio, com um galho. Coordenadas em
+  // "altura de tela" (x × largura/altura, y de baixo para cima), como no shader. O fim do canal acompanha o CSS:
+  // o terceiro raio é menor (só até o meio da tela).
+  const BOLT_POINTS = 33, BRANCH_POINTS = 9;
+  function seeded(seed) {
+    let t = (seed >>> 0) || 1;
+    return () => { t = (t + 0x6D2B79F5) >>> 0; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; };
+  }
+  function boltPath(index, cycle, aspect) {
+    const strike = STRIKES[index] || STRIKES[0], rand = seeded((index + 1) * 7919 + (cycle | 0) * 104729);
+    const x0 = strike.x * aspect, top = .97, bottom = index === 2 ? .48 : index === 1 ? .26 : .2;
+    const pts = [[x0, top], [x0 + (rand() - .5) * .12, bottom]];
+    // Deslocamento do ponto médio: 5 níveis = 33 pontos; o desvio cai a cada nível, mais devagar que pela metade
+    // (zigue-zague miúdo, como um raio de verdade).
+    let amp = .085, line = pts;
+    for (let level = 0; level < 5; level++) {
+      const next = [];
+      for (let i = 0; i < line.length - 1; i++) {
+        const [ax, ay] = line[i], [bx, by] = line[i + 1];
+        next.push(line[i], [(ax + bx) / 2 + (rand() - .5) * 2 * amp, (ay + by) / 2 + (rand() - .5) * amp * .3]);
+      }
+      next.push(line[line.length - 1]); line = next; amp *= .58;
+    }
+    const main = new Float32Array(BOLT_POINTS * 2);
+    line.forEach(([x, y], i) => { main[i * 2] = x; main[i * 2 + 1] = y; });
+    // Galho: sai de um ponto do terço de cima e desce na diagonal, mais curto e mais fino.
+    const from = line[4 + Math.floor(rand() * 4)], side = rand() < .5 ? -1 : 1, length = .16 + rand() * .1;
+    const branch = new Float32Array(BRANCH_POINTS * 2);
+    for (let i = 0; i < BRANCH_POINTS; i++) {
+      const t = i / (BRANCH_POINTS - 1);
+      branch[i * 2] = from[0] + side * t * length * .55 + (i && i < BRANCH_POINTS - 1 ? (rand() - .5) * .035 : 0);
+      branch[i * 2 + 1] = from[1] - t * length;
+    }
+    return {main, branch};
   }
   // Todo céu com nuvem ganha a nuvem 3D: poucas nuvens, parcial, nublado (e neve), chuva e trovoada, de dia e
   // de noite, e a neblina (1.36). Céu limpo não tem nuvem.
@@ -103,6 +140,7 @@
 uniform vec2 R,SUNPX;uniform float T,SUNI,TW,SIDE,CAP;uniform vec3 LIT,SHD,SUN;uniform float COVER,DENS,SIZE,EDGE,DETAIL,FLASH,FLASHX,FOG;
 uniform float RAIN,RWIND;uniform vec4 RY;
 uniform vec2 AST;uniform float ASTR,ASTI,ASTS;uniform vec3 ASTC,SKYC;
+uniform float PY,BOLTK,BOLTG;uniform vec2 BOLT[${BOLT_POINTS}];uniform vec2 BR[${BRANCH_POINTS}];
 float hr(HP vec2 p){p=fract(p*vec2(.1031,.1030));p+=dot(p,p.yx+33.33);return fract((p.x+p.y)*p.x);}
 // Chuva 3D: cada camada é uma grade de células altas; cada célula tem no máximo um traço, em posição sorteada.
 // A camada perto tem poucas células grandes (traço comprido, largo e macio, como fora de foco); a longe, muitas
@@ -150,27 +188,37 @@ float dens(vec3 p){vec3 q=wind(p);float d=shape(fbm4(q*vec3(1.,.9,1.)),p.y/2.4);
 float densLow(vec3 p){float d=shape(fbm3(wind(p)*vec3(1.,.9,1.)),p.y/2.4);return clamp(d*DENS,0.,1.);}
 // Quanto de luz do astro passa pela nuvem no centro dele (marcha curta, mesma nuvem em baixa resolução).
 float astroVis(){
-  vec3 ro=vec3(0.,-2.2,0.),rd=ray(AST);if(rd.y<=.01)return 1.;
+  vec3 ro=vec3(0.,-2.2,0.),rd=ray(AST+vec2(0.,PY));if(rd.y<=.01)return 1.;
   float a=-ro.y/rd.y,b=min((2.4-ro.y)/rd.y,a+9.),dt=(b-a)/10.,dep=0.;
   for(int i=0;i<10;i++){dep+=densLow(ro+rd*(a+dt*(float(i)+.5)))*dt;}
   return exp(-dep*1.6);
 }
+float seg(vec2 p,vec2 a,vec2 b){vec2 pa=p-a,ba=b-a;float k=clamp(dot(pa,ba)/max(dot(ba,ba),1e-6),0.,1.);return length(pa-ba*k);}
+// Distância ao canal (só os segmentos que já "cresceram", BOLTG de 0 a 1 de cima para baixo) e ao galho.
+vec2 boltDist(vec2 p){
+  float dm=10.,db=10.;
+  for(int i=0;i<${BOLT_POINTS - 1};i++){if(float(i)>=BOLTG*${BOLT_POINTS - 1}.)break;dm=min(dm,seg(p,BOLT[i],BOLT[i+1]));}
+  if(BOLTG>.6){for(int i=0;i<${BRANCH_POINTS - 1};i++)db=min(db,seg(p,BR[i],BR[i+1]));}
+  return vec2(dm,db);
+}
 void main(){
-  vec3 ro=vec3(0.,-2.2,0.);vec3 rd=ray(gl_FragCoord.xy);
+  // Parallax (sky-parallax): a nuvem, a luz e o raio andam com a rolagem (PY em px do canvas); a chuva não.
+  vec2 fc=gl_FragCoord.xy+vec2(0.,PY);
+  vec3 ro=vec3(0.,-2.2,0.);vec3 rd=ray(fc);
   if(rd.y<=.01){gl_FragColor=rain(gl_FragCoord.xy);return;}
   // Luz de cima: de dia, o Sol na posição dele na tela (SUNPX) ou o céu claro acima; à noite, a Lua ilustrada.
   // No pôr/nascer do sol (TW) a luz vem baixa, do lado do Sol (SIDE), e pinta a base de laranja e rosa.
-  vec3 L=SUNI>0.?ray(SUNPX):SUN;
+  vec3 L=SUNI>0.?ray(SUNPX+vec2(0.,PY)):SUN;
   L=normalize(mix(L,vec3(SIDE*.9,.12,.45),TW));
   float cosA=dot(rd,L);
   float fwd=(SUNI+TW*.8)*(hg(cosA,.6)*1.4+pow(max(cosA,0.),80.)*2.2);
   vec3 lit=mix(LIT,vec3(1.,.63,.42),TW*.85),shd=mix(SHD,vec3(.34,.27,.42),TW*.7),glow=mix(vec3(1.,.96,.86),vec3(1.,.55,.3),TW);
   // Raio: a nuvem acende por dentro numa mancha larga em volta do topo do canal (FLASHX na tela), não numa
   // coluna; só as partes densas brilham (d² abaixo).
-  float sy=gl_FragCoord.y/R.y,fx=gl_FragCoord.x/R.x-FLASHX,fy=sy-.66;
+  float sy=fc.y/R.y,fx=gl_FragCoord.x/R.x-FLASHX,fy=sy-.66;
   float fl=FLASH*exp(-(fx*fx/.06+fy*fy/.05));
   float t0=-ro.y/rd.y,t1=min((2.4-ro.y)/rd.y,t0+9.);
-  float dt=(t1-t0)/40.;float t=t0+dt*h(vec3(gl_FragCoord.xy,1.));
+  float dt=(t1-t0)/40.;float t=t0+dt*h(vec3(fc,1.));
   vec3 col=vec3(0.);float trans=1.;float depth=0.;
   for(int i=0;i<40;i++){
     if(trans<.02)break;
@@ -222,6 +270,15 @@ void main(){
     g=min(g,.85);
     base+=ASTC*g;baseA=baseA+g*(1.-baseA);
   }
+  // Raio 3D: núcleo fino e nítido onde não há nuvem na frente; dentro da nuvem (baseA alto) o núcleo some e a
+  // luz se espalha num brilho largo, como o canal visto através da nuvem. Cor somada com o alfa (pré-multiplicado).
+  if(BOLTK>0.){
+    vec2 bd=boltDist(fc/R.y);
+    float core=exp(-bd.x*bd.x/.0000055)+exp(-bd.y*bd.y/.000003)*.6;
+    float glow=(exp(-bd.x/.016)*.38+exp(-bd.x/.07)*.14+exp(-bd.y/.012)*.18)*(.55+baseA*1.1);
+    float e=min(1.,BOLTK*(core*(1.-baseA*.85)*1.3+glow));
+    base+=vec3(.88,.92,1.)*e;baseA=baseA+e*(1.-baseA);
+  }
   // A chuva passa na frente da nuvem (pré-multiplicado: chuva por cima, nuvem atrás).
   vec4 rn=rain(gl_FragCoord.xy);
   gl_FragColor=vec4(rn.rgb+base*(1.-rn.a),rn.a+baseA*(1.-rn.a));
@@ -237,11 +294,11 @@ void main(){
     function off(reason) {
       dead = true; stop();
       try { win.sessionStorage?.setItem(OFF_KEY,reason || '1'); } catch (_) { /* sessão sem storage: só esta página */ }
-      delete html.dataset.volume; delete html.dataset.rain3d; if (canvas) canvas.remove(); canvas = gl = null;
+      delete html.dataset.volume; delete html.dataset.rain3d; delete html.dataset.bolt3d; if (canvas) canvas.remove(); canvas = gl = null;
       try { win.pluviaAnalytics?.track?.('Sky Effect Off',{effect:'volume',reason:reason || 'unsupported'}); } catch (_) { /* telemetria nunca quebra o céu */ }
     }
     function lose() {
-      stop(); delete html.dataset.volume; delete html.dataset.rain3d; if (canvas) canvas.remove(); canvas = gl = null; current = null;
+      stop(); delete html.dataset.volume; delete html.dataset.rain3d; delete html.dataset.bolt3d; if (canvas) canvas.remove(); canvas = gl = null; current = null;
       if (++lost > 1) return off('lost');
       win.setTimeout(() => { if (!dead) sync(); },3000);
     }
@@ -275,7 +332,8 @@ void main(){
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
         const at = gl.getAttribLocation(program,'p'); gl.enableVertexAttribArray(at); gl.vertexAttribPointer(at,2,gl.FLOAT,false,0,0);
         uniforms = {};
-        for (const name of ['R','T','LIT','SHD','SUN','COVER','DENS','SIZE','EDGE','DETAIL','SUNPX','SUNI','TW','SIDE','CAP','FLASH','FLASHX','FOG','RAIN','RWIND','RY','AST','ASTR','ASTI','ASTS','ASTC','SKYC']) uniforms[name] = gl.getUniformLocation(program,name);
+        for (const name of ['R','T','LIT','SHD','SUN','COVER','DENS','SIZE','EDGE','DETAIL','SUNPX','SUNI','TW','SIDE','CAP','FLASH','FLASHX','FOG','RAIN','RWIND','RY','AST','ASTR','ASTI','ASTS','ASTC','SKYC','PY','BOLTK','BOLTG']) uniforms[name] = gl.getUniformLocation(program,name);
+        uniforms.BOLT = gl.getUniformLocation(program,'BOLT[0]'); uniforms.BR = gl.getUniformLocation(program,'BR[0]');
         const sun = [-.5,.75,-.2], len = Math.hypot(...sun); gl.uniform3fv(uniforms.SUN,sun.map(v => v / len));
       } catch (_) { canvas = gl = null; return false; }
       canvas.addEventListener('webglcontextlost',event => { event.preventDefault(); lose(); });
@@ -297,9 +355,10 @@ void main(){
     }
     // Relógio do raio: a animação do próprio .sky-lightning (procurada só quando a trovoada começa ou a cena
     // muda, porque getAnimations força estilo), lida a cada quadro pelo currentTime.
-    let bolt = null, boltLookup = 0;
+    let bolt = null, boltLookup = 0, boltKey = '';
     function lightning(now) {
-      if (html.dataset.weather !== 'storm') { bolt = null; gl.uniform1f(uniforms.FLASH,0); return; }
+      if (html.dataset.weather !== 'storm') { bolt = null; gl.uniform1f(uniforms.FLASH,0); gl.uniform1f(uniforms.BOLTK,0); delete html.dataset.bolt3d; return; }
+      if (html.dataset.bolt3d !== 'on') html.dataset.bolt3d = 'on';
       if ((!bolt || bolt.playState === 'idle') && now - boltLookup > 2000) {
         boltLookup = now;
         try { bolt = scene()?.querySelector('.sky-lightning')?.getAnimations?.({subtree:true}).find(a => a.animationName === 'storm-bolt') || null; } catch (_) { bolt = null; }
@@ -307,6 +366,16 @@ void main(){
       const state = flash(bolt ? Number(bolt.currentTime) : NaN);
       // De dia o clarão aparece menos (a nuvem já está clara), como na vida real.
       gl.uniform1f(uniforms.FLASH,state.k * (html.dataset.phase === 'day' ? .45 : 1)); gl.uniform1f(uniforms.FLASHX,state.x);
+      // Canal 3D: cresce de cima para baixo em 80 ms (como o scale do CSS) e some com o clarão.
+      if (state.k > 0 && Number.isInteger(state.index)) {
+        const key = `${state.index}:${state.cycle}:${canvas.width}x${canvas.height}`;
+        if (key !== boltKey) {
+          boltKey = key;
+          const path = boltPath(state.index, state.cycle, canvas.width / Math.max(1,canvas.height));
+          gl.uniform2fv(uniforms.BOLT,path.main); gl.uniform2fv(uniforms.BR,path.branch);
+        }
+        gl.uniform1f(uniforms.BOLTG,Math.min(1,state.u / 80)); gl.uniform1f(uniforms.BOLTK,Math.min(1,state.k * 1.1));
+      } else gl.uniform1f(uniforms.BOLTK,0);
     }
     function cssNumber(name) { const value = parseFloat(scene()?.style.getPropertyValue(name)); return Number.isFinite(value) ? value : NaN; }
     function rate() { const value = cssNumber('--cloud-rate'); return value > 0 ? value : 1; }
@@ -324,7 +393,7 @@ void main(){
         if (box.width > 0 && area.height > 0) {
           const x = (box.left + box.width / 2 - area.left) / area.width * canvas.width;
           const y = (1 - (box.top + box.height / 2 - area.top) / area.height) * canvas.height;
-          gl.uniform2f(uniforms.SUNPX,x,y);
+          gl.uniform2f(uniforms.SUNPX,x,y); sunMeasured = [x,y];
           intensity = Number.isFinite(visibility) ? Math.max(0,Math.min(1,visibility)) : 1;
         }
       }
@@ -351,6 +420,7 @@ void main(){
     }
     function astroUpdate() {
       if (!gl || !canvas) return;
+      astOffset = win.PLUVIA?.skyParallax?.current?.().astro || 0;
       const night = html.dataset.phase === 'night';
       const node = scene()?.querySelector(night ? '.sky-moon' : '.sky-sun');
       const visibility = cssNumber(night ? '--moon-visibility' : '--sun-visibility');
@@ -358,7 +428,9 @@ void main(){
       let intensity = 0;
       if (box && box.width > 0 && area.width > 0 && area.height > 0 && Number.isFinite(visibility) && visibility > 0) {
         const sx = canvas.width / area.width, sy = canvas.height / area.height;
-        gl.uniform2f(uniforms.AST,(box.left + box.width / 2 - area.left) * sx,(1 - (box.top + box.height / 2 - area.top) / area.height) * canvas.height);
+        astMeasured = [(box.left + box.width / 2 - area.left) * sx,(1 - (box.top + box.height / 2 - area.top) / area.height) * canvas.height];
+        pxScale = sy;
+        gl.uniform2f(uniforms.AST,astMeasured[0],astMeasured[1]);
         gl.uniform1f(uniforms.ASTR,box.width * (night ? .5 : .255) * sx);
         // A Lua brilha conforme a parte iluminada (moon-view escreve --moon-light na raiz).
         const lit = parseFloat(html.style.getPropertyValue('--moon-light'));
@@ -366,6 +438,8 @@ void main(){
         gl.uniform3fv(uniforms.ASTC,night ? [.82,.88,1] : [1,.93,.74]);
         gl.uniform3fv(uniforms.SKYC,skyColor());
       }
+      if (intensity <= 0) astMeasured = null;
+      if (area.height > 0) pxScale = canvas.height / area.height;
       gl.uniform1f(uniforms.ASTI,intensity);
       gl.uniform1f(uniforms.ASTS,!night && intensity > 0 ? 1 : 0);
     }
@@ -377,8 +451,20 @@ void main(){
       gl.uniform1f(uniforms.RWIND,html.dataset.wind === 'strong' ? .34 : .1);
       if (raining > 0) html.dataset.rain3d = 'on'; else delete html.dataset.rain3d;
     }
+    // Parallax: a nuvem 3D anda com a rolagem (PY) e o disco do Sol/Lua medido a cada ~2 s é corrigido pelo
+    // quanto o astro andou desde a medida (mesmo número de sky-parallax), sem medir layout a cada quadro.
+    let astMeasured = null, astOffset = 0, sunMeasured = null, pxScale = 1;
+    function parallax() {
+      const off = win.PLUVIA?.skyParallax?.current?.();
+      const canvasOff = off ? off.canvas : 0, astroOff = off ? off.astro : 0;
+      gl.uniform1f(uniforms.PY,canvasOff * pxScale);
+      const drift = -(astroOff - astOffset) * pxScale;
+      if (astMeasured) gl.uniform2f(uniforms.AST,astMeasured[0],astMeasured[1] + drift);
+      if (sunMeasured) gl.uniform2f(uniforms.SUNPX,sunMeasured[0],sunMeasured[1] + drift);
+    }
     function frame() {
       gl.uniform1f(uniforms.T,20 + clock);
+      parallax();
       if (raining > 0) gl.uniform4fv(uniforms.RY,rainOffsets(rainClock));
       gl.drawArrays(gl.TRIANGLES,0,3);
     }
@@ -406,7 +492,7 @@ void main(){
     function sync() {
       if (dead) return;
       const next = mode({phase:html.dataset.phase,weather:html.dataset.weather,rain:html.dataset.rain,clouds:html.dataset.clouds});
-      if (!next || reduced() || qaBlocked()) { stop(); if (current) { delete html.dataset.volume; current = null; } delete html.dataset.rain3d; return; }
+      if (!next || reduced() || qaBlocked()) { stop(); if (current) { delete html.dataset.volume; current = null; } delete html.dataset.rain3d; delete html.dataset.bolt3d; return; }
       if (!gl && !setup()) return off('unsupported');
       place();
       rainSet();
@@ -428,5 +514,5 @@ void main(){
     win.matchMedia?.('(prefers-reduced-motion: reduce)')?.addEventListener?.('change',sync);
     return {sync};
   }
-  return {mode,PALETTES,start,FS,flash,STRIKES,rainLevel,rainOffsets,RAIN_LAYERS,RAIN_WRAP};
+  return {mode,PALETTES,start,FS,flash,STRIKES,boltPath,BOLT_POINTS,BRANCH_POINTS,rainLevel,rainOffsets,RAIN_LAYERS,RAIN_WRAP};
 }));
