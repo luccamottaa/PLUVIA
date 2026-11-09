@@ -9,17 +9,24 @@
     <title>Página não encontrada · PLUVIA</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=logo-5" />
     <link rel="stylesheet" href="/fonts.css?v=type-3" />
-    <link rel="stylesheet" href="/legal.css?v=legal-7" />
-    <script src="/modules/legal-page.js?v=legal-1"></script>
+    <link rel="stylesheet" href="/legal.css?v=legal-8" />
+    <script src="/modules/legal-page.js?v=legal-2"></script>
   </head>
   <body>
     <!-- Página de erro própria: sem ela o Cloudflare Pages devolve o index.html com 200 para qualquer endereço
          inexistente, e um script que faltasse viraria HTML guardado pelo service worker. -->
-    <main class="page">
+    <div class="sky-glass" aria-hidden="true"></div>
+    <main class="page page-error">
       <a class="brand" href="/" aria-label="PLUVIA, voltar para a previsão"><img src="/logo-mark.png?v=logo-5" alt="" width="34" height="34" />PLUVIA</a>
-      <h1>Página não encontrada</h1>
-      <p>Esse endereço não existe no PLUVIA. Pode ser um link antigo ou digitado errado.</p>
-      <p><a href="/">Voltar para a previsão</a></p>
+      <div class="error-body">
+        <p class="error-code" aria-hidden="true">404</p>
+        <h1>Página não encontrada</h1>
+        <p>Esse endereço não existe no PLUVIA. Pode ser um link antigo ou digitado errado.</p>
+        <div class="actions">
+          <a class="button primary" href="/">Voltar para a previsão</a>
+          <a class="button" href="/?abrir=cidades">Buscar uma cidade</a>
+        </div>
+      </div>
     </main>
   </body>
 </html>

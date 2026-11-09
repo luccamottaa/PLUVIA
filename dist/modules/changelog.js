@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.59", date:"2026-11-09", title:"Páginas no visual novo", items:[
+      "Política de Privacidade, Termos de uso e a página de endereço não encontrado ganharam o visual do app: o céu da hora, as gotas no vidro da abertura e os textos em cartões.",
+      "Privacidade e Termos têm um índice no topo para pular direto para cada parte.",
+      "A página de endereço não encontrado agora leva de volta à previsão ou direto para a busca de cidades."
+    ]},
     {version:"1.58", date:"2026-11-09", title:"Intro nova: chuva no vidro", items:[
       "A abertura do PLUVIA ficou nova: gotas de chuva num vidro na frente do céu de agora da sua cidade.",
       "A gota da marca cai no vidro e abre ondas, e o nome aparece letra por letra.",

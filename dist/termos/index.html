@@ -21,11 +21,12 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=logo-5" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png?v=logo-5" />
     <link rel="stylesheet" href="/fonts.css?v=type-3" />
-    <link rel="stylesheet" href="/legal.css?v=legal-7" />
-    <script src="/modules/legal-page.js?v=legal-1"></script>
+    <link rel="stylesheet" href="/legal.css?v=legal-8" />
+    <script src="/modules/legal-page.js?v=legal-2"></script>
   </head>
   <body>
     <header><a class="close" id="termsClose" href="/" aria-label="Fechar e voltar ao PLUVIA" data-leave><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></a></header>
+    <div class="sky-glass" aria-hidden="true"></div>
     <main class="page">
       <a class="brand" href="/" aria-label="PLUVIA, voltar para a previsão" data-leave><img src="/logo-mark.png?v=logo-5" alt="" width="34" height="34" />PLUVIA</a>
 
@@ -40,56 +41,98 @@
         <p><strong>O PLUVIA é um serviço informativo.</strong> Ele não substitui os alertas e orientações oficiais. Em situação de risco, siga a Defesa Civil (telefone 199), os avisos do INMET e, no mar e em rios navegáveis, os avisos de mau tempo da Marinha do Brasil.</p>
       </div>
 
-      <h2>1. Aceitação</h2>
-      <p>Estes Termos regulam o uso do site, do aplicativo instalável (PWA) e dos avisos do PLUVIA (o “Serviço”), oferecidos por Lucca Coelho Motta Queiroz. Ao usar o Serviço, você concorda com estes Termos. Se não concordar, não use o Serviço.</p>
+      <nav class="toc" aria-label="Nesta página">
+        <a href="#aceitacao">Aceitação</a>
+        <a href="#servico">O Serviço</a>
+        <a href="#uso">Uso permitido</a>
+        <a href="#condutas">Proibido</a>
+        <a href="#conta">Conta e avisos</a>
+        <a href="#propriedade">Propriedade</a>
+        <a href="#privacidade">Privacidade</a>
+        <a href="#terceiros">Dados de terceiros</a>
+        <a href="#disponibilidade">Disponibilidade</a>
+        <a href="#responsabilidade">Responsabilidade</a>
+        <a href="#alteracoes">Alterações</a>
+        <a href="#foro">Lei e foro</a>
+        <a href="#contato">Contato</a>
+      </nav>
 
-      <h2>2. O que é o Serviço</h2>
-      <p>O PLUVIA reúne previsões de modelos meteorológicos, qualidade do ar, radar e avisos oficiais publicados por terceiros e os apresenta por município. Previsões são estimativas de modelos e podem errar, atrasar ou divergir do que acontece no local. As informações têm caráter geral e não constituem orientação profissional para decisões de segurança, navegação, aviação, agricultura, saúde ou atividades de risco.</p>
-      <p>O Serviço não é canal oficial de alerta. Avisos do INMET exibidos no PLUVIA são reproduzidos da fonte e podem chegar com atraso ou ficar indisponíveis; a ausência de aviso no PLUVIA não significa ausência de risco.</p>
+      <section class="card" aria-labelledby="aceitacao">
+        <h2 id="aceitacao">1. Aceitação</h2>
+        <p>Estes Termos regulam o uso do site, do aplicativo instalável (PWA) e dos avisos do PLUVIA (o “Serviço”), oferecidos por Lucca Coelho Motta Queiroz. Ao usar o Serviço, você concorda com estes Termos. Se não concordar, não use o Serviço.</p>
+      </section>
 
-      <h2>3. Uso permitido</h2>
-      <p>O PLUVIA é público e gratuito: qualquer pessoa pode usá-lo sem custo, inclusive no trabalho ou na escola. Você pode consultar a previsão, salvar cidades, criar conta, ativar avisos e compartilhar resumos e links pelos recursos do próprio Serviço.</p>
-      <p>Usar o Serviço de graça não autoriza copiar o PLUVIA. O código-fonte pode estar visível no GitHub, mas essa visibilidade não concede licença para copiar, modificar, redistribuir ou publicar o código, o layout ou o design, nem para criar versões derivadas ou concorrentes. Revender, incorporar ou republicar as informações do Serviço em outro produto também depende de autorização prévia e por escrito.</p>
+      <section class="card" aria-labelledby="servico">
+        <h2 id="servico">2. O que é o Serviço</h2>
+        <p>O PLUVIA reúne previsões de modelos meteorológicos, qualidade do ar, radar e avisos oficiais publicados por terceiros e os apresenta por município. Previsões são estimativas de modelos e podem errar, atrasar ou divergir do que acontece no local. As informações têm caráter geral e não constituem orientação profissional para decisões de segurança, navegação, aviação, agricultura, saúde ou atividades de risco.</p>
+        <p>O Serviço não é canal oficial de alerta. Avisos do INMET exibidos no PLUVIA são reproduzidos da fonte e podem chegar com atraso ou ficar indisponíveis; a ausência de aviso no PLUVIA não significa ausência de risco.</p>
+      </section>
 
-      <h2>4. Condutas proibidas</h2>
-      <p>Ao usar o Serviço, você não pode:</p>
-      <ul>
-        <li>extrair dados de forma automatizada (scraping, crawling, bots ou scripts), exceto a indexação comum de mecanismos de busca que respeite o <code>robots.txt</code>;</li>
-        <li>enviar requisições em volume ou frequência capazes de sobrecarregar, degradar ou interromper o Serviço ou seus fornecedores, nem contornar limites de uso;</li>
-        <li>copiar, reproduzir ou imitar o layout, a interface, o design visual, os textos ou o código do Serviço, no todo ou em parte;</li>
-        <li>fazer engenharia reversa do Serviço, exceto quando a lei expressamente permitir;</li>
-        <li>usar a marca “PLUVIA” ou sinais semelhantes sem autorização;</li>
-        <li>tentar acessar contas, dados ou áreas restritas de outras pessoas, explorar falhas de segurança ou interferir em autenticação e avisos;</li>
-        <li>enviar respostas falsas em massa a recursos colaborativos (como “Tá chovendo aí?”) ou usar o Serviço para fins ilícitos.</li>
-      </ul>
+      <section class="card" aria-labelledby="uso">
+        <h2 id="uso">3. Uso permitido</h2>
+        <p>O PLUVIA é público e gratuito: qualquer pessoa pode usá-lo sem custo, inclusive no trabalho ou na escola. Você pode consultar a previsão, salvar cidades, criar conta, ativar avisos e compartilhar resumos e links pelos recursos do próprio Serviço.</p>
+        <p>Usar o Serviço de graça não autoriza copiar o PLUVIA. O código-fonte pode estar visível no GitHub, mas essa visibilidade não concede licença para copiar, modificar, redistribuir ou publicar o código, o layout ou o design, nem para criar versões derivadas ou concorrentes. Revender, incorporar ou republicar as informações do Serviço em outro produto também depende de autorização prévia e por escrito.</p>
+      </section>
 
-      <h2>5. Conta e avisos</h2>
-      <p>A conta é opcional. Você é responsável pelo sigilo do seu acesso e pelas atividades feitas com ele. Os avisos por notificação dependem do navegador, do sistema operacional, da conexão e de serviços de terceiros, e podem atrasar, falhar ou ser silenciados pelo aparelho. Você pode desligá-los ou excluir a conta a qualquer momento pelo próprio Serviço.</p>
-      <p>A previsão pode ser consultada por qualquer pessoa, sem cadastro. Crianças (menores de 12 anos) só devem criar conta ou ligar avisos com o consentimento de um dos pais ou do responsável legal, que pode pedir a exclusão a qualquer momento pelo contato abaixo. O Serviço não tem publicidade, não cria perfis de comportamento e não tem mensagens nem perfis públicos.</p>
+      <section class="card" aria-labelledby="condutas">
+        <h2 id="condutas">4. Condutas proibidas</h2>
+        <p>Ao usar o Serviço, você não pode:</p>
+        <ul>
+          <li>extrair dados de forma automatizada (scraping, crawling, bots ou scripts), exceto a indexação comum de mecanismos de busca que respeite o <code>robots.txt</code>;</li>
+          <li>enviar requisições em volume ou frequência capazes de sobrecarregar, degradar ou interromper o Serviço ou seus fornecedores, nem contornar limites de uso;</li>
+          <li>copiar, reproduzir ou imitar o layout, a interface, o design visual, os textos ou o código do Serviço, no todo ou em parte;</li>
+          <li>fazer engenharia reversa do Serviço, exceto quando a lei expressamente permitir;</li>
+          <li>usar a marca “PLUVIA” ou sinais semelhantes sem autorização;</li>
+          <li>tentar acessar contas, dados ou áreas restritas de outras pessoas, explorar falhas de segurança ou interferir em autenticação e avisos;</li>
+          <li>enviar respostas falsas em massa a recursos colaborativos (como “Tá chovendo aí?”) ou usar o Serviço para fins ilícitos.</li>
+        </ul>
+      </section>
 
-      <h2>6. Propriedade intelectual</h2>
-      <p>O código, o layout, a interface, o design visual, as ilustrações, os ícones, os textos e a marca “PLUVIA” pertencem a Lucca Coelho Motta Queiroz e são protegidos pelas Leis nº 9.609/1998 (software), nº 9.610/1998 (direitos autorais) e nº 9.279/1996 (propriedade industrial). O uso do Serviço não transfere nenhum desses direitos a você. Dados e componentes de terceiros continuam sujeitos às licenças de seus titulares, indicadas em “Fontes de dados”, no rodapé do site.</p>
+      <section class="card" aria-labelledby="conta">
+        <h2 id="conta">5. Conta e avisos</h2>
+        <p>A conta é opcional. Você é responsável pelo sigilo do seu acesso e pelas atividades feitas com ele. Os avisos por notificação dependem do navegador, do sistema operacional, da conexão e de serviços de terceiros, e podem atrasar, falhar ou ser silenciados pelo aparelho. Você pode desligá-los ou excluir a conta a qualquer momento pelo próprio Serviço.</p>
+        <p>A previsão pode ser consultada por qualquer pessoa, sem cadastro. Crianças (menores de 12 anos) só devem criar conta ou ligar avisos com o consentimento de um dos pais ou do responsável legal, que pode pedir a exclusão a qualquer momento pelo contato abaixo. O Serviço não tem publicidade, não cria perfis de comportamento e não tem mensagens nem perfis públicos.</p>
+      </section>
 
-      <h2 id="privacidade">7. Privacidade e LGPD</h2>
-      <p>O tratamento de dados pessoais segue a Lei Geral de Proteção de Dados (Lei nº 13.709/2018). A <a href="/privacidade/">Política de Privacidade</a> explica quais dados são tratados, para quê, com qual base legal, com quem são compartilhados, por quanto tempo ficam guardados e como exercer seus direitos de titular. Ela faz parte destes Termos.</p>
+      <section class="card" aria-labelledby="propriedade">
+        <h2 id="propriedade">6. Propriedade intelectual</h2>
+        <p>O código, o layout, a interface, o design visual, as ilustrações, os ícones, os textos e a marca “PLUVIA” pertencem a Lucca Coelho Motta Queiroz e são protegidos pelas Leis nº 9.609/1998 (software), nº 9.610/1998 (direitos autorais) e nº 9.279/1996 (propriedade industrial). O uso do Serviço não transfere nenhum desses direitos a você. Dados e componentes de terceiros continuam sujeitos às licenças de seus titulares, indicadas em “Fontes de dados”, no rodapé do site.</p>
+      </section>
 
-      <h2>8. Dados de terceiros</h2>
-      <p>O Serviço depende de fontes externas, como Open-Meteo, MET Norway, Copernicus (CAMS), INMET e RainViewer. Não controlamos essas fontes e não garantimos sua disponibilidade, continuidade, exatidão ou atualização. Uma fonte pode mudar, falhar ou deixar de ser oferecida sem aviso.</p>
+      <section class="card" aria-labelledby="privacidade">
+        <h2 id="privacidade">7. Privacidade e LGPD</h2>
+        <p>O tratamento de dados pessoais segue a Lei Geral de Proteção de Dados (Lei nº 13.709/2018). A <a href="/privacidade/">Política de Privacidade</a> explica quais dados são tratados, para quê, com qual base legal, com quem são compartilhados, por quanto tempo ficam guardados e como exercer seus direitos de titular. Ela faz parte destes Termos.</p>
+      </section>
 
-      <h2>9. Disponibilidade e alterações do Serviço</h2>
-      <p>O Serviço é gratuito e oferecido conforme disponível. Recursos podem ser alterados, suspensos ou encerrados, temporária ou definitivamente, inclusive para manutenção, segurança ou por indisponibilidade de fornecedores.</p>
+      <section class="card" aria-labelledby="terceiros">
+        <h2 id="terceiros">8. Dados de terceiros</h2>
+        <p>O Serviço depende de fontes externas, como Open-Meteo, MET Norway, Copernicus (CAMS), INMET e RainViewer. Não controlamos essas fontes e não garantimos sua disponibilidade, continuidade, exatidão ou atualização. Uma fonte pode mudar, falhar ou deixar de ser oferecida sem aviso.</p>
+      </section>
 
-      <h2>10. Limitação de responsabilidade</h2>
-      <p>Na máxima extensão permitida pela lei, o Serviço é fornecido “como está”, e Lucca Coelho Motta Queiroz não responde por danos decorrentes de decisões tomadas com base nas informações exibidas, de imprecisão de previsões, de atrasos ou falhas de avisos, de indisponibilidade do Serviço ou de fontes de terceiros. Nada nestes Termos exclui ou limita direitos que não possam ser afastados por lei, inclusive os garantidos pelo Código de Defesa do Consumidor (Lei nº 8.078/1990).</p>
+      <section class="card" aria-labelledby="disponibilidade">
+        <h2 id="disponibilidade">9. Disponibilidade e alterações do Serviço</h2>
+        <p>O Serviço é gratuito e oferecido conforme disponível. Recursos podem ser alterados, suspensos ou encerrados, temporária ou definitivamente, inclusive para manutenção, segurança ou por indisponibilidade de fornecedores.</p>
+      </section>
 
-      <h2>11. Alterações destes Termos</h2>
-      <p>Estes Termos podem ser atualizados. A data da versão vigente aparece no topo desta página. Mudanças relevantes serão informadas no Serviço. Continuar a usá-lo depois da atualização significa concordar com a nova versão.</p>
+      <section class="card" aria-labelledby="responsabilidade">
+        <h2 id="responsabilidade">10. Limitação de responsabilidade</h2>
+        <p>Na máxima extensão permitida pela lei, o Serviço é fornecido “como está”, e Lucca Coelho Motta Queiroz não responde por danos decorrentes de decisões tomadas com base nas informações exibidas, de imprecisão de previsões, de atrasos ou falhas de avisos, de indisponibilidade do Serviço ou de fontes de terceiros. Nada nestes Termos exclui ou limita direitos que não possam ser afastados por lei, inclusive os garantidos pelo Código de Defesa do Consumidor (Lei nº 8.078/1990).</p>
+      </section>
 
-      <h2>12. Lei aplicável e foro</h2>
-      <p>Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro da Comarca de Manaus, Estado do Amazonas, ressalvado o direito do consumidor de propor ação no foro do seu domicílio, nos termos do Código de Defesa do Consumidor.</p>
+      <section class="card" aria-labelledby="alteracoes">
+        <h2 id="alteracoes">11. Alterações destes Termos</h2>
+        <p>Estes Termos podem ser atualizados. A data da versão vigente aparece no topo desta página. Mudanças relevantes serão informadas no Serviço. Continuar a usá-lo depois da atualização significa concordar com a nova versão.</p>
+      </section>
 
-      <h2>13. Contato</h2>
-      <p>Dúvidas, pedidos de autorização e solicitações sobre dados pessoais: <a href="mailto:pluviaweather@gmail.com">pluviaweather@gmail.com</a>.</p>
+      <section class="card" aria-labelledby="foro">
+        <h2 id="foro">12. Lei aplicável e foro</h2>
+        <p>Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro da Comarca de Manaus, Estado do Amazonas, ressalvado o direito do consumidor de propor ação no foro do seu domicílio, nos termos do Código de Defesa do Consumidor.</p>
+      </section>
+
+      <section class="card" aria-labelledby="contato">
+        <h2 id="contato">13. Contato</h2>
+        <p>Dúvidas, pedidos de autorização e solicitações sobre dados pessoais: <a href="mailto:pluviaweather@gmail.com">pluviaweather@gmail.com</a>.</p>
+      </section>
 
       <footer>
         <a href="/" data-leave>Voltar para a previsão</a>

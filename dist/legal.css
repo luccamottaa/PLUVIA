@@ -1,52 +1,84 @@
-/* Páginas legais (/termos/, /privacidade/): mesmo visual, claro de dia e escuro à noite na cidade
-   aberta no app (data-theme escrito por modules/legal-page.js antes do primeiro desenho). */
-:root { color-scheme:dark; --bg:#000; --sky:#000; --ink:#fff; --muted:#a1a1a6; --line:#ffffff1f; --brand:#2f6bff; --link:#fff; --card:#ffffff0d; --notice:#7cc0ff14; --close-bg:#1c1c1ee6; --shadow:#0008; --mark:#ffd479; }
-:root[data-theme="day"] { color-scheme:light; --bg:#f5f7fb; --sky:#cfe2ff; --ink:#13233d; --muted:#4f5d72; --line:#13233d24; --link:#1f56d6; --card:#ffffffb8; --notice:#2f6bff12; --close-bg:#ffffffeb; --shadow:#13233d26; --mark:#8a5a00; }
+/* Páginas fora da Home (/termos/, /privacidade/ e 404), no visual atual do app (1.59, pedido do dono: "refaz
+   todas as páginas que não são a tela principal pra ficarem no novo estilo"). O fundo é o céu da fase do dia
+   (os mesmos degradês de sky.css), com o vidro de gotas da intro por cima no alto; o texto fica em cartões
+   iguais aos da Home (sólidos à noite, azulados de dia) e o X é o botão de vidro do topo. Claro de dia e escuro
+   à noite na cidade aberta no app (data-theme escrito por modules/legal-page.js antes do primeiro desenho).
+   Até a 1.58 o fundo era preto chapado à noite e cinza de dia, com o azul antigo #2f6bff. */
+:root { color-scheme:dark; --base:#080f22; --sky:linear-gradient(165deg,#10142d,#080f22 85%); --ink:#f2f7ff; --muted:#cbdceb; --line:#b8d4ef30; --brand:#7cc0ff; --on-brand:#0c1a33; --link:#7cc0ff; --card:#141c33; --card-border:#bed2f521; --card-glow:none; --glass:#ffffff14; --glass-edge:#ffffff40; --glass-shadow:#0000002e; --mark:#ffd479; }
+:root[data-theme="day"] { color-scheme:light; --base:#a7d7ec; --sky:linear-gradient(165deg,#57b0e2,#bce7f5 70%,#a7d7ec); --ink:#082744; --muted:#173c58; --line:#12345730; --brand:#0a4cba; --on-brand:#fff; --link:#0a4cba; --card:rgba(236,245,253,.9); --card-border:rgba(255,255,255,.6); --card-glow:0 6px 20px rgba(28,72,128,.08); --glass:#ffffff59; --glass-edge:#ffffffb3; --glass-shadow:#13233d26; --mark:#8a5a00; }
 * { box-sizing:border-box; }
-html { -webkit-text-size-adjust:100%; background:var(--bg); }
-body { margin:0; min-height:100svh; background:linear-gradient(180deg,var(--sky) 0,var(--bg) 420px) no-repeat,var(--bg); color:var(--ink); font:400 1rem/1.65 "Sora",-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,sans-serif; }
-.page { max-width:760px; margin:0 auto; padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left)); }
+html { -webkit-text-size-adjust:100%; background:var(--base); scroll-behavior:smooth; }
+body { margin:0; min-height:100svh; color:var(--ink); font:400 1rem/1.65 "Sora",-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,sans-serif; }
+/* Céu fixo atrás de tudo (background-attachment:fixed é ignorado no iPhone). */
+body::before { content:""; position:fixed; inset:0; height:100lvh; z-index:-2; background:var(--base) var(--sky); pointer-events:none; }
+/* Vidro com gotas da intro, só no alto da tela e esmaecendo para baixo; entra pronto (data-glass). Os cartões
+   são opacos o bastante para as gotas nunca passarem atrás do texto. */
+.sky-glass { position:fixed; inset:0; height:100lvh; z-index:-1; pointer-events:none; background:no-repeat center top / cover; opacity:0; -webkit-mask-image:linear-gradient(#000 0,#000 28%,transparent 62%); mask-image:linear-gradient(#000 0,#000 28%,transparent 62%); transition:opacity .9s ease; }
+html[data-glass="ready"] .sky-glass { background-image:url("/assets/intro-glass.webp?v=glass-1"); opacity:.85; }
+.page { position:relative; max-width:760px; margin:0 auto; padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left)); }
 .brand { display:inline-flex; align-items:center; gap:6px; min-height:44px; margin-right:56px; color:var(--brand); text-decoration:none; font:900 1.6rem/1 Nunito,system-ui,sans-serif; letter-spacing:.01em; }
-.brand img { width:34px; height:34px; }
-h1 { margin:28px 0 8px; font-size:clamp(1.7rem,6vw,2.2rem); font-weight:600; line-height:1.2; }
-h2 { margin:36px 0 8px; font-size:1.3rem; font-weight:600; line-height:1.3; }
+.brand img { width:34px; height:34px; filter:drop-shadow(0 0 10px rgba(170,214,255,.35)); }
+h1 { margin:40px 0 12px; font-size:clamp(2rem,8.5vw,2.75rem); font-weight:600; line-height:1.15; letter-spacing:-.01em; }
+h2 { margin:0 0 8px; font-size:1.3rem; font-weight:600; line-height:1.3; scroll-margin-top:24px; }
 h3 { margin:20px 0 4px; font-size:1.05rem; font-weight:600; }
 p, li { color:var(--ink); }
 ul, ol { padding-left:1.3rem; }
 li + li { margin-top:6px; }
 a { color:var(--link); text-underline-offset:3px; }
-.meta { margin:16px 0 0; padding:14px 16px; border:1px solid var(--line); border-radius:16px; background:var(--card); color:var(--muted); font-size:.95rem; }
+strong { font-weight:600; }
+/* Cartões: o mesmo vidro da Home (sólido à noite, azulado de dia), sem desfoque. */
+.card, .meta, .notice { border:1px solid var(--card-border); border-radius:22px; background:var(--card); box-shadow:var(--card-glow); }
+.card { margin:14px 0 0; padding:20px 20px 6px; }
+.card > :last-child { margin-bottom:14px; }
+.meta { margin:0; padding:14px 18px; color:var(--muted); font-size:.95rem; }
 .meta p { margin:0; color:inherit; }
 .meta p + p { margin-top:4px; }
-.notice { margin:24px 0 0; padding:14px 16px; border-left:3px solid var(--brand); border-radius:0 12px 12px 0; background:var(--notice); }
+.notice { margin:14px 0 0; padding:16px 18px 16px 20px; border-color:color-mix(in srgb,var(--brand) 45%,transparent); background:linear-gradient(color-mix(in srgb,var(--brand) 9%,transparent),color-mix(in srgb,var(--brand) 9%,transparent)),var(--card); }
 .notice p { margin:0; }
-.table-wrap { overflow-x:auto; margin:12px 0; border:1px solid var(--line); border-radius:14px; background:var(--card); }
+/* Índice: atalhos em pílula para cada seção (rola de lado no celular, como as Próximas horas). */
+.toc { display:flex; gap:8px; margin:22px -16px 4px; padding:2px 16px 8px; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.toc::-webkit-scrollbar { display:none; }
+.toc a, .button, footer a { display:inline-flex; flex:none; align-items:center; justify-content:center; min-height:44px; padding:0 16px; border:1px solid var(--glass-edge); border-radius:999px; background:linear-gradient(160deg,#ffffff2e,#ffffff0d),var(--glass); box-shadow:inset 0 1px 0 #ffffff40,0 4px 14px var(--glass-shadow); color:var(--ink); font-size:.875rem; font-weight:500; text-decoration:none; white-space:nowrap; transition:background-color .2s ease,border-color .2s ease; }
+@media (hover:hover) and (pointer:fine) { .toc a:hover, .button:hover, footer a:hover { border-color:color-mix(in srgb,var(--brand) 60%,transparent); } }
+.toc a:active, .button:active, footer a:active { opacity:.7; }
+@media (min-width:761px) { .toc { flex-wrap:wrap; margin-inline:0; padding-inline:0; overflow:visible; } }
+.table-wrap { overflow-x:auto; margin:12px 0 14px; border:1px solid var(--line); border-radius:14px; }
 table { width:100%; border-collapse:collapse; font-size:.94rem; line-height:1.5; }
 th, td { padding:10px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
 tr:last-child > * { border-bottom:0; }
 th { font-weight:600; }
-/* Celular: cada linha da tabela vira um cartão com os rótulos ao lado dos valores. */
+/* Celular: cada linha da tabela vira um bloco com os rótulos acima dos valores, separados por linhas. */
 @media (max-width:640px) {
-  .table-wrap { overflow:visible; border:0; background:none; }
+  .table-wrap { overflow:visible; border:0; border-radius:0; }
   table, tbody, tr, td { display:block; }
   thead { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-  tr { margin:0 0 12px; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--card); }
+  tr { padding:12px 0; border-top:1px solid var(--line); }
   td { padding:4px 0; border:0; }
   td::before { content:attr(data-label); display:block; color:var(--muted); font-size:.8125rem; font-weight:600; }
   td:first-child { font-weight:600; font-size:1rem; }
   td:first-child::before { content:none; }
 }
 .ph { color:var(--mark); font-variant-numeric:tabular-nums; }
-footer { margin-top:48px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:.9rem; display:flex; flex-wrap:wrap; gap:0 20px; }
-footer a { display:inline-flex; align-items:center; min-height:44px; }
-:focus-visible { outline:2px solid var(--link); outline-offset:3px; border-radius:4px; }
-/* Fechar: fixo no alto, fora de .page (a animação de entrada move .page e prenderia o fixed). */
-.close { position:fixed; top:max(24px,env(safe-area-inset-top)); right:max(16px,env(safe-area-inset-right)); z-index:2; display:grid; place-items:center; width:44px; height:44px; border:1px solid var(--line); border-radius:50%; background:var(--close-bg); color:var(--ink); text-decoration:none; box-shadow:0 6px 18px var(--shadow); }
-.close svg { width:22px; height:22px; }
+footer { display:flex; flex-wrap:wrap; gap:10px; margin-top:28px; color:var(--muted); font-size:.9rem; }
+:focus-visible { outline:2px solid var(--link); outline-offset:3px; border-radius:6px; }
+/* Fechar: o botão de vidro do topo da Home, fixo no alto, fora de .page (a animação de entrada move .page e
+   prenderia o fixed). Desfoque só neste elemento pequeno, como no app. */
+.close { position:fixed; top:max(24px,env(safe-area-inset-top)); right:max(16px,env(safe-area-inset-right)); z-index:2; display:grid; place-items:center; width:44px; height:44px; border:1px solid var(--glass-edge); border-radius:50%; background:linear-gradient(160deg,#ffffff2e,#ffffff0d),var(--glass); color:var(--ink); text-decoration:none; box-shadow:inset 0 1px 0 #ffffff59,inset 0 -1px 0 #ffffff1a,0 8px 24px var(--glass-shadow); -webkit-backdrop-filter:blur(12px) saturate(1.6); backdrop-filter:blur(12px) saturate(1.6); }
+.close svg { width:20px; height:20px; stroke-width:2.4; }
+/* 404: o número grande como a temperatura da Home, centralizado na tela, com dois caminhos de volta. */
+.page-error { display:flex; flex-direction:column; min-height:100svh; }
+.error-body { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; padding:24px 0 12vh; text-align:center; }
+.error-code { margin:0; color:var(--ink); font-size:clamp(6rem,30vw,9rem); font-weight:200; line-height:1; letter-spacing:-.03em; font-variant-numeric:proportional-nums; }
+.error-body h1 { margin:8px 0 6px; font-size:clamp(1.4rem,6vw,1.75rem); }
+.error-body > p:not(.error-code) { max-width:30ch; margin:0; color:var(--muted); }
+.actions { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:24px; }
+.button { padding:0 20px; font-size:.95rem; }
+.button.primary { border-color:transparent; background:var(--brand); box-shadow:0 6px 18px color-mix(in srgb,var(--brand) 30%,transparent); color:var(--on-brand); font-weight:600; }
 /* Entrada suave e saída antes de voltar ao app. */
 @keyframes legal-enter { from { opacity:0; transform:translateY(18px); } }
 .page, .close { animation:legal-enter .44s cubic-bezier(.2,.8,.2,1) backwards; }
 .close { animation-delay:.08s; }
 html.leaving :is(.page,.close) { opacity:0; transform:translateY(12px); transition:opacity .18s ease-in, transform .18s ease-in; }
-@media (prefers-reduced-motion:reduce) { .page, .close { animation:none; } html.leaving :is(.page,.close) { transition:none; } }
-@media (forced-colors:active) { .brand { color:LinkText; } .close { border-color:ButtonText; } }
+@media (prefers-reduced-motion:reduce) { .page, .close { animation:none; } html.leaving :is(.page,.close) { transition:none; } html { scroll-behavior:auto; } .sky-glass { transition:none; } }
+@media (prefers-reduced-transparency:reduce) { .sky-glass { display:none; } .close { background:var(--card); -webkit-backdrop-filter:none; backdrop-filter:none; } }
+@media (forced-colors:active) { .brand { color:LinkText; } .close, .toc a, .button, footer a { border-color:ButtonText; } .sky-glass { display:none; } }
