@@ -102,6 +102,7 @@
       const label = id => SECTIONS.find(section => section.id === id).label;
       list.replaceChildren(...layout.order.map((id, index) => {
         const item = doc.createElement('li'), check = doc.createElement('label'), box = doc.createElement('input'), name = doc.createElement('span');
+        item.dataset.section = id; // ícone da seção na lista (1.65)
         box.type = 'checkbox'; box.checked = !layout.hidden.includes(id); box.dataset.toggle = id;
         box.disabled = box.checked && layout.hidden.length === IDS.length - 1;
         name.textContent = label(id); check.append(box, name);

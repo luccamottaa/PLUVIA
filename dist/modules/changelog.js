@@ -12,6 +12,12 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.65", date:"2026-11-09", title:"Janelas repaginadas e chuva fluida", items:[
+      "Minha conta ganhou um visual novo: foto e nome em destaque, cada opção com um ícone colorido e seções mais organizadas.",
+      "Personalizar a Home, Novidades e os detalhes da hora e do dia também foram repaginados, com ícones e cartões.",
+      "O fundo das janelas ganhou profundidade: céu em camadas, com estrelas à noite, nuvens no horizonte e o brilho da Lua ou do Sol no alto.",
+      "A chuva 3D ficou fluida e mais lenta: agora ela anda no ritmo da tela, sem travar."
+    ]},
     {version:"1.64.2", date:"2026-11-09", title:"Ícones do tempo redesenhados", items:[
       "Os ícones em traço foram refeitos: o sol e a lua param antes da nuvem, os raios do sol não encostam nela e a chuva, a garoa, a neve e o raio ficam centrados embaixo."
     ]},

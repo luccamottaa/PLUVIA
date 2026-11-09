@@ -67,7 +67,7 @@ assert.match(src,/animationName === 'storm-bolt'/);
 {
   const src = fs.readFileSync(path.join(root, 'modules/volumetric-clouds.js'), 'utf8');
   assert.match(src, /LOW_SCALE = \.33/);
-  assert.match(src, /if \(scale === SCALE\) \{ scale = LOW_SCALE; frameMs = LOW_FRAME_MS; slow = 0; resize\(\); \}\s*else return off\('slow'\);/);
+  assert.match(src, /if \(scale === SCALE\) \{ scale = LOW_SCALE; frameMs = LOW_FRAME_MS; rainMs = LOW_RAIN_MS; slow = 0; resize\(\); \}\s*else return off\('slow'\);/);
   assert.match(src, /if \(\+\+lost > 1\) return off\('lost'\);/);
   assert.match(src, /track\?\.\('Sky Effect Off',\{effect:'volume',reason:reason \|\| 'unsupported'\}\)/);
   const analytics = fs.readFileSync(path.join(root, 'analytics.js'), 'utf8');
@@ -155,3 +155,18 @@ console.log('astros atrás da nuvem ok');
   for (const value of Object.values(parallax.offsets(parallax.MAX_SCROLL))) assert.ok(value >= -160 && value <= 0);
 }
 console.log('volumetric-clouds 3D ok');
+
+// Chuva fluida (1.65): a nuvem vai para uma textura no ritmo dela e a chuva é composta por cima a cada quadro da
+// tela (até ~60/s), no mesmo contexto WebGL; e cai mais devagar que na 1.60.
+{
+  const src = fs.readFileSync(path.join(__dirname, '../dist/modules/volumetric-clouds.js'), 'utf8');
+  assert.ok(volume.RAIN_MS <= 17, 'chuva a ~60 quadros/s');
+  assert.match(volume.RS, /uniform sampler2D TEX;/);
+  assert.match(volume.RS, /vec4 rain\(vec2 px\)/, 'mesma chuva do FS');
+  assert.match(volume.RS, /gl_FragColor=vec4\(rn\.rgb\+base\.rgb\*\(1\.-rn\.a\),rn\.a\+base\.a\*\(1\.-rn\.a\)\)/, 'chuva na frente, pré-multiplicado');
+  assert.match(src, /gl\.uniform1f\(uniforms\.RAIN,0\);/, 'a nuvem nunca desenha a chuva');
+  assert.match(src, /gl\.bindFramebuffer\(gl\.FRAMEBUFFER,cloudFbo\);\s*gl\.drawArrays/, 'nuvem na textura');
+  assert.equal((src.match(/getContext\('webgl'/g) || []).length, 1, 'um contexto WebGL só');
+  assert.ok(volume.RAIN_LAYERS[0].speed <= 1.3 && volume.RAIN_LAYERS.every((l, i, a) => !i || l.speed < a[i - 1].speed), 'mais lenta, perto mais rápida que longe');
+}
+console.log('chuva fluida ok');
