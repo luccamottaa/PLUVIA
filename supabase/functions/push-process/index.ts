@@ -8,6 +8,7 @@ import { metarUrl, nearestAirport } from "../_shared/metar.js";
 import { stationUrl, normalizeStation } from "../_shared/inmet-station.js";
 import { estimate as estimateArrival, windowTiles, windowMask, FRAME_GAP_S, SIZE as NOWCAST_SIZE } from "../_shared/radar-nowcast.js";
 import { PNG } from "npm:pngjs@7.0.0";
+import { createTomorrowClient, rainSeries } from "../_shared/tomorrow.js";
 import { Buffer } from "node:buffer";
 
 type Location = { id: string; user_id: string; city_id: string; city_name: string; uf: string; latitude: number; longitude: number; timezone: string };
@@ -149,15 +150,25 @@ function modelAgreement(data: any, window: unknown, minMm = 0.5, used = "best_ma
     return unix !== null && unix >= from && unix <= to ? [index] : [];
   });
   if (indexes.length !== (to - from) / 3600 + 1) return null;
-  let agree = 0, total = 0;
-  for (const model of AGREEMENT_MODELS) {
+  let agree = 0, total = 0, tomorrow: "rain" | "dry" | null = null;
+  // "tomorrow" é a série do Tomorrow.io (withTomorrow); sem ela, fica fora da conta como um modelo com lacuna.
+  for (const model of [...AGREEMENT_MODELS, "tomorrow"]) {
     if (model === used) continue;
     const values = indexes.map((index: number) => observed(data.hourly[`precipitation_${model}`]?.[index], 0, 500));
     if (values.some((value: number | null) => value === null)) continue;
     total++;
-    if (values.some((value: number | null) => (value as number) >= minMm)) agree++;
+    const wet = values.some((value: number | null) => (value as number) >= minMm);
+    if (wet) agree++;
+    if (model === "tomorrow") tomorrow = wet ? "rain" : "dry";
   }
-  return total >= 2 ? { agree, total } : null;
+  return total >= 2 ? { agree, total, tomorrow } : null;
+}
+
+// Junta a chuva por hora do Tomorrow.io (já alinhada às horas do Open-Meteo por rainSeries) à resposta dos
+// outros modelos, sem mexer no objeto original. Sem série, devolve o mesmo objeto.
+function withTomorrow(others: any, series: unknown) {
+  if (!Array.isArray(series) || !others?.hourly) return others;
+  return { ...others, hourly: { ...others.hourly, precipitation_tomorrow: series } };
 }
 
 function withAgreement(candidate: EventCandidate, data: any, used = "best_match"): EventCandidate {
@@ -696,6 +707,9 @@ function constantTimeEqual(left: string, right: string) {
   return difference === 0;
 }
 
+// Criado na primeira rodada (os testes carregam este arquivo sem Deno e sem os imports).
+let tomorrowClient: ReturnType<typeof createTomorrowClient> | null = null;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return preflight(req);
   if (req.method !== "POST") return json(req, { error: "Método não permitido." }, 405);
@@ -709,6 +723,8 @@ Deno.serve(async (req) => {
     if (body?.action !== "process") return json(req, { error: "Ação inválida." }, 400);
 
     const deadline = Date.now() + 90_000;
+    tomorrowClient ??= createTomorrowClient({ key: Deno.env.get("TOMORROW_API_KEY") ?? "" });
+    tomorrowClient.startRun();
     const requestedToken = crypto.randomUUID();
     const { data: lease, error: leaseError } = await admin.rpc("pluvia_push_claim", { p_token: requestedToken });
     if (leaseError) throw new Error("worker_claim_failed");
@@ -854,7 +870,10 @@ Deno.serve(async (req) => {
         if (selected.some(candidate => ["rain_approaching", "heavy_rain"].includes(candidate.type))) {
           // Falha dos outros modelos não segura o aviso: ele sai sem a frase de concordância.
           try {
-            const others = await source(agreementUrl(location));
+            let others = await source(agreementUrl(location));
+            // Segunda opinião do Tomorrow.io (sem chave, cota ou resposta: fica só com os modelos do Open-Meteo).
+            const extra = tomorrowClient?.enabled ? await tomorrowClient.forecast(location.latitude, location.longitude).catch(() => null) : null;
+            if (extra) others = withTomorrow(others, rainSeries(extra, others?.hourly?.time));
             selected = selected.map(candidate => withAgreement(candidate, others, rainModel));
           } catch { /* sem concordância */ }
         }

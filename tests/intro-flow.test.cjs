@@ -19,7 +19,7 @@ test('a intro recebe estilo e cor do tema antes dos recursos externos', () => {
 
 function runIntro({ saved = false, storageBlocked = false, reduced = false, local = null, now = Date.parse('2026-10-09T05:00:00Z') } = {}) {
   const timers = [], listeners = {};
-  const intro = { hidden: false, dataset: {}, classList: { classes: [], add(name) { this.classes.push(name); } } };
+  const intro = { hidden: false, dataset: {}, querySelector: () => null, classList: { classes: [], add(name) { this.classes.push(name); } } };
   const view = { hidden: true }, welcome = { hidden: false };
   const nodes = { pluviaIntro: intro, locationWelcome: welcome, weatherView: view };
   const context = {

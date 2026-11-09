@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.58", date:"2026-11-09", title:"Intro nova: chuva no vidro", items:[
+      "A abertura do PLUVIA ficou nova: gotas de chuva num vidro na frente do céu de agora da sua cidade.",
+      "A gota da marca cai no vidro e abre ondas, e o nome aparece letra por letra.",
+      "Com o movimento reduzido ligado no aparelho, a abertura continua parada."
+    ]},
     {version:"1.57.1", date:"2026-11-09", title:"Novo e-mail de contato", items:[
       "O PLUVIA ganhou um e-mail próprio: pluviaweather@gmail.com. Ele aparece na Política de Privacidade e nos Termos de uso para dúvidas e pedidos sobre seus dados."
     ]},

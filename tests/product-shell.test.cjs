@@ -22,7 +22,7 @@ assert.match(html, /sessionStorage/, 'a introdução deve aparecer uma vez por s
 assert.doesNotMatch(html, /id="skipIntro"|class="skip-intro"/);
 assert.match(html, /class="intro-sky"[\s\S]*?class="sky-sun"[\s\S]*?class="sky-clouds/);
 assert.doesNotMatch(html, /class="intro-sun"/);
-assert.match(html, /class="intro-wordmark"[\s\S]*?<strong>PLUVIA<\/strong>/);
+assert.match(html, /class="intro-wordmark"[\s\S]*?<strong><span class="intro-name" aria-hidden="true">(?:<span style="--i:\d">[A-Z]<\/span>){6}<\/span><span class="intro-sr">PLUVIA<\/span><\/strong>/);
 assert.doesNotMatch(html, /pluvia-footer-logo\.jpeg/);
 assert.doesNotMatch(html, /class="intro-progress"/, "a gota caindo substitui a barrinha de carregamento");
 assert.match(html, /\.intro-drop \{[^}]*logo-mark\.webp\?v=logo-\d+/);
