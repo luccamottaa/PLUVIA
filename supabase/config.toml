@@ -17,6 +17,11 @@ entrypoint = "./functions/met-forecast/index.js"
 verify_jwt = false
 entrypoint = "./functions/station-now/index.js"
 
+[functions.tomorrow-forecast]
+# Modo de teste "Testar Tomorrow.io": chamado pelo navegador sem conta, como met-forecast.
+verify_jwt = false
+entrypoint = "./functions/tomorrow-forecast/index.js"
+
 [functions.lightning]
 verify_jwt = false
 entrypoint = "./functions/lightning/index.js"

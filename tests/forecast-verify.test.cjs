@@ -98,3 +98,31 @@ test('janelas de 3 h e 12 h começam na hora cheia, cobrem +1 h a +N h e exigem 
   const kept = api.buildWindows([hole], cities, now).filter(w => w.model === 'ecmwf_ifs025');
   assert.equal(kept.length, 0);
 });
+
+test('Tomorrow.io: rodízio fixo de 3 capitais por hora cobre as 27 em 9 horas', () => {
+  const seen = new Set();
+  for (let hour = 0; hour < 9; hour++) {
+    const picked = api.tomorrowCities(base + hour * HOUR);
+    assert.equal(picked.length, 3);
+    for (const city of picked) seen.add(city.id);
+  }
+  assert.equal(seen.size, 27);
+  assert.deepEqual(api.tomorrowCities(base).map(c => c.id), api.tomorrowCities(base + 9 * HOUR).map(c => c.id));
+});
+
+test('Tomorrow.io: chuva e chance da hora que começa em T − 1 h, temperatura do ponto T; ausente vira null', () => {
+  const points = Array.from({length:30}, (_, i) => ({at:base + i * HOUR, values:{temperature:20 + i, rainAccumulation:i === 5 ? 2.4 : 0, precipitationProbability:i === 5 ? 80 : 10}}));
+  points[8].values = {temperature:28};
+  const entry = api.tomorrowEntry(points, now);
+  const h = entry.hourly, at = t => h.time.indexOf((base + t * HOUR) / 1000);
+  assert.equal(h[`temperature_2m_${api.TOMORROW_MODEL}`][at(5)], 25);
+  assert.equal(h[`precipitation_${api.TOMORROW_MODEL}`][at(6)], 2.4);
+  assert.equal(h[`precipitation_probability_${api.TOMORROW_MODEL}`][at(6)], 80);
+  assert.equal(h[`precipitation_${api.TOMORROW_MODEL}`][at(0)], null);
+  assert.equal(h[`precipitation_${api.TOMORROW_MODEL}`][at(9)], null);
+  const samples = api.buildSamples([entry], api.CAPITALS.slice(0, 1), now, [api.TOMORROW_MODEL]);
+  assert.deepEqual(JSON.parse(JSON.stringify(samples.map(s => [s.model, s.lead_hours]))), [['tomorrow_io', 6], ['tomorrow_io', 24]]);
+  const windows = api.buildWindows([entry], api.CAPITALS.slice(0, 1), now, [api.TOMORROW_MODEL]);
+  assert.equal(windows.find(w => w.window_hours === 3).answer, 'dry');
+  assert.equal(api.tomorrowEntry([], now), null);
+});

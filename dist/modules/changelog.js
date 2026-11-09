@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.65", date:"2026-11-09", title:"Testar o Tomorrow.io", items:[
+      "Em Mais do PLUVIA (na janela da conta) chegou \"Testar Tomorrow.io\": ligado, a previsão das próximas horas e do agora vem do Tomorrow.io, só neste aparelho. Quando a cota grátis dele acaba, o app volta sozinho para a previsão de sempre e tenta de novo depois; a linha de atualização diz qual fonte está valendo.",
+      "Tocar numa notificação agora conta como aberta também para quem recebe avisos sem conta, e abre direto na parte certa mesmo com o app já aberto no iPhone.",
+      "Nas capitais onde o placar mostrar que outro modelo acerta a chuva claramente melhor, as horas de chuva passam a vir dele, como já acontecia nos avisos."
+    ]},
     {version:"1.64.2", date:"2026-11-09", title:"Ícones do tempo redesenhados", items:[
       "Os ícones em traço foram refeitos: o sol e a lua param antes da nuvem, os raios do sol não encostam nela e a chuva, a garoa, a neve e o raio ficam centrados embaixo."
     ]},

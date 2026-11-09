@@ -37,7 +37,7 @@ const finite = (value, min, max) => typeof value === "number" && Number.isFinite
 
 // Para cada cidade, modelo e antecedência, a previsão para a hora cheia `lead` horas à frente. Chuva
 // do Open-Meteo é o acumulado da hora que termina no horário, o mesmo período da estação do INMET.
-export function buildSamples(payload, cities = CAPITALS, now = Date.now()) {
+export function buildSamples(payload, cities = CAPITALS, now = Date.now(), models = MODELS) {
   const list = Array.isArray(payload) ? payload : [payload];
   if (list.length !== cities.length) throw new Error("invalid_provider_data");
   const base = Math.floor(now / HOUR) * HOUR;
@@ -48,7 +48,7 @@ export function buildSamples(payload, cities = CAPITALS, now = Date.now()) {
     for (const lead of LEADS) {
       const target = base + lead * HOUR, at = times.indexOf(target / 1000);
       if (at < 0) continue;
-      for (const model of MODELS) {
+      for (const model of models) {
         const temp = finite(entry.hourly[`temperature_2m_${model}`]?.[at], -40, 60);
         const precip = finite(entry.hourly[`precipitation_${model}`]?.[at], 0, 300);
         const prob = finite(entry.hourly[`precipitation_probability_${model}`]?.[at], 0, 100);
@@ -82,7 +82,7 @@ export function windowAnswer(hours) {
   return hours.some(hour => hour.prob !== null && hour.prob >= 30) ? "maybe" : "dry";
 }
 
-export function buildWindows(payload, cities = CAPITALS, now = Date.now()) {
+export function buildWindows(payload, cities = CAPITALS, now = Date.now(), models = MODELS) {
   const list = Array.isArray(payload) ? payload : [payload];
   if (list.length !== cities.length) throw new Error("invalid_provider_data");
   const base = Math.floor(now / HOUR) * HOUR;
@@ -92,7 +92,7 @@ export function buildWindows(payload, cities = CAPITALS, now = Date.now()) {
     if (!Array.isArray(times)) return;
     const start = times.indexOf(base / 1000);
     if (start < 0) return;
-    for (const model of MODELS) {
+    for (const model of models) {
       for (const size of WINDOWS) {
         const hours = [];
         for (let step = 1; step <= size; step++) {
@@ -111,4 +111,39 @@ export function buildWindows(payload, cities = CAPITALS, now = Date.now()) {
     }
   });
   return windows;
+}
+
+// Tomorrow.io no placar (pedido do dono, novembro/2026): medido contra a mesma estação, como um quinto
+// "modelo". Não é modelo do Open-Meteo: forecast_best_model e pluvia_rain_model nunca o escolhem (a troca
+// de chuva pede `models=` ao Open-Meteo). Cota do plano grátis: 25 consultas por hora e 500 por dia,
+// dividida com os avisos do push-process; por isso TOMORROW_PER_RUN capitais por rodada, em rodízio fixo
+// pela hora (27 / 3 = cada capital a cada 9 h, 72 consultas por dia).
+export const TOMORROW_MODEL = "tomorrow_io";
+export const TOMORROW_PER_RUN = 3;
+export const TOMORROW_VERIFY_FIELDS = ["temperature", "rainAccumulation", "precipitationIntensity", "precipitationProbability"];
+
+export function tomorrowCities(now = Date.now(), cities = CAPITALS, perRun = TOMORROW_PER_RUN) {
+  const slot = Math.floor(now / HOUR), count = Math.min(perRun, cities.length);
+  return Array.from({length:count}, (_, step) => cities[((slot * count + step) % cities.length + cities.length) % cities.length]);
+}
+
+// Pontos horários do Tomorrow.io ({ at em ms, values }, de tomorrow.hourlyPoints) → entrada no formato do
+// Open-Meteo com o sufixo do modelo, para buildSamples/buildWindows. Temperatura é instantânea (ponto T).
+// Chuva e chance descrevem a hora que COMEÇA no ponto; no Open-Meteo o valor em T é a hora que TERMINA em
+// T, então vêm do ponto T − 1 h. Hora sem ponto válido fica null (nunca zero).
+export function tomorrowEntry(points, now = Date.now(), hours = 48) {
+  const byAt = new Map();
+  for (const point of Array.isArray(points) ? points : []) if (Number.isFinite(point?.at)) byAt.set(point.at, point.values ?? {});
+  if (!byAt.size) return null;
+  const base = Math.floor(now / HOUR) * HOUR, suffix = TOMORROW_MODEL;
+  const time = [], temp = [], mm = [], prob = [];
+  for (let step = 0; step <= hours; step++) {
+    const at = base + step * HOUR, before = byAt.get(at - HOUR);
+    time.push(at / 1000);
+    temp.push(finite(byAt.get(at)?.temperature, -40, 60));
+    mm.push(finite(before?.rainAccumulation, 0, 300) ?? finite(before?.precipitationIntensity, 0, 300));
+    prob.push(finite(before?.precipitationProbability, 0, 100));
+  }
+  if (temp.every(value => value === null) && mm.every(value => value === null)) return null;
+  return {hourly:{time, [`temperature_2m_${suffix}`]:temp, [`precipitation_${suffix}`]:mm, [`precipitation_probability_${suffix}`]:prob}};
 }
