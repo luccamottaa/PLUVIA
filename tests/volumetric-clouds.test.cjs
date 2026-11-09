@@ -99,7 +99,7 @@ assert.ok(Math.abs((b0 - a0) / (7 * .3) - volume.RAIN_LAYERS[0].speed) < 1e-9);
 assert.match(volume.FS,/vec4 rain\(vec2 px\)/);
 assert.match(volume.FS,/uniform float RAIN,RWIND;uniform vec4 RY;/);
 assert.match(volume.FS,/#ifdef GL_FRAGMENT_PRECISION_HIGH/,'sem highp o shader ainda compila');
-assert.match(volume.FS,/gl_FragColor=vec4\(rn\.rgb\+col\*keep\*\(1\.-rn\.a\),rn\.a\+A2\*keep\*\(1\.-rn\.a\)\)/,'chuva na frente da nuvem');
+assert.match(volume.FS,/gl_FragColor=vec4\(rn\.rgb\+base\*\(1\.-rn\.a\),rn\.a\+baseA\*\(1\.-rn\.a\)\)/,'chuva na frente da nuvem (e da luz do astro)');
 // Com a chuva 3D, a do CSS sai; sem ela (sem WebGL, movimento reduzido), continua.
 assert.match(css,/:root\[data-rain3d="on"\] \.sky-effects > \.sky-rain \{ opacity:0;[^}]*visibility:hidden/);
 assert.match(src,/delete html\.dataset\.rain3d; if \(canvas\) canvas\.remove\(\)/,'desligar devolve a chuva do CSS');
@@ -107,3 +107,17 @@ assert.match(src,/delete html\.dataset\.rain3d; if \(canvas\) canvas\.remove\(\)
 assert.match(src,/function scene\(\) \{ return doc\.querySelector\('\.sky-effects'\); \}/);
 assert.doesNotMatch(src,/querySelector\('\.intro-sky'\)|#pluviaIntro \.intro-sky/);
 console.log('chuva 3D ok');
+
+// Sol e Lua atrás da nuvem (1.62): onde há nuvem sobre o disco, o alfa sobe só ali (o disco nítido do CSS some) e a
+// luz que atravessa entra borrada, mais forte com nuvem fina; numa brecha (sem nuvem) nada muda. O Sol ganha brilho e
+// raios conforme a cobertura no centro dele diminui (astroVis), com laço de tamanho fixo.
+assert.match(volume.FS,/uniform vec2 AST;uniform float ASTR,ASTI,ASTS;uniform vec3 ASTC,SKYC;/);
+assert.match(volume.FS,/float vA=baseA,c=smoothstep\(\.0,\.06,vA\)\*\(1\.-smoothstep\(\.95,1\.12,ad\)\);/,'só a nuvem visível e só dentro do disco');
+assert.match(volume.FS,/base=mix\(base,cu\*vA\+SKYC\*\(1\.-vA\),c\);baseA=mix\(vA,1\.,c\);/,'disco escondido vira a mesma mistura nuvem + céu do entorno');
+assert.match(volume.FS,/exp\(-ad\*ad\*1\.1\)\*\(1\.-vA\*\.75\)/,'a luz borrada cai com a nuvem (energia conservada)');
+assert.match(volume.FS,/base\+=ASTC\*g;baseA=baseA\+g\*\(1\.-baseA\);/,'luz somada sem a cor passar do alfa (pré-multiplicado)');
+assert.match(volume.FS,/float astroVis\(\)\{[\s\S]*?for\(int i=0;i<10;i\+\+\)/);
+assert.match(volume.FS,/float open=vis\*\(1\.\+3\.\*vis\*\(1\.-vis\)\);/,'raios mais fortes com a brecha abrindo');
+assert.match(src,/querySelector\(night \? '\.sky-moon' : '\.sky-sun'\)/,'Lua à noite, Sol de dia');
+assert.match(src,/gl\.uniform1f\(uniforms\.ASTS,!night && intensity > 0 \? 1 : 0\)/,'raios só do Sol');
+console.log('astros atrás da nuvem ok');
