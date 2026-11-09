@@ -2827,9 +2827,251 @@ html body .daily-detail-hours .weather-line-icon { width:26px; height:26px; marg
 @media (prefers-reduced-motion:reduce) { .brazil-plane { transition:none; } }
 @media (forced-colors:active) { .brazil-map { --tilt:0deg !important; --spin:0deg !important; } .brazil-slab { display:none; } }
 
+/* janelas-icones:inicio (gerado por scripts/generate-dialog-icons.py; não editar à mão) */
+:root {
+  --i-bell:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15Z M10 20.5a2.2 2.2 0 0 0 4 0'/%3E%3C/svg%3E");
+  --i-bell-off:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15Z M10 20.5a2.2 2.2 0 0 0 4 0 M4 3.5l16 17'/%3E%3C/svg%3E");
+  --i-sunrise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 18h18 M7 18a5 5 0 0 1 10 0 M12 4v5 M9.5 6.5 12 4l2.5 2.5 M4.5 12l1.6 1 M19.5 12l-1.6 1'/%3E%3C/svg%3E");
+  --i-sunset:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 18h18 M7 18a5 5 0 0 1 10 0 M12 9V4 M9.5 6.5 12 9l2.5-2.5 M4.5 12l1.6 1 M19.5 12l-1.6 1'/%3E%3C/svg%3E");
+  --i-moon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5Z'/%3E%3C/svg%3E");
+  --i-pin:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z M12 7.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z'/%3E%3C/svg%3E");
+  --i-pin-plus:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z M12 7v6 M9 10h6'/%3E%3C/svg%3E");
+  --i-phone:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2.5h8a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-15a2 2 0 0 1 2-2Z M11 18.5h2'/%3E%3C/svg%3E");
+  --i-text:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 19l4.5-12L12 19 M4.6 15h5.8 M14.5 12.2c.6-.9 1.6-1.3 2.7-1.3 1.7 0 2.8 1 2.8 2.6V19 M20 15.6c-.9-.4-1.8-.5-2.8-.5-1.6 0-2.7.8-2.7 2 0 1.1.9 1.9 2.2 1.9 1.4 0 2.6-.8 3.3-2'/%3E%3C/svg%3E");
+  --i-grid:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h7v7H4Z M13 4h7v4h-7Z M13 10h7v10h-7Z M4 13h7v7H4Z'/%3E%3C/svg%3E");
+  --i-sparkles:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 3l1.6 4.4L17 9l-4.4 1.6L11 15l-1.6-4.4L5 9l4.4-1.6Z M18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8Z'/%3E%3C/svg%3E");
+  --i-data:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5c4.4 0 8 1.3 8 3s-3.6 3-8 3-8-1.3-8-3 3.6-3 8-3Z M4 8v8c0 1.7 3.6 3 8 3s8-1.3 8-3V8 M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3'/%3E%3C/svg%3E");
+  --i-shield:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l7 3v5.5c0 4.5-3 7.8-7 9.5-4-1.7-7-5-7-9.5V6Z M9 12l2 2 4-4'/%3E%3C/svg%3E");
+  --i-lock:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 11h11a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19.5v-7A1.5 1.5 0 0 1 6.5 11Z M8 11V8a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E");
+  --i-doc:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z M14 3v5h5 M9 13h6 M9 17h6'/%3E%3C/svg%3E");
+  --i-logout:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4 M15 8l4 4-4 4 M19 12H9'/%3E%3C/svg%3E");
+  --i-trash:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16 M9 7V5h6v2 M6.5 7l1 13h9l1-13 M10 11v6 M14 11v6'/%3E%3C/svg%3E");
+  --i-globe:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M3 12h18 M12 3c2.5 2.6 3.6 5.7 3.6 9s-1.1 6.4-3.6 9c-2.5-2.6-3.6-5.7-3.6-9S9.5 5.6 12 3Z'/%3E%3C/svg%3E");
+  --i-mail:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z M3.5 7l8.5 6 8.5-6'/%3E%3C/svg%3E");
+  --i-user:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M4.5 20c1-3.6 4-5.5 7.5-5.5s6.5 1.9 7.5 5.5'/%3E%3C/svg%3E");
+  --i-search:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Z M15.5 15.5 20 20'/%3E%3C/svg%3E");
+  --i-thermo:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13.5V5a2 2 0 0 1 4 0v8.5a4 4 0 1 1-4 0Z M12 9v6'/%3E%3C/svg%3E");
+  --i-thermo-up:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13.5V5a2 2 0 0 1 4 0v8.5a4 4 0 1 1-4 0Z M12 9v6 M18 11V3.5 M15.5 6 18 3.5 20.5 6'/%3E%3C/svg%3E");
+  --i-thermo-down:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13.5V5a2 2 0 0 1 4 0v8.5a4 4 0 1 1-4 0Z M12 9v6 M18 3.5V11 M15.5 8.5 18 11l2.5-2.5'/%3E%3C/svg%3E");
+  --i-umbrella:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12.5a9 9 0 0 1 18 0Z M12 12.5v6a2 2 0 0 1-4 0 M12 3.5v-1'/%3E%3C/svg%3E");
+  --i-drop:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3s-6 6.4-6 10.8a6 6 0 0 0 12 0C18 9.4 12 3 12 3Z'/%3E%3C/svg%3E");
+  --i-wind:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h10a2.5 2.5 0 1 0-2.4-3.2 M3 12h15a2.5 2.5 0 1 1-2.4 3.2 M3 16h7'/%3E%3C/svg%3E");
+  --i-compass:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M15.5 8.5l-2 5-5 2 2-5Z'/%3E%3C/svg%3E");
+  --i-sun:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z M12 2.5v2 M12 19.5v2 M2.5 12h2 M19.5 12h2 M5.3 5.3l1.4 1.4 M17.3 17.3l1.4 1.4 M5.3 18.7l1.4-1.4 M17.3 6.7l1.4-1.4'/%3E%3C/svg%3E");
+  --i-gauge:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.2 18.5a9 9 0 1 1 15.6 0 M12 14l3.8-4.3 M12 14h.01'/%3E%3C/svg%3E");
+  --i-clock:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M12 7v5l3 2'/%3E%3C/svg%3E");
+  --i-radar:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 0 9 9 M12 7a5 5 0 1 0 5 5 M12 12l6.5-6.5'/%3E%3C/svg%3E");
+  --i-chart:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20V4 M4 20h16 M8 16l3.5-4 3 2.5L20 8'/%3E%3C/svg%3E");
+  --ii-mail:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b9bb3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z M3.5 7l8.5 6 8.5-6'/%3E%3C/svg%3E");
+  --ii-lock:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b9bb3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 11h11a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19.5v-7A1.5 1.5 0 0 1 6.5 11Z M8 11V8a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E");
+  --ii-user:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b9bb3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M4.5 20c1-3.6 4-5.5 7.5-5.5s6.5 1.9 7.5 5.5'/%3E%3C/svg%3E");
+}
+/* janelas-icones:fim */
+
+/* ===== Janelas repaginadas (1.65, pedido do dono: "repaginada total… mais bonito, intuitivo e moderno, bota ícones") =====
+   Estilo de Ajustes do iPhone: cada linha tem um quadradinho colorido com um ícone branco (--tile/--ico, ícones de
+   scripts/generate-dialog-icons.py), as seções têm títulos pequenos em caixa alta, o perfil vira um destaque no topo,
+   os campos ganham ícone e as leituras dos detalhes viram mini-cartões. Só pintura e layout: sem transform, blur ou
+   z-index novos. Seletores com ids (e :not(#_)) de propósito: os blocos anteriores das janelas também usam ids. */
+
+/* 1. Quadradinho de ícone das linhas */
+html body #accountDialog :is(#notificationTypesGroup,#notificationSummariesGroup,#notificationTimingGroup,#notificationCitiesGroup,#notificationLocationsGroup,#notificationDevicesGroup) > summary::before,
+html body #accountDialog #accountMore .account-more-item::before,
+html body #accountDialog .account-exit #accountLogout::before,
+html body #accountDialog .account-exit .account-delete > summary::before,
+html body #accountDialog .capital-links summary::before,
+html body #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle::before,
+html body #homeLayoutDialog li[data-section]::before {
+  content:""; flex:none; position:static; width:30px; height:30px; margin:0; border:0; border-radius:9px; clip-path:none;
+  background:var(--tile,#8e8e93) var(--ico,none) center / 18px 18px no-repeat; box-shadow:inset 0 0 0 .5px #ffffff26;
+  rotate:none !important; transform:none !important; opacity:1;
+}
+html body #accountDialog #notificationTypesGroup > summary { --tile:#ff453a; --ico:var(--i-bell); }
+html body #accountDialog #notificationSummariesGroup > summary { --tile:#ff9f0a; --ico:var(--i-sunrise); }
+html body #accountDialog #notificationTimingGroup > summary { --tile:#5e5ce6; --ico:var(--i-moon); }
+html body #accountDialog #notificationCitiesGroup > summary { --tile:#32ade6; --ico:var(--i-pin-plus); }
+html body #accountDialog #notificationLocationsGroup > summary { --tile:#30b158; --ico:var(--i-pin); }
+html body #accountDialog #notificationDevicesGroup > summary { --tile:#8e8e93; --ico:var(--i-phone); }
+html body #accountDialog #accountMore .text-size-row { --tile:#0a84ff; --ico:var(--i-text); }
+html body #accountDialog #openHomeLayout { --tile:#bf5af2; --ico:var(--i-grid); }
+html body #accountDialog #openChangelog { --tile:#ff375f; --ico:var(--i-sparkles); }
+html body #accountDialog #openSources { --tile:#32ade6; --ico:var(--i-data); }
+html body #accountDialog #openPrivacy { --tile:#30b158; --ico:var(--i-shield); }
+html body #accountDialog #accountMore a[href="/privacidade/"] { --tile:#636366; --ico:var(--i-lock); }
+html body #accountDialog #accountMore a[href="/termos/"] { --tile:#636366; --ico:var(--i-doc); }
+html body #accountDialog #accountLogout { --tile:#0a84ff; --ico:var(--i-logout); }
+html body #accountDialog .account-delete > summary { --tile:#ff453a; --ico:var(--i-trash); }
+html body #accountDialog .capital-links summary { --tile:#0a84ff; --ico:var(--i-globe); }
+html body #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { --tile:#ff453a; --ico:var(--i-bell-off); }
+html body #homeLayoutDialog li[data-section="hourly"] { --tile:#0a84ff; --ico:var(--i-clock); }
+html body #homeLayoutDialog li[data-section="tips"] { --tile:#ff9f0a; --ico:var(--i-umbrella); }
+html body #homeLayoutDialog li[data-section="details"] { --tile:#32ade6; --ico:var(--i-gauge); }
+html body #homeLayoutDialog li[data-section="radar"] { --tile:#30b158; --ico:var(--i-radar); }
+html body #homeLayoutDialog li[data-section="sky"] { --tile:#5e5ce6; --ico:var(--i-moon); }
+
+/* 2. Linhas: ícone, texto e seta alinhados à esquerda */
+html body #accountDialog #accountMore .account-more-item:not(#_) { justify-content:flex-start; gap:14px; padding:0; }
+html body #accountDialog #accountMore .account-more-item::after { margin-left:auto; }
+html body #accountDialog #accountMore .text-size-row .text-size-controls { margin-left:auto; }
+html body #accountDialog #accountMore #textSizeLabel { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:.875rem; }
+html body #accountDialog #accountMore .text-size-row:not(#_) { gap:12px; }
+/* Botões A−/A+ como uma pílula segmentada compacta (alvos de 40 × 44 px), para "Tamanho do texto" caber na linha. */
+html body #accountDialog #accountMore .text-size-controls:not(#_) { gap:0; padding:0 2px; border-radius:999px; background:color-mix(in srgb,var(--dialog-text) 8%,transparent); }
+html body #accountDialog #accountMore :is(#textSizeDown,#textSizeUp):not(#_) { width:32px; height:40px; min-height:40px; border-radius:999px; background:transparent; box-shadow:none; }
+html body #accountDialog #accountMore #textSizeValue:not(#_) { min-width:2.7em; text-align:center; font-size:.8125rem; font-variant-numeric:tabular-nums; }
+html body #accountDialog .account-group > summary:not(#_) { gap:14px; }
+html body #accountDialog .capital-links summary:not(#_) { justify-content:flex-start; gap:14px; }
+html body #accountDialog .capital-links summary::after { margin-left:auto; }
+html body #accountDialog .account-exit #accountLogout:not(#_) { justify-content:flex-start; gap:14px; padding:0 16px; font-weight:500; }
+html body #accountDialog .account-exit .account-delete > summary:not(#_) { justify-content:flex-start; gap:14px; margin:0; padding:0 16px; font-weight:500; }
+html body #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle:not(#_) {
+  display:flex; align-items:center; justify-content:flex-start; gap:14px; width:100%; min-height:56px; padding:0 16px;
+  border-radius:var(--sheet-radius,22px); background:var(--dialog-surface); text-align:left; font-weight:500;
+}
+
+/* 3. Títulos de seção pequenos, em caixa alta, como nos Ajustes */
+html body #accountDialog :is(.notification-settings-head h3,#accountMoreTitle,#capitalLinksTitle):not(#_) {
+  margin:0; padding:0 4px; color:var(--dialog-muted); font-size:.75rem; font-weight:650; letter-spacing:.07em; text-transform:uppercase;
+}
+html body #accountDialog #accountMore:not(#_) { margin-top:28px; }
+html body #accountDialog #accountMoreTitle:not(#_) { margin-bottom:8px; }
+
+/* 4. Perfil em destaque: foto grande no centro, nome, e-mail e "Editar perfil" em pílula */
+html body #accountDialog #accountProfileEdit > summary:not(#_) { flex-direction:column; justify-content:center; gap:12px; min-height:0; padding:24px 16px 20px; text-align:center; }
+html body #accountDialog #accountProfileEdit > summary::after { display:none; }
+html body #accountDialog #accountProfileEdit .profile-identity:not(#_) { display:flex; flex-direction:column; align-items:center; gap:12px; margin:0; padding:0; }
+html body #accountDialog #accountProfileEdit .profile-avatar:not(#_) { width:88px; height:88px; font-size:2.25rem; box-shadow:0 0 0 3px color-mix(in srgb,var(--dialog-link) 55%,transparent),0 10px 28px #0005; }
+html body #accountDialog #accountProfileEdit .profile-text:not(#_) { justify-items:center; text-align:center; max-width:100%; }
+html body #accountDialog #accountProfileEdit .profile-text strong:not(#_) { font-size:1.375rem; font-weight:650; }
+html body #accountDialog #accountProfileEdit .account-group-value:not(#_) {
+  display:inline-flex; align-items:center; min-height:34px; padding:0 16px; border-radius:999px;
+  background:color-mix(in srgb,var(--dialog-link) 16%,transparent); color:var(--dialog-link); font-size:.875rem; font-weight:600;
+}
+
+/* 5. Sem conta: convite com ícone e campos com ícone */
+html body #accountDialog #accountIntro:not(#_) { display:grid; justify-items:center; gap:12px; margin:4px 0 18px; text-align:center; color:var(--dialog-muted); }
+html body #accountDialog #accountIntro::before {
+  content:""; width:64px; height:64px; border-radius:20px; background:var(--i-user) center / 32px 32px no-repeat,linear-gradient(160deg,#4aa8ff,#2f6fe0);
+  box-shadow:0 10px 26px #2f6fe055;
+}
+html body #accountDialog #accountIntro[hidden] { display:none; }
+html body #accountDialog :is(#accountEmail,#accountPassword,#accountName,#profileName,#accountNewPassword,#accountNewPasswordConfirm):not(#_) {
+  padding-left:46px !important; background-repeat:no-repeat !important; background-position:15px 50% !important; background-size:20px 20px !important;
+}
+html body #accountDialog #accountEmail:not(#_) { background-image:var(--ii-mail) !important; }
+html body #accountDialog :is(#accountPassword,#accountNewPassword,#accountNewPasswordConfirm):not(#_) { background-image:var(--ii-lock) !important; }
+html body #accountDialog :is(#accountName,#profileName):not(#_) { background-image:var(--ii-user) !important; }
+
+/* 6. Leituras dos detalhes por hora e por dia: mini-cartões com ícone (a grade em subgrid continua) */
+html body :is(#hourlyDetailDialog,#dailyDetailDialog) .hourly-detail-readings:not(#_) { gap:0 10px; }
+html body :is(#hourlyDetailDialog,#dailyDetailDialog) .hourly-detail-readings > div:not(#_) { margin:0 0 10px; padding:12px 14px; border:0 !important; border-radius:18px; background:var(--dialog-surface); }
+html body :is(#hourlyDetailDialog,#dailyDetailDialog) .hourly-detail-readings dt:not(#_) { display:flex; align-items:flex-start; gap:6px; font-size:.8125rem; }
+html body :is(#hourlyDetailDialog,#dailyDetailDialog) .hourly-detail-readings dt::before {
+  content:""; flex:none; width:16px; height:16px; margin-top:1px; background:var(--dialog-link);
+  -webkit-mask:var(--ico,var(--i-gauge)) center / 16px 16px no-repeat; mask:var(--ico,var(--i-gauge)) center / 16px 16px no-repeat;
+}
+html body :is(#hourlyDetailDialog,#dailyDetailDialog) .hourly-detail-readings dd:not(#_) { margin-top:6px; font-size:1.3rem; font-weight:600; }
+html body .hourly-detail-readings > div:has(> :is(#hourlyDetailFeelsLike,#dailyDetailFeelsMin,#dailyDetailFeelsMax)) { --ico:var(--i-thermo); }
+html body .hourly-detail-readings > div:has(> #dailyDetailMin) { --ico:var(--i-thermo-down); }
+html body .hourly-detail-readings > div:has(> #dailyDetailMax) { --ico:var(--i-thermo-up); }
+html body .hourly-detail-readings > div:has(> :is(#hourlyDetailRain,#dailyDetailProbability)) { --ico:var(--i-umbrella); }
+html body .hourly-detail-readings > div:has(> :is(#hourlyDetailVolume,#dailyDetailRain,#hourlyDetailHumidity)) { --ico:var(--i-drop); }
+html body .hourly-detail-readings > div:has(> :is(#hourlyDetailWind,#hourlyDetailGust,#dailyDetailWind,#dailyDetailGust)) { --ico:var(--i-wind); }
+html body .hourly-detail-readings > div:has(> #hourlyDetailDirection) { --ico:var(--i-compass); }
+html body .hourly-detail-readings > div:has(> :is(#hourlyDetailUv,#dailyDetailUv)) { --ico:var(--i-sun); }
+html body .hourly-detail-readings > div:has(> #hourlyDetailPressure) { --ico:var(--i-gauge); }
+html body .hourly-detail-readings > div:has(> #dailyDetailSunrise) { --ico:var(--i-sunrise); }
+html body .hourly-detail-readings > div:has(> #dailyDetailSunset) { --ico:var(--i-sunset); }
+
+/* 7. Novidades: cada versão num cartão */
+html body :is(#changelogDialog,#whatsNewDialog) :is(ol,ul):has(> .changelog-entry):not(#_) { margin:0; padding:0; list-style:none; }
+html body :is(#changelogDialog,#whatsNewDialog) .changelog-entry:not(#_) { margin:0 0 12px; padding:16px 16px 14px; border-radius:20px; background:var(--dialog-surface); list-style:none; }
+html body :is(#changelogDialog,#whatsNewDialog) .changelog-entry h3:not(#_) { display:flex; align-items:center; gap:8px; margin:0; font-size:1.0625rem; }
+html body :is(#changelogDialog,#whatsNewDialog) .changelog-entry .changelog-date:not(#_) { margin:2px 0 0; color:var(--dialog-muted); font-size:.8125rem; }
+html body :is(#changelogDialog,#whatsNewDialog) .changelog-entry ul:not(#_) { margin:10px 0 0; padding-left:1.1rem; }
+html body :is(#changelogDialog,#whatsNewDialog) .changelog-entry ul li:not(#_) { margin:6px 0 0; line-height:1.45; }
+
+/* 8. Personalizar a Home: linhas com ícone e interruptor */
+html body #homeLayoutDialog li[data-section]:not(#_) { display:flex; align-items:center; gap:12px; min-height:58px; margin:0; padding:0 8px 0 14px; border:0; border-radius:0; background:var(--dialog-surface); }
+html body #homeLayoutDialog li[data-section]:first-child { border-radius:20px 20px 0 0; }
+html body #homeLayoutDialog li[data-section]:last-child { border-radius:0 0 20px 20px; }
+html body #homeLayoutDialog li[data-section] + li[data-section] { box-shadow:inset 0 1px 0 var(--dialog-line); }
+html body #homeLayoutDialog li[data-section] > label:not(#_) { display:flex; flex:1; flex-direction:row-reverse; align-items:center; justify-content:space-between; gap:10px; min-width:0; margin:0; }
+html body #homeLayoutDialog li[data-section] input[type=checkbox] {
+  -webkit-appearance:none; appearance:none; flex:none; position:relative; width:50px; height:30px; margin:0; border-radius:999px; background:#ffffff2e; cursor:pointer; transition:background-color .2s ease;
+}
+html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 1px 3px #0006; transition:left .2s ease; }
+html body #homeLayoutDialog li[data-section] input[type=checkbox]:checked { background:#30d158; }
+html body #homeLayoutDialog li[data-section] input[type=checkbox]:checked::before { left:23px; }
+html body #homeLayoutDialog li[data-section] input[type=checkbox]:focus-visible { outline:2px solid var(--dialog-link); outline-offset:2px; }
+html body[data-phase="day"] #homeLayoutDialog li[data-section] input[type=checkbox]:not(:checked) { background:#0827441f; }
+html body #homeLayoutDialog li[data-section] > label > span { font-size:.9375rem; line-height:1.3; }
+html body #homeLayoutDialog li[data-section] .home-layout-move:not(#_) { display:flex; gap:2px; }
+html body #homeLayoutDialog li[data-section] .home-layout-move button:not(#_) { width:34px; min-width:34px; height:44px; padding:0; border:0; border-radius:10px; background:transparent; color:var(--dialog-link); font-size:1.125rem; }
+html body #homeLayoutDialog li[data-section] .home-layout-move button:disabled { color:var(--dialog-muted); opacity:.35; }
+@media (prefers-reduced-motion:reduce) { html body #homeLayoutDialog li[data-section] input[type=checkbox], html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { transition:none; } }
+@media (forced-colors:active) {
+  html body #homeLayoutDialog li[data-section] input[type=checkbox] { appearance:auto; -webkit-appearance:auto; }
+  html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { content:none; }
+  html body :is(#accountDialog,#homeLayoutDialog) [style], html body #accountDialog *::before { forced-color-adjust:auto; }
+}
+
+/* ===== Fundo das janelas com profundidade (1.66, pedido do dono: "eu queria que o fundo tivesse profundidade também") =====
+   O degradê chapado das janelas (1.61) vira um céu em camadas: no próprio fundo, um brilho no alto (luar à noite, sol
+   de dia no canto) e névoas coloridas perto do horizonte; atrás do conteúdo, duas camadas em pseudo-elementos:
+   ::before longe (estrelas à noite, um véu de nuvem alto de dia) e ::after perto (nuvens no horizonte, embaixo). As
+   imagens são as do céu da Home, já no precache (estrelas 1:1, véu de nuvem). Camadas paradas: um parallax por
+   scroll-driven animation (timeline-scope + overflow:clip) fez a janela da conta não abrir no WebKit da CI e saiu;
+   não reintroduzir sem medir no WebKit/iPhone. Sem blur, filtro nem animação. */
+html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) { isolation:isolate; }
+html body:not([data-phase="day"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
+  background:
+    radial-gradient(85% 40% at 50% -6%,#4566c080,#2a3d8533 45%,transparent 72%),
+    radial-gradient(70% 30% at 92% 100%,#5a3b8a45,transparent 70%),
+    radial-gradient(75% 32% at 4% 100%,#1f5b8a40,transparent 70%),
+    linear-gradient(180deg,#141b3c 0,#0b1229 320px,#070d1f);
+}
+html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
+  background:
+    radial-gradient(55% 30% at 88% -4%,#fff6d6e6,#fff1c066 35%,transparent 70%),
+    radial-gradient(90% 34% at 50% 100%,#ffffffb3,transparent 72%),
+    linear-gradient(180deg,#4fa8de 0,#8fd0ef 300px,#c3eaf7);
+}
+html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::before,
+html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::after {
+  content:""; position:absolute; z-index:-1; left:0; right:0; pointer-events:none;
+}
+/* Longe: estrelas (noite) e véu alto (dia), esmaecendo para baixo. */
+html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::before {
+  top:0; height:70%;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 35%,transparent); mask-image:linear-gradient(180deg,#000 0,#000 35%,transparent);
+}
+html body:not([data-phase="day"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::before {
+  background:url("./assets/sky-stars.svg?v=stars-2") center top / 900px 1100px repeat; opacity:.8;
+}
+html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::before {
+  background:url("./assets/sky-cloud-veil.webp?v=clouds-9") 30% 70px / auto 300px repeat-x; opacity:.42;
+}
+/* Perto: nuvens no horizonte, embaixo, esmaecendo para cima. */
+html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::after {
+  bottom:0; height:min(46%,440px);
+  background:url("./assets/sky-cloud-veil.webp?v=clouds-9") 62% 100% / auto 420px repeat-x;
+  -webkit-mask-image:linear-gradient(0deg,#000 0,#000 45%,transparent); mask-image:linear-gradient(0deg,#000 0,#000 45%,transparent);
+}
+html body:not([data-phase="day"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::after { opacity:.18; }
+html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::after { opacity:.7; }
+/* A faixa do cabeçalho de Minha conta era a cor chapada do fundo: agora mostra o céu por trás (o brilho e as estrelas
+   do alto) e só escurece embaixo, onde o conteúdo passa. */
+html body:not([data-phase="day"]) #accountDialog .dialog-heading::before { background:linear-gradient(180deg,#141b3cd9 0,#121a3af2 55%,#111938d1); }
+html body[data-phase="day"] #accountDialog .dialog-heading::before { background:linear-gradient(180deg,#4fa8ded9 0,#55acdff2 55%,#5aafe0d1); }
+@media (forced-colors:active) {
+  html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::before,
+  html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::after { content:none; }
+}
 /* Testar Tomorrow.io (1.65): linha de Mais do PLUVIA com o estado no lugar da seta. */
 html body #accountDialog #accountMore .tomorrow-test::after { display:none; }
 html body #accountDialog #accountMore .tomorrow-test > span:first-child { display:flex; flex-direction:column; gap:2px; min-width:0; }
 html body #accountDialog #accountMore .tomorrow-test small { font-size:.8125rem; font-weight:400; line-height:1.3; color:var(--dialog-muted); }
-html body #accountDialog #accountMore .account-more-state { flex:none; font-size:.875rem; font-weight:500; color:var(--dialog-muted); }
+html body #accountDialog #tomorrowTest { --tile:#ff9f0a; --ico:var(--i-sun); }
+html body #accountDialog #accountMore .account-more-state { flex:none; margin-left:auto; font-size:.875rem; font-weight:500; color:var(--dialog-muted); }
 html body #accountDialog #accountMore .tomorrow-test[aria-pressed="true"] .account-more-state { color:var(--dialog-link); font-weight:600; }
