@@ -3020,12 +3020,9 @@ html body #homeLayoutDialog li[data-section] .home-layout-move button:disabled {
    O degradê chapado das janelas (1.61) vira um céu em camadas: no próprio fundo, um brilho no alto (luar à noite, sol
    de dia no canto) e névoas coloridas perto do horizonte; atrás do conteúdo, duas camadas em pseudo-elementos:
    ::before longe (estrelas à noite, um véu de nuvem alto de dia) e ::after perto (nuvens no horizonte, embaixo). As
-   imagens são as do céu da Home, já no precache (estrelas 1:1, véu de nuvem). Com rolagem, as camadas andam menos que o
-   conteúdo (parallax por scroll-driven animation: a longe 30 px, a perto 120 px em 900 px de rolagem), só translate em
-   duas camadas por janela aberta; sem suporte ou com movimento reduzido, ficam paradas. Sem blur nem filtro animado.
-   Janelas que rolam inteiras (Termos e as duas de instalar) têm as camadas sem parallax e sem passar da borda. Com o
-   parallax a camada de perto passa 120 px da borda de baixo, então essas janelas usam overflow:clip (com hidden, a
-   sobra virava rolagem da própria janela e o foco podia deslocá-la). */
+   imagens são as do céu da Home, já no precache (estrelas 1:1, véu de nuvem). Camadas paradas: um parallax por
+   scroll-driven animation (timeline-scope + overflow:clip) fez a janela da conta não abrir no WebKit da CI e saiu;
+   não reintroduzir sem medir no WebKit/iPhone. Sem blur, filtro nem animação. */
 html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) { isolation:isolate; }
 html body:not([data-phase="day"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
   background:
@@ -3067,20 +3064,6 @@ html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDe
    do alto) e só escurece embaixo, onde o conteúdo passa. */
 html body:not([data-phase="day"]) #accountDialog .dialog-heading::before { background:linear-gradient(180deg,#141b3cd9 0,#121a3af2 55%,#111938d1); }
 html body[data-phase="day"] #accountDialog .dialog-heading::before { background:linear-gradient(180deg,#4fa8ded9 0,#55acdff2 55%,#5aafe0d1); }
-@supports (animation-timeline:scroll()) {
-  @media (prefers-reduced-motion:no-preference) {
-    html body :is(#cityDialog,#accountDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#whatsNewDialog,#sourcesDialog) { timeline-scope:--pluvia-dialog; overflow:clip; }
-    html body :is(#cityDialog,#accountDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#whatsNewDialog,#sourcesDialog) .dialog-scroll { scroll-timeline:--pluvia-dialog block; }
-    html body :is(#cityDialog,#accountDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#whatsNewDialog,#sourcesDialog)::before {
-      height:calc(70% + 30px); animation:pluvia-depth-far linear both; animation-timeline:--pluvia-dialog; animation-range:0px 900px;
-    }
-    html body :is(#cityDialog,#accountDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#whatsNewDialog,#sourcesDialog)::after {
-      bottom:-120px; height:calc(min(46%,440px) + 120px); animation:pluvia-depth-near linear both; animation-timeline:--pluvia-dialog; animation-range:0px 900px;
-    }
-  }
-}
-@keyframes pluvia-depth-far { from { translate:0 0; } to { translate:0 -30px; } }
-@keyframes pluvia-depth-near { from { translate:0 0; } to { translate:0 -120px; } }
 @media (forced-colors:active) {
   html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::before,
   html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::after { content:none; }
