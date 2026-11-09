@@ -3015,3 +3015,73 @@ html body #homeLayoutDialog li[data-section] .home-layout-move button:disabled {
   html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { content:none; }
   html body :is(#accountDialog,#homeLayoutDialog) [style], html body #accountDialog *::before { forced-color-adjust:auto; }
 }
+
+/* ===== Fundo das janelas com profundidade (1.66, pedido do dono: "eu queria que o fundo tivesse profundidade também") =====
+   O degradê chapado das janelas (1.61) vira um céu em camadas: no próprio fundo, um brilho no alto (luar à noite, sol
+   de dia no canto) e névoas coloridas perto do horizonte; atrás do conteúdo, duas camadas em pseudo-elementos:
+   ::before longe (estrelas à noite, um véu de nuvem alto de dia) e ::after perto (nuvens no horizonte, embaixo). As
+   imagens são as do céu da Home, já no precache (estrelas 1:1, véu de nuvem). Com rolagem, as camadas andam menos que o
+   conteúdo (parallax por scroll-driven animation: a longe 30 px, a perto 120 px em 900 px de rolagem), só translate em
+   duas camadas por janela aberta; sem suporte ou com movimento reduzido, ficam paradas. Sem blur nem filtro animado.
+   Janelas que rolam inteiras (Termos e as duas de instalar) têm as camadas sem parallax e sem passar da borda. Com o
+   parallax a camada de perto passa 120 px da borda de baixo, então essas janelas usam overflow:clip (com hidden, a
+   sobra virava rolagem da própria janela e o foco podia deslocá-la). */
+html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) { isolation:isolate; }
+html body:not([data-phase="day"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
+  background:
+    radial-gradient(85% 40% at 50% -6%,#4566c080,#2a3d8533 45%,transparent 72%),
+    radial-gradient(70% 30% at 92% 100%,#5a3b8a45,transparent 70%),
+    radial-gradient(75% 32% at 4% 100%,#1f5b8a40,transparent 70%),
+    linear-gradient(180deg,#141b3c 0,#0b1229 320px,#070d1f);
+}
+html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog) {
+  background:
+    radial-gradient(55% 30% at 88% -4%,#fff6d6e6,#fff1c066 35%,transparent 70%),
+    radial-gradient(90% 34% at 50% 100%,#ffffffb3,transparent 72%),
+    linear-gradient(180deg,#4fa8de 0,#8fd0ef 300px,#c3eaf7);
+}
+html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::before,
+html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::after {
+  content:""; position:absolute; z-index:-1; left:0; right:0; pointer-events:none;
+}
+/* Longe: estrelas (noite) e véu alto (dia), esmaecendo para baixo. */
+html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::before {
+  top:0; height:70%;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 35%,transparent); mask-image:linear-gradient(180deg,#000 0,#000 35%,transparent);
+}
+html body:not([data-phase="day"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::before {
+  background:url("./assets/sky-stars.svg?v=stars-2") center top / 900px 1100px repeat; opacity:.8;
+}
+html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::before {
+  background:url("./assets/sky-cloud-veil.webp?v=clouds-9") 30% 70px / auto 300px repeat-x; opacity:.42;
+}
+/* Perto: nuvens no horizonte, embaixo, esmaecendo para cima. */
+html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::after {
+  bottom:0; height:min(46%,440px);
+  background:url("./assets/sky-cloud-veil.webp?v=clouds-9") 62% 100% / auto 420px repeat-x;
+  -webkit-mask-image:linear-gradient(0deg,#000 0,#000 45%,transparent); mask-image:linear-gradient(0deg,#000 0,#000 45%,transparent);
+}
+html body:not([data-phase="day"]) :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::after { opacity:.18; }
+html body[data-phase="day"] :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::after { opacity:.7; }
+/* A faixa do cabeçalho de Minha conta era a cor chapada do fundo: agora mostra o céu por trás (o brilho e as estrelas
+   do alto) e só escurece embaixo, onde o conteúdo passa. */
+html body:not([data-phase="day"]) #accountDialog .dialog-heading::before { background:linear-gradient(180deg,#141b3cd9 0,#121a3af2 55%,#111938d1); }
+html body[data-phase="day"] #accountDialog .dialog-heading::before { background:linear-gradient(180deg,#4fa8ded9 0,#55acdff2 55%,#5aafe0d1); }
+@supports (animation-timeline:scroll()) {
+  @media (prefers-reduced-motion:no-preference) {
+    html body :is(#cityDialog,#accountDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#whatsNewDialog,#sourcesDialog) { timeline-scope:--pluvia-dialog; overflow:clip; }
+    html body :is(#cityDialog,#accountDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#whatsNewDialog,#sourcesDialog) .dialog-scroll { scroll-timeline:--pluvia-dialog block; }
+    html body :is(#cityDialog,#accountDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#whatsNewDialog,#sourcesDialog)::before {
+      height:calc(70% + 30px); animation:pluvia-depth-far linear both; animation-timeline:--pluvia-dialog; animation-range:0px 900px;
+    }
+    html body :is(#cityDialog,#accountDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#whatsNewDialog,#sourcesDialog)::after {
+      bottom:-120px; height:calc(min(46%,440px) + 120px); animation:pluvia-depth-near linear both; animation-timeline:--pluvia-dialog; animation-range:0px 900px;
+    }
+  }
+}
+@keyframes pluvia-depth-far { from { translate:0 0; } to { translate:0 -30px; } }
+@keyframes pluvia-depth-near { from { translate:0 0; } to { translate:0 -120px; } }
+@media (forced-colors:active) {
+  html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::before,
+  html body :is(#cityDialog,#accountDialog,#radarDialog,#alertDetail,#shareWeatherDialog,#homeLayoutDialog,#brazilDialog,#monthDialog,#hourlyDetailDialog,#dailyDetailDialog,#changelogDialog,#termsDialog,#whatsNewDialog,#installPushDialog,#installDialog,#sourcesDialog)::after { content:none; }
+}
