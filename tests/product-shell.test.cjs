@@ -16,7 +16,8 @@ assert(!html.includes('municipalities.js'), 'municípios não podem bloquear o p
 assert.doesNotMatch(html, /<script[^>]+src=["'](?:\.\/)?auth\.js(?:\?|["'])/, 'não reintroduzir o controlador legado que bloqueava o painel público');
 assert(!html.includes('authDialog'), 'não reintroduzir a abertura obrigatória de login');
 assert.match(html, /id="citySearch"[^>]+aria-autocomplete="list"/);
-assert.match(html, /id="openCitySearch"[^>]+aria-label="Buscar ou trocar cidade"[^>]*><svg[\s\S]*?<\/svg><\/button>/);
+// Busca no topo (1.63): pílula com o texto visível como nome e a localização ao lado.
+assert.match(html, /<div class="home-search" id="homeSearch"><button id="openCitySearch" class="home-search-open" type="button" aria-haspopup="dialog" aria-controls="cityDialog"><svg[\s\S]*?<\/svg><span>Buscar cidade<\/span><\/button><button id="homeLocate" class="home-search-locate" type="button" aria-label="Usar minha localização"/);
 assert.match(p0, /setTimeout\([\s\S]+1500\)/, 'Manaus precisa abrir em até 1,5 s');
 assert.match(html, /sessionStorage/, 'a introdução deve aparecer uma vez por sessão');
 assert.doesNotMatch(html, /id="skipIntro"|class="skip-intro"/);
@@ -74,13 +75,13 @@ assert.match(styles, /footer \{ margin-top: 48px; padding-block: 28px/);
 assert.match(styles, /footer \{ margin-top: 28px; align-items:start;/);
 assert(!sw.slice(0, sw.indexOf('self.addEventListener("activate"')).includes('municipalities.js'), 'a lista completa não deve entrar no precache');
 assert.match(sw, /endsWith\("\/municipalities\.js"\)/, 'municípios devem usar cache imutável depois da primeira busca');
-assert.match(sw, /pluvia-panel-326/);
+assert.match(sw, /pluvia-panel-327/);
 assert.match(html, /redesign\.css\?v=panel-51/);
 assert.match(sw, /assets\/sky-cloud-veil\.webp/);
 assert.match(html, /id="weatherView" class="initial-loading" aria-busy="true"/);
 assert.match(html, /viewport-fit=cover/);
 assert.match(html, /styles\.css\?v=core-136/);
-assert.match(html, /modules\/weather-icon-system\.js\?v=modern-14/);
+assert.match(html, /modules\/weather-icon-system\.js\?v=modern-15/);
 assert.match(sw, /assets\/weather-icons\/conditions\/clear-day\.svg/);
 assert.match(html, /id="weatherMap"/);
 // Nowcast aposentado (outubro/2026): sem camada Estação nem grupo de camadas; o radar só tem Chuva.
@@ -106,8 +107,8 @@ assert.match(html, /modules\/met-merge\.js\?v=core-112/);
 assert.match(sw, /modules\/met-merge\.js\?v=core-112/);
 assert.match(html, /modules\/http-client\.js\?v=http-4/);
 assert.match(html, /modules\/weather-services\.js\?v=core-118/);
-assert.match(html, /modules\/weather-insights\.js\?v=core-79/);
-assert.match(html, /app\.js\?v=panel-153/);
+assert.match(html, /modules\/weather-insights\.js\?v=core-80/);
+assert.match(html, /app\.js\?v=panel-154/);
 assert.match(html, /<title>PLUVIA — O céu do Brasil agora \| Clima e previsão do tempo<\/title>/);
 assert.doesNotMatch(app, /document\.title\s*=/);
 assert.match(html, /modules\/radar-probe\.js\?v=core-72/);

@@ -89,6 +89,23 @@
     return {total:round(total, 1), text:`Choveu cerca de ${mm.toLocaleString("pt-BR")} mm nas últimas 24 h.`};
   }
 
+  // Cartão "Chance de chuva" da Home (1.63): a maior chance nas próximas `hours` horas. A chance do Open-Meteo vale
+  // para o intervalo que termina no horário, então a hora que começa em `start` é o índice start + 1. Exige pelo
+  // menos 2/3 das horas com leitura (lacuna nunca vira 0%); devolve também em que hora começa o intervalo da maior.
+  function rainChance(hourly, start, hours = 6) {
+    const values = hourly?.precipitation_probability, times = hourly?.time;
+    if (!Array.isArray(values) || !Number.isInteger(start) || start < 0) return null;
+    let best = null, at = null, valid = 0;
+    for (let index = start + 1; index <= start + hours && index < values.length; index += 1) {
+      const value = number(values[index]);
+      if (value === null || value < 0 || value > 100) continue;
+      valid += 1;
+      if (best === null || value > best) { best = value; at = Array.isArray(times) ? times[index - 1] ?? null : null; }
+    }
+    if (valid < Math.ceil(hours * 2 / 3)) return null;
+    return {max:Math.round(best), at};
+  }
+
   // Pôr do sol colorido costuma vir com nuvens médias/altas espalhadas e horizonte sem nuvens baixas.
   // Usa a cobertura por camada do modelo na hora mais próxima do pôr (valor instantâneo); a chance de
   // chuva é a do intervalo que começa nessa hora (i+1). É heurística qualitativa: ausência não vira frase.
@@ -475,6 +492,6 @@
     return {from:clock(times[first]), until, now:first === start, text:first === start ? `Proteção solar até ${until}` : `Proteção solar das ${clock(times[first])} às ${until}`};
   }
 
-  return {currentIndex, yesterday, pastRain, sunsetGlow, feelsLike, uv, uvWindow, pressure, rain, rainAnswer, rainGauge, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
+  return {currentIndex, yesterday, pastRain, rainChance, sunsetGlow, feelsLike, uv, uvWindow, pressure, rain, rainAnswer, rainGauge, tips, humidity, humidityLevel, particles, build, uniqueHighlights};
 });
 

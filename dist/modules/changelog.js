@@ -12,6 +12,14 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.63", date:"2026-11-09", title:"Tela principal no visual novo", items:[
+      "Buscar cidade agora fica no topo, numa barra com o botão de usar sua localização.",
+      "Logo abaixo da temperatura voltou a linha com sensação, máxima e mínima, e o \"Vai chover?\" virou uma pílula de destaque.",
+      "As leituras viraram cartões separados, com números maiores, e chegou o cartão Chuva, com a maior chance das próximas 6 horas. Tocar em Umidade, UV, Vento ou Chuva mostra aquela leitura hora a hora.",
+      "Próximas horas ganhou os modos Umidade e UV.",
+      "Os ícones do tempo nas horas e nos dias agora são desenhos em traço, com o sol em amarelo e a chuva em azul.",
+      "As gotas no vidro saíram da abertura, das páginas de privacidade e termos e do fundo das janelas."
+    ]},
     {version:"1.62", date:"2026-11-09", title:"Sol e Lua atrás das nuvens", items:[
       "A Lua não aparece mais como um círculo apagado através da nuvem: atrás de nuvem ela vira um brilho suave e borrado, mais fraco quanto mais grossa a nuvem, e só fica nítida numa brecha.",
       "O Sol também: atrás da nuvem ele acende a borda dela, e quando abre uma brecha ele vai aparecendo com brilho e raios."

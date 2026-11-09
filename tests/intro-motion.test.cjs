@@ -1,5 +1,5 @@
-// Intro "chuva no vidro" (1.58) com fundo fixo (1.60): sem céu dinâmico, o vidro é o LCP e entra no primeiro
-// desenho; letras para leitores de tela; movimento reduzido sem animação; arte dentro do orçamento.
+// Intro com fundo fixo (1.60), a gota da marca com ondas e as letras subindo (1.58). As gotas no vidro saíram na
+// 1.63 (o dono não gostou): nem na intro, nem nas páginas legais/404, nem no fundo das janelas.
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const html=fs.readFileSync('dist/index.html','utf8');
 const style=html.slice(html.indexOf('.pluvia-intro {'),html.indexOf('</style>',html.indexOf('.pluvia-intro {'))).replace(/\/\*[\s\S]*?\*\//g,'');
@@ -12,21 +12,17 @@ assert.match(style,/\.pluvia-intro \{[^}]*background:linear-gradient\(165deg,#10
 assert.match(sky,/\.pluvia-intro \{ background-image:linear-gradient\(165deg,#10142d,#080f22 85%\); background-color:#080f22; color:#f3f8ff; \}/);
 assert.doesNotMatch(sky,/\.pluvia-intro[^{]*\{[^}]*var\(--(?:sky-color|sky-base|intro-ink|intro-muted)/,'cores da intro não seguem mais o céu');
 
-// O vidro é o LCP: pré-carregado com prioridade alta e no CSS desde o primeiro desenho, com fade por animação.
-assert.match(html,/<link rel="preload" href="\/assets\/intro-glass\.webp\?v=glass-1" as="image" type="image\/webp" fetchpriority="high" \/>/);
-assert.match(style,/\.pluvia-intro \.intro-glass \{[^}]*background:url\("\/assets\/intro-glass\.webp\?v=glass-1"\)[^}]*animation:intro-glass-in/);
-assert.doesNotMatch(html,/glass\.dataset\.ready|data-ready\]/,'sem carregamento tardio');
-// Pré-carregado em toda abertura: precisa estar no precache, senão o reload sem rede recebe erro do SW.
-assert.ok(fs.readFileSync('dist/sw.js','utf8').includes('"./assets/intro-glass.webp?v=glass-1"'),'vidro da intro no PRECACHE');
-assert.match(style,/\.pluvia-intro\.is-leaving \.intro-glass \{ animation:none;/,'a animação de entrada não segura o vidro na saída');
+// Sem as gotas em lugar nenhum (nem pré-carregadas, nem no precache).
+for(const file of ['dist/index.html','dist/sw.js','dist/continuous.css','dist/legal.css','dist/modules/legal-page.js','dist/404.html','dist/termos/index.html','dist/privacidade/index.html'])
+  assert.doesNotMatch(fs.readFileSync(file,'utf8'),/intro-glass|sky-glass/,file);
+assert.ok(!fs.existsSync('dist/assets/intro-glass.webp'));
 
 // Letras animadas escondidas dos leitores de tela; o nome inteiro continua lá.
 assert.match(html,/<span class="intro-name" aria-hidden="true">(?:<span style="--i:\d">[A-Z]<\/span>){6}<\/span><span class="intro-sr">PLUVIA<\/span>/);
-assert.match(intro,/<span class="intro-glass" aria-hidden="true"><\/span>/);
 assert.match(intro,/<span class="intro-ripple" aria-hidden="true"><\/span>/);
 
-// Só transform/opacity nas animações novas.
-for(const name of ['intro-glass-in','intro-ripple','intro-letter']){
+// Só transform/opacity nas animações.
+for(const name of ['intro-ripple','intro-letter']){
   const frames=style.match(new RegExp(`@keyframes ${name} \\{([^@]*?)\\}\\s*(?:@|\\.|$)`));
   assert.ok(frames,name);
   const props=[...frames[1].matchAll(/([a-z-]+):/g)].map(m=>m[1]);
@@ -35,11 +31,4 @@ for(const name of ['intro-glass-in','intro-ripple','intro-letter']){
 // Movimento reduzido: tudo parado.
 const reduced=style.slice(style.indexOf('@media(prefers-reduced-motion:reduce)'));
 assert.match(reduced,/\.pluvia-intro \*,\.pluvia-intro::before,\.intro-ripple::before,\.intro-ripple::after \{ animation:none !important; \}/);
-
-// Arte gerada por script, dentro do orçamento, com alfa.
-assert.ok(fs.existsSync('scripts/generate-intro-glass.py'));
-const size=fs.statSync('dist/assets/intro-glass.webp').size;
-assert.ok(size<=150*1024,`intro-glass.webp com ${size} bytes`);
-const head=fs.readFileSync('dist/assets/intro-glass.webp').subarray(0,16);
-assert.equal(head.subarray(12,16).toString(),'VP8X','precisa de canal alfa');
-console.log('intro-glass ok');
+console.log('intro-motion ok');
