@@ -77,7 +77,8 @@ with sync_playwright() as p:
     assert page.evaluate("document.documentElement.dataset.clouds==='few' && document.body.dataset.clouds==='few'")
     assert ('quase limpo' if hour==22 else 'limpo') in page.locator('#condition').inner_text()
    stars=page.locator('.sky-effects > .sky-stars')
-   assert stars.count()==1 and page.locator('.intro-sky > .sky-stars').count()==1
+   # Desde a 1.60 a intro tem fundo fixo, sem céu (pedido do dono): estrelas só na Home.
+   assert stars.count()==1 and page.locator('#pluviaIntro .sky-stars').count()==0
    # Tile 1:1 em px reais, repetido por toda a cena (a máscara da cena esmaece embaixo).
    star=stars.evaluate("el=>{const s=getComputedStyle(el);return {opacity:+s.opacity,repeat:s.backgroundRepeat,size:s.backgroundSize,animation:getComputedStyle(el,'::after').animationName,height:el.offsetHeight,scene:el.parentElement.offsetHeight,width:el.offsetWidth};}")
    assert star['repeat']=='repeat' and star['size']=='900px 1100px' and star['animation']=='none' and star['height']==star['scene'] and star['width']==width+900,star
@@ -104,7 +105,7 @@ with sync_playwright() as p:
   for hour in [13,22]:
    mode.update(code=1,hour=hour);page.clock.set_fixed_time(datetime.datetime(2026,10,1,hour,tzinfo=datetime.timezone.utc)+datetime.timedelta(hours=4))
    page.goto(preview);page.wait_for_function("document.body.dataset.clouds==='few' && document.getElementById('pluviaIntro').hidden && !document.documentElement.classList.contains('awaiting-styles')")
-   for scene in ['home','intro']:
+   for scene in ['home']:  # a intro não tem mais céu (1.60)
     page.evaluate("intro=>{document.getElementById('pluviaIntro').hidden=!intro}",scene=='intro')
     # Os estilos do teste desligam a transição: com reduced-motion ela dura 0,01 ms, mas no Chromium
     # headless só termina quando algo força a atualização, e a captura via o texto ainda à mostra.

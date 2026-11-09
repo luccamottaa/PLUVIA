@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.60", date:"2026-11-09", title:"Chuva 3D e abertura fixa", items:[
+      "A chuva agora é em 3D: gotas perto e longe, em profundidades diferentes, inclinadas pelo vento e caindo na frente das nuvens.",
+      "A garoa fica fina e rala; a chuva forte, densa.",
+      "A abertura do PLUVIA ficou sempre igual: o azul-noite da marca com as gotas no vidro, sem o céu do momento. O céu da sua cidade aparece logo depois, na tela principal."
+    ]},
     {version:"1.59", date:"2026-11-09", title:"Páginas no visual novo", items:[
       "Política de Privacidade, Termos de uso e a página de endereço não encontrado ganharam o visual do app: o céu da hora, as gotas no vidro da abertura e os textos em cartões.",
       "Privacidade e Termos têm um índice no topo para pular direto para cada parte.",

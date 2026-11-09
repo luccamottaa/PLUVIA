@@ -20,7 +20,8 @@ assert.match(html, /id="openCitySearch"[^>]+aria-label="Buscar ou trocar cidade"
 assert.match(p0, /setTimeout\([\s\S]+1500\)/, 'Manaus precisa abrir em até 1,5 s');
 assert.match(html, /sessionStorage/, 'a introdução deve aparecer uma vez por sessão');
 assert.doesNotMatch(html, /id="skipIntro"|class="skip-intro"/);
-assert.match(html, /class="intro-sky"[\s\S]*?class="sky-sun"[\s\S]*?class="sky-clouds/);
+// Desde a 1.60 a intro não tem céu dinâmico (pedido do dono): só o fundo fixo e o vidro com gotas.
+assert.doesNotMatch(html.slice(html.indexOf('id="pluviaIntro"'),html.indexOf('</div>',html.indexOf('intro-tagline'))), /intro-sky|sky-sun|sky-clouds|sky-moon/);
 assert.doesNotMatch(html, /class="intro-sun"/);
 assert.match(html, /class="intro-wordmark"[\s\S]*?<strong><span class="intro-name" aria-hidden="true">(?:<span style="--i:\d">[A-Z]<\/span>){6}<\/span><span class="intro-sr">PLUVIA<\/span><\/strong>/);
 assert.doesNotMatch(html, /pluvia-footer-logo\.jpeg/);

@@ -11,13 +11,13 @@ const cities=[{id:'1302603',lat:-3.119,lon:-60.022,timezone:'America/Manaus'},
  {id:'3550308',lat:-23.55,lon:-46.63,timezone:'America/Sao_Paulo'},
  {id:'2611606',lat:-8.05,lon:-34.9,timezone:'America/Recife'}];
 
-test('intro, céu e card compartilham um disco e uma textura lunar',()=>{
+test('céu e card compartilham um disco e uma textura lunar',()=>{
   assert.equal([...html.matchAll(/id="moonDisc"/g)].length,1);
   assert.equal([...html.matchAll(/id="moonIcon"/g)].length,1);
-  // Reutilizações do mesmo disco: intro e céu; o cartão da Lua e o arco do Ciclo do dia (1.42.2: com o disco do
+  // Reutilizações do mesmo disco: o céu (a intro não tem mais céu desde a 1.60); o cartão da Lua e o arco do Ciclo do dia (1.42.2: com o disco do
   // céu, translúcido de propósito, a linha do arco aparecia através do lado escuro) usam o disco em alta
   // definição, com base escura e a mesma máscara de fase.
-  assert.equal([...html.matchAll(/href="#moonDisc"/g)].length,2);
+  assert.equal([...html.matchAll(/href="#moonDisc"/g)].length,1);
   assert.equal([...html.matchAll(/href="#moonDiscHd"/g)].length,2);
   // Textura do céu, textura do cartão e a luz do centro do disco do céu (1.40): todas sob a mesma máscara de fase.
   assert.equal([...html.matchAll(/mask="url\(#pluviaMoonPhase\)"/g)].length,3);

@@ -85,7 +85,9 @@
     <link rel="preconnect" href="https://api.open-meteo.com" crossorigin />
     <link rel="preconnect" href="https://air-quality-api.open-meteo.com" crossorigin />
     <link rel="preconnect" href="https://dszyyrcvwrpyiypwyvxe.supabase.co" crossorigin />
-    <!-- Nuvem do fundo da intro: é o LCP do PageSpeed e só seria descoberta depois de sky.css e dos scripts do céu. -->
+    <!-- Vidro com gotas da intro: desde a 1.60 a intro não tem céu, e ele é o maior elemento do primeiro desenho
+         (o LCP do PageSpeed). Sem prioridade alta, o LCP passaria para a Home depois da intro (≥ 2,6 s). A nuvem do
+         céu da Home continua pré-carregada, sem prioridade, para estar pronta quando a intro sai. -->
     <!-- Primeira visita (sem cidade salva, fora das páginas de cidade): a previsão de Manaus começa a baixar já aqui,
          em vez de esperar ~30 scripts até o p0 (~3 s com CPU 4× e 3G; 1.25). É um fetch guardado em
          PLUVIA_EARLY_FORECAST que o prefetchForecast do app consome uma única vez: um <link rel=preload> podia ser
@@ -103,11 +105,12 @@
         }
       } catch (_) {}
     </script>
-    <link rel="preload" href="/assets/sky-cloud-veil.webp?v=clouds-9" as="image" type="image/webp" fetchpriority="high" />
+    <link rel="preload" href="/assets/intro-glass.webp?v=glass-1" as="image" type="image/webp" fetchpriority="high" />
+    <link rel="preload" href="/assets/sky-cloud-veil.webp?v=clouds-9" as="image" type="image/webp" />
     <link rel="preload" href="/vendor/suncalc.js?v=sky-4" as="script" />
     <link rel="preload" href="/modules/moon-view.js?v=moon-8" as="script" />
     <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-24" as="script" />
-    <link rel="preload" href="/sky.css?v=sky-61" as="style" />
+    <link rel="preload" href="/sky.css?v=sky-62" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       /* fonts.css inline (o mesmo texto do arquivo, conferido por teste): era uma folha bloqueante a mais na cadeia crítica. */
@@ -147,8 +150,8 @@
   position:fixed; inset:0; z-index:100; min-height:100dvh;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:32px 24px; overflow:hidden; text-align:center;
-  background:var(--sky-color,linear-gradient(165deg,#10142d,#080f22));
-  background-color:var(--sky-base,#080f22);
+  background:linear-gradient(165deg,#10142d,#080f22 85%);
+  background-color:#080f22;
 }
 .pluvia-intro[hidden] { display:none !important; }
 .pluvia-intro::before {
@@ -159,12 +162,11 @@
 /* Saída (1.25): o nome e o slogan sobem e somem, e o céu da intro se funde com o da Home (é a mesma cena). */
 .pluvia-intro.is-leaving { opacity:0; pointer-events:none; transition:opacity .38s ease .07s; }
 .pluvia-intro.is-leaving :is(.intro-wordmark,.intro-tagline,.intro-kicker) { opacity:0; transform:translateY(-22px); transition:opacity .28s ease,transform .32s cubic-bezier(.4,0,.6,1); }
-.pluvia-intro .intro-sky { position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; pointer-events:none; }
 /* Marca (1.26.6, pedido do usuário: "alinhados certinhos centralizados"): o nome PLUVIA fica no centro da tela e
    o slogan embaixo tem exatamente a largura dele (justificado), começando e terminando nas mesmas linhas; a gota
    fica pendurada à esquerda, fora da caixa. O slogan acompanha o tamanho do nome (em do bloco). */
 .intro-lockup { position:relative; z-index:1; display:grid; font-size:clamp(2.8rem,12vw,5rem); }
-.intro-wordmark { position:relative; z-index:1; display:flex; justify-content:center; align-items:center; color:var(--intro-ink,#f3f8ff); font-size:1em; font-weight:900; line-height:1; letter-spacing:-.035em; }
+.intro-wordmark { position:relative; z-index:1; display:flex; justify-content:center; align-items:center; color:#7cc0ff; font-size:1em; font-weight:900; line-height:1; letter-spacing:-.035em; }
 .intro-wordmark strong { font-family:var(--font-brand,"Nunito",ui-rounded,system-ui,sans-serif); font-weight:900; }
 /* Marca nova (1.26, logo enviada pelo dono): a gota colorida cai e assenta com um leve amassado, depois o nome
    entra. Imagem com transparência (logo-mark.webp), só transform e opacity num elemento pequeno. */
@@ -185,38 +187,39 @@
 /* Na saída a animação de entrada sai, senão o "preenchimento" dela seguraria o texto e ele não subiria com o nome. */
 .pluvia-intro.is-leaving .intro-kicker { animation:none; }
 /* Intro "chuva no vidro" (1.58, pedido do dono: a anterior estava "sem graça"). Gotas num vidro na frente do céu
-   real (intro-glass.webp, arte gerada por scripts/generate-intro-glass.py, centro livre para a marca); a imagem só
-   entra quando já baixou (data-ready, posto pelo script depois do primeiro desenho), então nunca atrasa o LCP nem
-   aparece pela metade. A gota da marca cai no vidro e abre duas ondas; as letras sobem uma a uma; na saída o
+   (intro-glass.webp, arte gerada por scripts/generate-intro-glass.py, centro livre para a marca). Desde a 1.60 a
+   intro não tem céu e o vidro, pré-carregado com prioridade alta, é o LCP: entra no primeiro desenho e aparece
+   com um fade curto (já visível quando a imagem chega). A gota da marca cai no vidro e abre duas ondas; as letras sobem uma a uma; na saída o
    vidro desembaça (cresce e some) junto com o céu. Só transform/opacity. */
-.pluvia-intro .intro-glass { position:absolute; inset:-2% -1%; z-index:0; pointer-events:none; background:no-repeat center / cover; opacity:0; transform:translateY(-14px); transition:opacity .8s ease,transform 3s cubic-bezier(.2,.6,.3,1); }
-.pluvia-intro .intro-glass[data-ready] { background-image:url("/assets/intro-glass.webp?v=glass-1"); opacity:1; transform:none; }
-.pluvia-intro.is-leaving .intro-glass { opacity:0; transform:scale(1.07); transition:opacity .34s ease,transform .42s cubic-bezier(.4,0,.6,1); }
+.pluvia-intro .intro-glass { position:absolute; inset:-2% -1%; z-index:0; pointer-events:none; background:url("/assets/intro-glass.webp?v=glass-1") no-repeat center / cover; animation:intro-glass-in 3s cubic-bezier(.2,.6,.3,1) both; }
+/* Na saída a animação de entrada sai (senão ela seguraria o vidro) e o vidro cresce enquanto a intro some. */
+.pluvia-intro.is-leaving .intro-glass { animation:none; transform:scale(1.07); transition:transform .42s cubic-bezier(.4,0,.6,1); }
 .intro-ripple { position:absolute; right:100%; top:calc(50% - clamp(52px,14vw,86px) / 2); width:clamp(52px,14vw,86px); height:clamp(52px,14vw,86px); margin-right:8px; pointer-events:none; }
-.intro-ripple::before,.intro-ripple::after { content:""; position:absolute; inset:0; border:2px solid color-mix(in srgb,var(--intro-ink,#f3f8ff) 70%,transparent); border-radius:50%; opacity:0; animation:intro-ripple 1s cubic-bezier(.2,.7,.3,1) .62s both; }
+.intro-ripple::before,.intro-ripple::after { content:""; position:absolute; inset:0; border:2px solid #f3f8ffb3; border-radius:50%; opacity:0; animation:intro-ripple 1s cubic-bezier(.2,.7,.3,1) .62s both; }
 .intro-ripple::after { animation-delay:.8s; }
 .intro-wordmark strong { animation:none; }
 .intro-name { display:inline-flex; }
 .intro-name > span { display:inline-block; animation:intro-letter .62s cubic-bezier(.2,.9,.25,1.15) calc(.66s + var(--i) * 55ms) both; }
 .intro-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
-.pluvia-intro[data-quick] .intro-glass { transition:opacity .3s ease,transform 1s cubic-bezier(.2,.6,.3,1); }
+.pluvia-intro[data-quick] .intro-glass { animation-duration:1s; }
 .pluvia-intro[data-quick] .intro-ripple::before { animation-duration:.6s; animation-delay:.3s; }
 .pluvia-intro[data-quick] .intro-ripple::after { animation-duration:.6s; animation-delay:.4s; }
 .pluvia-intro[data-quick] .intro-name > span { animation-duration:.4s; animation-delay:calc(.26s + var(--i) * 30ms); }
+@keyframes intro-glass-in { 0% { opacity:0; transform:translateY(-14px); } 15% { opacity:1; } 100% { opacity:1; transform:none; } }
 @keyframes intro-ripple { 0% { opacity:.75; transform:scale(.45); } 100% { opacity:0; transform:scale(2.7); } }
 @keyframes intro-letter { 0% { opacity:0; transform:translateY(.45em) scale(.92); } 60% { opacity:1; } 100% { opacity:1; transform:none; } }
 @keyframes intro-horizon { from { opacity:.4; transform:scale(1.05); } to { opacity:1; transform:scale(1); } }
 @keyframes intro-fall { 0% { opacity:0; transform:translateY(-150%) scaleY(1.1); } 20% { opacity:1; } 80% { transform:translateY(0) scaleY(1.1); } 90% { transform:translateY(0) scale(1.08,.9); } 100% { opacity:1; transform:none; } }
 @keyframes intro-word-in { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:none; } }
 @keyframes intro-caption-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-@media(prefers-reduced-motion:reduce) { .pluvia-intro *,.pluvia-intro::before,.intro-ripple::before,.intro-ripple::after { animation:none !important; } .pluvia-intro .intro-glass { transition:none !important; transform:none !important; } .pluvia-intro.is-leaving,.pluvia-intro.is-leaving * { transform:none !important; } }
+@media(prefers-reduced-motion:reduce) { .pluvia-intro *,.pluvia-intro::before,.intro-ripple::before,.intro-ripple::after { animation:none !important; } .pluvia-intro .intro-glass { transform:none !important; } .pluvia-intro.is-leaving,.pluvia-intro.is-leaving * { transform:none !important; } }
     </style>
     <script src="/modules/city-time.js?v=time-2"></script>
     <script src="/vendor/suncalc.js?v=sky-4"></script>
     <script src="/modules/moon-view.js?v=moon-8"></script>
     <script src="/modules/sky-atmosphere.js?v=sky-24"></script>
-    <script src="/modules/volumetric-clouds.js?v=volume-7" defer></script><script src="/modules/compact-header.js?v=compact-6" defer></script><script src="/modules/glass-touch.js?v=glass-2" defer></script><script src="/modules/glass-segment.js?v=glass-seg-1" defer></script><script src="/modules/text-size.js?v=text-size-1" defer></script><script src="/modules/sky-events.js?v=sky-events-3" defer></script><script src="/modules/sun-table.js?v=sun-table-1" defer></script><script src="/modules/eclipses.js?v=eclipses-3" defer></script>
-    <link rel="stylesheet" href="/sky.css?v=sky-61" />
+    <script src="/modules/volumetric-clouds.js?v=volume-8" defer></script><script src="/modules/compact-header.js?v=compact-6" defer></script><script src="/modules/glass-touch.js?v=glass-2" defer></script><script src="/modules/glass-segment.js?v=glass-seg-1" defer></script><script src="/modules/text-size.js?v=text-size-1" defer></script><script src="/modules/sky-events.js?v=sky-events-3" defer></script><script src="/modules/sun-table.js?v=sun-table-1" defer></script><script src="/modules/eclipses.js?v=eclipses-3" defer></script>
+    <link rel="stylesheet" href="/sky.css?v=sky-62" />
     <script>
       /* O antigo modo seguro (céu parado depois de uma queda) saiu a pedido: limpa as marcas que ele deixou. */
       try { localStorage.removeItem("pluvia-boot-pending"); localStorage.removeItem("pluvia-safe-until"); } catch (e) {}
@@ -255,7 +258,6 @@
     <a class="skip-link" href="#agora">Ir para o clima</a>
     <div id="pluviaIntro" class="pluvia-intro">
       <p class="intro-kicker">Feito no Norte</p>
-      <div class="intro-sky" aria-hidden="true"><span class="sky-twilight"></span><span class="sky-stars"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
       <span class="intro-glass" aria-hidden="true"></span>
       <div class="intro-lockup"><div class="intro-wordmark"><span class="intro-ripple" aria-hidden="true"></span><span class="intro-drop" aria-hidden="true"></span><strong><span class="intro-name" aria-hidden="true"><span style="--i:0">P</span><span style="--i:1">L</span><span style="--i:2">U</span><span style="--i:3">V</span><span style="--i:4">I</span><span style="--i:5">A</span></span><span class="intro-sr">PLUVIA</span></strong></div>
       <p class="intro-tagline">O céu do Brasil agora</p></div>
@@ -290,14 +292,6 @@
         if (seen) { intro.hidden = true; return; }
         if (quick) intro.dataset.quick = "1";
         var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        // Vidro com gotas: baixado só depois do primeiro desenho (a nuvem da intro é o LCP) e mostrado já pronto.
-        var glass = intro.querySelector(".intro-glass");
-        if (glass && window.requestAnimationFrame) requestAnimationFrame(function () {
-          var img = new Image();
-          img.decoding = "async";
-          img.onload = function () { if (!intro.dataset.done) glass.dataset.ready = "1"; };
-          img.src = "/assets/intro-glass.webp?v=glass-1";
-        });
         // A intro serve de tela de carregamento: some depois do tempo mínimo e da primeira consulta
         // (previsão e INMET, com sucesso ou falha), para a Home já abrir com os dados novos. Internet lenta
         // não prende ninguém: no máximo 4,6 s (ou 1,5 s com movimento reduzido).
