@@ -15,7 +15,7 @@ test('cartões de Minha conta: valor ao lado do título resume o estado atual',(
 test('Minha conta: cada assunto num cartão que abre e fecha, sem mudar ids e campos usados pelo código',()=>{
   const html=fs.readFileSync('dist/index.html','utf8'),css=fs.readFileSync('dist/continuous.css','utf8'),js=fs.readFileSync('dist/notifications.js','utf8'),account=fs.readFileSync('dist/account.js','utf8');
   // Perfil (1.50): foto, nome e e-mail ficam no summary do cartão de edição, com os mesmos ids.
-  assert.match(html,/<details class="account-group account-identity" id="accountProfileEdit"><summary><span class="profile-identity"><span id="profileAvatar"[^>]*>P<\/span><span class="profile-text"><strong id="profileDisplayName">Sua conta<\/strong><span id="accountIdentity"><\/span><\/span><\/span><small class="account-group-value">Editar<\/small><\/summary>/);
+  assert.match(html,/<details class="account-group account-identity" id="accountProfileEdit"><summary><span class="profile-identity"><span id="profileAvatar"[^>]*>P<\/span><span class="profile-text"><strong id="profileDisplayName">Sua conta<\/strong><span id="accountIdentity"><\/span><\/span><\/span><small class="account-group-value">Editar perfil<\/small><\/summary>/);
   for(const id of ['notificationTypesGroup','notificationSummariesGroup','notificationTimingGroup','notificationCitiesGroup','notificationLocationsGroup','notificationDevicesGroup'])
     assert.match(html,new RegExp(`<details class="account-group" id="${id}"><summary><span class="account-group-title">`),id);
   for(const key of ['types','summaries','timing','cities','locations','devices']) assert.match(html,new RegExp(`data-account-summary="${key}"`),key);
