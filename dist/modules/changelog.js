@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.64.1", date:"2026-11-09", title:"Brasil agora em 3D corrigido", items:[
+      "No iPhone, as temperaturas do mapa 3D apareciam longe das capitais e empilhadas. Agora cada temperatura fica em cima da sua capital, inclusive enquanto o mapa gira, e o mapa ficou menos inclinado para os números não se amontoarem."
+    ]},
     {version:"1.64", date:"2026-11-09", title:"Raio, céu e Brasil em 3D", items:[
       "O raio da trovoada agora é desenhado dentro das nuvens 3D: nítido embaixo, borrado e acendendo a nuvem por dentro onde a atravessa, com galho e zigue-zague.",
       "Ao rolar a tela, o céu ganhou profundidade: estrelas, Sol e Lua quase parados, a nuvem de trás um pouco mais rápida e a da frente mais ainda.",
