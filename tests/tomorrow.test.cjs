@@ -5,14 +5,28 @@ const {stripTypeScriptTypes}=require('node:module');
 
 function load(){
   const src=fs.readFileSync('supabase/functions/_shared/tomorrow.js','utf8').replace(/^export /gm,'');
-  return vm.runInNewContext(src+';({tomorrowUrl,rainSeries,createTomorrowClient,MAX_PER_RUN,CACHE_MS,COOLDOWN_MS})',{URL,URLSearchParams,AbortController,setTimeout,clearTimeout,Date,Map,Number,Math,Array,Boolean});
+  return vm.runInNewContext(src+';({tomorrowUrl,rainSeries,createTomorrowClient,MAX_PER_RUN,CACHE_MS,COOLDOWN_MS,HORIZON_H})',{URL,URLSearchParams,AbortController,setTimeout,clearTimeout,Date,Map,Number,Math,Array,Boolean,console:{warn:(...args)=>warnings.push(args)}});
 }
+const warnings=[];
 const t=load();
 const t0=Date.parse('2026-11-09T12:00:00Z')/1000;
 const times=Array.from({length:6},(_,i)=>t0+i*3600);
 const point=(offsetH,values)=>({time:new Date((t0+offsetH*3600)*1000).toISOString(),values});
+const interval=(offsetH,values)=>({startTime:new Date((t0+offsetH*3600)*1000).toISOString(),values});
+const timelines=(...intervals)=>({data:{timelines:[{timestep:'1h',startTime:'',endTime:'',intervals}]}});
 
-test('a hora do Tomorrow.io que começa em T vale para o intervalo do Open-Meteo que termina em T+1h',()=>{
+test('Timelines: o intervalo que começa em T vale para o intervalo do Open-Meteo que termina em T+1h',()=>{
+  const json=timelines(interval(0,{rainAccumulation:0}),interval(1,{rainAccumulation:2.4}),interval(2,{precipitationIntensity:0.7}),interval(3,{rainAccumulation:'1'}));
+  assert.deepEqual(t.rainSeries(json,times),[null,0,2.4,0.7,null,null]);
+});
+
+test('Timelines sem a timeline de 1h ou com valores inválidos não vira série',()=>{
+  assert.equal(t.rainSeries({data:{timelines:[{timestep:'1d',intervals:[interval(0,{rainAccumulation:3})]}]}},times),null);
+  assert.equal(t.rainSeries(timelines(interval(0,{rainAccumulation:-1}),interval(1,{})),times),null);
+  assert.equal(t.rainSeries({data:{timelines:'x'}},times),null);
+});
+
+test('formato antigo do /v4/weather/forecast continua aceito',()=>{
   const json={timelines:{hourly:[point(0,{rainAccumulation:0}),point(1,{rainAccumulation:2.4}),point(2,{precipitationIntensity:0.7}),point(3,{rainAccumulation:'1'})]}};
   assert.deepEqual(t.rainSeries(json,times),[null,0,2.4,0.7,null,null]);
 });
@@ -23,12 +37,27 @@ test('sem pontos válidos não há série (nunca vira "seco")',()=>{
   assert.equal(t.rainSeries(null,times),null);
 });
 
-test('URL leva coordenadas arredondadas e a chave só como parâmetro',()=>{
-  const url=new URL(t.tomorrowUrl(-3.119,-60.0217,'k'));
-  assert.equal(url.origin+url.pathname,'https://api.tomorrow.io/v4/weather/forecast');
+test('URL do Timelines: só os campos de chuva, hora cheia e horizonte curto',()=>{
+  const now=Date.parse('2026-11-09T12:37:15Z');
+  const url=new URL(t.tomorrowUrl(-3.119,-60.0217,'k',now));
+  assert.equal(url.origin+url.pathname,'https://api.tomorrow.io/v4/timelines');
   assert.equal(url.searchParams.get('location'),'-3.119,-60.022');
+  assert.equal(url.searchParams.get('fields'),'rainAccumulation,precipitationIntensity');
   assert.equal(url.searchParams.get('timesteps'),'1h');
+  assert.equal(url.searchParams.get('units'),'metric');
+  assert.equal(url.searchParams.get('startTime'),'2026-11-09T12:00:00.000Z','começa na hora cheia, não no minuto da consulta');
+  assert.equal(Date.parse(url.searchParams.get('endTime'))-Date.parse(url.searchParams.get('startTime')),t.HORIZON_H*3600_000);
+  assert.ok(t.HORIZON_H>=48,'cobre as 48 h da consulta dos outros modelos');
   assert.equal(url.searchParams.get('apikey'),'k');
+});
+
+test('resposta recusada (400) registra só o status, nunca a URL com a chave',async()=>{
+  warnings.length=0;
+  const client=t.createTomorrowClient({key:'segredo',fetchImpl:async()=>({status:400,ok:false,json:async()=>({})})});
+  client.startRun();
+  assert.equal(await client.forecast(-3,-60),null);
+  assert.equal(JSON.stringify(warnings),JSON.stringify([['tomorrow unavailable',{status:400}]]));
+  assert.doesNotMatch(JSON.stringify(warnings),/segredo|api\.tomorrow/);
 });
 
 test('sem chave não consulta nada',async()=>{
@@ -41,7 +70,7 @@ test('sem chave não consulta nada',async()=>{
 
 test('cache por coordenada, teto por rodada e pausa depois do 429',async()=>{
   let now=0,calls=0,status=200;
-  const client=t.createTomorrowClient({key:'k',now:()=>now,fetchImpl:async()=>{calls++;return {status,ok:status===200,json:async()=>({timelines:{hourly:[]}})};}});
+  const client=t.createTomorrowClient({key:'k',now:()=>now,fetchImpl:async()=>{calls++;return {status,ok:status===200,json:async()=>timelines()};}});
   client.startRun();
   await client.forecast(-3.1,-60);
   await client.forecast(-3.1,-60); // cache
