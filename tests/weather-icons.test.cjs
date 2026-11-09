@@ -82,14 +82,14 @@ test('família completa fica disponível offline e diferencia precipitação', (
   assert.notEqual(icons.assetFor(51), icons.assetFor(61));
   assert.notEqual(icons.assetFor(61), icons.assetFor(65));
   assert.equal(icons.assetFor(66), 'sleet.svg');
-  assert.match(icons.markup(95, true, {decorative:false}), /alt="Trovoadas"/);
+  assert.match(icons.markup(95, true, {decorative:false, style:'image'}), /alt="Trovoadas"/);
   assert.match(icons.namedIcon('inexistente').src, /fallback\/weather-unknown.svg/);
 });
 
 test('blocos de leitura da Home usam ícones em traço, no mesmo estilo dos títulos de seção', () => {
   const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
   const names = [...html.matchAll(/data-weather-icon-name="([a-z-]+)" data-weather-icon-style="line"/g)].map(m => m[1]);
-  assert.deepEqual(names, ['feels-like','temperature','visibility','humidity','wind-speed','pressure','uv-index','air-quality','radar','sun-cycle'], 'blocos de leitura e, desde a 1.37.2, os títulos de Chuva na região e Ciclo do dia');
+  assert.deepEqual(names, ['feels-like','temperature','visibility','humidity','wind-speed','pressure','rain-chance','uv-index','air-quality','radar','sun-cycle'], 'blocos de leitura (Chuva desde a 1.63) e, desde a 1.37.2, os títulos de Chuva na região e Ciclo do dia');
   for (const name of ['river','fire','temperature']) assert.match(icons.lineMarkup(name), /^<svg/, name + ' continua no conjunto');
   for (const name of names) {
     const svg = icons.lineMarkup(name);
@@ -102,4 +102,23 @@ test('blocos de leitura da Home usam ícones em traço, no mesmo estilo dos tít
   icons.hydrate({ querySelectorAll: () => [line, colored] });
   assert.match(line.innerHTML, /^<svg class="metric-line-icon"/);
   assert.match(colored.innerHTML, /<img class="metric-weather-icon"[^>]+rain-probability\.svg/, 'demais consumidores continuam com os ícones coloridos');
+});
+
+test('condições em traço (1.63): mesmo mapeamento WMO, uma por nome, acessível e sem cor inline', () => {
+  const names = new Set();
+  for (const code of [0,1,2,3,45,48,51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99]) for (const day of [true,false]) {
+    const svg = icons.markup(code, day);
+    const name = icons.conditionIconName(code, day);
+    names.add(name);
+    assert.match(svg, new RegExp(`^<svg class="weather-icon weather-line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-weather-icon="${name}" data-icon-style="line">`), `${code}/${day}`);
+    assert.ok(icons.LINE_CONDITIONS[name], `sem glifo para ${name}`);
+    assert.doesNotMatch(svg, / fill="| stroke="| style="|<img/, 'cor e traço vêm do CSS');
+  }
+  for (const name of names) assert.ok(icons.ASSETS.conditions?.[name] || icons.ASSET_ALIASES?.[name] || Object.values(icons.ASSETS).some(group => group[name]), `glifo sem ilustração equivalente: ${name}`);
+  assert.notEqual(icons.markup(51), icons.markup(61), 'garoa diferente de chuva');
+  assert.notEqual(icons.markup(61), icons.markup(65), 'chuva diferente de chuva forte');
+  assert.doesNotMatch(icons.markup(95), /wl-rain/, 'trovoada 95 não inventa chuva');
+  assert.match(icons.markup(95, true, {decorative:false}), /role="img" aria-label="Trovoadas"/);
+  assert.match(icons.markup(3, true, {className:'x"><script>'}), /^<svg class="xscript weather-line-icon"/, 'classe sanitizada');
+  assert.match(icons.markup(0, false), /data-weather-icon="clear-night"/);
 });

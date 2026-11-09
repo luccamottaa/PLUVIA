@@ -76,10 +76,11 @@ with sync_playwright() as p:
             page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
             # Espera a imagem decodificada e o fade da faixa terminar: no WebKit da CI, com a página ainda
             # aparecendo (opacidade perto de 0), as duas capturas saíam iguais.
-            page.wait_for_function("(() => { const img = document.querySelector('.compact-head[data-on] .compact-icon img');"
-                                   " return img?.complete && img.naturalWidth > 0"
+            # Desde a 1.63 o ícone é SVG em traço (sem decodificação); a ilustração <img> continua aceita.
+            page.wait_for_function("(() => { const img = document.querySelector('.compact-head[data-on] .compact-icon > :is(img,svg)');"
+                                   " return img && (img.tagName.toLowerCase() === 'svg' || (img.complete && img.naturalWidth > 0))"
                                    " && getComputedStyle(document.querySelector('.compact-head')).opacity === '1'; })()", timeout=10000)
-            page.evaluate("document.querySelector('.compact-icon img').decode().catch(() => {})")
+            page.evaluate("document.querySelector('.compact-icon img')?.decode().catch(() => {})")
             page.wait_for_timeout(400)
             box = page.evaluate("""() => { const r = document.querySelector('.compact-icon').getBoundingClientRect();
               return {x:r.x, y:r.y, width:r.width, height:r.height}; }""")
@@ -89,9 +90,9 @@ with sync_playwright() as p:
             frames = "new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))"
             icon = page.locator('.compact-icon')
             shown = icon.screenshot()
-            page.evaluate("document.querySelector('.compact-icon img').style.visibility='hidden'"); page.evaluate(frames)
+            page.evaluate("document.querySelector('.compact-icon > :is(img,svg)').style.visibility='hidden'"); page.evaluate(frames)
             hidden = icon.screenshot()
-            page.evaluate("document.querySelector('.compact-icon img').style.visibility=''"); page.evaluate(frames)
+            page.evaluate("document.querySelector('.compact-icon > :is(img,svg)').style.visibility=''"); page.evaluate(frames)
             assert shown != hidden, 'ícone da pílula não foi pintado'
             page.evaluate("window.scrollTo(0, 0)"); page.wait_for_timeout(300)
         # Conta deslogada: ícone com alvo de 44 px e nome acessível.

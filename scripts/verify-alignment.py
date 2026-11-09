@@ -194,11 +194,15 @@ with sync_playwright() as p:
    if len(parts)==2:
     if width>720:assert abs(parts[0]['centerY']-parts[1]['centerY'])<=1,parts
     else:assert parts[1]['y']>=parts[0]['bottom']-1,parts
-  metrics=page.evaluate("()=>[...document.querySelectorAll('.metrics .uv-metric')].map(el=>[...el.querySelectorAll(':scope > .metric-head,:scope > strong,:scope > .wind-reading')].map(node=>{const r=node.getBoundingClientRect();return r.y+r.height/2}))")
-  for pair in metrics:
-   assert len(pair)==2 and abs(pair[0]-pair[1])<=1,pair
+  # Desde a 1.63 o UV é um cartão empilhado como os outros (título, número, escala, nota), ao lado do cartão Chuva:
+  # o número fica abaixo do título e na mesma linha do número da chance de chuva.
+  uv=page.evaluate("()=>{const box=s=>{const n=document.querySelector(s);if(!n)return null;const r=n.getBoundingClientRect();return {y:r.y,bottom:r.bottom,center:r.y+r.height/2}};return {head:box('.metrics .uv-metric > .metric-head'),value:box('.metrics .uv-metric > strong'),rain:box('#rainChanceValue')}}")
+  assert uv['value']['y']>=uv['head']['bottom']-1,uv
+  if uv['rain'] and width<=720:assert abs(uv['value']['center']-uv['rain']['center'])<=2,uv
   # Leituras em grade: tiles da mesma fileira compartilham as linhas de rótulo, valor e nota, sem sobreposição.
-  tiles=page.evaluate("""()=>[...document.querySelectorAll('.metrics .metric-sky')].map(el=>{
+  # O cartão Chuva (1.63) divide a fileira com o UV, conferido acima; os seis blocos da 1.17 formam as fileiras.
+  assert page.locator('.metrics .rain-chance-metric').count()==1
+  tiles=page.evaluate("""()=>[...document.querySelectorAll('.metrics .metric-sky:not(.rain-chance-metric)')].map(el=>{
    const center=node=>{const r=node.getBoundingClientRect();return r.y+r.height/2};const box=el.getBoundingClientRect();
    return {top:Math.round(box.y),left:box.x,right:box.right,head:center(el.querySelector(':scope > .metric-head')),value:center(el.querySelector(':scope > strong,:scope > .wind-reading')),note:el.querySelector(':scope > small').getBoundingClientRect().y};
   })""")

@@ -566,8 +566,9 @@ function showHourlyHint() {
 // Modos da fileira (1.26, pedido do usuário, como no Apple Weather): Condição (ícone e temperatura), Chuva (barra
 // de intensidade e chance) e Vento (velocidade e direção). A escolha fica neste aparelho; a cidade nova repinta no
 // mesmo modo. As barras de chuva são proporcionais só ao volume (raiz de mm/h até 10, com marcas em 2,5 e 7,5),
-// e a chance fica num rótulo separado, nunca aumentando a barra.
-const HOURLY_MODES = ["conditions", "rain", "wind"];
+// e a chance fica num rótulo separado, nunca aumentando a barra. Umidade e UV entraram na 1.63 (Home no visual do
+// protótipo, pedido do dono): barra pela umidade relativa (0–100%) e pelo índice UV (até 11, na cor da faixa da OMS).
+const HOURLY_MODES = ["conditions", "rain", "humidity", "uv", "wind"];
 let hourlyMode = "conditions", lastHourly = null;
 try { const saved = globalThis.localStorage?.getItem("pluvia-hourly-mode"); if (HOURLY_MODES.includes(saved)) hourlyMode = saved; } catch {}
 const rainFill = mm => Math.sqrt(Math.min(Math.max(mm, 0), 10) / 10);
@@ -584,6 +585,17 @@ function hourlyItem(mode, rows, i, p, reading, daily) {
     const fill = known ? Math.round(rainFill(mm) * 100) : 0;
     const chance = Number.isFinite(probability) ? `${weatherIcons.markupName("rain-probability", {className:"rain-metric-icon"})}${rain}` : "—";
     return `${open}<span class="peek-bar" data-known="${known ? 1 : 0}"><i style="height:${fill}%"></i></span><strong class="peek-chance" data-low="${Number(probability) < 20 ? 1 : 0}">${chance}</strong><span class="peek-extra">${extra}</span></button>`;
+  }
+  if (mode === "humidity") {
+    const value = Number.isFinite(reading.humidity) ? Math.round(reading.humidity) : null;
+    return `${open}<span class="peek-bar" data-known="${value === null ? 0 : 1}"><i style="height:${value ?? 0}%"></i></span><strong>${value ?? "--"}<span class="peek-pct">%</span></strong><span class="peek-extra">. Umidade ${value === null ? "indisponível" : `${value}%`}. Ver detalhes</span></button>`;
+  }
+  if (mode === "uv") {
+    // Valor ausente fica "--" com a barra esmaecida; nunca vira zero nem "Baixo".
+    const uv = Number.isFinite(reading.uv) ? Math.round(reading.uv) : null;
+    const level = uv === null ? "unknown" : uv < 3 ? "low" : uv < 6 ? "moderate" : uv < 8 ? "high" : uv < 11 ? "very-high" : "extreme";
+    const word = uv === null ? "" : `, ${uvLabel(uv).split(" — ")[0].toLowerCase()}`;
+    return `${open}<span class="peek-bar" data-known="${uv === null ? 0 : 1}" data-uv="${level}"><i style="height:${uv === null ? 0 : Math.round(Math.min(uv, 11) / 11 * 100)}%"></i></span><strong>${uv ?? "--"}</strong><span class="peek-extra">. Índice UV ${uv ?? "indisponível"}${word}. Ver detalhes</span></button>`;
   }
   if (mode === "wind") {
     const speed = Number.isFinite(reading.wind) ? Math.round(reading.wind) : null;
@@ -634,6 +646,7 @@ function setHourlyMode(mode) {
   hourlyMode = mode;
   try { localStorage.setItem("pluvia-hourly-mode", mode); } catch {}
   for (const button of globalThis.document?.querySelectorAll?.(".hourly-modes [data-mode]") || []) button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
+  markHourlyTiles();
   // Como no app Tempo (vídeos do usuário, 1.26.7): a fileira antiga some e a nova aparece num fade curto, no mesmo
   // lugar e com a mesma altura nos três modos (a seção de baixo não pula). View Transition só com a fileira nomeada,
   // como em slideToCity; sem a API ou com movimento reduzido, troca na hora.
@@ -658,6 +671,25 @@ globalThis.document?.addEventListener?.("click", event => {
   const button = event.target?.closest?.(".hourly-modes [data-mode]");
   if (button) setHourlyMode(button.dataset.mode);
 });
+// Cartões de leitura (1.63, como no protótipo): tocar em Umidade, UV, Vento ou Chance de chuva mostra aquela
+// leitura nas Próximas horas e leva até a fileira. O cartão do modo aberto fica marcado (data-active). É atalho de
+// ponteiro, como o mapa do radar: pelo teclado e leitor de tela o caminho é o seletor de modos (role=button no cartão
+// apagaria a bússola do vento, que tem nome próprio).
+function markHourlyTiles() {
+  for (const tile of globalThis.document?.querySelectorAll?.(".metrics [data-tile-mode]") || []) {
+    if (tile.dataset.tileMode === hourlyMode) tile.dataset.active = ""; else delete tile.dataset.active;
+  }
+}
+function openTileMode(tile) {
+  setHourlyMode(tile.dataset.tileMode);
+  markHourlyTiles();
+  const reduce = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  $("chuva")?.scrollIntoView?.({behavior:reduce ? "auto" : "smooth", block:"start"});
+}
+globalThis.document?.addEventListener?.("click", event => {
+  const tile = event.target?.closest?.(".metrics [data-tile-mode]");
+  if (tile && !event.target.closest("a,button,summary,details")) openTileMode(tile);
+});
 function renderHourly(rows, start, daily, raw) {
   lastHourly = [rows, start, daily, raw];
   const readings = new Map(Array.from({length:24}, (_, i) => start + i).filter(i => i < rows.length)
@@ -666,6 +698,7 @@ function renderHourly(rows, start, daily, raw) {
   const peek = $("hourlyPeek");
   for (const button of globalThis.document?.querySelectorAll?.(".hourly-modes [data-mode]") || []) button.setAttribute("aria-pressed", String(button.dataset.mode === hourlyMode));
   if (peek) peek.dataset.mode = hourlyMode;
+  markHourlyTiles();
   if (peek) {
     // As 24 horas ficam na mesma fileira, arrastando para o lado (antes eram 6 e o resto só no gráfico).
     // Cidade nova volta ao começo; uma atualização da mesma cidade mantém a posição da rolagem.
@@ -1070,14 +1103,16 @@ function formatUpdateTime(at) {
 
 // Dicas contextuais: somem quando não há nada para fazer. Texto entra como textContent.
 const TIP_ICONS = {wind:"wind-speed", heat:"feels-like", humidity:"humidity", air:"air-quality", uv:"uv-index"};
-// Desde a 1.23.2 o cartão de dicas sempre aparece: a primeira linha é o "Vai chover?" (#rainAnswer, saiu do topo a
-// pedido do usuário). Só a lista das demais dicas some quando não há nada a fazer.
+// De 1.23.2 a 1.62 o "Vai chover?" (#rainAnswer) era a primeira linha deste cartão; desde a 1.63 (Home no visual do
+// protótipo, pedido do dono) ele é a pílula do topo, e o cartão de dicas inteiro some quando não há dica.
 function renderTips(list) {
   const target = $("tipsList");
   if (!target) return;
   const items = Array.isArray(list) ? list : [];
-  const appearing = target.hidden && items.length > 0;
+  const section = $("tips");
+  const appearing = (target.hidden || section?.hidden) && items.length > 0;
   target.hidden = items.length === 0;
+  if (section) section.hidden = items.length === 0;
   if (!items.length) { target.textContent = ""; return; }
   target.replaceChildren(...items.map(tip => {
     const item = document.createElement("li");
@@ -1473,13 +1508,23 @@ function dataAge(at) {
   return `há ${hours}h`;
 }
 
-// Linha "Sensação · Máx. · Mín." do topo: saiu na 1.23.2 (pedido do usuário, repetia os blocos de Sensação e
-// Máx./mín.); sem #heroRange no HTML a função não faz nada. Ausente nunca vira "--°".
+// Linha "Sensação · Máx. · Mín." do topo: saiu na 1.23.2 e voltou na 1.63 (Home no visual do protótipo, pedido do
+// dono); sem #heroRange no HTML a função não faz nada. Ausente nunca vira "--°".
 function setHeroRange(high, low, feels) {
   const node = $("heroRange");
   if (!node) return;
   const parts = [Number.isFinite(feels) ? `Sensação ${fmt(feels)}°` : "", Number.isFinite(high) ? `Máx. ${fmt(high)}°` : "", Number.isFinite(low) ? `Mín. ${fmt(low)}°` : ""].filter(Boolean);
   node.textContent = parts.join(" · ");
+}
+
+// Cartão "Chance de chuva" (1.63, Home no visual do protótipo): a maior chance nas próximas 6 h
+// (weatherInsights.rainChance, intervalo i+1). Sem leitura suficiente fica "--", nunca 0%.
+function setRainChanceTile(reading) {
+  const value = $("rainChanceValue"), note = $("rainChanceNote");
+  if (!value || !note) return;
+  if (!reading) { value.textContent = "--"; note.textContent = "Chance nas próximas 6 h"; return; }
+  value.innerHTML = `${reading.max}<sup>%</sup>`;
+  note.textContent = reading.max < 20 || !reading.at ? "Chance nas próximas 6 h" : `Chance maior às ${shortTime(reading.at)}`;
 }
 
 // Cartões de sensação e de máxima/mínima entre os blocos de leitura (1.17, pedido do usuário). Ausente vira "--",
@@ -1522,6 +1567,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   const dayIndex = day.time.indexOf(globalThis.PLUVIA.time.dayKey(Date.now(),activeCity));
   setHeroRange(day.temperature_2m_max[dayIndex], day.temperature_2m_min[dayIndex], now.apparentTemperature);
   setTemperatureTiles(day.temperature_2m_max[dayIndex], day.temperature_2m_min[dayIndex], now.apparentTemperature, now.temperature);
+  setRainChanceTile(weatherInsights?.rainChance?.(data.hourly, start));
   $("humidity").innerHTML = `${fmt(now.relativeHumidity)}<sup>%</sup>`; const humidityReading = weatherInsights?.humidity?.(data.hourly,start,current);
   // Nota sempre com a faixa em palavras ("Confortável", "Úmido"…), a pedido do usuário: sem ela o bloco ficava
   // com um buraco ao lado da nota da visibilidade. A hora mais seca do dia entra quando passa abaixo de 30%.
@@ -1639,7 +1685,7 @@ async function loadWeather(revision = cityRevision) {
     globalThis.PLUVIA?.sources.set("air-quality",{status:displayedWeather?.air ? "stale" : "error"});
     if (!displayedWeather) {
       // Sem dado algum, o skeleton daria a impressão de carregamento sem fim: os valores ficam indisponíveis.
-      for (const id of ["temperature","visibilityValue","humidity","wind","pressure","uv","airValue","airQuality"]) $(id).textContent = "--"; setHeroRange(null, null); setTemperatureTiles(null, null, null, null);
+      for (const id of ["temperature","visibilityValue","humidity","wind","pressure","uv","airValue","airQuality"]) $(id).textContent = "--"; setHeroRange(null, null); setTemperatureTiles(null, null, null, null); setRainChanceTile(null);
       for (const id of ["visibilityNote","humidityNote","windNote","pressureNote","uvNote"]) $(id).textContent = "—";
       $("airNote").textContent = "AQI indisponível";
       $("condition").textContent = "Tempo indisponível";
@@ -1897,7 +1943,7 @@ document.addEventListener?.("animationend", event => {
 });
 
 
-const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","condition","heroRange","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","dryWindow","daylight","sunPhrase","sunsetGlow","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","moonNextLabel","moonNextTime","moonFullIn","astronomyDate","rainGauge"].filter(id=>$(id));
+const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","condition","heroRange","rainChanceValue","rainChanceNote","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","dryWindow","daylight","sunPhrase","sunsetGlow","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","moonNextLabel","moonNextTime","moonFullIn","astronomyDate","rainGauge"].filter(id=>$(id));
 let emptyCityContent;
 // Deslizar entre cidades (como no Apple Weather): a cidade aberta e os favoritos, na ordem salva.
 // As bolinhas são botões (clique/teclado); no toque, arrastar o topo para o lado troca de cidade.
@@ -2470,7 +2516,9 @@ function setupCityPicker() {
   $("homeBrazil")?.addEventListener("click", () => globalThis.PLUVIA?.brazilNow?.open?.());
   $("locateCity").addEventListener("click", () => requestLocation('city_picker'));
   $("welcomeLocate").addEventListener("click", () => requestLocation('welcome'));
-  $("openCitySearch").addEventListener("click", openCitySearch);
+  // A pílula de busca do topo (1.63) já abre com o campo focado (o teclado sobe no mesmo toque).
+  $("openCitySearch").addEventListener("click", () => openCitySearch({focusInput:true}));
+  $("homeLocate")?.addEventListener("click", () => requestLocation('topbar'));
   $("welcomeSearch").addEventListener("click", openCitySearch);
   $("closeCitySearch").addEventListener("click", () => closeCitySearch(true));
   $("cityDialog").addEventListener("close", () => { document.body?.classList?.remove("city-dialog-open"); $("openCitySearch").focus(); });
@@ -2504,10 +2552,12 @@ function locationMessage(text) {
 function locationButtons(disabled) {
   $("welcomeLocate").disabled = disabled;
   $("locateCity").disabled = disabled;
+  const top = $("homeLocate");
+  if (top) { top.disabled = disabled; top.setAttribute("aria-label", disabled ? "Localizando…" : "Usar minha localização"); }
   const notice = $("noticeLocate");
   if (notice) { notice.disabled = disabled; notice.textContent = disabled ? "Localizando…" : "Usar minha localização"; }
 }
-function openCitySearch() {
+function openCitySearch(options) {
   cityChoiceAttempt++;
   // Choosing manually takes precedence over a late location callback.
   locationAttempt++;
@@ -2524,7 +2574,7 @@ function openCitySearch() {
   if (!dialog.open) dialog.showModal();
   document.body?.classList?.add("city-dialog-open");
   dialog.querySelector?.(".dialog-scroll")?.scrollTo?.(0, 0);
-  $("closeCitySearch").focus();
+  if (options?.focusInput) $("citySearch").focus({preventScroll:true}); else $("closeCitySearch").focus();
   if (!cityIndexReady) {
     $("cityPickerStatus").textContent = "Carregando cidades do Brasil…";
     ensureCityIndex().then(() => renderCityOptions()).catch(() => { $("cityPickerStatus").textContent = "O índice não carregou. Capitais continuam disponíveis."; });

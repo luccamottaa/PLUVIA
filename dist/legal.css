@@ -1,9 +1,9 @@
 /* Páginas fora da Home (/termos/, /privacidade/ e 404), no visual atual do app (1.59, pedido do dono: "refaz
    todas as páginas que não são a tela principal pra ficarem no novo estilo"). O fundo é o céu da fase do dia
-   (os mesmos degradês de sky.css), com o vidro de gotas da intro por cima no alto; o texto fica em cartões
+   (os mesmos degradês de sky.css); o texto fica em cartões
    iguais aos da Home (sólidos à noite, azulados de dia) e o X é o botão de vidro do topo. Claro de dia e escuro
    à noite na cidade aberta no app (data-theme escrito por modules/legal-page.js antes do primeiro desenho).
-   Até a 1.58 o fundo era preto chapado à noite e cinza de dia, com o azul antigo #2f6bff. */
+   O vidro com gotas no alto (1.59) saiu na 1.63, a pedido do dono. Até a 1.58 o fundo era preto chapado à noite e cinza de dia, com o azul antigo #2f6bff. */
 :root { color-scheme:dark; --base:#080f22; --sky:linear-gradient(165deg,#10142d,#080f22 85%); --ink:#f2f7ff; --muted:#cbdceb; --line:#b8d4ef30; --brand:#7cc0ff; --on-brand:#0c1a33; --link:#7cc0ff; --card:#141c33; --card-border:#bed2f521; --card-glow:none; --glass:#ffffff14; --glass-edge:#ffffff40; --glass-shadow:#0000002e; --mark:#ffd479; }
 :root[data-theme="day"] { color-scheme:light; --base:#a7d7ec; --sky:linear-gradient(165deg,#57b0e2,#bce7f5 70%,#a7d7ec); --ink:#082744; --muted:#173c58; --line:#12345730; --brand:#0a4cba; --on-brand:#fff; --link:#0a4cba; --card:rgba(236,245,253,.9); --card-border:rgba(255,255,255,.6); --card-glow:0 6px 20px rgba(28,72,128,.08); --glass:#ffffff59; --glass-edge:#ffffffb3; --glass-shadow:#13233d26; --mark:#8a5a00; }
 * { box-sizing:border-box; }
@@ -11,10 +11,6 @@ html { -webkit-text-size-adjust:100%; background:var(--base); scroll-behavior:sm
 body { margin:0; min-height:100svh; color:var(--ink); font:400 1rem/1.65 "Sora",-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,sans-serif; }
 /* Céu fixo atrás de tudo (background-attachment:fixed é ignorado no iPhone). */
 body::before { content:""; position:fixed; inset:0; height:100lvh; z-index:-2; background:var(--base) var(--sky); pointer-events:none; }
-/* Vidro com gotas da intro, só no alto da tela e esmaecendo para baixo; entra pronto (data-glass). Os cartões
-   são opacos o bastante para as gotas nunca passarem atrás do texto. */
-.sky-glass { position:fixed; inset:0; height:100lvh; z-index:-1; pointer-events:none; background:no-repeat center top / cover; opacity:0; -webkit-mask-image:linear-gradient(#000 0,#000 28%,transparent 62%); mask-image:linear-gradient(#000 0,#000 28%,transparent 62%); transition:opacity .9s ease; }
-html[data-glass="ready"] .sky-glass { background-image:url("/assets/intro-glass.webp?v=glass-1"); opacity:.85; }
 .page { position:relative; max-width:760px; margin:0 auto; padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left)); }
 .brand { display:inline-flex; align-items:center; gap:6px; min-height:44px; margin-right:56px; color:var(--brand); text-decoration:none; font:900 1.6rem/1 Nunito,system-ui,sans-serif; letter-spacing:.01em; }
 .brand img { width:34px; height:34px; filter:drop-shadow(0 0 10px rgba(170,214,255,.35)); }
@@ -79,6 +75,6 @@ footer { display:flex; flex-wrap:wrap; gap:10px; margin-top:28px; color:var(--mu
 .page, .close { animation:legal-enter .44s cubic-bezier(.2,.8,.2,1) backwards; }
 .close { animation-delay:.08s; }
 html.leaving :is(.page,.close) { opacity:0; transform:translateY(12px); transition:opacity .18s ease-in, transform .18s ease-in; }
-@media (prefers-reduced-motion:reduce) { .page, .close { animation:none; } html.leaving :is(.page,.close) { transition:none; } html { scroll-behavior:auto; } .sky-glass { transition:none; } }
-@media (prefers-reduced-transparency:reduce) { .sky-glass { display:none; } .close { background:var(--card); -webkit-backdrop-filter:none; backdrop-filter:none; } }
-@media (forced-colors:active) { .brand { color:LinkText; } .close, .toc a, .button, footer a { border-color:ButtonText; } .sky-glass { display:none; } }
+@media (prefers-reduced-motion:reduce) { .page, .close { animation:none; } html.leaving :is(.page,.close) { transition:none; } html { scroll-behavior:auto; } }
+@media (prefers-reduced-transparency:reduce) { .close { background:var(--card); -webkit-backdrop-filter:none; backdrop-filter:none; } }
+@media (forced-colors:active) { .brand { color:LinkText; } .close, .toc a, .button, footer a { border-color:ButtonText; } }

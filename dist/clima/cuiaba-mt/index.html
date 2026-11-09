@@ -51,7 +51,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-326" />
+    <meta name="pluvia-release" content="pluvia-panel-327" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -105,7 +105,6 @@
         }
       } catch (_) {}
     </script>
-    <link rel="preload" href="/assets/intro-glass.webp?v=glass-1" as="image" type="image/webp" fetchpriority="high" />
     <link rel="preload" href="/assets/sky-cloud-veil.webp?v=clouds-9" as="image" type="image/webp" />
     <link rel="preload" href="/vendor/suncalc.js?v=sky-4" as="script" />
     <link rel="preload" href="/modules/moon-view.js?v=moon-8" as="script" />
@@ -186,14 +185,9 @@
 .pluvia-intro[data-quick] .intro-kicker { animation-duration:.35s; animation-delay:.56s; }
 /* Na saída a animação de entrada sai, senão o "preenchimento" dela seguraria o texto e ele não subiria com o nome. */
 .pluvia-intro.is-leaving .intro-kicker { animation:none; }
-/* Intro "chuva no vidro" (1.58, pedido do dono: a anterior estava "sem graça"). Gotas num vidro na frente do céu
-   (intro-glass.webp, arte gerada por scripts/generate-intro-glass.py, centro livre para a marca). Desde a 1.60 a
-   intro não tem céu e o vidro, pré-carregado com prioridade alta, é o LCP: entra no primeiro desenho e aparece
-   com um fade curto (já visível quando a imagem chega). A gota da marca cai no vidro e abre duas ondas; as letras sobem uma a uma; na saída o
-   vidro desembaça (cresce e some) junto com o céu. Só transform/opacity. */
-.pluvia-intro .intro-glass { position:absolute; inset:-2% -1%; z-index:0; pointer-events:none; background:url("/assets/intro-glass.webp?v=glass-1") no-repeat center / cover; animation:intro-glass-in 3s cubic-bezier(.2,.6,.3,1) both; }
-/* Na saída a animação de entrada sai (senão ela seguraria o vidro) e o vidro cresce enquanto a intro some. */
-.pluvia-intro.is-leaving .intro-glass { animation:none; transform:scale(1.07); transition:transform .42s cubic-bezier(.4,0,.6,1); }
+/* Intro (1.58, pedido do dono: a anterior estava "sem graça"): a gota da marca cai e abre duas ondas e as letras
+   sobem uma a uma, sobre o azul-noite fixo (1.60). O vidro com gotas da 1.58 saiu na 1.63 (o dono não gostou).
+   Só transform/opacity. */
 .intro-ripple { position:absolute; right:100%; top:calc(50% - clamp(52px,14vw,86px) / 2); width:clamp(52px,14vw,86px); height:clamp(52px,14vw,86px); margin-right:8px; pointer-events:none; }
 .intro-ripple::before,.intro-ripple::after { content:""; position:absolute; inset:0; border:2px solid #f3f8ffb3; border-radius:50%; opacity:0; animation:intro-ripple 1s cubic-bezier(.2,.7,.3,1) .62s both; }
 .intro-ripple::after { animation-delay:.8s; }
@@ -201,18 +195,16 @@
 .intro-name { display:inline-flex; }
 .intro-name > span { display:inline-block; animation:intro-letter .62s cubic-bezier(.2,.9,.25,1.15) calc(.66s + var(--i) * 55ms) both; }
 .intro-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
-.pluvia-intro[data-quick] .intro-glass { animation-duration:1s; }
 .pluvia-intro[data-quick] .intro-ripple::before { animation-duration:.6s; animation-delay:.3s; }
 .pluvia-intro[data-quick] .intro-ripple::after { animation-duration:.6s; animation-delay:.4s; }
 .pluvia-intro[data-quick] .intro-name > span { animation-duration:.4s; animation-delay:calc(.26s + var(--i) * 30ms); }
-@keyframes intro-glass-in { 0% { opacity:0; transform:translateY(-14px); } 15% { opacity:1; } 100% { opacity:1; transform:none; } }
 @keyframes intro-ripple { 0% { opacity:.75; transform:scale(.45); } 100% { opacity:0; transform:scale(2.7); } }
 @keyframes intro-letter { 0% { opacity:0; transform:translateY(.45em) scale(.92); } 60% { opacity:1; } 100% { opacity:1; transform:none; } }
 @keyframes intro-horizon { from { opacity:.4; transform:scale(1.05); } to { opacity:1; transform:scale(1); } }
 @keyframes intro-fall { 0% { opacity:0; transform:translateY(-150%) scaleY(1.1); } 20% { opacity:1; } 80% { transform:translateY(0) scaleY(1.1); } 90% { transform:translateY(0) scale(1.08,.9); } 100% { opacity:1; transform:none; } }
 @keyframes intro-word-in { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:none; } }
 @keyframes intro-caption-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-@media(prefers-reduced-motion:reduce) { .pluvia-intro *,.pluvia-intro::before,.intro-ripple::before,.intro-ripple::after { animation:none !important; } .pluvia-intro .intro-glass { transform:none !important; } .pluvia-intro.is-leaving,.pluvia-intro.is-leaving * { transform:none !important; } }
+@media(prefers-reduced-motion:reduce) { .pluvia-intro *,.pluvia-intro::before,.intro-ripple::before,.intro-ripple::after { animation:none !important; } .pluvia-intro.is-leaving,.pluvia-intro.is-leaving * { transform:none !important; } }
     </style>
     <script src="/modules/city-time.js?v=time-2"></script>
     <script src="/vendor/suncalc.js?v=sky-4"></script>
@@ -258,7 +250,6 @@
     <a class="skip-link" href="#agora">Ir para o clima</a>
     <div id="pluviaIntro" class="pluvia-intro">
       <p class="intro-kicker">Feito no Norte</p>
-      <span class="intro-glass" aria-hidden="true"></span>
       <div class="intro-lockup"><div class="intro-wordmark"><span class="intro-ripple" aria-hidden="true"></span><span class="intro-drop" aria-hidden="true"></span><strong><span class="intro-name" aria-hidden="true"><span style="--i:0">P</span><span style="--i:1">L</span><span style="--i:2">U</span><span style="--i:3">V</span><span style="--i:4">I</span><span style="--i:5">A</span></span><span class="intro-sr">PLUVIA</span></strong></div>
       <p class="intro-tagline">O céu do Brasil agora</p></div>
       <p class="intro-copy">Consulte o tempo antes de sair.</p>
@@ -305,7 +296,7 @@
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="/redesign.css?v=panel-51" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-180" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-181" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-meteor"></span><span class="sky-rainbow"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -315,8 +306,8 @@
       <a class="brand" href="#top" aria-label="PLUVIA, início"><span>PLUVIA</span></a>
       <div class="top-actions">
         <button id="shareWeather" class="share-trigger search-trigger" type="button" aria-label="Compartilhar previsão" title="Compartilhar previsão" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8" /></svg></button>
-        <button id="openCitySearch" class="search-trigger" type="button" aria-label="Buscar ou trocar cidade" aria-haspopup="dialog" aria-controls="cityDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.4-3.4" /></svg></button>
       </div>
+      <div class="home-search" id="homeSearch"><button id="openCitySearch" class="home-search-open" type="button" aria-haspopup="dialog" aria-controls="cityDialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.4-3.4" /></svg><span>Buscar cidade</span></button><button id="homeLocate" class="home-search-locate" type="button" aria-label="Usar minha localização" title="Usar minha localização"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" /><circle cx="12" cy="10" r="2.3" /></svg></button></div>
       <p id="shareWeatherStatus" class="share-weather-status" role="status" aria-live="polite"></p>
     </header>
     <main class="shell">
@@ -467,6 +458,8 @@
               <div class="temperature"><span id="temperature"><span class="sk sk-temp" aria-hidden="true"></span></span><span class="deg">°</span></div>
             </div>
             <p class="condition" id="condition">Consultando o tempo…</p>
+            <p class="hero-range" id="heroRange"><span class="sk sk-line" aria-hidden="true"></span></p>
+            <p class="hero-rain"><span class="tip-icon" aria-hidden="true"><svg class="metric-line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12.5a9 9 0 0 1 18 0Z"/><path d="M12 12.5v6a2 2 0 0 1-4 0"/><path d="M12 3.5v-1"/></svg></span><span class="rain-answer" id="rainAnswer" data-tone="loading"><span class="sk sk-line" aria-hidden="true"></span></span></p>
             <button id="alertBanner" class="alert-banner" type="button" hidden aria-haspopup="dialog" aria-controls="alertDetail"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg><span><strong id="alertBannerTitle"></strong><small id="alertBannerTime"></small></span><span class="alert-banner-more" aria-hidden="true">›</span></button>
             <div class="city-dots" id="cityDots" role="group" aria-label="Trocar entre suas cidades" hidden></div>
             <div class="favorite-suggest" id="favoriteSuggest" hidden><button id="favoriteSuggestSave" class="favorite-suggest-save" type="button"><span aria-hidden="true">☆</span> Salvar <span id="favoriteSuggestCity">esta cidade</span><span class="favorite-suggest-extra"> nas suas cidades</span></button><button id="favoriteSuggestDismiss" class="favorite-suggest-dismiss" type="button">Agora não</button></div><p class="swipe-hint" id="swipeHint" hidden>Deslize para o lado para trocar de cidade</p>
@@ -481,7 +474,7 @@
       </section>
       <div class="alert-nudge" id="alertNudge" role="region" aria-label="Avisos no celular" hidden><p id="alertNudgeText"></p><div class="alert-nudge-preview" id="alertNudgePreview" aria-hidden="true"><img id="alertNudgePreviewIcon" src="/assets/notifications/rain.png" alt="" width="38" height="38" loading="lazy" decoding="async"><div class="alert-nudge-preview-copy"><span class="alert-nudge-preview-app">PLUVIA<span>agora</span></span><strong id="alertNudgePreviewTitle"></strong><span id="alertNudgePreviewBody"></span></div></div><div class="alert-nudge-actions"><button id="alertNudgeEnable" type="button">Ativar avisos</button><button id="alertNudgeDismiss" class="alert-nudge-dismiss" type="button">Agora não</button></div></div>
       <section class="hourly-peek panel" id="chuva" aria-labelledby="hourlyPeekTitle">
-        <div class="hourly-peek-heading"><div class="heading-with-tip"><h2 id="hourlyPeekTitle">Próximas horas</h2><details class="info-tip"><summary aria-label="Sobre a previsão por hora"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p class="rain-phrase" id="rainPhraseWrap"><small id="rainPhraseMeta">Open-Meteo</small></p><p>Previsão por modelos no ponto de referência do município. A chance de chuva aparece quando passa de 20%; toque num horário para ver sensação, volume e rajadas.</p><p>No modo Chuva, a barra mostra só a intensidade prevista (as marcas são 2,5 e 7,5 mm/h, chuva fraca e forte) e a porcentagem embaixo é a chance; no modo Vento, a linha é a velocidade e a área clara embaixo dela, as rajadas; a seta pequena aponta para onde o vento vai.</p></div></details></div><div class="hourly-modes" role="group" aria-label="O que mostrar nas próximas horas"><button type="button" data-mode="conditions" aria-pressed="true" aria-label="Condição e temperatura"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 18h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7 11a3.5 3.5 0 0 0 0 7Z"/></svg></button><button type="button" data-mode="rain" aria-pressed="false" aria-label="Chuva"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.5c3 4 5.5 7.2 5.5 10.2a5.5 5.5 0 0 1-11 0c0-3 2.5-6.2 5.5-10.2Z"/></svg></button><button type="button" data-mode="wind" aria-pressed="false" aria-label="Vento"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 9h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h7"/></svg></button></div></div>
+        <div class="hourly-peek-heading"><div class="heading-with-tip"><h2 id="hourlyPeekTitle">Próximas horas</h2><details class="info-tip"><summary aria-label="Sobre a previsão por hora"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p class="rain-phrase" id="rainPhraseWrap"><small id="rainPhraseMeta">Open-Meteo</small></p><p>Previsão por modelos no ponto de referência do município. A chance de chuva aparece quando passa de 20%; toque num horário para ver sensação, volume e rajadas.</p><p>No modo Chuva, a barra mostra só a intensidade prevista (as marcas são 2,5 e 7,5 mm/h, chuva fraca e forte) e a porcentagem embaixo é a chance; em Umidade, a barra é a umidade relativa; em UV, o índice da hora na cor da faixa (verde baixo, amarelo moderado, laranja alto, vermelho muito alto, roxo extremo); no modo Vento, a linha é a velocidade e a área clara embaixo dela, as rajadas; a seta pequena aponta para onde o vento vai.</p></div></details></div><div class="hourly-modes" role="group" aria-label="O que mostrar nas próximas horas"><button type="button" data-mode="conditions" aria-pressed="true" aria-label="Condição e temperatura"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 18h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7 11a3.5 3.5 0 0 0 0 7Z"/></svg></button><button type="button" data-mode="rain" aria-pressed="false" aria-label="Chuva"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.5c3 4 5.5 7.2 5.5 10.2a5.5 5.5 0 0 1-11 0c0-3 2.5-6.2 5.5-10.2Z"/></svg></button><button type="button" data-mode="humidity" aria-pressed="false" aria-label="Umidade"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-outline=""><path d="M12 3.5c3 4 5.5 7.2 5.5 10.2a5.5 5.5 0 0 1-11 0c0-3 2.5-6.2 5.5-10.2Z"/><path d="m9.7 16.3 4.6-4.6M10 12.1h.01M14 15.9h.01"/></svg></button><button type="button" data-mode="uv" aria-pressed="false" aria-label="Índice UV"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg></button><button type="button" data-mode="wind" aria-pressed="false" aria-label="Vento"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 9h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h7"/></svg></button></div></div>
         <p id="hourlyDecision" class="hourly-decision">Toque em um horário para ver sensação, chuva e rajadas.</p>
         <div class="rain-gauge" id="rainGauge" aria-label="Medidor de intensidade de chuva" hidden>
           <div class="rain-gauge-track" role="progressbar" aria-label="Escala de intensidade de chuva" aria-valuemin="0" aria-valuemax="100">
@@ -503,9 +496,8 @@
           <div class="forecast-list panel" id="forecastList"><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div><div class="sk-row" aria-hidden="true"><span class="sk sk-line sk-short" aria-hidden="true"></span><span class="sk sk-icon" aria-hidden="true"></span><span class="sk sk-bar" aria-hidden="true"></span></div></div>
           <nav class="home-shortcuts" aria-label="Explorar outras cidades"><button id="homeBrazil" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="brazilDialog">Brasil agora</button><button id="homeMonth" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="monthDialog">Últimos 30 dias</button><button id="homeAccuracy" class="home-shortcut" type="button" aria-haspopup="dialog" aria-controls="monthDialog">Quanto o PLUVIA acerta</button></nav>
         </section>
-      <section class="tips-section" id="tips" aria-labelledby="tipsTitle">
+      <section class="tips-section" id="tips" aria-labelledby="tipsTitle" hidden>
         <h2 id="tipsTitle" class="tips-title">Dicas para as próximas horas</h2>
-        <p class="tips-rain"><span class="tip-icon" aria-hidden="true"><svg class="metric-line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12.5a9 9 0 0 1 18 0Z"/><path d="M12 12.5v6a2 2 0 0 1-4 0"/><path d="M12 3.5v-1"/></svg></span><span class="rain-answer" id="rainAnswer" data-tone="loading"><span class="sk sk-line" aria-hidden="true"></span></span></p>
         <ul class="tips-list" id="tipsList" hidden></ul>
       </section>
       </section>
@@ -513,10 +505,11 @@
         <article class="metric metric-sky feels-metric panel card-detail"><div class="metric-head"><span>Sensação</span><span data-weather-icon-name="feels-like" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="feelsValue"><span class="sk sk-num" aria-hidden="true"></span></strong><small id="feelsNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
         <article class="metric metric-sky range-metric panel card-detail"><div class="metric-head"><span>Máx. e mín.</span><span data-weather-icon-name="temperature" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="rangeValue"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="rangeNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
         <article class="metric metric-sky visibility-metric panel card-detail" aria-label="Visibilidade prevista"><div class="metric-head"><span>Visibilidade</span><span data-weather-icon-name="visibility" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="visibilityValue"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="visibilityNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
-        <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>Umidade</span><span data-weather-icon-name="humidity" data-weather-icon-style="line"></span></div><strong id="humidity"><span class="sk sk-num" aria-hidden="true"></span></strong><small id="humidityNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
-        <article class="metric metric-sky wind-metric panel card-detail"><div class="metric-head"><span>Vento</span><span data-weather-icon-name="wind-speed" data-weather-icon-style="line"></span></div><div class="wind-reading"><strong id="wind"><span class="sk sk-num" aria-hidden="true"></span></strong><span class="wind-compass" id="windCompass" role="img" aria-label="Direção do vento indisponível"><svg viewBox="0 0 80 80" aria-hidden="true" focusable="false"><circle class="compass-ring" cx="40" cy="40" r="23"/><g class="compass-labels"><text x="40" y="8">N</text><text x="65" y="16">NE</text><text x="74" y="40">L</text><text x="65" y="65">SE</text><text x="40" y="74">S</text><text x="15" y="65">SO</text><text x="6" y="40">O</text><text x="15" y="16">NO</text></g><g class="compass-needle"><path class="compass-tail" d="M36 40 40 57 44 40Z"/><path class="compass-tip" d="M40 20 34 43 40 40 46 43Z"/></g><circle class="compass-center" cx="40" cy="40" r="3"/></svg></span></div><small id="windNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
+        <article class="metric metric-sky panel card-detail" data-tile-mode="humidity"><div class="metric-head"><span>Umidade</span><span data-weather-icon-name="humidity" data-weather-icon-style="line"></span></div><strong id="humidity"><span class="sk sk-num" aria-hidden="true"></span></strong><small id="humidityNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
+        <article class="metric metric-sky wind-metric panel card-detail" data-tile-mode="wind"><div class="metric-head"><span>Vento</span><span data-weather-icon-name="wind-speed" data-weather-icon-style="line"></span></div><div class="wind-reading"><strong id="wind"><span class="sk sk-num" aria-hidden="true"></span></strong><span class="wind-compass" id="windCompass" role="img" aria-label="Direção do vento indisponível"><svg viewBox="0 0 80 80" aria-hidden="true" focusable="false"><circle class="compass-ring" cx="40" cy="40" r="23"/><g class="compass-labels"><text x="40" y="8">N</text><text x="65" y="16">NE</text><text x="74" y="40">L</text><text x="65" y="65">SE</text><text x="40" y="74">S</text><text x="15" y="65">SO</text><text x="6" y="40">O</text><text x="15" y="16">NO</text></g><g class="compass-needle"><path class="compass-tail" d="M36 40 40 57 44 40Z"/><path class="compass-tip" d="M40 20 34 43 40 40 46 43Z"/></g><circle class="compass-center" cx="40" cy="40" r="3"/></svg></span></div><small id="windNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
         <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>Pressão</span><span data-weather-icon-name="pressure" data-weather-icon-style="line"></span></div><strong id="pressure"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="pressureNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
-        <article class="metric uv-metric panel card-detail"><div class="metric-head"><span>Índice UV</span><span data-weather-icon-name="uv-index" data-weather-icon-style="line"></span></div><strong id="uv"><span class="sk sk-num" aria-hidden="true"></span></strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
+        <article class="metric metric-sky rain-chance-metric panel card-detail" data-tile-mode="rain"><div class="metric-head"><span>Chuva</span><span data-weather-icon-name="rain-chance" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="rainChanceValue"><span class="sk sk-num" aria-hidden="true"></span></strong><small id="rainChanceNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
+        <article class="metric uv-metric panel card-detail" data-tile-mode="uv"><div class="metric-head"><span>Índice UV</span><span data-weather-icon-name="uv-index" data-weather-icon-style="line"></span></div><strong id="uv"><span class="sk sk-num" aria-hidden="true"></span></strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
         <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>Qualidade do ar</span><span data-weather-icon-name="air-quality" data-weather-icon-style="line"></span><details class="info-tip"><summary aria-label="Sobre a qualidade do ar"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p><small class="air-source">Estimativa regional · Open-Meteo / CAMS</small></p><p>O US AQI é um índice de 0 a 500 calculado a partir das partículas e dos gases. Estimativa regional, não medição no seu endereço, e não diz de onde vem a poluição.</p></div></details></div><div class="air-reading"><div class="air-index"><b id="airValue"><span class="sk sk-num" aria-hidden="true"></span></b><span>US AQI</span></div><div class="air-description"><strong id="airQuality"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="airNote"><span class="sk sk-line" aria-hidden="true"></span></small><small id="airParticlesNote" hidden></small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div></article>
       </section>
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
@@ -649,7 +642,7 @@
       <button id="installDone" type="button">Entendi</button>
     </dialog>
     <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="privacyTitle"><h3 id="privacyTitle">Privacidade</h3><p class="privacy-full"><a href="/privacidade/">Política de Privacidade completa</a>: dados, bases legais, prazos e seus direitos pela LGPD.</p><label for="analyticsConsent"><input id="analyticsConsent" type="checkbox"> Ajudar a melhorar o Pluvia</label><p>Compartilhe contagens de uso e tipos de falha com o PostHog (servidores nos EUA). Não enviamos nomes, e-mail, cidade, coordenadas ou texto pesquisado. Não gravamos sua tela nem vinculamos métricas à sua conta.</p><p id="analyticsChoiceStatus" role="status">Desativado. A previsão funciona sem compartilhar métricas.</p><p>O servidor recebe a conexão de rede; solicitamos que o IP não seja usado para geolocalização. <a href="https://posthog.com/privacy" target="_blank" rel="noreferrer">Política de privacidade do PostHog</a>.</p><p>A busca por voz usa o reconhecimento de fala do próprio navegador (no Chrome, o áudio é processado pelo Google). O PLUVIA não recebe nem guarda o áudio.</p><p>Quando você responde “Tá chovendo aí?”, guardamos por 2 dias a resposta, a cidade e o horário, com um código aleatório deste aparelho (só para evitar respostas repetidas). Sem conta, nome ou localização.</p><p>Com sua permissão em “Ajudar a melhorar o PLUVIA”, este aparelho soma +1 ao contador uma vez por dia. O servidor guarda um hash do identificador aleatório por até cerca de 25 horas para evitar contagens repetidas, além do total diário. Não guarda o identificador original, nome, cidade, conta ou IP no contador. Com “Do Not Track” ou GPC ligado, não há contagem.</p><p>O site é entregue pela Cloudflare, que recebe a conexão como qualquer serviço de hospedagem e guarda cópias dos arquivos do app para abrir mais rápido. A medição de visitas da Cloudflare fica desligada.</p></section><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Segunda opinião nos avisos de chuva: <a href="https://www.tomorrow.io/" target="_blank" rel="noreferrer">Tomorrow.io</a>. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Eclipses: <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noreferrer">Astronomy Engine</a> (MIT). Medido agora: estações automáticas do <a href="https://portal.inmet.gov.br/" target="_blank" rel="noreferrer">INMET</a>, pelo serviço WIS2 da OMM. Nível dos rios: telemetria da <a href="https://www.gov.br/ana/" target="_blank" rel="noreferrer">ANA</a>. Focos de calor: <a href="https://terrabrasilis.dpi.inpe.br/queimadas/portal/" target="_blank" rel="noreferrer">Programa Queimadas do INPE</a> (detecções de satélite, agrupadas por ~1 km). Boletins dos aeroportos (METAR/SPECI): <a href="https://www.decea.mil.br/" target="_blank" rel="noreferrer">DECEA</a>, pela API pública do <a href="https://aviationweather.gov/" target="_blank" rel="noreferrer">Aviation Weather Center</a> (NOAA). Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
-    <script src="/analytics.js?v=analytics-23" defer></script>
+    <script src="/analytics.js?v=analytics-24" defer></script>
     <script src="/modules/sources.js?v=panel-26" defer></script>
     <script src="/modules/dialog-motion.js?v=motion-4" defer></script>
     <script src="/modules/http-client.js?v=http-4" defer></script>
@@ -657,17 +650,17 @@
     <script src="/modules/weather-data-layer.js?v=core-117" defer></script>
     <script src="/modules/met-merge.js?v=core-112" defer></script>
     <script src="/modules/weather-extras.js?v=core-109" defer></script>
-    <script src="/modules/weather-insights.js?v=core-79" defer></script>
+    <script src="/modules/weather-insights.js?v=core-80" defer></script>
     <script src="/modules/radar-probe.js?v=core-72" defer></script>
     <script src="/modules/radar-nowcast.js?v=nowcast-5" defer></script>
     <script src="/modules/observed-rain.js?v=observed-rain-5" defer></script>
     <script src="/modules/weather-icons.js?v=core-51" defer></script>
-    <script src="/modules/weather-icon-system.js?v=modern-14" defer></script>
+    <script src="/modules/weather-icon-system.js?v=modern-15" defer></script>
     <script src="/capitals.js?v=core-54" defer></script>
     <script src="/modules/hourly-detail.js?v=detail-11" defer></script>
     <script src="/modules/daily-detail.js?v=daily-7" defer></script>
     <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="/app.js?v=panel-153" defer></script>
+    <script src="/app.js?v=panel-154" defer></script>
     <script src="/p0.js?v=panel-53" defer></script>
     <script src="/modules/risks.js?v=core-120" defer></script>
     <script src="/modules/adapters.js?v=core-110" defer></script>
@@ -687,7 +680,7 @@
     <script src="/modules/forecast-accuracy.js?v=accuracy-1" defer></script>
     <script src="/modules/station-now.js?v=station-5" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-9" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-3" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-357" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-3" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-358" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-38" defer></script>

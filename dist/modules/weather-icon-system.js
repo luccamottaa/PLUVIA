@@ -135,7 +135,45 @@
     const size=Math.max(16,Math.min(256,Number(options.size)||256)); const eager=Boolean(options.eager || options.priority);
     return `<img class="${className}" src="${item.src}" ${accessibility} data-weather-icon="${item.name}" data-icon-source="${item.source}" width="${size}" height="${size}" loading="${eager ? "eager" : "lazy"}"${options.priority ? ' fetchpriority="high"' : ""} decoding="async">`;
   }
-  function markup(code,isDay=true,options={}) { return imageMarkup(icon(code,isDay,options),options); }
+  // Condições em traço (1.63, Home no visual do protótipo, pedido do dono): grade de 24 px, traço na cor do texto
+  // (currentColor), com o sol em amarelo e a chuva em azul (.wl-sun/.wl-rain, cores no CSS). Mesmo mapeamento WMO
+  // de conditionIconName; as ilustrações chapadas (assets/weather-icons) continuam para notificações, story e QA.
+  const LINE_CLOUD = 'M7 18h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7.1 9.2 4.4 4.4 0 0 0 7 18Z';
+  const LINE_SUN = '<g class="wl-sun"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></g>';
+  const lineCloud = (dy = 0) => `<path d="${LINE_CLOUD}"${dy ? ` transform="translate(0 ${dy})"` : ""}/>`;
+  const smallSun = '<path class="wl-sun" d="M8.5 6.2a3.6 3.6 0 0 1 5.6 2.4M8.5 2.5v1.2M3.8 8.4H5M4.9 4.8l.9.9"/>';
+  const smallMoon = '<path class="wl-moon" d="M12.6 6.9A4.3 4.3 0 0 1 7 3a4.3 4.3 0 1 0 1.7 6.3"/>';
+  const LINE_CONDITIONS = Object.freeze({
+    "clear-day": LINE_SUN,
+    "clear-night": '<path class="wl-moon" d="M19.5 14.6A7.5 7.5 0 0 1 9.4 4.5a7.5 7.5 0 1 0 10.1 10.1Z"/>',
+    "few-clouds-day": smallSun + '<path d="M9 19h7a3 3 0 0 0 .5-5.96A4 4 0 0 0 9.1 12.5 3.2 3.2 0 0 0 9 19Z"/>',
+    "few-clouds-night": smallMoon + '<path d="M9 19h7a3 3 0 0 0 .5-5.96A4 4 0 0 0 9.1 12.5 3.2 3.2 0 0 0 9 19Z"/>',
+    "partly-cloudy-day": smallSun + `<path d="${LINE_CLOUD}" transform="translate(1 1)"/>`,
+    "partly-cloudy-night": smallMoon + `<path d="${LINE_CLOUD}" transform="translate(1 1)"/>`,
+    "overcast": '<path d="M9.5 7.2A4.5 4.5 0 0 1 17.6 8"/>' + lineCloud(1),
+    "fog": lineCloud(-4) + '<path d="M4 17.5h16M6 20.5h12"/>',
+    "drizzle": lineCloud(-3) + '<path class="wl-rain" d="M9 18.5v.8M13 18.5v.8M11 20.8v.7M15 20.8v.7"/>',
+    "light-rain": lineCloud(-3) + '<path class="wl-rain" d="M10 18.5 9.1 21M14.5 18.5l-.9 2.5"/>',
+    "moderate-rain": lineCloud(-3) + '<path class="wl-rain" d="M8.5 18.5 7.6 21M12.5 18.5l-.9 2.5M16.5 18.5l-.9 2.5"/>',
+    "showers": smallSun + lineCloud(-2) + '<path class="wl-rain" d="M10 19.5 9.3 21.5M14 19.5l-.7 2"/>',
+    "showers-night": smallMoon + lineCloud(-2) + '<path class="wl-rain" d="M10 19.5 9.3 21.5M14 19.5l-.7 2"/>',
+    "heavy-rain": lineCloud(-3) + '<path class="wl-rain wl-heavy" d="M7.5 18.3 6.3 21.6M11.5 18.3l-1.2 3.3M15.5 18.3l-1.2 3.3M18.6 18.3l-.8 2.1"/>',
+    "sleet": lineCloud(-3) + '<path class="wl-rain" d="M9 18.5 8.1 21M15 18.5l-.9 2.5"/><path class="wl-dot" d="M12 20h.01"/>',
+    "snow": lineCloud(-3) + '<path class="wl-dot" d="M8 19h.01M12 21h.01M16 19h.01M10 21.5h.01M14 18.5h.01"/>',
+    "thunderstorm": lineCloud(-3) + '<path class="wl-bolt" d="m12.8 15.6-2.3 3.4h3l-2.2 3.4"/>',
+    "thunderstorm-hail": lineCloud(-3) + '<path class="wl-bolt" d="m11.8 15.6-2.3 3.4h3l-2.2 3.4"/><path class="wl-dot" d="M16 18.5h.01M17 21h.01"/>',
+    "weather-unknown": lineCloud(),
+  });
+  function lineCondition(code, isDay = true, options = {}) {
+    const item = icon(code, isDay, options), name = conditionIconName(code, isDay);
+    const body = LINE_CONDITIONS[name] || LINE_CONDITIONS["weather-unknown"];
+    const className = String(options.className || "weather-icon").replace(/[^a-zA-Z0-9 _-]/g, "");
+    const label = String(item.label).replace(/[&<>"]/g, value => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[value]);
+    const accessibility = options.decorative === false ? `role="img" aria-label="${label}"` : 'aria-hidden="true"';
+    return `<svg class="${className} weather-line-icon" viewBox="0 0 24 24" ${accessibility} focusable="false" data-weather-icon="${name}" data-icon-style="line">${body}</svg>`;
+  }
+  // markup() desenha em traço por padrão; {style:"image"} devolve a ilustração chapada.
+  function markup(code,isDay=true,options={}) { return options.style === "image" ? imageMarkup(icon(code,isDay,options),options) : lineCondition(code,isDay,options); }
   function markupName(name,options={}) { return imageMarkup(namedIcon(name,options),options); }
   function hydrate(scope) {
     const root = scope && typeof scope.querySelectorAll === "function" ? scope : null;
@@ -159,6 +197,7 @@
     "humidity": '<path d="M12 3.2s-6 6.4-6 10.8a6 6 0 0 0 12 0c0-4.4-6-10.8-6-10.8Z"/><path d="M9.3 14.6a2.8 2.8 0 0 0 2.4 2.6"/>',
     "wind-speed": '<path d="M3 8h9.5a2.5 2.5 0 1 0-2.4-3.1M3 12h15.5a2.5 2.5 0 1 1-2.4 3.1M3 16h7"/>',
     "pressure": '<path d="M4.2 18.5a9 9 0 1 1 15.6 0"/><path d="m12 14 3.8-4.3"/><circle cx="12" cy="14" r="1"/>',
+    "rain-chance": '<path d="M3 12.5a9 9 0 0 1 18 0Z"/><path d="M12 12.5v6a2 2 0 0 1-4 0"/><path d="M12 3.5v-1"/>',
     "uv-index": '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2m0 15v2M4.6 4.6 6 6m12 12 1.4 1.4M2.5 12h2m15 0h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
     "air-quality": '<path d="M5 19c-.6-6.6 4.4-13 15-14 .8 9.8-5 15.6-12.2 14.4"/><path d="M4 20c3.2-4.4 6.6-7.4 10.5-9.6"/>',
     "river": '<path d="M3 8.5c2.2 0 2.2-1.5 4.5-1.5S9.8 8.5 12 8.5 14.2 7 16.5 7 18.8 8.5 21 8.5"/><path d="M3 13c2.2 0 2.2-1.5 4.5-1.5S9.8 13 12 13s2.2-1.5 4.5-1.5S18.8 13 21 13"/><path d="M3 17.5c2.2 0 2.2-1.5 4.5-1.5s2.3 1.5 4.5 1.5 2.2-1.5 4.5-1.5 2.3 1.5 4.5 1.5"/>',
@@ -172,5 +211,5 @@
     return body ? `<svg class="metric-line-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${body}</svg>` : "";
   }
   function isDayAt(iso,sunrise,sunset) { const value=Date.parse(iso), rise=Date.parse(sunrise), set=Date.parse(sunset); return Number.isFinite(value)&&Number.isFinite(rise)&&Number.isFinite(set) ? value>=rise&&value<set : true; }
-  return { ASSETS, ASSET_ALIASES, CONDITIONS, LABELS, LINE_METRICS, lineMarkup, condition, conditionIconName, assetFor, findAsset, icon, namedIcon, markup, markupName, hydrate, isDayAt };
+  return { ASSETS, ASSET_ALIASES, CONDITIONS, LABELS, LINE_METRICS, LINE_CONDITIONS, lineMarkup, lineCondition, condition, conditionIconName, assetFor, findAsset, icon, namedIcon, markup, markupName, hydrate, isDayAt };
 });
