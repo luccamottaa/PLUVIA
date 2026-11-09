@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.57.1", date:"2026-11-09", title:"Novo e-mail de contato", items:[
+      "O PLUVIA ganhou um e-mail próprio: pluviaweather@gmail.com. Ele aparece na Política de Privacidade e nos Termos de uso para dúvidas e pedidos sobre seus dados."
+    ]},
     {version:"1.57", date:"2026-11-05", title:"Cartões de dia mais transparentes", items:[
       "De dia, os cartões da Home ficaram um pouco mais transparentes, para o céu aparecer melhor por trás.",
       "À noite, nada muda."
