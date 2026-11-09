@@ -539,3 +539,13 @@ Pedido do dono com vídeo de referência (um interruptor com cápsula de vidro t
 - Ficou de fora: som (a referência sintetiza tudo em Web Audio), a cena em pixel art e o rastro luminoso. Os outros vidros (topo, pílula, busca) não mudaram: refratar o que está atrás deles no iPhone não é possível com CSS.
 
 Teste: `tests/glass-segment.test.cjs` (molas, volume, tremor, mapa da lente, viagem até o segmento com rAF simulado, movimento reduzido).
+
+## Animações com mola e vidro vivo (novembro/2026, 1.68)
+
+Pedido do dono ("melhoria de animações do site todo"), que escolheu os quatro pacotes propostos. Bloco "Animações: molas e vidro" no fim de `continuous.css`; tudo CSS, nenhum script novo.
+
+- Curvas na raiz: `--ease-out`, `--ease-spring` (a mola amostrada do `glass-touch.js`, com `cubic-bezier` de reserva sem `linear()`) e `--ease-settle` (passa 2% do lugar e volta, para percursos longos). Regras novas usam essas variáveis; as curvas literais antigas ficaram onde os testes as fixam.
+- Interruptores (`#accountDialog`, `#sourcesDialog`, `#homeLayoutDialog`): a bolinha anda por `translate` (antes `left`, que recalculava layout) com `--ease-spring`; com o dedo em cima (`:active`) vira cápsula de vidro transparente, mais larga na direção para onde vai (`scale` com `transform-origin` do lado de origem), e volta a ser branca ao soltar. Movimento reduzido: sem transição.
+- Vidro vivo: botões do topo (`::before`), pílula do cabeçalho compacto, busca do topo e bolha do "Tá chovendo aí?" ganharam a franja vermelha/azul da cápsula da 1.67 (e o brilho comprido nos botões do topo). É pintura na mesma camada; o bloco repete os valores antigos de cada `box-shadow`, então quem mudar a sombra original precisa mudar lá também. A bolha do "Tá chovendo aí?" encaixa com `--ease-spring`.
+- Janelas: a entrada (`pluvia-dialog-enter`) dura .5 s com `--ease-settle`; a saída e o `dialog-motion.js` não mudaram. Linhas tocáveis (dias da previsão, capitais do Brasil agora, resultados da busca) afundam para `scale:.975` sob o dedo e voltam com mola.
+- Faxina: 14 `@keyframes` de `styles.css` que nenhuma regra usava saíram. Das 9 transições em propriedades de layout, as 2 dos interruptores viraram `translate`; as outras 7 (medidor de chuva, barras da próxima hora, marcadores de UV e ar, ponto do Sol/Lua, bolha do "Tá chovendo aí?") são trocas únicas quando o dado chega ou dependem do tamanho do conteúdo e ficaram como estão.
