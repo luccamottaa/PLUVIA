@@ -11,6 +11,10 @@
   'use strict';
   const ENDPOINT = 'https://api.open-meteo.com/v1/forecast';
   const FRESH_MS = 20 * 60 * 1000;
+  // Mapa (contorno + projeção + etiquetas): baixado só ao abrir o diálogo; sem ele a lista continua funcionando.
+  const MAP_SCRIPTS = ['/modules/brazil-outline.js?v=outline-1', '/modules/brazil-map.js?v=map-1'];
+  // O horário do "Atualizado às" é sempre o de Brasília, dito na própria frase: as capitais estão em quatro fusos.
+  const STATUS_ZONE = 'America/Sao_Paulo';
   const REGIONS = [
     ['Norte', ['AC','AM','AP','PA','RO','RR','TO']],
     ['Nordeste', ['AL','BA','CE','MA','PB','PE','PI','RN','SE']],
@@ -123,6 +127,25 @@
       .filter(region => region.rows.length);
   }
 
+  const degrees = value => value === null ? '—' : Math.round(value) + '°';
+
+  // Capitais sem leitura (falha da consulta): mesmas linhas, tudo "—". Nada é pulado nem inventado.
+  function emptyRows(cities) {
+    return cities.map(city => ({id:city.id, name:city.name, uf:city.uf, lat:city.lat, lon:city.lon, temperature:null, code:null, isDay:true, high:null, low:null}));
+  }
+
+  // Pinos do mapa a partir das MESMAS linhas da lista: norte → sul (ordem do Tab), texto, cor e nome acessível.
+  function pins(rows) {
+    return rows.slice().sort((a, b) => b.lat - a.lat || a.lon - b.lon).map(row => ({
+      id:row.id, lat:row.lat, lon:row.lon, text:degrees(row.temperature), color:tempColor(row.temperature),
+      label:`${row.name}/${row.uf}: ${row.temperature === null ? 'temperatura indisponível' : Math.round(row.temperature) + ' graus'}. Abrir cidade`
+    }));
+  }
+
+  function statusText(at, format) {
+    return `Atualizado às ${format(at)} (horário de Brasília) · Open-Meteo`;
+  }
+
   let openDialog = null;
   function mount(root) {
     const doc = root.document, el = id => doc.getElementById(id);
@@ -132,13 +155,11 @@
     let revision = 0, cache = null;
     const status = text => {el('brazilStatus').textContent = text;};
     const capitals = () => typeof CAPITALS !== 'undefined' ? CAPITALS : [];
-    const degrees = value => value === null ? '—' : Math.round(value) + '°';
 
     const mapBox = el('brazilMap'), legend = el('brazilLegend');
     let fieldRows = [];
     // Pinta o campo numa tela pequena e devolve a imagem; sem canvas, o mapa fica só com as etiquetas.
-    function paintField(points) {
-      const grid = field(points);
+    function paintField(grid) {
       const canvas = grid && doc.createElement('canvas'), ctx = canvas?.getContext?.('2d');
       if (!ctx) return null;
       canvas.width = grid.width; canvas.height = grid.height;
@@ -261,8 +282,32 @@
       mapBox.addEventListener('pointerup', end); mapBox.addEventListener('pointercancel', end);
     }
 
-    function render(rows) {
-      renderMap(rows);
+    // Contorno e projeção sob demanda (uma vez por visita); falha não derruba a lista e tenta de novo na próxima abertura.
+    let mapModules = null;
+    function loadMapModules() {
+      if (root.PLUVIA?.brazilMap && root.PLUVIA?.brazilOutline) return Promise.resolve(true);
+      mapModules ||= Promise.all(MAP_SCRIPTS.map(src => new Promise((resolve, reject) => {
+        const script = doc.createElement('script');
+        script.src = src; script.async = false;
+        script.onload = resolve; script.onerror = () => reject(new Error('Mapa indisponível'));
+        doc.head.appendChild(script);
+      }))).then(() => Boolean(root.PLUVIA?.brazilMap && root.PLUVIA?.brazilOutline), () => {mapModules = null; return false;});
+      return mapModules;
+    }
+    async function drawMap(rows, token) {
+      if (!mapBox) return;
+      const ready = await loadMapModules();
+      if (token !== revision) return;
+      if (!ready) {mapBox.hidden = true; if (legend) legend.hidden = true; return;}
+      mapBox.hidden = false;
+      const {brazilMap, brazilOutline} = root.PLUVIA;
+      const heat = paintField(brazilMap.field(rows.concat(fieldRows), brazilMap.projectionFor(brazilOutline)));
+      brazilMap.draw(mapBox, {doc, outline:brazilOutline, pins:pins(rows), heatHref:heat, root});
+      if (legend) legend.hidden = !heat;
+    }
+
+    function render(rows, token = revision) {
+      drawMap(rows, token);
       const icons = root.PLUVIA?.weatherIcons;
       list.replaceChildren(...group(rows).map(region => {
         const section = doc.createElement('section'), title = doc.createElement('h3'), items = doc.createElement('ul');
@@ -289,8 +334,8 @@
 
     async function load() {
       const token = ++revision, cities = capitals();
-      if (cache && Date.now() - cache.at < FRESH_MS) {fieldRows = cache.fieldRows; render(cache.rows); status(`Atualizado às ${clock(cache.at)} · Open-Meteo`); return;}
-      list.replaceChildren(); if (mapBox) {mapBox.hidden = true; mapBox.replaceChildren();} if (legend) legend.hidden = true; status('Consultando as 27 capitais…');
+      if (cache && Date.now() - cache.at < FRESH_MS) {fieldRows = cache.fieldRows; render(cache.rows, token); status(statusText(cache.at, clock)); return;}
+      list.replaceChildren(); if (mapBox) mapBox.hidden = true; if (legend) legend.hidden = true; status('Consultando as 27 capitais…');
       try {
         if (!client?.getJson || !cities.length) throw new Error('Cliente indisponível.');
         client.abortAll?.();
@@ -299,16 +344,18 @@
         const {rows, extra} = split(data, cities);
         fieldRows = extra;
         cache = {rows, fieldRows, at:Date.now()};
-        render(rows); status(`Atualizado às ${clock(cache.at)} · Open-Meteo`);
+        render(rows, token); status(statusText(cache.at, clock));
       } catch (error) {
         if (token !== revision || error?.code === 'cancelled') return;
+        // Mapa e lista continuam com as 27 capitais, todas "—" (tocar ainda abre a cidade); a frase diz o que houve.
+        fieldRows = [];
+        render(emptyRows(cities), token);
         status(root.navigator?.onLine === false ? 'Sem internet: não foi possível consultar as capitais.' : 'Não foi possível consultar as capitais agora. Tente novamente.');
       }
     }
-    // Horário no fuso da cidade aberta (o resto do app também), nunca no do aparelho.
+    // Sempre horário de Brasília (dito no texto): antes usava o fuso da cidade aberta sem dizer qual.
     const clock = at => {
-      const zone = (typeof activeCity !== 'undefined' && activeCity?.timezone) || 'America/Sao_Paulo';
-      const options = {hour:'2-digit', minute:'2-digit', timeZone:zone};
+      const options = {hour:'2-digit', minute:'2-digit', timeZone:STATUS_ZONE};
       return (root.PLUVIA?.time?.dateFormat?.('pt-BR', options) || new Intl.DateTimeFormat('pt-BR', options)).format(at);
     };
 
@@ -337,5 +384,6 @@
     mapBox?.addEventListener('click', event => { if (dragged) { dragged = false; return; } pick(event); });
   }
 
-  return {buildUrl, parse, split, field, FIELD_POINTS, group, REGIONS, tempColor, spinFor, project, LABELS, MAP, mount, open:() => openDialog?.()};
+  return {buildUrl, parse, split, field, FIELD_POINTS, group, REGIONS, tempColor, spinFor, project, LABELS, MAP, MAP_SCRIPTS, STATUS_ZONE,
+    emptyRows, pins, statusText, mount, open:() => openDialog?.()};
 });

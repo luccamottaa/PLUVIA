@@ -55,6 +55,65 @@ test('viewBox calculado do contorno: cabe Roraima e o Chuí, com as margens nome
   assert.equal(projection.viewBox, `0 0 ${projection.width} ${projection.height}`);
 });
 
+// Etiqueta como o CSS a desenha (.75rem, padding 6 px): ~7,2 px por caractere + 12 px, 19 px de altura.
+const chip = text => ({w:12 + 7.2 * [...text].length, h:19});
+function labelsAt(mapPx, texts) {
+  const scale = mapPx / projection.width;
+  const items = capitals.map((city, i) => {
+    const [x, y] = projection.project(city.lat, city.lon), size = chip(texts[i]);
+    return {id:city.uf, x, y, w:size.w / scale, h:size.h / scale};
+  });
+  return {scale, items, labels:map.layoutLabels(items, {width:projection.width, height:projection.height, gap:2 / scale, dotRadius:3 / scale})};
+}
+// Larguras medidas do mapa no navegador: celular de 320 px (262), iPhone de 390 (332) e o máximo do diálogo (520);
+// mais 280 e 334 de folga. Com dados, sem nenhum e misturado. (A pílula estreita de ≤360 px é menor; aqui vale a maior.)
+const WIDTHS = [262, 280, 332, 334, 520];
+const SETS = {
+  'com dados':capitals.map((_, i) => `${[28, 34, 31, 30, 27, 36, 13, 19, -3][i % 9]}°`),
+  'sem dados':capitals.map(() => '—'),
+  'misturado':capitals.map((_, i) => i % 3 ? `${20 + i}°` : '—')
+};
+
+test('rótulos: nenhum sobrepõe outro, todos dentro do quadro, de 262 a 520 px', () => {
+  for (const width of WIDTHS) for (const [name, texts] of Object.entries(SETS)) {
+    const {labels, scale} = labelsAt(width, texts);
+    assert.deepEqual(map.overlaps(labels, 1 / scale), [], `${width}px ${name}`);
+    for (const label of labels) {
+      assert.ok(label.cx - label.w / 2 >= -1e-6 && label.cx + label.w / 2 <= projection.width + 1e-6, `${width}px ${name} ${label.id} x`);
+      assert.ok(label.cy - label.h / 2 >= -1e-6 && label.cy + label.h / 2 <= projection.height + 1e-6, `${width}px ${name} ${label.id} y`);
+    }
+  }
+});
+
+test('rótulos: o ponto fica na coordenada real; a etiqueta não cobre o ponto de outra cidade nem cruza linhas', () => {
+  for (const width of WIDTHS) {
+    const {labels, items, scale} = labelsAt(width, SETS['com dados']);
+    labels.forEach((label, i) => {
+      assert.deepEqual([label.x, label.y], [items[i].x, items[i].y], 'o ponto nunca sai do lugar');
+      for (const other of items) if (other.id !== label.id) {
+        const covers = Math.abs(label.cx - other.x) < label.w / 2 + 3 / scale && Math.abs(label.cy - other.y) < label.h / 2 + 3 / scale;
+        assert.ok(!covers, `${width}px: etiqueta de ${label.id} cobre o ponto de ${other.id}`);
+      }
+    });
+    const lines = labels.map(label => map.leader(label)).map((line, i) => line ? [[line.x1, line.y1], [labels[i].cx, labels[i].cy]] : null);
+    for (let i = 0; i < lines.length; i++) for (let j = i + 1; j < lines.length; j++) {
+      if (lines[i] && lines[j]) assert.ok(!map.segmentsCross(...lines[i], ...lines[j]), `${width}px: linhas de ${labels[i].id} e ${labels[j].id} se cruzam`);
+    }
+    // Cidades isoladas ficam em cima do próprio ponto (sem linha): Manaus e Cuiabá.
+    for (const uf of ['AM', 'MT']) assert.equal(map.leader(labels.find(label => label.id === uf)), null, `${width}px ${uf}`);
+  }
+  // Mesma entrada, mesmo desenho.
+  assert.deepEqual(labelsAt(334, SETS['com dados']).labels, labelsAt(334, SETS['com dados']).labels);
+});
+
+test('rótulos: a linha de chamada vai do ponto até a borda da etiqueta', () => {
+  const line = map.leader({x:0, y:0, cx:100, cy:0, w:40, h:20}, 0);
+  assert.deepEqual([line.x1, line.y1, line.x2, line.y2], [0, 0, 80, 0]);
+  assert.equal(map.leader({x:5, y:2, cx:0, cy:0, w:40, h:20}), null, 'etiqueta sobre o ponto: sem linha');
+  assert.ok(map.segmentsCross([0, 0], [10, 10], [0, 10], [10, 0]));
+  assert.ok(!map.segmentsCross([0, 0], [10, 0], [0, 5], [10, 5]));
+});
+
 test('contorno SVG leve e coerente com o point-in-polygon', () => {
   const d = map.outlinePath(land);
   assert.ok(Buffer.byteLength(d) < 50 * 1024, `${Buffer.byteLength(d)} bytes`);
