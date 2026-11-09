@@ -52,12 +52,12 @@ console.log('volumetric-clouds ok');
 
 // Raio dentro da nuvem (1.36): o mesmo ciclo de 39 s do CSS (storm-bolt), três raios nas mesmas posições.
 assert.equal(volume.flash(0).k,0);
-assert.deepEqual(volume.flash(4680 + 80),{k:1,x:.34});
+assert.deepEqual(volume.flash(4680 + 80),{k:1,x:.34,u:80,index:0,cycle:0});
 assert.ok(volume.flash(4680 + 160).k < .5,'pisca depois do primeiro clarão');
 assert.ok(Math.abs(volume.flash(17940 + 80).k - .95) < 1e-9 && volume.flash(17940 + 80).x === .76);
 assert.ok(Math.abs(volume.flash(31200 + 80).k - .7) < 1e-9 && volume.flash(31200 + 80).x === .18);
 assert.equal(volume.flash(4680 + 2300).k,0,'apaga em ~2 s');
-assert.deepEqual(volume.flash(39000 + 4760),volume.flash(4760),'ciclo repete');
+assert.deepEqual({...volume.flash(39000 + 4760),cycle:0},volume.flash(4760),'ciclo repete (só o número do ciclo muda)');
 assert.equal(volume.flash(NaN).k,0);
 for (const [share,x] of [[12,34],[46,76],[80,18]]) assert.ok(css.includes(`${share}.205%`) && css.includes(`calc(${x}vw - 50%)`),'posições batem com storm-bolt');
 assert.match(volume.FS,/uniform float COVER,DENS,SIZE,EDGE,DETAIL,FLASH,FLASHX,FOG/);
@@ -102,7 +102,7 @@ assert.match(volume.FS,/#ifdef GL_FRAGMENT_PRECISION_HIGH/,'sem highp o shader a
 assert.match(volume.FS,/gl_FragColor=vec4\(rn\.rgb\+base\*\(1\.-rn\.a\),rn\.a\+baseA\*\(1\.-rn\.a\)\)/,'chuva na frente da nuvem (e da luz do astro)');
 // Com a chuva 3D, a do CSS sai; sem ela (sem WebGL, movimento reduzido), continua.
 assert.match(css,/:root\[data-rain3d="on"\] \.sky-effects > \.sky-rain \{ opacity:0;[^}]*visibility:hidden/);
-assert.match(src,/delete html\.dataset\.rain3d; if \(canvas\) canvas\.remove\(\)/,'desligar devolve a chuva do CSS');
+assert.match(src,/delete html\.dataset\.rain3d; delete html\.dataset\.bolt3d; if \(canvas\) canvas\.remove\(\)/,'desligar devolve a chuva e o raio do CSS');
 // Desde a 1.60 a intro não tem céu: o canvas fica só na Home.
 assert.match(src,/function scene\(\) \{ return doc\.querySelector\('\.sky-effects'\); \}/);
 assert.doesNotMatch(src,/querySelector\('\.intro-sky'\)|#pluviaIntro \.intro-sky/);
@@ -121,3 +121,37 @@ assert.match(volume.FS,/float open=vis\*\(1\.\+3\.\*vis\*\(1\.-vis\)\);/,'raios 
 assert.match(src,/querySelector\(night \? '\.sky-moon' : '\.sky-sun'\)/,'Lua à noite, Sol de dia');
 assert.match(src,/gl\.uniform1f\(uniforms\.ASTS,!night && intensity > 0 \? 1 : 0\)/,'raios só do Sol');
 console.log('astros atrás da nuvem ok');
+
+// Raio 3D (1.64): forma determinística por raio e ciclo, 33 pontos de cima para baixo com zigue-zague e um galho;
+// o canal é borrado onde há nuvem (baseA) e o canal chapado do CSS sai com data-bolt3d.
+{
+  const a = volume.boltPath(0, 4, .46), b = volume.boltPath(0, 4, .46), c = volume.boltPath(0, 5, .46);
+  assert.equal(a.main.length, volume.BOLT_POINTS * 2); assert.equal(a.branch.length, volume.BRANCH_POINTS * 2);
+  assert.deepEqual(Array.from(a.main), Array.from(b.main), 'mesmo raio, mesma forma');
+  assert.notDeepEqual(Array.from(a.main), Array.from(c.main), 'ciclo novo, forma nova');
+  assert.ok(Math.abs(a.main[0] - volume.STRIKES[0].x * .46) < 1e-6, 'começa onde o CSS põe o raio');
+  for (let i = 1; i < volume.BOLT_POINTS; i++) assert.ok(a.main[i * 2 + 1] <= a.main[(i - 1) * 2 + 1] + .02, 'desce');
+  assert.ok(volume.boltPath(2, 0, .46).main[(volume.BOLT_POINTS - 1) * 2 + 1] > .4, 'o terceiro raio é menor');
+  for (const value of [...a.main, ...a.branch]) assert.ok(Number.isFinite(value));
+  const strike = volume.flash(volume.STRIKES[1].at * 39000 + 40);
+  assert.equal(strike.index, 1); assert.equal(strike.u, 40); assert.equal(strike.cycle, 0);
+  assert.match(volume.FS, new RegExp(`uniform vec2 BOLT\\[${volume.BOLT_POINTS}\\]`));
+  assert.match(volume.FS, /core\*\(1\.-baseA\*\.85\)/, 'núcleo some dentro da nuvem');
+  const sky = fs.readFileSync(path.join(__dirname, '../dist/sky.css'), 'utf8');
+  assert.match(sky, /:root\[data-bolt3d="on"\] \.sky-effects \.sky-lightning::after \{ visibility:hidden; \}/);
+  // Parallax: a nuvem anda pelo PY; a chuva continua presa à tela (gl_FragCoord sem PY).
+  assert.match(volume.FS, /vec2 fc=gl_FragCoord\.xy\+vec2\(0\.,PY\);/);
+  assert.match(volume.FS, /vec4 rn=rain\(gl_FragCoord\.xy\);/);
+}
+
+// Parallax do céu (1.64): cada camada no seu ritmo, preso depois de MAX_SCROLL, zero no topo.
+{
+  const parallax = require('../dist/modules/sky-parallax.js');
+  assert.deepEqual(parallax.offsets(0), {stars:0, astro:0, back:0, canvas:0, front:0});
+  const mid = parallax.offsets(1000);
+  assert.ok(mid.stars > mid.astro && mid.astro > mid.back && mid.back > mid.canvas && mid.canvas > mid.front, 'mais perto, mais rápido');
+  assert.deepEqual(parallax.offsets(99999), parallax.offsets(parallax.MAX_SCROLL));
+  assert.deepEqual(parallax.offsets(-50), parallax.offsets(0));
+  for (const value of Object.values(parallax.offsets(parallax.MAX_SCROLL))) assert.ok(value >= -160 && value <= 0);
+}
+console.log('volumetric-clouds 3D ok');

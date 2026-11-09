@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.64", date:"2026-11-09", title:"Raio, céu e Brasil em 3D", items:[
+      "O raio da trovoada agora é desenhado dentro das nuvens 3D: nítido embaixo, borrado e acendendo a nuvem por dentro onde a atravessa, com galho e zigue-zague.",
+      "Ao rolar a tela, o céu ganhou profundidade: estrelas, Sol e Lua quase parados, a nuvem de trás um pouco mais rápida e a da frente mais ainda.",
+      "Brasil agora virou um mapa em 3D: o Brasil deitado, com espessura, e cada capital numa coluna da altura da temperatura. Arraste de lado para girar."
+    ]},
     {version:"1.63", date:"2026-11-09", title:"Tela principal no visual novo", items:[
       "Buscar cidade agora fica no topo, numa barra com o botão de usar sua localização.",
       "Logo abaixo da temperatura voltou a linha com sensação, máxima e mínima, e o \"Vai chover?\" virou uma pílula de destaque.",

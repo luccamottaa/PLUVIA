@@ -30,6 +30,13 @@
   const project = (lat, lon) => [(lon - MAP.lon0) * MAP.k * MAP.scale, (MAP.lat0 - lat) * MAP.scale];
   // Escala de temperatura própria do mapa (não reutiliza o azul da marca): frio azul → calor vermelho.
   const STOPS = [[5,[91,140,255]],[15,[76,195,230]],[22,[95,211,141]],[27,[242,208,75]],[32,[243,154,61]],[37,[229,83,61]]];
+  // Altura da coluna no mapa 3D: 6 px a 5° até 60 px a 37° (a mesma faixa da escala de cores); ausente não tem coluna.
+  function barHeight(value) {
+    if (!Number.isFinite(value)) return 0;
+    return 6 + Math.min(Math.max((value - 5) / 32, 0), 1) * 54;
+  }
+  // Giro pelo arrasto: 0,35° por pixel, preso em ±35° para o Brasil não ficar de lado.
+  function spinFor(start, dx) { return Math.min(35, Math.max(-35, start + dx * .35)); }
   function tempColor(value) {
     if (value === null || !Number.isFinite(value)) return null;
     if (value <= STOPS[0][0]) return `rgb(${STOPS[0][1]})`;
@@ -163,7 +170,11 @@
         svg.append(defs, image, edge);
       }
       if (legend) legend.hidden = !heat;
-      const chips = [];
+      // Mapa em 3D (1.64, pedido do dono): o Brasil fica deitado em perspectiva CSS, com uma espessura (cópias
+      // escuras do contorno mais fundas) e, em cada capital, uma coluna de pé com a altura pela temperatura e a
+      // etiqueta no topo, sempre virada para a tela. Só CSS 3D (nenhum WebGL a mais: o céu já usa um contexto).
+      // A coluna fica no ponto da etiqueta (o litoral do Nordeste vai para o mar), com a linha até o ponto real.
+      const pins = [];
       for (const row of rows) {
         const [x, y] = project(row.lat, row.lon), [lx, ly] = LABELS[row.uf] || [x, y];
         if (Math.hypot(lx - x, ly - y) > 12) {
@@ -174,16 +185,59 @@
         const dot = doc.createElementNS(ns, 'circle'); dot.setAttribute('class', 'brazil-dot');
         dot.setAttribute('cx', x.toFixed(1)); dot.setAttribute('cy', y.toFixed(1)); dot.setAttribute('r', '4');
         svg.append(dot);
-        const chip = doc.createElement('span'); chip.className = 'brazil-chip'; chip.dataset.cityId = row.id;
-        chip.style.left = (lx / MAP.width * 100).toFixed(2) + '%'; chip.style.top = (ly / MAP.height * 100).toFixed(2) + '%';
+        const pin = doc.createElement('span'); pin.className = 'brazil-pin';
+        pin.style.left = (lx / MAP.width * 100).toFixed(2) + '%'; pin.style.top = (ly / MAP.height * 100).toFixed(2) + '%';
         const color = tempColor(row.temperature);
-        if (color) chip.style.setProperty('--chip', color); else chip.dataset.missing = '';
+        const chip = doc.createElement('span'); chip.className = 'brazil-chip'; chip.dataset.cityId = row.id;
+        if (color) { pin.style.setProperty('--chip', color); pin.style.setProperty('--h', barHeight(row.temperature).toFixed(1) + 'px'); }
+        else chip.dataset.missing = '';
         chip.textContent = degrees(row.temperature);
         chip.title = `${row.name}/${row.uf}`;
-        chips.push(chip);
+        if (color) { const bar = doc.createElement('i'); bar.className = 'brazil-bar'; pin.append(bar); }
+        pin.append(chip);
+        pins.push(pin);
       }
-      mapBox.replaceChildren(svg, ...chips);
+      const plane = doc.createElement('div'); plane.className = 'brazil-plane';
+      const slabs = [1, 2, 3, 4, 5].map(depth => {
+        const slab = doc.createElementNS(ns, 'svg'); slab.setAttribute('viewBox', `0 0 ${MAP.width} ${MAP.height}`);
+        slab.setAttribute('class', 'brazil-slab'); slab.setAttribute('focusable', 'false'); slab.style.setProperty('--z', depth);
+        const path = doc.createElementNS(ns, 'path'); path.setAttribute('d', OUTLINE); slab.append(path);
+        return slab;
+      });
+      svg.setAttribute('class', 'brazil-top');
+      plane.append(...slabs.reverse(), svg, ...pins);
+      mapBox.replaceChildren(plane);
       mapBox.hidden = false;
+      tilt();
+    }
+    // Entra plano e deita em perspectiva; arrastar para o lado gira o mapa (até 35°). Toque sem arrasto continua
+    // abrindo a cidade (pick). Movimento reduzido: já deitado, sem transição.
+    function tilt() {
+      if (!mapBox) return;
+      const reduce = root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+      if (reduce || typeof root.requestAnimationFrame !== 'function') { mapBox.dataset.tilted = ''; return; }
+      delete mapBox.dataset.tilted;
+      root.requestAnimationFrame(() => root.requestAnimationFrame(() => { mapBox.dataset.tilted = ''; }));
+    }
+    let drag = null, dragged = false;
+    if (mapBox) {
+      mapBox.addEventListener('pointerdown', event => {
+        if (event.button !== undefined && event.button !== 0) return;
+        drag = {id:event.pointerId, x:event.clientX, y:event.clientY, spin:parseFloat(mapBox.style.getPropertyValue('--spin')) || 0, active:false};
+        dragged = false;
+      });
+      mapBox.addEventListener('pointermove', event => {
+        if (!drag || event.pointerId !== drag.id) return;
+        const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+        if (!drag.active) {
+          if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
+          drag.active = true; dragged = true; mapBox.dataset.dragging = '';
+          try { mapBox.setPointerCapture?.(event.pointerId); } catch (_) {}
+        }
+        mapBox.style.setProperty('--spin', spinFor(drag.spin, dx).toFixed(1) + 'deg');
+      });
+      const end = () => { drag = null; delete mapBox.dataset.dragging; };
+      mapBox.addEventListener('pointerup', end); mapBox.addEventListener('pointercancel', end);
     }
 
     function render(rows) {
@@ -241,6 +295,7 @@
       el('cityDialog')?.open && el('cityDialog').close();
       if (!dialog.open) dialog.showModal();
       dialog.querySelector('.dialog-scroll')?.scrollTo?.(0, 0);
+      mapBox?.style.removeProperty('--spin');
       load();
     }
     openDialog = open;
@@ -258,8 +313,8 @@
     };
     list.addEventListener('click', pick);
     // O mapa é um atalho visual por toque (aria-hidden); a lista abaixo é o caminho acessível.
-    mapBox?.addEventListener('click', pick);
+    mapBox?.addEventListener('click', event => { if (dragged) { dragged = false; return; } pick(event); });
   }
 
-  return {buildUrl, parse, split, field, FIELD_POINTS, group, REGIONS, tempColor, project, LABELS, MAP, mount, open:() => openDialog?.()};
+  return {buildUrl, parse, split, field, FIELD_POINTS, group, REGIONS, tempColor, barHeight, spinFor, project, LABELS, MAP, mount, open:() => openDialog?.()};
 });
