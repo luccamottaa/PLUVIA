@@ -563,9 +563,9 @@
       <div class="dialog-heading"><h2 id="brazilTitle">Brasil agora</h2><button id="brazilClose" class="dialog-close" type="button" autofocus aria-label="Fechar Brasil agora">×</button></div>
       <div class="dialog-scroll">
         <p id="brazilStatus" class="brazil-status" role="status" aria-live="polite"></p>
-        <div id="brazilMap" class="brazil-map" aria-hidden="true" hidden></div><div id="brazilLegend" class="brazil-legend" aria-hidden="true" hidden><span>5°</span><i></i><span>37°</span></div>
+        <div id="brazilMap" class="brazil-map" role="group" aria-label="Mapa do Brasil com a temperatura atual nas capitais" aria-describedby="brazilMapHint" hidden></div><p id="brazilMapHint" class="visually-hidden">Cada temperatura no mapa é um botão que abre a cidade. A lista abaixo traz os mesmos dados por região.</p><div id="brazilLegend" class="brazil-legend" aria-hidden="true" hidden><span>5°</span><i></i><span>37°</span></div>
         <div id="brazilList" class="brazil-list"></div>
-        <p class="brazil-note">Temperatura atual, condição e máxima/mínima do dia em cada capital, pelo calendário local. No mapa, as cores vão do azul (frio) ao vermelho (calor), interpoladas entre as capitais e cidades do interior (ilustrativo: entre os pontos não há medição); contorno Natural Earth. Previsão Open-Meteo no ponto de referência do município. Toque numa capital para abrir a previsão completa.</p>
+        <p class="brazil-note">Temperatura atual, condição e máxima/mínima do dia em cada capital, pelo calendário local. No mapa, as cores vão do azul (frio) ao vermelho (calor), interpoladas entre as capitais e cidades do interior (ilustrativo: entre os pontos não há medição). Cada capital fica na sua latitude e longitude, sobre o contorno Natural Earth; quando as temperaturas se encostariam, uma linha liga o número ao ponto. Previsão Open-Meteo no ponto de referência do município. Toque numa capital para abrir a previsão completa.</p>
       </div>
     </dialog>
     <dialog id="monthDialog" class="city-dialog month-dialog" aria-labelledby="monthTitle" aria-describedby="monthCity">
@@ -675,7 +675,7 @@
     <script src="./modules/share-card.js?v=share-card-10" defer></script>
     <script src="./modules/share-weather.js?v=share-14" defer></script>
     <script src="./saved-places.js?v=places-2" defer></script>
-    <script src="./modules/brazil-now.js?v=brazil-7" defer></script>
+    <script src="./modules/brazil-now.js?v=brazil-8" defer></script>
     <script src="./modules/month-recap.js?v=month-2" defer></script>
     <script src="./modules/forecast-accuracy.js?v=accuracy-1" defer></script>
     <script src="./modules/station-now.js?v=station-5" defer></script>

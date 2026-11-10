@@ -404,7 +404,7 @@ void main(){
       host.insertBefore(canvas,moon?.nextSibling || null); bolt = null; boltLookup = 0;
       resize(); sunUpdate(win.performance.now());
     }
-    // Montagem sem travar a página (1.68.2): compilar e ligar o shader da nuvem levava ~0,9 s de CPU com a CPU 4×
+    // Montagem sem travar a página (1.68.3): compilar e ligar o shader da nuvem levava ~0,9 s de CPU com a CPU 4×
     // mais lenta (perfil da abertura) e acontecia no instante em que a previsão chega e a Home é desenhada. Agora a
     // montagem começa num momento ocioso, os programas são compilados sem perguntar o resultado (perguntar obriga o
     // navegador a terminar ali) e, onde há KHR_parallel_shader_compile, a conclusão é conferida a cada quadro sem

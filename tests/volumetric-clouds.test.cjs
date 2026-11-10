@@ -66,7 +66,7 @@ assert.match(src,/animationName === 'storm-bolt'/);
 // Lento cai para menos detalhe antes de desligar, contexto perdido religa uma vez e o motivo vai ao PostHog (1.40.1).
 {
   const src = fs.readFileSync(path.join(root, 'modules/volumetric-clouds.js'), 'utf8');
-  // 1.68.1: a queda passa por níveis de qualidade (teste no fim do arquivo); desligar continua sendo o último recurso.
+  // 1.68.2: a queda passa por níveis de qualidade (teste no fim do arquivo); desligar continua sendo o último recurso.
   assert.match(src, /if \(quality\.level < QUALITY\.length - 1\) \{ quality\.drop\(\); slow = 0; resize\(\); sunUpdate\(now\); \}\s*else return off\('slow'\);/);
   assert.match(src, /if \(\+\+lost > 1\) return off\('lost'\);/);
   assert.match(src, /track\?\.\('Sky Effect Off',\{effect:'volume',reason:reason \|\| 'unsupported'\}\)/);
@@ -171,7 +171,7 @@ console.log('volumetric-clouds 3D ok');
 }
 console.log('chuva fluida ok');
 
-// 1.68.1: o brilho do Sol não estoura mais a nuvem que passa na frente dele. Teto com joelho suave (sem corte
+// 1.68.2: o brilho do Sol não estoura mais a nuvem que passa na frente dele. Teto com joelho suave (sem corte
 // seco), lóbulo de espalhamento largo e baixo e coroa contida.
 {
   const { FS } = volume;
@@ -186,7 +186,7 @@ console.log('chuva fluida ok');
   assert.match(FS, /g=min\(g,\.42\);/);
 }
 
-// 1.68.1: saída antecipada do ruído (mesma imagem, menos contas): duas oitavas, limite pelo máximo das restantes.
+// 1.68.2: saída antecipada do ruído (mesma imagem, menos contas): duas oitavas, limite pelo máximo das restantes.
 {
   const { FS } = volume;
   assert.match(FS, /if\(shape\(s\+\.2175,y\)<=0\.\)return 0\.;/);
@@ -197,7 +197,7 @@ console.log('chuva fluida ok');
   assert.doesNotMatch(FS, /fbm4/);
 }
 
-// 1.68.1: teto de pixels por nível, chuva em resolução própria e qualidade adaptativa com histerese.
+// 1.68.2: teto de pixels por nível, chuva em resolução própria e qualidade adaptativa com histerese.
 {
   const { QUALITY, RAIN_PIXELS, GOVERNOR, fit, governor, rainOffsets, RAIN_LAYERS } = volume;
   const pixels = ([w, h]) => w * h;

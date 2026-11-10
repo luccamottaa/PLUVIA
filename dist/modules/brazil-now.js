@@ -1,7 +1,8 @@
 /* Brasil agora: as 27 capitais em uma única consulta Open-Meteo de várias coordenadas, só ao abrir
    o diálogo (nunca na abertura da Home), com cliente próprio, cache curto em memória e revisão para
-   descartar respostas atrasadas. Tocar numa capital abre a cidade pelo fluxo normal (chooseCity).
-   Valores ausentes ficam "—"; nada vira zero. */
+   descartar respostas atrasadas. Tocar numa capital (na lista ou no mapa) abre a cidade pelo fluxo normal (chooseCity).
+   Valores ausentes ficam "—"; nada vira zero. O mapa (contorno, projeção e etiquetas) mora em brazil-map.js e
+   brazil-outline.js, baixados só ao abrir; mapa e lista são desenhados a partir das mesmas linhas. */
 (function(root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -11,6 +12,10 @@
   'use strict';
   const ENDPOINT = 'https://api.open-meteo.com/v1/forecast';
   const FRESH_MS = 20 * 60 * 1000;
+  // Mapa (contorno + projeção + etiquetas): baixado só ao abrir o diálogo; sem ele a lista continua funcionando.
+  const MAP_SCRIPTS = ['/modules/brazil-outline.js?v=outline-1', '/modules/brazil-map.js?v=map-1'];
+  // O horário do "Atualizado às" é sempre o de Brasília, dito na própria frase: as capitais estão em quatro fusos.
+  const STATUS_ZONE = 'America/Sao_Paulo';
   const REGIONS = [
     ['Norte', ['AC','AM','AP','PA','RO','RR','TO']],
     ['Nordeste', ['AL','BA','CE','MA','PB','PE','PI','RN','SE']],
@@ -18,20 +23,8 @@
     ['Sudeste', ['ES','MG','RJ','SP']],
     ['Sul', ['PR','RS','SC']]
   ];
-  // Mapa: contorno do Brasil (Natural Earth 1:50m, domínio público, simplificado) numa projeção
-  // equiretangular com cos(15°), a mesma usada para os pontos das capitais. Ilustrativo, não é um mapa de precisão.
-  const MAP = {width:640, height:560, lon0:-74.2, lat0:5.6, scale:14, k:Math.cos(15 * Math.PI / 180)};
-  const OUTLINE = 'M99 61L106 68L110 67L115 65L117 67L117 69L118 69L123 63L135 57L138 51L146 48L146 45L137 43L135 28L129 22L127 19L130 20L135 21L138 23L147 23L152 28L153 28L155 22L159 20L163 21L171 18L175 15L178 15L184 10L182 6L183 5L190 5L192 7L190 15L196 17L196 19L198 23L194 28L192 41L194 45L195 47L197 54L207 62L212 60L212 58L214 56L219 57L219 55L225 55L228 51L231 50L235 52L240 51L247 52L247 50L244 47L247 43L250 45L260 42L264 46L271 49L276 45L280 47L282 46L284 48L287 48L291 44L296 34L306 18L308 18L311 21L318 49L321 53L328 55L329 62L323 67L317 75L310 80L300 98L297 97L291 100L298 101L301 101L315 92L318 103L322 107L327 104L331 105L337 103L332 116L335 113L338 105L341 104L345 99L348 101L350 99L348 98L348 94L353 89L360 88L362 89L362 87L364 87L389 97L390 102L394 99L399 103L398 104L400 103L401 107L398 110L399 112L402 109L403 112L401 112L400 114L399 123L402 120L405 113L407 113L406 118L409 115L416 113L417 112L423 113L432 117L437 117L442 119L456 118L463 118L483 130L489 137L495 143L499 144L501 147L509 150L523 150L525 152L532 177L532 190L531 196L528 203L522 212L520 214L518 214L518 216L511 225L504 230L499 238L498 236L494 248L486 258L483 260L482 257L480 255L478 257L479 259L475 269L476 269L475 275L477 275L475 284L478 301L473 319L474 326L467 334L465 352L462 355L457 366L452 371L450 376L448 379L449 386L439 391L436 395L436 397L435 400L422 400L420 397L419 400L410 402L409 401L413 401L410 399L400 401L399 403L401 404L390 409L389 412L382 412L370 418L354 429L355 431L352 434L352 433L349 432L348 435L344 434L345 435L349 437L345 440L346 441L346 445L344 446L345 448L347 459L346 471L343 478L334 485L327 496L323 504L317 513L312 519L300 528L299 524L305 523L310 519L312 514L314 514L315 511L318 508L318 504L319 505L320 502L313 504L310 499L312 503L310 509L309 508L307 514L301 518L298 525L298 529L291 542L282 551L280 550L280 542L285 537L279 532L276 527L270 524L265 519L257 516L251 510L246 514L246 509L235 500L231 500L230 502L224 501L236 490L248 476L250 476L250 473L258 469L262 464L269 462L275 458L277 455L278 446L275 438L271 436L267 437L265 436L270 415L265 412L259 414L254 414L251 396L249 391L243 390L240 387L238 390L233 390L220 388L221 372L217 361L221 358L217 355L223 345L222 343L226 333L221 324L219 324L214 320L213 312L214 306L190 306L189 295L184 290L188 290L185 271L177 267L168 268L163 263L155 260L151 256L147 256L142 253L139 254L132 253L131 250L125 246L119 236L120 233L118 226L120 220L119 214L103 217L92 224L88 228L83 228L80 232L75 234L67 232L57 231L52 233L50 232L48 233L48 216L49 211L40 218L28 218L25 212L13 210L17 204L9 195L6 190L6 187L3 184L3 182L6 181L6 175L14 169L13 164L17 157L18 150L32 141L44 139L46 137L51 137L54 139L57 139L65 95L62 86L56 80L56 70L64 68L68 69L68 66L66 64L59 64L59 54L81 54L80 53L81 51L85 54L92 49L96 56L96 62L99 61ZM332 82L339 81L347 82L349 83L347 91L343 96L343 98L340 100L338 98L338 101L335 100L334 100L333 102L330 103L326 102L320 103L317 96L317 94L319 94L317 91L319 82L324 80L332 82ZM302 98L301 99L305 94L306 88L310 86L312 88L310 93L302 98Z';
-  // Onde fica a etiqueta de cada capital (unidades do viewBox) quando o ponto real deixaria etiquetas
-  // sobrepostas; o litoral do Nordeste vai para o mar, com uma linha até o ponto.
-  const LABELS = {AP:[284,58], PA:[350,120], MA:[424,94], CE:[494,118], PI:[428,160], RN:[604,132], PB:[604,178], PE:[604,224],
-    AL:[604,270], SE:[604,316], BA:[470,272], RO:[145,190], GO:[306,326], DF:[384,284], MG:[402,343], ES:[494,362],
-    RJ:[452,414], SP:[368,404], PR:[298,442], SC:[388,474]};
-  const project = (lat, lon) => [(lon - MAP.lon0) * MAP.k * MAP.scale, (MAP.lat0 - lat) * MAP.scale];
   // Escala de temperatura própria do mapa (não reutiliza o azul da marca): frio azul → calor vermelho.
   const STOPS = [[5,[91,140,255]],[15,[76,195,230]],[22,[95,211,141]],[27,[242,208,75]],[32,[243,154,61]],[37,[229,83,61]]];
-  // Giro pelo arrasto: 0,35° por pixel, preso em ±35° para o Brasil não ficar de lado.
-  function spinFor(start, dx) { return Math.min(35, Math.max(-35, start + dx * .35)); }
   function tempColor(value) {
     if (value === null || !Number.isFinite(value)) return null;
     if (value <= STOPS[0][0]) return `rgb(${STOPS[0][1]})`;
@@ -51,26 +44,6 @@
     [-18.92,-48.28],[-16.47,-54.64],[-11.86,-55.51],[-12.74,-60.15],[-15.89,-52.26],[-22.22,-54.81],[-22.12,-51.39],
     [-24.96,-53.46],[-27.1,-52.62],[-29.68,-53.81],[-29.75,-57.09],[-10.18,-48.88],[-1.72,-55.87]]
     .map(([lat, lon]) => ({lat, lon, timezone:'auto'}));
-
-  // Campo contínuo: média ponderada pelo inverso do quadrado da distância (no plano do mapa) das leituras válidas.
-  // Grade pequena (o navegador suaviza ao ampliar); ausentes ficam fora, e com menos de 6 leituras não há campo.
-  function field(points, width = 128, height = 112) {
-    const valid = points.filter(point => finite(point.temperature) !== null).map(point => {
-      const [x, y] = project(point.lat, point.lon); return [x / MAP.width * width, y / MAP.height * height, point.temperature];
-    });
-    if (valid.length < 6) return null;
-    const out = new Float32Array(width * height);
-    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
-      let sum = 0, weights = 0, exact = null;
-      for (const [px, py, t] of valid) {
-        const d2 = (px - x - .5) ** 2 + (py - y - .5) ** 2;
-        if (d2 < 1e-6) {exact = t; break;}
-        const w = 1 / d2; sum += w * t; weights += w;
-      }
-      out[y * width + x] = exact ?? sum / weights;
-    }
-    return {width, height, values:out};
-  }
 
   // Uma URL para todas: coordenadas e fusos na mesma ordem das capitais (timezone por local,
   // então máxima/mínima do dia seguem o calendário de cada capital).
@@ -123,6 +96,25 @@
       .filter(region => region.rows.length);
   }
 
+  const degrees = value => value === null ? '—' : Math.round(value) + '°';
+
+  // Capitais sem leitura (falha da consulta): mesmas linhas, tudo "—". Nada é pulado nem inventado.
+  function emptyRows(cities) {
+    return cities.map(city => ({id:city.id, name:city.name, uf:city.uf, lat:city.lat, lon:city.lon, temperature:null, code:null, isDay:true, high:null, low:null}));
+  }
+
+  // Pinos do mapa a partir das MESMAS linhas da lista: norte → sul (ordem do Tab), texto, cor e nome acessível.
+  function pins(rows) {
+    return rows.slice().sort((a, b) => b.lat - a.lat || a.lon - b.lon).map(row => ({
+      id:row.id, lat:row.lat, lon:row.lon, text:degrees(row.temperature), color:tempColor(row.temperature),
+      label:`${row.name}/${row.uf}: ${row.temperature === null ? 'temperatura indisponível' : Math.round(row.temperature) + ' graus'}. Abrir cidade`
+    }));
+  }
+
+  function statusText(at, format) {
+    return `Atualizado às ${format(at)} (horário de Brasília) · Open-Meteo`;
+  }
+
   let openDialog = null;
   function mount(root) {
     const doc = root.document, el = id => doc.getElementById(id);
@@ -132,13 +124,11 @@
     let revision = 0, cache = null;
     const status = text => {el('brazilStatus').textContent = text;};
     const capitals = () => typeof CAPITALS !== 'undefined' ? CAPITALS : [];
-    const degrees = value => value === null ? '—' : Math.round(value) + '°';
 
     const mapBox = el('brazilMap'), legend = el('brazilLegend');
     let fieldRows = [];
     // Pinta o campo numa tela pequena e devolve a imagem; sem canvas, o mapa fica só com as etiquetas.
-    function paintField(points) {
-      const grid = field(points);
+    function paintField(grid) {
       const canvas = grid && doc.createElement('canvas'), ctx = canvas?.getContext?.('2d');
       if (!ctx) return null;
       canvas.width = grid.width; canvas.height = grid.height;
@@ -147,122 +137,32 @@
       ctx.putImageData(image, 0, 0);
       try {return canvas.toDataURL('image/png');} catch {return null;}
     }
-    function renderMap(rows) {
+    // Contorno e projeção sob demanda (uma vez por visita); falha não derruba a lista e tenta de novo na próxima abertura.
+    let mapModules = null;
+    function loadMapModules() {
+      if (root.PLUVIA?.brazilMap && root.PLUVIA?.brazilOutline) return Promise.resolve(true);
+      mapModules ||= Promise.all(MAP_SCRIPTS.map(src => new Promise((resolve, reject) => {
+        const script = doc.createElement('script');
+        script.src = src; script.async = false;
+        script.onload = resolve; script.onerror = () => reject(new Error('Mapa indisponível'));
+        doc.head.appendChild(script);
+      }))).then(() => Boolean(root.PLUVIA?.brazilMap && root.PLUVIA?.brazilOutline), () => {mapModules = null; return false;});
+      return mapModules;
+    }
+    async function drawMap(rows, token) {
       if (!mapBox) return;
-      const ns = 'http://www.w3.org/2000/svg', svg = doc.createElementNS(ns, 'svg');
-      svg.setAttribute('viewBox', `0 0 ${MAP.width} ${MAP.height}`);
-      svg.setAttribute('focusable', 'false');
-      const land = doc.createElementNS(ns, 'path'); land.setAttribute('class', 'brazil-land'); land.setAttribute('d', OUTLINE);
-      svg.append(land);
-      const heat = paintField(rows.concat(fieldRows));
-      if (heat) {
-        const defs = doc.createElementNS(ns, 'defs'), clip = doc.createElementNS(ns, 'clipPath'), shape = doc.createElementNS(ns, 'path');
-        clip.setAttribute('id', 'brazilLandClip'); shape.setAttribute('d', OUTLINE); clip.append(shape); defs.append(clip);
-        const image = doc.createElementNS(ns, 'image'); image.setAttribute('class', 'brazil-heat');
-        Object.entries({x:0, y:0, width:MAP.width, height:MAP.height, preserveAspectRatio:'none', 'clip-path':'url(#brazilLandClip)', href:heat})
-          .forEach(([key, value]) => image.setAttribute(key, value));
-        const edge = land.cloneNode(); edge.setAttribute('class', 'brazil-edge');
-        svg.append(defs, image, edge);
-      }
-      if (legend) legend.hidden = !heat;
-      // Mapa em 3D (1.64, refeito na 1.64.1): o Brasil fica deitado em perspectiva CSS, com espessura (cópias escuras
-      // do contorno mais fundas). As etiquetas NÃO ficam no 3D: na 1.64 elas ficavam de pé dentro do plano
-      // (preserve-3d com rotação inversa) e no Safari do iPhone saíam longe das colunas e empilhadas. Agora cada
-      // etiqueta é plana, numa camada por cima, posicionada pelo ponto que o próprio navegador projetou: uma âncora
-      // de tamanho zero no plano, medida por getBoundingClientRect (vale em qualquer motor). Colunas saíram.
-      const anchors = [], chips = [];
-      for (const row of rows) {
-        const [x, y] = project(row.lat, row.lon), [lx, ly] = LABELS[row.uf] || [x, y];
-        if (Math.hypot(lx - x, ly - y) > 12) {
-          const line = doc.createElementNS(ns, 'line'); line.setAttribute('class', 'brazil-leader');
-          Object.entries({x1:x, y1:y, x2:lx, y2:ly}).forEach(([key, value]) => line.setAttribute(key, value.toFixed(1)));
-          svg.append(line);
-        }
-        const dot = doc.createElementNS(ns, 'circle'); dot.setAttribute('class', 'brazil-dot');
-        dot.setAttribute('cx', x.toFixed(1)); dot.setAttribute('cy', y.toFixed(1)); dot.setAttribute('r', '4');
-        svg.append(dot);
-        const anchor = doc.createElement('i'); anchor.className = 'brazil-anchor';
-        anchor.style.left = (lx / MAP.width * 100).toFixed(2) + '%'; anchor.style.top = (ly / MAP.height * 100).toFixed(2) + '%';
-        anchors.push(anchor);
-        const chip = doc.createElement('span'); chip.className = 'brazil-chip'; chip.dataset.cityId = row.id;
-        const color = tempColor(row.temperature);
-        if (color) chip.style.setProperty('--chip', color); else chip.dataset.missing = '';
-        chip.textContent = degrees(row.temperature);
-        chip.title = `${row.name}/${row.uf}`;
-        chips.push(chip);
-      }
-      const plane = doc.createElement('div'); plane.className = 'brazil-plane';
-      const slabs = [1, 2, 3, 4, 5].map(depth => {
-        const slab = doc.createElementNS(ns, 'svg'); slab.setAttribute('viewBox', `0 0 ${MAP.width} ${MAP.height}`);
-        slab.setAttribute('class', 'brazil-slab'); slab.setAttribute('focusable', 'false'); slab.style.setProperty('--z', depth);
-        const path = doc.createElementNS(ns, 'path'); path.setAttribute('d', OUTLINE); slab.append(path);
-        return slab;
-      });
-      svg.setAttribute('class', 'brazil-top');
-      plane.append(...slabs.reverse(), svg, ...anchors);
-      const labels = doc.createElement('div'); labels.className = 'brazil-labels'; labels.append(...chips);
-      mapBox.replaceChildren(plane, labels);
-      mapLabels = {anchors, chips, labels};
+      const ready = await loadMapModules();
+      if (token !== revision) return;
+      if (!ready) {mapBox.hidden = true; if (legend) legend.hidden = true; return;}
       mapBox.hidden = false;
-      tilt();
-    }
-    // Etiquetas no ponto projetado de cada âncora (px relativos ao mapa). Só leitura de layout e escrita de
-    // left/top nas etiquetas; roda na entrada (enquanto o mapa deita), no arrasto e quando o tamanho muda.
-    let mapLabels = null, followUntil = 0, following = 0;
-    function placeLabels() {
-      if (!mapLabels || !mapBox || mapBox.hidden) return;
-      const box = mapBox.getBoundingClientRect();
-      const points = mapLabels.anchors.map(anchor => anchor.getBoundingClientRect());
-      points.forEach((point, index) => {
-        const chip = mapLabels.chips[index];
-        chip.style.left = (point.left - box.left).toFixed(1) + 'px'; chip.style.top = (point.top - box.top).toFixed(1) + 'px';
-      });
-      mapLabels.labels.dataset.ready = '';
-    }
-    function follow(ms) {
-      followUntil = Math.max(followUntil, (root.performance?.now?.() || Date.now()) + ms);
-      if (following || typeof root.requestAnimationFrame !== 'function') { placeLabels(); return; }
-      const step = now => {
-        placeLabels();
-        if (now < followUntil) following = root.requestAnimationFrame(step); else following = 0;
-      };
-      following = root.requestAnimationFrame(step);
-    }
-    // Entra plano e deita em perspectiva; arrastar para o lado gira o mapa (até 35°). Toque sem arrasto continua
-    // abrindo a cidade (pick). Movimento reduzido: já deitado, sem transição.
-    function tilt() {
-      if (!mapBox) return;
-      const reduce = root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-      if (reduce || typeof root.requestAnimationFrame !== 'function') { mapBox.dataset.tilted = ''; placeLabels(); return; }
-      delete mapBox.dataset.tilted;
-      placeLabels();
-      root.requestAnimationFrame(() => root.requestAnimationFrame(() => { mapBox.dataset.tilted = ''; follow(1200); }));
-    }
-    if (mapBox && typeof root.ResizeObserver === 'function') new root.ResizeObserver(() => follow(0)).observe(mapBox);
-    let drag = null, dragged = false;
-    if (mapBox) {
-      mapBox.addEventListener('pointerdown', event => {
-        if (event.button !== undefined && event.button !== 0) return;
-        drag = {id:event.pointerId, x:event.clientX, y:event.clientY, spin:parseFloat(mapBox.style.getPropertyValue('--spin')) || 0, active:false};
-        dragged = false;
-      });
-      mapBox.addEventListener('pointermove', event => {
-        if (!drag || event.pointerId !== drag.id) return;
-        const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
-        if (!drag.active) {
-          if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
-          drag.active = true; dragged = true; mapBox.dataset.dragging = '';
-          try { mapBox.setPointerCapture?.(event.pointerId); } catch (_) {}
-        }
-        mapBox.style.setProperty('--spin', spinFor(drag.spin, dx).toFixed(1) + 'deg');
-        follow(0);
-      });
-      const end = () => { drag = null; delete mapBox.dataset.dragging; follow(0); };
-      mapBox.addEventListener('pointerup', end); mapBox.addEventListener('pointercancel', end);
+      const {brazilMap, brazilOutline} = root.PLUVIA;
+      const heat = paintField(brazilMap.field(rows.concat(fieldRows), brazilMap.projectionFor(brazilOutline)));
+      brazilMap.draw(mapBox, {doc, outline:brazilOutline, pins:pins(rows), heatHref:heat, root});
+      if (legend) legend.hidden = !heat;
     }
 
-    function render(rows) {
-      renderMap(rows);
+    function render(rows, token = revision) {
+      drawMap(rows, token);
       const icons = root.PLUVIA?.weatherIcons;
       list.replaceChildren(...group(rows).map(region => {
         const section = doc.createElement('section'), title = doc.createElement('h3'), items = doc.createElement('ul');
@@ -289,8 +189,8 @@
 
     async function load() {
       const token = ++revision, cities = capitals();
-      if (cache && Date.now() - cache.at < FRESH_MS) {fieldRows = cache.fieldRows; render(cache.rows); status(`Atualizado às ${clock(cache.at)} · Open-Meteo`); return;}
-      list.replaceChildren(); if (mapBox) {mapBox.hidden = true; mapBox.replaceChildren();} if (legend) legend.hidden = true; status('Consultando as 27 capitais…');
+      if (cache && Date.now() - cache.at < FRESH_MS) {fieldRows = cache.fieldRows; render(cache.rows, token); status(statusText(cache.at, clock)); return;}
+      list.replaceChildren(); if (mapBox) mapBox.hidden = true; if (legend) legend.hidden = true; status('Consultando as 27 capitais…');
       try {
         if (!client?.getJson || !cities.length) throw new Error('Cliente indisponível.');
         client.abortAll?.();
@@ -299,16 +199,18 @@
         const {rows, extra} = split(data, cities);
         fieldRows = extra;
         cache = {rows, fieldRows, at:Date.now()};
-        render(rows); status(`Atualizado às ${clock(cache.at)} · Open-Meteo`);
+        render(rows, token); status(statusText(cache.at, clock));
       } catch (error) {
         if (token !== revision || error?.code === 'cancelled') return;
+        // Mapa e lista continuam com as 27 capitais, todas "—" (tocar ainda abre a cidade); a frase diz o que houve.
+        fieldRows = [];
+        render(emptyRows(cities), token);
         status(root.navigator?.onLine === false ? 'Sem internet: não foi possível consultar as capitais.' : 'Não foi possível consultar as capitais agora. Tente novamente.');
       }
     }
-    // Horário no fuso da cidade aberta (o resto do app também), nunca no do aparelho.
+    // Sempre horário de Brasília (dito no texto): antes usava o fuso da cidade aberta sem dizer qual.
     const clock = at => {
-      const zone = (typeof activeCity !== 'undefined' && activeCity?.timezone) || 'America/Sao_Paulo';
-      const options = {hour:'2-digit', minute:'2-digit', timeZone:zone};
+      const options = {hour:'2-digit', minute:'2-digit', timeZone:STATUS_ZONE};
       return (root.PLUVIA?.time?.dateFormat?.('pt-BR', options) || new Intl.DateTimeFormat('pt-BR', options)).format(at);
     };
 
@@ -316,7 +218,6 @@
       el('cityDialog')?.open && el('cityDialog').close();
       if (!dialog.open) dialog.showModal();
       dialog.querySelector('.dialog-scroll')?.scrollTo?.(0, 0);
-      mapBox?.style.removeProperty('--spin');
       load();
     }
     openDialog = open;
@@ -333,9 +234,10 @@
       if (typeof chooseCity === 'function') chooseCity(button.dataset.cityId);
     };
     list.addEventListener('click', pick);
-    // O mapa é um atalho visual por toque (aria-hidden); a lista abaixo é o caminho acessível.
-    mapBox?.addEventListener('click', event => { if (dragged) { dragged = false; return; } pick(event); });
+    // Cada temperatura do mapa é um botão (toque, Enter ou Espaço) e abre a cidade igual à linha da lista.
+    mapBox?.addEventListener('click', pick);
   }
 
-  return {buildUrl, parse, split, field, FIELD_POINTS, group, REGIONS, tempColor, spinFor, project, LABELS, MAP, mount, open:() => openDialog?.()};
+  return {buildUrl, parse, split, FIELD_POINTS, group, REGIONS, tempColor, MAP_SCRIPTS, STATUS_ZONE, emptyRows, pins, statusText, mount,
+    open:() => openDialog?.()};
 });

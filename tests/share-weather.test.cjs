@@ -46,7 +46,7 @@ test('com suporte a arquivos a imagem do story vai junto do texto; sem suporte, 
  // Na abertura a imagem espera o primeiro gesto (ou 6 s): o canvas não disputa a CPU com a primeira pintura.
  await el('shareWeather').click();assert.equal(shared[0].files,undefined,'antes de qualquer gesto ainda não há imagem');
  events.pointerdown();await new Promise(r=>setImmediate(r));
- // 1.68.2: depois do gesto o story ainda espera 1,5 s sem toque nem rolagem (não cai no meio da rolagem).
+ // 1.68.3: depois do gesto o story ainda espera 1,5 s sem toque nem rolagem (não cai no meio da rolagem).
  await el('shareWeather').click();assert.equal(shared.at(-1).files,undefined,'logo depois do toque ainda não desenhou');shared.shift();
  assert.ok(timers.length>=2,'a espera pelo silêncio ficou agendada');
  const realNow=Date.now;Date.now=()=>realNow()+5000;

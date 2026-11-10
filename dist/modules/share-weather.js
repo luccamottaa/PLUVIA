@@ -59,7 +59,7 @@
       // celular e, num intervalo ocioso entre quadros, travava a descida dos blocos (perfil, outubro/2026).
       // A checagem vale na hora de desenhar: o toque que troca de cidade também acorda o story (engage) antes
       // do evento de troca.
-      // 1.68.2: também espera 1,5 s sem toque nem rolagem. Antes o primeiro gesto (quase sempre uma rolagem)
+      // 1.68.3: também espera 1,5 s sem toque nem rolagem. Antes o primeiro gesto (quase sempre uma rolagem)
       // acordava o story e o canvas (~120 ms no desktop, mais no celular) caía no meio da rolagem.
       const settled=fn=>{
         const wait=Math.max(lastCityChange+CITY_SETTLE_MS,lastActivity+QUIET_MS)-Date.now();
