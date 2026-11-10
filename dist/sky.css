@@ -48,8 +48,8 @@ html,body { background:var(--sky-base); }
 /* Intro com fundo fixo (1.60, pedido do dono: "não quero mais o céu dinâmico na intro"): sempre o azul-noite da
    marca com as gotas no vidro, igual em qualquer hora, tempo ou cidade; o céu da cidade só aparece na Home. Até a
    1.59 a intro mostrava o céu do momento (nuvens, Sol, Lua e chuva) e a cor do texto seguia a fase do dia. */
-.pluvia-intro { background-image:linear-gradient(165deg,#10142d,#080f22 85%); background-color:#080f22; color:#f3f8ff; }
-.pluvia-intro::before { background:linear-gradient(180deg,transparent 25%,#03142924); }
+.pluvia-intro { background-image:radial-gradient(130% 60% at 50% 112%,#0f6274 0%,#0b3a5200 62%),radial-gradient(70% 45% at 50% 46%,#1d4a8a73 0%,#1d4a8a00 72%),linear-gradient(180deg,#040a1a 0%,#091634 52%,#0a2a44 100%); background-color:#080f22; color:#f3f8ff; }
+.pluvia-intro::before { background:radial-gradient(38% 26% at 50% 47%,#7cc0ff33,#7cc0ff00 70%),linear-gradient(180deg,#5fd0e000 70%,#5fd0e01f 77%,#5fd0e000 85%),linear-gradient(180deg,#00000000 40%,#0314294d); }
 .pluvia-intro .intro-wordmark { color:#7cc0ff; }
 .pluvia-intro .intro-tagline { color:#f3f8ff; }
 .pluvia-intro .intro-kicker { z-index:1; color:#c4d7f0; }
