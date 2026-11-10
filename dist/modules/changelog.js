@@ -12,8 +12,21 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.68.2", date:"2026-11-10", title:"Sol menos estourado", items:[
+    {version:"1.68.5", date:"2026-11-10", title:"Sol menos estourado", items:[
       "O Sol do céu ficou mais quente e macio: o disco não é mais branco puro, e o halo e os raios que aparecem quando ele surge entre as nuvens estão bem mais discretos."
+    ]},
+    {version:"1.68.4", date:"2026-11-10", title:"Troca de cidade mais fluida", items:[
+      "Trocar de cidade ficou mais leve: menos trabalho repetido com os horários da previsão e com a lista das próximas horas, e menos pausas no meio das animações.",
+      "A imagem do story para compartilhar ficou mais rápida de preparar (agora em JPEG, menor para enviar) e não pesa mais a cada troca de cidade."
+    ]},
+    {version:"1.68.3", date:"2026-11-10", title:"Abertura sem travar", items:[
+      "O app não trava mais por quase um segundo quando a previsão chega: as nuvens 3D se preparam sem segurar a tela e aparecem logo depois, com o mesmo efeito.",
+      "A imagem do story para compartilhar agora é preparada só quando você para de rolar, em vez de cair no meio da rolagem."
+    ]},
+    {version:"1.68.2", date:"2026-11-10", title:"Céu 3D mais leve", items:[
+      "O brilho do Sol não estoura mais a nuvem que passa na frente dele: a nuvem continua com forma e relevo, e o Sol aparece por trás.",
+      "As nuvens 3D ficaram mais leves, principalmente em telas grandes, e a qualidade se ajusta sozinha quando o aparelho começa a engasgar.",
+      "Botões pequenos (localização na busca, modos das próximas horas e tamanho do texto) ficaram mais fáceis de tocar."
     ]},
     {version:"1.68.1", date:"2026-11-09", title:"Brasil agora no lugar certo", items:[
       "O mapa do Brasil agora foi refeito com o contorno real do país, e cada temperatura fica na posição da sua capital (antes algumas apareciam longe da cidade ou no mar). O mapa ficou reto, sem inclinação.",

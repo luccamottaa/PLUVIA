@@ -10,7 +10,7 @@
   else (root.PLUVIA = root.PLUVIA || {}).shareCard = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function(deps) {
   'use strict';
-  const WIDTH = 1080, HEIGHT = 1920;
+  const WIDTH = 1080, HEIGHT = 1920, TYPE = 'image/jpeg', EXTENSION = 'jpg';
   const BADGES = {storm:'Dia de trovoada', glow:'Pôr do sol promete hoje'};
   const finite = value => typeof value === 'number' && Number.isFinite(value) ? value : null;
 
@@ -93,6 +93,37 @@
     return out;
   }
 
+  // Véu já reduzido ao tamanho do story (1.68.4): reduzir a textura de 3984 × 1328 custava ~240 ms (CPU 4×) em
+  // cada story, e o story é refeito a cada troca de cidade. Agora é feito uma vez por sessão; cada story só copia
+  // este recorte de 1080 × 760 e tinge.
+  // A redução em si vai para createImageBitmap (decodifica e reduz fora da thread principal onde o navegador
+  // faz isso); sem ele, ou se ele falhar, a redução é feita no canvas como antes.
+  let veilCache = null;
+  async function veilBase(doc, veil, h) {
+    if (veilCache?.image === veil.src && veilCache.canvas.width) return veilCache.canvas;
+    const canvas = doc.createElement('canvas'); canvas.width = WIDTH; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const win = doc.defaultView, make = win?.createImageBitmap;
+    let scaled = null;
+    // A partir do arquivo (Blob), e não do <img>: com o <img> o Chromium decodifica e reduz na thread principal.
+    if (typeof make === 'function' && typeof win.fetch === 'function') {
+      try {
+        const blob = await (await win.fetch(veil.src)).blob();
+        scaled = await make.call(win, blob, {resizeWidth:h * 3, resizeHeight:h, resizeQuality:'medium'});
+      } catch { scaled = null; }
+    }
+    if (scaled) { ctx.drawImage(scaled, -260, 0); scaled.close?.(); } else ctx.drawImage(veil, -260, 0, h * 3, h);
+    veilCache = {image:veil.src, canvas};
+    return canvas;
+  }
+  // A imagem do véu também fica guardada: um Image novo por story decodificava a textura de novo.
+  const images = new Map();
+  function cachedImage(doc, src) {
+    if (!images.has(src)) images.set(src, loadImage(doc, src).then(image => { if (!image) images.delete(src); return image; }));
+    return images.get(src);
+  }
+
   async function render(data, {document:doc = globalThis.document} = {}) {
     if (!data || !doc?.createElement) return null;
     const canvas = doc.createElement('canvas');
@@ -106,7 +137,7 @@
     const [icon, mark, veil] = await Promise.all([
       iconName ? loadImage(doc, iconName) : null,
       loadImage(doc, '/logo-mark.png?v=logo-5'),
-      look.clouds ? loadImage(doc, '/assets/sky-cloud-veil.webp?v=clouds-9') : null
+      look.clouds ? cachedImage(doc, '/assets/sky-cloud-veil.webp?v=clouds-9') : null
     ]);
     const ink = look.light ? '#f1f7ff' : '#0f2a44', muted = look.twilight ? '#fff1e6' : look.light ? '#b9cbe3' : '#2d4a66';
     const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
@@ -118,8 +149,9 @@
       const layer = doc.createElement('canvas'), h = 760;
       layer.width = WIDTH; layer.height = h;
       const lc = layer.getContext('2d');
-      if (lc) {
-        lc.drawImage(veil, -260, 0, h * 3, h);
+      const base = await veilBase(doc, veil, h);
+      if (lc && base) {
+        lc.drawImage(base, 0, 0);
         if (look.tint) {lc.globalCompositeOperation = 'source-atop'; lc.fillStyle = look.tint; lc.fillRect(0, 0, WIDTH, h);}
         // A textura não chega a zero embaixo: sem esse esmaecimento o fim da camada virava uma linha reta.
         const fade = lc.createLinearGradient(0, 0, 0, h);
@@ -168,9 +200,11 @@
     ctx.fillText(data.source, WIDTH / 2, 1752);
     ctx.fillStyle = brand; ctx.font = '600 40px Sora, sans-serif';
     ctx.fillText('pluviaweather.com.br', WIDTH / 2, 1830);
-    // Depois do PNG pronto, o bitmap de 1080×1920 (~8 MB) é liberado: no iPhone essa memória pesa.
-    return new Promise(resolve => canvas.toBlob(blob => { canvas.width = canvas.height = 0; resolve(blob); }, 'image/png'));
+    // Depois da imagem pronta, o bitmap de 1080×1920 (~8 MB) é liberado: no iPhone essa memória pesa.
+    // JPEG (1.68.4): o story é opaco (degradê de fundo) e o PNG de 1080 × 1920 levava ~400 ms de CPU (4×) para
+    // codificar, a cada troca de cidade; o JPEG é bem mais rápido e menor para enviar.
+    return new Promise(resolve => canvas.toBlob(blob => { canvas.width = canvas.height = 0; resolve(blob); }, TYPE, .9));
   }
 
-  return {model, render, wrap, skyLook, WIDTH, HEIGHT};
+  return {model, render, wrap, skyLook, WIDTH, HEIGHT, TYPE, EXTENSION};
 });
