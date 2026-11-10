@@ -53,7 +53,7 @@ test('com suporte a arquivos a imagem do story vai junto do texto; sem suporte, 
  try { while(timers.length>1) timers.splice(1,1)[0](); await new Promise(r=>setImmediate(r)); } finally { Date.now=realNow; }
  await el('shareWeather').click();shared.shift();
  assert.equal(timers.length,1,'o limite de 6 s fica agendado uma vez');
- assert.equal(shared[0].files.length,1);assert.equal(shared[0].files[0].name,'pluvia-manaus.png');assert.equal(shared[0].files[0].parts[0].night,true);
+ assert.equal(shared[0].files.length,1);assert.equal(shared[0].files[0].name,'pluvia-manaus.png','sem EXTENSION no módulo do story, mantém png');assert.equal(shared[0].files[0].parts[0].night,true);
  assert.match(shared[0].text,/Manaus/);
  canShare=false;await el('shareWeather').click();assert.equal(shared[1].files,undefined,'sem canShare(files) não envia arquivo');
  canShare=true;events['pluvia:city-changed']();events['pluvia:weather-updated']({detail:{cityId:city.id}});

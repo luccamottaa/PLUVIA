@@ -70,7 +70,7 @@
       schedule(()=>token===cardToken && cards.render(data,{document:root.document}).then(blob=>{
         if(token!==cardToken || !blob) return;
         const name=String(snapshot?.location?.name || 'cidade').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-        card=new root.File([blob],`pluvia-${name || 'previsao'}.png`,{type:'image/png'});
+        card=new root.File([blob],`pluvia-${name || 'previsao'}.${cards.EXTENSION || 'png'}`,{type:blob.type || cards.TYPE || 'image/png'});
       }).catch(()=>{}));
     }
     let engaged=false,pendingCard=null,lastCityChange=-Infinity;
