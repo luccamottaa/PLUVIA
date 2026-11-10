@@ -703,7 +703,12 @@ function renderHourly(rows, start, daily, raw) {
     // As 24 horas ficam na mesma fileira, arrastando para o lado (antes eram 6 e o resto só no gráfico).
     // Cidade nova volta ao começo; uma atualização da mesma cidade mantém a posição da rolagem.
     // Na primeira pintura a fileira já está no começo: escrever scrollLeft ali forçava um reflow (PageSpeed).
-    if (peek.dataset.city !== activeCity?.id) { if (peek.dataset.city) peek.scrollLeft = 0; peek.dataset.city = activeCity?.id || ""; }
+    // 1.68.4: na troca de cidade a volta ao começo fica para o próximo quadro. Escrever scrollLeft aqui, logo
+    // depois de a troca mexer no DOM, obrigava o navegador a refazer o layout da página no meio do script.
+    if (peek.dataset.city !== activeCity?.id) {
+      if (peek.dataset.city) { const reset = () => { peek.scrollLeft = 0; }; typeof globalThis.requestAnimationFrame === "function" ? globalThis.requestAnimationFrame(reset) : reset(); }
+      peek.dataset.city = activeCity?.id || "";
+    }
     if (hourlyMode === "wind") {
       const speed = indices.map(i => readings.get(i).wind), gust = indices.map(i => readings.get(i).gust);
       const top = Math.max(20, ...[...speed, ...gust].filter(Number.isFinite)) * 1.1;
