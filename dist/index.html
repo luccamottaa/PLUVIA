@@ -108,7 +108,7 @@
     <link rel="preload" href="./vendor/suncalc.js?v=sky-4" as="script" />
     <link rel="preload" href="./modules/moon-view.js?v=moon-8" as="script" />
     <link rel="preload" href="./modules/sky-atmosphere.js?v=sky-24" as="script" />
-    <link rel="preload" href="./sky.css?v=sky-63" as="style" />
+    <link rel="preload" href="./sky.css?v=sky-64" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       /* fonts.css inline (o mesmo texto do arquivo, conferido por teste): era uma folha bloqueante a mais na cadeia crítica. */
@@ -148,13 +148,15 @@
   position:fixed; inset:0; z-index:100; min-height:100dvh;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:32px 24px; overflow:hidden; text-align:center;
-  background:linear-gradient(165deg,#10142d,#080f22 85%);
+  background:radial-gradient(130% 60% at 50% 112%,#0f6274 0%,#0b3a5200 62%),radial-gradient(70% 45% at 50% 46%,#1d4a8a73 0%,#1d4a8a00 72%),linear-gradient(180deg,#040a1a 0%,#091634 52%,#0a2a44 100%);
   background-color:#080f22;
 }
 .pluvia-intro[hidden] { display:none !important; }
+/* Fundo novo (1.64, pedido do dono: o azul-noite liso estava "feio"): noite amazônica, um halo azul atrás da marca
+   e o reflexo do rio no horizonte. Só pintura estática; a camada de luz anima apenas opacity/transform. */
 .pluvia-intro::before {
   content:""; position:absolute; inset:-5%; pointer-events:none;
-  background:linear-gradient(180deg,transparent 25%,#03142924);
+  background:radial-gradient(38% 26% at 50% 47%,#7cc0ff33,#7cc0ff00 70%),linear-gradient(180deg,#5fd0e000 70%,#5fd0e01f 77%,#5fd0e000 85%),linear-gradient(180deg,#00000000 40%,#0314294d);
   animation:intro-horizon 2.6s ease-out both;
 }
 /* Saída (1.25): o nome e o slogan sobem e somem, e o céu da intro se funde com o da Home (é a mesma cena). */
@@ -210,7 +212,7 @@
     <script src="./modules/moon-view.js?v=moon-8"></script>
     <script src="./modules/sky-atmosphere.js?v=sky-24"></script>
     <script src="./modules/volumetric-clouds.js?v=volume-11" defer></script><script src="./modules/sky-parallax.js?v=parallax-1" defer></script><script src="./modules/compact-header.js?v=compact-6" defer></script><script src="./modules/glass-touch.js?v=glass-2" defer></script><script src="./modules/glass-segment.js?v=glass-seg-3" defer></script><script src="./modules/text-size.js?v=text-size-1" defer></script><script src="./modules/sky-events.js?v=sky-events-3" defer></script><script src="./modules/sun-table.js?v=sun-table-1" defer></script><script src="./modules/eclipses.js?v=eclipses-3" defer></script>
-    <link rel="stylesheet" href="./sky.css?v=sky-63" />
+    <link rel="stylesheet" href="./sky.css?v=sky-64" />
     <script>
       /* O antigo modo seguro (céu parado depois de uma queda) saiu a pedido: limpa as marcas que ele deixou. */
       try { localStorage.removeItem("pluvia-boot-pending"); localStorage.removeItem("pluvia-safe-until"); } catch (e) {}

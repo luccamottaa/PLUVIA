@@ -8,8 +8,11 @@ const intro=html.slice(html.indexOf('<div id="pluviaIntro"'),html.indexOf('<p cl
 
 // Fundo fixo: nada do céu da cidade dentro da intro, e as cores não dependem da fase.
 assert.doesNotMatch(intro,/intro-sky|sky-sun|sky-moon|sky-clouds|sky-rain|sky-stars/);
-assert.match(style,/\.pluvia-intro \{[^}]*background:linear-gradient\(165deg,#10142d,#080f22 85%\);[^}]*background-color:#080f22;/);
-assert.match(sky,/\.pluvia-intro \{ background-image:linear-gradient\(165deg,#10142d,#080f22 85%\); background-color:#080f22; color:#f3f8ff; \}/);
+// Fundo da 1.64: noite amazônica com halo atrás da marca e reflexo do rio (o mesmo no HTML e no sky.css).
+const introBg='radial-gradient(130% 60% at 50% 112%,#0f6274 0%,#0b3a5200 62%),radial-gradient(70% 45% at 50% 46%,#1d4a8a73 0%,#1d4a8a00 72%),linear-gradient(180deg,#040a1a 0%,#091634 52%,#0a2a44 100%)';
+const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+assert.match(style,new RegExp(`\\.pluvia-intro \\{[^}]*background:${esc(introBg)};[^}]*background-color:#080f22;`));
+assert.match(sky,new RegExp(`\\.pluvia-intro \\{ background-image:${esc(introBg)}; background-color:#080f22; color:#f3f8ff; \\}`));
 assert.doesNotMatch(sky,/\.pluvia-intro[^{]*\{[^}]*var\(--(?:sky-color|sky-base|intro-ink|intro-muted)/,'cores da intro não seguem mais o céu');
 
 // Sem as gotas em lugar nenhum (nem pré-carregadas, nem no precache).
