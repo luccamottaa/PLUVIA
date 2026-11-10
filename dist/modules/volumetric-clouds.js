@@ -404,22 +404,48 @@ void main(){
       host.insertBefore(canvas,moon?.nextSibling || null); bolt = null; boltLookup = 0;
       resize(); sunUpdate(win.performance.now());
     }
-    function setup() {
-      if (!scene()) return false;
-      canvas = doc.createElement('canvas'); canvas.className = 'sky-volume'; canvas.setAttribute('aria-hidden','true');
-      try { gl = canvas.getContext('webgl',{alpha:true,premultipliedAlpha:true,antialias:false,depth:false,stencil:false,powerPreference:'low-power'}); } catch (_) { gl = null; }
-      if (!gl) { canvas = null; return false; }
-      const compile = (type, source) => { const s = gl.createShader(type); gl.shaderSource(s,source); gl.compileShader(s); if (!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error('shader'); return s; };
-      try {
-        const link = fragment => {
-          const p = gl.createProgram();
-          gl.attachShader(p,compile(gl.VERTEX_SHADER,VS)); gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fragment));
-          gl.bindAttribLocation(p,0,'p');
-          gl.linkProgram(p); if (!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error('link');
+    // Montagem sem travar a página (1.68.2): compilar e ligar o shader da nuvem levava ~0,9 s de CPU com a CPU 4×
+    // mais lenta (perfil da abertura) e acontecia no instante em que a previsão chega e a Home é desenhada. Agora a
+    // montagem começa num momento ocioso, os programas são compilados sem perguntar o resultado (perguntar obriga o
+    // navegador a terminar ali) e, onde há KHR_parallel_shader_compile, a conclusão é conferida a cada quadro sem
+    // bloquear. Sem a extensão, a conferência acontece num momento ocioso seguinte. A nuvem entra com o fade de 1,1 s.
+    let building = null;
+    function build() {
+      if (building || !scene()) return;
+      const idle = fn => win.requestIdleCallback ? win.requestIdleCallback(fn,{timeout:1500}) : win.setTimeout(fn,200);
+      building = {phase:'waiting'};
+      idle(() => {
+        if (dead || gl) { building = null; return; }
+        const surface = doc.createElement('canvas'); surface.className = 'sky-volume'; surface.setAttribute('aria-hidden','true');
+        let context = null;
+        try { context = surface.getContext('webgl',{alpha:true,premultipliedAlpha:true,antialias:false,depth:false,stencil:false,powerPreference:'low-power'}); } catch (_) { context = null; }
+        if (!context) { building = null; return off('unsupported'); }
+        const make = fragment => {
+          const p = context.createProgram();
+          for (const [type, source] of [[context.VERTEX_SHADER,VS],[context.FRAGMENT_SHADER,fragment]]) { const s = context.createShader(type); context.shaderSource(s,source); context.compileShader(s); context.attachShader(p,s); }
+          context.bindAttribLocation(p,0,'p'); context.linkProgram(p);
           return p;
         };
-        const program = link(FS);
-        rainProgram = link(RS); cloudProgram = program;
+        const programs = [make(FS),make(RS)], parallel = context.getExtension('KHR_parallel_shader_compile');
+        building = {phase:'linking'};
+        const ready = () => !parallel || programs.every(p => context.getProgramParameter(p,parallel.COMPLETION_STATUS_KHR));
+        const check = () => {
+          if (dead) { building = null; return; }
+          if (!ready()) { win.requestAnimationFrame(check); return; }
+          building = null;
+          if (!setup(surface,context,programs)) return off('unsupported');
+          sync();
+        };
+        if (parallel) win.requestAnimationFrame(check); else idle(check);
+      });
+    }
+    function setup(surface, context, programs) {
+      if (!scene()) return false;
+      canvas = surface; gl = context;
+      try {
+        for (const p of programs) if (!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error('link');
+        const [program, rain] = programs;
+        rainProgram = rain; cloudProgram = program;
         rainU = {}; for (const name of ['R','LIT','RAIN','RWIND','RY','TEX']) rainU[name] = gl.getUniformLocation(rainProgram,name);
         gl.useProgram(rainProgram); gl.uniform1i(rainU.TEX,0);
         gl.useProgram(program);
@@ -641,7 +667,7 @@ void main(){
       if (dead) return;
       const next = mode({phase:html.dataset.phase,weather:html.dataset.weather,rain:html.dataset.rain,clouds:html.dataset.clouds});
       if (!next || reduced() || qaBlocked()) { stop(); if (current) { delete html.dataset.volume; current = null; } delete html.dataset.rain3d; delete html.dataset.bolt3d; return; }
-      if (!gl && !setup()) return off('unsupported');
+      if (!gl) { build(); return; }
       place();
       rainSet();
       if (next !== current) { palette(next); current = next; resize(); sunUpdate(win.performance.now()); frame(); }
