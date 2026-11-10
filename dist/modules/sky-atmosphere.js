@@ -167,10 +167,15 @@
     // New CSS animations start at playbackRate 1, so at rate 1 (no wind reading yet, as on the first
     // load) there is nothing to read: the PageSpeed trace showed this forced style pass at startup.
     let ratePending = false, appliedRate = 1, rateDirty = false;
+    // 1.68.4: with the 3D clouds on (data-volume="on") the CSS cloud layers are hidden and paused, so there is
+    // nothing to retime; the forced style pass still cost ~120 ms (4× CPU) on every city change. The rate is
+    // marked dirty and applied when the 3D clouds go away (observer below).
+    const volumeOn = () => document?.documentElement?.dataset?.volume === 'on';
     function applyCloudRate() {
       ratePending = false;
       const rate = cloudRate(wind);
       if (!rateDirty && rate === appliedRate) return;
+      if (volumeOn()) { rateDirty = true; return; }
       for (const layer of document?.querySelectorAll?.('.sky-clouds') || []) {
         for (const animation of layer.getAnimations?.() || []) {
           if (animation.animationName?.startsWith('clouds-') && Math.abs(animation.playbackRate - rate) > .001) animation.playbackRate = rate;
@@ -189,6 +194,11 @@
       if (!String(event?.animationName || '').startsWith('clouds-')) return;
       rateDirty = rateDirty || cloudRate(wind) !== 1; syncCloudRate();
     });
+    // 3D clouds switched off (slow device, lost context): the CSS layers come back and get the pending rate.
+    const root = document?.documentElement, Watcher = document?.defaultView?.MutationObserver;
+    if (root && typeof Watcher === 'function') {
+      new Watcher(() => { if (!volumeOn() && rateDirty) syncCloudRate(); }).observe(root,{attributes:true,attributeFilter:['data-volume']});
+    }
     // Custom properties are inherited: written on <html>/<body>, each change recalculated the style
     // of every element on the page (70–100 ms per write on a 4× slower CPU, several per city change).
     // Only the sky scenes read them, so they are written there; without scenes (tests) on root/body.

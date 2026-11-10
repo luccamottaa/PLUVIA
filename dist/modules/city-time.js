@@ -13,7 +13,16 @@
     if (map.size > limit) map.delete(map.keys().next().value);
     return value;
   }
+  // 1.68.4: os mesmos horários da previsão (centenas por série) eram convertidos de novo a cada validação e
+  // renderização: ~160 ms de CPU (4×) por troca de cidade. O resultado de uma string não muda; fica guardado.
+  const walls = new Map();
   function wallTime(value) {
+    if (typeof value !== 'string') return NaN;
+    const known = walls.get(value);
+    if (known !== undefined) return known;
+    return remember(walls,value,computeWallTime(value),4096);
+  }
+  function computeWallTime(value) {
     const match = typeof value === 'string' && value.match(ISO);
     if (!match || Number(match[2]) > 23 || Number(match[3]) > 59 || Number(match[4] || 0) > 59) return NaN;
     const text = value.slice(0,value.length - (match[6]?.length || 0));

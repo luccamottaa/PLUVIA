@@ -581,3 +581,14 @@ Pedido do dono ("muito lento, travando muito", em todos os aparelhos). Medido po
 - Medidos e deixados: `applyCloudRate` (já num quadro, o custo é o próprio recálculo de estilo), medição inicial do seletor de vidro (~20 ms reais), `radar-nowcast.motion` (~20 ms).
 
 Rolagem e janelas ficaram em ~70 fps nesta máquina (GTX 1650) mesmo com CPU 4×; o custo de GPU de iPhone (14 `backdrop-filter` sobre o céu animado) não dá para medir aqui.
+
+## Troca de cidade mais fluida (novembro/2026, 1.68.4)
+
+Pedido do dono (vídeo: "mini travadas na troca de cidade e nas animações"). Perfil de duas trocas de cidade (ida e volta) com CPU 4× mais lenta e tela de celular, no mesmo Edge automatizado da 1.68.3. Antes → depois: maior quadro 483 → 302 ms; quadros acima de 33 ms 15 → 10; `renderHourly` 301 → 29 ms; `chooseCity` 335 → 101 ms.
+
+- **Story do compartilhamento** (`share-card.js`), refeito a cada troca de cidade: reduzir a textura do véu (3984 × 1328) custava ~240 ms e codificar o PNG de 1080 × 1920 ~410 ms. Agora o véu reduzido fica guardado na sessão (`veilBase`, `cachedImage`) e a redução é feita por `createImageBitmap` a partir do arquivo (`fetch` → Blob; a partir do `<img>` o Chromium reduz na thread principal), com o canvas como reserva; a imagem sai em JPEG (`TYPE`, `EXTENSION`, qualidade .9; o story é opaco). `share-weather.js` usa a extensão e o tipo do módulo.
+- **Horários** (`city-time.js`): `wallTime` guarda o resultado por string (até 4.096). Os mesmos horários eram convertidos de novo em cada validação e renderização (~160 ms por troca).
+- **Fileira das horas** (`app.js`, `renderHourly`): a volta ao começo (`scrollLeft = 0`) na troca de cidade foi para o próximo quadro; escrita ali, logo depois da troca mexer no DOM, forçava o layout da página no meio do script.
+- **Ritmo das nuvens CSS** (`sky-atmosphere.js`): com as nuvens 3D ligadas (`data-volume="on"`) as camadas CSS estão escondidas e paradas; `applyCloudRate` só marca o ritmo pendente e um observador de `data-volume` aplica quando as nuvens 3D saem. Antes cada troca forçava um recálculo de estilo (~120 ms) por `getAnimations`.
+
+Teste: `tests/city-change-perf.test.cjs`. Ficou: o primeiro story da sessão ainda leva ~300 ms (CPU 4×) por causa do JPEG; o recálculo de estilo da página inteira (seletores enormes com 16 diálogos) segue como a próxima frente.
