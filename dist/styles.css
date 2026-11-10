@@ -214,19 +214,9 @@ footer > .footer-brand { display:flex; align-items:center; gap:15px; min-width:0
 @keyframes topbar-in { from { opacity: 0; transform: translateY(-18px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes rise-in { from { opacity: 0; transform: translateY(24px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes item-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes bar-rise { from { opacity: .2; transform: scaleY(.08); } to { opacity: 1; transform: scaleY(1); } }
 @keyframes live-pulse { 0%, 100% { box-shadow: 0 0 0 5px rgba(7,93,255,.11); } 50% { box-shadow: 0 0 0 9px rgba(7,93,255,0); } }
 @keyframes glass-flow { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
-@keyframes glyph-float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-7px) rotate(2deg); } }
-@keyframes sun-rays-spin { to { transform: rotate(360deg); } }
-@keyframes sun-core-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.09); } }
-@keyframes moon-drift { 0%, 100% { opacity: .92; } 50% { opacity: 1; } }
-@keyframes cloud-sway { 0%, 100% { transform: translateX(-2px) translateY(1px); } 50% { transform: translateX(3px) translateY(-2px); } }
-@keyframes cloud-back-drift { from { transform: translateX(-5px) translateY(1px); opacity: .66; } to { transform: translateX(5px) translateY(-2px); opacity: .94; } }
 @keyframes rain-fall { 0% { opacity: 0; transform: translateY(-5px); } 28% { opacity: 1; } 100% { opacity: 0; transform: translateY(9px); } }
-@keyframes lightning-flash { 0%, 58%, 66%, 74%, 100% { opacity: .25; transform: scale(.96); } 61%, 70% { opacity: 1; transform: scale(1.08); } }
-@keyframes orb-float-a { from { transform: translate3d(0,0,0) rotate(18deg) scale(1); } to { transform: translate3d(-32px,48px,0) rotate(28deg) scale(1.08); } }
-@keyframes orb-float-b { from { transform: translate3d(0,0,0) rotate(-20deg) scale(1); } to { transform: translate3d(42px,-36px,0) rotate(-8deg) scale(.94); } }
 
 @media (max-width: 900px) {
   .metrics { grid-template-columns: repeat(3, 1fr); }.air-metric { grid-column: span 2; }
@@ -468,23 +458,6 @@ body.city-dialog-open { overflow:hidden; } /* classe em vez de :has(): o Safari 
   margin-left: .04em;
 }
 
-@keyframes moon-glow {
-  0%, 100% { filter: drop-shadow(0 0 5px rgba(7,93,255,.18)); }
-  50% { filter: drop-shadow(0 0 12px rgba(186,206,255,.5)); }
-}
-@keyframes cloud-sheen {
-  0%, 100% { opacity: .5; }
-  50% { opacity: .9; }
-}
-@keyframes wx-rain-fall {
-  0% { opacity: 0; transform: translateY(-6px); }
-  22% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(10px); }
-}
-@keyframes bolt-flash {
-  0%, 58%, 64%, 70%, 100% { opacity: .15; }
-  60%, 67% { opacity: 1; }
-}
 
 @media (max-width: 720px) {
   

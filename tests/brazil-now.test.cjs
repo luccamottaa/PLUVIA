@@ -69,6 +69,10 @@ test('mapa e lista saem das mesmas linhas: "—" sem dado, nada pulado nem inven
     const row = rows.find(item => item.id === pin.id);
     assert.deepEqual([pin.lat, pin.lon], [row.lat, row.lon], 'o pino usa a coordenada da própria linha');
   }
+  // Temperatura negativa (Sul no inverno): o texto do pino e o nome acessível levam o sinal.
+  const cold = brazil.pins([{...cities[1], temperature:-2.6, code:1, isDay:1, high:null, low:null}])[0];
+  assert.equal(cold.text, '-3°');
+  assert.equal(cold.label, 'Porto Alegre/RS: -3 graus. Abrir cidade');
   // Falha total: as mesmas capitais, todas sem leitura.
   const empty = brazil.emptyRows(cities);
   assert.equal(empty.length, cities.length);

@@ -48,7 +48,7 @@ MAP_GEOMETRY = """() => {
   });
   const hit = chips.map(chip => { const s = getComputedStyle(chip, '::before'); return Math.min(parseFloat(s.width), parseFloat(s.height)); });
   return {chips:chips.length, dots:dots.length, worstDot, overlaps, outside, missingLeader, minHit:Math.min(...hit),
-    buttons:chips.every(chip => chip.tagName === 'BUTTON' && /: (\\d+ graus|temperatura indisponível)\\. Abrir cidade$/.test(chip.getAttribute('aria-label'))),
+    buttons:chips.every(chip => chip.tagName === 'BUTTON' && /: (-?\\d+ graus|temperatura indisponível)\\. Abrir cidade$/.test(chip.getAttribute('aria-label'))),
     role:map.getAttribute('role'), hidden:map.getAttribute('aria-hidden'), legend:!document.getElementById('brazilLegend').hidden};
 }"""
 
