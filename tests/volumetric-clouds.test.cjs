@@ -185,3 +185,14 @@ console.log('chuva fluida ok');
   assert.ok(Number(peak[2]) <= 40, 'queda larga, sem borda de círculo');
   assert.match(FS, /g=min\(g,\.42\);/);
 }
+
+// 1.69: saída antecipada do ruído (mesma imagem, menos contas): duas oitavas, limite pelo máximo das restantes.
+{
+  const { FS } = volume;
+  assert.match(FS, /if\(shape\(s\+\.2175,y\)<=0\.\)return 0\.;/);
+  assert.equal(.125 + .0625 + .03, .2175);
+  assert.match(FS, /float d=shape\(s\+\.03,y\);/);
+  assert.match(FS, /if\(shape\(s\+\.185,y\)<=0\.\)return 0\.;/);
+  assert.equal(.125 + .06, .185);
+  assert.doesNotMatch(FS, /fbm4/);
+}

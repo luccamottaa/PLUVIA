@@ -180,15 +180,25 @@ float h(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+
 float n(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
 return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x),mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x),f.y),
 mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x),mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x),f.y),f.z);}
-float fbm4(vec3 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*n(p);p=p*2.03+vec3(.1,.2,.3);a*=.5;}return s+.03;}
 float fbm3(vec3 p){float a=.5,s=0.;for(int i=0;i<3;i++){s+=a*n(p);p=p*2.03+vec3(.1,.2,.3);a*=.5;}return s+.06;}
 // 1.35.1 (pedido do dono: "as nuvens só nascem do lado direito"): o vento empurra devagar e o campo também
 // anda na altura, então as nuvens se formam e se desfazem no lugar, em qualquer parte do céu.
 vec3 wind(vec3 p){return p*SIZE+vec3(T*.009,T*.011,T*.004);}
 float shape(float s,float y){float prof=smoothstep(0.,.12,y)*smoothstep(1.,.45,y);return (s-COVER)*EDGE*prof-(1.-prof)*.3;}
-float dens(vec3 p){vec3 q=wind(p);float d=shape(fbm4(q*vec3(1.,.9,1.)),p.y/2.4);
+// Saída antecipada (mesmo resultado): o ruído soma oitavas de peso .5, .25, .125 e .0625 mais uma base. Depois das
+// duas primeiras, se nem com o máximo do que falta o ponto vira nuvem (shape cresce com s), as outras não são
+// calculadas. Em céu com poucas nuvens é a maioria das amostras do raio.
+float dens(vec3 p){vec3 q=wind(p),r=q*vec3(1.,.9,1.);float y=p.y/2.4;
+  float s=.5*n(r);r=r*2.03+vec3(.1,.2,.3);s+=.25*n(r);
+  if(shape(s+.2175,y)<=0.)return 0.;
+  r=r*2.03+vec3(.1,.2,.3);s+=.125*n(r);r=r*2.03+vec3(.1,.2,.3);s+=.0625*n(r);
+  float d=shape(s+.03,y);
   if(d<=0.)return 0.;d-=(fbm3(q*3.7)-.35)*DETAIL*(1.-clamp(d*2.,0.,1.));return clamp(d*DENS,0.,1.);}
-float densLow(vec3 p){float d=shape(fbm3(wind(p)*vec3(1.,.9,1.)),p.y/2.4);return clamp(d*DENS,0.,1.);}
+float densLow(vec3 p){vec3 r=wind(p)*vec3(1.,.9,1.);float y=p.y/2.4;
+  float s=.5*n(r);r=r*2.03+vec3(.1,.2,.3);s+=.25*n(r);
+  if(shape(s+.185,y)<=0.)return 0.;
+  r=r*2.03+vec3(.1,.2,.3);s+=.125*n(r);
+  return clamp(shape(s+.06,y)*DENS,0.,1.);}
 // Quanto de luz do astro passa pela nuvem no centro dele (marcha curta, mesma nuvem em baixa resolução).
 float astroVis(){
   vec3 ro=vec3(0.,-2.2,0.),rd=ray(AST+vec2(0.,PY));if(rd.y<=.01)return 1.;
