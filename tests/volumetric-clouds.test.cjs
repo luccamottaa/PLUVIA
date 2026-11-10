@@ -170,3 +170,18 @@ console.log('volumetric-clouds 3D ok');
   assert.ok(volume.RAIN_LAYERS[0].speed <= 1.3 && volume.RAIN_LAYERS.every((l, i, a) => !i || l.speed < a[i - 1].speed), 'mais lenta, perto mais rápida que longe');
 }
 console.log('chuva fluida ok');
+
+// 1.69: o brilho do Sol não estoura mais a nuvem que passa na frente dele. Teto com joelho suave (sem corte
+// seco), lóbulo de espalhamento largo e baixo e coroa contida.
+{
+  const { FS } = volume;
+  assert.doesNotMatch(FS, /col=min\(col,vec3\(A2\*\(CAP\+FLASH\*\.2\)\)\);/, 'o corte seco chapava a nuvem em branco');
+  assert.match(FS, /knee=cap\*\.64/);
+  assert.match(FS, /cu0=min\(cu0,vec3\(knee\)\)\+\(cap-knee\)\*\(1\.-exp\(-max\(cu0-knee,0\.\)\/\(cap-knee\)\)\);col=cu0\*A2;/);
+  const peak = /hg\(cosA,\.6\)\*([.\d]+)\+pow\(max\(cosA,0\.\),([\d.]+)\)\*([.\d]+)/.exec(FS);
+  assert.ok(peak, 'termo de espalhamento presente');
+  const hgPeak = (1 - .36) / (12.566 * Math.pow(1 + .36 - 1.2, 1.5));
+  assert.ok(hgPeak * Number(peak[1]) + Number(peak[3]) <= 1, 'na direção do Sol a luz somada não passa de 1 (eram ~3,3)');
+  assert.ok(Number(peak[2]) <= 40, 'queda larga, sem borda de círculo');
+  assert.match(FS, /g=min\(g,\.42\);/);
+}

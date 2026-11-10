@@ -214,7 +214,9 @@ void main(){
   vec3 L=SUNI>0.?ray(SUNPX+vec2(0.,PY)):SUN;
   L=normalize(mix(L,vec3(SIDE*.9,.12,.45),TW));
   float cosA=dot(rd,L);
-  float fwd=(SUNI+TW*.8)*(hg(cosA,.6)*1.4+pow(max(cosA,0.),80.)*2.2);
+  // Luz que atravessa na direção do Sol: lóbulo largo e pico baixo (antes somava até ~3,3 e, cortada no teto,
+  // virava uma mancha branca chapada que apagava a forma da nuvem na frente do Sol).
+  float fwd=(SUNI+TW*.8)*(hg(cosA,.6)*.65+pow(max(cosA,0.),28.)*.4);
   vec3 lit=mix(LIT,vec3(1.,.63,.42),TW*.85),shd=mix(SHD,vec3(.34,.27,.42),TW*.7),glow=mix(vec3(1.,.96,.86),vec3(1.,.55,.3),TW);
   // Raio: a nuvem acende por dentro numa mancha larga em volta do topo do canal (FLASHX na tela), não numa
   // coluna; só as partes densas brilham (d² abaixo).
@@ -238,13 +240,16 @@ void main(){
     t+=dt;
   }
   // Sol escondido atrás da nuvem: o brilho atravessa a parte fina, como na vida real.
-  col+=glow*SUNI*pow(max(cosA,0.),90.)*exp(-depth*1.2)*(1.-trans)*1.6;
+  col+=glow*SUNI*pow(max(cosA,0.),36.)*exp(-depth*1.9)*(1.-trans)*.4;
   float keep=1.-clamp((t0-3.)/14.,0.,1.)*.8;
   // O miolo da nuvem fica opaco (a Lua e o Sol não atravessam), e a cor nunca passa do alfa (pré-multiplicado).
   float A=1.-trans;float A2=min(1.,A*1.4);col*=A>0.?A2/A:0.;
   // Neblina: densa embaixo da tela, sumindo para cima (FOG = 0 nas outras condições).
   float fm=mix(1.,smoothstep(.95,.18,sy),FOG);A2*=fm;col*=fm;
-  col=min(col,vec3(A2*(CAP+FLASH*.2)));
+  // Teto com joelho suave: até 64% do teto a cor passa igual; acima disso comprime aos poucos (o corte seco
+  // deixava tudo que passava do teto no mesmo branco, sem relevo).
+  float cap=CAP+FLASH*.2,knee=cap*.64;vec3 cu0=A2>0.?col/A2:vec3(0.);
+  cu0=min(cu0,vec3(knee))+(cap-knee)*(1.-exp(-max(cu0-knee,0.)/(cap-knee)));col=cu0*A2;
   vec3 base=col*keep;float baseA=A2*keep;
   // Sol e Lua atrás da nuvem (1.62): onde há nuvem sobre o disco, ela esconde o disco nítido do CSS (alfa sobe só
   // ali) e no lugar entra a luz que atravessa a nuvem, borrada (disco largo) e com uma coroa; a força cai com a
@@ -260,7 +265,7 @@ void main(){
     vec3 cu=vA>.0001?clamp(base/vA,0.,1.):vec3(0.);
     base=mix(base,cu*vA+SKYC*(1.-vA),c);baseA=mix(vA,1.,c);
     // Coroa: mesmo atrás de nuvem grossa a nuvem em volta clareia de leve (a luz espalha), sem formar disco.
-    float g=ASTI*smoothstep(.0,.06,vA)*(exp(-ad*ad*1.1)*(1.-vA*.75)+exp(-ad*.65)*.2*(1.-vA*.5));
+    float g=ASTI*smoothstep(.0,.06,vA)*(exp(-ad*ad*1.1)*(1.-vA*.75)*.45+exp(-ad*.65)*.2*(1.-vA*.5)*.55);
     // Sol numa brecha: brilho e raios que crescem conforme a nuvem sai da frente (vis no centro do Sol), mais
     // fortes no meio do caminho (brecha abrindo) e discretos com o céu todo limpo. Ruído na direção a partir do
     // Sol (sem emenda no ângulo), oscilando devagar.
@@ -270,7 +275,7 @@ void main(){
       float open=vis*(1.+3.*vis*(1.-vis));
       g+=ASTI*(open*streak*exp(-r*5.)*.24*(.4+.6*(1.-vA))+vis*exp(-r*r*90.)*.26);
     }
-    g=min(g,.85);
+    g=min(g,.42);
     base+=ASTC*g;baseA=baseA+g*(1.-baseA);
   }
   // Raio 3D: núcleo fino e nítido onde não há nuvem na frente; dentro da nuvem (baseA alto) o núcleo some e a
