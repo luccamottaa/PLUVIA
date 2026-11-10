@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.68.1", date:"2026-11-10", title:"Céu 3D mais leve", items:[
+      "O brilho do Sol não estoura mais a nuvem que passa na frente dele: a nuvem continua com forma e relevo, e o Sol aparece por trás.",
+      "As nuvens 3D ficaram mais leves, principalmente em telas grandes, e a qualidade se ajusta sozinha quando o aparelho começa a engasgar.",
+      "Botões pequenos (localização na busca, modos das próximas horas e tamanho do texto) ficaram mais fáceis de tocar."
+    ]},
     {version:"1.68", date:"2026-11-09", title:"Animações com mola e vidro vivo", items:[
       "As chaves de ligar e desligar encaixam com mola e viram vidro transparente enquanto o dedo está nelas.",
       "Os botões do topo, a busca, a pílula do cabeçalho e a bolha do \"Tá chovendo aí?\" ganharam a borda de vidro nova, com um fio de cor de cada lado.",
