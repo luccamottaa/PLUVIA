@@ -3237,3 +3237,13 @@ body[data-ink="dark"] .topbar .home-search { box-shadow:inset 0 1px 0 rgba(255,2
   html body #brazilDialog .brazil-row, html body #cityDialog .city-result { transition:background-color .16s ease, scale .45s var(--ease-spring); }
   #weatherView [data-day-index]:active, html body #brazilDialog .brazil-row:active, html body #cityDialog .city-result:active { scale:.975; transition-duration:.08s; }
 }
+
+/* Alvos de toque de 44 px (1.68.1) sem mudar o desenho. Medidos em 375 px: o botão de localização da busca tinha
+   40 × 40, os modos das Próximas horas 36 de altura e os botões de tamanho do texto 32 × 40. A localização cresce
+   dentro da própria pílula (48 de altura); nos outros a área de toque cresce por um pseudo-elemento invisível. */
+.topbar .home-search-locate { width:44px; height:44px; }
+#weatherView .hourly-modes button::before { content:""; position:absolute; inset:-4px 0; }
+html body #accountDialog #accountMore :is(#textSizeDown,#textSizeUp):not(#_) { position:relative; }
+html body #accountDialog #accountMore :is(#textSizeDown,#textSizeUp):not(#_)::before { content:""; position:absolute; top:-2px; bottom:-2px; left:0; right:0; }
+html body #accountDialog #accountMore #textSizeDown:not(#_)::before { left:-12px; }
+html body #accountDialog #accountMore #textSizeUp:not(#_)::before { right:-12px; }
