@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.68.4", date:"2026-11-10", title:"Troca de cidade mais fluida", items:[
+      "Trocar de cidade ficou mais leve: menos trabalho repetido com os horários da previsão e com a lista das próximas horas, e menos pausas no meio das animações.",
+      "A imagem do story para compartilhar ficou mais rápida de preparar (agora em JPEG, menor para enviar) e não pesa mais a cada troca de cidade."
+    ]},
     {version:"1.68.3", date:"2026-11-10", title:"Abertura sem travar", items:[
       "O app não trava mais por quase um segundo quando a previsão chega: as nuvens 3D se preparam sem segurar a tela e aparecem logo depois, com o mesmo efeito.",
       "A imagem do story para compartilhar agora é preparada só quando você para de rolar, em vez de cair no meio da rolagem."
