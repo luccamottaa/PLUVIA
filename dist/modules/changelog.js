@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.68.2", date:"2026-11-10", title:"Abertura sem travar", items:[
+      "O app não trava mais por quase um segundo quando a previsão chega: as nuvens 3D se preparam sem segurar a tela e aparecem logo depois, com o mesmo efeito.",
+      "A imagem do story para compartilhar agora é preparada só quando você para de rolar, em vez de cair no meio da rolagem."
+    ]},
     {version:"1.68.1", date:"2026-11-10", title:"Céu 3D mais leve", items:[
       "O brilho do Sol não estoura mais a nuvem que passa na frente dele: a nuvem continua com forma e relevo, e o Sol aparece por trás.",
       "As nuvens 3D ficaram mais leves, principalmente em telas grandes, e a qualidade se ajusta sozinha quando o aparelho começa a engasgar.",

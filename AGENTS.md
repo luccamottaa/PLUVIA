@@ -566,3 +566,14 @@ Medição usada (repetível): no console, compilar `PLUVIA.volumeClouds.FS` num 
 Ficou de fora, com motivo: compilar o shader sem bloquear (`KHR_parallel_shader_compile`): aqui a compilação levou 6 ms, e sem medir num celular não há evidência de que trave; mover a nuvem para textura pré-renderizada: mudaria o visual. Risco conhecido e não alterado: se o `requestAnimationFrame` for estrangulado pelo navegador (janela coberta), o caminho `slow` ainda pode desligar a nuvem 3D na sessão (`pluvia-volume-off`).
 
 Teste: `tests/volumetric-clouds.test.cjs` (teto de pixels, regulador com histerese e recaída, limites da saída antecipada, termos do Sol).
+
+## Abertura sem travar (novembro/2026, 1.68.2)
+
+Pedido do dono ("muito lento, travando muito", em todos os aparelhos). Medido por perfil de CPU num Edge automatizado (tela de celular, CPU 4× mais lenta; script fora do repositório, protocolo DevTools com `Profiler` e `long-animation-frame`). Achados, em ordem de peso na abertura:
+
+- **Ligar o shader da nuvem 3D** (`volumetric-clouds.js`, `link`): ~0,9 s de CPU num quadro só (de 1,23 s), no instante em que a previsão chega. Agora `build()` cria o contexto e compila num momento ocioso (`requestIdleCallback`, prazo 1,5 s), não pergunta o resultado na hora e, com `KHR_parallel_shader_compile`, confere `COMPLETION_STATUS_KHR` a cada quadro sem bloquear; sem a extensão, confere no ocioso seguinte. `setup(surface, context, programs)` só termina a montagem. O maior quadro da abertura caiu de 1232 ms para 417 ms. Não voltar a chamar `getShaderParameter`/`getProgramParameter(LINK_STATUS)` logo depois de compilar: isso espera a compilação.
+- **Story do compartilhamento** (`share-weather.js`): o primeiro gesto (quase sempre uma rolagem) acordava o canvas de ~0,5 s (CPU 4×) no meio da rolagem. Agora cada gesto marca atividade e o desenho espera 1,5 s de silêncio (`QUIET_MS`) além do assentamento da troca de cidade.
+- **Recálculo de estilo da página inteira**: trocar `data-ink`/`data-phase` custa ~15 ms no desktop sem limitação (~60 ms com CPU 4×): 2.769 regras, 36 com `:has()`, 70 seletores enormes com listas de 16 diálogos, ~2.300 nós. Não mexido; é a próxima frente (consolidar as listas de diálogos numa classe comum).
+- Medidos e deixados: `applyCloudRate` (já num quadro, o custo é o próprio recálculo de estilo), medição inicial do seletor de vidro (~20 ms reais), `radar-nowcast.motion` (~20 ms).
+
+Rolagem e janelas ficaram em ~70 fps nesta máquina (GTX 1650) mesmo com CPU 4×; o custo de GPU de iPhone (14 `backdrop-filter` sobre o céu animado) não dá para medir aqui.
