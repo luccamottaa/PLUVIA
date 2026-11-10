@@ -66,8 +66,8 @@ assert.match(src,/animationName === 'storm-bolt'/);
 // Lento cai para menos detalhe antes de desligar, contexto perdido religa uma vez e o motivo vai ao PostHog (1.40.1).
 {
   const src = fs.readFileSync(path.join(root, 'modules/volumetric-clouds.js'), 'utf8');
-  assert.match(src, /LOW_SCALE = \.33/);
-  assert.match(src, /if \(scale === SCALE\) \{ scale = LOW_SCALE; frameMs = LOW_FRAME_MS; rainMs = LOW_RAIN_MS; slow = 0; resize\(\); \}\s*else return off\('slow'\);/);
+  // 1.69: a queda passa por níveis de qualidade (teste no fim do arquivo); desligar continua sendo o último recurso.
+  assert.match(src, /if \(quality\.level < QUALITY\.length - 1\) \{ quality\.drop\(\); slow = 0; resize\(\); sunUpdate\(now\); \}\s*else return off\('slow'\);/);
   assert.match(src, /if \(\+\+lost > 1\) return off\('lost'\);/);
   assert.match(src, /track\?\.\('Sky Effect Off',\{effect:'volume',reason:reason \|\| 'unsupported'\}\)/);
   const analytics = fs.readFileSync(path.join(root, 'analytics.js'), 'utf8');
@@ -195,4 +195,53 @@ console.log('chuva fluida ok');
   assert.match(FS, /if\(shape\(s\+\.185,y\)<=0\.\)return 0\.;/);
   assert.equal(.125 + .06, .185);
   assert.doesNotMatch(FS, /fbm4/);
+}
+
+// 1.69: teto de pixels por nível, chuva em resolução própria e qualidade adaptativa com histerese.
+{
+  const { QUALITY, RAIN_PIXELS, GOVERNOR, fit, governor, rainOffsets, RAIN_LAYERS } = volume;
+  const pixels = ([w, h]) => w * h;
+  // Celular em pé: nada muda (meia resolução). Telas grandes: a nuvem para no teto do nível.
+  assert.deepEqual(fit(390, 844, QUALITY[0].pixels), [195, 422]);
+  assert.ok(pixels(fit(1366, 768, QUALITY[0].pixels)) <= QUALITY[0].pixels * 1.01);
+  assert.ok(pixels(fit(2560, 1440, QUALITY[0].pixels)) <= QUALITY[0].pixels * 1.01, 'antes eram 921 mil pixels');
+  const [bw, bh] = fit(2560, 1440, QUALITY[0].pixels);
+  assert.ok(Math.abs(bw / bh - 2560 / 1440) < .02, 'mesma proporção da tela');
+  assert.deepEqual(fit(0, 0, 1000), [1, 1]);
+  assert.ok(QUALITY.every((q, i, a) => !i || (q.pixels < a[i - 1].pixels && q.frameMs >= a[i - 1].frameMs)), 'cada nível é mais barato');
+  assert.ok(RAIN_PIXELS > QUALITY[0].pixels, 'a chuva (traço fino) tem mais resolução que a nuvem');
+
+  const feed = (g, delta, ms) => { for (let t = 0; t < ms; t += delta) g.tick(delta); return g.level; };
+  // 60 fps estável: fica no melhor nível.
+  assert.equal(feed(governor(), 16.7, 20000), 0);
+  // Abaixo de 50 fps por 2 s: desce um nível; continuando lento, desce até o último e para.
+  let g = governor();
+  assert.equal(feed(g, 25, 1500), 0, 'um engasgo curto não muda nada');
+  assert.equal(feed(g, 25, 1500), 1);
+  assert.equal(feed(g, 25, 30000), QUALITY.length - 1);
+  // Histerese: 18,5 ms (entre os dois limites) nem desce nem sobe.
+  g = governor(); feed(g, 25, 3000); const held = g.level;
+  assert.equal(feed(g, 18.5, 60000), held);
+  // Só volta a subir depois de muito tempo rápido…
+  assert.equal(feed(g, 16.7, GOVERNOR.upAfterMs - 3000), held);
+  assert.equal(feed(g, 16.7, 6000), held - 1);
+  // …e se cair de novo logo depois de subir, não sobe mais (sem ficar oscilando).
+  feed(g, 25, 3000); const after = g.level;
+  assert.equal(after, held);
+  assert.equal(feed(g, 16.7, 120000), after, 'travado depois da recaída');
+  // Aba que voltou do fundo (um intervalo enorme) não conta como lentidão.
+  g = governor(); for (let i = 0; i < 50; i++) g.tick(5000);
+  assert.equal(g.level, 0);
+  assert.equal(governor().drop(), 1, 'queda forçada quando nem a média consegue medir');
+  // 120 Hz também é "rápido".
+  assert.equal(feed(governor(), 8.3, 20000), 0);
+
+  // O laço de desenho reaproveita o vetor dos deslocamentos da chuva.
+  const out = new Float32Array(RAIN_LAYERS.length);
+  assert.equal(rainOffsets(3.2, out), out);
+  assert.ok(rainOffsets(3.2).every((v, i) => Math.abs(v - out[i]) < 1e-3));
+  const src = fs.readFileSync(path.join(root, 'modules/volumetric-clouds.js'), 'utf8');
+  assert.match(src, /rainOffsets\(rainClock,rainY\)/);
+  assert.match(src, /gl\.viewport\(0,0,cw,ch\); gl\.bindFramebuffer\(gl\.FRAMEBUFFER,cloudFbo\);/);
+  assert.match(src, /if \(lastRaf && !qaForced\(\)\)/, 'com a chave de QA o nível não muda');
 }

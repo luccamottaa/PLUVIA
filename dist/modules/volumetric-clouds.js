@@ -40,12 +40,62 @@
     if (!attrs || (attrs.weather !== 'rain' && attrs.weather !== 'storm')) return 0;
     return RAIN_LEVEL[attrs.rain] || 0;
   }
-  function rainOffsets(seconds) {
-    return RAIN_LAYERS.map(layer => ((seconds * layer.speed * layer.cols * RAIN_ROWS) % RAIN_WRAP + RAIN_WRAP) % RAIN_WRAP);
+  // out: vetor reaproveitado pelo laço de desenho (sem lixo por quadro); sem ele, devolve um vetor novo.
+  function rainOffsets(seconds, out = new Array(RAIN_LAYERS.length)) {
+    for (let i = 0; i < RAIN_LAYERS.length; i++) {
+      const layer = RAIN_LAYERS[i];
+      out[i] = ((seconds * layer.speed * layer.cols * RAIN_ROWS) % RAIN_WRAP + RAIN_WRAP) % RAIN_WRAP;
+    }
+    return out;
   }
   // RAIN_MS: a chuva é composta por cima da nuvem a cada quadro da tela (até ~60/s), não no ritmo da nuvem.
   const RAIN_MS = 15, LOW_RAIN_MS = 30;
-  const SCALE = .5, LOW_SCALE = .33, FRAME_MS = 41, LOW_FRAME_MS = 66, SLOW_MS = 90, SLOW_SECONDS = 5, OFF_KEY = 'pluvia-volume-off';
+  const SCALE = .5, FRAME_MS = 41, LOW_FRAME_MS = 66, SLOW_MS = 90, SLOW_SECONDS = 5, OFF_KEY = 'pluvia-volume-off';
+  // Níveis de qualidade (0 = melhor). O custo do raymarch é proporcional aos pixels, então a nuvem tem um teto de
+  // pixels por nível em vez de sempre meia resolução: no celular em pé nada muda (390 × 844 a 50% são 82 mil),
+  // e numa tela de 2560 × 1440 a nuvem cai de 921 mil para 160 mil pixels (medido numa GTX 1650: de 16 ms para
+  // ~3 ms por quadro). A nuvem é macia e é ampliada pelo navegador; a chuva tem traço fino e por isso é composta
+  // numa resolução própria (rainPixels), por cima da textura da nuvem.
+  const QUALITY = [
+    {pixels:160000, frameMs:FRAME_MS, rainMs:RAIN_MS},
+    {pixels:96000, frameMs:50, rainMs:RAIN_MS},
+    {pixels:56000, frameMs:LOW_FRAME_MS, rainMs:LOW_RAIN_MS}
+  ];
+  const RAIN_PIXELS = 520000;
+  function fit(cssWidth, cssHeight, pixels) {
+    const area = Math.max(1, cssWidth * cssHeight), scale = Math.min(SCALE, Math.sqrt(pixels / area));
+    return [Math.max(1, Math.round(cssWidth * scale)), Math.max(1, Math.round(cssHeight * scale))];
+  }
+  // Qualidade adaptativa: olha o intervalo entre quadros da tela (requestAnimationFrame), suavizado. Abaixo de
+  // ~50 fps (mais de slowMs) por downAfterMs seguidos, desce um nível; só volta a subir depois de upAfterMs
+  // acima de ~57 fps (menos de fastMs). Entre os dois limites nada muda (histerese), e se uma subida for seguida
+  // de nova queda em menos de relapseMs, as subidas param nesta sessão, para a qualidade não ficar oscilando.
+  // Intervalos enormes (aba que voltou do fundo) não contam.
+  const GOVERNOR = {slowMs:20, fastMs:17.5, downAfterMs:2000, upAfterMs:12000, relapseMs:30000, maxGapMs:250};
+  function governor(levels = QUALITY.length) {
+    let level = 0, average = 0, slowFor = 0, fastFor = 0, clock = 0, raisedAt = -Infinity, locked = false;
+    return {
+      get level() { return level; },
+      tick(delta) {
+        if (!(delta > 0) || delta > GOVERNOR.maxGapMs) return level;
+        clock += delta;
+        average = average ? average + (delta - average) * .1 : delta;
+        if (average > GOVERNOR.slowMs) { slowFor += delta; fastFor = 0; }
+        else if (average < GOVERNOR.fastMs) { fastFor += delta; slowFor = 0; }
+        else { slowFor = 0; fastFor = 0; }
+        if (slowFor >= GOVERNOR.downAfterMs && level < levels - 1) {
+          if (clock - raisedAt < GOVERNOR.relapseMs) locked = true;
+          level++; slowFor = 0; average = 0;
+        } else if (fastFor >= GOVERNOR.upAfterMs && level > 0 && !locked) {
+          level--; raisedAt = clock; fastFor = 0; average = 0;
+        }
+        return level;
+      },
+      // Queda forçada (quadros tão lentos que nem entram na média): desce um nível e não sobe mais.
+      drop() { if (level < levels - 1) level++; locked = true; slowFor = 0; average = 0; return level; },
+      reset() { average = 0; slowFor = 0; fastFor = 0; }
+    };
+  }
   // cap: brilho máximo da nuvem. No nublado de dia o texto branco fica por cima da nuvem: até ~.7 ele continua
   // legível como no deck prateado do CSS (escolha do dono, contraste medido por verify-contrast).
   const PALETTES = {
@@ -325,7 +375,8 @@ void main(){
     // 1.40.1 (o dono não via as nuvens 3D no iPhone com chuva, quando as gotas da 1.38 também usavam WebGL): lento, antes de
     // desligar, tenta em resolução e ritmo menores; contexto perdido religa uma vez. O motivo do desligamento vai
     // para o PostHog (Sky Effect Off), sem nada além do efeito e do motivo.
-    let scale = SCALE, frameMs = FRAME_MS, rainMs = RAIN_MS, lost = 0;
+    let frameMs = FRAME_MS, rainMs = RAIN_MS, lost = 0, cw = 1, ch = 1, lastRaf = 0;
+    const quality = governor(), rainY = new Float32Array(RAIN_LAYERS.length);
     let cloudProgram = null, rainProgram = null, rainU = null, cloudTex = null, cloudFbo = null, texSize = '', lastRain = 0;
     function off(reason) {
       dead = true; stop();
@@ -377,7 +428,8 @@ void main(){
         gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
         // Textura da nuvem (só usada com chuva).
         cloudTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,cloudTex);
-        for (const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D,k,v);
+        // LINEAR: com chuva, a textura da nuvem é menor que o quadro e é ampliada no passo da chuva.
+        for (const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D,k,v);
         gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
         cloudFbo = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,cloudFbo);
         gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,cloudTex,0);
@@ -391,14 +443,21 @@ void main(){
       place();
       return true;
     }
+    // cw × ch: tamanho em que a nuvem é desenhada (teto de pixels do nível). Sem chuva o canvas tem esse tamanho;
+    // com chuva o canvas é maior (traços finos) e a nuvem vai para a textura em cw × ch.
     function resize() {
       if (!canvas || !gl) return;
-      const w = Math.max(1,Math.round(canvas.clientWidth * scale)), h = Math.max(1,Math.round(canvas.clientHeight * scale));
-      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0,0,w,h); }
-      gl.uniform2f(uniforms.R,w,h);
+      const level = QUALITY[quality.level], cssW = canvas.clientWidth, cssH = canvas.clientHeight;
+      frameMs = level.frameMs; rainMs = level.rainMs;
+      [cw, ch] = fit(cssW,cssH,level.pixels);
+      const [w, h] = raining > 0 ? fit(cssW,cssH,Math.max(level.pixels,RAIN_PIXELS >> quality.level)) : [cw, ch];
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      gl.viewport(0,0,w,h);
+      gl.uniform2f(uniforms.R,cw,ch);
       if (rainProgram) { gl.useProgram(rainProgram); gl.uniform2f(rainU.R,w,h); gl.useProgram(cloudProgram); }
-      const size = `${w}x${h}`;
-      if (cloudTex && size !== texSize) { texSize = size; gl.bindTexture(gl.TEXTURE_2D,cloudTex); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null); }
+      const size = `${cw}x${ch}`;
+      if (cloudTex && size !== texSize) { texSize = size; gl.bindTexture(gl.TEXTURE_2D,cloudTex); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,cw,ch,0,gl.RGBA,gl.UNSIGNED_BYTE,null); }
+      boltKey = '';
     }
     function palette(name) {
       const p = PALETTES[name];
@@ -423,10 +482,10 @@ void main(){
       gl.uniform1f(uniforms.FLASH,state.k * (html.dataset.phase === 'day' ? .45 : 1)); gl.uniform1f(uniforms.FLASHX,state.x);
       // Canal 3D: cresce de cima para baixo em 80 ms (como o scale do CSS) e some com o clarão.
       if (state.k > 0 && Number.isInteger(state.index)) {
-        const key = `${state.index}:${state.cycle}:${canvas.width}x${canvas.height}`;
+        const key = `${state.index}:${state.cycle}:${cw}x${ch}`;
         if (key !== boltKey) {
           boltKey = key;
-          const path = boltPath(state.index, state.cycle, canvas.width / Math.max(1,canvas.height));
+          const path = boltPath(state.index, state.cycle, cw / Math.max(1,ch));
           gl.uniform2fv(uniforms.BOLT,path.main); gl.uniform2fv(uniforms.BR,path.branch);
         }
         gl.uniform1f(uniforms.BOLTG,Math.min(1,state.u / 80)); gl.uniform1f(uniforms.BOLTK,Math.min(1,state.k * 1.1));
@@ -446,8 +505,8 @@ void main(){
       if ((current === 'day-few' || current === 'day-partly') && sun && canvas) {
         const box = sun.getBoundingClientRect(), area = canvas.getBoundingClientRect();
         if (box.width > 0 && area.height > 0) {
-          const x = (box.left + box.width / 2 - area.left) / area.width * canvas.width;
-          const y = (1 - (box.top + box.height / 2 - area.top) / area.height) * canvas.height;
+          const x = (box.left + box.width / 2 - area.left) / area.width * cw;
+          const y = (1 - (box.top + box.height / 2 - area.top) / area.height) * ch;
           gl.uniform2f(uniforms.SUNPX,x,y); sunMeasured = [x,y];
           intensity = Number.isFinite(visibility) ? Math.max(0,Math.min(1,visibility)) : 1;
         }
@@ -482,8 +541,8 @@ void main(){
       const box = node?.getBoundingClientRect?.(), area = canvas.getBoundingClientRect();
       let intensity = 0;
       if (box && box.width > 0 && area.width > 0 && area.height > 0 && Number.isFinite(visibility) && visibility > 0) {
-        const sx = canvas.width / area.width, sy = canvas.height / area.height;
-        astMeasured = [(box.left + box.width / 2 - area.left) * sx,(1 - (box.top + box.height / 2 - area.top) / area.height) * canvas.height];
+        const sx = cw / area.width, sy = ch / area.height;
+        astMeasured = [(box.left + box.width / 2 - area.left) * sx,(1 - (box.top + box.height / 2 - area.top) / area.height) * ch];
         pxScale = sy;
         gl.uniform2f(uniforms.AST,astMeasured[0],astMeasured[1]);
         gl.uniform1f(uniforms.ASTR,box.width * (night ? .5 : .255) * sx);
@@ -494,14 +553,17 @@ void main(){
         gl.uniform3fv(uniforms.SKYC,skyColor());
       }
       if (intensity <= 0) astMeasured = null;
-      if (area.height > 0) pxScale = canvas.height / area.height;
+      if (area.height > 0) pxScale = ch / area.height;
       gl.uniform1f(uniforms.ASTI,intensity);
       gl.uniform1f(uniforms.ASTS,!night && intensity > 0 ? 1 : 0);
     }
     let clock = 0, lastNow = 0, rainClock = 0, raining = 0;
     // Intensidade e inclinação da chuva 3D (data-rain e data-wind do céu). data-rain3d tira a chuva do CSS.
     function rainSet() {
+      const before = raining;
       raining = rainLevel({weather:html.dataset.weather,rain:html.dataset.rain});
+      // Começou ou parou de chover: o canvas troca entre o tamanho da nuvem e o tamanho da chuva.
+      if ((before > 0) !== (raining > 0) && current) resize();
       // A nuvem nunca desenha a chuva: ela vem do passo próprio (rainPass), a cada quadro da tela.
       gl.uniform1f(uniforms.RAIN,0);
       if (rainProgram) {
@@ -526,22 +588,28 @@ void main(){
       gl.uniform1f(uniforms.T,20 + clock);
       parallax();
       if (raining > 0 && cloudFbo) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER,cloudFbo);
+        gl.viewport(0,0,cw,ch); gl.bindFramebuffer(gl.FRAMEBUFFER,cloudFbo);
         gl.drawArrays(gl.TRIANGLES,0,3);
-        gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,canvas.width,canvas.height);
         rainPass();
       } else gl.drawArrays(gl.TRIANGLES,0,3);
     }
     // Chuva por cima da última nuvem desenhada, com o deslocamento do tempo real.
     function rainPass() {
       gl.useProgram(rainProgram);
-      gl.uniform4fv(rainU.RY,rainOffsets(rainClock));
+      gl.uniform4fv(rainU.RY,rainOffsets(rainClock,rainY));
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,cloudTex);
       gl.drawArrays(gl.TRIANGLES,0,3);
       gl.useProgram(cloudProgram);
     }
     function draw(now) {
       raf = win.requestAnimationFrame(draw);
+      // Ritmo da tela: desce ou sobe o nível de qualidade (com a chave de QA o desenho fica sempre no nível 0).
+      if (lastRaf && !qaForced()) {
+        const level = quality.level;
+        if (quality.tick(now - lastRaf) !== level) { resize(); sunUpdate(now); }
+      }
+      lastRaf = now;
       if (now - last < frameMs) {
         // Entre dois quadros da nuvem, só a chuva anda (a nuvem fica a da textura).
         if (raining > 0 && cloudFbo && last && now - lastRain >= rainMs) {
@@ -555,7 +623,8 @@ void main(){
       if (lastNow && gap > SLOW_MS && !qaForced()) {
         slow += gap;
         if (slow > SLOW_SECONDS * 1000) {
-          if (scale === SCALE) { scale = LOW_SCALE; frameMs = LOW_FRAME_MS; rainMs = LOW_RAIN_MS; slow = 0; resize(); }
+          // Último recurso: no nível mais baixo e ainda assim sem desenhar um quadro a cada 90 ms, volta ao CSS.
+          if (quality.level < QUALITY.length - 1) { quality.drop(); slow = 0; resize(); sunUpdate(now); }
           else return off('slow');
         }
       } else slow = 0;
@@ -566,7 +635,7 @@ void main(){
       lightning(now);
       frame();
     }
-    function run() { if (!raf) { last = 0; lastNow = 0; lastRain = 0; slow = 0; raf = win.requestAnimationFrame(draw); } }
+    function run() { if (!raf) { last = 0; lastNow = 0; lastRain = 0; lastRaf = 0; slow = 0; quality.reset(); raf = win.requestAnimationFrame(draw); } }
     function stop() { if (raf) win.cancelAnimationFrame(raf); raf = 0; }
     function sync() {
       if (dead) return;
@@ -589,9 +658,14 @@ void main(){
       const host = doc.querySelector('.sky-effects'); if (host) observer.observe(host,{attributes:true,attributeFilter:['data-motion']});
     };
     if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded',() => { watch(); sync(); },{once:true}); else { watch(); sync(); }
-    win.addEventListener('resize',() => { if (gl) { resize(); if (!raf) frame(); } },{passive:true});
+    // Redimensionar a janela dispara dezenas de eventos: uma medição por quadro (cada resize realoca a textura).
+    let resizing = 0;
+    win.addEventListener('resize',() => {
+      if (!gl || resizing) return;
+      resizing = win.requestAnimationFrame(() => { resizing = 0; if (gl) { resize(); sunUpdate(win.performance.now()); if (!raf) frame(); } });
+    },{passive:true});
     win.matchMedia?.('(prefers-reduced-motion: reduce)')?.addEventListener?.('change',sync);
     return {sync};
   }
-  return {mode,PALETTES,start,FS,RS,RAIN_MS,flash,STRIKES,boltPath,BOLT_POINTS,BRANCH_POINTS,rainLevel,rainOffsets,RAIN_LAYERS,RAIN_WRAP};
+  return {mode,PALETTES,start,FS,RS,RAIN_MS,flash,STRIKES,boltPath,BOLT_POINTS,BRANCH_POINTS,rainLevel,rainOffsets,RAIN_LAYERS,RAIN_WRAP,QUALITY,RAIN_PIXELS,GOVERNOR,fit,governor};
 }));
