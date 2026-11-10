@@ -59,10 +59,12 @@
       // celular e, num intervalo ocioso entre quadros, travava a descida dos blocos (perfil, outubro/2026).
       // A checagem vale na hora de desenhar: o toque que troca de cidade também acorda o story (engage) antes
       // do evento de troca.
+      // 1.68.2: também espera 1,5 s sem toque nem rolagem. Antes o primeiro gesto (quase sempre uma rolagem)
+      // acordava o story e o canvas (~120 ms no desktop, mais no celular) caía no meio da rolagem.
       const settled=fn=>{
-        const wait=lastCityChange+CITY_SETTLE_MS-Date.now();
+        const wait=Math.max(lastCityChange+CITY_SETTLE_MS,lastActivity+QUIET_MS)-Date.now();
         if(wait>0) {root.setTimeout(()=>settled(fn),wait);return;}
-        idle(()=>Date.now()-lastCityChange<CITY_SETTLE_MS ? settled(fn) : fn());
+        idle(()=>Date.now()-lastCityChange<CITY_SETTLE_MS || Date.now()-lastActivity<QUIET_MS ? settled(fn) : fn());
       };
       const schedule=fn=>engaged ? settled(fn) : (pendingCard=()=>settled(fn), root.setTimeout(engage,12000));
       schedule(()=>token===cardToken && cards.render(data,{document:root.document}).then(blob=>{
@@ -72,9 +74,10 @@
       }).catch(()=>{}));
     }
     let engaged=false,pendingCard=null,lastCityChange=-Infinity;
-    const CITY_SETTLE_MS=2500;
+    const CITY_SETTLE_MS=2500,QUIET_MS=1500;let lastActivity=-Infinity;
     function engage() { engaged=true; const run=pendingCard; pendingCard=null; run?.(); }
-    for(const type of ['pointerdown','keydown','scroll','touchstart']) root.addEventListener?.(type,engage,{once:true,passive:true,capture:true});
+    // Cada gesto marca atividade; o primeiro também acorda o story (engage só roda o pendente uma vez).
+    for(const type of ['pointerdown','keydown','scroll','touchstart','wheel']) root.addEventListener?.(type,()=>{lastActivity=Date.now();if(!engaged) engage();},{passive:true,capture:true});
     function clearCardPreview() {
       if(cardUrl) {root.URL?.revokeObjectURL?.(cardUrl);cardUrl=null;}
       const image=el('shareWeatherImage'),link=el('shareWeatherDownload');
