@@ -1,23 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
   <defs>
     <radialGradient id="solar-halo">
-      <stop offset="0" stop-color="#fff9dc" stop-opacity=".8"/>
-      <stop offset=".5" stop-color="#fff5cd" stop-opacity=".65"/>
-      <stop offset=".62" stop-color="#ffe7a6" stop-opacity=".28"/>
-      <stop offset=".8" stop-color="#ffdc91" stop-opacity=".08"/>
-      <stop offset="1" stop-color="#ffdc91" stop-opacity="0"/>
+      <stop offset="0" stop-color="#ffefb8" stop-opacity=".42"/>
+      <stop offset=".5" stop-color="#ffe9a8" stop-opacity=".3"/>
+      <stop offset=".62" stop-color="#ffdc91" stop-opacity=".13"/>
+      <stop offset=".8" stop-color="#ffd27f" stop-opacity=".04"/>
+      <stop offset="1" stop-color="#ffd27f" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="photosphere">
-      <stop offset="0" stop-color="#fffffa"/>
-      <stop offset=".68" stop-color="#fffef1"/>
-      <stop offset=".9" stop-color="#fff5d2"/>
-      <stop offset=".98" stop-color="#ffe8b2"/>
-      <stop offset="1" stop-color="#ffdda0" stop-opacity=".92"/>
+      <stop offset="0" stop-color="#fff4c9"/>
+      <stop offset=".68" stop-color="#ffeaa3"/>
+      <stop offset=".9" stop-color="#ffdc86"/>
+      <stop offset=".98" stop-color="#ffd075"/>
+      <stop offset="1" stop-color="#ffc765" stop-opacity=".92"/>
     </radialGradient>
     <radialGradient id="limb-glow">
-      <stop offset=".84" stop-color="#fff9df" stop-opacity="0"/>
-      <stop offset=".91" stop-color="#fff6d5" stop-opacity=".45"/>
-      <stop offset="1" stop-color="#fff0c1" stop-opacity="0"/>
+      <stop offset=".84" stop-color="#ffefb8" stop-opacity="0"/>
+      <stop offset=".91" stop-color="#ffe7a0" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#ffdf94" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <circle cx="90" cy="90" r="90" fill="url(#solar-halo)"/>
