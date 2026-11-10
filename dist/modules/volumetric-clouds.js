@@ -333,7 +333,7 @@ void main(){
       float vis=astroVis();vec2 v=dv/R.y;float r=length(v);vec2 dir=r>0.?v/r:vec2(0.,1.);
       float streak=smoothstep(.55,.92,n(vec3(dir*6.,T*.015)))*.7+smoothstep(.62,.95,n(vec3(dir*14.,3.1+T*.02)))*.3;
       float open=vis*(1.+3.*vis*(1.-vis));
-      g+=ASTI*(open*streak*exp(-r*5.)*.24*(.4+.6*(1.-vA))+vis*exp(-r*r*90.)*.26);
+      g+=ASTI*(open*streak*exp(-r*5.)*.1*(.4+.6*(1.-vA))+vis*exp(-r*r*90.)*.08);
     }
     g=min(g,.42);
     base+=ASTC*g;baseA=baseA+g*(1.-baseA);

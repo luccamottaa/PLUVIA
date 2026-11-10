@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.68.5", date:"2026-11-10", title:"Sol menos estourado", items:[
+      "O Sol do céu ficou mais quente e macio: o disco não é mais branco puro, e o halo e os raios que aparecem quando ele surge entre as nuvens estão bem mais discretos."
+    ]},
     {version:"1.68.4", date:"2026-11-10", title:"Troca de cidade mais fluida", items:[
       "Trocar de cidade ficou mais leve: menos trabalho repetido com os horários da previsão e com a lista das próximas horas, e menos pausas no meio das animações.",
       "A imagem do story para compartilhar ficou mais rápida de preparar (agora em JPEG, menor para enviar) e não pesa mais a cada troca de cidade."

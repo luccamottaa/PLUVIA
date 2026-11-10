@@ -145,7 +145,7 @@ with sync_playwright() as p:
  mode.update(code=2,hour=23);page.clock.set_fixed_time(datetime.datetime(2026,10,2,3,tzinfo=datetime.timezone.utc));page.goto(preview)
  page.wait_for_function("document.body.dataset.weather==='partly' && document.getElementById('pluviaIntro').hidden && !document.documentElement.classList.contains('awaiting-styles')")
  page.wait_for_function("(()=>{for(let el=document.getElementById('temperature');el;el=el.parentElement)if(+getComputedStyle(el).opacity<.99)return false;return true;})()")
- page.evaluate("async()=>{const i=new Image();i.src='./assets/sky-sun.svg?v=sun-2';await i.decode();}")
+ page.evaluate("async()=>{const i=new Image();i.src='./assets/sky-sun.svg?v=sun-3';await i.decode();}")
  page.emulate_media(reduced_motion='no-preference')
  page.add_style_tag(content=".night-stage > :not(.sky-effects):not(.sky-twilight-page){visibility:hidden!important}.sky-stars{display:none!important}.sky-effects > :is(.sky-sun,.sky-moon){display:block!important;opacity:1!important;transition:none!important}.sky-effects > .sky-clouds{top:-60px!important;transition:none!important}")
  page.evaluate("""()=>{
