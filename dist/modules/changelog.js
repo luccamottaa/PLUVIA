@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.68.1", date:"2026-11-09", title:"Brasil agora no lugar certo", items:[
+      "O mapa do Brasil agora foi refeito com o contorno real do país, e cada temperatura fica na posição da sua capital (antes algumas apareciam longe da cidade ou no mar). O mapa ficou reto, sem inclinação.",
+      "Cada temperatura no mapa abre a cidade com um toque, e o horário de atualização diz que é o de Brasília."
+    ]},
     {version:"1.68", date:"2026-11-09", title:"Animações com mola e vidro vivo", items:[
       "As chaves de ligar e desligar encaixam com mola e viram vidro transparente enquanto o dedo está nelas.",
       "Os botões do topo, a busca, a pílula do cabeçalho e a bolha do \"Tá chovendo aí?\" ganharam a borda de vidro nova, com um fio de cor de cada lado.",

@@ -764,23 +764,35 @@ body[data-ink="dark"] #weatherView .rain-gauge-track { background:rgba(0,0,0,.12
 html body #brazilDialog .brazil-status { min-height:1.2em; margin:0 0 8px; font-size:.8rem; line-height:1.5; }
 html body #brazilDialog .brazil-status:empty { display:block; }
 html body #brazilDialog .brazil-note { font-size:.8rem; line-height:1.5; }
-/* Brasil agora em mapa: contorno estático, pontos nas capitais e etiquetas com a temperatura. Sem animação. */
-.brazil-map { position:relative; width:100%; max-width:520px; margin:4px auto 18px; aspect-ratio:640 / 560; }
+/* Brasil agora em mapa plano: contorno Natural Earth projetado de lat/lon (modules/brazil-map.js), o ponto de cada capital
+   na coordenada real e a etiqueta (um botão) afastada só quando bateria noutra, com linha de chamada. A proporção vem
+   do viewBox calculado (aspect-ratio em linha); as etiquetas ficam em % do quadro, então acompanham qualquer largura. */
+.brazil-map { position:relative; width:100%; max-width:520px; margin:4px auto 6px; }
 .brazil-map[hidden] { display:none; }
-.brazil-map svg { display:block; width:100%; height:100%; }
-.brazil-land { fill:#aac7e51f; stroke:#aac7e573; stroke-width:1.2; stroke-linejoin:round; }
-.brazil-leader { stroke:#aac7e573; stroke-width:1; }
+.brazil-map > svg { position:absolute; inset:0; display:block; width:100%; height:100%; overflow:visible; }
+.brazil-land { fill:#22355a; stroke:none; }
+/* Linha de chamada na cor do texto do diálogo (escura de dia, clara à noite): visível sobre o mar nos dois. */
+.brazil-leader { stroke:var(--dialog-text,#e8f0ff); stroke-opacity:.6; stroke-width:1; vector-effect:non-scaling-stroke; }
 /* Campo contínuo de temperatura (1.20): imagem pequena interpolada, recortada pelo contorno e ampliada pelo navegador. */
 .brazil-heat { opacity:.88; image-rendering:auto; }
-.brazil-edge { fill:none; stroke:#0b143066; stroke-width:1.2; stroke-linejoin:round; }
+.brazil-edge { fill:none; stroke:#aac7e573; stroke-width:1; stroke-linejoin:round; vector-effect:non-scaling-stroke; }
 .brazil-legend { display:flex; align-items:center; gap:8px; max-width:320px; margin:-8px auto 18px; color:var(--dialog-muted); font-size:.8125rem; font-variant-numeric:tabular-nums; }
 .brazil-legend[hidden] { display:none; }
 .brazil-legend i { flex:1; height:8px; border-radius:999px; background:linear-gradient(90deg,rgb(91,140,255) 0%,rgb(76,195,230) 31.25%,rgb(95,211,141) 53.1%,rgb(242,208,75) 68.75%,rgb(243,154,61) 84.4%,rgb(229,83,61) 100%); }
-.brazil-dot { fill:#e8f0ff; stroke:#0b1430; stroke-width:1; }
-.brazil-chip { position:absolute; transform:translate(-50%,-50%); padding:1px 6px; border-radius:999px; background:var(--chip,#8a96ad); color:#0b1430; font-size:.8125rem; font-weight:600; line-height:1.4; font-variant-numeric:tabular-nums; white-space:nowrap; cursor:pointer; box-shadow:0 0 0 1px #0b143040; }
-.brazil-chip[data-missing] { background:#8a96ad; }
-@media (max-width:360px) { .brazil-chip { padding:0 3px; letter-spacing:-.02em; } }
-@media (forced-colors:active) { .brazil-chip { forced-color-adjust:none; border:1px solid CanvasText; } .brazil-land { stroke:CanvasText; } }
+.brazil-dot { fill:#e8f0ff; stroke:#0b1430; stroke-width:1; vector-effect:non-scaling-stroke; }
+.brazil-labels { position:absolute; inset:0; pointer-events:none; }
+.brazil-map:not([data-ready]) .brazil-labels { visibility:hidden; }
+/* Etiqueta = botão (abre a cidade). Seletor com dois ids para vencer o estilo genérico dos botões dos diálogos
+   (48 px de altura, padding 12/16). A área de toque (::before) tem 44 × 44 px mesmo com a pílula de ~19 px. */
+html body #brazilDialog #brazilMap button.brazil-chip { position:absolute; transform:translate(-50%,-50%); min-height:0; margin:0; padding:1px 6px; border:0; border-radius:999px;
+  background:var(--chip,#8a96ad); color:#0b1430; font:600 .75rem/1.4 var(--font-ui); font-variant-numeric:tabular-nums; white-space:nowrap; cursor:pointer;
+  box-shadow:0 0 0 1px #0b143040; pointer-events:auto; transition:left .25s ease, top .25s ease; }
+html body #brazilDialog #brazilMap button.brazil-chip[data-missing] { background:#8a96ad; }
+.brazil-chip::before { content:''; position:absolute; left:50%; top:50%; width:max(100%, 44px); height:44px; transform:translate(-50%,-50%); }
+html body #brazilDialog #brazilMap button.brazil-chip:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+@media (max-width:360px) { html body #brazilDialog #brazilMap button.brazil-chip { padding:0 4px; letter-spacing:-.02em; } }
+@media (prefers-reduced-motion:reduce) { html body #brazilDialog #brazilMap button.brazil-chip { transition:none; } }
+@media (forced-colors:active) { html body #brazilDialog #brazilMap button.brazil-chip { forced-color-adjust:none; border:1px solid CanvasText; } .brazil-edge { stroke:CanvasText; } }
 .brazil-list section + section { margin-top:18px; }
 html body #brazilDialog .brazil-list h3 { margin:0 0 4px; color:var(--dialog-muted); font-size:.75rem; font-weight:500; letter-spacing:.09em; text-transform:uppercase; }
 .brazil-list ul { margin:0; padding:0; list-style:none; }
@@ -2871,26 +2883,6 @@ html body #hourlyDetailIcon .weather-line-icon { width:72px; height:72px; stroke
 html body .brazil-weather-icon.weather-line-icon { width:26px; height:26px; }
 html body .daily-detail-hours .weather-line-icon { width:26px; height:26px; margin-inline:auto; }
 @media (forced-colors:active) { .weather-line-icon, .weather-line-icon * { stroke:CanvasText !important; } }
-
-/* Brasil agora em 3D (1.64; refeito na 1.64.1 depois do print do iPhone): o mapa deita em perspectiva (--tilt),
-   gira pelo arrasto (--spin, até ±35°) e tem espessura (cinco cópias escuras do contorno, .brazil-slab, mais fundas).
-   As etiquetas ficam numa camada plana por cima (.brazil-labels), cada uma no ponto que o navegador projetou para a
-   sua âncora no plano (.brazil-anchor, medida em JS): na 1.64 elas eram 3D (de pé, com rotação inversa) e no Safari
-   saíam fora do lugar. Só CSS 3D, com o diálogo aberto; o mapa continua aria-hidden e a lista é o caminho acessível. */
-.brazil-map { --tilt:0deg; --spin:0deg; perspective:1100px; perspective-origin:50% 40%; touch-action:pan-y; -webkit-user-select:none; user-select:none; margin-top:4px; margin-bottom:6px; }
-.brazil-map[data-tilted] { --tilt:32deg; }
-.brazil-plane { position:absolute; inset:0; transform-style:preserve-3d; transform:scale(.9) rotateX(var(--tilt)) rotateZ(var(--spin)); transition:transform 1s cubic-bezier(.2,.8,.2,1); }
-.brazil-plane > svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
-.brazil-plane .brazil-slab { transform:translateZ(calc(var(--z) * -2.2px)); }
-.brazil-plane .brazil-slab path { fill:color-mix(in srgb,#0b1430 calc(48% + var(--z) * 8%),#5d7aa8); stroke:none; }
-.brazil-plane .brazil-top .brazil-land { fill:#22355a; }
-.brazil-anchor { position:absolute; width:0; height:0; }
-.brazil-labels { position:absolute; inset:0; opacity:0; pointer-events:none; }
-.brazil-labels[data-ready] { opacity:1; }
-.brazil-labels .brazil-chip { pointer-events:auto; font-size:.75rem; cursor:pointer; }
-.brazil-map[data-dragging] .brazil-plane { transition:none; }
-@media (prefers-reduced-motion:reduce) { .brazil-plane { transition:none; } }
-@media (forced-colors:active) { .brazil-map { --tilt:0deg !important; --spin:0deg !important; } .brazil-slab { display:none; } }
 
 /* janelas-icones:inicio (gerado por scripts/generate-dialog-icons.py; não editar à mão) */
 :root {
