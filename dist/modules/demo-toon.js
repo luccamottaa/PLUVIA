@@ -47,13 +47,33 @@
     el.setAttribute('viewBox', viewBox); el.setAttribute('focusable', 'false'); el.innerHTML = inner;
     return el;
   }
-  // Nuvem de desenho: três bolas sobre uma base arredondada; a mesma forma mais escura por baixo dá o volume.
-  function cloudShape(fill) {
-    return '<g fill="' + fill + '"><circle cx="62" cy="72" r="38"/><circle cx="112" cy="54" r="48"/><circle cx="160" cy="76" r="34"/>' +
-      '<rect x="24" y="72" width="170" height="40" rx="20"/></g>';
-  }
+  // Nuvem no traço dos ícones dos 7 dias (scripts/generate-line-icons.py, classe Cloud): união de três
+  // círculos (esquerdo, meio, direito) com base reta tangente aos de fora, num contorno só, sem retângulo.
+  // Aqui preenchida, com contorno arredondado e uma sombra macia embaixo, recortada pela própria forma.
+  var CLOUD = (function () {
+    var s = 20, cx = 160, base = 190;
+    var c = [[cx - 4.6 * s, base - 3.1 * s, 3.1 * s], [cx - .4 * s, base - 4.7 * s, 4.6 * s], [cx + 4.2 * s, base - 3.5 * s, 3.5 * s]];
+    function meet(a, b) { // interseção de cima entre dois círculos
+      var d = Math.hypot(b[0] - a[0], b[1] - a[1]), t = (a[2] * a[2] - b[2] * b[2] + d * d) / (2 * d), h = Math.sqrt(Math.max(a[2] * a[2] - t * t, 0));
+      var mx = a[0] + t * (b[0] - a[0]) / d, my = a[1] + t * (b[1] - a[1]) / d;
+      var p = [mx + h * (b[1] - a[1]) / d, my - h * (b[0] - a[0]) / d], q = [mx - h * (b[1] - a[1]) / d, my + h * (b[0] - a[0]) / d];
+      return p[1] < q[1] ? p : q;
+    }
+    function arc(k, from, to) {
+      var ang = function (pt) { return Math.atan2(pt[1] - k[1], pt[0] - k[0]); }, turn = (ang(to) - ang(from) + 4 * Math.PI) % (2 * Math.PI);
+      return 'A' + k[2] + ' ' + k[2] + ' 0 ' + (turn > Math.PI ? 1 : 0) + ' 1 ' + to[0].toFixed(1) + ' ' + to[1].toFixed(1);
+    }
+    var a = [c[0][0], base], z = [c[2][0], base], p12 = meet(c[0], c[1]), p23 = meet(c[1], c[2]);
+    return 'M' + a[0] + ' ' + a[1] + arc(c[0], a, p12) + arc(c[1], p12, p23) + arc(c[2], p23, z) + 'Z';
+  })();
+  var cloudId = 0;
   function cloud(colors) {
-    return svg('0 0 218 124', '<g transform="translate(0 10)">' + cloudShape(colors[1]) + '</g>' + cloudShape(colors[0]));
+    var id = 'toonCloud' + (++cloudId);
+    return svg('0 0 320 200',
+      '<clipPath id="' + id + '"><path d="' + CLOUD + '"/></clipPath>' +
+      '<path d="' + CLOUD + '" fill="' + colors[0] + '"/>' +
+      '<ellipse cx="170" cy="206" rx="170" ry="52" fill="' + colors[1] + '" opacity=".7" clip-path="url(#' + id + ')"/>' +
+      '<path d="' + CLOUD + '" fill="none" stroke="' + colors[1] + '" stroke-width="5" stroke-linejoin="round"/>');
   }
   function sun() {
     var rays = '';
