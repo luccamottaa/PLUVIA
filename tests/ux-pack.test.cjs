@@ -46,7 +46,7 @@ test('convite de avisos aparece com chuva ou aviso oficial, só quando a permiss
   let offer = true;
   const nodes = {alertNudge:box, alertNudgeText:text};
   const context = vm.createContext({$:id => nodes[id], settleBlock(){}, globalThis:{PLUVIA:{alertOffer:{canOffer:() => offer}}}});
-  vm.runInContext(slice('function noteAlertNudge(', 'globalThis.addEventListener?.("pluvia:alert-offer-changed"'), context);
+  vm.runInContext(slice('const ALERT_OFFER_KEY', 'globalThis.addEventListener?.("pluvia:alert-offer-changed"'), context);
   context.updateAlertNudge(); assert.equal(box.hidden, true);
   context.noteAlertNudge('rain', true); assert.equal(box.hidden, false); assert.match(text.textContent, /chuva/);
   context.noteAlertNudge('official', true); assert.match(text.textContent, /INMET/);
@@ -59,7 +59,7 @@ test('no iPhone fora da Tela de Início o convite leva ao passo a passo de insta
   let install = true;
   const nodes = {alertNudge:box, alertNudgeText:text, alertNudgeEnable:button};
   const context = vm.createContext({$:id => nodes[id], settleBlock(){}, globalThis:{pluviaAnalytics:{track:(name, props) => tracked.push([name, props.offer])}, PLUVIA:{alertOffer:{canOffer:() => true, needsInstall:() => install}}}});
-  vm.runInContext(slice('function noteAlertNudge(', 'globalThis.addEventListener?.("pluvia:alert-offer-changed"'), context);
+  vm.runInContext(slice('const ALERT_OFFER_KEY', 'globalThis.addEventListener?.("pluvia:alert-offer-changed"'), context);
   context.noteAlertNudge('rain', true);
   assert.equal(button.textContent, 'Como ativar'); assert.equal(box.dataset.offer, 'install');
   context.updateAlertNudge(); assert.deepEqual(tracked, [['Alert Nudge Shown', 'install']], 'conta só quando aparece');

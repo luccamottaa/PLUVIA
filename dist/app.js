@@ -1163,6 +1163,20 @@ if (globalThis.PLUVIA) globalThis.PLUVIA.shareMoment = () => noteShareMoment.sta
 // trovoada) ou aviso do INMET vigente na cidade, enquanto a pessoa não recusou o convite ("Agora não"
 // vale para os dois convites). No iPhone fora da Tela de Início o botão vira "Como ativar" e abre o
 // passo a passo de instalar, porque o Safari só entrega avisos ao PWA instalado.
+// Abertura sem pulo (1.70.6, pedido do dono): o convite de avisos (210 px, entre a pílula de chuva e as Próximas
+// horas) só aparecia quando notifications.js, o último script, terminava de conferir a inscrição (~1 s): a página
+// descia inteira. Como em rememberAlertShape, fica guardada a última resposta conhecida (só "pode convidar" ou não,
+// neste aparelho), usada até a resposta de agora chegar; se ela mudar, o convite muda junto.
+const ALERT_OFFER_KEY = "pluvia-alert-offer";
+function alertOfferAllowed(offer = globalThis.PLUVIA?.alertOffer, storage = globalThis.localStorage) {
+  if (offer?.known?.()) {
+    const allowed = Boolean(offer.canOffer?.());
+    try { storage?.setItem?.(ALERT_OFFER_KEY, allowed ? "1" : "0"); } catch {}
+    return allowed;
+  }
+  if (offer && !offer.known) return Boolean(offer.canOffer?.()); // notifications.js antigo, sem known()
+  try { return storage?.getItem?.(ALERT_OFFER_KEY) === "1"; } catch { return false; }
+}
 function noteAlertNudge(reason, active) {
   const box = $("alertNudge");
   if (!box?.dataset) return;
@@ -1184,7 +1198,7 @@ function updateAlertNudge() {
   }
   if (button) button.hidden = false;
   if (dismiss) dismiss.hidden = false;
-  const show = (nudgeRain || nudgeOfficial || nudgeRegular || nudgeRadar) && Boolean(globalThis.PLUVIA?.alertOffer?.canOffer?.());
+  const show = (nudgeRain || nudgeOfficial || nudgeRegular || nudgeRadar) && alertOfferAllowed();
   const appearing = show && box.hidden;
   box.hidden = !show;
   if (!show) return;

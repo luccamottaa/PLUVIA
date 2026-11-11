@@ -375,6 +375,9 @@
   (window.PLUVIA = window.PLUVIA || {}).alertOffer = {
     // No Safari do iPhone fora da Tela de Início o pedido não existe: o convite leva ao passo a passo de instalar.
     canOffer: () => !promptDismissed() && ((isIOS && !standalone) || (pushActive === false && supported && Notification.permission !== "denied")),
+    // canOffer já tem resposta definitiva? (Sem isso, "false" podia ser só "ainda conferindo a inscrição", e a Home
+    // mostrava o convite ~1 s depois, empurrando a página; 1.70.6.)
+    known: () => promptDismissed() || (isIOS && !standalone) || !supported || Notification.permission === "denied" || pushActive !== null,
     needsInstall: () => isIOS && !standalone,
     enable,
     dismiss: () => { dismissedNow = true; try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch {} window.dispatchEvent(new CustomEvent("pluvia:alert-offer-changed")); },

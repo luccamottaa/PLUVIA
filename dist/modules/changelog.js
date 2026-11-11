@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.70.6", date:"2026-11-11", title:"Home sem pulo", items:[
+      "O convite para ativar os avisos de chuva já aparece no lugar quando o app abre, em vez de surgir um segundo depois e empurrar a página para baixo."
+    ]},
     {version:"1.70.5", date:"2026-11-11", title:"Abertura mais leve", items:[
       "A conta do radar que estima quando a chuva chega ficou bem mais rápida e não segura mais a tela na abertura em dia de chuva.",
       "O seletor das Próximas horas mede a tela uma vez só ao abrir, em vez de duas."
