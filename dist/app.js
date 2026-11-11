@@ -2533,7 +2533,9 @@ function setupCityPicker() {
   $("homeBrazil")?.addEventListener("click", () => globalThis.PLUVIA?.brazilNow?.open?.());
   $("locateCity").addEventListener("click", () => requestLocation('city_picker'));
   $("welcomeLocate").addEventListener("click", () => requestLocation('welcome'));
-  // A pílula de busca do topo (1.63) já abre com o campo focado (o teclado sobe no mesmo toque).
+  // A pílula de busca do topo (1.63) abre com o campo focado só onde não há teclado na tela (computador).
+  // No celular o teclado subia junto e cobria a lista (1.69.3, pedido do dono): lá o foco vai ao fechar
+  // e o teclado só sobe quando a pessoa toca no campo.
   $("openCitySearch").addEventListener("click", () => openCitySearch({focusInput:true}));
   $("homeLocate")?.addEventListener("click", () => requestLocation('topbar'));
   $("welcomeSearch").addEventListener("click", openCitySearch);
@@ -2574,6 +2576,12 @@ function locationButtons(disabled) {
   const notice = $("noticeLocate");
   if (notice) { notice.disabled = disabled; notice.textContent = disabled ? "Localizando…" : "Usar minha localização"; }
 }
+// Foco no campo da busca ao abrir: só com teclado físico provável (sem tela de toque como ponteiro principal).
+// Focar o campo no celular abre o teclado virtual na hora.
+function searchInputFirst(options, win = globalThis) {
+  if (!options?.focusInput) return false;
+  try { return !win.matchMedia?.("(hover: none) and (pointer: coarse)")?.matches; } catch { return true; }
+}
 function openCitySearch(options) {
   cityChoiceAttempt++;
   // Choosing manually takes precedence over a late location callback.
@@ -2591,7 +2599,7 @@ function openCitySearch(options) {
   if (!dialog.open) dialog.showModal();
   document.body?.classList?.add("city-dialog-open");
   dialog.querySelector?.(".dialog-scroll")?.scrollTo?.(0, 0);
-  if (options?.focusInput) $("citySearch").focus({preventScroll:true}); else $("closeCitySearch").focus();
+  if (searchInputFirst(options)) $("citySearch").focus({preventScroll:true}); else $("closeCitySearch").focus();
   if (!cityIndexReady) {
     $("cityPickerStatus").textContent = "Carregando cidades do Brasil…";
     ensureCityIndex().then(() => renderCityOptions()).catch(() => { $("cityPickerStatus").textContent = "O índice não carregou. Capitais continuam disponíveis."; });
