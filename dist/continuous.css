@@ -960,6 +960,7 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 @media (prefers-reduced-motion:reduce) { #weatherView .city-dot::before { transition:none; } }
 /* Personalizar a Home: seções escondidas saem do layout; diálogo com caixa e setas de ordem (44px). */
 #weatherView [data-home-hidden] { display:none !important; }
+#weatherView [data-home-folded] { display:none !important; }
 .home-layout-list { display:grid; gap:0; margin:12px 0 16px; padding:0; list-style:none; }
 .home-layout-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:52px; border-bottom:1px solid var(--dialog-line); }
 .home-layout-list label { display:flex; align-items:center; gap:12px; min-width:0; min-height:44px; color:var(--dialog-text); cursor:pointer; }
@@ -3239,3 +3240,19 @@ html body #accountDialog #accountMore :is(#textSizeDown,#textSizeUp):not(#_) { p
 html body #accountDialog #accountMore :is(#textSizeDown,#textSizeUp):not(#_)::before { content:""; position:absolute; top:-2px; bottom:-2px; left:0; right:0; }
 html body #accountDialog #accountMore #textSizeDown:not(#_)::before { left:-12px; }
 html body #accountDialog #accountMore #textSizeUp:not(#_)::before { right:-12px; }
+/* Home enxuta (1.69): no celular, leituras, radar e céu ficam atrás de "Mais detalhes" (modules/home-layout.js).
+   O botão é um cartão opaco da família das leituras (tokens --card-*), sem backdrop-filter; só a seta gira. */
+html body #weatherView .home-more:not(#_) {
+  display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:64px; margin:16px 0 0; padding:12px 18px;
+  border:1px solid var(--card-border,transparent); border-radius:22px; background:var(--card-fill), var(--card-rim) border-box; box-shadow:var(--card-glow);
+  color:var(--reading-ink); font:inherit; text-align:left; cursor:pointer;
+}
+html body #weatherView .home-more[hidden]:not(#_) { display:none; }
+#weatherView .home-more-copy { display:grid; gap:2px; min-width:0; }
+#weatherView .home-more-label { font-size:1.0625rem; font-weight:600; }
+#weatherView .home-more-hint { color:var(--reading-muted); font-size:.875rem; font-weight:400; }
+#weatherView .home-more-arrow { flex:none; width:10px; height:10px; margin:0 4px 4px 0; border:solid currentColor; border-width:0 2px 2px 0; transform:rotate(45deg); transition:transform .32s cubic-bezier(.22,1,.36,1); }
+#weatherView .home-more[aria-expanded="true"] .home-more-arrow { margin-bottom:-4px; transform:rotate(225deg); }
+#weatherView .home-more:focus-visible { outline:3px solid var(--brand-blue); outline-offset:3px; }
+@media (prefers-reduced-motion:reduce) { #weatherView .home-more-arrow { transition:none; } }
+@media (forced-colors:active) { html body #weatherView .home-more:not(#_) { border-color:ButtonText; } }

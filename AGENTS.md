@@ -592,3 +592,15 @@ Pedido do dono (vídeo: "mini travadas na troca de cidade e nas animações"). P
 - **Ritmo das nuvens CSS** (`sky-atmosphere.js`): com as nuvens 3D ligadas (`data-volume="on"`) as camadas CSS estão escondidas e paradas; `applyCloudRate` só marca o ritmo pendente e um observador de `data-volume` aplica quando as nuvens 3D saem. Antes cada troca forçava um recálculo de estilo (~120 ms) por `getAnimations`.
 
 Teste: `tests/city-change-perf.test.cjs`. Ficou: o primeiro story da sessão ainda leva ~300 ms (CPU 4×) por causa do JPEG; o recálculo de estilo da página inteira (seletores enormes com 16 diálogos) segue como a próxima frente.
+
+## Home enxuta: "Mais detalhes" (novembro/2026, 1.69)
+
+Pedido do dono ("o app parece muito poluído e lento"; escolheu enxugar a primeira tela e ganhar velocidade). Medido na Home publicada num celular de 375 × 812: 3.821 px de altura (quase 5 telas), 54 botões à vista e 16 elementos com `backdrop-filter`.
+
+- No celular (abaixo de 1100 px), as seções de detalhe que fecham a ordem da Home (`extra:true` em `SECTIONS` de `modules/home-layout.js`: leituras, radar e céu) começam recolhidas atrás de `#homeMore` ("Mais detalhes", com a lista do que está recolhido em `.home-more-hint`). Ficam o topo, os avisos, Próximas horas com os 7 dias e as dicas. No desktop largo não há dobra nem botão.
+- Recolhida = `data-home-folded` = `display:none`, igual à seção escondida em "Personalizar a Home": o radar nem é consultado (o `IntersectionObserver` de `weather-map.js` não dispara) e os cartões não entram em estilo, layout nem composição. Com a dobra fechada: 1.950 px de altura, 6 elementos com `backdrop-filter` e ~23% menos tempo num recálculo de estilo da página inteira (troca de `data-ink`, mesma máquina).
+- `folded(layout)` é pura e testada: só a sequência final de seções `extra` visíveis recolhe. Quem subiu o radar para antes das horas continua vendo o radar; se só sobraram seções de detalhe, nada recolhe (a Home nunca fica só com o botão).
+- A escolha fica em `pluvia-home-more` (`"1"` = aberto), só neste aparelho; fechar apaga a chave. `PLUVIA.homeLayout.reveal(id)` abre os detalhes só nesta visita, sem gravar: o atalho `/?abrir=radar` usa, porque `#radarDialog` mora dentro da seção do radar e um diálogo dentro de `display:none` não abre. Qualquer novo atalho para algo de uma seção `extra` precisa chamar `reveal` antes.
+- O botão é um cartão opaco da família das leituras (tokens `--card-*`), sem `backdrop-filter`; só a seta gira. Fica no HTML logo antes de `section.metrics`, e `place()` não mexe no DOM na ordem padrão.
+- QA de navegador: os `scripts/verify-*.py` semeiam `pluvia-home-more` para continuar medindo a Home inteira; `verify-home-ux.py` confere a dobra (recolhe, guarda, reabre; sem botão a partir de 1100 px).
+- Não mexido de propósito: os 62 scripts já são `defer` e saem do cache do SW, então adiar a carga deles não muda a abertura de quem já visitou; as animações contínuas que restam são o próprio céu (estrelas e nuvens). Cortar ali é decisão de desenho, não de limpeza.
