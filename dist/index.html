@@ -51,7 +51,7 @@
     <script src="./modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-342" />
+    <meta name="pluvia-release" content="pluvia-panel-343" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -296,8 +296,8 @@
     </script>
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
-    <link rel="stylesheet" href="./redesign.css?v=panel-51" />
-    <link rel="stylesheet" href="./continuous.css?v=layout-191" />
+    <link rel="stylesheet" href="./redesign.css?v=panel-52" />
+    <link rel="stylesheet" href="./continuous.css?v=layout-192" />
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"><span class="sky-stars"></span><span class="sky-meteor"></span><span class="sky-rainbow"></span><span class="sky-sun"></span><span class="sky-clouds sky-clouds-back"></span><span class="sky-clouds sky-clouds-front"></span><span class="sky-rain sky-rain-back"></span><span class="sky-rain"></span><span class="sky-lightning"></span><span class="sky-moon"><svg viewBox="6 6 68 68" focusable="false"><use href="#moonDisc"/></svg></span></div>
@@ -319,7 +319,7 @@
         <div class="welcome-actions"><button class="city-button" id="welcomeLocate" type="button">Usar minha localização</button><button class="city-button" id="welcomeSearch" type="button">Escolher cidade</button></div>
         <p id="locationStatus" role="status" aria-live="polite"></p>
       </section>
-      <dialog id="cityDialog" class="city-dialog" aria-labelledby="cityDialogTitle">
+      <dialog id="cityDialog" class="city-dialog dlg-todas dlg-g14 dlg-g13 dlg-folha dlg-cidade-conta-fontes dlg-cidade-conta dlg-listas dlg-misto" aria-labelledby="cityDialogTitle">
         <div class="dialog-heading"><h2 id="cityDialogTitle">Suas cidades</h2><button id="closeCitySearch" class="dialog-close" type="button" aria-label="Fechar busca" autofocus>×</button></div>
         <div class="city-search-field"><label for="citySearch">Cidade</label><input id="citySearch" type="search" placeholder="Ex.: Manaus, Recife, Curitiba" autocomplete="off" aria-controls="cityResults" aria-autocomplete="list" /><button id="voiceSearch" class="voice-search" type="button" aria-label="Buscar cidade por voz" aria-pressed="false" hidden></button></div>
         <div class="dialog-scroll">
@@ -344,7 +344,7 @@
         <ul id="savedPlacesList" aria-label="Locais salvos"></ul>
       </details>
       </div></dialog>
-      <dialog id="accountDialog" class="city-dialog account-dialog" aria-labelledby="accountTitle">
+      <dialog id="accountDialog" class="city-dialog account-dialog dlg-todas dlg-g14 dlg-g13 dlg-folha dlg-conta-fontes dlg-cidade-conta-fontes dlg-cidade-conta dlg-conta-termos dlg-listas dlg-misto dlg-conta-home" aria-labelledby="accountTitle">
         <div class="dialog-heading"><h2 id="accountTitle">Minha conta</h2><button id="accountClose" class="dialog-close" type="button" autofocus aria-label="Fechar conta">×</button></div><div class="dialog-scroll">
         <p id="accountIntro">Entre para sincronizar suas cidades e escolher seus avisos. A previsão continua disponível sem cadastro.</p>
         <p id="anonPushStatus" class="anon-push-status" hidden><span>Avisos ligados neste aparelho, sem conta.</span> <button id="anonPushOff" type="button">Desligar avisos</button></p>
@@ -515,7 +515,7 @@
         <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>Qualidade do ar</span><span data-weather-icon-name="air-quality" data-weather-icon-style="line"></span><details class="info-tip"><summary aria-label="Sobre a qualidade do ar"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p><small class="air-source">Estimativa regional · Open-Meteo / CAMS</small></p><p>O US AQI é um índice de 0 a 500 calculado a partir das partículas e dos gases. Estimativa regional, não medição no seu endereço, e não diz de onde vem a poluição.</p></div></details></div><div class="air-reading"><div class="air-index"><b id="airValue"><span class="sk sk-num" aria-hidden="true"></span></b><span>US AQI</span></div><div class="air-description"><strong id="airQuality"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="airNote"><span class="sk sk-line" aria-hidden="true"></span></small><small id="airParticlesNote" hidden></small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div></article>
       </section>
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
-        <dialog id="radarDialog" class="radar-dialog" aria-labelledby="radarDialogTitle"><div class="radar-dialog-heading"><h2 id="radarDialogTitle">Radar de chuva</h2><button id="closeRadar" type="button" aria-label="Fechar radar ampliado">Fechar <span aria-hidden="true">×</span></button></div><div id="radarDialogContent"></div></dialog>
+        <dialog id="radarDialog" class="radar-dialog dlg-todas dlg-g14 dlg-texto" aria-labelledby="radarDialogTitle"><div class="radar-dialog-heading"><h2 id="radarDialogTitle">Radar de chuva</h2><button id="closeRadar" type="button" aria-label="Fechar radar ampliado">Fechar <span aria-hidden="true">×</span></button></div><div id="radarDialogContent"></div></dialog>
         <article class="weather-map-card panel" aria-labelledby="weatherMapCardTitle">
           <div class="weather-map-copy"><span class="eyebrow">MAPA DO TEMPO</span><div class="heading-with-tip"><h2 id="weatherMapCardTitle">Chuva na região</h2><span class="heading-icon" data-weather-icon-name="radar" data-weather-icon-style="line" aria-hidden="true"></span><details class="info-tip"><summary aria-label="Sobre o radar"><span class="info-tip-icon" aria-hidden="true">i</span></summary><div class="info-tip-body"><p>Radar observado · RainViewer. A cobertura depende dos radares disponíveis e a imagem não é previsão. A marca azul é o ponto de referência do município. Toque no mapa ou em “Abrir radar” para animar os últimos horários e ver sua localização.</p></div></details></div><p id="weatherMapCity"></p></div>
           <button id="expandRadar" class="expand-radar" type="button" aria-haspopup="dialog" aria-controls="radarDialog" aria-label="Abrir radar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg><span class="expand-radar-verb">Abrir </span><span class="expand-radar-word">radar</span></button>
@@ -551,10 +551,10 @@
     </div>
     <div class="error-toast" id="errorToast" role="status" aria-live="polite" aria-hidden="true"><strong>Sem confirmação atual.</strong><span id="errorMessage"></span></div>
     <div class="pull-refresh" id="pullRefresh" hidden role="status"><span id="pullRefreshText"></span></div>
-    <dialog id="alertDetail" class="city-dialog" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody" class="dialog-scroll"></div></dialog>
-    <dialog id="shareWeatherDialog" class="city-dialog" aria-labelledby="shareWeatherTitle"><div class="dialog-heading"><h2 id="shareWeatherTitle">Compartilhar previsão</h2><button id="shareWeatherClose" class="dialog-close" type="button" aria-label="Fechar compartilhamento">×</button></div><div class="dialog-scroll"><p>Selecione e copie o texto para compartilhar.</p><img id="shareWeatherImage" class="share-weather-image" alt="Imagem da previsão para compartilhar" width="1080" height="1920" hidden><a id="shareWeatherDownload" class="share-weather-download" hidden>Baixar imagem</a><label for="shareWeatherText">Texto para compartilhar</label><textarea id="shareWeatherText" readonly rows="7"></textarea></div></dialog>
+    <dialog id="alertDetail" class="city-dialog dlg-todas dlg-g14 dlg-g13 dlg-folha dlg-misto" aria-labelledby="alertDetailTitle"><div class="dialog-heading"><h2 id="alertDetailTitle">Aviso INMET</h2><button id="alertDetailClose" class="dialog-close" autofocus type="button" aria-label="Fechar detalhes">×</button></div><div id="alertDetailBody" class="dialog-scroll"></div></dialog>
+    <dialog id="shareWeatherDialog" class="city-dialog dlg-todas dlg-g14 dlg-g13 dlg-folha" aria-labelledby="shareWeatherTitle"><div class="dialog-heading"><h2 id="shareWeatherTitle">Compartilhar previsão</h2><button id="shareWeatherClose" class="dialog-close" type="button" aria-label="Fechar compartilhamento">×</button></div><div class="dialog-scroll"><p>Selecione e copie o texto para compartilhar.</p><img id="shareWeatherImage" class="share-weather-image" alt="Imagem da previsão para compartilhar" width="1080" height="1920" hidden><a id="shareWeatherDownload" class="share-weather-download" hidden>Baixar imagem</a><label for="shareWeatherText">Texto para compartilhar</label><textarea id="shareWeatherText" readonly rows="7"></textarea></div></dialog>
 
-    <dialog id="homeLayoutDialog" class="city-dialog home-layout-dialog" aria-labelledby="homeLayoutTitle">
+    <dialog id="homeLayoutDialog" class="city-dialog home-layout-dialog dlg-todas dlg-g14 dlg-g13 dlg-folha dlg-conta-home" aria-labelledby="homeLayoutTitle">
       <div class="dialog-heading"><h2 id="homeLayoutTitle">Personalizar a Home</h2><button id="homeLayoutClose" class="dialog-close" type="button" aria-label="Fechar personalização">×</button></div>
       <div class="dialog-scroll">
         <p>Escolha o que aparece abaixo da temperatura e em que ordem. Fica salvo só neste aparelho; cidade, temperatura e avisos oficiais continuam sempre no topo.</p>
@@ -562,7 +562,7 @@
         <button id="homeLayoutReset" class="home-layout-reset" type="button">Restaurar padrão</button>
       </div>
     </dialog>
-    <dialog id="brazilDialog" class="city-dialog brazil-dialog" aria-labelledby="brazilTitle">
+    <dialog id="brazilDialog" class="city-dialog brazil-dialog dlg-todas dlg-g14 dlg-g13 dlg-folha dlg-listas" aria-labelledby="brazilTitle">
       <div class="dialog-heading"><h2 id="brazilTitle">Brasil agora</h2><button id="brazilClose" class="dialog-close" type="button" autofocus aria-label="Fechar Brasil agora">×</button></div>
       <div class="dialog-scroll">
         <p id="brazilStatus" class="brazil-status" role="status" aria-live="polite"></p>
@@ -571,7 +571,7 @@
         <p class="brazil-note">Temperatura atual, condição e máxima/mínima do dia em cada capital, pelo calendário local. No mapa, as cores vão do azul (frio) ao vermelho (calor), interpoladas entre as capitais e cidades do interior (ilustrativo: entre os pontos não há medição). Cada capital fica na sua latitude e longitude, sobre o contorno Natural Earth; quando as temperaturas se encostariam, uma linha liga o número ao ponto. Previsão Open-Meteo no ponto de referência do município. Toque numa capital para abrir a previsão completa.</p>
       </div>
     </dialog>
-    <dialog id="monthDialog" class="city-dialog month-dialog" aria-labelledby="monthTitle" aria-describedby="monthCity">
+    <dialog id="monthDialog" class="city-dialog month-dialog dlg-todas dlg-g14 dlg-g13 dlg-folha dlg-listas" aria-labelledby="monthTitle" aria-describedby="monthCity">
       <div class="dialog-heading"><div><h2 id="monthTitle">Últimos 30 dias</h2><p id="monthCity"></p></div><button id="monthClose" class="dialog-close" type="button" autofocus aria-label="Fechar últimos 30 dias">×</button></div>
       <div class="dialog-scroll">
         <p id="monthStatus" class="month-status" role="status" aria-live="polite"></p>
@@ -580,7 +580,7 @@
         <section class="accuracy" aria-labelledby="accuracyTitle"><h3 id="accuracyTitle">Quanto o PLUVIA acertou</h3><p id="accuracyStatus" class="month-status" role="status" aria-live="polite"></p><div id="accuracyBody"></div><p class="month-note">A resposta do “Vai chover?” comparada com a estação automática do INMET mais próxima: conta como chuva 0,5 mm ou mais em alguma hora da janela. “Pode chover” não entra como acerto nem como erro. Com poucos dias de medição, os números ainda mudam.</p></section>
       </div>
     </dialog>
-    <dialog id="hourlyDetailDialog" class="city-dialog hourly-detail-dialog" aria-labelledby="hourlyDetailTitle" aria-describedby="hourlyDetailCity">
+    <dialog id="hourlyDetailDialog" class="city-dialog hourly-detail-dialog dlg-todas dlg-g14 dlg-g13 dlg-folha dlg-detalhe dlg-misto" aria-labelledby="hourlyDetailTitle" aria-describedby="hourlyDetailCity">
       <div class="dialog-heading"><div><h2 id="hourlyDetailTitle">Previsão por hora</h2><p id="hourlyDetailCity"></p></div><button id="hourlyDetailClose" class="dialog-close" type="button" autofocus aria-label="Fechar previsão por hora">×</button></div>
       <div class="dialog-scroll" tabindex="0" role="region" aria-label="Detalhes do horário">
         <div class="hourly-detail-weather"><div id="hourlyDetailIcon" aria-hidden="true"></div><strong id="hourlyDetailTemperature">—</strong><p id="hourlyDetailCondition"></p></div>
@@ -589,7 +589,7 @@
       </div>
       <div class="hourly-detail-navigation"><button id="hourlyDetailPrev" type="button" aria-label="Horário anterior">‹ Anterior</button><button id="hourlyDetailNext" type="button" aria-label="Próximo horário">Próximo ›</button></div>
     </dialog>
-    <dialog id="dailyDetailDialog" class="city-dialog hourly-detail-dialog" aria-labelledby="dailyDetailTitle" aria-describedby="dailyDetailCity">
+    <dialog id="dailyDetailDialog" class="city-dialog hourly-detail-dialog dlg-todas dlg-g14 dlg-g13 dlg-folha dlg-detalhe" aria-labelledby="dailyDetailTitle" aria-describedby="dailyDetailCity">
       <div class="dialog-heading"><div><h2 id="dailyDetailTitle">Previsão do dia</h2><p id="dailyDetailCity"></p></div><button id="dailyDetailClose" class="dialog-close" type="button" autofocus aria-label="Fechar previsão diária">×</button></div>
       <div class="dialog-scroll">
         <p id="dailyDetailCondition"></p>
@@ -609,11 +609,11 @@
       </div>
       <div class="hourly-detail-navigation"><button id="dailyDetailPrev" type="button">‹ Dia anterior</button><button id="dailyDetailNext" type="button">Próximo dia ›</button></div>
     </dialog>
-    <dialog id="changelogDialog" class="city-dialog changelog-2dialog" aria-labelledby="changelogTitle">
+    <dialog id="changelogDialog" class="city-dialog changelog-2dialog dlg-todas dlg-g14 dlg-g13 dlg-folha dlg-novidades dlg-texto" aria-labelledby="changelogTitle">
       <div class="dialog-heading"><h2 id="changelogTitle">Novidades do PLUVIA</h2><button id="changelogClose" class="dialog-close" type="button" aria-label="Fechar novidades">×</button></div>
       <div class="dialog-scroll"><p class="changelog-2intro">Versões 1.1, 1.2… trazem novidades; 1.1.1, 1.1.2… são correções.</p><ol id="changelogList" class="changelog-2list"></ol></div>
     </dialog>
-    <dialog id="termsDialog" class="city-dialog terms-dialog" aria-labelledby="termsTitle">
+    <dialog id="termsDialog" class="city-dialog terms-dialog dlg-todas dlg-conta-termos dlg-texto" aria-labelledby="termsTitle">
       <div class="dialog-heading"><h2 id="termsTitle">Antes de ligar os avisos</h2><button id="termsClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
       <div class="dialog-scroll"><p>Para mandar avisos ao seu celular, o PLUVIA guarda a inscrição deste aparelho e as cidades que você escolher. Dá para desligar quando quiser.</p><p>As previsões são estimativas e podem errar. Em situação de risco, siga a Defesa Civil (199) e o INMET.</p>
         <label class="terms-check"><input id="termsCheck" type="checkbox" autofocus><span>Li e aceito os <a href="/termos/" target="_blank" rel="noopener">Termos de uso</a> e a <a href="/privacidade/" target="_blank" rel="noopener">Política de privacidade</a></span></label>
@@ -622,11 +622,11 @@
 <div class="install-card" id="installCard" role="region" aria-label="Instalar o PLUVIA" hidden><span class="install-card-icon" aria-hidden="true"></span><p><strong>Coloque o PLUVIA na tela de início</strong><span id="installCardText">Abre direto na sua cidade, funciona sem internet e avisa quando vai chover.</span></p><div class="install-card-actions"><button id="installCardAction" type="button">Instalar</button><button id="installCardDismiss" class="install-card-dismiss" type="button">Agora não</button></div></div>
         <div class="terms-notice" id="termsNotice" role="region" aria-label="Termos de uso" hidden><p>Ao usar o PLUVIA, você concorda com os <a href="/termos/" target="_blank" rel="noopener">Termos de uso</a> e a <a href="/privacidade/" target="_blank" rel="noopener">Política de privacidade</a>.</p><button id="termsNoticeOk" type="button">OK</button></div>
         <div class="terms-notice analytics-notice" id="analyticsNotice" role="region" aria-label="Ajude a melhorar o PLUVIA" hidden><p><strong>Ajude a melhorar o PLUVIA.</strong> Podemos contar usos e erros de forma anônima, sem nome, cidade ou GPS. Você muda isso quando quiser em Fontes de dados.</p><div class="notice-actions"><button id="analyticsNoticeYes" type="button">Permitir</button><button id="analyticsNoticeNo" class="secondary" type="button">Agora não</button></div></div>
-    <dialog id="whatsNewDialog" class="city-dialog changelog-2dialog whats-new-dialog" aria-labelledby="whatsNewTitle">
+    <dialog id="whatsNewDialog" class="city-dialog changelog-2dialog whats-new-dialog dlg-todas dlg-g14 dlg-g13 dlg-folha dlg-novidades dlg-texto" aria-labelledby="whatsNewTitle">
       <div class="dialog-heading"><h2 id="whatsNewTitle">Novidades do PLUVIA</h2><button id="whatsNewClose" class="dialog-close" type="button" aria-label="Fechar novidades">×</button></div>
       <div class="dialog-scroll"><ol id="whatsNewList" class="changelog-2list"></ol><div class="whats-new-actions"><button id="whatsNewOk" class="whats-new-ok" type="button" autofocus>Entendi</button><button id="whatsNewAll" class="whats-new-all" type="button">Ver todas as versões</button></div></div>
     </dialog>
-    <dialog id="installPushDialog" class="city-dialog" aria-labelledby="installPushTitle">
+    <dialog id="installPushDialog" class="city-dialog dlg-todas dlg-g14 dlg-g13" aria-labelledby="installPushTitle">
       <div class="dialog-heading"><h2 id="installPushTitle">Alertas no iPhone</h2><button id="installPushClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
       <p>No iPhone, os avisos só chegam com o PLUVIA na Tela de Início. Leva uns 10 segundos:</p>
       <ol class="install-steps">
@@ -637,13 +637,13 @@
       <p>Você recebe os avisos do INMET e a chuva chegando na sua cidade.</p>
       <button id="installPushReload" type="button">Entendi</button>
     </dialog>
-    <dialog id="installDialog" class="city-dialog" aria-labelledby="installTitle">
+    <dialog id="installDialog" class="city-dialog dlg-todas dlg-texto" aria-labelledby="installTitle">
       <div class="dialog-heading"><h2 id="installTitle">Colocar na tela de início</h2><button id="installClose" class="dialog-close" type="button" aria-label="Fechar">×</button></div>
       <ol class="install-steps" id="installSteps"></ol>
       <p>Depois é só abrir pelo ícone novo: o PLUVIA abre em tela cheia, direto na sua cidade.</p>
       <button id="installDone" type="button">Entendi</button>
     </dialog>
-    <dialog id="sourcesDialog" class="city-dialog sources-dialog" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="privacyTitle"><h3 id="privacyTitle">Privacidade</h3><p class="privacy-full"><a href="/privacidade/">Política de Privacidade completa</a>: dados, bases legais, prazos e seus direitos pela LGPD.</p><label for="analyticsConsent"><input id="analyticsConsent" type="checkbox"> Ajudar a melhorar o Pluvia</label><p>Compartilhe contagens de uso e tipos de falha com o PostHog (servidores nos EUA). Não enviamos nomes, e-mail, cidade, coordenadas ou texto pesquisado. Não gravamos sua tela nem vinculamos métricas à sua conta.</p><p id="analyticsChoiceStatus" role="status">Desativado. A previsão funciona sem compartilhar métricas.</p><p>O servidor recebe a conexão de rede; solicitamos que o IP não seja usado para geolocalização. <a href="https://posthog.com/privacy" target="_blank" rel="noreferrer">Política de privacidade do PostHog</a>.</p><p>A busca por voz usa o reconhecimento de fala do próprio navegador (no Chrome, o áudio é processado pelo Google). O PLUVIA não recebe nem guarda o áudio.</p><p>Quando você responde “Tá chovendo aí?”, guardamos por 2 dias a resposta, a cidade e o horário, com um código aleatório deste aparelho (só para evitar respostas repetidas). Sem conta, nome ou localização.</p><p>Com sua permissão em “Ajudar a melhorar o PLUVIA”, este aparelho soma +1 ao contador uma vez por dia. O servidor guarda um hash do identificador aleatório por até cerca de 25 horas para evitar contagens repetidas, além do total diário. Não guarda o identificador original, nome, cidade, conta ou IP no contador. Com “Do Not Track” ou GPC ligado, não há contagem.</p><p>O site é entregue pela Cloudflare, que recebe a conexão como qualquer serviço de hospedagem e guarda cópias dos arquivos do app para abrir mais rápido. A medição de visitas da Cloudflare fica desligada.</p></section><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Segunda opinião nos avisos de chuva, placar de acerto e o teste opcional "Testar Tomorrow.io": <a href="https://www.tomorrow.io/" target="_blank" rel="noreferrer">Tomorrow.io</a>. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Eclipses: <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noreferrer">Astronomy Engine</a> (MIT). Medido agora: estações automáticas do <a href="https://portal.inmet.gov.br/" target="_blank" rel="noreferrer">INMET</a>, pelo serviço WIS2 da OMM. Nível dos rios: telemetria da <a href="https://www.gov.br/ana/" target="_blank" rel="noreferrer">ANA</a>. Focos de calor: <a href="https://terrabrasilis.dpi.inpe.br/queimadas/portal/" target="_blank" rel="noreferrer">Programa Queimadas do INPE</a> (detecções de satélite, agrupadas por ~1 km). Boletins dos aeroportos (METAR/SPECI): <a href="https://www.decea.mil.br/" target="_blank" rel="noreferrer">DECEA</a>, pela API pública do <a href="https://aviationweather.gov/" target="_blank" rel="noreferrer">Aviation Weather Center</a> (NOAA). Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
+    <dialog id="sourcesDialog" class="city-dialog sources-dialog dlg-todas dlg-g14 dlg-g13 dlg-folha dlg-conta-fontes dlg-cidade-conta-fontes dlg-listas dlg-misto" aria-labelledby="sourcesTitle"><div class="dialog-heading"><h2 id="sourcesTitle">Fontes de dados</h2><button id="closeSources" class="dialog-close" autofocus type="button" aria-label="Fechar fontes">×</button></div><div class="dialog-scroll"><div id="sourcesBody"></div><section class="source-credits" aria-labelledby="privacyTitle"><h3 id="privacyTitle">Privacidade</h3><p class="privacy-full"><a href="/privacidade/">Política de Privacidade completa</a>: dados, bases legais, prazos e seus direitos pela LGPD.</p><label for="analyticsConsent"><input id="analyticsConsent" type="checkbox"> Ajudar a melhorar o Pluvia</label><p>Compartilhe contagens de uso e tipos de falha com o PostHog (servidores nos EUA). Não enviamos nomes, e-mail, cidade, coordenadas ou texto pesquisado. Não gravamos sua tela nem vinculamos métricas à sua conta.</p><p id="analyticsChoiceStatus" role="status">Desativado. A previsão funciona sem compartilhar métricas.</p><p>O servidor recebe a conexão de rede; solicitamos que o IP não seja usado para geolocalização. <a href="https://posthog.com/privacy" target="_blank" rel="noreferrer">Política de privacidade do PostHog</a>.</p><p>A busca por voz usa o reconhecimento de fala do próprio navegador (no Chrome, o áudio é processado pelo Google). O PLUVIA não recebe nem guarda o áudio.</p><p>Quando você responde “Tá chovendo aí?”, guardamos por 2 dias a resposta, a cidade e o horário, com um código aleatório deste aparelho (só para evitar respostas repetidas). Sem conta, nome ou localização.</p><p>Com sua permissão em “Ajudar a melhorar o PLUVIA”, este aparelho soma +1 ao contador uma vez por dia. O servidor guarda um hash do identificador aleatório por até cerca de 25 horas para evitar contagens repetidas, além do total diário. Não guarda o identificador original, nome, cidade, conta ou IP no contador. Com “Do Not Track” ou GPC ligado, não há contagem.</p><p>O site é entregue pela Cloudflare, que recebe a conexão como qualquer serviço de hospedagem e guarda cópias dos arquivos do app para abrir mais rápido. A medição de visitas da Cloudflare fica desligada.</p></section><section class="source-credits" aria-labelledby="sourceCreditsTitle"><h3 id="sourceCreditsTitle">Créditos e licenças</h3><p>Previsão: <a href="https://api.met.no/weatherapi/locationforecast/2.0/documentation" target="_blank" rel="noreferrer">MET Norway</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>) e Open-Meteo. Segunda opinião nos avisos de chuva, placar de acerto e o teste opcional "Testar Tomorrow.io": <a href="https://www.tomorrow.io/" target="_blank" rel="noreferrer">Tomorrow.io</a>. Textura lunar: <a href="https://svs.gsfc.nasa.gov/5587/" target="_blank" rel="noreferrer">NASA Scientific Visualization Studio</a> (LRO/LOLA/LROC). Fases da Lua: <a href="https://github.com/mourner/suncalc" target="_blank" rel="noreferrer">SunCalc</a>. Eclipses: <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noreferrer">Astronomy Engine</a> (MIT). Medido agora: estações automáticas do <a href="https://portal.inmet.gov.br/" target="_blank" rel="noreferrer">INMET</a>, pelo serviço WIS2 da OMM. Nível dos rios: telemetria da <a href="https://www.gov.br/ana/" target="_blank" rel="noreferrer">ANA</a>. Focos de calor: <a href="https://terrabrasilis.dpi.inpe.br/queimadas/portal/" target="_blank" rel="noreferrer">Programa Queimadas do INPE</a> (detecções de satélite, agrupadas por ~1 km). Boletins dos aeroportos (METAR/SPECI): <a href="https://www.decea.mil.br/" target="_blank" rel="noreferrer">DECEA</a>, pela API pública do <a href="https://aviationweather.gov/" target="_blank" rel="noreferrer">Aviation Weather Center</a> (NOAA). Ícones alternativos: <a href="https://github.com/kickstandapps/WeatherIcons" target="_blank" rel="noreferrer">WeatherIcons</a> (SIL OFL 1.1).</p></section></div></dialog>
     <script src="./analytics.js?v=analytics-24" defer></script>
     <script src="./modules/sources.js?v=panel-26" defer></script>
     <script src="./modules/dialog-motion.js?v=motion-4" defer></script>
@@ -683,7 +683,7 @@
     <script src="./modules/forecast-accuracy.js?v=accuracy-1" defer></script>
     <script src="./modules/station-now.js?v=station-5" defer></script>
     <script src="./modules/home-layout.js?v=home-layout-11" defer></script>
-    <script src="./modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="./modules/voice-search.js?v=voice-2" defer></script><script src="./modules/rain-reports.js?v=rain-reports-3" defer></script><script src="./modules/visit-counter.js?v=visits-3" defer></script><script src="./modules/install-prompt.js?v=install-3" defer></script><script src="./modules/changelog.js?v=changelog-372" defer></script>
+    <script src="./modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="./modules/voice-search.js?v=voice-2" defer></script><script src="./modules/rain-reports.js?v=rain-reports-3" defer></script><script src="./modules/visit-counter.js?v=visits-3" defer></script><script src="./modules/install-prompt.js?v=install-3" defer></script><script src="./modules/changelog.js?v=changelog-373" defer></script>
     <script src="./modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="./modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="./notifications.js?v=panel-39" defer></script>
