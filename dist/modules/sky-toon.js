@@ -44,7 +44,8 @@
   ];
   const STARS = [[12, 9], [30, 17], [52, 7], [74, 14], [88, 26], [8, 34], [42, 30], [66, 38], [22, 48], [82, 52], [55, 56], [14, 62]];
   const WEATHERS = ['sun', 'partly', 'cloud', 'rain', 'storm', 'snow', 'fog', 'unknown'];
-  const CLOUDS = {sun:1, partly:5, few:3, cloud:9, rain:8, storm:9, snow:7, fog:3, unknown:0};
+  // Céu limpo sem nenhuma nuvem (1.70.2, pedido do dono: "se tá com céu limpo, por que tem uma nuvem ali?").
+  const CLOUDS = {sun:0, partly:5, few:3, cloud:9, rain:8, storm:9, snow:7, fog:3, unknown:0};
   const RAIN = {light:{speed:1.25, dense:false}, moderate:{speed:.95, dense:true}, heavy:{speed:.7, dense:true}};
 
   // Cores das nuvens [preenchimento, sombra/contorno] por condição, de dia e de noite; nascer e pôr do sol
