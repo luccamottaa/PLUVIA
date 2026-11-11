@@ -629,3 +629,7 @@ Pedido do dono (depois da demo da branch `claude/demo-ceu-leve`, modo "4 · Dese
 ## Intro só na primeira visita (novembro/2026, 1.70.1)
 
 Pedido do dono ("vale a pena tirar a intro?"; escolheu manter só na primeira visita). O script inline depois da intro no `index.html` esconde a intro na hora quando `pluvia-intro-at` já existe no `localStorage` (alguém já abriu o app neste aparelho), pelo mesmo caminho de quem recarrega a aba (`pluvia-intro-seen` na sessão). A versão rápida de toda abertura (1.26.1: mínimo de 0,9 s, `data-quick`) saiu, com o CSS dela; não reintroduzir sem pedido. Primeira visita: intro completa (2,6 s de mínimo, 4,6 s de limite; 0,3/1,5 s com movimento reduzido). Sem storage não dá para saber: mostra a completa. Quem volta vê a Home com a previsão salva e as nuvens do céu de desenho entrando. Teste: `tests/intro-flow.test.cjs`.
+
+## Janela seca e nota de ontem fora da Home (novembro/2026, 1.70.3)
+
+Pedido do dono (print do iPhone: "tira essas informações aqui"). Saíram de `#chuva` a linha "Próxima janela seca" (`.dry-window-line`/`#dryWindow`, `findDryWindow`/`setDryWindow`) e a nota "… que ontem neste horário" com a chuva das últimas 24 h (`#yesterdayNote`, `setYesterdayNote`), com o CSS delas e os ids em `cityResetIds`. `weatherInsights.yesterday`/`pastRain` continuam no módulo (outros textos usam). Não reintroduzir sem novo pedido; as menções a essas linhas nas seções antigas acima são histórico. Teste: `tests/home-removed-lines.test.cjs`.

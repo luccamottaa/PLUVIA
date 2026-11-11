@@ -21,7 +21,7 @@ const data = {
 function screen() {
   const peek = {innerHTML:'',scrollLeft:12,dataset:{}};
   const elements = {
-    hourlyPeek:peek, dryWindow:{textContent:''}, visibilityValue:{textContent:''},
+    hourlyPeek:peek, visibilityValue:{textContent:''},
     visibilityNote:{textContent:''},
     moonIcon:{d:'',setAttribute(name,value){this[name]=value;}},
     moonDisc:{visibility:'hidden',setAttribute(name,value){this[name]=value;}}, moonPhase:{textContent:''}
@@ -33,7 +33,7 @@ function screen() {
     shortTime:time => time.slice(11,16), windDirection:deg => ({0:'N',90:'L'})[deg],
     weather:() => ['Céu variável'], forecastIsDay:() => true,
     weatherIcons:{markup:() => '<img alt="Tempo">',markupName:() => '<i></i>'}, showHourlyHint:() => false,
-    findDryWindow:() => 'Sem chuva nas próximas horas', setDryWindow:text => { elements.dryWindow.textContent = text; }, PLUVIA:{moon,hourlyDetail:require('../dist/modules/hourly-detail.js')}
+    PLUVIA:{moon,hourlyDetail:require('../dist/modules/hourly-detail.js')}
   };
   const hourly = vm.runInNewContext(`${hourlySource}\n({renderHourly})`,ctx);
   ctx.PLUVIA.moonView = moonView.create({document:{getElementById:id=>elements[id]},
@@ -131,7 +131,7 @@ test('a iluminação varia dentro da mesma fase e respeita os quartos e extremos
 });
 
 
-test('a chance só aparece a partir de 20%, ausente não vira zero e a janela seca continua atualizada',()=>{
+test('a chance só aparece a partir de 20% e ausente não vira zero',()=>{
  const {hourly,elements}=screen();
  hourly.renderHourly(layerRows(null,{hourly:data}).hourly,0,{time:['2026-09-24']},data);
  const row=elements.hourlyPeek.innerHTML;
@@ -139,25 +139,7 @@ test('a chance só aparece a partir de 20%, ausente não vira zero e a janela se
  assert.match(row,/peek-rain"><i><\/i>80% /,'chance relevante visível (intervalo que termina em i+1)');
  assert.match(row,/27<span class="peek-deg">°<\/span>/);
  assert.equal(elements.hourlyPeek.dataset.rain,'some');
- assert.equal(elements.dryWindow.textContent,'Sem chuva nas próximas horas');
  {const raw={...data,precipitation_probability:[0,5,null],precipitation:[0,0,null]};hourly.renderHourly(layerRows(null,{hourly:raw}).hourly,0,{},raw);}
  assert.equal(elements.hourlyPeek.dataset.rain,'none');
  assert.match(elements.hourlyPeek.innerHTML,/— de chance de chuva, Volume indisponível/,'ausente não vira zero');
-});
-test('janela seca só aparece quando chove ou pode chover agora', () => {
-  const source = app.slice(app.indexOf('function findDryWindow('), app.indexOf('\nfunction forecastIsDay('));
-  const line = {hidden:false}, value = {textContent:'', closest:() => line};
-  const ctx = {$:id => id === 'dryWindow' ? value : null, shortTime:time => time.slice(11,16)};
-  const {findDryWindow, setDryWindow} = vm.runInNewContext(`${source}\n({findDryWindow,setDryWindow})`, ctx);
-  const time = Array.from({length:12}, (_, i) => `2026-10-01T${String(10+i).padStart(2,'0')}:00`);
-  const dry = {time, precipitation_probability:Array(12).fill(10)};
-  assert.equal(findDryWindow(dry, 0), '', 'já seco: repetiria o "Vai chover?" do topo');
-  setDryWindow(findDryWindow(dry, 0));
-  assert.equal(line.hidden, true);
-  const wet = {time, precipitation_probability:[80,80,80,80,10,10,10,10,10,10,10,10]};
-  assert.equal(findDryWindow(wet, 0), 'Hoje, das 13:00 às 15:00: menor probabilidade de chuva', 'intervalos terminam no horário (i+1)');
-  setDryWindow(findDryWindow(wet, 0));
-  assert.equal(line.hidden, false);
-  const missing = {time, precipitation_probability:Array(12).fill(null)};
-  assert.equal(findDryWindow(missing, 0), 'Janela de baixa chance de chuva indisponível', 'ausente não vira seco');
 });

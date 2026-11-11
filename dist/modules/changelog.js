@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.70.3", date:"2026-11-11", title:"Próximas horas mais limpas", items:[
+      "Saíram das Próximas horas a linha da próxima janela seca e a comparação com a temperatura de ontem."
+    ]},
     {version:"1.70.2", date:"2026-11-11", title:"Céu limpo é céu limpo", items:[
       "Com céu limpo, o céu de desenho não mostra mais nenhuma nuvem: só o Sol de dia, e a Lua e as estrelas à noite."
     ]},

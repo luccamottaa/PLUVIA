@@ -504,33 +504,7 @@ function selectCurrentHour(times) {
   return globalThis.PLUVIA.time.hourIndex(times,activeCity);
 }
 
-function findDryWindow(hourly, start) {
-  const consecutive = (a,b) => Date.parse(a?.slice(0,16)+'Z') + 3600000 === Date.parse(b?.slice(0,16)+'Z');
-  let knownPairs = 0;
-  for (let i = start + 1; i < Math.min(hourly.time.length - 1, start + 37); i++) {
-    const pair = [hourly.precipitation_probability?.[i],hourly.precipitation_probability?.[i+1]];
-    if (!consecutive(hourly.time[i-1],hourly.time[i]) || !consecutive(hourly.time[i],hourly.time[i+1]) || !pair.every(value => Number.isFinite(value) && value >= 0 && value <= 100)) continue;
-    knownPairs++;
-    if (pair.every(value => value < 30)) {
-      // Já seco agora: a "janela seca" repetiria o "Vai chover?" do topo, então a linha some.
-      if (i === start + 1) return "";
-      // A busca vai até 36 h: numa chuva longa a janela pode cair depois de amanhã, que não é "Amanhã".
-      const dayOf = time => Date.parse(String(time).slice(0, 10) + "T00:00Z");
-      const ahead = Math.round((dayOf(hourly.time[i - 1]) - dayOf(hourly.time[start])) / 86400000);
-      const day = ahead === 0 ? "Hoje" : ahead === 1 ? "Amanhã" : (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:"UTC", weekday:"short", day:"2-digit", month:"2-digit"}).format(new Date(dayOf(hourly.time[i - 1]))).replace(/^./, c => c.toUpperCase());
-      return `${day}, das ${shortTime(hourly.time[i - 1])} às ${shortTime(hourly.time[i + 1])}: menor probabilidade de chuva`;
-    }
-  }
-  return knownPairs ? "Sem período com baixa probabilidade de chuva nos horários disponíveis" : "Janela de baixa chance de chuva indisponível";
-}
-function setDryWindow(text) {
-  const value = $("dryWindow");
-  if (!value) return;
-  value.textContent = text;
-  const line = value.closest?.(".dry-window-line");
-  if (line) line.hidden = !text;
-}
-
+// A “Próxima janela seca” e a nota “… que ontem neste horário” saíram da Home (1.70.3, pedido do dono).
 function forecastIsDay(time, daily) {
   const date = String(time || "").slice(0, 10);
   const dayIndex = daily?.time?.indexOf(date) ?? -1;
@@ -725,7 +699,6 @@ function renderHourly(rows, start, daily, raw) {
     decision.textContent = !indices.length ? 'Previsão por hora indisponível.' : hint ? 'Toque em um horário para ver sensação, chuva e rajadas.' : '';
     decision.hidden = Boolean(indices.length) && !hint;
   }
-  setDryWindow(findDryWindow(raw, start));
 }
 
 // Os 7 dias leem as linhas normalizadas por dia (weatherData.rows: temperatureMax, precipitationSum…).
@@ -1271,16 +1244,6 @@ function regularVisitor(now = new Date(), storage = globalThis.localStorage) {
 }
 if (regularVisitor()) noteAlertNudge("regular", true);
 
-function setYesterdayNote(comparison) {
-  const node = $("yesterdayNote");
-  if (!node) return;
-  // Sem leitura de ontem, a linha fica vazia (some pelo CSS); nunca inventa "parecida".
-  const appearing = !node.textContent && Boolean(comparison?.text);
-  node.textContent = comparison?.text || "";
-  if (appearing) settleBlock(node);
-  if (comparison?.tone) node.dataset.tone = comparison.tone; else delete node.dataset.tone;
-}
-
 function clearWeatherInsights() {
   ["feelsLikeNote","uvNote","rainPhraseMeta"].forEach(id => {
     const node = $(id);
@@ -1288,7 +1251,6 @@ function clearWeatherInsights() {
   });
   setRainAnswer({tone:"unknown",text:"Previsão de chuva indisponível."});
   setRainGauge(null);
-  setYesterdayNote(null);
   renderTips([]);
 }
 
@@ -1467,10 +1429,6 @@ function renderWeatherInsights(data, air, start) {
   // "Vai chover?" no topo; a frase equivalente da seção por hora foi retirada a pedido.
   setRainAnswer(rainAnswerFor(data, start));
   setRainGauge(rainGaugeFor(data, start));
-  // Hoje vs. ontem no mesmo horário, com as 24 h passadas que a consulta principal já traz.
-  const comparison = weatherInsights?.yesterday?.(data.hourly, start);
-  const fallen = weatherInsights?.pastRain?.(data.hourly, start);
-  setYesterdayNote(fallen ? {...comparison, text:[comparison?.text, fallen.text].filter(Boolean).join(" ")} : comparison);
   renderTips(weatherInsights?.tips?.(data, air, start));
   if ($("rainPhraseMeta") && data.pluviaReduced) { $("rainPhraseMeta").textContent = "Previsão reduzida · volume de chuva: MET Norway (CC BY 4.0); sem chance de chuva nesta fonte"; return; }
   if ($("rainPhraseMeta")) $("rainPhraseMeta").textContent = rain?.meta ? rain.meta + (data.pluviaSources?.metNorway?.includes('hourly.precipitation') ? ' · volume: MET Norway; probabilidade: Open-Meteo' : ' · Open-Meteo') : '';
@@ -1706,12 +1664,10 @@ async function loadWeather(revision = cityRevision) {
       for (const id of ["visibilityNote","humidityNote","windNote","pressureNote","uvNote"]) $(id).textContent = "—";
       $("airNote").textContent = "AQI indisponível";
       $("condition").textContent = "Tempo indisponível";
-      setYesterdayNote(null);
       renderVisibility(null);
       $("hourlyPeek").innerHTML = '<p>Previsão por hora indisponível.</p>';
       $("hourlyDecision").textContent = "Sem dados recentes para as próximas horas."; $("hourlyDecision").hidden = false;
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
-      setDryWindow("Sem dados");
       $("daylight").textContent = "Ciclo solar indisponível"; $("sunPhrase").textContent = ""; if ($("sunsetGlow")) $("sunsetGlow").textContent = ""; if (typeof noteShareMoment === "function") noteShareMoment("glow", false);
     }
     if (!displayedWeather || !displayedWeather.fromCache || offline) {
@@ -1960,7 +1916,7 @@ document.addEventListener?.("animationend", event => {
 });
 
 
-const cityResetIds = ["airValue","rainAnswer","yesterdayNote","temperature","condition","heroRange","rainChanceValue","rainChanceNote","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","dryWindow","daylight","sunPhrase","sunsetGlow","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","moonNextLabel","moonNextTime","moonFullIn","astronomyDate","rainGauge"].filter(id=>$(id));
+const cityResetIds = ["airValue","rainAnswer","temperature","condition","heroRange","rainChanceValue","rainChanceNote","humidity","humidityNote","wind","windNote","pressure","pressureNote","uv","uvNote","airQuality","airNote","visibilityValue","visibilityNote","hourlyPeek","hourlyDecision","forecastList","daylight","sunPhrase","sunsetGlow","sunrise","sunset","sunshineNote","civilDawn","civilDusk","goldenHour","blueHour","moonrise","moonset","moonNextLabel","moonNextTime","moonFullIn","astronomyDate","rainGauge"].filter(id=>$(id));
 let emptyCityContent;
 // Deslizar entre cidades (como no Apple Weather): a cidade aberta e os favoritos, na ordem salva.
 // As bolinhas são botões (clique/teclado); no toque, arrastar o topo para o lado troca de cidade.
@@ -2463,9 +2419,6 @@ function chooseCity(id, locatedCity = null) {
     cityResetIds.forEach(id => { $(id).innerHTML = emptyCityContent.get(id); });
     // Trocar de modo (Condição/Chuva/Vento) antes da previsão nova chegar repintava as horas da cidade anterior.
     lastHourly = null;
-    // A janela seca só aparece com chuva agora ou provável: reservar a linha e tirá-la depois deslocava a página.
-    const dryLine = $("dryWindow")?.closest?.(".dry-window-line");
-    if (dryLine) dryLine.hidden = true;
     $("sunDot").hidden = true;
     if ($("moonDot")) $("moonDot").hidden = true;
     // Fica o "Consultando o tempo…" do conteúdo inicial: com o nome da cidade, a frase quebrava em duas
