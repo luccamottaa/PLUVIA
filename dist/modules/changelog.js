@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.69", date:"2026-11-10", title:"Home mais enxuta", items:[
+      "No celular, a Home ficou mais curta: o topo, as próximas horas e os 7 dias aparecem primeiro, e as leituras (vento, umidade, UV e ar), o radar e o ciclo do Sol e da Lua ficam em \"Mais detalhes\", a um toque.",
+      "Quem prefere ver tudo de uma vez toca em \"Mais detalhes\" e a escolha fica guardada neste aparelho. Com os detalhes recolhidos, o app desenha menos coisas e a rolagem fica mais leve."
+    ]},
     {version:"1.68.5", date:"2026-11-10", title:"Sol menos estourado", items:[
       "O Sol do céu ficou mais quente e macio: o disco não é mais branco puro, e o halo e os raios que aparecem quando ele surge entre as nuvens estão bem mais discretos."
     ]},

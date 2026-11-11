@@ -1,7 +1,9 @@
 /* Personalizar a Home: mostrar/esconder e reordenar as seções abaixo do topo (salvo só neste aparelho)
    e, a partir de 1100 px, distribuí-las em duas colunas. O topo (cidade, temperatura e avisos)
    é fixo; as dicas são uma seção depois de Próximas horas. Seções escondidas ficam fora do layout (o radar escondido nem é consultado). Sem timer:
-   aplica na abertura, ao mudar a escolha e quando a largura cruza o limite. */
+   aplica na abertura, ao mudar a escolha e quando a largura cruza o limite.
+   Dobra (1.69): no celular, as seções de detalhe que ficam no fim da ordem (leituras, radar e céu) começam
+   recolhidas atrás do botão "Mais detalhes". Recolhida é fora do layout, como a escondida: o radar nem é consultado. */
 (function(root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -9,14 +11,14 @@
   if (root.document) api.mount(root);
 })(typeof globalThis !== 'undefined' ? globalThis : this, function() {
   'use strict';
-  const KEY = 'pluvia-home-layout';
+  const KEY = 'pluvia-home-layout', MORE_KEY = 'pluvia-home-more';
   const WIDE = '(min-width: 1100px)';
   const SECTIONS = [
     {id:'hourly', label:'Próximas horas e 7 dias', selector:'section.hourly-peek', column:'left'},
     {id:'tips', label:'Dicas para as próximas horas', selector:'#tips', column:'left'},
-    {id:'details', label:'Leituras, UV e qualidade do ar', selector:'section.metrics', column:'right'},
-    {id:'radar', label:'Radar de chuva', selector:'section.weather-map-section', column:'left'},
-    {id:'sky', label:'Ciclo do dia, Lua e céu', selector:'section.sun-section', column:'right'}
+    {id:'details', label:'Leituras, UV e qualidade do ar', selector:'section.metrics', column:'right', extra:true, short:'Vento, UV e ar'},
+    {id:'radar', label:'Radar de chuva', selector:'section.weather-map-section', column:'left', extra:true, short:'Radar'},
+    {id:'sky', label:'Ciclo do dia, Lua e céu', selector:'section.sun-section', column:'right', extra:true, short:'Sol e Lua'}
   ];
   const IDS = SECTIONS.map(section => section.id);
 
@@ -48,7 +50,20 @@
     };
   }
 
-  let openDialog = null;
+  // Dobra da Home: as seções de detalhe visíveis que fecham a ordem. Quem subiu o radar para antes das horas
+  // continua vendo o radar; se só sobraram seções de detalhe, nada é recolhido (a Home não pode ficar só com o botão).
+  function folded(layout) {
+    const byId = new Map(SECTIONS.map(section => [section.id, section]));
+    const visible = layout.order.filter(id => !layout.hidden.includes(id));
+    let start = visible.length;
+    while (start > 0 && byId.get(visible[start - 1]).extra) start--;
+    return start === 0 ? [] : visible.slice(start);
+  }
+  function foldHint(ids) {
+    return ids.map(id => SECTIONS.find(section => section.id === id)?.short).filter(Boolean).join(' · ');
+  }
+
+  let openDialog = null, revealSection = null;
   function mount(root) {
     const doc = root.document, view = doc.getElementById('weatherView');
     if (!view) return;
@@ -60,10 +75,15 @@
     const fixed = ['#alertNudge'].map(selector => view.querySelector(':scope > ' + selector)).filter(Boolean);
     const anchor = fixed[fixed.length - 1] || null;
     const media = root.matchMedia?.(WIDE);
-    let layout = read(), wrapper = null;
+    const more = doc.getElementById('homeMore');
+    const moreLabel = more?.querySelector('.home-more-label'), moreHint = more?.querySelector('.home-more-hint');
+    const readMore = () => { try { return root.localStorage.getItem(MORE_KEY) === '1'; } catch { return false; } };
+    const writeMore = open => { try { if (open) root.localStorage.setItem(MORE_KEY, '1'); else root.localStorage.removeItem(MORE_KEY); } catch {} };
+    let layout = read(), wrapper = null, expanded = readMore();
 
     function place() {
       const wide = Boolean(media?.matches);
+      const fold = more && !wide ? folded(layout).filter(id => nodes.get(id)) : [];
       // Só move o que está fora do lugar: na ordem padrão a abertura não mexe no DOM (sem layout extra).
       const after = (node, reference) => { if (reference.nextElementSibling !== node) reference.after(node); };
       if (wide) {
@@ -84,6 +104,8 @@
         let reference = anchor;
         for (const id of layout.order) {
           const node = nodes.get(id); if (!node) continue;
+          // O botão da dobra fica logo antes da primeira seção recolhível.
+          if (id === fold[0]) { if (reference) after(more, reference); else if (view.lastElementChild !== more) view.append(more); reference = more; }
           if (reference) after(node, reference); else if (view.lastElementChild !== node) view.append(node);
           reference = node;
         }
@@ -92,8 +114,20 @@
       for (const [id, node] of nodes) {
         const hide = layout.hidden.includes(id);
         if (node && node.hasAttribute('data-home-hidden') !== hide) node.toggleAttribute('data-home-hidden', hide);
+        const tuck = !expanded && fold.includes(id);
+        if (node && node.hasAttribute('data-home-folded') !== tuck) node.toggleAttribute('data-home-folded', tuck);
       }
-      root.dispatchEvent?.(new CustomEvent('pluvia:home-layout', {detail:{layout, wide}}));
+      if (more) {
+        const show = fold.length > 0;
+        if (more.hidden === show) more.hidden = !show;
+        if (show) {
+          const label = expanded ? 'Menos detalhes' : 'Mais detalhes', hint = foldHint(fold);
+          if (more.getAttribute('aria-expanded') !== String(expanded)) more.setAttribute('aria-expanded', String(expanded));
+          if (moreLabel && moreLabel.textContent !== label) moreLabel.textContent = label;
+          if (moreHint && moreHint.textContent !== hint) moreHint.textContent = hint;
+        }
+      }
+      root.dispatchEvent?.(new CustomEvent('pluvia:home-layout', {detail:{layout, wide, expanded}}));
     }
 
     const dialog = doc.getElementById('homeLayoutDialog'), list = doc.getElementById('homeLayoutList');
@@ -139,9 +173,16 @@
     doc.getElementById('openHomeLayout')?.addEventListener('click', open);
     doc.getElementById('homeLayoutClose')?.addEventListener('click', close);
     dialog?.addEventListener('click', event => { if (event.target === dialog) close(); });
+    more?.addEventListener('click', () => {
+      expanded = !expanded; writeMore(expanded); place();
+      // Ao recolher, a página encurta: o botão continua à vista, sem rolagem animada.
+      if (!expanded) more.scrollIntoView?.({block:'nearest'});
+    });
+    // Atalhos que abrem algo de uma seção recolhida (radar) mostram os detalhes só nesta visita, sem gravar.
+    revealSection = id => { if (!expanded && folded(layout).includes(id)) { expanded = true; place(); } };
     media?.addEventListener?.('change', place);
     place();
   }
 
-  return {SECTIONS, KEY, WIDE, normalize, move, setVisible, columns, mount, open:() => openDialog?.()};
+  return {SECTIONS, KEY, MORE_KEY, WIDE, normalize, move, setVisible, columns, folded, foldHint, mount, open:() => openDialog?.(), reveal:id => revealSection?.(id)};
 });

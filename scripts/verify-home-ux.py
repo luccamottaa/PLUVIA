@@ -55,7 +55,7 @@ with sync_playwright() as p:
         # Só na primeira abertura: semeia cidade e favoritos; as próximas abas conservam o que o app gravou.
         context.add_init_script("if(!localStorage.getItem('pluvia-qa-seeded')){localStorage.setItem('pluvia-qa-seeded','1');"
                                 "localStorage.setItem('pluvia-city',JSON.stringify('1302603'));localStorage.setItem('pluvia-favorites',JSON.stringify(['1501402','3550308']));}"
-                                "sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-13'}));"
+                                "sessionStorage.setItem('pluvia-intro-seen','1');localStorage.setItem('pluvia-terms-notice',JSON.stringify({version:'2026-10-13'}));localStorage.setItem('pluvia-home-more','1');"
                                 "Object.defineProperty(navigator,'geolocation',{value:{getCurrentPosition(ok,fail){fail({code:1})}}});")
         errors = []
         # Relógio fixo uma vez no contexto: no WebKit, set_fixed_time numa aba nova (about:blank) falha.
@@ -210,6 +210,30 @@ with sync_playwright() as p:
         assert page.evaluate("document.querySelector('section.weather-map-section').getClientRects().length") == 1
         page.keyboard.press('Escape'); page.wait_for_function("!document.getElementById('homeLayoutDialog').open", timeout=5000)
         page.keyboard.press('Escape'); page.wait_for_function("!document.getElementById('accountDialog').open", timeout=5000)
+
+        # Dobra da Home (1.69): no celular "Mais detalhes" recolhe leituras, radar e céu (fora do layout) e guarda a
+        # escolha; no desktop largo o botão não existe. O QA abre com os detalhes à vista (pluvia-home-more semeado).
+        fold = page.evaluate("""() => { const more = document.getElementById('homeMore'), r = more.getBoundingClientRect();
+          return {shown:!more.hidden && r.height > 0, expanded:more.getAttribute('aria-expanded'), h:r.height,
+            inside:r.left >= 0 && r.right <= innerWidth + 0.5}; }""")
+        if width >= 1100:
+            assert fold['shown'] is False, fold
+        else:
+            assert fold['shown'] and fold['expanded'] == 'true' and fold['h'] >= 44 and fold['inside'], fold
+            tall = page.evaluate("document.documentElement.scrollHeight")
+            page.click('#homeMore')
+            folded = page.evaluate("""() => ({expanded:document.getElementById('homeMore').getAttribute('aria-expanded'),
+              label:document.querySelector('#homeMore .home-more-label').textContent,
+              rendered:['section.metrics','section.weather-map-section','section.sun-section'].map(s => document.querySelector(s).getClientRects().length),
+              hourly:document.querySelector('section.hourly-peek').getClientRects().length,
+              stored:localStorage.getItem('pluvia-home-more'), height:document.documentElement.scrollHeight})""")
+            assert folded['expanded'] == 'false' and folded['label'] == 'Mais detalhes' and folded['rendered'] == [0, 0, 0], folded
+            assert folded['hourly'] > 0 and folded['stored'] is None and folded['height'] < tall, (folded, tall)
+            page.screenshot(path=str(output / f'{engine}-{width}-folded.png'))
+            page.click('#homeMore')
+            opened = page.evaluate("""() => ({rendered:['section.metrics','section.weather-map-section','section.sun-section'].map(s => document.querySelector(s).getClientRects().length),
+              stored:localStorage.getItem('pluvia-home-more'), label:document.querySelector('#homeMore .home-more-label').textContent})""")
+            assert all(opened['rendered']) and opened['stored'] == '1' and opened['label'] == 'Menos detalhes', opened
 
         # Faixa de aviso laranja vigente: aparece no topo e abre o detalhe do aviso.
         mode['alert'] = True

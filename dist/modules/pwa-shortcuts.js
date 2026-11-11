@@ -39,7 +39,7 @@
       done = true; root.clearTimeout(timer); observer?.disconnect();
       root.removeEventListener('pluvia:weather-updated', check);
       if (action === 'cidades' && typeof openCitySearch === 'function') openCitySearch();
-      else if (action === 'radar') el('expandRadar')?.click();
+      else if (action === 'radar') { root.PLUVIA?.homeLayout?.reveal?.('radar'); el('expandRadar')?.click(); }
       else if (action === 'chuva') (el('tips') || el('chuva'))?.scrollIntoView?.({block:'start'});
     }
     function check() { if (ready()) act(); }
