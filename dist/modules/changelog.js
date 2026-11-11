@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.70.4", date:"2026-11-11", title:"Favoritos enxutos", items:[
+      "Os cartões dos favoritos em Suas cidades ficaram menores e mostram só a cidade e a temperatura. O resto continua na previsão de cada cidade, a um toque."
+    ]},
     {version:"1.70.3", date:"2026-11-11", title:"Próximas horas mais limpas", items:[
       "Saíram das Próximas horas a linha da próxima janela seca e a comparação com a temperatura de ontem."
     ]},

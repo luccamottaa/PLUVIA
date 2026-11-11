@@ -633,3 +633,7 @@ Pedido do dono ("vale a pena tirar a intro?"; escolheu manter só na primeira vi
 ## Janela seca e nota de ontem fora da Home (novembro/2026, 1.70.3)
 
 Pedido do dono (print do iPhone: "tira essas informações aqui"). Saíram de `#chuva` a linha "Próxima janela seca" (`.dry-window-line`/`#dryWindow`, `findDryWindow`/`setDryWindow`) e a nota "… que ontem neste horário" com a chuva das últimas 24 h (`#yesterdayNote`, `setYesterdayNote`), com o CSS delas e os ids em `cityResetIds`. `weatherInsights.yesterday`/`pastRain` continuam no módulo (outros textos usam). Não reintroduzir sem novo pedido; as menções a essas linhas nas seções antigas acima são histórico. Teste: `tests/home-removed-lines.test.cjs`.
+
+## Favoritos enxutos (novembro/2026, 1.70.4)
+
+Pedido do dono (print: "diminui isso aqui e deixa só o Manaus e a temperatura"). O cartão de `#dialogFavoriteList` (`card` em `favorite-cities.js`) tem só `<strong>` cidade/UF e `.favorite-reading` (temperatura, "Consultando…" ou "Indisponível"); saíram condição, sensação, máx./mín., horário local, aviso INMET e "atualizado há", com o CSS deles. Largura `clamp(96px, 33,333% − 7px, 140px)` (três por linha no celular) e subgrid de 2 linhas. A leitura salva (`snapshot`) continua igual. QA: `verify-browser.py`, `verify-visual.py` e `verify-alignment.py` conferem o cartão de duas linhas. Não reintroduzir as outras linhas sem novo pedido.

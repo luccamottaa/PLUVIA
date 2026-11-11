@@ -43,7 +43,7 @@ test('favoritos continuam disponíveis na busca sem elementos na página princip
  assert.equal(list.children.length,2);
  assert.equal(list.children[0].children[0].textContent,'Manaus/AM');
  assert.equal(list.children[0].children[1].textContent,'29°');
- assert.equal(list.children[0].children[2].textContent,'Trovoadas');
+ assert.equal(list.children[0].children.length,2,'cartão enxuto: só cidade e temperatura (1.70.4)');
  await list.events.click({target:list.children[1]});
  assert.equal(choices[0].id,'1303403');
  assert.equal(choices[0].city,cities.get('1303403'));
