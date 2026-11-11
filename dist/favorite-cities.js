@@ -42,43 +42,18 @@
       } catch {}
       return null;
     }
+    // Cartão enxuto (1.70.4, pedido do dono: "deixa só o Manaus e a temperatura"): cidade e temperatura.
+    // Condição, sensação, máx./mín., horário local, aviso e "atualizado há" ficam na previsão da cidade.
     function card(id) {
       const city=typeof cityById!=='undefined' ? cityById.get(id) : null;
       const button=doc.createElement('button');button.type='button';button.className='favorite-city-card';button.dataset.favoriteId=id;
       button.setAttribute('aria-current',String(current()?.id===id));button.disabled=opening;
-      const name=doc.createElement('strong'),reading=doc.createElement('span'),summary=doc.createElement('span'),stamp=doc.createElement('small');
-      stamp.className='favorite-updated';
+      const name=doc.createElement('strong'),reading=doc.createElement('span');
       name.textContent=city ? city.name+'/'+city.uf : 'Cidade favorita';
-      const value=read(id); reading.className='favorite-reading';summary.className='favorite-summary';
+      const value=read(id); reading.className='favorite-reading';
       reading.textContent=value ? Math.round(value.temperature)+'°' : errors.has(id) ? 'Indisponível' : 'Consultando…';
-      summary.textContent=value ? root.PLUVIA?.weatherIcons?.condition(value.code)?.label || 'Condição prevista' : 'Toque para abrir a previsão';
-      stamp.textContent=value ? `${value.rain===null ? 'Chuva indisponível' : Math.round(value.rain)+'% de chuva em 3h'} · ${Date.now()-value.at>FRESH_MS ? 'leitura salva' : (minutes=>minutes<1 ? 'atualizado agora' : 'atualizado há '+minutes+' min')(Math.max(0,Math.floor((Date.now()-value.at)/60000)))}` : '';
-      button.append(name,reading,summary);
-      if(value) {
-        const thermal=doc.createElement('span');thermal.className='favorite-summary favorite-feels-like';
-        thermal.textContent=Number.isFinite(value.feelsLike) ? 'Sensação '+Math.round(value.feelsLike)+'°' : 'Sensação indisponível';
-        const range=doc.createElement('small');
-        range.className='favorite-range';
-        const today=city?.timezone ? time?.dayKey(Date.now(),city) : null;
-        range.textContent=Number.isFinite(value.high) && Number.isFinite(value.low) ? `Máx. ${Math.round(value.high)}° · Mín. ${Math.round(value.low)}°${value.day && today!==value.day ? ' · '+value.day.slice(8,10)+'/'+value.day.slice(5,7) : ''}` : 'Máxima/mínima indisponíveis';
-        const local=doc.createElement('small');
-        local.className='favorite-local-time';
-        try {local.textContent=(time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:city?.timezone,hour:'2-digit',minute:'2-digit'}).format(new Date())+' · horário local';} catch {local.textContent='Horário local indisponível';}
-        if(!city?.timezone) local.textContent='Horário local indisponível';
-        button.append(thermal,range,local);
-      }
-      const notice=root.PLUVIA?.modules?.alerts?.forCity?.(city);
-      const alert=doc.createElement('small');alert.className='favorite-alert';
-      if(notice?.status!=='ready') alert.textContent='Avisos INMET indisponíveis';
-      else if(notice.alerts.length) {
-        const top=notice.alerts[0];alert.dataset.severity=top.severity.className;
-        const until=(time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:city.timezone || 'America/Sao_Paulo',hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}).format(new Date(top.end));
-        alert.textContent=`INMET oficial · ${top.severity.label} · até ${until}${city.timezone ? '' : ' (Brasília)'}`;
-      }
-      if(alert.textContent)button.append(alert);
-      button.append(stamp);return button;
-    }
-    const observer='IntersectionObserver' in root ? new root.IntersectionObserver(entries=>{
+      button.append(name,reading);return button;
+    }    const observer='IntersectionObserver' in root ? new root.IntersectionObserver(entries=>{
       for(const entry of entries) if(entry.isIntersecting) {observer.unobserve(entry.target);enqueue(entry.target.dataset.favoriteId);}
     },{rootMargin:'80px'}) : null;
     // "Organizar": a lista vira linhas com mover para cima/baixo; a ordem fica só neste aparelho.

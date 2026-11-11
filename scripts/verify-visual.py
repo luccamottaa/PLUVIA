@@ -138,8 +138,9 @@ with sync_playwright() as p:
   geometry();page.wait_for_function("document.getElementById('inmetContent').textContent.includes('Vigente')")
   page.screenshot(path=str(output/(str(width)+'-alert.png')),full_page=True)
   page.evaluate("favorites.add('1302603');dispatchEvent(new CustomEvent('pluvia:favorites-changed'))")
-  page.locator('#openCitySearch').click();page.wait_for_function("document.querySelector('.favorite-alert').innerText.includes('INMET oficial')")
-  assert 'Alerta vermelho' in page.locator('.favorite-alert').inner_text()
+  # O cartão do favorito ficou só com cidade e temperatura (1.70.4): o aviso aparece na previsão da cidade.
+  page.locator('#openCitySearch').click();page.wait_for_function("document.querySelector('.favorite-city-card .favorite-reading')")
+  assert page.locator('.favorite-alert').count()==0
   page.keyboard.press('Escape')
   page.locator('#cityDialog').wait_for(state='hidden')
   # Verify downward entrance and exit, native modality and immediate reduced-motion close.

@@ -234,7 +234,7 @@ with sync_playwright() as p:
   page.wait_for_function("document.querySelectorAll('#dialogFavoriteList .favorite-reading').length===2 && [...document.querySelectorAll('#dialogFavoriteList .favorite-reading')].every(el=>el.textContent==='30°')")
   header('#cityDialog .dialog-heading');aligned('#cityDialog .city-actions > button','centerY',3)
   city_bounds(width)
-  for field in ['> strong','.favorite-reading','.favorite-summary:not(.favorite-feels-like)','.favorite-feels-like','.favorite-range','.favorite-local-time','.favorite-updated']:
+  for field in ['> strong','.favorite-reading']:
    aligned('.favorite-city-card '+field,count=2)
   if width in [320,390,1366]:
    screenshot(str(width)+'-search','#cityDialog');screenshot(str(width)+'-favorites','#dialogFavoriteList')
