@@ -90,31 +90,28 @@ test('sessões já vistas ignoram a abertura; movimento reduzido encurta a dura�
   assert.ok(reduced.timers.some(timer => timer.delay === 1500));
 });
 
-test('toda abertura nova mostra a intro, rápida para quem já viu uma', () => {
+test('intro só na primeira visita: quem já abriu o app vai direto para a Home', () => {
   const now = Date.parse('2026-10-09T05:00:00Z');
   const local = {};
   const first = runIntro({ local, now });
-  assert.equal(first.intro.hidden, false, 'primeira abertura mostra a intro');
-  assert.equal(first.intro.dataset.quick, undefined);
+  assert.equal(first.intro.hidden, false, 'primeira visita mostra a intro');
+  assert.equal(first.timers[0].delay, 2600, 'intro completa');
   assert.equal(Number(local['pluvia-intro-at']), now);
   const back = runIntro({ local, now: now + 20 * 60e3 });
-  assert.equal(back.intro.hidden, false, 'voltar 20 min depois também mostra');
-  assert.equal(back.intro.dataset.quick, '1');
+  assert.equal(back.intro.hidden, true, 'voltar depois não mostra a intro');
+  assert.equal(back.timers.length, 0, 'nenhuma espera na abertura');
   assert.equal(Number(local['pluvia-intro-at']), now + 20 * 60e3);
+  const later = runIntro({ local: { 'pluvia-intro-at': String(now - 30 * 864e5) }, now });
+  assert.equal(later.intro.hidden, true, 'nem um mês depois');
 });
 
-test('quem já viu uma intro ganha a versão rápida: 0,9 s de mínimo e 2,5 s de limite', () => {
-  const now = Date.parse('2026-10-09T05:00:00Z');
-  const first = runIntro({ local: {}, now });
-  assert.equal(first.timers[0].delay, 2600, 'primeira visita: intro completa');
-  assert.equal(first.intro.dataset.quick, undefined);
-  const later = runIntro({ local: { 'pluvia-intro-at': String(now - 4 * 3600e3) }, now });
-  assert.equal(later.intro.dataset.quick, '1');
-  assert.equal(later.timers[0].delay, 900);
-  assert.ok(later.timers.some(timer => timer.delay === 2500));
-  later.listeners['pluvia:refresh-settled']();
-  later.timers[0].callback();
-  assert.deepEqual(later.intro.classList.classes, ['is-leaving']);
-  assert.equal(runIntro({ storageBlocked: true }).timers[0].delay, 2600, 'sem storage não dá para saber: completa');
+test('sem storage não dá para saber se é a primeira visita: mostra a intro completa', () => {
+  const blocked = runIntro({ storageBlocked: true });
+  assert.equal(blocked.intro.hidden, false);
+  assert.equal(blocked.timers[0].delay, 2600);
 });
 
+test('a versão rápida da intro saiu do HTML', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '../dist/index.html'), 'utf8');
+  assert.doesNotMatch(html, /data-quick|dataset\.quick/);
+});

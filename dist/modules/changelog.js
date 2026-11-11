@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.70.1", date:"2026-11-11", title:"Abre direto na previsão", items:[
+      "A abertura com o logo agora aparece só na primeira vez. Depois disso o app abre direto na previsão, sem esperar, e as nuvens do céu entram na hora."
+    ]},
     {version:"1.70", date:"2026-11-11", title:"Céu de desenho", items:[
       "O céu ganhou um visual de desenho: nuvens fofinhas e arredondadas que entram pelos lados, por cima e no meio da tela quando o app abre, quando você troca de cidade e quando o tempo muda.",
       "Cada condição tem o seu céu: Sol com raios, Lua na fase de verdade e estrelas à noite, nuvens cinzas e gotas na chuva, raio na tempestade, neblina em faixas, neve e até arco-íris.",
