@@ -90,3 +90,48 @@ test('próxima hora: relógio do aparelho atrasado não esconde o gráfico; barr
   const value=app.match(/bar\.dataset\.wet = coverage >= 0\.25 \? "([^"]+)"/)[1];
   assert.ok(css.includes(`.next-hour-bars span[data-wet="${value}"]`),`o valor escrito (${value}) precisa ser o que o CSS pinta`);
 });
+
+// 1.70.5: a busca percorre só os pixels com eco. Referência = a busca antiga, grade inteira.
+function motionReference(previous, current, size, maxShift) {
+  const count = m => { let n = 0; for (let i = 0; i < m.length; i++) n += m[i]; return n; };
+  const echo = count(current), before = count(previous);
+  if (echo < 12 || before < 12) return null;
+  let best = null;
+  for (let dy = -maxShift; dy <= maxShift; dy += 1) for (let dx = -maxShift; dx <= maxShift; dx += 1) {
+    let hits = 0;
+    for (let y = Math.max(0, dy); y < Math.min(size, size + dy); y += 1) {
+      const row = y * size, prevRow = (y - dy) * size;
+      for (let x = Math.max(0, dx); x < Math.min(size, size + dx); x += 1) if (current[row + x] && previous[prevRow + x - dx]) hits += 1;
+    }
+    if (!best || hits > best.hits || (hits === best.hits && Math.hypot(dx, dy) < Math.hypot(best.dx, best.dy))) best = {dx, dy, hits};
+  }
+  const score = best.hits / Math.min(echo, before);
+  if (score < 0.35 || Math.abs(best.dx) >= maxShift || Math.abs(best.dy) >= maxShift) return null;
+  return {dx:best.dx, dy:best.dy, score};
+}
+
+test('busca só nos pixels com eco dá exatamente o mesmo movimento da busca na grade inteira', () => {
+  const half = nowcast.half, S = SIZE / 2;
+  const noise = (seed, every) => { const m = new Uint8Array(SIZE * SIZE); let s = seed; for (let i = 0; i < m.length; i++) { s = (s * 16807) % 2147483647; m[i] = s % every === 0 ? 1 : 0; } return m; };
+  const merge = (a, b) => a.map((v, i) => v | b[i]);
+  const full = () => new Uint8Array(SIZE * SIZE).fill(1);
+  const cases = [
+    [blob(CENTER - 60, CENTER), blob(CENTER - 44, CENTER)],
+    [blob(CENTER - 44, CENTER), blob(CENTER - 60, CENTER)],
+    [blob(CENTER + 30, CENTER - 20, 20), blob(CENTER + 18, CENTER - 12, 20)],
+    [blob(CENTER, CENTER, 40), blob(CENTER + 6, CENTER + 2, 40)],
+    [blob(5, 5, 10), blob(150, 150, 10)],
+    [merge(blob(CENTER - 50, CENTER, 10), blob(CENTER + 40, CENTER + 30, 12)), merge(blob(CENTER - 40, CENTER + 4, 10), blob(CENTER + 48, CENTER + 34, 12))],
+    [noise(7, 9), noise(11, 9)],
+    [noise(3, 4), noise(3, 4)],
+    [full(), full()],
+    [full(), blob(CENTER, CENTER, 30)],
+    [blob(CENTER, CENTER, 2), blob(CENTER, CENTER, 30)],
+    [new Uint8Array(SIZE * SIZE), blob(CENTER, CENTER)]
+  ];
+  for (const [i, [a, b]] of cases.entries()) {
+    const ha = half(a, SIZE), hb = half(b, SIZE);
+    assert.deepEqual(nowcast.motion(ha, hb, S, 12), motionReference(ha, hb, S, 12), `caso ${i}`);
+    assert.deepEqual(nowcast.motion(a, b, SIZE, 24), motionReference(a, b, SIZE, 24), `caso ${i} (grade inteira)`);
+  }
+});

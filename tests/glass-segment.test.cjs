@@ -103,6 +103,7 @@ test('mapa da lente: centro parado, borda empurra para dentro e fora da cápsula
 
 // A cápsula de verdade: criada dentro do seletor com a cópia dos ícones, viaja até o botão marcado e desliga a
 // animação ao chegar (requestAnimationFrame só enquanto se mexe).
+const cellsOf = group => group.children?.[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children;
 test('a cápsula viaja até o segmento marcado e para de pedir quadros', () => {
   const { start } = require('../dist/modules/glass-segment.js');
   const frames = [], vars = {}, listeners = {};
@@ -128,6 +129,10 @@ test('a cápsula viaja até o segmento marcado e para de pedir quadros', () => {
     matchMedia: () => ({ matches: false }),
   };
   start(root);
+  // 1.70.5: a primeira medida fica para o próximo quadro (antes da primeira pintura), não no DOMContentLoaded.
+  assert.equal(cellsOf(group)?.[2]?.style.left, undefined, 'nada medido na hora');
+  assert.equal(frames.length, 1, 'medida agendada para o próximo quadro');
+  frames.shift()(now);
   const knob = group.children[0];
   assert.equal(knob.className, 'glass-knob');
   assert.equal(knob.attrs['aria-hidden'], 'true', 'a cápsula é decoração: os botões continuam sendo o controle');
@@ -171,6 +176,7 @@ test('movimento reduzido: a cápsula encaixa direto, sem animação', () => {
     requestAnimationFrame: callback => { frames.push(callback); return frames.length; },
     matchMedia: () => ({ matches: true }),
   });
+  frames.splice(0).forEach(frame => frame()); // a primeira medida (próximo quadro, 1.70.5)
   pressed = 2; mutated();
   assert.equal(vars['--seg'], '2');
   assert.equal(frames.length, 0);

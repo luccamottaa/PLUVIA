@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.70.5", date:"2026-11-11", title:"Abertura mais leve", items:[
+      "A conta do radar que estima quando a chuva chega ficou bem mais rápida e não segura mais a tela na abertura em dia de chuva.",
+      "O seletor das Próximas horas mede a tela uma vez só ao abrir, em vez de duas."
+    ]},
     {version:"1.70.4", date:"2026-11-11", title:"Favoritos enxutos", items:[
       "Os cartões dos favoritos em Suas cidades ficaram menores e mostram só a cidade e a temperatura. O resto continua na previsão de cada cidade, a um toque."
     ]},

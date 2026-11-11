@@ -256,7 +256,6 @@
         frame = root.requestAnimationFrame(tick);
       };
 
-      measure();
       // O observer só agenda: medir (offsetLeft/offsetWidth) e escrever as variáveis dentro do próprio callback
       // fazia o WebKit adiar notificações e disparar "ResizeObserver loop completed with undelivered
       // notifications" (erro de página que derrubava o QA visual intermitentemente). Uma medição por quadro.
@@ -266,6 +265,10 @@
         if (typeof root.requestAnimationFrame !== "function") { measure(); return; }
         measuring = root.requestAnimationFrame(() => { measuring = 0; measure(); });
       };
+      // 1.70.5 (abertura): a primeira medida também vai para o próximo quadro, que roda antes da primeira pintura.
+      // Medir na hora (no DOMContentLoaded, com a página ainda sem o CSS e o conteúdo) forçava um layout da página
+      // inteira que era jogado fora logo depois (~46 ms com CPU 4× mais lenta).
+      later();
       if (typeof root.ResizeObserver === "function") new root.ResizeObserver(later).observe(group);
 
       group.addEventListener("pointerdown", event => {
