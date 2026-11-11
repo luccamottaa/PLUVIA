@@ -1,7 +1,10 @@
 /* Radar observado: só eleva cautela se houver eco. Ausência de eco nunca prova céu seco.
    Alimenta a chuva observada do topo (observed-rain.js). O RainViewer público entrega até o zoom 7
    (o mapa usa maxNativeZoom 7): a 7, um pixel tem ~1,2 km no equador; a janela de 9 × 9 pixels cobre
-   ~11 km em volta do centro do município, e só um quarto dela com eco conta como chuva em cima da cidade. */
+   ~11 km em volta do centro do município, e só um quarto dela com eco conta como chuva em cima da cidade.
+   Abertura sem travar (1.69.1): a imagem é decodificada fora da thread principal (img.decode) antes de ir para
+   o canvas, e só a janela de 9 × 9 pixels é desenhada. Antes o drawImage decodificava o PNG inteiro na hora,
+   ~40 ms por imagem com CPU 4× mais lenta, bem quando a previsão chega (até três imagens com o nowcast). */
 (() => {
   const app = globalThis.PLUVIA = globalThis.PLUVIA || {};
   const PROBE_TTL_MS = 8 * 60 * 1000;
@@ -59,7 +62,12 @@
       if (signal?.aborted) { onAbort(); return; }
       signal?.addEventListener?.("abort", onAbort, { once: true });
       img.crossOrigin = "anonymous";
-      img.onload = () => finish(resolve, img);
+      // decode() termina a decodificação em segundo plano; quem desenha depois não decodifica na thread principal.
+      // Sem decode() (ou se ele falhar com a imagem já carregada), segue como antes.
+      img.onload = () => {
+        if (typeof img.decode !== "function") { finish(resolve, img); return; }
+        img.decode().then(() => finish(resolve, img), () => finish(resolve, img));
+      };
       img.onerror = () => finish(reject, new Error("tile"));
       img.src = url;
     });
@@ -84,17 +92,18 @@
       const url = `${host}${frame.path}/256/${z}/${tileX}/${tileY}/2/1_1.png`;
       const image = await loadImage(url, controller.signal);
       if (generation !== requestGeneration || state.cityId !== cityId) return snapshot();
-      const canvas = document.createElement("canvas");
-      canvas.width = image.width;
-      canvas.height = image.height;
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      ctx.drawImage(image, 0, 0);
       const radius = 4;
       const sx = Math.max(0, px - radius);
       const sy = Math.max(0, py - radius);
       const sw = Math.min(image.width - sx, radius * 2 + 1);
       const sh = Math.min(image.height - sy, radius * 2 + 1);
-      const pixels = ctx.getImageData(sx, sy, sw, sh).data;
+      // Só a janela da cidade vai para o canvas (9 × 9), não a imagem inteira de 256 × 256.
+      const canvas = document.createElement("canvas");
+      canvas.width = sw;
+      canvas.height = sh;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(image, sx, sy, sw, sh, 0, 0, sw, sh);
+      const pixels = ctx.getImageData(0, 0, sw, sh).data;
       let wet = 0;
       for (let i = 0; i < pixels.length; i += 4) if (pixels[i + 3] > 48) wet++;
       state.precipitating = wet >= pixels.length / 4 / 4; // um quarto dos pixels (RGBA = 4 bytes)
