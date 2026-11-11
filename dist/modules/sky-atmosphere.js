@@ -361,7 +361,8 @@
     let inView = true;
     function sync() {
       const introVisible = intro && !intro.hidden && !intro.classList.contains('is-leaving');
-      if (scene) scene.dataset.motion = !document.hidden && inView && !introVisible ? 'running' : 'paused';
+      const resting = globalThis.PLUVIA_DEMO?.sky === 'descansa' && !globalThis.PLUVIA_DEMO.awake; // DEMO
+      if (scene) scene.dataset.motion = !document.hidden && inView && !introVisible && !resting ? 'running' : 'paused';
       if (opening) opening.dataset.motion = !document.hidden && introVisible ? 'running' : 'paused';
     }
     // No scroll handler or per-frame JavaScript. Offscreen/hidden scenes stop

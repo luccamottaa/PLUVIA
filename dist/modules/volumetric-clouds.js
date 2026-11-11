@@ -636,7 +636,8 @@ void main(){
         if (quality.tick(now - lastRaf) !== level) { resize(); sunUpdate(now); }
       }
       lastRaf = now;
-      if (now - last < frameMs) {
+      const lazy = win.PLUVIA_DEMO?.sky === 'lento'; // DEMO
+      if (now - last < (lazy ? Math.max(frameMs, win.PLUVIA_DEMO.frameMs) : frameMs)) {
         // Entre dois quadros da nuvem, só a chuva anda (a nuvem fica a da textura).
         if (raining > 0 && cloudFbo && last && now - lastRain >= rainMs) {
           rainClock += Math.min(now - lastRain,200) / 1000; lastRain = now;
@@ -646,7 +647,7 @@ void main(){
       }
       const gap = now - last; last = now;
       // Quadros lentos por 5 segundos seguidos: o aparelho não aguenta; volta às camadas do CSS.
-      if (lastNow && gap > SLOW_MS && !qaForced()) {
+      if (lastNow && gap > SLOW_MS && !qaForced() && !lazy) {
         slow += gap;
         if (slow > SLOW_SECONDS * 1000) {
           // Último recurso: no nível mais baixo e ainda assim sem desenhar um quadro a cada 90 ms, volta ao CSS.
@@ -665,7 +666,7 @@ void main(){
     function stop() { if (raf) win.cancelAnimationFrame(raf); raf = 0; }
     function sync() {
       if (dead) return;
-      const next = mode({phase:html.dataset.phase,weather:html.dataset.weather,rain:html.dataset.rain,clouds:html.dataset.clouds});
+      const next = win.PLUVIA_DEMO?.sky === '2d' ? null : mode({phase:html.dataset.phase,weather:html.dataset.weather,rain:html.dataset.rain,clouds:html.dataset.clouds}); // DEMO
       if (!next || reduced() || qaBlocked()) { stop(); if (current) { delete html.dataset.volume; current = null; } delete html.dataset.rain3d; delete html.dataset.bolt3d; return; }
       if (!gl) { build(); return; }
       place();
