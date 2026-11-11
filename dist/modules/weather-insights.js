@@ -325,7 +325,12 @@
       const window = [span[0].end, span[span.length - 1].end];
       if (first === 0) {
         const tail = end + 1 < hours.length ? `deve parar por volta ${hourPhrase(hours[end + 1].time)}` : `sem pausa prevista nas próximas ${hours.length} horas`;
-        return {tone:storm ? "storm" : "rain", text:`${kind[0].toUpperCase()}${kind.slice(1)} agora; ${tail}.`, hours:hours.length, start:hours[0].time, window};
+        // "agora" só com indício de chuva agora (condição atual de chuva, já com a chuva observada aplicada pelo app)
+        // ou sem condição atual para conferir. Condição atual seca (céu limpo, nuvens, neblina) e só a previsão da hora
+        // molhada: "na próxima hora". O topo dizia "Céu limpo" e a pílula "Chuva fraca agora" (1.70.7, print do dono).
+        const dryNow = nowCode !== null && !CURRENT_RAIN[nowCode] && !STORM_CODES.has(nowCode);
+        const when = hours[0].now || !dryNow ? "agora" : "na próxima hora";
+        return {tone:storm ? "storm" : "rain", text:`${kind[0].toUpperCase()}${kind.slice(1)} ${when}; ${tail}.`, hours:hours.length, start:hours[0].time, window};
       }
       return {tone:storm ? "storm" : "rain", text:`Leve guarda-chuva: ${kind} a partir ${hourPhrase(hours[first].time)}.`, hours:hours.length, start:hours[first].time, window};
     }
