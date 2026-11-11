@@ -46,3 +46,14 @@ test('horas no singular e meia-noite com a preposição certa',()=>{
  const one=series(14,{mm:h=>h===12?1:0,chance:h=>h===12?80:5});
  assert.equal(rainAnswer(one,0,{horizon:13}).text,'Leve guarda-chuva: chuva fraca a partir da 1h.');
 });
+
+test('condição atual seca com a hora prevista molhada diz "na próxima hora", não "agora" (1.70.7)', () => {
+  // Print do dono: topo "Céu limpo" (código 0) e pílula "Chuva fraca agora" com 63% e 0,1 mm na hora.
+  const wetHour = series(14, {mm:h => h < 2 ? 0.1 : 0, chance:h => h < 2 ? 63 : 10});
+  assert.equal(rainAnswer(wetHour, 0, {current:{weather_code:0}}).text, 'Chuva fraca na próxima hora; deve parar por volta das 15h.');
+  assert.equal(rainAnswer(wetHour, 0, {current:{weather_code:3}}).text, 'Chuva fraca na próxima hora; deve parar por volta das 15h.');
+  assert.equal(rainAnswer(wetHour, 0, {current:{weather_code:45}}).text, 'Chuva fraca na próxima hora; deve parar por volta das 15h.', 'neblina não é chuva');
+  assert.equal(rainAnswer(wetHour, 0, {current:{weather_code:61}}).text, 'Chuva fraca agora; deve parar por volta das 15h.', 'chovendo agora (ou chuva observada aplicada pelo app)');
+  assert.equal(rainAnswer(wetHour, 0).text, 'Chuva fraca agora; deve parar por volta das 15h.', 'sem condição atual, como antes');
+  assert.equal(rainAnswer(wetHour, 0, {current:{weather_code:0}}).tone, 'rain', 'o tom não muda: o convite de avisos continua');
+});

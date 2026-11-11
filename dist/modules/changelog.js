@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.70.7", date:"2026-11-11", title:"Chuva agora só quando é agora", items:[
+      "A frase de chuva no topo só diz “agora” quando há sinal de chuva agora. Se o céu está limpo e a chuva é a prevista para a hora que começa, ela diz “na próxima hora”."
+    ]},
     {version:"1.70.6", date:"2026-11-11", title:"Home sem pulo", items:[
       "O convite para ativar os avisos de chuva já aparece no lugar quando o app abre, em vez de surgir um segundo depois e empurrar a página para baixo."
     ]},
