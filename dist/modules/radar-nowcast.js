@@ -35,9 +35,35 @@
     return wet / total;
   }
   // Deslocamento (em pixels por intervalo) que leva a mancha anterior à atual com a maior sobreposição.
+  // 1.70.5 (abertura): em vez de comparar a grade inteira em cada deslocamento, percorre só os pixels com eco da
+  // máscara mais esparsa e confere o outro lado. O resultado é idêntico (mesmos limites, mesma ordem e mesmo
+  // desempate; teste contra a versão antiga em tests/radar-nowcast.test.cjs), mas a conta cai de ~4 milhões para
+  // dezenas de milhares de comparações: era ~115 ms de CPU (4× mais lenta) logo na abertura.
   function motion(previous, current, size, maxShift = MAX_SHIFT) {
     const echo = count(current), before = count(previous);
     if (echo < MIN_ECHO || before < MIN_ECHO) return null;
+    // Chuva cobrindo boa parte da janela: percorrer a lista sai mais caro que a grade; usa a grade (mesmo resultado).
+    if (Math.min(echo, before) > size * size * .3) return motionGrid(previous, current, size, maxShift, echo, before);
+    const fromCurrent = echo <= before, source = fromCurrent ? current : previous, other = fromCurrent ? previous : current;
+    const xs = new Int16Array(Math.min(echo, before)), ys = new Int16Array(xs.length);
+    let n = 0;
+    for (let i = 0; i < size * size; i += 1) if (source[i]) { xs[n] = i % size; ys[n] = (i / size) | 0; n += 1; }
+    // Pixel p da atual casa com p - d da anterior (equivalente: q da anterior com q + d da atual).
+    const sign = fromCurrent ? -1 : 1;
+    let best = null;
+    for (let dy = -maxShift; dy <= maxShift; dy += 1) for (let dx = -maxShift; dx <= maxShift; dx += 1) {
+      let hits = 0;
+      const ox = sign * dx, oy = sign * dy;
+      for (let k = 0; k < n; k += 1) {
+        const x = xs[k] + ox, y = ys[k] + oy;
+        if (x >= 0 && x < size && y >= 0 && y < size && other[y * size + x]) hits += 1;
+      }
+      if (!best || hits > best.hits || (hits === best.hits && Math.hypot(dx, dy) < Math.hypot(best.dx, best.dy))) best = {dx, dy, hits};
+    }
+    return settle(best, echo, before, maxShift);
+  }
+  // A busca original, na grade inteira: mais rápida quando quase tudo tem eco.
+  function motionGrid(previous, current, size, maxShift, echo, before) {
     let best = null;
     for (let dy = -maxShift; dy <= maxShift; dy += 1) for (let dx = -maxShift; dx <= maxShift; dx += 1) {
       let hits = 0;
@@ -47,6 +73,9 @@
       }
       if (!best || hits > best.hits || (hits === best.hits && Math.hypot(dx, dy) < Math.hypot(best.dx, best.dy))) best = {dx, dy, hits};
     }
+    return settle(best, echo, before, maxShift);
+  }
+  function settle(best, echo, before, maxShift) {
     const score = best.hits / Math.min(echo, before);
     if (score < MIN_SCORE || Math.abs(best.dx) >= maxShift || Math.abs(best.dy) >= maxShift) return null;
     return {dx:best.dx, dy:best.dy, score};

@@ -637,3 +637,11 @@ Pedido do dono (print do iPhone: "tira essas informações aqui"). Saíram de `#
 ## Favoritos enxutos (novembro/2026, 1.70.4)
 
 Pedido do dono (print: "diminui isso aqui e deixa só o Manaus e a temperatura"). O cartão de `#dialogFavoriteList` (`card` em `favorite-cities.js`) tem só `<strong>` cidade/UF e `.favorite-reading` (temperatura, "Consultando…" ou "Indisponível"); saíram condição, sensação, máx./mín., horário local, aviso INMET e "atualizado há", com o CSS deles. Largura `clamp(96px, 33,333% − 7px, 140px)` (três por linha no celular) e subgrid de 2 linhas. A leitura salva (`snapshot`) continua igual. QA: `verify-browser.py`, `verify-visual.py` e `verify-alignment.py` conferem o cartão de duas linhas. Não reintroduzir as outras linhas sem novo pedido.
+
+## Abertura mais leve: radar e seletor (novembro/2026, 1.70.5)
+
+Pedido do dono (item "travamento grande da abertura"). Perfil de CPU da volta ao app (Edge, 390 × 844, CPU 4×, `Profiler` pelo protocolo DevTools):
+
+- `radar-nowcast.js` `motion`: ~115 ms de CPU na abertura (dias com chance de chuva). Agora percorre só os pixels com eco da máscara mais esparsa (`fromCurrent`, `sign`) e confere o outro lado; com eco em mais de 30% da janela usa a busca na grade (`motionGrid`), que ali é mais rápida. Resultado idêntico ao da grade (mesmos limites, mesma ordem e mesmo desempate): `tests/radar-nowcast.test.cjs` compara com a busca antiga em 12 casos, nas duas resoluções. 6,7× mais rápido numa mancha típica, 2,1× numa grande. A cópia do servidor (`supabase/functions/_shared/radar-nowcast.js`) não mudou e dá o mesmo resultado.
+- `glass-segment.js` `bind`: a primeira medida (`measure`) ia no `DOMContentLoaded` e forçava um layout da página inteira, ainda sem o CSS e o conteúdo, que era jogado fora (~46 ms com CPU 4×). Agora vai para o próximo quadro (`later()`, antes da primeira pintura); posição da cápsula igual à de antes.
+- Medido e deixado: `renderSun` (~44 ms; alimenta o selo do pôr do sol no story), a medida do seletor no quadro (é o primeiro layout da página, que aconteceria de qualquer jeito), montar só 8 das 24 horas (estilo/layout/pintura −4 a −11%, dentro do ruído) e adiar os 7 dias (começam ~120 px abaixo da dobra, entrariam na hora). O grosso do primeiro quadro é estilo/layout da página inteira (2.771 regras de CSS); reduzir isso é reescrever o CSS.
