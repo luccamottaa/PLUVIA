@@ -8,7 +8,7 @@ const dist = file => fs.readFileSync(path.join(__dirname, '../dist', file), 'utf
 
 test('cada condição tem a sua cena: nuvens, Sol, Lua, estrelas, chuva, neve, raio e neblina', () => {
   const day = weather => toon.plan({weather, phase:'day'}), night = weather => toon.plan({weather, phase:'night'});
-  assert.equal(day('sun').sun, true); assert.equal(day('sun').clouds, 1); assert.equal(day('sun').stars, 0);
+  assert.equal(day('sun').sun, true); assert.equal(day('sun').clouds, 0, 'céu limpo não tem nuvem'); assert.equal(day('sun').stars, 0);
   assert.equal(toon.plan({weather:'partly', phase:'day', clouds:'few'}).clouds, 3);
   assert.equal(day('partly').clouds, 5);
   assert.equal(day('cloud').sun, false); assert.equal(day('cloud').clouds, 9);
@@ -16,7 +16,7 @@ test('cada condição tem a sua cena: nuvens, Sol, Lua, estrelas, chuva, neve, r
   assert.equal(toon.plan({weather:'rain', phase:'day', rain:'heavy'}).rain, 'heavy');
   assert.equal(day('storm').bolt, true); assert.equal(day('storm').rain, 'moderate', 'trovoada sem volume usa o perfil moderado, como o céu antigo');
   assert.equal(day('snow').snow, true); assert.equal(day('fog').fog, true);
-  assert.equal(night('sun').moon, true); assert.equal(night('sun').stars, toon.STARS.length);
+  assert.equal(night('sun').moon, true); assert.equal(night('sun').stars, toon.STARS.length); assert.equal(night('sun').clouds, 0);
   assert.equal(night('cloud').moon, true, 'Lua atrás das nuvens'); assert.equal(night('cloud').stars, 0);
   assert.equal(night('rain').moon, false);
   assert.equal(night('sun').sun, false, 'Sol nunca de noite');
