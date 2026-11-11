@@ -1,0 +1,9 @@
+# Texto sempre com fim de linha LF no repositório e na cópia de trabalho, em qualquer sistema.
+# No Windows com core.autocrlf=true os arquivos vinham com CRLF e ~31 testes que conferem trechos
+# do código com "\n" falhavam só nessa máquina (a CI, em Linux, passava).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
+*.woff2 binary
