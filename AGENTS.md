@@ -604,3 +604,12 @@ Pedido do dono ("o app parece muito poluído e lento"; escolheu enxugar a primei
 - O botão é um cartão opaco da família das leituras (tokens `--card-*`), sem `backdrop-filter`; só a seta gira. Fica no HTML logo antes de `section.metrics`, e `place()` não mexe no DOM na ordem padrão.
 - QA de navegador: os `scripts/verify-*.py` semeiam `pluvia-home-more` para continuar medindo a Home inteira; `verify-home-ux.py` confere a dobra (recolhe, guarda, reabre; sem botão a partir de 1100 px).
 - Não mexido de propósito: os 62 scripts já são `defer` e saem do cache do SW, então adiar a carga deles não muda a abertura de quem já visitou; as animações contínuas que restam são o próprio céu (estrelas e nuvens). Cortar ali é decisão de desenho, não de limpeza.
+
+## Janelas por classe no CSS (novembro/2026, 1.69.2)
+
+Pedido do dono ("travamentos na abertura"). As 120 listas `:is(#cityDialog, #accountDialog, …)` de `continuous.css` e `redesign.css` viraram `:is(.dlg-<grupo>, #_)`, com as classes `dlg-*` nas `<dialog>` do `index.html` (14 grupos; a tabela vive em `tests/dialog-classes.test.cjs`). Motivo: com `:is()` de vários ids no lugar de um ancestral, o filtro rápido do navegador não descarta nada e cada elemento da página sobe pelos ancestrais testando aquela lista (1.714 tentativas por regra num recálculo). O `#_` não casa com nada e existe só para manter a especificidade de id (`:is()` pega a maior dos argumentos): a cascata é a mesma.
+
+- Conferido: estilo computado de 10.476 elementos (com `::before`/`::after`, 480 propriedades) igual antes e depois, em dia/noite × tinta clara/escura e com cada janela aberta (68 combinações), no Edge.
+- Medido (Edge, 390 × 844, CPU 4×, recálculo completo da página aberta): mediana 46 → 37,6 ms. É o recálculo da troca de cidade e de `data-ink`/`data-phase`; na abertura inteira o ganho fica dentro do ruído.
+- Regra nova: janela em regra de CSS é por classe `dlg-*`, nunca lista de ids. Janela nova entra em `ALL` e nos grupos do teste e recebe as classes no HTML. Grupo novo: classe nova no HTML e no teste.
+- Testado e descartado: `.dlg-x` puro (mais rápido, mas muda a especificidade: 47 elementos com estilo diferente); `dialog:is(.dlg-x, #_)` (33 diferentes); `content-visibility:auto` nos itens das Próximas horas (a contenção muda o alinhamento e a fileira cresce 16 px) e em `#previsao`/`#forecastList` (as linhas dos 7 dias passam 10 px da caixa e a seta do último dia passa embaixo: a contenção de pintura cortaria).

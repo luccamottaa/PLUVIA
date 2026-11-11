@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.69.2", date:"2026-11-11", title:"Trocar de cidade mais leve", items:[
+      "O app recalcula a aparência da tela mais rápido ao trocar de cidade e quando o céu passa de dia para noite. Nada muda no visual."
+    ]},
     {version:"1.69.1", date:"2026-11-11", title:"Abertura com menos travadas", items:[
       "Ao abrir o app, a imagem do radar que confere se está chovendo em cima da cidade agora é preparada em segundo plano, sem segurar a tela bem na hora em que a previsão aparece."
     ]},
