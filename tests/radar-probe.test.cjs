@@ -107,3 +107,50 @@ test('lê o tile no zoom 7 (limite do RainViewer público) e exige eco em um qua
   const covered = await runtime({pixels:window(25)}).radar.probe(city);
   assert.equal(covered.precipitating, true);
 });
+
+test('decodifica a imagem fora da thread principal e desenha só a janela da cidade', async () => {
+  const calls = [], canvases = [];
+  class DecodingImage {
+    set src(value) { this._src = value; if (value) queueMicrotask(() => this.onload?.()); }
+    get src() { return this._src; }
+    decode() { calls.push('decode'); return Promise.resolve(); }
+    width = 256;
+    height = 256;
+  }
+  const context = {
+    globalThis: null, module: { exports: {} }, AbortController, setTimeout, clearTimeout, queueMicrotask, Image: DecodingImage,
+    fetch: async () => ({ok:true, json:async () => ({host:'https://tiles.example', radar:{past:[{path:'/frame', time:123}]}})}),
+    document: {createElement: () => { const canvas = {getContext: () => ({drawImage: (...args) => calls.push(['draw', args.length]), getImageData: () => ({data:new Uint8ClampedArray(81 * 4)})})}; canvases.push(canvas); return canvas; }},
+    PLUVIA: {sources:{set(){}}}
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(fs.readFileSync('dist/modules/http-client.js', 'utf8'), context);
+  vm.runInContext(fs.readFileSync('dist/modules/radar-probe.js', 'utf8'), context);
+  const result = await context.PLUVIA.radar.probe({id:'1302603', lat:-3.119, lon:-60.021});
+  assert.equal(result.status, 'ready');
+  assert.deepEqual(calls, ['decode', ['draw', 9]], 'decode antes de desenhar, e drawImage com recorte');
+  assert.equal(canvases[0].width, 9);
+  assert.equal(canvases[0].height, 9);
+});
+
+test('decode que falha com a imagem já carregada não derruba a leitura', async () => {
+  class FailingDecode {
+    set src(value) { this._src = value; if (value) queueMicrotask(() => this.onload?.()); }
+    get src() { return this._src; }
+    decode() { return Promise.reject(new Error('EncodingError')); }
+    width = 256;
+    height = 256;
+  }
+  const context = {
+    globalThis: null, module: { exports: {} }, AbortController, setTimeout, clearTimeout, queueMicrotask, Image: FailingDecode,
+    fetch: async () => ({ok:true, json:async () => ({host:'https://tiles.example', radar:{past:[{path:'/frame', time:123}]}})}),
+    document: {createElement: () => ({getContext: () => ({drawImage(){}, getImageData: () => ({data:new Uint8ClampedArray(81 * 4)})})})},
+    PLUVIA: {sources:{set(){}}}
+  };
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(fs.readFileSync('dist/modules/http-client.js', 'utf8'), context);
+  vm.runInContext(fs.readFileSync('dist/modules/radar-probe.js', 'utf8'), context);
+  assert.equal((await context.PLUVIA.radar.probe({id:'1302603', lat:-3.119, lon:-60.021})).status, 'ready');
+});
