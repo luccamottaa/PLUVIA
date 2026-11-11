@@ -9,14 +9,18 @@
   var reduced = !!(root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   // Lugares das nuvens (vw/vh do canto de cima à esquerda, largura em vw) e de onde cada uma entra.
-  // As nuvens espiam pelas bordas (a maior parte fica fora da tela) para não cobrir o texto do topo.
+  // Bordas e meio da tela, alternados: as das bordas entram pelo lado ou por cima; as do meio são menores
+  // e "estouram" no lugar (pop), para não atravessar o texto do topo durante a entrada.
   var SLOTS = [
-    {x:-36, y:7,   w:60, from:'left'},
-    {x:76,  y:3,   w:62, from:'right'},
-    {x:21,  y:-11, w:58, from:'top'},
-    {x:-38, y:30,  w:54, from:'left'},
-    {x:80,  y:27,  w:54, from:'right'},
-    {x:-30, y:52,  w:46, from:'left'},
+    {x:-30, y:7,   w:58, from:'left'},
+    {x:54,  y:31,  w:38, from:'pop'},
+    {x:72,  y:3,   w:60, from:'right'},
+    {x:8,   y:14,  w:34, from:'pop'},
+    {x:22,  y:-9,  w:54, from:'top'},
+    {x:-34, y:30,  w:54, from:'left'},
+    {x:28,  y:55,  w:42, from:'pop'},
+    {x:80,  y:27,  w:52, from:'right'},
+    {x:-28, y:52,  w:46, from:'left'},
     {x:82,  y:50,  w:46, from:'right'}
   ];
   var STARS = [[12,9],[30,17],[52,7],[74,14],[88,26],[8,34],[42,30],[66,38],[22,48],[82,52],[55,56],[14,62]];
@@ -29,7 +33,7 @@
   }
   function plan(attrs) {
     var weather = attrs.weather || 'unknown', night = attrs.phase === 'night';
-    var clouds = {sun:1, partly:attrs.clouds === 'few' ? 2 : 4, cloud:7, rain:6, storm:7, snow:6, fog:3}[weather] || 0;
+    var clouds = {sun:1, partly:attrs.clouds === 'few' ? 3 : 5, cloud:10, rain:8, storm:10, snow:7, fog:3}[weather] || 0;
     var drops = weather === 'storm' ? 20 : weather === 'rain' ? ({light:9, moderate:15, heavy:22}[attrs.rain] || 12) : 0;
     return {
       weather:weather, night:night, clouds:clouds, drops:drops,
@@ -47,12 +51,12 @@
     el.setAttribute('viewBox', viewBox); el.setAttribute('focusable', 'false'); el.innerHTML = inner;
     return el;
   }
-  // Nuvem no traço dos ícones dos 7 dias (scripts/generate-line-icons.py, classe Cloud): união de três
-  // círculos (esquerdo, meio, direito) com base reta tangente aos de fora, num contorno só, sem retângulo.
-  // Aqui preenchida, com contorno arredondado e uma sombra macia embaixo, recortada pela própria forma.
+  // Nuvem no traço dos ícones dos 7 dias (scripts/generate-line-icons.py, classe Cloud): círculos unidos num
+  // contorno só, com base reta tangente aos de fora. O ícone tem três; aqui são cinco, para ficar mais fofa.
+  // Preenchida, com contorno arredondado e uma sombra macia embaixo, recortada pela própria forma.
   var CLOUD = (function () {
-    var s = 20, cx = 160, base = 190;
-    var c = [[cx - 4.6 * s, base - 3.1 * s, 3.1 * s], [cx - .4 * s, base - 4.7 * s, 4.6 * s], [cx + 4.2 * s, base - 3.5 * s, 3.5 * s]];
+    var s = 20, cx = 185, base = 208;
+    var c = [[-6.2, 2.6, 2.6], [-3.2, 4.6, 3.6], [.6, 5.6, 4.6], [4.4, 4.2, 3.6], [7, 2.8, 2.8]].map(function (k) { return [cx + k[0] * s, base - k[1] * s, k[2] * s]; });
     function meet(a, b) { // interseção de cima entre dois círculos
       var d = Math.hypot(b[0] - a[0], b[1] - a[1]), t = (a[2] * a[2] - b[2] * b[2] + d * d) / (2 * d), h = Math.sqrt(Math.max(a[2] * a[2] - t * t, 0));
       var mx = a[0] + t * (b[0] - a[0]) / d, my = a[1] + t * (b[1] - a[1]) / d;
@@ -63,16 +67,20 @@
       var ang = function (pt) { return Math.atan2(pt[1] - k[1], pt[0] - k[0]); }, turn = (ang(to) - ang(from) + 4 * Math.PI) % (2 * Math.PI);
       return 'A' + k[2] + ' ' + k[2] + ' 0 ' + (turn > Math.PI ? 1 : 0) + ' 1 ' + to[0].toFixed(1) + ' ' + to[1].toFixed(1);
     }
-    var a = [c[0][0], base], z = [c[2][0], base], p12 = meet(c[0], c[1]), p23 = meet(c[1], c[2]);
-    return 'M' + a[0] + ' ' + a[1] + arc(c[0], a, p12) + arc(c[1], p12, p23) + arc(c[2], p23, z) + 'Z';
+    var from = [c[0][0], base], d = 'M' + from[0] + ' ' + from[1];
+    for (var i = 0; i < c.length; i++) {
+      var to = i < c.length - 1 ? meet(c[i], c[i + 1]) : [c[i][0], base];
+      d += arc(c[i], from, to); from = to;
+    }
+    return d + 'Z';
   })();
   var cloudId = 0;
   function cloud(colors) {
     var id = 'toonCloud' + (++cloudId);
-    return svg('0 0 320 200',
+    return svg('0 0 390 216',
       '<clipPath id="' + id + '"><path d="' + CLOUD + '"/></clipPath>' +
       '<path d="' + CLOUD + '" fill="' + colors[0] + '"/>' +
-      '<ellipse cx="170" cy="206" rx="170" ry="52" fill="' + colors[1] + '" opacity=".7" clip-path="url(#' + id + ')"/>' +
+      '<ellipse cx="195" cy="228" rx="205" ry="58" fill="' + colors[1] + '" opacity=".7" clip-path="url(#' + id + ')"/>' +
       '<path d="' + CLOUD + '" fill="none" stroke="' + colors[1] + '" stroke-width="5" stroke-linejoin="round"/>');
   }
   function sun() {
@@ -100,6 +108,7 @@
       '.toon-flake{position:absolute;top:-4vh;width:9px;height:9px;border-radius:50%;background:#fff;animation:toon-snow var(--fall,7s) linear infinite;animation-delay:var(--fall-delay,0s)}' +
       '@keyframes toon-snow{50%{transform:translate3d(3vw,55vh,0)}to{transform:translate3d(-2vw,110vh,0)}}' +
       '.toon-bolt svg{animation:toon-flash 7s linear infinite}@keyframes toon-flash{0%,88%,100%{opacity:0}89%,91%{opacity:1}90%{opacity:.3}93%{opacity:.9}96%{opacity:0}}' +
+      '.toon-mid{opacity:.5}' + // nuvens do meio passam atrás do texto: translúcidas para ele continuar legível
       '.toon-fog{position:absolute;height:9vh;border-radius:9vh;background:#ffffff8c}' +
       '.sky-effects[data-motion="paused"] .toon-sky *{animation-play-state:paused!important}' +
       '@media (prefers-reduced-motion:reduce){.toon-sky *{animation:none!important}}';
@@ -151,7 +160,7 @@
     }
     var colors = palette(p.weather, p.night);
     for (i = 0; i < p.clouds; i++) {
-      var slot = SLOTS[i % SLOTS.length], c = wrap(cloud(colors), 'toon-cloud');
+      var slot = SLOTS[i % SLOTS.length], c = wrap(cloud(colors), slot.from === 'pop' ? 'toon-cloud toon-mid' : 'toon-cloud');
       c.firstChild.style.setProperty('--bob', (8 + (i * 1.7) % 5) + 's'); c.firstChild.style.setProperty('--bob-delay', (-i * 1.3) + 's');
       place(c, slot.x, slot.y, slot.w); box.appendChild(c); enter(c, slot.from, index++);
     }
