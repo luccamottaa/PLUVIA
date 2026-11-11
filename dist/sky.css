@@ -359,3 +359,38 @@ body.page-hidden .sky-volume { visibility:hidden; }
 /* Raio 3D (1.64): com a nuvem 3D ligada na trovoada, o canal é desenhado dentro do céu 3D (volumetric-clouds,
    data-bolt3d); o canal chapado do CSS sai. O clarão do céu inteiro (::before) continua. */
 :root[data-bolt3d="on"] .sky-effects .sky-lightning::after { visibility:hidden; }
+/* Céu de desenho (1.70, modules/sky-toon.js). Com data-sky="toon" (padrão, posto no <head>) as camadas
+   animadas do céu antigo saem da cena; o degradê (.night-stage::before), o crepúsculo e a máscara de
+   .sky-effects continuam. data-sky="classic" (localStorage pluvia-sky-style) mantém tudo como antes. */
+:root[data-sky="toon"] .sky-effects > :not(.toon-sky) { display:none !important; }
+.toon-sky { position:absolute; inset:0; z-index:2; overflow:hidden; pointer-events:none; }
+.toon { position:absolute; }
+.toon svg { display:block; width:100%; height:auto; overflow:visible; }
+.toon-cloud .toon-bob { animation:toon-bob var(--bob,10s) ease-in-out infinite alternate; animation-delay:var(--bob-delay,0s); }
+.toon-mid { opacity:.5; }
+@keyframes toon-bob { from { transform:translate3d(0,-5px,0); } to { transform:translate3d(6px,5px,0); } }
+/* Sol e Lua na órbita real (as mesmas variáveis do céu antigo); a entrada anima o transform, então o
+   centro vem da margem negativa. */
+.toon-sun, .toon-moon { --toon-size:clamp(84px,23vw,108px); width:var(--toon-size); margin:calc(var(--toon-size) / -2) 0 0 calc(var(--toon-size) / -2);
+  left:calc(var(--sun-orbit-x,.66) * 100vw); top:calc(env(safe-area-inset-top,0px) + var(--orbit-top) + var(--sun-orbit-y,.1) * var(--orbit-height));
+  opacity:var(--sun-visibility,1); }
+.toon-moon { --toon-size:clamp(58px,17vw,84px); left:calc(var(--moon-orbit-x,.7) * 100vw); top:calc(env(safe-area-inset-top,0px) + var(--orbit-top) + var(--moon-orbit-y,.15) * var(--orbit-height));
+  opacity:var(--moon-visibility,1); }
+.toon-rays { transform-origin:100px 100px; animation:toon-spin 60s linear infinite; }
+@keyframes toon-spin { to { transform:rotate(360deg); } }
+.toon-twinkle .toon-bob { animation:toon-twinkle 3.6s ease-in-out infinite alternate; }
+@keyframes toon-twinkle { from { opacity:1; } to { opacity:.35; } }
+.toon-bolt svg { opacity:0; animation:toon-flash 7s linear infinite; }
+@keyframes toon-flash { 0%,88%,100% { opacity:0; } 89%,91% { opacity:1; } 90% { opacity:.3; } 93% { opacity:.9; } 96% { opacity:0; } }
+.toon-fog { width:104vw; height:9vh; border-radius:9vh; background:#ffffff8c; }
+:root[data-phase="night"] .toon-fog { background:#c8d2e655; }
+/* Arco-íris no alto, do lado oposto ao Sol, pequeno e claro: não pode passar atrás da temperatura. */
+.toon-rainbow { width:min(40vw,240px); left:clamp(-6vw, calc(var(--rainbow-x,.3) * 100vw - min(20vw,120px)), 66vw); top:calc(env(safe-area-inset-top,0px) + 9vh); opacity:.5; }
+.toon-fx { position:absolute; inset:0; overflow:hidden; }
+.toon-windy > * { inset:-30vh -40vw 0 -40vw !important; transform-origin:50% 50%; rotate:14deg; }
+.toon-rain, .toon-snow { position:absolute; inset:-160px 0 0; background-size:120px 160px; animation:toon-fall var(--fall,1s) linear infinite; }
+.toon-rain { opacity:.55; }
+.toon-snow { --fall:6s; opacity:.9; }
+@keyframes toon-fall { to { transform:translate3d(0,160px,0); } }
+.sky-effects[data-motion="paused"] .toon-sky *, .sky-effects[data-motion="paused"] .toon-sky *::before { animation-play-state:paused !important; }
+@media (prefers-reduced-motion:reduce) { .toon-sky * { animation:none !important; } .toon-bolt svg { opacity:.9; } }

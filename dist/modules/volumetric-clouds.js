@@ -665,7 +665,8 @@ void main(){
     function stop() { if (raf) win.cancelAnimationFrame(raf); raf = 0; }
     function sync() {
       if (dead) return;
-      const next = mode({phase:html.dataset.phase,weather:html.dataset.weather,rain:html.dataset.rain,clouds:html.dataset.clouds});
+      // Céu de desenho (1.70, sky-toon.js): a nuvem 3D não liga nem compila o shader.
+      const next = html.dataset.sky === 'toon' ? null : mode({phase:html.dataset.phase,weather:html.dataset.weather,rain:html.dataset.rain,clouds:html.dataset.clouds});
       if (!next || reduced() || qaBlocked()) { stop(); if (current) { delete html.dataset.volume; current = null; } delete html.dataset.rain3d; delete html.dataset.bolt3d; return; }
       if (!gl) { build(); return; }
       place();
@@ -679,7 +680,7 @@ void main(){
     let lastSolar;
     if (disabledBefore()) return {sync() {}};
     const observer = new win.MutationObserver(sync);
-    observer.observe(html,{attributes:true,attributeFilter:['data-phase','data-weather','data-rain','data-clouds','data-solar','data-wind']});
+    observer.observe(html,{attributes:true,attributeFilter:['data-phase','data-weather','data-rain','data-clouds','data-solar','data-wind','data-sky']});
     const watch = () => {
       const host = doc.querySelector('.sky-effects'); if (host) observer.observe(host,{attributes:true,attributeFilter:['data-motion']});
     };

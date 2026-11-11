@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.70", date:"2026-11-11", title:"Céu de desenho", items:[
+      "O céu ganhou um visual de desenho: nuvens fofinhas e arredondadas que entram pelos lados, por cima e no meio da tela quando o app abre, quando você troca de cidade e quando o tempo muda.",
+      "Cada condição tem o seu céu: Sol com raios, Lua na fase de verdade e estrelas à noite, nuvens cinzas e gotas na chuva, raio na tempestade, neblina em faixas, neve e até arco-íris.",
+      "O céu novo é mais leve para o celular: as nuvens 3D não rodam mais o tempo todo."
+    ]},
     {version:"1.69.3", date:"2026-11-11", title:"Busca sem teclado de surpresa", items:[
       "No celular, a busca de cidades abre sem o teclado: ele só aparece quando você toca no campo, e a lista de cidades fica à vista."
     ]},
