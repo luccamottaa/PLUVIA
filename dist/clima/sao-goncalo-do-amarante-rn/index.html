@@ -51,7 +51,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-345" />
+    <meta name="pluvia-release" content="pluvia-panel-346" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -181,11 +181,6 @@
 .intro-drop { filter:drop-shadow(0 0 14px rgba(170,214,255,.55)) drop-shadow(0 0 3px rgba(255,255,255,.35)); }
 .intro-wordmark strong { text-shadow:0 0 24px color-mix(in srgb,currentColor 38%,transparent),0 0 2px color-mix(in srgb,currentColor 30%,transparent); }
 .pluvia-intro .intro-copy { display:none; }
-.pluvia-intro[data-quick] { animation-duration:.9s; }
-.pluvia-intro[data-quick] .intro-drop { animation-duration:.32s; animation-delay:0s; }
-.pluvia-intro[data-quick] .intro-wordmark strong { animation-duration:.4s; animation-delay:.28s; }
-.pluvia-intro[data-quick] .intro-tagline { animation-duration:.35s; animation-delay:.42s; }
-.pluvia-intro[data-quick] .intro-kicker { animation-duration:.35s; animation-delay:.56s; }
 /* Na saída a animação de entrada sai, senão o "preenchimento" dela seguraria o texto e ele não subiria com o nome. */
 .pluvia-intro.is-leaving .intro-kicker { animation:none; }
 /* Intro (1.58, pedido do dono: a anterior estava "sem graça"): a gota da marca cai e abre duas ondas e as letras
@@ -198,9 +193,6 @@
 .intro-name { display:inline-flex; }
 .intro-name > span { display:inline-block; animation:intro-letter .62s cubic-bezier(.2,.9,.25,1.15) calc(.66s + var(--i) * 55ms) both; }
 .intro-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
-.pluvia-intro[data-quick] .intro-ripple::before { animation-duration:.6s; animation-delay:.3s; }
-.pluvia-intro[data-quick] .intro-ripple::after { animation-duration:.6s; animation-delay:.4s; }
-.pluvia-intro[data-quick] .intro-name > span { animation-duration:.4s; animation-delay:calc(.26s + var(--i) * 30ms); }
 @keyframes intro-ripple { 0% { opacity:.75; transform:scale(.45); } 100% { opacity:0; transform:scale(2.7); } }
 @keyframes intro-letter { 0% { opacity:0; transform:translateY(.45em) scale(.92); } 60% { opacity:1; } 100% { opacity:1; transform:none; } }
 @keyframes intro-horizon { from { opacity:.4; transform:scale(1.05); } to { opacity:1; transform:scale(1); } }
@@ -262,13 +254,14 @@
       (function () {
         var intro = document.getElementById("pluviaIntro");
         globalThis.PLUVIA?.sky?.update();
-        var seen = false, quick = false;
+        var seen = false, returning = false;
         try { seen = sessionStorage.getItem("pluvia-intro-seen") === "1"; sessionStorage.setItem("pluvia-intro-seen", "1"); } catch (_) {}
-        // Toda abertura (sessão nova) mostra a intro; quem já viu uma ganha a versão rápida (1.26.1, pedido do
-        // usuário: "uma intro rápida pra toda vez que abrir"): mínimo de 0,9 s, sai quando a previsão chega.
-        // De 1.25 a 1.26 ela só repetia 3 h depois da última. Recarregar a mesma aba continua sem intro.
+        // Intro só na primeira visita (1.70.1, pedido do dono): quem já abriu o app uma vez vai direto para a
+        // Home, com a previsão salva, e as nuvens do céu de desenho fazem a entrada. A versão rápida de toda
+        // abertura (1.26.1, mínimo de 0,9 s) saiu: era espera em toda abertura. Recarregar a aba continua sem intro;
+        // sem storage não dá para saber se é a primeira visita, então mostra.
         try {
-          if (!seen) { quick = Number(localStorage.getItem("pluvia-intro-at")) > 0; localStorage.setItem("pluvia-intro-at", String(Date.now())); }
+          if (!seen) { returning = Number(localStorage.getItem("pluvia-intro-at")) > 0; localStorage.setItem("pluvia-intro-at", String(Date.now())); }
         } catch (_) {}
         function reveal() {
           var welcome = document.getElementById("locationWelcome");
@@ -284,8 +277,7 @@
           reveal();
           setTimeout(function () { intro.hidden = true; }, 450);
         }
-        if (seen) { intro.hidden = true; return; }
-        if (quick) intro.dataset.quick = "1";
+        if (seen || returning) { intro.hidden = true; return; }
         var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         // A intro serve de tela de carregamento: some depois do tempo mínimo e da primeira consulta
         // (previsão e INMET, com sucesso ou falha), para a Home já abrir com os dados novos. Internet lenta
@@ -293,8 +285,8 @@
         var minimum = false, settled = false;
         function settle() { settled = true; if (minimum) dismiss(); }
         if (window.addEventListener) window.addEventListener("pluvia:refresh-settled", settle, { once: true });
-        setTimeout(function () { minimum = true; if (settled || (globalThis.PLUVIA && globalThis.PLUVIA.refreshSettledAt)) dismiss(); }, reduced ? 300 : quick ? 900 : 2600);
-        setTimeout(dismiss, reduced ? 1500 : quick ? 2500 : 4600);
+        setTimeout(function () { minimum = true; if (settled || (globalThis.PLUVIA && globalThis.PLUVIA.refreshSettledAt)) dismiss(); }, reduced ? 300 : 2600);
+        setTimeout(dismiss, reduced ? 1500 : 4600);
       })();
     </script>
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
@@ -686,7 +678,7 @@
     <script src="/modules/forecast-accuracy.js?v=accuracy-1" defer></script>
     <script src="/modules/station-now.js?v=station-5" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-11" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-375" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-376" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-39" defer></script>
