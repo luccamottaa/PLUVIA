@@ -666,7 +666,7 @@ void main(){
     function stop() { if (raf) win.cancelAnimationFrame(raf); raf = 0; }
     function sync() {
       if (dead) return;
-      const next = win.PLUVIA_DEMO?.sky === '2d' ? null : mode({phase:html.dataset.phase,weather:html.dataset.weather,rain:html.dataset.rain,clouds:html.dataset.clouds}); // DEMO
+      const next = (win.PLUVIA_DEMO?.sky === '2d' || win.PLUVIA_DEMO?.sky === 'desenho') ? null : mode({phase:html.dataset.phase,weather:html.dataset.weather,rain:html.dataset.rain,clouds:html.dataset.clouds}); // DEMO
       if (!next || reduced() || qaBlocked()) { stop(); if (current) { delete html.dataset.volume; current = null; } delete html.dataset.rain3d; delete html.dataset.bolt3d; return; }
       if (!gl) { build(); return; }
       place();

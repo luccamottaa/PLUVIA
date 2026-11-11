@@ -1,12 +1,12 @@
 /* DEMO (não vai para produção): barra para comparar no aparelho o peso do céu e do vidro.
-   Céu: "atual" (como está), "lento" (nuvem 3D a 8 quadros/s, uma animação de estrela a menos),
+   Céu: "atual" (como está), "lento" (nuvem 3D a 8 quadros/s, uma animação de estrela a menos), "desenho" (modules/demo-toon.js),
    "2d" (sem shader 3D: as camadas de nuvem do CSS deslizam) e "descansa" (anima 8 s ao abrir,
    ao trocar de cidade e ao voltar para o app; depois para). Vidro: com ou sem backdrop-filter.
    A escolha fica no localStorage e a página recarrega, para cada modo começar limpo. */
 (function (root) {
   'use strict';
   var SKY_KEY = 'pluvia-demo-sky', GLASS_KEY = 'pluvia-demo-glass', AWAKE_MS = 8000;
-  var SKIES = [['atual', 'Atual'], ['lento', '1 · 3D lento'], ['2d', '2 · 2D'], ['descansa', '3 · Descansa']];
+  var SKIES = [['atual', 'Atual'], ['lento', '1 · Lento'], ['2d', '2 · 2D'], ['descansa', '3 · Pausa'], ['desenho', '4 · Desenho']];
   function read(key, fallback, allowed) {
     try { var value = root.localStorage.getItem(key); return allowed.indexOf(value) >= 0 ? value : fallback; } catch (_) { return fallback; }
   }
@@ -43,8 +43,8 @@
     style.textContent =
       '.demo-bar{position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:2147483000;display:grid;gap:6px;padding:8px;border-radius:16px;background:#0b1224;color:#fff;font:600 13px/1.2 system-ui,sans-serif;box-shadow:0 6px 24px #0008}' +
       '.demo-bar[data-min] .demo-row{display:none}' +
-      '.demo-row{display:flex;gap:6px;align-items:center}.demo-row>span{flex:none;width:42px;opacity:.7}' +
-      '.demo-bar button{flex:1;min-height:40px;padding:0 4px;border:1px solid #ffffff33;border-radius:10px;background:none;color:inherit;font:inherit}' +
+      '.demo-row{display:flex;gap:6px;align-items:center}.demo-row>span{flex:none;width:36px;opacity:.7}' +
+      '.demo-bar button{flex:1;min-height:40px;padding:0 2px;font-size:12px;border:1px solid #ffffff33;border-radius:10px;background:none;color:inherit;font:inherit}' +
       '.demo-bar button[aria-pressed="true"]{background:#7fbfff;border-color:#7fbfff;color:#06122b}' +
       '.demo-bar .demo-min{flex:none;width:100%;min-height:28px;border:0;opacity:.8}' +
       'html[data-demo-glass="off"] *,html[data-demo-glass="off"] *::before,html[data-demo-glass="off"] *::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}' +
