@@ -729,9 +729,6 @@ body[data-ink="dark"] #weatherView .rain-gauge-track { background:rgba(0,0,0,.12
 #weatherView .air-outlook li > b { color:var(--aqi-accent,var(--reading-ink)); font-size:.88rem; font-weight:600; line-height:1.25; overflow-wrap:break-word; }
 #weatherView .air-outlook li > small { color:var(--reading-muted); font-size:.72rem; line-height:1.35; font-variant-numeric:tabular-nums; }
 /* Hoje vs. ontem: linha discreta abaixo do "Vai chover?"; vazia (sem leitura de ontem) não ocupa espaço. */
-#weatherView .yesterday-note { margin:4px auto 0; max-width:32rem; color:var(--reading-muted); font-size:.85rem; line-height:1.4; text-align:center; }
-#weatherView .yesterday-note:empty { display:none; }
-#weatherView .yesterday-note .sk-line { width:min(11rem,60%); }
 /* "No céu": próximas luas e chuva de meteoros entre a fase da Lua e o detalhe astronômico,
    na mesma tipografia do detalhe (rótulo pequeno, valor na tinta de leitura). */
 #weatherView .sky-events { grid-column:1/-1; width:100%; min-width:0; padding-top:16px; border-top:1px solid var(--reading-line); color:var(--reading-muted); text-align:center; }
@@ -818,8 +815,6 @@ html body #shareWeatherDialog #shareWeatherDownload { color:#fff; }
 #weatherView .hourly-peek-item .peek-rain { min-height:20px; justify-content:center; font-size:.8125rem; }
 #weatherView .hourly-peek-item > strong { font-size:1.35rem; }
 /* "Previsão por hora" agora mora em Próximas horas: janela seca numa linha, gráfico recolhido logo abaixo. */
-#weatherView .dry-window-line { margin:14px 0 0; color:var(--reading-muted); font-size:.875rem; line-height:1.45; }
-#weatherView .dry-window-line strong { color:var(--reading-ink); font-weight:600; }
 /* "Tá chovendo aí?": pílulas de resposta e a linha do resumo com altura reservada (sem empurrar a página). */
 #weatherView .rain-report[hidden] { display:none; }
 #weatherView .rain-report { margin:16px 0 0; padding-top:14px; border-top:1px solid var(--card-border, #aac7e526); }
@@ -994,7 +989,6 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 /* Estabilidade na chegada dos dados (CLS): o esqueleto tem a mesma altura da leitura final.
    Sem chuva relevante (o caso comum), a linha da chance não existe nem no esqueleto; a janela seca
    ocupa sempre rótulo + valor em duas linhas; e o esqueleto do número não aumenta a linha do 30°. */
-#weatherView .dry-window-line strong { display:block; }
 #weatherView #temperature .sk-temp { vertical-align:top; }
 /* ⓘ aberto: o texto vai para logo depois do título (app.js), no fluxo da página. Sem posição absoluta
    nem z-index: subir camadas de títulos/seções derrubava o Safari do iPhone. */
@@ -1254,7 +1248,6 @@ body[data-ink="dark"] #weatherView .sun-section .moon-card-disc { background:rad
 #weatherView :is(.hourly-peek-item,.forecast-row) .peek-extra { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
 
 /* Limpeza de interface (outubro/2026). */
-#weatherView .dry-window-line[hidden] { display:none; }
 /* 24 horários numa fileira que rola para o lado: seis e meio à vista (o meio horário mostra que tem mais). */
 #weatherView .hourly-peek-list { gap:4px; grid-auto-columns:max(44px, calc((100% - 24px) / 6.5)); scroll-padding-inline:0; }
 #weatherView .hourly-peek-item { scroll-snap-align:start; }
@@ -1981,8 +1974,6 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
    A barra de chuva abre o cartão Próximas horas e a nota de ontem fecha o cartão, alinhadas à esquerda como o resto. */
 #weatherView .hourly-peek .rain-gauge { width:100%; margin:2px 0 14px; align-items:flex-start; }
 #weatherView .hourly-peek .rain-gauge-label { text-align:left; }
-#weatherView .hourly-peek .yesterday-note { max-width:none; margin:12px 0 0; text-align:left; font-size:.875rem; }
-#weatherView .hourly-peek .yesterday-note .sk-line { margin:0; }
 /* "Vai chover?" como primeira dica (1.23.2): mesma linha das dicas (ícone em traço centrado), texto à esquerda e um
    pouco mais forte, por ser a resposta principal. A lista das outras dicas só entra quando há o que fazer. */
 #weatherView .tips-rain { display:flex; align-items:center; gap:10px; margin:0; }
