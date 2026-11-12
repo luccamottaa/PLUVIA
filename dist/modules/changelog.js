@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.73", date:"2026-11-11", title:"Nuvenzinhas", items:[
+      "Quando a busca não encontra a cidade, uma nuvenzinha com lupa aparece procurando junto com você.",
+      "A página de endereço não encontrado ganhou uma nuvem confusa com um ponto de interrogação."
+    ]},
     {version:"1.72.2", date:"2026-11-11", title:"Abertura mais rápida", items:[
       "O estilo das janelas (cidades, conta, avisos e as outras) agora chega logo depois que a tela inicial aparece, em vez de atrasar a abertura. Nos nossos testes, o tempo de tela travada ao abrir caiu cerca de um terço."
     ]},
