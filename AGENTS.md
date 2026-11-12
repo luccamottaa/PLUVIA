@@ -654,6 +654,15 @@ Pedido do dono ("a Home pula"). Medido na volta ao app (Edge, CPU 4×): o pulo i
 
 Pedido do dono (print: topo "Céu limpo" e pílula "Chuva fraca agora; deve parar por volta das 17h"). `weatherInsights.rainAnswer` dizia "agora" sempre que a hora que começa agora (intervalo i+1) era molhada pela previsão (≥ 0,5 mm, ou ≥ 50% com ≥ 0,1 mm), mesmo com a condição atual seca. Agora, com a primeira hora molhada: "agora" quando `hours[0].now` (código atual de chuva/trovoada; o app já aplica a chuva observada da estação, aeroporto e radar em `withObservedRain` antes de chamar) ou quando não há condição atual para conferir; com condição atual conhecida e seca (céu limpo, nuvens, neblina), "na próxima hora". O tom ("rain"/"storm"), a regra de hora molhada (igual a `_shared/forecast-verify.js`) e o convite de avisos não mudam. Teste: `tests/rain-answer.test.cjs`.
 
+## Céu de desenho nas janelas (novembro/2026, 1.72)
+
+Pedido do dono (prints de "Minha conta" e "Suas cidades": "faz um fundo mais bonito pra todas as páginas, desenhos, animado"). Ao abrir qualquer `dialog.dlg-todas` (menos `#radarDialog`, que é coberto pelo mapa), `sky-toon.js` monta `build(plan(html.dataset), SHEET)` e põe o `.toon-sky.toon-sheet` como primeiro filho da janela; ao fechar, remove depois de 700 ms (tempo da animação de saída), se a janela continuar fechada. Um `MutationObserver` olha só o atributo `open` dessas janelas.
+
+- Layout próprio: `SHEET_SLOTS` em % da janela (`place(..., '%')`), no máximo 7 nuvens; as grandes ficam no alto (y < 20) ou no horizonte de baixo (y > 75), duas laterais `mid` translúcidas. Sol/Lua entre o título e o botão de fechar (`sky.css`, bloco `.toon-sheet`).
+- A janela já tem `isolation:isolate`, `overflow:hidden` e só `.dialog-scroll` rola; por isso o desenho fica parado atrás do conteúdo com `z-index:-1` e `border-radius:inherit`. O degradê por fase continua sendo o fundo da janela (`continuous.css`); as camadas estáticas `::before`/`::after` (estrelas e véu) somem quando há `data-toon`.
+- Nuvens com opacidade .62 (laterais .32), chuva .35: o texto vem primeiro. `body.page-hidden` pausa as animações; `prefers-reduced-motion` já desliga as de `.toon-sky *`.
+- Teste: `tests/sky-toon.test.cjs` ("janelas ganham o mesmo céu de desenho").
+
 ## Céu antigo apagado (novembro/2026, 1.71)
 
 Pedido do dono depois de aprovar o céu de desenho no iPhone ("pode apagar o antigo"). O céu de desenho (`modules/sky-toon.js`) é o único céu. **As seções antigas deste arquivo sobre nuvens em textura, nuvem 3D (`volumetric-clouds.js`), parallax (`sky-parallax.js`), estrelas cintilando, chuva em SVG, raio, estrela cadente, arco-íris em gradiente, Sol/Lua em imagem no céu, ritmo das nuvens pelo vento (`cloudRate`/`syncCloudRate`) e a chave `pluvia-sky-style`/`data-sky` são histórico: esse código saiu.**

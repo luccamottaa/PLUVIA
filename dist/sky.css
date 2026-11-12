@@ -136,3 +136,19 @@ body.page-hidden .sky-effects > * { visibility:hidden !important; transition:non
 @keyframes toon-fall { to { transform:translate3d(0,160px,0); } }
 .sky-effects[data-motion="paused"] .toon-sky *, .sky-effects[data-motion="paused"] .toon-sky *::before { animation-play-state:paused !important; }
 @media (prefers-reduced-motion:reduce) { .toon-sky * { animation:none !important; } .toon-bolt svg { opacity:.9; } }
+/* Céu de desenho nas janelas (1.72): .toon-sheet atrás do conteúdo (a janela tem isolation e overflow:hidden; só
+   .dialog-scroll rola, então o desenho fica parado). Nuvens um pouco translúcidas, para o texto vir primeiro. Sol/Lua
+   entre o título e o botão de fechar. As camadas estáticas antigas (estrelas e véu) saem quando o desenho está lá. */
+.toon-sheet { z-index:-1; border-radius:inherit; }
+.toon-sheet .toon-cloud { opacity:.62; }
+.toon-sheet .toon-mid { opacity:.32; }
+.toon-sheet .toon-sun, .toon-sheet .toon-moon { left:60%; top:1.5%; margin:0; opacity:1; }
+.toon-sheet .toon-sun { width:clamp(64px,19%,96px); }
+.toon-sheet .toon-moon { width:clamp(40px,12%,60px); top:3%; }
+.toon-sheet .toon-rainbow { left:6%; top:7%; width:42%; }
+.toon-sheet .toon-fog { width:110%; height:6%; }
+.toon-sheet .toon-rain { opacity:.35; }
+.toon-sheet .toon-snow { opacity:.6; }
+html body :is(.dlg-todas, #_)[data-toon]::before,
+html body :is(.dlg-todas, #_)[data-toon]::after { content:none; }
+body.page-hidden .toon-sheet *, body.page-hidden .toon-sheet *::before { animation-play-state:paused !important; }

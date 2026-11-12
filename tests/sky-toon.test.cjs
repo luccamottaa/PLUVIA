@@ -89,6 +89,22 @@ test('céu de desenho é o único céu: camadas antigas, nuvem 3D e a chave clas
   for (const file of ['modules/volumetric-clouds.js', 'modules/sky-parallax.js']) assert.equal(require('node:fs').existsSync(require('node:path').join(__dirname, '../dist', file)), false, file);
 });
 
+test('janelas ganham o mesmo céu de desenho atrás do conteúdo, menos o radar (1.72)', () => {
+  const src = dist('modules/sky-toon.js'), css = dist('sky.css');
+  assert.ok(toon.SHEET_SLOTS.length >= 5);
+  for (const slot of toon.SHEET_SLOTS) {
+    assert.ok(['left', 'right', 'top', 'pop'].includes(slot.from));
+    // O meio da janela fica para o conteúdo: as nuvens grandes vivem no alto (y < 20) ou no horizonte (y > 75).
+    if (!slot.mid) assert.ok(slot.y < 20 || slot.y > 75, `nuvem no meio do conteúdo: ${JSON.stringify(slot)}`);
+  }
+  assert.match(src, /querySelectorAll\('dialog\.dlg-todas'\)/);
+  assert.match(src, /radarDialog/, 'o mapa do radar cobre a janela inteira');
+  assert.match(src, /attributeFilter:\['open'\]/);
+  assert.match(css, /\.toon-sheet \{ z-index:-1; border-radius:inherit; \}/, 'atrás do conteúdo, dentro do canto arredondado');
+  assert.match(css, /\[data-toon\]::before,\s*html body :is\(\.dlg-todas, #_\)\[data-toon\]::after \{ content:none; \}/, 'estrelas e véu estáticos saem quando o desenho está lá');
+  assert.match(css, /body\.page-hidden \.toon-sheet \*/, 'app em segundo plano pausa o desenho');
+});
+
 test('chuva e neve são uma camada só (não um elemento por gota) e o módulo não usa will-change', () => {
   const src = dist('modules/sky-toon.js'), css = dist('sky.css');
   assert.doesNotMatch(src, /willChange|will-change\s*:/);
