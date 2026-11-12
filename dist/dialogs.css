@@ -1,0 +1,1164 @@
+/* Regras só das janelas (1.72.2). Saíram de sky.css, styles.css, redesign.css e continuous.css (nessa ordem)
+   para a Home não pagar por elas na abertura: este arquivo entra depois da primeira pintura (ver o <head> do
+   index.html). Regra que também vale fora das janelas NÃO entra aqui. Mantenha a ordem: ela é a da cascata antiga. */
+
+/* ===== de sky.css ===== */
+html body :is(.dlg-todas, #_)[data-toon]::before,
+html body :is(.dlg-todas, #_)[data-toon]::after { content:none; }
+
+/* ===== de styles.css ===== */
+.city-dialog { width:min(560px,calc(100% - 28px)); max-height:calc(100dvh - 32px); padding:22px; margin:auto; border:1px solid #075dff30; border-radius:24px; background:#fff; color:#14223d; box-shadow:0 24px 80px #071b3d33; }
+.city-dialog::backdrop { background:rgba(5,15,35,.55); }
+.dialog-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.dialog-heading h2 { font-size:1.35rem; margin:0; }
+.dialog-close { min-width:44px; min-height:44px; border:0; background:transparent; color:inherit; font-size:30px; cursor:pointer; }
+.city-dialog .city-picker { padding:18px 0 0; margin:0; }
+.city-dialog .city-search-field { flex-basis:100%; }
+body.city-dialog-open { overflow:hidden; }
+@media(prefers-color-scheme:dark) { .city-dialog { background:#101d32; color:#dce9ff; border-color:#568eff66; } }
+.city-dialog { padding:20px; max-height:calc(100dvh - 32px); overflow:auto; }
+.city-dialog .city-picker { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.city-dialog .city-search-field,.city-dialog .city-results,.city-dialog #cityPickerStatus { grid-column:1/-1; }
+.city-dialog .city-search-field input { width:100%; box-sizing:border-box; min-height:48px; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--panel); color:inherit; font:400 16px/1.4 var(--font-ui); }
+.city-dialog .city-search-field input:focus { outline:2px solid var(--blue); outline-offset:1px; }
+.city-dialog .city-results { display:block; max-height: min(36dvh,320px); margin:4px 0; overscroll-behavior:contain; }
+.city-dialog .city-result { display:flex; flex-direction:column; align-items:flex-start; gap:3px; min-height:64px; padding:10px 4px; border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; font-size:16px; }
+.city-dialog .city-result small { text-align:left; font-size:0.75rem; }
+.city-dialog .city-button { min-width:0; min-height:44px; padding:10px 8px; border-radius:12px; font-size:0.8125rem; line-height:1.3; }
+.city-dialog #cityPickerStatus { margin:4px 0 0; font-size:0.75rem; line-height:1.5; }
+@media(max-width:600px) { .city-dialog { width:calc(100% - 24px); padding:16px; border-radius:22px; } .dialog-heading h2 { font-size:1.1rem; } }
+@media (max-width:720px) {
+  .city-dialog {
+    max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px);
+  }
+  .city-dialog .dialog-heading {
+    position:sticky;
+    top:0;
+    z-index:2;
+    background:inherit;
+  }
+}
+
+/* ===== de redesign.css ===== */
+.city-dialog .city-button,.city-dialog .city-picker input,.city-dialog .city-picker select,.city-dialog .city-result { background:#18283e; color:#e5f0ff; border-color:var(--line); }
+
+/* Dialogs share one scrolling surface; the header stays outside it. */
+html body :is(.dlg-folha, #_) {
+  --dialog-bg:#0d2239; --dialog-surface:#162e48; --dialog-line:#a4c7e51f;
+  --dialog-text:#f1f7ff; --dialog-muted:#aac0d7;
+  --dialog-top-gap:max(16px,env(safe-area-inset-top)); --dialog-bottom-gap:max(16px,env(safe-area-inset-bottom));
+  width:min(600px,calc(100% - 32px)); max-width:none;
+  position:fixed; top:calc(var(--dialog-offset-top,0px) + var(--dialog-top-gap)); bottom:auto;
+  max-height:calc(var(--dialog-height,100dvh) - var(--dialog-top-gap) - var(--dialog-bottom-gap));
+  margin:0 auto; padding:0; overflow:hidden; border:1px solid var(--dialog-line); border-radius:28px;
+  background:var(--dialog-bg); color:var(--dialog-text); box-shadow:0 32px 100px #0008;
+  color-scheme:dark;
+}
+html body :is(.dlg-folha, #_)[open] { display:flex; flex-direction:column; }
+html body :is(.dlg-folha, #_)::backdrop { background:#020c1bc7; backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); }
+html body :is(.dlg-folha, #_) .dialog-heading {
+  position:relative; top:auto; flex:none; display:flex; align-items:center; justify-content:space-between;
+  margin:0; padding:22px 24px; gap:16px; background:var(--dialog-bg); border-bottom:1px solid var(--dialog-line);
+}
+html body :is(.dlg-folha, #_) .dialog-heading h2 { font-size:1.5rem; font-weight:600; letter-spacing:-.035em; line-height:1.2; margin:0; }
+html body :is(.dlg-folha, #_) .dialog-close { flex:none; width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:14px; background:#aac7e513; color:var(--dialog-text); font:400 28px/1 var(--font-ui); padding:0; }
+html body :is(.dlg-folha, #_) .dialog-close:focus { outline:none; }
+html body :is(.dlg-folha, #_) :is(button,input,summary,a):focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
+html body :is(.dlg-folha, #_) p { color:var(--dialog-muted); font-size:1rem; line-height:1.55; }
+html body :is(.dlg-folha, #_) p:empty { display:none; }
+html body :is(.dlg-folha, #_) :is(input:not([type=checkbox]),select) { width:100%; min-width:0; min-height:52px; padding:14px 16px; border:1px solid #8eb4df38; border-radius:14px; background:#071a2d; color:var(--dialog-text); font:inherit; font-size:1rem; box-shadow:none; }
+html body :is(.dlg-folha, #_) input::placeholder { color:#89a5c2; opacity:1; }
+html body :is(.dlg-folha, #_) button:not(.dialog-close):not(.city-result) { min-height:48px; border-radius:14px; padding:12px 16px; font-size:.9375rem; font-weight:750; line-height:1.35; }
+html body :is(.dlg-folha, #_) h3 { margin:0 0 16px; font-size:1.1875rem; font-weight:800; letter-spacing:-.02em; }
+#cityDialog .city-picker { display:flex; flex-direction:column; gap:16px; margin:0; padding:0; }
+#cityDialog .city-search-field { display:block; flex:none; margin:0; padding:16px 24px; border-bottom:1px solid var(--dialog-line); background:var(--dialog-bg); }
+#cityDialog .city-search-field label { display:block; color:var(--dialog-muted); font-size:.875rem; margin-bottom:8px; }
+#cityDialog .city-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+#cityDialog .city-actions button { margin:0; border:1px solid var(--dialog-line); color:var(--dialog-text); background:var(--dialog-surface); }
+#cityDialog #locateCity { background:#2464dc; border-color:#528af3; color:#fff; }
+#cityDialog .city-results { display:block; padding:0; margin:0; max-height:none; overflow:visible; list-style:none; border-top:1px solid var(--dialog-line); }
+#cityDialog .city-results li { margin:0; }
+#cityDialog .city-result { position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:5px; width:100%; min-height:78px; padding:16px 4px; border:0; border-bottom:1px solid var(--dialog-line); border-radius:0; background:transparent; text-align:left; color:var(--dialog-text); }
+#cityDialog .city-result span { font-size:1.125rem; font-weight:750; line-height:1.3; }
+#cityDialog .city-result small { color:var(--dialog-muted); font-size:.875rem; line-height:1.4; }
+#cityDialog .city-result:is(:hover,[aria-selected=true]) { background:#4b91e513; border-color:var(--dialog-line); }
+#cityDialog .city-result[data-current=true] { padding-left:14px; border-left:3px solid #6ba4ff; background:#4b91e510; }
+#cityDialog #cityPickerStatus { order:0; font-size:.875rem; margin:0; }
+#cityDialog .saved-places { margin:24px 0 0; padding:20px 0 0; border-top:1px solid var(--dialog-line); }
+#cityDialog .saved-places > summary { cursor:pointer; font-size:1.1875rem; font-weight:800; }
+#cityDialog .saved-places > summary span { display:block; margin:6px 0 0 18px; color:var(--dialog-muted); font-size:.875rem; font-weight:500; }
+#cityDialog #savedPlacesForm { display:grid; gap:10px; }
+#cityDialog #savedPlacesForm label { font-size:.875rem; }
+#cityDialog .saved-place-row { display:flex; flex-wrap:wrap; gap:8px; padding:14px 0; border-bottom:1px solid var(--dialog-line); }
+#cityDialog .saved-place-row button:first-child { flex-basis:100%; text-align:left; }
+#cityDialog .saved-place-row button { border:1px solid var(--dialog-line); background:var(--dialog-surface); color:var(--dialog-text); }
+#cityDialog .saved-place-row button span { display:block; color:var(--dialog-muted); font-size:.875rem; }
+#accountDialog #accountIntro { margin:0 0 24px; }
+#accountDialog .account-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; border-radius:16px; background:#06182a; margin:0 0 24px; }
+#accountDialog .account-tabs button { border:0; color:var(--dialog-muted); background:transparent; }
+#accountDialog .account-tabs button[aria-pressed=true] { color:#fff; background:#244968; }
+#accountDialog :is(#accountForm,#profileForm) { display:grid; gap:16px; }
+#accountDialog form label:not(.notification-location) { display:grid; gap:8px; color:var(--dialog-muted); font-size:.875rem; }
+#accountDialog small { color:var(--dialog-muted); font-size:.875rem; line-height:1.55; }
+#accountDialog :is(#accountSubmit,#profileSave,#notificationPreferencesSave) { border:1px solid #528af3; background:#2464dc; color:white; width:100%; }
+#accountDialog #accountIdentity { margin:4px 0 0; font-size:.875rem; overflow-wrap:anywhere; }
+#accountDialog .notification-settings { margin:28px 0 0; padding-top:24px; border-top:1px solid var(--dialog-line); }
+#accountDialog .notification-settings-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
+#accountDialog .notification-settings-head h3 { margin:0; }
+#accountDialog .notification-settings-head .eyebrow { display:none; }
+#accountDialog .notification-status { font-size:.8125rem; padding:8px 10px; border-radius:10px; }
+#accountDialog .notification-checks { border:1px solid var(--dialog-line); border-radius:14px; margin:16px 0; padding:14px; }
+#accountDialog .notification-checks summary { color:var(--dialog-muted); font-size:.875rem; cursor:pointer; }
+#accountDialog .notification-diagnostics { display:grid; grid-template-columns:1fr; gap:0; margin:12px 0 0; padding:0; list-style:none; }
+#accountDialog .notification-diagnostics li { padding:8px 0; border:0; border-radius:0; font-size:.875rem; background:none; }
+#accountDialog .notification-actions { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0; }
+#accountDialog .notification-actions button { flex:1; background:var(--dialog-surface); border:1px solid var(--dialog-line); color:var(--dialog-text); }
+#accountDialog .alert-preferences { display:grid; gap:14px; margin:0; padding:0; background:none; border:0; }
+#accountDialog .alert-preferences p { margin:0; }
+#accountDialog .notification-location { display:flex; align-items:flex-start; gap:10px; padding:16px; border:1px solid var(--dialog-line); border-radius:14px; background:var(--dialog-surface); font-size:1rem; line-height:1.4; }
+#accountDialog .notification-location input { flex:none; width:20px; height:20px; margin:1px 0 0; accent-color:#6ba4ff; }
+#accountDialog :is(.notification-locations,.notification-devices) { margin-top:24px; padding-top:20px; border-top:1px solid var(--dialog-line); }
+#accountDialog :is(.notification-locations,.notification-devices) h4 { margin:0 0 12px; font-size:1rem; }
+#accountDialog #accountLogout { margin-top:28px; width:100%; background:none; border:1px solid var(--dialog-line); color:#ffaeb3; }
+#sourcesDialog #sourcesBody > p { margin:0 0 22px; }
+#sourcesDialog .sources-list { display:block; margin:0; }
+#sourcesDialog .sources-list article { position:relative; padding:18px 0 18px 18px; margin:0; border:0; border-bottom:1px solid var(--dialog-line); border-radius:0; background:none; box-shadow:none; }
+#sourcesDialog .sources-list article::before { content:""; position:absolute; top:24px; left:0; width:4px; height:26px; border-radius:4px; background:#8cb8ef; }
+#sourcesDialog .sources-list article[data-kind=official]::before { background:#6fd0b0; }
+#sourcesDialog .sources-list article[data-kind=observation]::before { background:#b7a6ee; }
+#sourcesDialog .sources-list b { display:block; margin:0 0 7px; font-size:.75rem; font-weight:800; color:#8bbaff; line-height:1.4; letter-spacing:.055em; }
+#sourcesDialog .sources-list strong { display:block; font-size:1.25rem; font-weight:800; line-height:1.3; }
+#sourcesDialog .sources-list span { display:block; margin:8px 0 0; color:var(--dialog-muted); font-size:.9375rem; line-height:1.55; }
+#sourcesDialog :is(.source-credits,.official-observations) { margin:24px 0 0; padding:0; border:0; }
+#sourcesDialog .official-observations a { display:block; margin:8px 0; padding:12px 14px; border:1px solid var(--dialog-line); border-radius:12px; color:#accfff; background:var(--dialog-surface); font-size:.875rem; }
+#sourcesDialog a { color:#accfff; overflow-wrap:anywhere; }
+@media(max-width:600px) {
+  html body :is(.dlg-folha, #_) { width:calc(100% - 16px); border-radius:24px; }
+  html body :is(.dlg-folha, #_) .dialog-heading { padding:20px; }
+  #cityDialog .city-search-field { padding:12px 20px 16px; }
+  html body :is(.dlg-folha, #_) .dialog-heading h2 { font-size:1.375rem; }
+}
+@media(prefers-reduced-motion:no-preference) {
+  html body :is(.dlg-folha, #_)[open] { animation:dialog-appear .2s ease-out; }
+}
+
+/* ===== de continuous.css ===== */
+/* One brand accent for account, city selection and radar controls. */
+html body :is(.dlg-misto, #_) :is(button,input,select,summary,a):focus-visible { outline-color:var(--brand-blue); }
+#cityDialog #locateCity,#accountDialog :is(#accountSubmit,#profileSave,#notificationPreferencesSave),#accountDialog .account-tabs button[aria-pressed=true] { background:var(--brand-blue); border-color:var(--brand-blue); color:var(--on-accent); }
+#cityDialog .city-actions button:not(#locateCity),#accountDialog .notification-actions button { border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
+#accountDialog #accountLogout { color:var(--brand-blue); border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
+#cityDialog .city-result[data-current=true] { border-left-color:var(--brand-blue); }
+#cityDialog .favorite-city-card[aria-current=true] { border-color:var(--brand-blue); }
+#accountDialog .profile-avatar { background:var(--brand-blue); color:var(--on-accent); }
+#accountDialog :is(.notification-types,.notification-location,.notification-quiet-toggle) input[type=checkbox] { accent-color:var(--brand-blue); }
+#accountDialog .notification-status.is-on { color:var(--brand-blue); border-color:color-mix(in srgb,var(--brand-blue) 35%,transparent); background:color-mix(in srgb,var(--brand-blue) 8%,transparent); }
+#accountDialog .notification-status.is-on::before { background:var(--brand-blue); }
+#accountDialog :is(.notification-location-row,.notification-device) button { color:var(--brand-blue) !important; border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
+
+/* Details reuse the common modal's fixed heading and single scrolling body. */
+#alertDetail .dialog-heading h2 { min-width:0; }
+/* The picker is one vertical column. Inherited flex wrapping sizes its entire
+   column to the favorites' intrinsic width and clips buttons/results on phones. */
+#cityDialog .city-picker { flex-wrap:nowrap; }
+#cityDialog .city-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+#cityDialog .favorite-cities { margin-bottom:6px; }
+#cityDialog .favorite-city-card { min-height:0; border:1px solid var(--dialog-line); background:var(--dialog-surface); color:var(--dialog-text); padding:12px; }
+#cityDialog .favorite-city-card small { color:var(--dialog-muted); }
+
+#hourlyDetailDialog .dialog-heading > div { min-width:0; }
+#hourlyDetailDialog #hourlyDetailCity { margin:6px 0 0; font-size:.875rem; }
+#hourlyDetailDialog #hourlyDetailCondition { margin:0; font-size:1rem; }
+#hourlyDetailDialog .hourly-detail-note { margin:0 0 12px; font-size:.875rem; }
+
+#accountDialog :is(.notification-types,.notification-city-choices) { min-width:0; margin:4px 0; padding:0; border:0; }
+#accountDialog :is(.notification-types,.notification-city-choices) legend { padding:0; margin-bottom:10px; color:var(--dialog-text); font-size:1rem; font-weight:800; }
+#accountDialog .notification-types label:not(.notification-summary-time) { display:flex; align-items:flex-start; gap:12px; min-height:48px; padding:12px 0; border-bottom:1px solid var(--dialog-line); font-size:.9375rem; line-height:1.45; color:var(--dialog-text); cursor:pointer; }
+#accountDialog .notification-types input[type=checkbox] { flex:none; width:20px; height:20px; margin:1px 0 0; accent-color:var(--brand-blue); }
+#accountDialog .notification-types label > span { min-width:0; }
+#accountDialog .notification-types label small { display:block; margin-top:3px; font-size:.8rem; }
+#accountDialog .notification-city-choices .notification-location { margin:10px 0; cursor:pointer; }
+#accountDialog .notification-city-choices .notification-location:has(input:disabled) { opacity:.7; cursor:default; }
+#accountDialog form .notification-summary-time { display:grid; padding:14px 0; }
+
+/* Social login belongs to the existing account dialog. */
+#accountDialog .account-social { display:grid; gap:10px; margin:0 0 18px; }
+#accountDialog .account-social[hidden],#accountDialog .account-provider[hidden] { display:none; }
+#accountDialog .account-provider { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; min-height:44px; }
+#accountDialog .account-provider-icon { flex:none; width:20px; height:20px; }
+#accountDialog #accountGoogle { background:#fff; color:#1f1f1f; border-color:#747775; font-family:Arial,sans-serif; font-weight:500; }
+#accountDialog #accountApple { background:#000; color:#fff; border-color:#747775; }
+#accountDialog .account-provider:focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
+#accountDialog .account-email-separator { text-align:center; font-size:.8rem; color:var(--dialog-muted,var(--muted)); }
+@media (prefers-reduced-motion:no-preference) {
+  html body :is(.dlg-g14, #_)[open] { animation:pluvia-dialog-enter .4s cubic-bezier(.22,1,.36,1); }
+  html body :is(.dlg-g14, #_)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
+  html body :is(.dlg-g14, #_)[open].pluvia-dialog-closing { animation:pluvia-dialog-exit .28s cubic-bezier(.4,0,1,1) forwards; }
+  html body :is(.dlg-g14, #_)[open].pluvia-dialog-closing::backdrop { animation:pluvia-backdrop-exit .28s ease-in forwards; }
+}
+@media (prefers-reduced-motion:reduce) { html body :is(.dlg-g14, #_)[open],html body :is(.dlg-g14, #_)[open]::backdrop { animation:none !important; } }
+#accountDialog :is(#accountRecoveryForm,#accountDeleteForm) { display:grid; gap:14px; }
+#accountDialog :is(#accountRecoveryForm,#accountDeleteForm)[hidden] { display:none; }
+#accountDialog .account-text-action { background:transparent; color:var(--dialog-muted); text-decoration:underline; text-underline-offset:3px; }
+#accountDialog #accountDelete { border:1px solid #fa948e88; background:#8d322b33; color:#ffd0cc; }
+#accountDialog .notification-timing { display:block; min-width:0; margin:18px 0; padding:18px 0; border:0; border-block:1px solid var(--dialog-line); }
+#accountDialog .notification-timing legend { color:var(--dialog-text); font-size:1rem; font-weight:800; }
+#accountDialog .notification-timing > label { margin:16px 0 8px; }
+#accountDialog form .notification-quiet-toggle { display:flex; align-items:center; gap:12px; min-height:48px; color:var(--dialog-text); cursor:pointer; }
+#accountDialog .notification-quiet-toggle input { flex:none; width:20px; height:20px; accent-color:var(--brand-blue); }
+#accountDialog .notification-time-pair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+#accountDialog .notification-time-pair[hidden] { display:none; }
+#accountDialog .notification-timing label:not(.notification-quiet-toggle) { display:grid!important; grid-template-columns:minmax(0,1fr); gap:8px; }
+#accountDialog .notification-time-pair input { width:100%!important; min-width:0; }
+#accountDialog select:focus-visible { outline:2px solid var(--brand-blue); outline-offset:3px; }
+#dailyDetailDialog { font-variant-numeric:tabular-nums; }
+#dailyDetailDialog .dialog-heading > div { min-width:0; }
+#dailyDetailDialog .hourly-detail-note { font-size:.875rem; }
+#dailyDetailDialog :is(button,[tabindex]):focus-visible { outline:2px solid var(--brand-blue); outline-offset:2px; }
+
+/* Brasil agora: capitais por região; cada linha é um botão (ícone, nome, temperatura, máx/mín)
+   com colunas fixas para os números ficarem alinhados entre as linhas. */
+html body #brazilDialog .brazil-status { min-height:1.2em; margin:0 0 8px; font-size:.8rem; line-height:1.5; }
+html body #brazilDialog .brazil-status:empty { display:block; }
+html body #brazilDialog .brazil-note { font-size:.8rem; line-height:1.5; }
+/* Etiqueta = botão (abre a cidade). Seletor com dois ids para vencer o estilo genérico dos botões dos diálogos
+   (48 px de altura, padding 12/16). A área de toque (::before) tem 44 × 44 px mesmo com a pílula de ~19 px. */
+html body #brazilDialog #brazilMap button.brazil-chip { position:absolute; transform:translate(-50%,-50%); min-height:0; margin:0; padding:1px 6px; border:0; border-radius:999px;
+  background:var(--chip,#8a96ad); color:#0b1430; font:600 .75rem/1.4 var(--font-ui); font-variant-numeric:tabular-nums; white-space:nowrap; cursor:pointer;
+  box-shadow:0 0 0 1px #0b143040; pointer-events:auto; transition:left .25s ease, top .25s ease; }
+html body #brazilDialog #brazilMap button.brazil-chip[data-missing] { background:#8a96ad; }
+html body #brazilDialog #brazilMap button.brazil-chip:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+@media (max-width:360px) { html body #brazilDialog #brazilMap button.brazil-chip { padding:0 4px; letter-spacing:-.02em; } }
+@media (prefers-reduced-motion:reduce) { html body #brazilDialog #brazilMap button.brazil-chip { transition:none; } }
+@media (forced-colors:active) { html body #brazilDialog #brazilMap button.brazil-chip { forced-color-adjust:none; border:1px solid CanvasText; } }
+html body #brazilDialog .brazil-list h3 { margin:0 0 4px; color:var(--dialog-muted); font-size:.75rem; font-weight:500; letter-spacing:.09em; text-transform:uppercase; }
+html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px minmax(0,1fr) 3.2ch 4.4rem; align-items:center; gap:10px; width:100%; min-height:48px; margin:0; padding:6px 4px; border-radius:0; border:0; border-bottom:1px solid var(--dialog-line); background:none; color:var(--dialog-text); font:inherit; text-align:left; cursor:pointer; font-variant-numeric:tabular-nums; }
+@media(max-width:360px) { html body #brazilDialog .brazil-row { grid-template-columns:28px minmax(0,1fr) 3.2ch; gap:8px; } }
+
+/* Busca de cidades: digitando, os resultados sobem para logo abaixo do campo, antes dos botões e
+   favoritos (que continuam ali embaixo). No celular o teclado escondia a lista lá no fim. */
+#cityDialog[data-searching] :is(#cityResults,#cityPickerStatus) { order:-1; }
+
+/* ===== Diálogos v2 (redesign a pedido, outubro/2026) =====
+   Folha no estilo de listas agrupadas: cabeçalho leve, grupos em cartões com linhas finas,
+   botões em pílula e interruptores no lugar das caixas de seleção. Só pintura: sem blur,
+   sem transform/z-index em blocos; o motion de entrada/saída continua em dialog-motion.js. */
+html body :is(.dlg-g13, #_) {
+  --dialog-bg:#0b1830; --dialog-surface:#ffffff0d; --dialog-surface-2:#ffffff17; --dialog-line:#ffffff14;
+  --dialog-text:#f2f6ff; --dialog-muted:#a9b8d0; --sheet-radius:22px;
+  border-color:#ffffff1a; border-radius:32px;
+  background:linear-gradient(180deg,#14284a 0,#0b1830 240px) #0b1830;
+  box-shadow:0 30px 90px #000a,inset 0 1px 0 #ffffff14;
+}
+html body :is(.dlg-g13, #_) .dialog-heading {
+  padding:20px 16px 10px 24px; border-bottom:0; background:transparent;
+}
+html body :is(.dlg-g13, #_) .dialog-heading h2 { font-size:1.5rem; font-weight:650; letter-spacing:-.025em; }
+html body :is(.dlg-g13, #_) .dialog-close {
+  width:44px; height:44px; border-radius:50%; background:#ffffff14; color:var(--dialog-text); font-size:24px; font-weight:300;
+}
+html body :is(.dlg-cidade-conta-fontes, #_) .dialog-scroll { padding:8px 20px 28px; }
+/* Botões: pílulas. Primário no azul da marca; secundário em superfície clara translúcida. */
+html body :is(.dlg-cidade-conta-fontes, #_) button:not(.dialog-close):not(.city-result):not(.favorite-city-card):not(.account-provider):not(.favorite-organize):not(.account-text-action):not(.city-button):not(.account-more-item) {
+  border:0; border-radius:999px; background:var(--dialog-surface-2); color:var(--dialog-text); font-weight:600;
+}
+html body :is(.dlg-cidade-conta, #_) :is(#accountSubmit,#profileSave,#notificationPreferencesSave,#savedPlaceSave,#accountRecoverySave) { background:var(--brand-blue); color:var(--on-accent); }
+html body #accountDialog #notificationPreferencesSave:disabled { background:color-mix(in srgb,var(--brand-blue) 35%,transparent); color:color-mix(in srgb,var(--on-accent) 65%,transparent); }
+html body :is(.dlg-cidade-conta-fontes, #_) :is(input:not([type=checkbox]),select) {
+  min-height:50px; border:1px solid #ffffff1f; border-radius:16px; background:#ffffff0a; color:var(--dialog-text);
+}
+html body :is(.dlg-cidade-conta-fontes, #_) :is(input:not([type=checkbox]),select):focus { border-color:var(--brand-blue); outline:none; box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-blue) 25%,transparent); }
+/* Títulos de grupo: discretos, como cabeçalhos de lista. */
+html body :is(.dlg-cidade-conta-fontes, #_) :is(h3,h4,legend) { margin:0 0 10px; padding:0 4px; color:var(--dialog-muted); font-size:.875rem; font-weight:600; letter-spacing:0; text-transform:none; }
+/* Interruptores: as mesmas caixas de seleção nativas (papel, foco e teclado intactos), desenhadas como chave. */
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox] {
+  -webkit-appearance:none; appearance:none; flex:none; position:relative; width:50px !important; height:30px !important; margin:0 !important;
+  border-radius:999px; background:#ffffff2e; cursor:pointer; transition:background-color .2s ease;
+}
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]::before {
+  content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff;
+  box-shadow:0 1px 3px #0006;
+}
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:var(--brand-blue); }
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked::before { translate:20px 0; }
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:disabled { opacity:.45; cursor:default; }
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
+@media (forced-colors:active) { html body :is(.dlg-conta-fontes, #_) input[type=checkbox] { -webkit-appearance:auto; appearance:auto; width:20px !important; height:20px !important; } html body :is(.dlg-conta-fontes, #_) input[type=checkbox]::before { content:none; } }
+@media (prefers-reduced-motion:reduce){ html body :is(.dlg-conta-fontes, #_) input[type=checkbox],html body :is(.dlg-conta-fontes, #_) input[type=checkbox]::before { transition:none; } }
+
+/* --- Suas cidades --- */
+html body #cityDialog .city-search-field { padding:4px 20px 14px; border-bottom:0; background:transparent; }
+html body #cityDialog .city-search-field label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+html body #cityDialog #citySearch {
+  min-height:52px; padding-left:48px; border-radius:999px; background-color:#ffffff12;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a9b8d0' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:18px 50%; background-size:20px;
+}
+/* Microfone dentro da pílula de busca (só aparece com reconhecimento de fala disponível). */
+html body #cityDialog .city-search-field { position:relative; }
+html body #cityDialog .city-search-field:has(.voice-search:not([hidden])) #citySearch { padding-right:56px; }
+html body #cityDialog #voiceSearch {
+  position:absolute; top:50%; right:26px; width:44px; height:44px; min-height:44px; margin-top:-27px; padding:0; border:0; border-radius:999px;
+  background:transparent; color:#a9b8d0;
+}
+html body #cityDialog .voice-search::before {
+  content:""; display:block; width:22px; height:22px; margin:auto; background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='3' width='6' height='11' rx='3'/%3E%3Cpath d='M5 11a7 7 0 0 0 14 0M12 18v3'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='3' width='6' height='11' rx='3'/%3E%3Cpath d='M5 11a7 7 0 0 0 14 0M12 18v3'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+html body #cityDialog #voiceSearch[data-listening] { background:var(--brand-blue); color:var(--on-accent); }
+@media (forced-colors:active){ html body #cityDialog .voice-search::before { background:ButtonText; } }
+@media (max-width:600px){ html body #cityDialog #voiceSearch { right:22px; margin-top:-26px; } }
+html body #cityDialog .city-picker { gap:22px; }
+html body #cityDialog .city-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+html body #cityDialog .city-actions > button {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:84px; padding:12px 2px; border:0;
+  border-radius:20px; background:var(--dialog-surface); color:var(--dialog-text); font-size:.75rem; font-weight:600; line-height:1.2; text-align:center;
+}
+html body #cityDialog .city-actions > button::before {
+  content:""; width:24px; height:24px; background:var(--brand-blue); background:#8fb4ff;
+  -webkit-mask:var(--action-icon) center/contain no-repeat; mask:var(--action-icon) center/contain no-repeat;
+}
+html body #cityDialog #locateCity { background:var(--brand-blue); color:var(--on-accent); }
+html body #cityDialog #locateCity::before { background:#fff; }
+html body #cityDialog #favoriteCity { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z'/%3E%3C/svg%3E"); }
+html body #cityDialog #favoriteCity[aria-pressed=true] { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' stroke='black' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z'/%3E%3C/svg%3E"); }
+html body #cityDialog #favoriteCity[aria-pressed=true]::before { background:#ffd166; }
+html body #cityDialog #locateCity { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='7'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3Cpath d='M12 2v3m0 14v3M2 12h3m14 0h3'/%3E%3C/svg%3E"); }
+html body #cityDialog #brazilOpen { --action-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z'/%3E%3C/svg%3E"); }
+html body #cityDialog .favorite-heading { padding:0 0 0 4px; }
+html body #cityDialog .favorite-heading h3 { margin:0; padding:0; }
+html body #cityDialog .favorite-organize { color:#8fb4ff; font-size:.875rem; }
+html body #cityDialog .favorite-city-card {
+  border:1px solid transparent; border-radius:22px; background:var(--dialog-surface); color:var(--dialog-text); padding:14px; font-weight:400;
+}
+html body #cityDialog .favorite-city-card[aria-current=true] { border-color:var(--brand-blue); background:color-mix(in srgb,var(--brand-blue) 12%,transparent); }
+html body #cityDialog .favorite-city-card > strong { font-size:.9375rem; font-weight:600; }
+html body #cityDialog .favorite-city-card .favorite-reading { font-size:2rem; font-weight:300; letter-spacing:-.03em; line-height:1.05; }
+html body #cityDialog .city-results { border-top:0; border-radius:var(--sheet-radius); background:var(--dialog-surface); overflow:hidden; }
+html body #cityDialog .city-results:empty { display:none; }
+html body #cityDialog .city-result { min-height:64px; padding:12px 18px; gap:2px; border-bottom:1px solid var(--dialog-line); }
+html body #cityDialog .city-results li:last-child .city-result { border-bottom:0; }
+html body #cityDialog .city-result span { font-size:1rem; font-weight:600; }
+html body #cityDialog .city-result small { font-size:.8125rem; }
+html body #cityDialog .city-result[data-current=true] { padding-left:18px; border-left:0; background:color-mix(in srgb,var(--brand-blue) 12%,transparent); }
+html body #cityDialog #cityPickerStatus { padding:0 4px; }
+html body #cityDialog .saved-places { margin:22px 0 0; padding:4px 18px; border:0; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #cityDialog .saved-places > summary { display:flex; flex-direction:column; justify-content:center; min-height:64px; font-size:1rem; font-weight:600; list-style:none; }
+html body #cityDialog .saved-places > summary::-webkit-details-marker { display:none; }
+html body #cityDialog .saved-places > summary span { margin:2px 0 0; font-size:.8125rem; font-weight:400; }
+html body #cityDialog .saved-places[open] > summary { border-bottom:1px solid var(--dialog-line); }
+html body #cityDialog .saved-place-row button { background:var(--dialog-surface-2); }
+
+/* --- Minha conta --- */
+html body #accountDialog #accountIntro { margin:4px 4px 20px; }
+html body #accountDialog .account-tabs { padding:4px; border-radius:999px; background:#ffffff0f; }
+html body #accountDialog #accountTabs button { min-height:44px; border-radius:999px; background:transparent; color:var(--dialog-muted); }
+html body #accountDialog #accountTabs button[aria-pressed=true] { background:#ffffff26; color:#fff; }
+html body #accountDialog .account-provider { min-height:50px; border-radius:999px; }
+html body #accountDialog .account-text-action { min-height:44px; border:0; background:transparent; color:var(--dialog-muted); }
+html body #accountDialog .profile-identity {
+  flex-direction:column; align-items:center; gap:12px; margin:4px 0 22px; padding:24px 16px 22px; border-radius:26px; text-align:center;
+  background:radial-gradient(120% 100% at 50% 0,color-mix(in srgb,var(--brand-blue) 25%,transparent),transparent 70%),var(--dialog-surface);
+}
+html body #accountDialog .profile-identity strong { font-size:1.375rem; font-weight:650; }
+html body #accountDialog .profile-avatar { width:76px; height:76px; border-radius:50%; background:var(--brand-blue); color:var(--on-accent); font-size:2rem; font-weight:600; box-shadow:0 10px 30px color-mix(in srgb,var(--brand-blue) 33%,transparent); }
+html body #accountDialog #accountIdentity { margin:2px 0 0; }
+html body #accountDialog #profileForm { gap:10px; padding:16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog #profileForm small { padding:0 4px; }
+html body #accountDialog .notification-settings { margin:26px 0 0; padding:0; border-top:0; }
+html body #accountDialog .notification-settings-head { padding:0 4px; }
+html body #accountDialog .notification-settings-head h3 { margin:0; padding:0; color:var(--dialog-text); font-size:1.25rem; font-weight:650; }
+html body #accountDialog .notification-status { min-height:32px; padding:6px 12px; border-radius:999px; font-size:.8125rem; font-weight:600; }
+html body #accountDialog #notificationSupportNote { margin:10px 4px 14px; font-size:.9375rem; }
+html body #accountDialog .notification-checks { margin:0 0 12px; padding:0 16px; border:0; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog .notification-actions { margin:0 0 26px; gap:8px; }
+html body #accountDialog .notification-actions button { min-height:50px; }
+html body #accountDialog #notificationToggle { background:var(--brand-blue); color:var(--on-accent); }
+html body #accountDialog .alert-preferences { gap:26px; }
+html body #accountDialog .alert-preferences > small,html body #accountDialog .notification-help,html body #accountDialog #notificationPrivacy { margin:-16px 4px 0; font-size:.8125rem; line-height:1.5; }
+html body #accountDialog :is(.notification-types,.notification-timing,.notification-city-choices) { margin:0; padding:0; border:0; }
+html body #accountDialog :is(.notification-types,.notification-timing,.notification-city-choices) legend { float:left; width:100%; color:var(--dialog-muted); font-size:.875rem; font-weight:600; }
+html body #accountDialog :is(.notification-types,.notification-timing,.notification-city-choices) legend + * { clear:both; }
+html body #accountDialog .notification-types { display:block; padding:0; border-radius:var(--sheet-radius); }
+html body #accountDialog .notification-types label:not(.notification-summary-time) {
+  flex-direction:row-reverse; justify-content:space-between; align-items:center; gap:14px; min-height:56px; margin:0; padding:12px 16px;
+  border-bottom:1px solid var(--dialog-line); background:var(--dialog-surface); color:var(--dialog-text); font-size:.9375rem;
+}
+html body #accountDialog .notification-types label:not(.notification-summary-time) strong { font-weight:500; }
+html body #accountDialog .notification-types label:not(.notification-summary-time) small { margin-top:2px; font-size:.8125rem; }
+html body #accountDialog .notification-types > label:first-of-type { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #accountDialog .notification-types > label:nth-last-of-type(2) { border-bottom:0; border-radius:0 0 var(--sheet-radius) var(--sheet-radius); }
+html body #accountDialog .notification-types:has(.notification-summary-time:not([hidden])) > label:nth-last-of-type(2) { border-bottom:1px solid var(--dialog-line); border-radius:0; }
+html body #accountDialog form .notification-types .notification-summary-time { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 16px; border-radius:0 0 var(--sheet-radius) var(--sheet-radius); background:var(--dialog-surface); color:var(--dialog-text); }
+html body #accountDialog form .notification-types .notification-summary-time[hidden] { display:none; }
+html body #accountDialog form .notification-types .notification-summary-time input { width:auto; min-height:40px; }
+html body #accountDialog .notification-timing { display:block; padding:0; border-block:0; }
+html body #accountDialog .notification-timing > :is(label,div,small) { margin:0; }
+html body #accountDialog .notification-timing > label:not(.notification-quiet-toggle),html body #accountDialog .notification-timing > .notification-time-pair { padding:14px 16px; background:var(--dialog-surface); border-bottom:1px solid var(--dialog-line); color:var(--dialog-muted); }
+html body #accountDialog .notification-timing > label:first-of-type { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #accountDialog form .notification-timing .notification-quiet-toggle { flex-direction:row-reverse; justify-content:space-between; min-height:56px; padding:12px 16px; background:var(--dialog-surface); border-bottom:1px solid var(--dialog-line); font-size:.9375rem; }
+html body #accountDialog .notification-timing > label:last-of-type { border-bottom:0; border-radius:0 0 var(--sheet-radius) var(--sheet-radius); }
+html body #accountDialog .notification-timing > small { display:block; padding:10px 4px 12px; font-size:.8125rem; }
+html body #accountDialog .notification-timing > small:last-child { padding-bottom:0; }
+html body #accountDialog .notification-city-choices .notification-location {
+  flex-direction:row-reverse; justify-content:space-between; align-items:center; min-height:56px; margin:0 0 8px; padding:12px 16px;
+  border:0; border-radius:18px; background:var(--dialog-surface); font-size:.9375rem;
+}
+html body #accountDialog .notification-city-choices > small { display:block; padding:2px 4px 0; font-size:.8125rem; }
+html body #accountDialog :is(.notification-locations,.notification-devices) { margin-top:26px; padding:0; border-top:0; }
+html body #accountDialog :is(.notification-locations,.notification-devices) > div { padding:4px 16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog :is(.notification-locations,.notification-devices) > div > p { margin:12px 0; }
+html body #accountDialog .notification-locations > small { display:block; padding:8px 4px 0; }
+html body #accountDialog :is(.notification-location-row,.notification-device) { padding:12px 0; border-bottom:1px solid var(--dialog-line); }
+html body #accountDialog :is(.notification-location-row,.notification-device):last-child { border-bottom:0; }
+html body #accountDialog :is(.notification-location-row,.notification-device) button { min-height:40px; border:0; background:var(--dialog-surface-2); }
+html body #accountDialog #accountLogout { margin-top:30px; border:0; background:var(--dialog-surface); color:var(--brand-blue); color:#8fb4ff; }
+/* Cartão como os outros grupos da conta. Antes: a linha só em cima (border-top da regra antiga) com cantos
+   de 22 px virava um arco, e o véu de toque do summary era um retângulo sem canto, 16 px mais estreito. */
+html body #accountDialog .account-delete { margin-top:10px; padding:0 16px; border:0; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog .account-delete[open] > summary { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #accountDialog .account-delete[open] { padding-bottom:16px; }
+/* Previsão por cidade (pedido do usuário, outubro/2026): os links das páginas de cidade saíram do rodapé e
+   ficam aqui, em "Mais do PLUVIA". Continuam no HTML de todas as páginas para o Google achar as cidades. */
+/* O nav global (abas antigas de styles.css) desenhava uma pílula enorme por trás e pintava o link sob o dedo/mouse. */
+html body #accountDialog .capital-links { display:block; margin:24px 0 0; padding:0; border:0; border-radius:0; background:none; box-shadow:none; }
+html body #accountDialog .capital-links .capital-page-note { margin:0 4px 10px; color:var(--dialog-muted); font-size:.8125rem; line-height:1.5; }
+html body #accountDialog .capital-links details { border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog .capital-links details + details { margin-top:8px; }
+html body #accountDialog .capital-links summary { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:52px; padding:0 16px; border-radius:var(--sheet-radius); color:var(--dialog-text); font-size:1rem; font-weight:500; list-style:none; cursor:pointer; }
+html body #accountDialog .capital-links summary::-webkit-details-marker { display:none; }
+html body #accountDialog .capital-links summary::after { content:"›"; flex:none; color:var(--dialog-muted); font-size:1.4rem; line-height:1; }
+html body #accountDialog .capital-links details[open]:not([data-closing]) > summary::after { rotate:90deg; }
+html body #accountDialog .capital-links ul { display:flex; flex-wrap:wrap; gap:0 16px; margin:0; padding:0 16px 12px; list-style:none; }
+html body #accountDialog .capital-links a, html body #accountDialog .capital-links a:hover { display:inline-flex; align-items:center; min-height:36px; padding:0; border-radius:0; background:none; box-shadow:none; transform:none; color:var(--dialog-link,var(--brand-blue)); font-size:.9375rem; font-weight:500; text-decoration:none; }
+@media (hover:hover) { html body #accountDialog .capital-links a:hover { text-decoration:underline; } }
+html body #accountDialog .capital-links a[aria-current="page"] { color:var(--dialog-text); font-weight:600; }
+html body[data-phase="day"] #accountDialog details.account-delete > summary { color:#b42318; }
+html body #accountDialog #accountDelete { border:0; border-radius:999px; background:#d93a3a; color:#fff; }
+
+/* --- Fontes de dados --- */
+html body #sourcesDialog #sourcesBody > p { margin:4px 4px 18px; }
+html body #sourcesDialog .sources-list { border-radius:var(--sheet-radius); background:var(--dialog-surface); overflow:hidden; }
+html body #sourcesDialog .sources-list article {
+  display:grid; grid-template-columns:40px minmax(0,1fr); column-gap:14px; padding:16px; border-bottom:1px solid var(--dialog-line);
+}
+html body #sourcesDialog .sources-list article:last-child { border-bottom:0; }
+html body #sourcesDialog .sources-list article::before {
+  content:""; position:static; grid-row:1 / span 3; width:40px; height:40px; border-radius:12px;
+  background:#8fb4ff26 var(--kind-icon) center/22px no-repeat;
+}
+html body #sourcesDialog .sources-list article { --kind-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fb4ff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z'/%3E%3C/svg%3E"); }
+html body #sourcesDialog .sources-list article[data-kind=official] { --kind-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236fd0b0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3 4 6v5c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V6z'/%3E%3Cpath d='m8.5 12 2.5 2.5 4.5-5'/%3E%3C/svg%3E"); }
+html body #sourcesDialog .sources-list article[data-kind=official]::before { background:#6fd0b026 var(--kind-icon) center/22px no-repeat; }
+html body #sourcesDialog .sources-list article[data-kind=observation] { --kind-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c4b5fd' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Cpath d='M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5'/%3E%3C/svg%3E"); }
+html body #sourcesDialog .sources-list article[data-kind=observation]::before { background:#c4b5fd26 var(--kind-icon) center/22px no-repeat; }
+html body #sourcesDialog .sources-list strong { grid-column:2; grid-row:1; font-size:1rem; font-weight:600; line-height:1.35; }
+html body #sourcesDialog .sources-list b { grid-column:2; grid-row:2; margin:2px 0 0; color:#8fb4ff; font-size:.8125rem; font-weight:500; letter-spacing:0; }
+html body #sourcesDialog .sources-list article[data-kind=official] b { color:#7fdcbc; }
+html body #sourcesDialog .sources-list article[data-kind=observation] b { color:#cbbcff; }
+html body #sourcesDialog .sources-list span { grid-column:2; grid-row:3; margin:6px 0 0; font-size:.875rem; line-height:1.5; }
+html body #sourcesDialog .official-observations { margin:28px 0 0; }
+html body #sourcesDialog .official-observations > p { margin:0 4px 10px; font-size:.875rem; }
+html body #sourcesDialog .official-observations a {
+  display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:52px; margin:0; padding:12px 16px;
+  border:0; border-bottom:1px solid var(--dialog-line); border-radius:0; background:var(--dialog-surface); color:var(--dialog-text); font-size:.9375rem; text-decoration:none;
+}
+html body #sourcesDialog .official-observations a::after { content:"↗"; flex:none; color:#8fb4ff; }
+html body #sourcesDialog .official-observations a:nth-of-type(1) { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #sourcesDialog .official-observations a:last-of-type { border-bottom:0; border-radius:0 0 var(--sheet-radius) var(--sheet-radius); }
+html body #sourcesDialog .source-credits { margin:28px 0 0; }
+html body #sourcesDialog .source-credits label[for=analyticsConsent] { display:flex; flex-direction:row-reverse; align-items:center; justify-content:space-between; gap:14px; min-height:56px; padding:12px 16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); color:var(--dialog-text); font-size:.9375rem; cursor:pointer; }
+html body #sourcesDialog .source-credits p { margin:10px 4px 0; font-size:.8125rem; line-height:1.55; }
+@media (max-width:600px) {
+  html body :is(.dlg-g13, #_) { border-radius:28px; }
+  html body :is(.dlg-g13, #_) .dialog-heading { padding:18px 14px 8px 20px; }
+  html body :is(.dlg-cidade-conta-fontes, #_) .dialog-scroll { padding:6px 16px 24px; }
+  html body #cityDialog .city-search-field { padding:4px 16px 12px; }
+}
+/* Na folha (mesmo visual de Minha conta e Fontes de dados), as regras genéricas de título e parágrafo dos
+   diálogos não valem para a lista de versões. */
+html body :is(.dlg-novidades, #_) .changelog-entry h3 { margin:0; padding:0; color:var(--dialog-text); font-size:1.0625rem; font-weight:600; letter-spacing:0; }
+html body #changelogDialog .changelog-intro { margin:0 0 16px; font-size:.875rem; }
+html body :is(.dlg-novidades, #_) .changelog-date { margin:2px 0 0; font-size:.8125rem; }
+html body :is(.dlg-novidades, #_) .changelog-entry .changelog-title { margin:8px 0 0; color:var(--dialog-text); font-size:1rem; font-weight:600; }
+html body :is(.dlg-novidades, #_) .changelog-entry ul { color:var(--dialog-text); }
+/* Detalhe do dia: sem o bloco de ícone/temperatura do detalhe horário, a condição sobrava 36 px abaixo do título. */
+html body #dailyDetailDialog #dailyDetailCondition { margin-top:0; }
+html body #whatsNewDialog .whats-new-actions button { min-height:48px; border-radius:999px; padding:12px 16px; }
+html body #whatsNewDialog .whats-new-all { min-height:44px; background:none; }
+html body #monthDialog .dialog-heading p { margin:2px 0 0; color:var(--dialog-muted, #b8c3d6); font-size:.875rem; }
+html body #monthDialog .month-status { min-height:1.2em; margin:0 0 10px; font-size:.8rem; line-height:1.5; }
+html body #monthDialog .month-lead { margin:0 0 14px; font-size:1rem; line-height:1.5; }
+html body #monthDialog .month-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 18px; margin:0 0 18px; }
+html body #monthDialog .month-stats dt { font-size:.8125rem; line-height:1.4; }
+html body #monthDialog .month-stats dd { margin:4px 0 0; font-size:1.25rem; font-weight:600; font-variant-numeric:tabular-nums; }
+html body #monthDialog .month-stats dd small { display:block; margin-top:2px; font-size:.8125rem; font-weight:400; }
+html body #monthDialog .month-chart { margin:0 0 16px; }
+html body #monthDialog .month-chart-bars svg { display:block; width:100%; height:72px; }
+html body #monthDialog .month-bar { fill:var(--brand-blue, var(--brand-blue)); }
+html body #monthDialog .month-bar-track { fill:currentColor; opacity:.25; }
+html body #monthDialog .month-bar-missing { fill:none; }
+html body #monthDialog .month-chart-axis { display:flex; justify-content:space-between; margin-top:6px; font-size:.8125rem; font-variant-numeric:tabular-nums; }
+html body #monthDialog .month-chart-axis .month-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+html body #monthDialog .month-note { font-size:.8rem; line-height:1.5; }
+@media (forced-colors:active) { html body #monthDialog .month-bar { fill:CanvasText; } }
+html body #monthDialog .accuracy { margin-top:22px; padding-top:18px; border-top:1px solid var(--dialog-line, rgba(255,255,255,.14)); scroll-margin-top:12px; }
+html body #monthDialog .accuracy h3 { margin:0 0 6px; font-size:1.25rem; font-weight:650; letter-spacing:-.015em; }
+html body #monthDialog .accuracy-window { margin:14px 0 10px; font-size:.9375rem; font-weight:600; }
+html body #monthDialog .accuracy-stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
+@media (max-width:440px) { html body #monthDialog .accuracy-stats { grid-template-columns:minmax(0,1fr); gap:12px; } html body #monthDialog .accuracy-stats > div { display:flex; justify-content:space-between; align-items:baseline; gap:12px; } html body #monthDialog .accuracy-stats dd { text-align:right; flex:none; } }
+html body #accountDialog .profile-avatar[data-avatar] { overflow:hidden; background:var(--avatar-bg); }
+#accountDialog .avatar-picker { margin:4px 0 18px; padding:0; border:0; min-width:0; }
+#accountDialog .avatar-picker legend { margin-bottom:10px; padding:0; color:var(--dialog-muted); font-size:.9375rem; }
+#accountDialog .avatar-picker small { display:block; margin-top:8px; color:var(--dialog-muted); font-size:.8125rem; }
+#accountDialog .avatar-options { display:grid; grid-template-columns:repeat(auto-fill,minmax(48px,1fr)); gap:10px; }
+html body #accountDialog #avatarOptions button.avatar-option { display:grid; place-items:center; width:100%; min-width:44px; min-height:48px; aspect-ratio:1; margin:0; padding:3px; border:2px solid transparent; border-radius:50%; background:transparent; box-shadow:none; }
+html body #accountDialog #avatarOptions button.avatar-option[aria-pressed="true"] { border-color:var(--brand-blue); }
+#accountDialog .avatar-face { display:grid; place-items:center; width:100%; height:100%; border-radius:50%; overflow:hidden; background:var(--avatar-bg,var(--brand-blue)); color:#fff; font-size:1.25rem; font-weight:600; }
+@media (forced-colors:active) { html body #accountDialog #avatarOptions button.avatar-option[aria-pressed="true"] { border-color:Highlight; } }
+
+/* ===== Diálogos claros de dia (pedido do usuário, outubro/2026) =====
+   Com tinta escura (body[data-ink="dark"], o céu claro do dia), as folhas trocam o azul-noite por um
+   off-white quente com cartões brancos e texto azul-marinho; à noite e com chuva forte/trovoada
+   (tinta clara) continuam escuras. Mesmos tokens --dialog-*; só cores, sem blur/transform/z-index.
+   Contraste medido por verify-contrast.py. */
+html body[data-phase="day"] :is(.dlg-todas, #_) {
+  --dialog-bg:#f7f5f0; --dialog-surface:#ffffff; --dialog-surface-2:#0b18300d; --dialog-line:#0b183017;
+  --dialog-text:#13233d; --dialog-muted:#556479; --dialog-link:var(--brand-blue);
+  --text:#13233d; --muted:#556479; --line:#0b18301f; --panel:#fff; --panel-strong:#fff; --panel-subtle:#0b18300a;
+  color-scheme:light; color:var(--dialog-text); border-color:#0b183014;
+  background:#f7f5f0; box-shadow:0 30px 90px #0b183040,inset 0 1px 0 #ffffffcc;
+}
+html body[data-phase="day"] :is(.dlg-todas, #_)::backdrop { background:#0b18304d; }
+html body[data-phase="day"] :is(.dlg-todas, #_) :is(.dialog-heading,.dialog-heading h2,h3,strong,label,legend,summary) { color:var(--dialog-text); }
+html body[data-phase="day"] :is(.dlg-todas, #_) :is(p,small,dt,.dialog-subtitle) { color:var(--dialog-muted); }
+html body[data-phase="day"] :is(.dlg-todas, #_) .dialog-close { background:#0b18300f; color:var(--dialog-text); }
+html body[data-phase="day"] :is(.dlg-todas, #_) a { color:var(--dialog-link); }
+html body[data-phase="day"] :is(.dlg-cidade-conta-fontes, #_) :is(input:not([type=checkbox]),select) { border-color:#0b18301f; background:#fff; color:var(--dialog-text); }
+html body[data-phase="day"] :is(.dlg-listas, #_) input::placeholder { color:#5d6c81; }
+html body[data-phase="day"] :is(.dlg-conta-fontes, #_) input[type=checkbox] { background:#0b183026; }
+html body[data-phase="day"] :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:var(--brand-blue); }
+html body[data-phase="day"] #cityDialog #citySearch { background-color:#fff; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23556479' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E"); }
+html body[data-phase="day"] #cityDialog #voiceSearch { color:#556479; }
+html body[data-phase="day"] #cityDialog .city-actions > button::before,html body[data-phase="day"] #cityDialog .favorite-organize { background-color:var(--brand-blue); }
+html body[data-phase="day"] #cityDialog .favorite-organize { background:none; color:var(--dialog-link); }
+html body[data-phase="day"] #cityDialog #locateCity::before { background:#fff; }
+html body[data-phase="day"] #cityDialog #favoriteCity[aria-pressed=true]::before { background:#e0a400; }
+html body[data-phase="day"] #cityDialog :is(.city-result[data-current=true],.favorite-city-card[aria-current=true]) { background:color-mix(in srgb,var(--brand-blue) 8%,transparent); }
+html body[data-phase="day"] #accountDialog .account-tabs { background:#0b18300d; }
+html body[data-phase="day"] #accountDialog #accountTabs button[aria-pressed=true] { background:#fff; color:var(--dialog-text); box-shadow:0 1px 3px #0b183026; }
+html body[data-phase="day"] #accountDialog .profile-identity { background:radial-gradient(120% 100% at 50% 0,color-mix(in srgb,var(--brand-blue) 12%,transparent),transparent 70%),#fff; }
+html body[data-phase="day"] #accountDialog #notificationPreferencesSave:disabled { background:color-mix(in srgb,var(--brand-blue) 25%,transparent); color:color-mix(in srgb,var(--on-accent) 85%,transparent); }
+html body[data-phase="day"] :is(.dlg-cidade-conta, #_) :is(#accountSubmit,#profileSave,#notificationPreferencesSave,#savedPlaceSave,#accountRecoverySave,#locateCity) { color:#fff; }
+html body[data-phase="day"] #brazilDialog .brazil-row:hover { background:#0b18300a; }
+html body[data-phase="day"] :is(.dlg-texto, #_) .dialog-close { border-radius:50%; }
+html body[data-phase="day"] :is(.dlg-novidades, #_) .changelog-title { color:var(--dialog-text); }
+html body[data-phase="day"] #sourcesDialog .sources-list b { color:var(--brand-blue); }
+html body[data-phase="day"] #sourcesDialog .sources-list article[data-kind=official] b { color:#0f7a52; }
+html body[data-phase="day"] #sourcesDialog .sources-list article[data-kind=observation] b { color:#5b3fc4; }
+html body[data-phase="day"] #sourcesDialog .sources-list article::before { background-color:color-mix(in srgb,var(--brand-blue) 15%,transparent); }
+html body[data-phase="day"] #sourcesDialog .sources-list article[data-kind=official]::before { background-color:#12a06a29; }
+html body[data-phase="day"] #sourcesDialog .sources-list article[data-kind=observation]::before { background-color:#7c5cf029; }
+html body #accountDialog .account-group { margin:0 0 8px; padding:0 16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog .account-group > summary { display:flex; align-items:center; gap:12px; min-height:54px; cursor:pointer; list-style:none; color:var(--dialog-text); font-size:.9375rem; font-weight:500; }
+html body #accountDialog .account-group > summary::-webkit-details-marker { display:none; }
+html body #accountDialog .account-group > summary::after { content:""; flex:none; width:7px; height:7px; margin:0 3px 3px 2px; border-right:2px solid var(--dialog-muted); border-bottom:2px solid var(--dialog-muted); transform:rotate(45deg); }
+html body #accountDialog .account-group[open]:not([data-closing]) > summary::after { margin:4px 3px 0 2px; transform:rotate(-135deg); }
+html body #accountDialog .account-group-title { flex:1; min-width:0; }
+html body #accountDialog .account-group-value { flex:none; max-width:55%; overflow:hidden; color:var(--dialog-muted); font-size:.8125rem; font-weight:400; text-overflow:ellipsis; white-space:nowrap; }
+html body #accountDialog .account-group-value:empty { display:none; }
+html body #accountDialog .account-group .details-motion-inner > :last-child { margin-bottom:12px; }
+html body #accountDialog .account-group :is(.notification-types,.notification-timing,.notification-city-choices) { margin:0; border-top:1px solid var(--dialog-line); }
+html body #accountDialog .account-group :is(.notification-types label:not(.notification-summary-time),form .notification-types .notification-summary-time,.notification-timing > label:not(.notification-quiet-toggle),.notification-timing > .notification-time-pair,form .notification-timing .notification-quiet-toggle,.notification-city-choices .notification-location) {
+  margin:0; padding-inline:0; border-radius:0!important; background:transparent; border-bottom:1px solid var(--dialog-line);
+}
+html body #accountDialog .account-group :is(.notification-types,.notification-timing) > label:last-of-type,html body #accountDialog .account-group .notification-city-choices .notification-location:last-child { border-bottom:0; }
+html body #accountDialog .account-group .notification-types:has(.notification-summary-time:not([hidden])) > label:nth-last-of-type(2) { border-bottom:1px solid var(--dialog-line); }
+html body #accountDialog .account-group .notification-summaries > label:has(+ .notification-summary-time[hidden]) { border-bottom:1px solid var(--dialog-line); }
+html body #accountDialog .account-group .notification-summaries > label:nth-last-of-type(2):has(+ .notification-summary-time[hidden]) { border-bottom:0; }
+html body #accountDialog .account-group .notification-timing > small { padding:10px 0 0; }
+html body #accountDialog .account-group .account-group-note { display:block; margin:0; padding:10px 0 0; color:var(--dialog-muted); font-size:.8125rem; line-height:1.45; }
+html body #accountDialog .account-group :is(.notification-locations,.notification-devices) { margin:0; border-top:1px solid var(--dialog-line); }
+html body #accountDialog .account-group :is(.notification-locations,.notification-devices) > div { padding:0; border-radius:0; background:transparent; }
+html body #accountDialog .account-group .notification-checks { margin:0; padding:0; border-top:1px solid var(--dialog-line); border-radius:0; background:transparent; }
+html body #accountDialog .account-group .notification-checks > summary { color:var(--dialog-muted); font-size:.875rem; }
+html body #accountDialog #accountProfileEdit .avatar-picker { margin:0; padding-top:12px; border-top:1px solid var(--dialog-line); }
+html body #accountDialog #accountProfileEdit #profileForm { margin-top:14px; padding:0; background:transparent; }
+html body #accountDialog .profile-identity { margin-bottom:14px; padding:20px 16px 18px; }
+html body #accountDialog .notification-settings { margin-top:22px; }
+html body #accountDialog .notification-settings-head { margin-bottom:2px; }
+html body #accountDialog #notificationSupportNote { margin:6px 4px 12px; }
+html body #accountDialog .notification-actions { margin-bottom:14px; }
+html body #accountDialog .alert-preferences { gap:0; }
+html body #accountDialog #notificationPreferencesSave { margin:6px 0 8px; }
+html body #accountDialog #accountLogout { margin-top:18px; }
+html body #accountDialog .account-group > summary .account-group-value { display:block; align-self:center; margin:0!important; padding:0!important; line-height:1.3; }
+html body #accountDialog .account-group :is(.notification-types,.notification-timing,.notification-city-choices) { border-radius:0; }
+html body #accountDialog .account-group #notificationPrivacy { margin:0; padding:10px 0 0; }
+html body[data-phase="day"] #accountDialog #accountLogout { color:var(--dialog-link,var(--brand-blue)); }
+/* O invólucro da animação de altura é grade: sem min-width:0 o cartão cresce até o campo mais largo
+   (fuso, horários) e passa da janela no celular. */
+html body #accountDialog .account-group,html body #accountDialog .account-group > .details-motion,html body #accountDialog .account-group .details-motion-inner { min-width:0; max-width:100%; }
+html body #accountDialog .account-group :is(select,input:not([type=checkbox])) { max-width:100%; min-width:0; }
+html body[data-phase="day"] :is(.dlg-conta-termos, #_) :is(.terms-check,.terms-social-note) a { color:var(--dialog-link,var(--brand-blue)); }
+html body #accountDialog .terms-social-note { display:block; margin:2px 4px 6px; color:var(--dialog-muted); font-size:.8125rem; line-height:1.45; text-align:center; }
+html body #termsDialog p { margin:0 0 12px; color:var(--dialog-text); line-height:1.5; }
+html body #termsDialog #termsAccept:disabled { opacity:.45; cursor:not-allowed; }
+/* Na conta, o aceite é caixinha de marcar (não interruptor), ao lado do texto. */
+html body #accountDialog #accountForm .terms-check { display:flex!important; flex-direction:row; align-items:flex-start; gap:12px; margin:6px 0 4px; color:var(--dialog-text); font-size:.9375rem; }
+html body #accountDialog #accountForm .terms-check[hidden] { display:none!important; }
+html body #accountDialog .terms-check input[type=checkbox] { -webkit-appearance:auto; appearance:auto; width:22px!important; height:22px!important; margin:1px 0 0!important; border-radius:4px; background:none; accent-color:var(--brand-blue,var(--brand-blue)); }
+html body #accountDialog .terms-check input[type=checkbox]::before { content:none; display:none; }
+
+/* "Mais do PLUVIA" na janela da conta (pedido do usuário, outubro/2026): os atalhos que ficavam no rodapé
+   (Personalizar a Home, Novidades, Fontes de dados, Privacidade, Termos) viram linhas tocáveis num cartão,
+   como os grupos da conta. Aparece com e sem conta. Só pintura: sem blur, transform ou z-index. */
+/* O `nav` global de styles.css (abas antigas: linha flex, pílula, fundo) e o hover de `nav a` são anulados aqui. */
+html body #accountDialog .account-more { display:block; margin:24px 0 0; padding:0; border:0; border-radius:0; background:none; box-shadow:none; }
+html body #accountDialog #accountMore .account-more-item:hover { background:none; color:var(--dialog-text); box-shadow:none; transform:none; }
+html body #accountDialog .account-more-list { display:flex; flex-direction:column; padding:0 16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog #accountMore .account-more-item { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:52px; margin:0; padding:0; border:0; border-radius:0; background:none; color:var(--dialog-text); font:inherit; font-size:.9375rem; font-weight:500; text-align:left; text-decoration:none; cursor:pointer; box-shadow:none; transform:none; transition:none; }
+html body #accountDialog #accountMore .account-more-item + .account-more-item { border-top:1px solid var(--dialog-line); }
+html body #accountDialog #accountMore .account-more-item::after { content:""; flex:none; width:7px; height:7px; margin-right:3px; border-right:2px solid var(--dialog-muted); border-bottom:2px solid var(--dialog-muted); transform:rotate(-45deg); }
+html body #accountDialog #accountMore .account-more-item:focus-visible { outline:2px solid var(--brand-blue); outline-offset:2px; border-radius:12px; }
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked::before { background:#fff; }
+#hourlyDetailDialog #hourlyDetailCondition { grid-column:1 / -1; text-align:center; }
+html body #accountDialog .account-group > summary::after { transition:transform .32s cubic-bezier(.3,.7,.2,1), margin .32s cubic-bezier(.3,.7,.2,1); }
+html body #accountDialog .capital-links summary::after { transition:rotate .32s cubic-bezier(.3,.7,.2,1); }
+
+/* 1.29: gráfico do dia no detalhe diário (daily-detail.chart), no estilo do app Tempo. Traço e área no
+   degradê frio → quente da faixa do dia, barras de chuva só pelo volume. O traço se desenha ao abrir ou
+   trocar de dia (stroke-dashoffset: pintura dentro do SVG, sem camada); reduced-motion mostra pronto. */
+#dailyDetailDialog .day-chart { --day-chart-hot:#ffa63d; --day-chart-mild:#ffd84d; --day-chart-cold:#5ac8fa; margin:6px 0 18px; padding:14px 12px 8px; border-radius:20px; background:var(--dialog-surface, rgba(255,255,255,.06)); }
+#dailyDetailDialog .day-chart[hidden] { display:none; }
+#dailyDetailDialog .day-chart-svg { display:block; width:100%; height:auto; overflow:visible; font-family:inherit; }
+#dailyDetailDialog .day-chart-line { fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1; stroke-dashoffset:0; animation:pluvia-day-chart-draw 1s cubic-bezier(.3,.7,.2,1) both; }
+#dailyDetailDialog .day-chart-area { animation:pluvia-day-chart-fill .7s ease-out .35s both; }
+#dailyDetailDialog .day-chart-grid { stroke:var(--dialog-line, rgba(255,255,255,.12)); stroke-width:1; stroke-dasharray:2 4; }
+#dailyDetailDialog .day-chart-base { stroke:var(--dialog-line, rgba(255,255,255,.14)); stroke-width:1; }
+#dailyDetailDialog .day-chart-axis { fill:var(--dialog-muted, #9fb0cc); font-size:10.5px; font-weight:500; }
+#dailyDetailDialog .day-chart-mark { fill:var(--dialog-text, #fff); font-size:12.5px; font-weight:650; }
+#dailyDetailDialog .day-chart-dot { stroke:var(--dialog-bg, #101a33); stroke-width:2; }
+#dailyDetailDialog .day-chart-dot.is-high { fill:var(--day-chart-hot); }
+#dailyDetailDialog .day-chart-dot.is-low { fill:var(--day-chart-cold); }
+#dailyDetailDialog .day-chart-now { stroke:var(--dialog-text, #fff); stroke-opacity:.45; stroke-width:1.2; stroke-dasharray:3 3; }
+#dailyDetailDialog .day-chart-now-dot { fill:var(--dialog-text, #fff); stroke:var(--dialog-bg, #101a33); stroke-width:2.5; }
+#dailyDetailDialog .day-chart-now-label { fill:var(--dialog-text, #fff); font-weight:650; }
+#dailyDetailDialog .day-chart-rain { fill:#5ac8fa; }
+#dailyDetailDialog .day-chart-dry { font-style:italic; }
+body[data-phase="day"] #dailyDetailDialog .day-chart { --day-chart-hot:#f08a24; --day-chart-mild:#e6b800; --day-chart-cold:#1e90d6; }
+body[data-phase="day"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
+/* Dedo no gráfico do dia (1.29.5, pedido do usuário): linha, bolinha e rótulo da hora tocada; os rótulos
+   fixos (máx./mín., Agora) esmaecem só pela cor enquanto o dedo está no gráfico. */
+#dailyDetailDialog .day-chart { touch-action:pan-y; -webkit-user-select:none; user-select:none; cursor:crosshair; }
+#dailyDetailDialog .day-chart-scrub { pointer-events:none; }
+#dailyDetailDialog .day-chart-scrub-line { stroke:var(--dialog-text, #fff); stroke-opacity:.7; stroke-width:1.4; }
+#dailyDetailDialog .day-chart-scrub-dot { fill:var(--dialog-text, #fff); stroke:var(--dialog-bg, #101a33); stroke-width:2.5; }
+#dailyDetailDialog .day-chart-scrub-label { fill:var(--dialog-text, #fff); font-size:12.5px; font-weight:650; font-variant-numeric:tabular-nums; }
+#dailyDetailDialog .day-chart[data-scrubbing] :is(.day-chart-mark,.day-chart-now-label) { fill-opacity:0; }
+#dailyDetailDialog .day-chart[data-scrubbing] :is(.day-chart-dot,.day-chart-now,.day-chart-now-dot) { fill-opacity:.25; stroke-opacity:.25; }
+@media (prefers-reduced-motion:reduce) { #dailyDetailDialog :is(.day-chart-line,.day-chart-area) { animation:none; } }
+
+/* X de fechar (1.43.1, pedido do dono: "maior e mais grosso e alinhado"): o caractere "×" da fonte ficava fino,
+   pequeno e fora do centro (a Sora o desenha mais alto que o meio da linha). O texto continua no HTML para
+   leitores sem CSS; o desenho é um traço de 2,4 px centrado por grade, na cor do texto do botão. */
+html body .dialog-close { display:grid !important; place-items:center; padding:0 !important; font-size:0 !important; line-height:0 !important; }
+html body .dialog-close::before {
+  content:""; width:20px; height:20px; background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 4l12 12M16 4L4 16' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 4l12 12M16 4L4 16' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+@media (forced-colors:active) { html body .dialog-close::before { background:ButtonText; } }
+
+/* X de fechar centrado e de vidro (1.45.1, pedido do dono: "ajeita esses x aí que tão tudo feio"): com a grade, o
+   "×" escondido do HTML virava uma segunda linha e empurrava o desenho para cima do centro do círculo. O desenho agora
+   é absoluto e centrado no botão, e o círculo usa o mesmo vidro dos botões do topo (degradê claro, borda de luz),
+   sem backdrop-filter (o fundo da janela já é opaco). */
+html body .dialog-close { position:relative; }
+html body .dialog-close::before { position:absolute; inset:0; margin:auto; width:18px; height:18px; }
+html body :is(.dlg-todas, #_) .dialog-close {
+  border-radius:50%; border:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06) 55%,rgba(255,255,255,.1));
+  box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.6),inset -1px -1px 0 -.5px rgba(255,255,255,.3),inset 0 0 0 .5px rgba(255,255,255,.22),inset 0 0 12px rgba(255,255,255,.1) !important;
+}
+html body[data-phase="day"] :is(.dlg-todas, #_) .dialog-close {
+  background:linear-gradient(180deg,rgba(19,35,61,.06),rgba(19,35,61,.1));
+  box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),inset 0 0 0 .5px rgba(19,35,61,.14),0 2px 8px rgba(19,35,61,.08) !important;
+}
+@media (forced-colors:active) { html body .dialog-close { box-shadow:none !important; border:1px solid ButtonText; } }
+html body #cityDialog #citySearch { background-color:rgba(255,255,255,.1); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.55), inset -1px -1px 0 -.5px rgba(255,255,255,.22), inset 0 0 0 .5px rgba(255,255,255,.2), 0 4px 14px rgba(4,8,20,.18); }
+html body #cityDialog .city-actions > button { position:relative; background-color:rgba(255,255,255,.11); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.6), inset -1px -1px 0 -.5px rgba(255,255,255,.25), inset 0 0 0 .5px rgba(255,255,255,.22), inset 0 0 14px rgba(255,255,255,.08), 0 6px 18px rgba(4,8,20,.2); }
+html body #cityDialog #locateCity { background-color:color-mix(in srgb,var(--brand-blue) 84%,transparent); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.7), inset -1px -1px 0 -.5px rgba(255,255,255,.3), inset 0 0 0 .5px rgba(255,255,255,.3), 0 6px 18px rgba(4,8,20,.2); }
+html body[data-phase="day"] #cityDialog #citySearch { background-color:rgba(255,255,255,.7); box-shadow:inset 0 0 0 1px rgba(19,35,61,.12), 0 4px 14px rgba(20,40,70,.08); }
+html body[data-phase="day"] #cityDialog .city-actions > button { background-color:rgba(255,255,255,.55); box-shadow:inset 0 0 0 1px rgba(19,35,61,.1), 0 6px 18px rgba(20,40,70,.1); }
+/* Linha "Tamanho do texto" em Mais do PLUVIA (1.48, modules/text-size.js): nome à esquerda, A− 100% A+ à direita. */
+html body #accountDialog .text-size-row { display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:default; }
+html body #accountDialog .text-size-row:active { opacity:1; }
+#accountDialog .text-size-controls { display:inline-flex; align-items:center; gap:6px; }
+html body #accountDialog .text-size-controls button { display:grid; place-items:center; width:44px; height:44px; min-height:44px; padding:0; border:0; border-radius:50%; background:rgba(255,255,255,.1); color:var(--dialog-text); font:600 1rem/1 var(--font-ui); box-shadow:inset 1px 1px 0 -.3px rgba(255,255,255,.5), inset 0 0 0 .5px rgba(255,255,255,.2); cursor:pointer; }
+html body #accountDialog .text-size-controls button:disabled { opacity:.35; cursor:default; }
+html body #accountDialog #textSizeDown { font-size:.8125rem; }
+#accountDialog #textSizeValue { min-width:3.2em; text-align:center; color:var(--dialog-muted); font-variant-numeric:tabular-nums; }
+html body[data-phase="day"] #accountDialog .text-size-controls button { background:rgba(19,35,61,.06); box-shadow:inset 0 0 0 1px rgba(19,35,61,.12); }
+html body #accountDialog .text-size-row::after { display:none !important; }
+html body #accountDialog .text-size-row > span:first-child { min-width:0; }
+#accountDialog .text-size-controls { flex:none; }
+html body #accountDialog .text-size-controls button { flex:none; aspect-ratio:1; }
+html body #accountDialog :is(#textSizeDown,#textSizeUp) { width:44px; height:44px; min-height:44px; padding:0; border-radius:50%; }
+
+/* ===== Minha conta mais limpa (1.50, pedido do dono: "muito poluída" e "liquid glass onde tá escrito Minha conta") =====
+   Cabeçalho (no fluxo, com margem negativa embaixo): o conteúdo rola por baixo de uma faixa quase opaca (sem desfoque: o WebKit da CI caiu com blur ali), e o título fica numa cápsula de vidro como o X (sem desfoque próprio: desfoque dentro de
+   desfoque confunde o backdrop). Perfil numa linha que abre a edição; os quatro ajustes de aviso num cartão só,
+   Cidades/Aparelhos noutro; "Salvar avisos" só aparece quando algo mudou; Sair/Excluir num cartão discreto;
+   "Previsão por cidade" num cartão. Só #accountDialog. */
+html body #accountDialog .dialog-heading {
+  position:relative; z-index:2; margin:0 0 -76px; padding:14px 14px 18px 16px; background:transparent;
+}
+html body #accountDialog .dialog-heading::before {
+  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:linear-gradient(180deg,var(--dialog-bg) 55%,color-mix(in srgb,var(--dialog-bg) 82%,transparent));
+  -webkit-mask-image:linear-gradient(#000 calc(100% - 16px),transparent); mask-image:linear-gradient(#000 calc(100% - 16px),transparent);
+}
+html body #accountDialog .dialog-heading h2 {
+  display:inline-flex; align-items:center; min-height:44px; margin:0; padding:0 18px; border-radius:999px; font-size:1.1875rem; font-weight:650; letter-spacing:-.015em;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06) 55%,rgba(255,255,255,.1));
+  box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.6),inset -1px -1px 0 -.5px rgba(255,255,255,.3),inset 0 0 0 .5px rgba(255,255,255,.22),inset 0 0 12px rgba(255,255,255,.1);
+}
+html body[data-phase="day"] #accountDialog .dialog-heading h2 {
+  background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,.45));
+  box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),inset 0 0 0 .5px rgba(19,35,61,.14),0 2px 8px rgba(19,35,61,.08);
+}
+html body #accountDialog .dialog-scroll { padding-top:84px; scroll-padding-top:84px; }
+@media (prefers-reduced-transparency:reduce) { html body #accountDialog .dialog-heading::before { -webkit-backdrop-filter:none; backdrop-filter:none; background:var(--dialog-bg); -webkit-mask-image:none; mask-image:none; } }
+@media (forced-colors:active) { html body #accountDialog .dialog-heading::before { -webkit-backdrop-filter:none; backdrop-filter:none; background:Canvas; } html body #accountDialog .dialog-heading h2 { box-shadow:none; border:1px solid CanvasText; } }
+
+/* Perfil: foto, nome e e-mail numa linha; tocar abre foto e nome. */
+html body #accountDialog .account-identity > summary { min-height:72px; gap:12px; }
+html body #accountDialog .account-identity .profile-identity {
+  display:flex; flex:1; flex-direction:row; align-items:center; gap:14px; min-width:0; margin:0; padding:10px 0; border-radius:0; background:none; text-align:left;
+}
+html body #accountDialog .account-identity .profile-avatar { flex:none; width:52px; height:52px; font-size:1.375rem; box-shadow:none; }
+html body #accountDialog .account-identity .profile-text { display:grid; gap:1px; min-width:0; }
+html body #accountDialog .account-identity .profile-text strong { overflow:hidden; font-size:1.0625rem; font-weight:650; text-overflow:ellipsis; white-space:nowrap; }
+html body #accountDialog .account-identity #accountIdentity { overflow:hidden; margin:0; color:var(--dialog-muted); font-size:.8125rem; font-weight:400; text-overflow:ellipsis; white-space:nowrap; }
+html body #accountDialog .account-identity .account-group-value { max-width:none; }
+
+/* Avisos: título discreto como os outros grupos, selo menor e o botão de desligar como uma linha. */
+html body #accountDialog .notification-settings { margin:22px 0 0; }
+html body #accountDialog .notification-settings-head { align-items:center; margin:0 0 8px; }
+html body #accountDialog .notification-settings-head h3 { color:var(--dialog-muted); font-size:.875rem; font-weight:600; }
+html body #accountDialog .notification-status { min-height:26px; padding:3px 10px; font-size:.75rem; }
+html body #accountDialog #notificationSupportNote { margin:0 4px 10px; font-size:.875rem; }
+html body #accountDialog .notification-actions { margin:0 0 12px; }
+html body #accountDialog .notification-actions button { min-height:48px; }
+html body #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle {
+  min-height:52px; border-radius:var(--sheet-radius); background:var(--dialog-surface); color:var(--dialog-link,var(--brand-blue)); font-weight:500;
+}
+
+/* Os quatro ajustes num cartão; Cidades e Aparelhos noutro. Divisória recuada como nas listas do iPhone. */
+html body #accountDialog .alert-preferences { gap:0; }
+html body #accountDialog .alert-preferences > .account-group,html body #accountDialog :is(#notificationLocationsGroup,#notificationDevicesGroup) { margin:0; border-radius:0; }
+html body #accountDialog .alert-preferences > .account-group + .account-group,html body #accountDialog #notificationDevicesGroup {
+  background:linear-gradient(var(--dialog-line),var(--dialog-line)) 16px 0/calc(100% - 32px) 1px no-repeat,var(--dialog-surface);
+}
+html body #accountDialog #notificationTypesGroup,html body #accountDialog #notificationLocationsGroup { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #accountDialog #notificationCitiesGroup,html body #accountDialog #notificationDevicesGroup { border-radius:0 0 var(--sheet-radius) var(--sheet-radius); }
+html body #accountDialog #notificationLocationsGroup { margin-top:16px; }
+html body #accountDialog #notificationPreferencesSave { margin-top:12px; min-height:48px; }
+html body #accountDialog #notificationPreferencesForm:not([data-dirty]):not([data-saved]) #notificationPreferencesSave { display:none; }
+html body #accountDialog #notificationPreferencesForm[data-saved] #notificationPreferencesSave { background:var(--dialog-surface-2); color:var(--dialog-text); pointer-events:none; }
+html body #accountDialog #notificationTest.account-row-action {
+  display:flex; align-items:center; width:100%; min-height:48px; margin:0; padding:0; border:0; border-top:1px solid var(--dialog-line); border-radius:0;
+  background:none; color:var(--dialog-link,var(--brand-blue)); font-size:.9375rem; font-weight:500; text-align:left;
+}
+html body #accountDialog #notificationTest.account-row-action[hidden] { display:none; }
+
+/* Sair e Excluir: um cartão com duas linhas. */
+html body #accountDialog .account-exit { margin:22px 0 0; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
+html body #accountDialog .account-exit #accountLogout { display:flex; align-items:center; justify-content:center; width:100%; min-height:52px; margin:0; border:0; border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; background:none; font-weight:500; }
+html body #accountDialog .account-exit .account-delete { margin:0; border-radius:0 0 var(--sheet-radius) var(--sheet-radius); background:linear-gradient(var(--dialog-line),var(--dialog-line)) 16px 0/calc(100% - 32px) 1px no-repeat; }
+
+/* Previsão por cidade: as duas listas num cartão. */
+html body #accountDialog .capital-links details { border-radius:0; }
+html body #accountDialog .capital-links details:first-of-type { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
+html body #accountDialog .capital-links details:last-of-type { border-radius:0 0 var(--sheet-radius) var(--sheet-radius); }
+html body #accountDialog .capital-links details + details { margin-top:0; background:linear-gradient(var(--dialog-line),var(--dialog-line)) 16px 0/calc(100% - 32px) 1px no-repeat,var(--dialog-surface); }
+
+/* ===== Janelas pretas no escuro (1.50, pedido do dono: "não tô gostando desse azul", escolheu preto com letras
+   brancas, em todas as janelas). Com tinta clara (noite, chuva, trovoada), as folhas trocam o azul-noite por preto,
+   cartões em branco translúcido e texto branco; secundário em cinza neutro. De dia (tinta escura) continuam claras.
+   Só cores, redefinindo os mesmos tokens. */
+html body:not([data-phase="day"]) :is(.dlg-todas, #_) {
+  --dialog-bg:#000; --dialog-surface:#ffffff12; --dialog-surface-2:#ffffff1f; --dialog-line:#ffffff1c;
+  --dialog-text:#fff; --dialog-muted:#a1a1a6; --dialog-link:var(--brand-blue);
+  --text:#fff; --muted:#a1a1a6; --line:#ffffff1c; --panel:#ffffff12; --panel-strong:#ffffff1f; --panel-subtle:#ffffff0a;
+  border-color:#ffffff1f; background:#000; color:#fff; box-shadow:0 30px 90px #000c,inset 0 1px 0 #ffffff14;
+}
+html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(.dialog-heading,.dialog-heading h2,h3,strong,label,legend,summary) { color:#fff; }
+html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(input:not([type=checkbox]):not([type=range]),select,textarea) { border-color:#ffffff24; background:#ffffff0f; color:#fff; }
+html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(input,textarea)::placeholder { color:#8e8e93; }
+/* Botões preenchidos nas janelas pretas (1.50, pedido do dono): brancos com letra preta no lugar do azul
+   (Entrar, Salvar, Ativar alertas, Entendi, Aceitar, Baixar imagem, play do radar). Interruptores e links
+   continuam no azul da marca. */
+html body:not([data-phase="day"]) :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry) {
+  border-color:#fff; background:#fff; color:#000;
+}
+html body:not([data-phase="day"]) #accountDialog #notificationPreferencesSave:disabled,html body:not([data-phase="day"]) :is(#termsDialog #termsAccept,#accountDialog #accountSubmit):disabled { border-color:#ffffff40; background:#ffffff40; color:#000000a0; }
+html body:not([data-phase="day"]) #accountDialog #notificationPreferencesForm[data-saved] #notificationPreferencesSave { background:var(--dialog-surface-2); color:#fff; }
+/* Interruptores ligados em verde e links brancos (1.50, pedido do dono, janelas pretas): o azul sai dos
+   interruptores (verde, para ver que está ligado, de dia e de noite) e, no escuro, links e ações em texto ficam
+   brancos. Botões preenchidos continuam brancos com letra preta. */
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked,html body[data-phase="day"] :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:#30d158; }
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:focus-visible { outline-color:#30d158; }
+html body:not([data-phase="day"]) :is(.dlg-todas, #_) {
+  --dialog-link:#fff; --map-link:#fff;
+}
+html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#fff !important; }
+html body:not([data-phase="day"]) #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#fff; }
+html body:not([data-phase="day"]) #accountDialog .notification-status.is-on { color:#30d158; border-color:#30d15859; background:#30d1581a; }
+html body:not([data-phase="day"]) #accountDialog .notification-status.is-on::before { background:#30d158; }
+/* Janelas claras de dia (1.50, pedido do dono: "no branco de dia tu põe preto"): o espelho das janelas pretas. Botões
+   preenchidos ficam pretos com letra branca e links/ações em texto ficam pretos, no lugar do azul. */
+html body[data-phase="day"] :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) {
+  border-color:#111; background:#111; color:#fff;
+}
+html body[data-phase="day"] #accountDialog :is(#notificationPreferencesSave,#accountSubmit):disabled,html body[data-phase="day"] #termsDialog #termsAccept:disabled { border-color:#11111140; background:#11111140; color:#ffffffb0; }
+html body[data-phase="day"] #accountDialog #notificationPreferencesForm[data-saved] #notificationPreferencesSave { background:var(--dialog-surface-2); color:#111; }
+html body[data-phase="day"] :is(.dlg-todas, #_) {
+  --dialog-link:#111; --map-link:#111;
+}
+html body[data-phase="day"] :is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#111 !important; }
+html body[data-phase="day"] #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#111; }
+html body[data-phase="day"] #accountDialog .notification-status.is-on { color:#1c7a36; border-color:#1c7a3659; background:#30d1581f; }
+html body[data-phase="day"] #accountDialog .notification-status.is-on::before { background:#30d158; }
+
+/* Janelas seguem o dia e a noite, não a nuvem (1.50.2, pedido do dono: "tá de dia e tá no modo escuro"): com céu
+   nublado ou chuva de dia a tinta do texto é clara, e as janelas ficavam pretas em pleno dia. Agora as janelas
+   claras valem com `body[data-phase="day"]` e as pretas à noite (as regras desta folha que antes olhavam
+   `data-ink` nas janelas passaram a olhar a fase). Botões da conta: mesma altura e cantos; interruptor com bolinha
+   branca e sem aro. */
+html body #accountDialog :is(#notificationToggle,#notificationPreferencesSave,#accountSubmit,#profileSave) { min-height:50px; border-radius:999px; font-size:.9375rem; font-weight:600; }
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox] { border:0 !important; box-shadow:none !important; }
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:#30d158 !important; }
+
+/* Resultados da busca de cidades mais bonitos (1.50.3, pedido do dono: "tão muito feias"): cada cidade é um cartão
+   próprio com espaço entre eles (antes uma lista corrida com linhas), nome em destaque com a sigla do estado numa
+   pílula, estado e "capital" embaixo em cinza, estrela amarela para as favoritas e anel branco (preto de dia) na
+   cidade aberta. Só pintura; mesmos botões, papéis e ids. */
+html body #cityDialog .city-results { display:grid; gap:8px; margin:6px 0 0; padding:0; border:0; border-radius:0; background:none; overflow:visible; }
+html body #cityDialog .city-results li { margin:0; list-style:none; }
+html body #cityDialog .city-result {
+  position:relative; display:grid; gap:3px; width:100%; min-height:64px; padding:13px 18px 13px 16px; border:0; border-radius:20px;
+  background:var(--dialog-surface); text-align:left;
+}
+html body #cityDialog .city-results li:last-child .city-result { border-bottom:0; }
+html body #cityDialog .city-result .city-result-name { display:flex; align-items:center; gap:8px; min-width:0; font-size:1.0625rem; font-weight:650; letter-spacing:-.01em; line-height:1.25; }
+html body #cityDialog .city-result .city-uf { flex:none; padding:2px 8px; border-radius:999px; background:var(--dialog-surface-2); color:var(--dialog-muted); font-size:.6875rem; font-weight:700; letter-spacing:.04em; line-height:1.4; }
+html body #cityDialog .city-result .city-fav { flex:none; width:16px; height:16px; margin-left:auto; background:#ffd60a; -webkit-mask:var(--star) center/contain no-repeat; mask:var(--star) center/contain no-repeat; --star:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z'/%3E%3C/svg%3E"); }
+html body #cityDialog .city-result small { display:block; color:var(--dialog-muted); font-size:.8125rem; line-height:1.3; }
+html body #cityDialog .city-result:active { background:var(--dialog-surface-2); }
+html body #cityDialog .city-result[data-current=true],html body #cityDialog .city-result[aria-selected="true"] { background:var(--dialog-surface-2); box-shadow:inset 0 0 0 1.5px #fff; padding-left:16px; }
+html body[data-phase="day"] #cityDialog .city-result[data-current=true],html body[data-phase="day"] #cityDialog .city-result[aria-selected="true"] { background:#fff; box-shadow:inset 0 0 0 1.5px #111; }
+html body[data-phase="day"] #cityDialog .city-result .city-fav { background:#e0a100; }
+@media (forced-colors:active) { html body #cityDialog .city-result { border:1px solid ButtonText; } html body #cityDialog .city-result .city-fav { background:Highlight; } }
+
+/* Interruptores alinhados ao bloco de texto (1.50.4, pedido do dono: "desalinhadas meio pra baixo"): o texto da linha
+   (título + descrição) vira uma coluna sem margens soltas e o interruptor fica centrado nela. A bolinha também
+   estava 1 px abaixo do centro da chave por causa da borda do campo (zerada em 1.50.2). */
+html body #accountDialog .notification-types label:not(.notification-summary-time) { align-items:center; }
+html body #accountDialog .notification-types label:not(.notification-summary-time) > span { display:flex; flex-direction:column; justify-content:center; gap:2px; align-self:center; margin:0; padding:0; }
+html body #accountDialog .notification-types label:not(.notification-summary-time) > span > :is(strong,small) { display:block; margin:0 !important; padding:0; line-height:1.35; }
+html body #accountDialog .notification-types label:not(.notification-summary-time) > input[type=checkbox] { align-self:center; margin:0 !important; }
+
+/* Suas cidades: "Usar localização" branco e favoritas menores, sem contorno azul (1.50.5, pedido do dono). À noite o
+   botão é branco com texto e ícone pretos; de dia (janela clara) é o espelho, preto com texto e ícone brancos. O cartão
+   da cidade favorita perde o azul (a aberta fica só um pouco mais clara) e fica compacto: texto e temperatura menores,
+   menos respiro. As linhas continuam as mesmas (subgrid e classes dos campos preservadas). */
+html body:not([data-phase="day"]) #cityDialog #locateCity { background:#fff; background-color:#fff; border-color:#fff; color:#000; }
+html body:not([data-phase="day"]) #cityDialog #locateCity::before { background:#000; }
+html body[data-phase="day"] #cityDialog #locateCity { background:#111; background-color:#111; border-color:#111; color:#fff !important; }
+html body[data-phase="day"] #cityDialog #locateCity::before { background:#fff; }
+html body #cityDialog .favorite-city-card { min-height:0; padding:11px 12px; gap:2px; border-radius:18px; border:0; }
+html body #cityDialog .favorite-city-card[aria-current=true],html body[data-phase="day"] #cityDialog .favorite-city-card[aria-current=true] { border:0; background:var(--dialog-surface-2); box-shadow:none; }
+html body #cityDialog .favorite-city-card > strong { font-size:.875rem; }
+html body #cityDialog .favorite-city-card .favorite-reading { font-size:1.5rem; letter-spacing:-.02em; line-height:1.1; }
+
+
+/* ===== Janelas no visual novo (1.61, pedido do dono: "era nessas janelas que eu tava pensando", depois das páginas
+   legais da 1.59) =====
+   As 16 janelas trocam o preto da noite e o off-white do dia (1.50) pelo céu da fase do dia: degradê azul-noite à
+   noite e azul-claro de dia (as gotas do vidro da intro no alto da folha saíram na 1.63, a pedido do dono), cartões no tom dos cartões da Home e botões preenchidos, links e ações
+   no azul da marca (#7cc0ff com texto escuro à noite, #0a4cba com texto branco de dia). Os interruptores ligados
+   continuam verdes (escolha do dono na 1.50). Segue a fase, não a nuvem (1.50.2). Só cores e fundo: sem blur,
+   transform ou z-index; o X já é o vidro do topo. */
+html body:not([data-phase="day"]) :is(.dlg-todas, #_) {
+  --dialog-bg:#121836; --dialog-surface:#182240; --dialog-surface-2:#22305a; --dialog-line:#b8d4ef26;
+  --dialog-text:#f2f7ff; --dialog-muted:#b9c8dc; --dialog-link:#7cc0ff; --map-link:#7cc0ff;
+  --text:#f2f7ff; --muted:#b9c8dc; --line:#b8d4ef26; --panel:#182240; --panel-strong:#22305a; --panel-subtle:#ffffff08;
+  border-color:#bed2f529; color:#f2f7ff; box-shadow:0 30px 90px #000a,inset 0 1px 0 #ffffff1a;
+  background:linear-gradient(180deg,#121836 0,#0b1229 300px,#080f22);
+}
+html body[data-phase="day"] :is(.dlg-todas, #_) {
+  --dialog-bg:#5bb2e3; --dialog-surface:#eef7fe; --dialog-surface-2:#0a4cba14; --dialog-line:#08274421;
+  --dialog-text:#082744; --dialog-muted:#2c4a66; --dialog-link:#0a4cba; --map-link:#0a4cba;
+  --text:#082744; --muted:#2c4a66; --line:#08274421; --panel:#eef7fe; --panel-strong:#fff; --panel-subtle:#0827440a;
+  border-color:#ffffff99; color:#082744; box-shadow:0 30px 90px #0b183040,inset 0 1px 0 #ffffffcc;
+  background:linear-gradient(180deg,#5bb2e3 0,#a9dbf1 300px,#bce7f5);
+}
+html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { border-color:var(--dialog-line); background-color:var(--dialog-surface); color:var(--dialog-text); }
+html body[data-phase="day"] :is(.dlg-todas, #_) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { border-color:var(--dialog-line); background-color:#fff; color:var(--dialog-text); }
+/* Botões preenchidos: o azul da marca no lugar do branco (noite) e do preto (dia). */
+html body:not([data-phase="day"]) :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) { border-color:#7cc0ff; background:#7cc0ff; color:#0c1a33; }
+html body[data-phase="day"] :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) { border-color:#0a4cba; background:#0a4cba; color:#fff; }
+html body:not([data-phase="day"]) #accountDialog #notificationPreferencesSave:disabled,html body:not([data-phase="day"]) :is(#termsDialog #termsAccept,#accountDialog #accountSubmit):disabled { border-color:#7cc0ff59; background:#7cc0ff59; color:#0c1a33b3; }
+html body[data-phase="day"] #accountDialog :is(#notificationPreferencesSave,#accountSubmit):disabled,html body[data-phase="day"] #termsDialog #termsAccept:disabled { border-color:#0a4cba59; background:#0a4cba59; color:#ffffffd9; }
+/* Links e ações em texto: azul da marca (no lugar do branco/preto da 1.50). */
+html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#7cc0ff !important; }
+html body[data-phase="day"] :is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#0a4cba !important; }
+html body:not([data-phase="day"]) #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#7cc0ff; }
+html body[data-phase="day"] #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#0a4cba; }
+/* Suas cidades: "Usar localização" no azul da marca e a cidade aberta com anel azul (antes branco/preto). */
+html body:not([data-phase="day"]) #cityDialog #locateCity { background:#7cc0ff; background-color:#7cc0ff; border-color:#7cc0ff; color:#0c1a33; }
+html body:not([data-phase="day"]) #cityDialog #locateCity::before { background:#0c1a33; }
+html body[data-phase="day"] #cityDialog #locateCity { background:#0a4cba; background-color:#0a4cba; border-color:#0a4cba; color:#fff !important; }
+html body[data-phase="day"] #cityDialog #locateCity::before { background:#fff; }
+html body:not([data-phase="day"]) #cityDialog .city-result[data-current=true],html body:not([data-phase="day"]) #cityDialog .city-result[aria-selected="true"] { background:var(--dialog-surface-2); box-shadow:inset 0 0 0 1.5px #7cc0ff; }
+html body[data-phase="day"] #cityDialog .city-result[data-current=true],html body[data-phase="day"] #cityDialog .city-result[aria-selected="true"] { background:#fff; box-shadow:inset 0 0 0 1.5px #0a4cba; }
+@media (forced-colors:active) { html body :is(.dlg-todas, #_) { background:Canvas; } }
+/* janelas-icones:fim */
+
+/* ===== Janelas repaginadas (1.65, pedido do dono: "repaginada total… mais bonito, intuitivo e moderno, bota ícones") =====
+   Estilo de Ajustes do iPhone: cada linha tem um quadradinho colorido com um ícone branco (--tile/--ico, ícones de
+   scripts/generate-dialog-icons.py), as seções têm títulos pequenos em caixa alta, o perfil vira um destaque no topo,
+   os campos ganham ícone e as leituras dos detalhes viram mini-cartões. Só pintura e layout: sem transform, blur ou
+   z-index novos. Seletores com ids (e :not(#_)) de propósito: os blocos anteriores das janelas também usam ids. */
+
+/* 1. Quadradinho de ícone das linhas */
+html body #accountDialog :is(#notificationTypesGroup,#notificationSummariesGroup,#notificationTimingGroup,#notificationCitiesGroup,#notificationLocationsGroup,#notificationDevicesGroup) > summary::before,
+html body #accountDialog #accountMore .account-more-item::before,
+html body #accountDialog .account-exit #accountLogout::before,
+html body #accountDialog .account-exit .account-delete > summary::before,
+html body #accountDialog .capital-links summary::before,
+html body #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle::before,
+html body #homeLayoutDialog li[data-section]::before {
+  content:""; flex:none; position:static; width:30px; height:30px; margin:0; border:0; border-radius:9px; clip-path:none;
+  background:var(--tile,#8e8e93) var(--ico,none) center / 18px 18px no-repeat; box-shadow:inset 0 0 0 .5px #ffffff26;
+  rotate:none !important; transform:none !important; opacity:1;
+}
+html body #accountDialog #notificationTypesGroup > summary { --tile:#ff453a; --ico:var(--i-bell); }
+html body #accountDialog #notificationSummariesGroup > summary { --tile:#ff9f0a; --ico:var(--i-sunrise); }
+html body #accountDialog #notificationTimingGroup > summary { --tile:#5e5ce6; --ico:var(--i-moon); }
+html body #accountDialog #notificationCitiesGroup > summary { --tile:#32ade6; --ico:var(--i-pin-plus); }
+html body #accountDialog #notificationLocationsGroup > summary { --tile:#30b158; --ico:var(--i-pin); }
+html body #accountDialog #notificationDevicesGroup > summary { --tile:#8e8e93; --ico:var(--i-phone); }
+html body #accountDialog #accountMore .text-size-row { --tile:#0a84ff; --ico:var(--i-text); }
+html body #accountDialog #openHomeLayout { --tile:#bf5af2; --ico:var(--i-grid); }
+html body #accountDialog #openChangelog { --tile:#ff375f; --ico:var(--i-sparkles); }
+html body #accountDialog #openSources { --tile:#32ade6; --ico:var(--i-data); }
+html body #accountDialog #openPrivacy { --tile:#30b158; --ico:var(--i-shield); }
+html body #accountDialog #accountMore a[href="/privacidade/"] { --tile:#636366; --ico:var(--i-lock); }
+html body #accountDialog #accountMore a[href="/termos/"] { --tile:#636366; --ico:var(--i-doc); }
+html body #accountDialog #accountLogout { --tile:#0a84ff; --ico:var(--i-logout); }
+html body #accountDialog .capital-links summary { --tile:#0a84ff; --ico:var(--i-globe); }
+html body #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { --tile:#ff453a; --ico:var(--i-bell-off); }
+html body #homeLayoutDialog li[data-section="hourly"] { --tile:#0a84ff; --ico:var(--i-clock); }
+html body #homeLayoutDialog li[data-section="tips"] { --tile:#ff9f0a; --ico:var(--i-umbrella); }
+html body #homeLayoutDialog li[data-section="details"] { --tile:#32ade6; --ico:var(--i-gauge); }
+html body #homeLayoutDialog li[data-section="radar"] { --tile:#30b158; --ico:var(--i-radar); }
+html body #homeLayoutDialog li[data-section="sky"] { --tile:#5e5ce6; --ico:var(--i-moon); }
+
+/* 2. Linhas: ícone, texto e seta alinhados à esquerda */
+html body #accountDialog #accountMore .account-more-item:not(#_) { justify-content:flex-start; gap:14px; padding:0; }
+html body #accountDialog #accountMore .account-more-item::after { margin-left:auto; }
+html body #accountDialog #accountMore .text-size-row .text-size-controls { margin-left:auto; }
+html body #accountDialog #accountMore #textSizeLabel { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:.875rem; }
+html body #accountDialog #accountMore .text-size-row:not(#_) { gap:12px; }
+/* Botões A−/A+ como uma pílula segmentada compacta (alvos de 40 × 44 px), para "Tamanho do texto" caber na linha. */
+html body #accountDialog #accountMore .text-size-controls:not(#_) { gap:0; padding:0 2px; border-radius:999px; background:color-mix(in srgb,var(--dialog-text) 8%,transparent); }
+html body #accountDialog #accountMore :is(#textSizeDown,#textSizeUp):not(#_) { width:32px; height:40px; min-height:40px; border-radius:999px; background:transparent; box-shadow:none; }
+html body #accountDialog #accountMore #textSizeValue:not(#_) { min-width:2.7em; text-align:center; font-size:.8125rem; font-variant-numeric:tabular-nums; }
+html body #accountDialog .account-group > summary:not(#_) { gap:14px; }
+html body #accountDialog .capital-links summary:not(#_) { justify-content:flex-start; gap:14px; }
+html body #accountDialog .capital-links summary::after { margin-left:auto; }
+html body #accountDialog .account-exit #accountLogout:not(#_) { justify-content:flex-start; gap:14px; padding:0 16px; font-weight:500; }
+html body #accountDialog .account-exit .account-delete > summary:not(#_) { justify-content:flex-start; gap:14px; margin:0; padding:0 16px; font-weight:500; }
+html body #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle:not(#_) {
+  display:flex; align-items:center; justify-content:flex-start; gap:14px; width:100%; min-height:56px; padding:0 16px;
+  border-radius:var(--sheet-radius,22px); background:var(--dialog-surface); text-align:left; font-weight:500;
+}
+
+/* 3. Títulos de seção pequenos, em caixa alta, como nos Ajustes */
+html body #accountDialog :is(.notification-settings-head h3,#accountMoreTitle,#capitalLinksTitle):not(#_) {
+  margin:0; padding:0 4px; color:var(--dialog-muted); font-size:.75rem; font-weight:650; letter-spacing:.07em; text-transform:uppercase;
+}
+html body #accountDialog #accountMore:not(#_) { margin-top:28px; }
+html body #accountDialog #accountMoreTitle:not(#_) { margin-bottom:8px; }
+
+/* 4. Perfil em destaque: foto grande no centro, nome, e-mail e "Editar perfil" em pílula */
+html body #accountDialog #accountProfileEdit > summary:not(#_) { flex-direction:column; justify-content:center; gap:12px; min-height:0; padding:24px 16px 20px; text-align:center; }
+html body #accountDialog #accountProfileEdit > summary::after { display:none; }
+html body #accountDialog #accountProfileEdit .profile-identity:not(#_) { display:flex; flex-direction:column; align-items:center; gap:12px; margin:0; padding:0; }
+html body #accountDialog #accountProfileEdit .profile-avatar:not(#_) { width:88px; height:88px; font-size:2.25rem; box-shadow:0 0 0 3px color-mix(in srgb,var(--dialog-link) 55%,transparent),0 10px 28px #0005; }
+html body #accountDialog #accountProfileEdit .profile-text:not(#_) { justify-items:center; text-align:center; max-width:100%; }
+html body #accountDialog #accountProfileEdit .profile-text strong:not(#_) { font-size:1.375rem; font-weight:650; }
+html body #accountDialog #accountProfileEdit .account-group-value:not(#_) {
+  display:inline-flex; align-items:center; min-height:34px; padding:0 16px; border-radius:999px;
+  background:color-mix(in srgb,var(--dialog-link) 16%,transparent); color:var(--dialog-link); font-size:.875rem; font-weight:600;
+}
+
+/* 5. Sem conta: convite com ícone e campos com ícone */
+html body #accountDialog #accountIntro:not(#_) { display:grid; justify-items:center; gap:12px; margin:4px 0 18px; text-align:center; color:var(--dialog-muted); }
+html body #accountDialog #accountIntro::before {
+  content:""; width:64px; height:64px; border-radius:20px; background:var(--i-user) center / 32px 32px no-repeat,linear-gradient(160deg,#4aa8ff,#2f6fe0);
+  box-shadow:0 10px 26px #2f6fe055;
+}
+html body #accountDialog #accountIntro[hidden] { display:none; }
+html body #accountDialog :is(#accountEmail,#accountPassword,#accountName,#profileName,#accountNewPassword,#accountNewPasswordConfirm):not(#_) {
+  padding-left:46px !important; background-repeat:no-repeat !important; background-position:15px 50% !important; background-size:20px 20px !important;
+}
+html body #accountDialog #accountEmail:not(#_) { background-image:var(--ii-mail) !important; }
+html body #accountDialog :is(#accountPassword,#accountNewPassword,#accountNewPasswordConfirm):not(#_) { background-image:var(--ii-lock) !important; }
+html body #accountDialog :is(#accountName,#profileName):not(#_) { background-image:var(--ii-user) !important; }
+
+/* 6. Leituras dos detalhes por hora e por dia: mini-cartões com ícone (a grade em subgrid continua) */
+html body :is(.dlg-detalhe, #_) .hourly-detail-readings:not(#_) { gap:0 10px; }
+html body :is(.dlg-detalhe, #_) .hourly-detail-readings > div:not(#_) { margin:0 0 10px; padding:12px 14px; border:0 !important; border-radius:18px; background:var(--dialog-surface); }
+html body :is(.dlg-detalhe, #_) .hourly-detail-readings dt:not(#_) { display:flex; align-items:flex-start; gap:6px; font-size:.8125rem; }
+html body :is(.dlg-detalhe, #_) .hourly-detail-readings dt::before {
+  content:""; flex:none; width:16px; height:16px; margin-top:1px; background:var(--dialog-link);
+  -webkit-mask:var(--ico,var(--i-gauge)) center / 16px 16px no-repeat; mask:var(--ico,var(--i-gauge)) center / 16px 16px no-repeat;
+}
+html body :is(.dlg-detalhe, #_) .hourly-detail-readings dd:not(#_) { margin-top:6px; font-size:1.3rem; font-weight:600; }
+
+/* 7. Novidades: cada versão num cartão */
+html body :is(.dlg-novidades, #_) :is(ol,ul):has(> .changelog-entry):not(#_) { margin:0; padding:0; list-style:none; }
+html body :is(.dlg-novidades, #_) .changelog-entry:not(#_) { margin:0 0 12px; padding:16px 16px 14px; border-radius:20px; background:var(--dialog-surface); list-style:none; }
+html body :is(.dlg-novidades, #_) .changelog-entry h3:not(#_) { display:flex; align-items:center; gap:8px; margin:0; font-size:1.0625rem; }
+html body :is(.dlg-novidades, #_) .changelog-entry .changelog-date:not(#_) { margin:2px 0 0; color:var(--dialog-muted); font-size:.8125rem; }
+html body :is(.dlg-novidades, #_) .changelog-entry ul:not(#_) { margin:10px 0 0; padding-left:1.1rem; }
+html body :is(.dlg-novidades, #_) .changelog-entry ul li:not(#_) { margin:6px 0 0; line-height:1.45; }
+
+/* 8. Personalizar a Home: linhas com ícone e interruptor */
+html body #homeLayoutDialog li[data-section]:not(#_) { display:flex; align-items:center; gap:12px; min-height:58px; margin:0; padding:0 8px 0 14px; border:0; border-radius:0; background:var(--dialog-surface); }
+html body #homeLayoutDialog li[data-section]:first-child { border-radius:20px 20px 0 0; }
+html body #homeLayoutDialog li[data-section]:last-child { border-radius:0 0 20px 20px; }
+html body #homeLayoutDialog li[data-section] + li[data-section] { box-shadow:inset 0 1px 0 var(--dialog-line); }
+html body #homeLayoutDialog li[data-section] > label:not(#_) { display:flex; flex:1; flex-direction:row-reverse; align-items:center; justify-content:space-between; gap:10px; min-width:0; margin:0; }
+html body #homeLayoutDialog li[data-section] input[type=checkbox] {
+  -webkit-appearance:none; appearance:none; flex:none; position:relative; width:50px; height:30px; margin:0; border-radius:999px; background:#ffffff2e; cursor:pointer; transition:background-color .2s ease;
+}
+html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 1px 3px #0006; }
+html body #homeLayoutDialog li[data-section] input[type=checkbox]:checked { background:#30d158; }
+html body #homeLayoutDialog li[data-section] input[type=checkbox]:checked::before { translate:20px 0; }
+html body #homeLayoutDialog li[data-section] input[type=checkbox]:focus-visible { outline:2px solid var(--dialog-link); outline-offset:2px; }
+html body[data-phase="day"] #homeLayoutDialog li[data-section] input[type=checkbox]:not(:checked) { background:#0827441f; }
+html body #homeLayoutDialog li[data-section] > label > span { font-size:.9375rem; line-height:1.3; }
+html body #homeLayoutDialog li[data-section] .home-layout-move:not(#_) { display:flex; gap:2px; }
+html body #homeLayoutDialog li[data-section] .home-layout-move button:not(#_) { width:34px; min-width:34px; height:44px; padding:0; border:0; border-radius:10px; background:transparent; color:var(--dialog-link); font-size:1.125rem; }
+html body #homeLayoutDialog li[data-section] .home-layout-move button:disabled { color:var(--dialog-muted); opacity:.35; }
+@media (prefers-reduced-motion:reduce) { html body #homeLayoutDialog li[data-section] input[type=checkbox], html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { transition:none; } }
+@media (forced-colors:active) {
+  html body #homeLayoutDialog li[data-section] input[type=checkbox] { appearance:auto; -webkit-appearance:auto; }
+  html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { content:none; }
+  html body :is(.dlg-conta-home, #_) [style], html body #accountDialog *::before { forced-color-adjust:auto; }
+}
+
+/* ===== Fundo das janelas com profundidade (1.66, pedido do dono: "eu queria que o fundo tivesse profundidade também") =====
+   O degradê chapado das janelas (1.61) vira um céu em camadas: no próprio fundo, um brilho no alto (luar à noite, sol
+   de dia no canto) e névoas coloridas perto do horizonte; atrás do conteúdo, duas camadas em pseudo-elementos:
+   ::before longe (estrelas à noite, um véu de nuvem alto de dia) e ::after perto (nuvens no horizonte, embaixo). As
+   imagens são as do céu da Home, já no precache (estrelas 1:1, véu de nuvem). Camadas paradas: um parallax por
+   scroll-driven animation (timeline-scope + overflow:clip) fez a janela da conta não abrir no WebKit da CI e saiu;
+   não reintroduzir sem medir no WebKit/iPhone. Sem blur, filtro nem animação. */
+html body :is(.dlg-todas, #_) { isolation:isolate; }
+html body:not([data-phase="day"]) :is(.dlg-todas, #_) {
+  background:
+    radial-gradient(85% 40% at 50% -6%,#4566c080,#2a3d8533 45%,transparent 72%),
+    radial-gradient(70% 30% at 92% 100%,#5a3b8a45,transparent 70%),
+    radial-gradient(75% 32% at 4% 100%,#1f5b8a40,transparent 70%),
+    linear-gradient(180deg,#141b3c 0,#0b1229 320px,#070d1f);
+}
+html body[data-phase="day"] :is(.dlg-todas, #_) {
+  background:
+    radial-gradient(55% 30% at 88% -4%,#fff6d6e6,#fff1c066 35%,transparent 70%),
+    radial-gradient(90% 34% at 50% 100%,#ffffffb3,transparent 72%),
+    linear-gradient(180deg,#4fa8de 0,#8fd0ef 300px,#c3eaf7);
+}
+html body :is(.dlg-todas, #_)::before,
+html body :is(.dlg-todas, #_)::after {
+  content:""; position:absolute; z-index:-1; left:0; right:0; pointer-events:none;
+}
+/* Longe: estrelas (noite) e véu alto (dia), esmaecendo para baixo. */
+html body :is(.dlg-todas, #_)::before {
+  top:0; height:70%;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 35%,transparent); mask-image:linear-gradient(180deg,#000 0,#000 35%,transparent);
+}
+html body:not([data-phase="day"]) :is(.dlg-todas, #_)::before {
+  background:url("./assets/sky-stars.svg?v=stars-2") center top / 900px 1100px repeat; opacity:.8;
+}
+html body[data-phase="day"] :is(.dlg-todas, #_)::before {
+  background:url("./assets/sky-cloud-veil.webp?v=clouds-9") 30% 70px / auto 300px repeat-x; opacity:.42;
+}
+/* Perto: nuvens no horizonte, embaixo, esmaecendo para cima. */
+html body :is(.dlg-todas, #_)::after {
+  bottom:0; height:min(46%,440px);
+  background:url("./assets/sky-cloud-veil.webp?v=clouds-9") 62% 100% / auto 420px repeat-x;
+  -webkit-mask-image:linear-gradient(0deg,#000 0,#000 45%,transparent); mask-image:linear-gradient(0deg,#000 0,#000 45%,transparent);
+}
+html body:not([data-phase="day"]) :is(.dlg-todas, #_)::after { opacity:.18; }
+html body[data-phase="day"] :is(.dlg-todas, #_)::after { opacity:.7; }
+/* A faixa do cabeçalho de Minha conta era a cor chapada do fundo: agora mostra o céu por trás (o brilho e as estrelas
+   do alto) e só escurece embaixo, onde o conteúdo passa. */
+html body:not([data-phase="day"]) #accountDialog .dialog-heading::before { background:linear-gradient(180deg,#141b3cd9 0,#121a3af2 55%,#111938d1); }
+html body[data-phase="day"] #accountDialog .dialog-heading::before { background:linear-gradient(180deg,#4fa8ded9 0,#55acdff2 55%,#5aafe0d1); }
+@media (forced-colors:active) {
+  html body :is(.dlg-todas, #_)::before,
+  html body :is(.dlg-todas, #_)::after { content:none; }
+}
+/* Testar Tomorrow.io (1.65): linha de Mais do PLUVIA com o estado no lugar da seta. */
+html body #accountDialog #accountMore .tomorrow-test::after { display:none; }
+html body #accountDialog #accountMore .tomorrow-test > span:first-child { display:flex; flex-direction:column; gap:2px; min-width:0; }
+html body #accountDialog #accountMore .tomorrow-test small { font-size:.8125rem; font-weight:400; line-height:1.3; color:var(--dialog-muted); }
+html body #accountDialog #tomorrowTest { --tile:#ff9f0a; --ico:var(--i-sun); }
+html body #accountDialog #accountMore .account-more-state { flex:none; margin-left:auto; font-size:.875rem; font-weight:500; color:var(--dialog-muted); }
+html body #accountDialog #accountMore .tomorrow-test[aria-pressed="true"] .account-more-state { color:var(--dialog-link); font-weight:600; }
+
+/* Interruptores de gelatina: a bolinha anda por translate (antes era left, que recalculava o layout a cada quadro)
+   e encaixa com mola. Com o dedo em cima ela vira uma cápsula de vidro transparente, mais larga na direção para
+   onde vai (como a chave do iOS 26 e a cápsula da 1.67): fio claro, franja vermelha/azul, faixa de refração e a cor
+   do trilho aparecendo por dentro. Soltou, volta a ser branca. Só translate/scale e pintura na própria bolinha. */
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]::before,
+html body #homeLayoutDialog li[data-section] input[type=checkbox]::before {
+  left:3px; transform-origin:0 50%;
+  background-image:
+    radial-gradient(70% 44% at 50% 100%,rgba(255,255,255,.5),rgba(255,255,255,0) 72%),
+    radial-gradient(closest-side,rgba(255,255,255,0) 52%,rgba(255,255,255,.32));
+  transition:translate .5s var(--ease-spring), scale .42s var(--ease-spring), background-color .18s ease, box-shadow .18s ease;
+}
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked::before,
+html body #homeLayoutDialog li[data-section] input[type=checkbox]:checked::before { left:3px; translate:20px 0; transform-origin:100% 50%; }
+html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:active:not(:disabled)::before,
+html body #homeLayoutDialog li[data-section] input[type=checkbox]:active:not(:disabled)::before {
+  scale:1.3 1.14; background-color:rgba(255,255,255,.14);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.88),
+    inset 2.5px 0 2px -1.5px rgba(255,72,96,.6),
+    inset -2.5px 0 2px -1.5px rgba(64,150,255,.65),
+    inset 0 0 4px 1px rgba(6,20,48,.3),
+    0 3px 9px rgba(4,8,20,.32);
+}
+html body #accountDialog .terms-check input[type=checkbox]::before { transition:none; }
+@media (prefers-reduced-motion:reduce) {
+  html body :is(.dlg-conta-fontes, #_) input[type=checkbox]::before,
+  html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { transition:none; scale:none; }
+}
+@media (prefers-reduced-motion:no-preference) {
+  html body :is(.dlg-g14, #_)[open] { animation-duration:.5s; animation-timing-function:var(--ease-settle); }
+  html body :is(.dlg-g14, #_)[open]::backdrop { animation-duration:.28s; animation-timing-function:ease-out; }
+  html body #brazilDialog .brazil-row, html body #cityDialog .city-result { transition:background-color .16s ease, scale .45s var(--ease-spring); }
+}
+html body #accountDialog #accountMore :is(#textSizeDown,#textSizeUp):not(#_) { position:relative; }
+html body #accountDialog #accountMore :is(#textSizeDown,#textSizeUp):not(#_)::before { content:""; position:absolute; top:-2px; bottom:-2px; left:0; right:0; }
+html body #accountDialog #accountMore #textSizeDown:not(#_)::before { left:-12px; }
+html body #accountDialog #accountMore #textSizeUp:not(#_)::before { right:-12px; }

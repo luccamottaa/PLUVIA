@@ -51,7 +51,7 @@ test('cor pela escala de 5° a 37°; ausente sem cor', () => {
   assert.equal(brazil.tempColor(37), 'rgb(229,83,61)');
   assert.notEqual(brazil.tempColor(20), brazil.tempColor(34));
   // A legenda do CSS usa as mesmas paradas.
-  assert.match(read('dist/continuous.css'), /\.brazil-legend i \{[^}]*rgb\(91,140,255\) 0%[^}]*rgb\(229,83,61\) 100%/);
+  assert.match((read('dist/continuous.css') + read('dist/dialogs.css')), /\.brazil-legend i \{[^}]*rgb\(91,140,255\) 0%[^}]*rgb\(229,83,61\) 100%/);
 });
 
 test('mapa e lista saem das mesmas linhas: "—" sem dado, nada pulado nem inventado', () => {
@@ -113,7 +113,7 @@ test('campo contínuo: interior entra na mesma consulta, ausentes ficam fora e o
 });
 
 test('mapa acessível e carregado só ao abrir o diálogo', () => {
-  const html = read('dist/index.html'), src = read('dist/modules/brazil-now.js'), css = read('dist/continuous.css');
+  const html = read('dist/index.html'), src = read('dist/modules/brazil-now.js'), css = (read('dist/continuous.css') + read('dist/dialogs.css'));
   const tag = html.match(/<div id="brazilMap"[^>]*>/)[0];
   assert.doesNotMatch(tag, /aria-hidden/, 'o mapa não é escondido do leitor de tela');
   assert.match(tag, /role="group"/); assert.match(tag, /aria-label="[^"]+"/); assert.match(tag, /aria-describedby="brazilMapHint"/);
@@ -131,7 +131,7 @@ test('mapa acessível e carregado só ao abrir o diálogo', () => {
 
 // O bug da 1.64: etiquetas em posições de tela escritas à mão (LABELS) e um contorno colado no código, num mapa 3D.
 test('sem posições de tela fixas, contorno embutido ou 3D', () => {
-  const src = read('dist/modules/brazil-now.js'), css = read('dist/continuous.css');
+  const src = read('dist/modules/brazil-now.js'), css = (read('dist/continuous.css') + read('dist/dialogs.css'));
   for (const name of ['LABELS', 'OUTLINE', 'MAP', 'project', 'spinFor', 'field']) assert.equal(brazil[name], undefined, `${name} saiu do módulo`);
   assert.doesNotMatch(src, /const (LABELS|OUTLINE) =|getBoundingClientRect|--spin|brazil-anchor/);
   assert.doesNotMatch(css, /brazil-plane|brazil-slab|brazil-anchor|preserve-3d[^}]*brazil/);

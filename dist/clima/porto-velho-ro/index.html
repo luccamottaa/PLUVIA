@@ -51,7 +51,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-355" />
+    <meta name="pluvia-release" content="pluvia-panel-356" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -108,7 +108,7 @@
     <link rel="preload" href="/vendor/suncalc.js?v=sky-4" as="script" />
     <link rel="preload" href="/modules/moon-view.js?v=moon-8" as="script" />
     <link rel="preload" href="/modules/sky-atmosphere.js?v=sky-26" as="script" />
-    <link rel="preload" href="/sky.css?v=sky-68" as="style" />
+    <link rel="preload" href="/sky.css?v=sky-69" as="style" />
     <style>
       /* A abertura precisa ser desenhada antes do CSS da previsão e das fontes externas. */
       /* fonts.css inline (o mesmo texto do arquivo, conferido por teste): era uma folha bloqueante a mais na cadeia crítica. */
@@ -204,14 +204,14 @@
     <script src="/modules/moon-view.js?v=moon-8"></script>
     <script src="/modules/sky-atmosphere.js?v=sky-26"></script>
     <script src="/modules/sky-toon.js?v=toon-4" defer></script><script src="/modules/compact-header.js?v=compact-6" defer></script><script src="/modules/glass-touch.js?v=glass-3" defer></script><script src="/modules/glass-segment.js?v=glass-seg-4" defer></script><script src="/modules/text-size.js?v=text-size-1" defer></script><script src="/modules/sky-events.js?v=sky-events-3" defer></script><script src="/modules/sun-table.js?v=sun-table-1" defer></script><script src="/modules/eclipses.js?v=eclipses-3" defer></script>
-    <link rel="stylesheet" href="/sky.css?v=sky-68" />
+    <link rel="stylesheet" href="/sky.css?v=sky-69" />
     <script>
       /* O antigo modo seguro (céu parado depois de uma queda) saiu a pedido: limpa as marcas que ele deixou. */
       try { localStorage.removeItem("pluvia-boot-pending"); localStorage.removeItem("pluvia-safe-until"); } catch (e) {}
     </script>
     <script>document.documentElement.classList.add("awaiting-styles");</script>
-    <link rel="stylesheet" href="/styles.css?v=core-137" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
-    <noscript><link rel="stylesheet" href="/styles.css?v=core-137" /></noscript>
+    <link rel="stylesheet" href="/styles.css?v=core-138" media="print" onload="this.media='all';document.documentElement.classList.remove('awaiting-styles')" onerror="document.documentElement.classList.remove('awaiting-styles')" />
+    <noscript><link rel="stylesheet" href="/styles.css?v=core-138" /></noscript>
   </head>
   <body>
     <svg class="moon-definitions" width="0" height="0" aria-hidden="true" focusable="false">
@@ -288,8 +288,29 @@
     </script>
     <!-- CSS da Home depois da intro: a intro (CSS inline + sky.css) pinta sem esperar estes 145 KB;
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
-    <link rel="stylesheet" href="/redesign.css?v=panel-52" />
-    <link rel="stylesheet" href="/continuous.css?v=layout-195" />
+    <link rel="stylesheet" href="/redesign.css?v=panel-53" />
+    <link rel="stylesheet" href="/continuous.css?v=layout-196" />
+    <!-- Janelas (1.72.2): as regras só das janelas (~120 KB, 759 regras) ficam em dialogs.css, fora da abertura. Entram
+         depois da primeira pintura (ocioso após o load), no primeiro toque ou tecla, ou quando qualquer janela abre; o
+         <link> vai para o fim do body, para ficar depois de continuous.css na cascata. Até chegar, janela aberta fica
+         invisível (continuous.css, html:not([data-dialog-css])). -->
+    <script>
+      (function (d, w) {
+        var done = false, root = d.documentElement;
+        function load() {
+          if (done) return; done = true;
+          var link = d.createElement('link'), ready = function () { root.setAttribute('data-dialog-css', ''); };
+          link.rel = 'stylesheet'; link.href = './dialogs.css?v=dialogs-1'; link.onload = ready; link.onerror = ready;
+          (d.body || root).appendChild(link);
+        }
+        w.addEventListener('pointerdown', load, {capture: true, once: true, passive: true});
+        w.addEventListener('keydown', load, {capture: true, once: true});
+        w.addEventListener('load', function () { (w.requestIdleCallback || function (f) { setTimeout(f, 1200); })(load, {timeout: 3000}); });
+        new MutationObserver(function (records) {
+          for (var i = 0; i < records.length; i++) if (records[i].target.open) { load(); return; }
+        }).observe(root, {subtree: true, attributes: true, attributeFilter: ['open']});
+      })(document, window);
+    </script>
     <div class="night-stage">
     <span class="sky-twilight sky-twilight-page" aria-hidden="true"></span>
     <div class="sky-effects" data-motion="paused" aria-hidden="true"></div>
@@ -667,7 +688,7 @@
     <script src="/modules/forecast-accuracy.js?v=accuracy-1" defer></script>
     <script src="/modules/station-now.js?v=station-5" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-11" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-385" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-386" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
     <script src="/notifications.js?v=panel-40" defer></script>

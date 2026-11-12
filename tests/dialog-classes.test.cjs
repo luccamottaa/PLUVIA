@@ -26,7 +26,7 @@ const GROUPS = {
   'conta-home': ['accountDialog', 'homeLayoutDialog']
 };
 const dist = file => fs.readFileSync(path.join(__dirname, '../dist', file), 'utf8');
-const css = ['continuous.css', 'redesign.css', 'styles.css', 'sky.css'].map(dist).join('\n');
+const css = ['continuous.css', 'redesign.css', 'styles.css', 'sky.css', 'dialogs.css'].map(dist).join('\n');
 const html = dist('index.html');
 
 test('o CSS não volta a usar listas de ids de janelas dentro de :is()', () => {
