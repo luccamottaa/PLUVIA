@@ -99,11 +99,11 @@ test('janelas de 3 h e 12 h começam na hora cheia, cobrem +1 h a +N h e exigem 
   assert.equal(kept.length, 0);
 });
 
-test('Tomorrow.io: rodízio fixo de 3 capitais por hora cobre as 27 em 9 horas', () => {
+test('Tomorrow.io: rodízio fixo de 6 capitais por hora cobre as 27 em 5 horas (1.73.8)', () => {
   const seen = new Set();
-  for (let hour = 0; hour < 9; hour++) {
+  for (let hour = 0; hour < 5; hour++) {
     const picked = api.tomorrowCities(base + hour * HOUR);
-    assert.equal(picked.length, 3);
+    assert.equal(picked.length, 6);
     for (const city of picked) seen.add(city.id);
   }
   assert.equal(seen.size, 27);
@@ -125,4 +125,28 @@ test('Tomorrow.io: chuva e chance da hora que começa em T − 1 h, temperatura 
   const windows = api.buildWindows([entry], api.CAPITALS.slice(0, 1), now, [api.TOMORROW_MODEL]);
   assert.equal(windows.find(w => w.window_hours === 3).answer, 'dry');
   assert.equal(api.tomorrowEntry([], now), null);
+});
+
+test('Brasil agora: série compacta da capital pela mesma resposta do placar (1.73.8)', () => {
+  const now = base + 20 * 60e3;
+  const points = Array.from({length:40}, (_, i) => ({at:base + i * HOUR, values:{temperature:i === 3 ? 'x' : 25 + i / 10, weatherCode:i === 1 ? 4001 : i === 2 ? 9999 : 1000}}));
+  const hours = api.capitalHours(points, now);
+  assert.equal(hours.length, api.CAPITAL_HOURS + 1);
+  assert.deepEqual([...hours[0]], [base / 1000, 25, 0]);
+  assert.deepEqual([...hours[1]], [base / 1000 + 3600, 25.1, 63]);
+  assert.equal(hours[2][2], null, 'código desconhecido vira null');
+  assert.equal(hours[3][1], null, 'temperatura inválida vira null, nunca zero');
+  assert.equal(api.capitalHours([], now), null);
+  assert.equal(api.capitalHours([{at:base, values:{weatherCode:1000}}], now), null, 'sem temperatura nada é guardado');
+  assert.ok(api.TOMORROW_VERIFY_FIELDS.includes('weatherCode'));
+  // A tabela de códigos é a mesma da função de teste.
+  const shared = fs.readFileSync('supabase/functions/_shared/tomorrow-forecast.js', 'utf8');
+  const other = vm.runInNewContext(shared.replace(/^export /gm, '') + ';WMO');
+  assert.deepEqual({...api.TOMORROW_WMO}, {...other});
+  const fn = fs.readFileSync('supabase/functions/forecast-verify/index.ts', 'utf8');
+  assert.match(fn, /admin\.rpc\("pluvia_tomorrow_capitals_store", \{ p_rows: tomorrow\.capitals \}\)/);
+  const sql = fs.readFileSync('supabase/migrations/20261112210000_tomorrow_capitals.sql', 'utf8');
+  assert.match(sql, /grant execute on function public\.pluvia_tomorrow_capitals_store\(jsonb\) to service_role;/);
+  assert.match(sql, /grant execute on function public\.pluvia_tomorrow_capitals\(\) to anon, authenticated, service_role;/);
+  assert.match(sql, /revoke all on table private\.tomorrow_capitals from public, anon, authenticated;/);
 });

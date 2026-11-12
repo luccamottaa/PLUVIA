@@ -138,3 +138,29 @@ test('sem posições de tela fixas, contorno embutido ou 3D', () => {
   // As posições do mapa saem só da projeção dos dados (lat/lon) e do layout das etiquetas.
   assert.doesNotMatch(read('dist/modules/brazil-map.js'), /\b(AM|PA|RJ|SP|RS):\s*\[\d/, 'nenhuma posição por UF');
 });
+
+test('Brasil agora: com o teste, temperatura e condição das capitais do Tomorrow.io, máx./mín. esticadas (1.73.8)', () => {
+  const now = Date.parse('2026-11-12T20:56:00Z'), hour = Math.round(now / 3600e3) * 3600;
+  const rows = [
+    {id:'1302603', name:'Manaus', uf:'AM', temperature:34, code:0, isDay:true, high:35, low:26},
+    {id:'1501402', name:'Belém', uf:'PA', temperature:30, code:2, isDay:true, high:34, low:25},
+    {id:'5300108', name:'Brasília', uf:'DF', temperature:26, code:3, isDay:true, high:null, low:null}
+  ];
+  const table = {
+    '1302603':{at:0, hours:[[hour - 3600, 33, 0], [hour, 36.4, 1], [hour + 3600, 35, 1]]},
+    '1501402':{at:0, hours:[[hour, null, 63]]},
+    '5300108':{at:0, hours:[[hour, 25, 95]]}
+  };
+  const {rows:out, count} = brazil.overlayTomorrow(rows, table, now);
+  assert.equal(count, 2);
+  assert.deepEqual([out[0].temperature, out[0].code, out[0].high, out[0].low, out[0].source], [36.4, 1, 36.4, 26, 'tomorrow']);
+  assert.equal(out[1], rows[1], 'sem temperatura do Tomorrow.io na hora, fica o Open-Meteo');
+  assert.deepEqual([out[2].temperature, out[2].code, out[2].high], [25, 95, null]);
+  assert.deepEqual(brazil.overlayTomorrow(rows, null, now), {rows, count:0});
+  const at = Date.parse('2026-11-09T21:22:00Z'), format = () => '18:22';
+  assert.equal(brazil.statusText(at, format, 27, 27), 'Atualizado às 18:22 (horário de Brasília) · Tomorrow.io (teste) nas capitais, Open-Meteo no fundo do mapa');
+  assert.equal(brazil.statusText(at, format, 20, 27), 'Atualizado às 18:22 (horário de Brasília) · Tomorrow.io (teste) em 20 de 27 capitais, Open-Meteo no resto');
+  const src = fs.readFileSync(path.join(__dirname, '..', 'dist', 'modules', 'brazil-now.js'), 'utf8');
+  assert.match(src, /const extraTask = test \? client\.getJson\(TOMORROW_RPC,[^\n]*\.catch\(\(\) => null\) : Promise\.resolve\(null\);/, 'falha do Tomorrow.io não derruba o Open-Meteo');
+  assert.match(src, /cache\.test === test/, 'ligar ou desligar o teste refaz a consulta');
+});

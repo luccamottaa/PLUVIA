@@ -12,7 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.73.7", date:"2026-11-12", title:"Visibilidade do Tomorrow.io", items:[
+    {version:"1.73.7", date:"2026-11-12", title:"Tomorrow.io em mais lugares", items:[
+      "Com \"Testar Tomorrow.io\" ligado, o Brasil agora mostra a temperatura e o tempo das capitais pelo Tomorrow.io (previsão para a hora atual, renovada a cada 4 horas e meia).",
       "Com \"Testar Tomorrow.io\" ligado, o cartão Visibilidade usa o valor do Tomorrow.io.",
       "O código do aeroporto (\"SBMN\") saiu de todos os textos: chuva observada, leitura do aeroporto e notificações."
     ]},

@@ -111,8 +111,36 @@
     }));
   }
 
-  function statusText(at, format) {
-    return `Atualizado às ${format(at)} (horário de Brasília) · Open-Meteo`;
+  // Tomorrow.io nas capitais (1.73.8, pedido do dono: "bota o tomorrow pra fornecer no Brasil agora"), só com
+  // "Testar Tomorrow.io" ligado. O plano grátis não cabe 27 consultas por abertura: o forecast-verify guarda a
+  // previsão hora a hora de cada capital (renovada a cada ~4 h 30) e aqui entra o valor da hora mais próxima.
+  // Temperatura e condição vêm dele; máxima e mínima do dia continuam do Open-Meteo, esticadas se o agora passar
+  // delas. O fundo colorido do mapa (pontos do interior) continua do Open-Meteo.
+  const TOMORROW_RPC = 'https://dszyyrcvwrpyiypwyvxe.supabase.co/rest/v1/rpc/pluvia_tomorrow_capitals';
+  const TOMORROW_KEY = 'sb_publishable_SdPTXhk3Q7aD-ra0S9dm_A_rnXSS4Jc';
+  const TEST_KEY = 'pluvia-tomorrow-test';
+  function overlayTomorrow(rows, table, now = Date.now()) {
+    if (!table || typeof table !== 'object') return {rows, count:0};
+    const hour = Math.round(now / 3600000) * 3600;
+    let count = 0;
+    const out = rows.map(row => {
+      const hours = Array.isArray(table[row.id]?.hours) ? table[row.id].hours : [];
+      const point = hours.find(item => Array.isArray(item) && item[0] === hour);
+      const temperature = finite(point?.[1]);
+      if (temperature === null || temperature <= -60 || temperature >= 60) return row;
+      const code = finite(point?.[2]);
+      count += 1;
+      return {...row, temperature, code:code !== null && code >= 0 && code <= 99 ? code : row.code,
+        high:row.high === null ? null : Math.max(row.high, temperature), low:row.low === null ? null : Math.min(row.low, temperature), source:'tomorrow'};
+    });
+    return {rows:out, count};
+  }
+
+  function statusText(at, format, tomorrow = 0, total = 27) {
+    const base = `Atualizado às ${format(at)} (horário de Brasília)`;
+    if (!tomorrow) return `${base} · Open-Meteo`;
+    return tomorrow >= total ? `${base} · Tomorrow.io (teste) nas capitais, Open-Meteo no fundo do mapa`
+      : `${base} · Tomorrow.io (teste) em ${tomorrow} de ${total} capitais, Open-Meteo no resto`;
   }
 
   let openDialog = null;
@@ -187,19 +215,22 @@
       }));
     }
 
+    const testOn = () => { try { return root.localStorage?.getItem(TEST_KEY) === '1'; } catch { return false; } };
     async function load() {
-      const token = ++revision, cities = capitals();
-      if (cache && Date.now() - cache.at < FRESH_MS) {fieldRows = cache.fieldRows; render(cache.rows, token); status(statusText(cache.at, clock)); return;}
+      const token = ++revision, cities = capitals(), test = testOn();
+      if (cache && cache.test === test && Date.now() - cache.at < FRESH_MS) {fieldRows = cache.fieldRows; render(cache.rows, token); status(statusText(cache.at, clock, cache.tomorrow, cities.length)); return;}
       list.replaceChildren(); if (mapBox) mapBox.hidden = true; if (legend) legend.hidden = true; status('Consultando as 27 capitais…');
       try {
         if (!client?.getJson || !cities.length) throw new Error('Cliente indisponível.');
         client.abortAll?.();
-        const data = await client.getJson(buildUrl(cities.concat(FIELD_POINTS)), {timeoutMs:12000, cache:'no-store'});
+        // Com o teste ligado, a série do Tomorrow.io vem junto; falha dela nunca derruba o Open-Meteo.
+        const extraTask = test ? client.getJson(TOMORROW_RPC, {timeoutMs:6000, cache:'no-store', headers:{apikey:TOMORROW_KEY, Authorization:`Bearer ${TOMORROW_KEY}`}}).catch(() => null) : Promise.resolve(null);
+        const [data, table] = await Promise.all([client.getJson(buildUrl(cities.concat(FIELD_POINTS)), {timeoutMs:12000, cache:'no-store'}), extraTask]);
         if (token !== revision) return;
-        const {rows, extra} = split(data, cities);
-        fieldRows = extra;
-        cache = {rows, fieldRows, at:Date.now()};
-        render(rows, token); status(statusText(cache.at, clock));
+        const split_ = split(data, cities), {rows, count} = overlayTomorrow(split_.rows, table);
+        fieldRows = split_.extra;
+        cache = {rows, fieldRows, at:Date.now(), test, tomorrow:count};
+        render(rows, token); status(statusText(cache.at, clock, count, cities.length));
       } catch (error) {
         if (token !== revision || error?.code === 'cancelled') return;
         // Mapa e lista continuam com as 27 capitais, todas "—" (tocar ainda abre a cidade); a frase diz o que houve.
@@ -238,6 +269,6 @@
     mapBox?.addEventListener('click', pick);
   }
 
-  return {buildUrl, parse, split, FIELD_POINTS, group, REGIONS, tempColor, MAP_SCRIPTS, STATUS_ZONE, emptyRows, pins, statusText, mount,
+  return {buildUrl, parse, split, FIELD_POINTS, group, REGIONS, tempColor, MAP_SCRIPTS, STATUS_ZONE, emptyRows, pins, statusText, overlayTomorrow, mount,
     open:() => openDialog?.()};
 });
