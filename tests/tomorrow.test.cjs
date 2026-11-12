@@ -109,3 +109,13 @@ test('Tomorrow.io entra na concordância dos avisos de chuva como mais uma opini
   assert.equal(noT.metadata.agreement.tomorrow,null);
   assert.equal(others.hourly.precipitation_tomorrow,undefined,'não altera a resposta original');
 });
+
+test('função de teste: 120 horas, extras no mesmo pedido e volta aos campos de sempre num 400 (1.73.4)',()=>{
+  const fs=require('node:fs');
+  const shared=fs.readFileSync('supabase/functions/_shared/tomorrow-forecast.js','utf8'),fn=fs.readFileSync('supabase/functions/tomorrow-forecast/index.js','utf8');
+  assert.match(shared,/export const TEST_HOURS = 120;/);
+  for(const field of ['dewPoint','cloudBase','cloudCeiling','pressureSurfaceLevel','precipitationType','rainIntensity','evapotranspiration','uvHealthConcern']) assert.ok(shared.includes("'"+field+"'"),field);
+  assert.match(fn,/tomorrowUrl\(lat, lon, key, now, fields, TEST_HOURS\)/);
+  assert.match(fn,/if \(response\.status === 400 && !extrasRefused\) \{/);
+  assert.match(fn,/response = await ask\(TEST_FIELDS\);/);
+});

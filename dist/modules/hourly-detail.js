@@ -94,18 +94,18 @@
       const box=el('hourlyDetailExtra'),title=el('hourlyDetailExtraTitle');
       if(typeof box?.replaceChildren!=='function' || typeof doc.createElement!=='function') return;
       const rows=[
-        ['Ponto de orvalho',at('pluvia_dew_point'),value=>unit(value,'°')],
-        ['Base das nuvens',at('pluvia_cloud_base'),value=>unit(value,' km',1)],
-        ['Teto das nuvens',at('pluvia_cloud_ceiling'),value=>unit(value,' km',1)],
-        ['Pressão na superfície',at('pluvia_surface_pressure'),value=>unit(value,' hPa')],
-        ['Tipo de precipitação',at('pluvia_precipitation_type'),value=>PRECIP_TYPE[value] || '—'],
-        ['Intensidade da chuva',at('pluvia_rain_intensity'),value=>unit(value,' mm/h',1)],
-        ['Evapotranspiração',at('pluvia_evapotranspiration'),value=>unit(value,' mm',2)],
-        ['Risco do UV',at('pluvia_uv_concern'),value=>UV_CONCERN[value] || '—']
-      ].filter(([,value])=>value!==null);
-      box.replaceChildren(...rows.map(([label,value,format])=>{
+        ['dew','Ponto de orvalho',at('pluvia_dew_point'),value=>unit(value,'°')],
+        ['cloud-base','Base das nuvens',at('pluvia_cloud_base'),value=>unit(value,' km',1)],
+        ['cloud-ceiling','Teto das nuvens',at('pluvia_cloud_ceiling'),value=>unit(value,' km',1)],
+        ['surface-pressure','Pressão na superfície',at('pluvia_surface_pressure'),value=>unit(value,' hPa')],
+        ['precipitation-type','Tipo de precipitação',at('pluvia_precipitation_type'),value=>PRECIP_TYPE[value] || '—'],
+        ['rain-intensity','Intensidade da chuva',at('pluvia_rain_intensity'),value=>unit(value,' mm/h',1)],
+        ['evapotranspiration','Evapotranspiração',at('pluvia_evapotranspiration'),value=>unit(value,' mm',2)],
+        ['uv-concern','Risco do UV',at('pluvia_uv_concern'),value=>UV_CONCERN[value] || '—']
+      ].filter(([,,value])=>value!==null);
+      box.replaceChildren(...rows.map(([key,label,value,format])=>{
         const row=doc.createElement('div'),dt=doc.createElement('dt'),dd=doc.createElement('dd');
-        dt.textContent=label;dd.textContent=format(value);row.append(dt,dd);return row;
+        row.setAttribute('data-extra',key);dt.textContent=label;dd.textContent=format(value);row.append(dt,dd);return row;
       }));
       box.hidden=!rows.length;if(title) title.hidden=!rows.length;
     }
