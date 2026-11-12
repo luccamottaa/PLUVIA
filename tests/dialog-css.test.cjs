@@ -38,12 +38,17 @@ test('folhas da Home sem regras só de janela, fora as que seguram a cascata', (
 
 test('dialogs.css chega depois da abertura, depois de continuous.css na cascata, e fica no cache offline', () => {
   const html = dist('index.html'), sw = dist('sw.js'), css = dist('continuous.css');
-  const version = html.match(/link\.href = '\.\/dialogs\.css\?v=([\w-]+)'/)?.[1];
+  const version = html.match(/new URL\('dialogs\.css\?v=([\w-]+)', base \? base\.href : location\.href\)/)?.[1];
   assert.ok(version, 'carregador do dialogs.css no index.html');
   assert.doesNotMatch(html, /<link[^>]+dialogs\.css/, 'nada de <link> bloqueante: o carregador cria o link depois');
   assert.ok(sw.includes(`"./dialogs.css?v=${version}"`), 'precache com a mesma versão');
   assert.match(html, /\(d\.body \|\| root\)\.appendChild\(link\)/, 'no fim do body, depois de redesign.css e continuous.css');
   for (const trigger of ["'pointerdown', load", "'keydown', load", "attributeFilter: ['open']", 'requestIdleCallback']) assert.ok(html.includes(trigger), trigger);
-  assert.ok(html.indexOf('./dialogs.css?v=') > html.indexOf('href="./continuous.css'), 'o carregador vem depois de continuous.css');
+  assert.ok(html.indexOf('dialogs.css?v=') > html.indexOf('href="./continuous.css'), 'o carregador vem depois de continuous.css');
+  // Páginas /clima/... trocam "./" por "/" só em src/href: o endereço sai do continuous.css, não da página.
+  assert.match(html, /var base = d\.querySelector\('link\[href\*="continuous\.css"\]'\)/);
+  const city = dist('clima/manaus-am/index.html');
+  assert.match(city, /href="\/continuous\.css\?v=/);
+  assert.match(city, /new URL\('dialogs\.css\?v=/);
   assert.match(css, /html:not\(\[data-dialog-css\]\) dialog\[open\] \{ visibility:hidden; \}/, 'janela aberta cedo espera o estilo invisível');
 });

@@ -290,7 +290,7 @@
          o conteúdo abaixo só é desenhado com eles prontos, então nada aparece sem estilo. -->
     <link rel="stylesheet" href="/redesign.css?v=panel-53" />
     <link rel="stylesheet" href="/continuous.css?v=layout-196" />
-    <!-- Janelas (1.72.2): as regras só das janelas (~120 KB, 759 regras) ficam em dialogs.css, fora da abertura. Entram
+    <!-- Janelas (1.72.2): as regras só das janelas (~120 KB, 746 regras) ficam em dialogs.css, fora da abertura. Entram
          depois da primeira pintura (ocioso após o load), no primeiro toque ou tecla, ou quando qualquer janela abre; o
          <link> vai para o fim do body, para ficar depois de continuous.css na cascata. Até chegar, janela aberta fica
          invisível (continuous.css, html:not([data-dialog-css])). -->
@@ -300,7 +300,9 @@
         function load() {
           if (done) return; done = true;
           var link = d.createElement('link'), ready = function () { root.setAttribute('data-dialog-css', ''); };
-          link.rel = 'stylesheet'; link.href = './dialogs.css?v=dialogs-1'; link.onload = ready; link.onerror = ready;
+          // Endereço a partir do continuous.css: vale na Home, nas páginas /clima/... e em subpasta.
+          var base = d.querySelector('link[href*="continuous.css"]');
+          link.rel = 'stylesheet'; link.href = new URL('dialogs.css?v=dialogs-1', base ? base.href : location.href).href; link.onload = ready; link.onerror = ready;
           (d.body || root).appendChild(link);
         }
         w.addEventListener('pointerdown', load, {capture: true, once: true, passive: true});
