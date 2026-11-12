@@ -1271,7 +1271,8 @@ html body #accountDialog .account-delete > summary { display:flex; align-items:c
 #weatherView .home-shortcuts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; padding:0; border-top:0; }
 #weatherView .home-shortcut {
   display:flex; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:10px 12px; border-radius:16px;
-  background:color-mix(in srgb, var(--reading-link) 12%, transparent); color:var(--reading-link); font-size:.9375rem; font-weight:600; text-align:center;
+  /* 1.73.2 (pedido do dono, print): texto e ícone na cor do texto (branco no céu escuro), não no azul de link. */
+  background:color-mix(in srgb, var(--reading-link) 12%, transparent); color:var(--icon-ink); font-size:.9375rem; font-weight:600; text-align:center;
 }
 #weatherView .home-shortcut::before {
   content:""; flex:none; width:20px; height:20px; background:currentColor;

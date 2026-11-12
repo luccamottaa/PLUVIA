@@ -78,3 +78,9 @@ test('botão de avisos com a cor do que faz e Excluir conta alinhado com Sair (1
   assert.match(css, /:not\(:has\(\.notification-status\.is-on\)\) #notificationToggle:not\(#_\):not\(#_\) \{ border-color:#30d158; background:#30d158;/, 'ativar em verde');
   assert.match(css, /#accountDialog \.account-exit \.account-delete:not\(#_\) \{ padding-inline:0; \}/, 'sem o recuo duplicado');
 });
+
+test('atalhos Brasil agora, Últimos 30 dias e Quanto o PLUVIA acerta na cor do texto (1.73.2)', () => {
+  const css = dist('continuous.css');
+  assert.match(css, /background:color-mix\(in srgb, var\(--reading-link\) 12%, transparent\); color:var\(--icon-ink\);/);
+  assert.match(css, /#weatherView \.home-shortcut::before \{[^}]*background:currentColor;/, 'o ícone segue a cor do texto');
+});
