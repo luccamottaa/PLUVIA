@@ -12,6 +12,9 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.72.2", date:"2026-11-11", title:"Abertura mais rápida", items:[
+      "O estilo das janelas (cidades, conta, avisos e as outras) agora chega logo depois que a tela inicial aparece, em vez de atrasar a abertura. Nos nossos testes, o tempo de tela travada ao abrir caiu cerca de um terço."
+    ]},
     {version:"1.72.1", date:"2026-11-11", title:"Topo mais limpo", items:[
       "O botão de compartilhar a previsão saiu do topo, junto com a imagem de story que o app preparava em segundo plano. O app ficou mais leve e o topo mais limpo."
     ]},

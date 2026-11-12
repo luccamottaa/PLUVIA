@@ -90,7 +90,7 @@ test('céu de desenho é o único céu: camadas antigas, nuvem 3D e a chave clas
 });
 
 test('janelas ganham o mesmo céu de desenho atrás do conteúdo, menos o radar (1.72)', () => {
-  const src = dist('modules/sky-toon.js'), css = dist('sky.css');
+  const src = dist('modules/sky-toon.js'), css = dist('sky.css') + dist('dialogs.css');
   assert.ok(toon.SHEET_SLOTS.length >= 5);
   for (const slot of toon.SHEET_SLOTS) {
     assert.ok(['left', 'right', 'top', 'pop'].includes(slot.from));

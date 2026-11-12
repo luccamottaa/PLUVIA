@@ -149,6 +149,4 @@ body.page-hidden .sky-effects > * { visibility:hidden !important; transition:non
 .toon-sheet .toon-fog { width:110%; height:6%; }
 .toon-sheet .toon-rain { opacity:.35; }
 .toon-sheet .toon-snow { opacity:.6; }
-html body :is(.dlg-todas, #_)[data-toon]::before,
-html body :is(.dlg-todas, #_)[data-toon]::after { content:none; }
 body.page-hidden .toon-sheet *, body.page-hidden .toon-sheet *::before { animation-play-state:paused !important; }
