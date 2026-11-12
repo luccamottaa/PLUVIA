@@ -17,7 +17,8 @@
       "A dica \"Toque em um horário\" de Próximas horas some assim que você toca num horário.",
       "Em Minha conta, o botão \"Editar perfil\" ganhou respiro dos lados e letra branca.",
       "Os ícones dos cartões da tela inicial (dicas, sensação, umidade, vento, pressão e os outros) agora têm a cor do texto: brancos no céu escuro.",
-      "Em Minha conta, os cartões de avisos mostram só o título, sem o resumo ao lado (\"Todos\", \"1 cidade\", \"6 ativos de 7\"...)."
+      "Em Minha conta, os cartões de avisos mostram só o título, sem o resumo ao lado (\"Todos\", \"1 cidade\", \"6 ativos de 7\"...).",
+      "O botão de avisos mostra a cor do que faz: verde para ativar e vermelho para desligar. \"Excluir minha conta\" ficou alinhado com \"Sair da conta\" e em vermelho."
     ]},
     {version:"1.73.1", date:"2026-11-12", title:"Umidade e Minha conta", items:[
       "Em Próximas horas, a umidade ganhou um ícone próprio (gotinha e ar úmido), diferente do da chuva.",

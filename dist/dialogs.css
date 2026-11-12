@@ -1187,3 +1187,15 @@ html body #accountDialog .account-more-fold > summary { justify-content:flex-sta
 html body #accountDialog .account-more-fold > summary::before { content:""; flex:none; width:30px; height:30px; border-radius:9px; background:var(--tile) var(--ico) center / 18px 18px no-repeat; box-shadow:inset 0 0 0 .5px #ffffff26; }
 html body #accountDialog .account-more-fold > summary::after { margin-left:auto; }
 @media (prefers-reduced-motion:reduce) { html body #accountDialog .account-more-fold > summary::after { transition:none; } }
+
+/* ===== 1.73.2: botões de avisos e "Excluir minha conta" (pedido do dono, print) ===== */
+/* Excluir minha conta alinhado com Sair da conta: o cartão (.account-delete) tinha 16 px de lado e a linha (summary)
+   mais 16 px; agora só a linha tem, e o texto que abre embaixo mantém o recuo. */
+html body #accountDialog .account-exit .account-delete:not(#_) { padding-inline:0; }
+html body #accountDialog .account-exit .account-delete:not(#_) > :not(summary) { margin-inline:16px; }
+/* Cor do texto pelo que o botão faz: excluir e desligar em vermelho (como os ícones), ativar em verde. */
+html body:not([data-phase="day"]) #accountDialog .account-exit .account-delete > summary:not(#_) { color:#ff6b61; }
+html body:not([data-phase="day"]) #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle:not(#_) { color:#ff6b61; }
+html body[data-phase="day"] #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle:not(#_) { color:#c4281c; }
+html body:not([data-phase="day"]) #accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle:not(#_):not(#_) { border-color:#30d158; background:#30d158; color:#05290f; }
+html body[data-phase="day"] #accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle:not(#_):not(#_) { border-color:#1f7a35; background:#1f7a35; color:#fff; }

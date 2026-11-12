@@ -71,3 +71,10 @@ test('CI: depois de abrir a conta, espera a janela aparecer (dialogs.css chega d
   assert.doesNotMatch(py, /click\(\);assert page\.locator\('#accountProfile'\)\.is_visible\(\)/);
   assert.match(py, /page\.locator\('#accountProfile'\)\.wait_for\(state='visible',timeout=5000\)/);
 });
+
+test('botão de avisos com a cor do que faz e Excluir conta alinhado com Sair (1.73.2)', () => {
+  const css = dist('dialogs.css');
+  assert.match(css, /:has\(\.notification-status\.is-on\) #notificationToggle:not\(#_\) \{ color:#ff6b61; \}/, 'desligar em vermelho');
+  assert.match(css, /:not\(:has\(\.notification-status\.is-on\)\) #notificationToggle:not\(#_\):not\(#_\) \{ border-color:#30d158; background:#30d158;/, 'ativar em verde');
+  assert.match(css, /#accountDialog \.account-exit \.account-delete:not\(#_\) \{ padding-inline:0; \}/, 'sem o recuo duplicado');
+});
