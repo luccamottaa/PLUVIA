@@ -1561,7 +1561,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
     : data.pluviaSource === "tomorrow" ? `Tomorrow.io (teste) · Atualizado ${formatUpdateTime(observedAt)}`
     : data.pluviaTomorrow === "limited" ? `Tomorrow.io sem cota agora · Open-Meteo · ${formatUpdateTime(observedAt)}`
     : data.pluviaTomorrow === "failed" ? `Tomorrow.io não respondeu · Open-Meteo · ${formatUpdateTime(observedAt)}`
-    : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache || Boolean(data.pluviaReduced) || Boolean(data.pluviaSource || data.pluviaTomorrow));
+    : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache || Boolean(data.pluviaReduced) || Boolean(data.pluviaTomorrow));
   renderVisibility(now.visibility, fromCache);
   const lines = weatherData?.rows?.(snapshot, data);
   renderHourly(lines?.hourly || [], start, day, data.hourly);

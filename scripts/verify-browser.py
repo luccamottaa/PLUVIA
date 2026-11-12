@@ -80,7 +80,7 @@ with sync_playwright() as p:
  for _ in range(2):page.touchscreen.tap(point['x']+point['width']/2,point['y']+point['height']/2)
  assert abs(page.evaluate('visualViewport.scale')-scale)<.01
  # Privacidade fica em "Mais do PLUVIA", na janela da conta.
- page.locator('#accountButton').click();page.locator('#accountDialog').wait_for(state='visible');page.locator('#openPrivacy').click()
+ page.locator('#accountButton').click();page.locator('#accountDialog').wait_for(state='visible');page.evaluate("document.getElementById('accountMoreFold').open=true");page.locator('#openPrivacy').click()
  assert page.locator('#sourcesDialog').evaluate('(el)=>el.open')
  assert not page.locator('#analyticsConsent').is_checked()
  assert page.locator('#analyticsConsent').evaluate('(el)=>document.activeElement===el')
