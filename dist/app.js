@@ -1762,10 +1762,17 @@ function setupPullToRefresh() {
   let loading = false;
   let hideTimer;
 
+  // 1.73.3 (pedido do dono: "um negócio melhor pra atualizar a página"): a pílula desce com o dedo, o anel em volta
+  // da gota se completa até o ponto de soltar, a gota se enche ao soltar, o anel gira enquanto busca e termina num ✓.
+  // Estado em data-state (pull, ready, loading, done, fail); o desenho fica no CSS (continuous.css).
+  function state(name, text) {
+    indicator.setAttribute("data-state", name);
+    if (label.textContent !== text) label.textContent = text;
+  }
   function reset() {
     gesture = null;
     document.removeEventListener("touchmove", handlePullMove);
-    if (!loading) { indicator.hidden = true; label.textContent = ""; }
+    if (!loading) { indicator.hidden = true; label.textContent = ""; indicator.setAttribute("data-state", ""); }
   }
 
   document.addEventListener("touchstart", event => {
@@ -1795,9 +1802,12 @@ function setupPullToRefresh() {
     if (!event.cancelable) { reset(); return; }
     event.preventDefault();
     indicator.hidden = false;
-    indicator.style.setProperty("--pull-offset", `${Math.min(64, dy * .4)}px`);
-    const message = dy >= threshold ? "Solte para atualizar" : "Puxe para atualizar";
-    if (label.textContent !== message) label.textContent = message;
+    // Desce com o dedo e freia perto do fim (elástico); o anel mostra quanto falta para soltar.
+    const progress = Math.min(1, (dy - revealThreshold) / (threshold - revealThreshold));
+    indicator.style.setProperty("--pull-offset", `${Math.round(64 * (1 - Math.exp(-dy / 140)))}px`);
+    indicator.style.setProperty("--pull-dash", `${Math.round(progress * 100)} 100`);
+    indicator.style.setProperty("--pull-scale", String(Math.round((.92 + progress * .08) * 1000) / 1000));
+    if (dy >= threshold) state("ready", "Solte para atualizar"); else state("pull", "Puxe para atualizar");
   }
 
   document.addEventListener("touchend", async event => {
@@ -1808,10 +1818,11 @@ function setupPullToRefresh() {
     if (!ready) { reset(); return; }
     loading = true;
     indicator.classList.add("loading");
-    label.textContent = "Consultando o tempo…";
+    indicator.style.setProperty("--pull-scale", "1");
+    state("loading", "Atualizando o tempo…");
     try {
       const success = await refreshAll();
-      label.textContent = success ? "Pronto" : "Sem conexão no momento";
+      if (success) state("done", "Atualizado agora"); else state("fail", "Sem conexão no momento");
       if (!success) {
         $("errorMessage").textContent = displayedWeather ? "Dados anteriores mantidos. Tentaremos novamente." : "Confira a conexão e tente novamente.";
         $("errorToast").setAttribute("aria-hidden", "false");

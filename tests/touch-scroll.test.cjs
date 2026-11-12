@@ -40,3 +40,14 @@ test('um puxão curto não atualiza e cancelar também libera a rolagem',async()
   assert.equal(s.refreshed,0);assert.equal(s.listeners.has('touchmove'),false);
   s.start();s.listeners.get('touchcancel').fn();assert.equal(s.listeners.has('touchmove'),false);
 });
+
+test('pílula de atualizar: estados no data-state e cor dos cartões de dia e de noite (1.73.3)',async()=>{
+  const states=[],s=(()=>{const x=setup();return x;})();
+  const pill=s.$('pullRefresh');pill.setAttribute=(name,value)=>{if(name==='data-state')states.push(value);};
+  s.start();s.move(100,130);s.move(100,200);await s.end();
+  assert.deepEqual(states.filter(Boolean),['pull','ready','loading','done']);
+  const css=fs.readFileSync('dist/continuous.css','utf8'),html=fs.readFileSync('dist/index.html','utf8');
+  assert.match(css,/html body \.pull-refresh:not\(#_\) \{[^}]*background:#141c33; color:#f2f7ff;/,'azul-escuro à noite');
+  assert.match(css,/html body\[data-phase="day"\] \.pull-refresh:not\(#_\) \{[^}]*background:#fff; color:#082744;/,'branca de dia');
+  assert.match(html,/<div class="pull-refresh" id="pullRefresh" hidden role="status"><span class="pull-icon" aria-hidden="true"><svg[^>]*>.*class="pull-arc".*class="pull-check".*<\/svg><\/span><span id="pullRefreshText"><\/span><\/div>/);
+});
