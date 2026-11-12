@@ -28,7 +28,7 @@ test('fonts.css vai inline no shell (sem folha bloqueante) com o mesmo texto do 
   assert.ok(html.includes(css), 'o @font-face inline divergiu de fonts.css');
   assert.doesNotMatch(html, /<link rel="stylesheet" href="\.\/fonts\.css/);
   assert.match(html, /<link rel="preconnect" href="https:\/\/api\.open-meteo\.com" crossorigin \/>/);
-  // 1.71: sem o céu antigo, a textura de nuvem (312 KB) não é mais pré-carregada na abertura (só as janelas e o story usam).
+  // 1.71: sem o céu antigo, a textura de nuvem (312 KB) não é mais pré-carregada na abertura (só as janelas usam).
   assert.doesNotMatch(html, /intro-glass/, 'as gotas da intro saíram na 1.63');
   assert.doesNotMatch(html, /<link rel="preload" href="\.\/assets\/sky-cloud-veil\.webp/);
 });
@@ -39,19 +39,19 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-354"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-358"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
-  assert.match(html, /styles\.css\?v=core-137/);
-  assert.match(html, /redesign\.css\?v=panel-52/);
+  assert.match(html, /styles\.css\?v=core-138/);
+  assert.match(html, /redesign\.css\?v=panel-53/);
   assert.doesNotMatch(sw, /glass\.js/);
-  assert.match(html, /app\.js\?v=panel-160/);
+  assert.match(html, /app\.js\?v=panel-162/);
   assert.ok(!sw.includes('"./assets/panel-night-sky.webp"'), 'não baixa a antiga foto sem uso no cache inicial');
   for (const asset of ['sky-sun.svg','sky-cloud-veil.webp','sky-stars.svg']) assert.ok(sw.includes(`./assets/${asset}`));
   assert.ok(['sky-cloud-veil.webp','sky-cloud-volume.webp'].reduce((sum,name)=>sum+fs.statSync(path.join(root,'assets',name)).size,0)<600*1024,'texturas das nuvens mantêm orçamento do shell mobile');
   assert.ok(!sw.includes('"./assets/sky-cloud-bank.webp"'),'textura antiga não é baixada pelo novo shell');
   // 1.71: o céu antigo saiu. Texturas de nuvem por condição, chuva, raio e brilho das estrelas não existem mais nem
-  // entram no cache; ficam o véu (janelas e story), a nuvem volumétrica (entrada de generate-og-cities.py), o Sol do
+  // entram no cache; ficam o véu (janelas), a nuvem volumétrica (entrada de generate-og-cities.py), o Sol do
   // Ciclo do dia e o campo de estrelas do fundo das janelas.
   for (const gone of ['sky-cloud-overcast.webp','sky-cloud-rain.webp','sky-cloud-storm.webp','sky-cloud-fog.webp','sky-cloud-stratus.webp','sky-cloud-bank.webp',
     'sky-stars-shimmer.svg','rain-near.svg','rain-far.svg','rain-near-wind.svg','rain-far-wind.svg','rain-drops.svg','lightning-bolt.svg']) {

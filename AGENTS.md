@@ -654,7 +654,33 @@ Pedido do dono ("a Home pula"). Medido na volta ao app (Edge, CPU 4×): o pulo i
 
 Pedido do dono (print: topo "Céu limpo" e pílula "Chuva fraca agora; deve parar por volta das 17h"). `weatherInsights.rainAnswer` dizia "agora" sempre que a hora que começa agora (intervalo i+1) era molhada pela previsão (≥ 0,5 mm, ou ≥ 50% com ≥ 0,1 mm), mesmo com a condição atual seca. Agora, com a primeira hora molhada: "agora" quando `hours[0].now` (código atual de chuva/trovoada; o app já aplica a chuva observada da estação, aeroporto e radar em `withObservedRain` antes de chamar) ou quando não há condição atual para conferir; com condição atual conhecida e seca (céu limpo, nuvens, neblina), "na próxima hora". O tom ("rain"/"storm"), a regra de hora molhada (igual a `_shared/forecast-verify.js`) e o convite de avisos não mudam. Teste: `tests/rain-answer.test.cjs`.
 
-## Céu de desenho nas janelas (novembro/2026, 1.72)
+## Surpresas no céu de desenho (novembro/2026, 1.73)
+
+Pedido do dono ("pequenas surpresas no céu"). `sky-toon.js`: `surprise(plan)` escolhe `'bird'` (dia com `sun`/`partly`/`cloud`) ou `'meteor'` (noite com estrelas); nada com chuva, neve, trovoada, neblina ou noite nublada. `playSurprise` roda a primeira entre 15 e 30 s depois da abertura e depois a cada 50 a 110 s (`SURPRISE_FIRST`/`SURPRISE_EVERY`), só com `.sky-effects[data-motion="running"]`, página visível, nenhuma `dialog[open]` e sem reduced-motion. Um elemento por vez dentro do `.toon-sky`, animação WAAPI só de transform/opacidade, removido no `finish`. Passarinho: SVG redondo, asa `.toon-wing` batendo por CSS; estrela cadente: traço com degradê (`sky.css`). Teste: `tests/sky-toon.test.cjs`.
+
+## Telas vazias com desenho (novembro/2026, 1.73)
+
+Pedido do dono ("ícones e telas vazias no mesmo estilo de desenho"). Dois desenhos em `dist/assets/toon/` feitos com a nuvem do céu de desenho (`CLOUD` de `sky-toon.js`, mesma sombra e contorno), com rostinho: `search-empty.svg` (lupa) e `lost.svg` (ponto de interrogação). Gerados uma vez; para mudar a nuvem, edite o SVG mantendo o caminho igual ao `CLOUD` (teste `tests/empty-art.test.cjs`).
+
+- Busca sem resultado: `app.js` marca `#cityPickerStatus[data-empty]` quando o índice está pronto, há texto e nada casou; o desenho é um `::before` em `dialogs.css` que flutua devagar (parado com reduced-motion). Está no precache.
+- `404.html`: `img.error-art` decorativa (`alt="`) acima do código, estilo em `legal.css`.
+- Outras telas vazias (avisos sem cidade/dispositivo, "Tempo indisponível" na Home) ficaram sem desenho: são linhas pequenas em ajustes ou mexeriam no layout da Home.
+
+## CSS das janelas fora da abertura (novembro/2026, 1.72.2)
+
+Pedido do dono ("travamentos na abertura", "lento"). As regras **só de janela** (sujeito dentro de uma `<dialog>`) saíram de `sky.css`, `styles.css`, `redesign.css` e `continuous.css` para **`dist/dialogs.css`** (~120 KB, ~745 regras, na ordem da cascata antiga). A Home não paga por elas no primeiro cálculo de estilo.
+
+- **Onde pôr CSS novo:** regra que só estiliza o que está dentro de uma janela vai para `dialogs.css`; o resto continua nas folhas da Home. `tests/dialog-css.test.cjs` usa `scripts/dialog-css.cjs` para conferir os dois lados (classe `dlg-*`, `#xDialog`, `dialog`, `.dialog-*`, `.city-dialog`; `:not()`/`:has()` não contam; em `:is()` todos os itens precisam ser de janela).
+- **Carregamento:** um script inline logo depois de `continuous.css` cria o `<link>` no fim do `body` (depois de `continuous.css` na cascata) no primeiro `pointerdown`/`keydown`, quando qualquer janela ganha `open`, ou ocioso depois do `load`. No `onload` marca `html[data-dialog-css]`; até lá `html:not([data-dialog-css]) dialog[open] { visibility:hidden; }` (`continuous.css`) segura a janela invisível em vez de mostrá-la sem estilo. Está no precache do SW.
+- **Cascata:** `dialogs.css` vem depois de tudo, então ganha empates de especificidade que antes perdia. A separação foi conferida comparando o estilo computado de todos os elementos (e `::before`/`::after`) da Home e de cada janela, dia/noite × tinta clara/escura: zero diferenças. Três regras de janela ficaram na Home porque mudariam um empate (lista `KEEP` no teste). Ao mexer em regra de janela que empata com regra genérica (`button`, `summary`, `.dialog-scroll`), confira quem vence.
+- Medida (Edge sem janela, 390 × 844, CPU 4×, versões intercaladas, mediana de 8): primeira pintura 340 → 208 ms, maior tarefa 223 → 208 ms, maior quadro 204 → 190 ms; tempo bloqueado igual (~390 ms). Uma primeira medida com 6 rodadas, sem intercalar, tinha dado −37% de tempo bloqueado: era ruído.
+
+
+Pedido do dono ("tirar o negócio de compartilhar, ele deve pesar o PLUVIA"). Saíram `modules/share-card.js` (story 1080 × 1920 em canvas) e `modules/share-weather.js` (botão, Web Share, cópia e a janela `#shareWeatherDialog`), o botão `#shareWeather` e o status `#shareWeatherStatus` do topo, o selo de dia marcante (`noteShareMoment`, `PLUVIA.shareMoment`, evento `pluvia:share-moment`) em app.js, os eventos de analytics "Share Moment *", as regras de CSS e os testes `share-card`, `share-weather` e `city-change-perf` (que só media o story). **As seções antigas sobre story, compartilhar e dia marcante são histórico.**
+
+- `.topbar .top-actions` continua no HTML, vazio e `aria-hidden`, com `visibility:hidden`: é o contrapeso da conta que mantém o nome PLUVIA no centro (`verify_brand` em `scripts/verify-browser.py` mede essa geometria).
+- `sky-cloud-veil.webp` fica: as janelas sem desenho (radar) e `generate-og-cities.py` ainda usam. As prévias de link (og:image das páginas de cidade) não mudam.
+
 
 Pedido do dono (prints de "Minha conta" e "Suas cidades": "faz um fundo mais bonito pra todas as páginas, desenhos, animado"). Ao abrir qualquer `dialog.dlg-todas` (menos `#radarDialog`, que é coberto pelo mapa), `sky-toon.js` monta `build(plan(html.dataset), SHEET)` e põe o `.toon-sky.toon-sheet` como primeiro filho da janela; ao fechar, remove depois de 700 ms (tempo da animação de saída), se a janela continuar fechada. Um `MutationObserver` olha só o atributo `open` dessas janelas.
 
@@ -662,6 +688,7 @@ Pedido do dono (prints de "Minha conta" e "Suas cidades": "faz um fundo mais bon
 - A janela já tem `isolation:isolate`, `overflow:hidden` e só `.dialog-scroll` rola; por isso o desenho fica parado atrás do conteúdo com `z-index:-1` e `border-radius:inherit`. O degradê por fase continua sendo o fundo da janela (`continuous.css`); as camadas estáticas `::before`/`::after` (estrelas e véu) somem quando há `data-toon`.
 - Nuvens com opacidade .62 (laterais .32), chuva .35: o texto vem primeiro. `body.page-hidden` pausa as animações; `prefers-reduced-motion` já desliga as de `.toon-sky *`.
 - Teste: `tests/sky-toon.test.cjs` ("janelas ganham o mesmo céu de desenho").
+- **Nuvem atrás do texto do topo (1.72.1, CI `verify-contrast.py` vermelho desde o céu de desenho):** nuvem clara sob texto branco dava 1,6:1 em "Nublado". `markLane` (sky-toon.js) mede as caixas de texto de `#cityName`, `#temperature`, `#condition` e `#heroRange` (Range, na posição de repouso: a cena é fixa) e marca `.toon-dim` nas nuvens que encostam nelas (caixa `offset*`, sem a entrada animada); roda ao montar a cena, depois de `pluvia:weather-updated` e no `resize`. Em `sky.css`, `.toon-dim` só vale com `body[data-ink="light"]` de dia (opacidade .12); céu limpo de dia (texto escuro) e noite (nuvens escuras) não mudam. Conferido com uma porta do `verify-contrast.py` (mesma previsão de teste, relógio e medida): 14 estados sem falha (nublado 1,59 → 2,3; chuva moderada 4,4 → 10,7).
 
 ## Céu antigo apagado (novembro/2026, 1.71)
 

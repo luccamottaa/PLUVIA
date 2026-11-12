@@ -57,6 +57,15 @@ test('nuvem é um contorno só de cinco arcos com base reta, sem retângulo', ()
   assert.doesNotMatch(d, /[HVL]/, 'só arcos: a base reta é o fechamento do caminho');
 });
 
+test('nuvem atrás do texto do topo fica quase transparente com texto branco de dia (verify-contrast)', () => {
+  const src = dist('modules/sky-toon.js'), css = dist('sky.css');
+  assert.match(src, /const LANE = \['cityName', 'temperature', 'condition', 'heroRange'\]/);
+  assert.match(src, /c\.classList\.toggle\('toon-dim'/);
+  assert.match(src, /offsetTop/, 'caixa sem transform: não mede a entrada animada');
+  assert.match(src, /host\.append\(layer\); laneSoon\(\);/);
+  assert.match(css, /body\[data-ink="light"\]:not\(\[data-phase="night"\]\) \.toon-sky \.toon-cloud\.toon-dim \{ opacity:\.12; \}/);
+});
+
 test('Lua desenhada na fase real: nada na nova, disco cheio na cheia, lado certo no crescente', () => {
   assert.equal(toon.moonPath(0), '');
   assert.equal(toon.moonPath(.99), '');
@@ -90,7 +99,7 @@ test('céu de desenho é o único céu: camadas antigas, nuvem 3D e a chave clas
 });
 
 test('janelas ganham o mesmo céu de desenho atrás do conteúdo, menos o radar (1.72)', () => {
-  const src = dist('modules/sky-toon.js'), css = dist('sky.css');
+  const src = dist('modules/sky-toon.js'), css = dist('sky.css') + dist('dialogs.css');
   assert.ok(toon.SHEET_SLOTS.length >= 5);
   for (const slot of toon.SHEET_SLOTS) {
     assert.ok(['left', 'right', 'top', 'pop'].includes(slot.from));
@@ -103,6 +112,20 @@ test('janelas ganham o mesmo céu de desenho atrás do conteúdo, menos o radar 
   assert.match(css, /\.toon-sheet \{ z-index:-1; border-radius:inherit; \}/, 'atrás do conteúdo, dentro do canto arredondado');
   assert.match(css, /\[data-toon\]::before,\s*html body :is\(\.dlg-todas, #_\)\[data-toon\]::after \{ content:none; \}/, 'estrelas e véu estáticos saem quando o desenho está lá');
   assert.match(css, /body\.page-hidden \.toon-sheet \*/, 'app em segundo plano pausa o desenho');
+});
+
+test('surpresas: passarinho de dia sem chuva, estrela cadente em noite limpa, nada com chuva (1.73)', () => {
+  const at = (weather, phase) => toon.surprise(toon.plan({weather, phase}));
+  for (const w of ['sun', 'partly', 'cloud']) assert.equal(at(w, 'day'), 'bird', w);
+  for (const w of ['rain', 'storm', 'snow', 'fog']) assert.equal(at(w, 'day'), null, w);
+  for (const w of ['sun', 'partly']) assert.equal(at(w, 'night'), 'meteor', w);
+  for (const w of ['cloud', 'rain', 'storm']) assert.equal(at(w, 'night'), null, w);
+  assert.equal(toon.surprise(toon.plan({})), null, 'sem previsão, nada');
+  assert.ok(toon.SURPRISE_FIRST[0] >= 10000 && toon.SURPRISE_EVERY[0] >= 45000, 'raras: não viram ruído');
+  const src = dist('modules/sky-toon.js');
+  assert.match(src, /host\.dataset\.motion !== 'running' \|\| doc\.hidden \|\| reduced\(\) \|\| doc\.querySelector\('dialog\[open\]'\)/, 'só com a cena à vista, sem janela e sem reduced-motion');
+  assert.match(src, /run\.onfinish = run\.oncancel = \(\) => el\.remove\(\)/, 'um elemento, removido ao terminar');
+  assert.match(dist('sky.css'), /\.toon-bird \.toon-wing \{[^}]*animation:toon-flap/);
 });
 
 test('chuva e neve são uma camada só (não um elemento por gota) e o módulo não usa will-change', () => {

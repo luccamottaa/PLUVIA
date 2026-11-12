@@ -79,8 +79,8 @@ test("script carregado e no precache; CSS do brilho e pílula tocável", () => {
   const html = fs.readFileSync(path.join(root, "dist/index.html"), "utf8");
   const sw = fs.readFileSync(path.join(root, "dist/sw.js"), "utf8");
   const css = fs.readFileSync(path.join(root, "dist/continuous.css"), "utf8");
-  assert.match(html, /modules\/glass-touch\.js\?v=glass-2" defer/);
-  assert.match(sw, /modules\/glass-touch\.js\?v=glass-2/);
+  assert.match(html, /modules\/glass-touch\.js\?v=glass-3" defer/);
+  assert.match(sw, /modules\/glass-touch\.js\?v=glass-3/);
   assert.match(css, /html body \.dialog-close\[data-glass-press\]::after \{ opacity:1;/);
   assert.match(css, /compact-head\[data-on\] \.compact-pill \{ pointer-events:auto;/);
   assert.doesNotThrow(() => new vm.Script(fs.readFileSync(path.join(root, "dist/modules/glass-touch.js"), "utf8")));

@@ -44,7 +44,7 @@ with sync_playwright() as p:
  page.goto(preview,wait_until='domcontentloaded')
  page.wait_for_function("document.getElementById('temperature').textContent==='30'",timeout=20000)
  page.wait_for_function("document.getElementById('pluviaIntro').hidden")
- page.wait_for_function("/\\d/.test(document.getElementById('airValue').textContent) && !document.getElementById('shareWeather').disabled")
+ page.wait_for_function("/\\d/.test(document.getElementById('airValue').textContent)")
  # Próximos dias e "Poluentes e origem" saíram do cartão do ar (1.39.2, pedido do dono).
  assert page.locator('#airOutlook,#airDetails,#airPollutants').count()==0
  assert page.locator('#localClock,#localDate,#cityTimezone,#weatherView .clock-wrap').count()==0
@@ -90,19 +90,15 @@ with sync_playwright() as p:
  assert 'Desativado' in page.locator('#analyticsChoiceStatus').inner_text()
  page.keyboard.press('Escape')
  page.locator('#sourcesDialog').wait_for(state='hidden');page.keyboard.press('Escape');page.locator('#accountDialog').wait_for(state='hidden')
- assert page.locator('#shareWeather').is_visible()
+ # 1.73: o compartilhar saiu; o canto direito do topo fica vazio (só contrapeso da conta).
+ assert page.locator('#shareWeather,#shareWeatherDialog').count()==0
+ assert not page.locator('.topbar .top-actions').is_visible()
  assert page.locator('#uvScale').is_visible()
  assert page.locator('#uvDayChart').count()==0
  for selector in ['#attentionCard','#heroRainOpen','#outdoorPlan','#nowcastCard']:
   assert page.locator(selector).count()==0
  assert 'pico' not in page.locator('#uvNote').inner_text().lower()
  assert 'Moderado' in page.locator('#uvNote').inner_text()
- page.evaluate("Object.defineProperty(navigator,'share',{value:undefined,configurable:true});Object.defineProperty(navigator,'clipboard',{value:undefined,configurable:true})")
- page.locator('#shareWeather').click()
- assert page.locator('#shareWeatherDialog').evaluate('(el)=>el.open')
- assert 'Manaus/AM' in page.locator('#shareWeatherText').input_value()
- assert 'Open-Meteo' in page.locator('#shareWeatherText').input_value()
- page.locator('#shareWeatherClose').click()
  page.screenshot(path=str(output/('pluvia-'+os.environ.get('PLUVIA_BROWSER','chromium')+'.png')),full_page=True)
  print(json.dumps({'title':page.title(),'temperature':page.locator('#temperature').inner_text(),'city':page.locator('#cityName').inner_text(),'content':len(page.locator('body').inner_text()),'horizontalOverflow':page.evaluate('document.documentElement.scrollWidth > innerWidth'),'errors':errors}))
  checks=[]
@@ -111,15 +107,7 @@ with sync_playwright() as p:
   verify_brand()
   overflow=page.evaluate('document.documentElement.scrollWidth > innerWidth');assert not overflow,(width,height)
   page.locator('#top').scroll_into_view_if_needed()
-  assert page.locator('#top #shareWeather svg').is_visible()
-  assert page.locator('#shareWeather').inner_text()==''
-  share_rect=page.locator('#shareWeather').bounding_box()
-  assert share_rect['width']>=44 and share_rect['height']>=44,share_rect
-  for control in ['.brand','#accountButton','#openCitySearch']:
-   other=page.locator(control).bounding_box()
-   assert share_rect['x']+share_rect['width']<=other['x']+1 or other['x']+other['width']<=share_rect['x']+1 or share_rect['y']+share_rect['height']<=other['y']+1 or other['y']+other['height']<=share_rect['y']+1,(width,control)
-
-  if width==390: page.locator('#top').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-header-share.png')))
+  if width==390: page.locator('#top').screenshot(path=str(output/(os.environ.get('PLUVIA_BROWSER','chromium')+'-header.png')))
   # O gráfico de 24 horas saiu da Home: a fileira de Próximas horas leva as 24 horas.
   assert page.locator('#hourlyChartDetails').count()==0 and page.locator('#rainChart').count()==0
   assert page.locator('#hourlyPeek .hourly-peek-item').count()>=6
@@ -168,13 +156,9 @@ with sync_playwright() as p:
  page.evaluate('refreshAll()')
  assert page.locator('#dataStatus').get_attribute('data-freshness')=='stale'
  assert page.locator('#dataStatus').is_visible()
- page.locator('#shareWeather').click()
- assert 'Leitura salva' in page.locator('#shareWeatherText').input_value()
- page.locator('#shareWeatherClose').click()
  page.evaluate("chooseCity('2611606')")
  page.wait_for_function("document.getElementById('condition').textContent==='Tempo indisponível'")
  assert page.locator('#temperature').inner_text()=='--'
- assert page.locator('#shareWeather').is_disabled()
  assert page.locator('#uvDayChart').count()==0
  assert page.locator('#cityName').inner_text()=='Recife'
  assert not errors,errors

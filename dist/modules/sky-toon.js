@@ -86,6 +86,19 @@
     };
   }
 
+  // Surpresas (1.73, pedido do dono: "pequenas surpresas no céu, pra dar vontade de abrir"): de dia, com céu limpo,
+  // parcial ou nublado (sem chuva, neve ou neblina), um passarinho atravessa o céu; em noite limpa (com estrelas), uma
+  // estrela cadente. Nada com chuva: o céu já está ocupado.
+  const BIRD_SKIES = ['sun', 'partly', 'cloud'];
+  function surprise(p) {
+    if (!p || p.weather === 'unknown') return null;
+    if (!p.night && BIRD_SKIES.includes(p.weather)) return 'bird';
+    if (p.night && p.stars > 0) return 'meteor';
+    return null;
+  }
+  // Primeira surpresa entre 15 e 30 s depois da abertura (para ser vista), depois a cada 50 a 110 s.
+  const SURPRISE_FIRST = [15000, 30000], SURPRISE_EVERY = [50000, 110000];
+
   // Nuvem: círculos unidos num contorno só, com base reta tangente aos de fora (o mesmo princípio de
   // generate-line-icons.py). Cinco círculos [dx, altura do centro, raio] em unidades de 20 px.
   const BUMPS = [[-6.2, 2.6, 2.6], [-3.2, 4.6, 3.6], [.6, 5.6, 4.6], [4.4, 4.2, 3.6], [7, 2.8, 2.8]];
@@ -169,6 +182,13 @@
     const rainbow = () => svg('0 0 200 110', ['#ff8f8f', '#ffc078', '#ffe58a', '#9ddca8', '#86c3f2', '#b4a8f5']
       .map((color, i) => `<path d="M${14 + i * 8} 104a${86 - i * 8} ${86 - i * 8} 0 0 1 ${172 - i * 16} 0" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round"/>`).join(''));
 
+    // Passarinho redondo de perfil, voando para a direita; a asa bate por CSS (.toon-wing).
+    const bird = () => svg('0 0 64 48',
+      '<path d="M8 22c4-2 8-2 11 1-3 3-7 4-11 2Z" fill="#3f8fe0"/>' +
+      '<circle cx="32" cy="26" r="15" fill="#5aa6f0"/><ellipse cx="35" cy="31" rx="9" ry="7" fill="#dff0ff"/>' +
+      '<path d="M46 23l9 3-9 3Z" fill="#ffb703"/><circle cx="40" cy="21" r="2.6" fill="#2b3550"/><circle cx="40.8" cy="20.2" r=".9" fill="#fff"/>' +
+      '<ellipse cx="42" cy="27" rx="3" ry="1.8" fill="#ffb3c1" opacity=".8"/>' +
+      '<path class="toon-wing" d="M22 24c4-11 13-14 18-9-2 7-10 11-18 9Z" fill="#3f8fe0"/>');
     function piece(node, className, from) {
       const el = doc.createElement('div'), bob = doc.createElement('div');
       el.className = 'toon ' + className; el.dataset.from = from;
@@ -251,14 +271,60 @@
       if (p.key === current && !cityPending && layer) return;   // mesma cena e mesma cidade: nada a refazer
       const old = layer;
       layer = build(p); current = p.key; cityPending = false;
-      leave(old); host.append(layer);
+      leave(old); host.append(layer); laneSoon();
     }
+    // Texto sobre o céu (nome, temperatura, condição e a linha de sensação): nuvem atrás dele ganha .toon-dim e, com
+    // texto branco de dia (nublado, chuva), fica quase transparente (sky.css). Nuvem clara sob texto branco derrubava
+    // o contraste (scripts/verify-contrast.py: 1,6 no nublado). A cena é fixa e o texto rola: compara com o texto na
+    // posição de repouso (topo da página). Caixas sem transform (offset*), para não medir a entrada animada.
+    const LANE = ['cityName', 'temperature', 'condition', 'heroRange'];
+    function markLane() {
+      if (!layer) return;
+      const sy = win.scrollY || 0, boxes = [];
+      for (const id of LANE) {
+        const el = doc.getElementById(id); if (!el) continue;
+        const range = doc.createRange(); range.selectNodeContents(el);
+        const b = range.getBoundingClientRect(); if (b.width && b.height) boxes.push({top:b.top + sy, bottom:b.bottom + sy, left:b.left, right:b.right});
+      }
+      for (const c of layer.querySelectorAll('.toon-cloud')) {
+        const w = c.offsetWidth, h = c.offsetHeight, left = c.offsetLeft + w * .05, right = c.offsetLeft + w * .95, top = c.offsetTop + h * .2, bottom = c.offsetTop + h;
+        c.classList.toggle('toon-dim', boxes.some(b => top < b.bottom && bottom > b.top && left < b.right && right > b.left));
+      }
+    }
+    const laneSoon = () => win.requestAnimationFrame ? win.requestAnimationFrame(markLane) : markLane();
+    win.addEventListener('resize', laneSoon, {passive:true});
     function soon(ms) { win.clearTimeout(timer); timer = win.setTimeout(render, ms); }
     // Troca de cidade: refaz a entrada mesmo que o céu seja igual; espera o céu da cidade nova assentar.
     win.addEventListener('pluvia:city-changed', () => { cityPending = true; soon(1600); });
-    win.addEventListener('pluvia:weather-updated', () => soon(cityPending ? 150 : 250));
+    win.addEventListener('pluvia:weather-updated', () => { soon(cityPending ? 150 : 250); win.setTimeout(laneSoon, 400); });
     new win.MutationObserver(() => soon(250)).observe(html, {attributes:true, attributeFilter:['data-phase', 'data-solar', 'data-weather', 'data-rain', 'data-clouds', 'data-wind', 'data-rainbow']});
     soon(300);
+
+    // Surpresas: só com a cena rodando (página visível, céu à vista), sem janela aberta e sem reduced-motion. Um
+    // elemento, transform/opacidade no compositor, removido ao terminar.
+    let surpriseTimer = 0;
+    const between = ([a, b]) => a + Math.random() * (b - a);
+    function scheduleSurprise(range) { win.clearTimeout(surpriseTimer); surpriseTimer = win.setTimeout(playSurprise, between(range)); }
+    function playSurprise() {
+      scheduleSurprise(SURPRISE_EVERY);
+      const host = doc.querySelector('.sky-effects');
+      if (!layer || !host || host.dataset.motion !== 'running' || doc.hidden || reduced() || doc.querySelector('dialog[open]')) return;
+      const kind = surprise(plan({weather:html.dataset.weather, phase:html.dataset.phase, clouds:html.dataset.clouds}));
+      if (!kind || !layer.animate) return;
+      const el = kind === 'bird' ? piece(bird(), 'toon-surprise toon-bird', 'left') : doc.createElement('div');
+      if (kind === 'meteor') el.className = 'toon toon-surprise toon-meteor';
+      // Passarinho abaixo da busca (que é vidro e o esconderia), na faixa do nome e da temperatura, onde quase tudo é céu.
+      const top = kind === 'bird' ? between([17, 30]) : between([6, 16]);
+      el.style.top = top + 'vh'; el.style.left = '0';
+      layer.append(el);
+      const run = kind === 'bird'
+        ? el.animate([{transform:'translate3d(-14vw,0,0)'}, {transform:'translate3d(30vw,-3vh,0)', offset:.35}, {transform:'translate3d(70vw,2vh,0)', offset:.7}, {transform:'translate3d(112vw,-2vh,0)'}],
+          {duration:between([9000, 12000]), easing:'linear'})
+        : el.animate([{transform:'translate3d(8vw,0,0) rotate(18deg)', opacity:0}, {opacity:1, offset:.2}, {transform:'translate3d(70vw,22vh,0) rotate(18deg)', opacity:0}],
+          {duration:1300, easing:'cubic-bezier(.3,.1,.6,1)'});
+      run.onfinish = run.oncancel = () => el.remove();
+    }
+    scheduleSurprise(SURPRISE_FIRST);
 
     // Janelas (1.72, pedido do dono: "um fundo mais bonito pra todas as páginas, desenhos animados"): ao abrir uma
     // janela, o mesmo céu da Home (hora e tempo) é desenhado atrás do conteúdo, com a entrada animada; ao fechar, sai
@@ -290,5 +356,5 @@
     }
   }
 
-  return {plan, cloudPath, moonPath, CLOUD, SLOTS, SHEET_SLOTS, STARS, PALETTE, CLOUDS, WEATHERS, mount};
+  return {plan, surprise, cloudPath, moonPath, CLOUD, SLOTS, SHEET_SLOTS, STARS, PALETTE, CLOUDS, WEATHERS, SURPRISE_FIRST, SURPRISE_EVERY, mount};
 });
