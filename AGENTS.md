@@ -654,7 +654,13 @@ Pedido do dono ("a Home pula"). Medido na volta ao app (Edge, CPU 4×): o pulo i
 
 Pedido do dono (print: topo "Céu limpo" e pílula "Chuva fraca agora; deve parar por volta das 17h"). `weatherInsights.rainAnswer` dizia "agora" sempre que a hora que começa agora (intervalo i+1) era molhada pela previsão (≥ 0,5 mm, ou ≥ 50% com ≥ 0,1 mm), mesmo com a condição atual seca. Agora, com a primeira hora molhada: "agora" quando `hours[0].now` (código atual de chuva/trovoada; o app já aplica a chuva observada da estação, aeroporto e radar em `withObservedRain` antes de chamar) ou quando não há condição atual para conferir; com condição atual conhecida e seca (céu limpo, nuvens, neblina), "na próxima hora". O tom ("rain"/"storm"), a regra de hora molhada (igual a `_shared/forecast-verify.js`) e o convite de avisos não mudam. Teste: `tests/rain-answer.test.cjs`.
 
-## Céu de desenho nas janelas (novembro/2026, 1.72)
+## Compartilhar removido (novembro/2026, 1.72.1)
+
+Pedido do dono ("tirar o negócio de compartilhar, ele deve pesar o PLUVIA"). Saíram `modules/share-card.js` (story 1080 × 1920 em canvas) e `modules/share-weather.js` (botão, Web Share, cópia e a janela `#shareWeatherDialog`), o botão `#shareWeather` e o status `#shareWeatherStatus` do topo, o selo de dia marcante (`noteShareMoment`, `PLUVIA.shareMoment`, evento `pluvia:share-moment`) em app.js, os eventos de analytics "Share Moment *", as regras de CSS e os testes `share-card`, `share-weather` e `city-change-perf` (que só media o story). **As seções antigas sobre story, compartilhar e dia marcante são histórico.**
+
+- `.topbar .top-actions` continua no HTML, vazio e `aria-hidden`, com `visibility:hidden`: é o contrapeso da conta que mantém o nome PLUVIA no centro (`verify_brand` em `scripts/verify-browser.py` mede essa geometria).
+- `sky-cloud-veil.webp` fica: as janelas sem desenho (radar) e `generate-og-cities.py` ainda usam. As prévias de link (og:image das páginas de cidade) não mudam.
+
 
 Pedido do dono (prints de "Minha conta" e "Suas cidades": "faz um fundo mais bonito pra todas as páginas, desenhos, animado"). Ao abrir qualquer `dialog.dlg-todas` (menos `#radarDialog`, que é coberto pelo mapa), `sky-toon.js` monta `build(plan(html.dataset), SHEET)` e põe o `.toon-sky.toon-sheet` como primeiro filho da janela; ao fechar, remove depois de 700 ms (tempo da animação de saída), se a janela continuar fechada. Um `MutationObserver` olha só o atributo `open` dessas janelas.
 

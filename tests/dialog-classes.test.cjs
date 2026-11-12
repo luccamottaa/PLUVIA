@@ -7,7 +7,7 @@ const path = require('node:path');
 // subir pelos ancestrais procurando um daqueles ids (o filtro rápido do navegador não funciona com :is() de
 // vários ids). Cada grupo de janelas virou uma classe dlg-<grupo> no index.html, usada como :is(.dlg-<grupo>, #_):
 // o #_ não casa com nada e só mantém o peso de id que a lista antiga dava, então a cascata não muda.
-const ALL = ['accountDialog', 'alertDetail', 'brazilDialog', 'changelogDialog', 'cityDialog', 'dailyDetailDialog', 'homeLayoutDialog', 'hourlyDetailDialog', 'installDialog', 'installPushDialog', 'monthDialog', 'radarDialog', 'shareWeatherDialog', 'sourcesDialog', 'termsDialog', 'whatsNewDialog'];
+const ALL = ['accountDialog', 'alertDetail', 'brazilDialog', 'changelogDialog', 'cityDialog', 'dailyDetailDialog', 'homeLayoutDialog', 'hourlyDetailDialog', 'installDialog', 'installPushDialog', 'monthDialog', 'radarDialog', 'sourcesDialog', 'termsDialog', 'whatsNewDialog'];
 const without = (...out) => ALL.filter(id => !out.includes(id));
 const GROUPS = {
   'todas': ALL,
