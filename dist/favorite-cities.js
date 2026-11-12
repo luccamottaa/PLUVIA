@@ -44,15 +44,25 @@
     }
     // Cartão enxuto (1.70.4, pedido do dono: "deixa só o Manaus e a temperatura"): cidade e temperatura.
     // Condição, sensação, máx./mín., horário local, aviso e "atualizado há" ficam na previsão da cidade.
+    // 1.73.2 (pedido do dono: "não ficou legal, ajeita"): no alto a marca do estado (.favorite-flag, vazia até ter
+    // a bandeira) e a sigla; no meio o nome; embaixo a temperatura. O leitor de tela ouve "Manaus, AM: 28°".
     function card(id) {
       const city=typeof cityById!=='undefined' ? cityById.get(id) : null;
       const button=doc.createElement('button');button.type='button';button.className='favorite-city-card';button.dataset.favoriteId=id;
       button.setAttribute('aria-current',String(current()?.id===id));button.disabled=opening;
+      const head=doc.createElement('span'),flag=doc.createElement('span'),uf=doc.createElement('span');
+      head.className='favorite-head';head.setAttribute('aria-hidden','true');
+      flag.className='favorite-flag';flag.dataset.uf=city?.uf || '';
+      uf.className='favorite-uf';uf.textContent=city?.uf || '';
+      // Estrela dourada no canto (pedido do dono: "bota um ícone de estrela nas cidades favoritas").
+      const star=doc.createElement('span');star.className='favorite-star';
+      head.append(flag,uf,star);
       const name=doc.createElement('strong'),reading=doc.createElement('span');
-      name.textContent=city ? city.name+'/'+city.uf : 'Cidade favorita';
+      name.className='favorite-name';name.textContent=city ? city.name : 'Cidade favorita';
       const value=read(id); reading.className='favorite-reading';
       reading.textContent=value ? Math.round(value.temperature)+'°' : errors.has(id) ? 'Indisponível' : 'Consultando…';
-      button.append(name,reading);return button;
+      button.setAttribute('aria-label',(city ? city.name+', '+city.uf : 'Cidade favorita')+': '+reading.textContent);
+      button.append(head,name,reading);return button;
     }    const observer='IntersectionObserver' in root ? new root.IntersectionObserver(entries=>{
       for(const entry of entries) if(entry.isIntersecting) {observer.unobserve(entry.target);enqueue(entry.target.dataset.favoriteId);}
     },{rootMargin:'80px'}) : null;

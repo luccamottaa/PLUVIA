@@ -123,8 +123,8 @@ with sync_playwright() as p:
    page.evaluate("favorites.add('1302603');favorites.add('4106902');dispatchEvent(new CustomEvent('pluvia:favorites-changed'))")
    page.wait_for_function("document.querySelectorAll('.favorite-city-card').length===2 && [...document.querySelectorAll('.favorite-city-card .favorite-reading')].every(el=>/^-?\\d+°$/.test(el.textContent))")
    cards=page.locator('.favorite-city-card').all_inner_texts()
-   # Cartão enxuto (1.70.4): só cidade e temperatura.
-   assert all(len([line for line in text.split('\n') if line.strip()])==2 and 'Sensação' not in text and 'horário local' not in text for text in cards),cards
+   # Cartão enxuto (1.70.4): só cidade e temperatura; desde a 1.73.2 a sigla do estado fica no alto.
+   assert all(len([line for line in text.split('\n') if line.strip()])==3 and 'Sensação' not in text and 'horário local' not in text for text in cards),cards
   page.locator('#closeCitySearch').click();checks.append({'width':width,'height':height,'overflow':overflow})
  page.set_viewport_size({'width':390,'height':844})
  page.evaluate("chooseCity('4106902')")

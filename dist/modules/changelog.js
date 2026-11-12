@@ -19,6 +19,7 @@
       "Os ícones dos cartões da tela inicial (dicas, sensação, umidade, vento, pressão e os outros) agora têm a cor do texto: brancos no céu escuro. Os atalhos \"Brasil agora\", \"Últimos 30 dias\" e \"Quanto o PLUVIA acerta\" também.",
       "O \"Agora\" de Próximas horas, o nascer e o pôr do sol e o \"Hoje\" dos próximos dias ganharam o dourado do Sol do céu de desenho.",
       "Os botões \"i\" saíram da tela inicial (Próximas horas, Próximos 7 dias, qualidade do ar e radar). As fontes dos dados continuam em \"Fontes de dados\" e no rodapé.",
+      "Os cartões das cidades favoritas foram redesenhados: sigla do estado no alto, uma estrela dourada, o nome da cidade e a temperatura grande embaixo.",
       "Em Minha conta, os cartões de avisos mostram só o título, sem o resumo ao lado (\"Todos\", \"1 cidade\", \"6 ativos de 7\"...).",
       "O botão de avisos mostra a cor do que faz: verde para ativar e vermelho para desligar. \"Excluir minha conta\" ficou alinhado com \"Sair da conta\" e em vermelho."
     ]},
