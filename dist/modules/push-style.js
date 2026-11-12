@@ -27,6 +27,10 @@
     storm_now:        {icon:'storm', action:'Ver agora', fallback:'Trovoada agora', observed:true},
     rain_incoming:    {icon:'rain', action:'Ver chuva por hora', fallback:'Chuva chegando', observed:true},
     rain_stopped:     {icon:'daily', action:'Ver próximas horas', fallback:'Parou de chover', observed:true},
+    // Radar (piora e "o pior já passou") e chuva acumulada (alagamento), novembro/2026.
+    rain_worsening:   {icon:'heavy-rain', action:'Ver chuva por hora', fallback:'A chuva vai engrossar', observed:true},
+    rain_easing:      {icon:'rain', action:'Ver chuva por hora', fallback:'O pior já passou', observed:true},
+    flood_risk:       {icon:'heavy-rain', action:'Ver alertas', fallback:'Risco de alagamento'},
     test:             {icon:null, action:'Abrir o PLUVIA', fallback:'Notificações ativas'}
   };
   // Remove emoji/símbolos do começo do título do servidor; o ícone já representa a condição.
