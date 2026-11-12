@@ -419,7 +419,8 @@ function detectObserved({ station, airport }: { station: any; airport: any }, lo
   const expires = new Date(now.getTime() + 2 * 3_600_000);
   const airportAt = at(airport?.time), wx = airport?.weather && fresh(airportAt, 75 * 60_000) ? airport.weather : null;
   const near = wx && typeof airport.distanceKm === "number" ? `, a ${Math.round(airport.distanceKm)} km` : "";
-  const place = wx ? `O aeroporto mais próximo (${text(airport.icao, 4)}${near})` : "";
+  // Sem o código do aeroporto (novembro/2026, pedido do dono: "SBMN" não diz nada para quem lê); a sigla fica no metadata.
+  const place = wx ? `O aeroporto mais próximo${near ? `${near},` : ""}` : "";
   const previous = airport?.previous?.weather || null;
   const rainName = (weather: any) => weather?.drizzle && !weather?.rain ? "garoa" : `${weather?.showers ? "pancadas de chuva" : "chuva"}${({ light: " fraca", heavy: " forte" } as Record<string, string>)[weather?.rain] || ""}`;
   if (wx?.thunder === true) events.push({
