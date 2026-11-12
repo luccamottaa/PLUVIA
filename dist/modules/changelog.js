@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.73.7", date:"2026-11-12", title:"Visibilidade do Tomorrow.io", items:[
+      "Com \"Testar Tomorrow.io\" ligado, o cartão Visibilidade usa o valor do Tomorrow.io.",
+      "O código do aeroporto (\"SBMN\") saiu de todos os textos: chuva observada, leitura do aeroporto e notificações."
+    ]},
     {version:"1.73.6", date:"2026-11-12", title:"Avisos mais espertos", items:[
       "O aviso de chuva chegando pelo radar agora diz a força (fraca, moderada, forte ou tempestade) e quanto tempo deve durar.",
       "Novos avisos pelo radar: quando a chuva vai engrossar e quando o pior já passou.",

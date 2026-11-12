@@ -129,7 +129,8 @@
     return observed.code;
   }
 
-  const where = (airport, {number}) => `o aeroporto mais próximo (${airport.icao}${finite(airport.distanceKm) ? `, a ${number(airport.distanceKm, 0)} km` : ''})`;
+  // Sem o código do aeroporto (1.73.7, pedido do dono: "SBMN" não diz nada para quem lê).
+  const where = (airport, {number}) => `o aeroporto mais próximo${finite(airport.distanceKm) ? ` (a ${number(airport.distanceKm, 0)} km)` : ''}`;
   const rainName = observed => observed.drizzle ? 'garoa' : `${observed.showers ? 'pancadas de chuva' : 'chuva'}${{light:' fraca', heavy:' forte'}[observed.rain] || ''}`;
   // Frase do "Vai chover?" com a fonte e o horário. `time` formata um instante no fuso da cidade e
   // `number(valor, casas)` formata números.

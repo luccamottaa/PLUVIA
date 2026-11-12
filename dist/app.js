@@ -1022,13 +1022,17 @@ function renderSun(daily, at = Date.now(), hourly = null) {
 // Visibilidade: a medida no aeroporto mais próximo (boletim METAR de até 75 min, via station-now) vence a
 // do modelo, que em Manaus inventa "neblina" de madrugada com a umidade alta (480 m com o aeroporto em
 // 9999). Sem aeroporto, fica o modelo, identificado como estimativa quando está baixo.
-const visibilityState = {model:null, fromCache:false};
-function renderVisibility(value, fromCache = false) {
-  visibilityState.model = value; visibilityState.fromCache = fromCache;
+// Com "Testar Tomorrow.io" ligado (1.73.7, pedido do dono: "o Tomorrow não fornece visibilidade? se fornecer
+// bota"), o valor da hora é o do Tomorrow.io (forecast-sources.js troca a série) e vence também o aeroporto.
+const visibilityState = {model:null, fromCache:false, tomorrow:false};
+function renderVisibility(value, fromCache = false, tomorrow = false) {
+  visibilityState.model = value; visibilityState.fromCache = fromCache; visibilityState.tomorrow = tomorrow;
   paintVisibility();
 }
 function paintVisibility() {
-  const airport = observedRainState.airport, measured = airport?.visibility && String(observedRainState.stationCity) === String(activeCity?.id) ? airport.visibility : null;
+  const airport = observedRainState.airport;
+  const tomorrow = visibilityState.tomorrow && Number.isFinite(visibilityState.model);
+  const measured = !tomorrow && airport?.visibility && String(observedRainState.stationCity) === String(activeCity?.id) ? airport.visibility : null;
   // O METAR para em "10 km ou mais" (9999). Quando o aeroporto confirma isso e o modelo diz mais que 10 km,
   // mostra o número do modelo (1.25.4, pedido do usuário: ficava sempre "10+ km"); com o modelo abaixo de
   // 10 km, a medida do aeroporto vence, como antes.
@@ -1046,10 +1050,11 @@ function paintVisibility() {
   // Sem o código do aeroporto (1.73.4, pedido do dono: "SBMN" não dizia nada para quem lê).
   const source = measured ? `medido no aeroporto · ${formatUpdateTime(airport.at)}` : "";
   $("visibilityNote").textContent = !available ? "Visibilidade indisponível para esta hora."
+    : tomorrow ? (level ? `${level} · Tomorrow.io` : "Tomorrow.io")
     : blend ? "Aeroporto: 10+ km · modelo"
     : measured ? (level ? `${level} · ${source}` : source.charAt(0).toUpperCase() + source.slice(1))
     : reduced ? `${level} · estimativa do modelo${fromCache ? " salva" : ""}` : "";
-  $("visibilityValue").closest?.(".metric")?.setAttribute("aria-label", blend ? "Visibilidade prevista pelo modelo; o aeroporto mede 10 km ou mais" : measured ? "Visibilidade medida" : "Visibilidade prevista");
+  $("visibilityValue").closest?.(".metric")?.setAttribute("aria-label", tomorrow ? "Visibilidade prevista pelo Tomorrow.io" : blend ? "Visibilidade prevista pelo modelo; o aeroporto mede 10 km ou mais" : measured ? "Visibilidade medida" : "Visibilidade prevista");
 }
 
 // Cartões da tela inicial com o que o Tomorrow.io entrega (1.73.5, pedido do dono: "quero que as informações sejam
@@ -1610,7 +1615,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
     : data.pluviaTomorrow === "limited" ? `Tomorrow.io sem cota agora · Open-Meteo · ${formatUpdateTime(observedAt)}`
     : data.pluviaTomorrow === "failed" ? `Tomorrow.io não respondeu · Open-Meteo · ${formatUpdateTime(observedAt)}`
     : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache || Boolean(data.pluviaReduced) || Boolean(data.pluviaTomorrow));
-  renderVisibility(now.visibility, fromCache);
+  renderVisibility(now.visibility, fromCache, data.pluviaSource === "tomorrow");
   renderExtraTiles(data.hourly, start);
   const lines = weatherData?.rows?.(snapshot, data);
   renderHourly(lines?.hourly || [], start, day, data.hourly);
