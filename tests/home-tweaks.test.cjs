@@ -84,3 +84,11 @@ test('atalhos Brasil agora, Últimos 30 dias e Quanto o PLUVIA acerta na cor do 
   assert.match(css, /background:color-mix\(in srgb, var\(--reading-link\) 12%, transparent\); color:var\(--icon-ink\);/);
   assert.match(css, /#weatherView \.home-shortcut::before \{[^}]*background:currentColor;/, 'o ícone segue a cor do texto');
 });
+
+test('"Agora", nascer/pôr do sol e "Hoje" em dourado, âmbar com tinta escura (1.73.2)', () => {
+  const css = dist('continuous.css');
+  assert.match(css, /--accent-now:#ffd23f;/);
+  assert.match(css, /body\[data-ink="dark"\] #weatherView \{ --accent-now:#b26200; \}/);
+  for (const sel of ['.hourly-peek-item.is-now .peek-time', '.hourly-solar-item', '.hourly-solar-item .peek-time', '.forecast-row[data-today] .forecast-day > strong > span', '.sun-table tbody tr[data-today] th'])
+    assert.ok(new RegExp(`#weatherView ${sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\{[^}]*color:var\\(--accent-now\\)`).test(css), sel);
+});

@@ -170,7 +170,7 @@ body[data-ink="dark"] #weatherView {
 #weatherView .hourly-peek-item > strong { margin-top:0; }
 #weatherView .hourly-peek-item.is-now { border-bottom:2px solid var(--reading-link); background:none; }
 #weatherView :is(.peek-time,.peek-rain,.peek-temp) { color:var(--reading-ink); }
-#weatherView .hourly-peek-item.is-now .peek-time { color:var(--reading-link); }
+#weatherView .hourly-peek-item.is-now .peek-time { color:var(--accent-now); }
 #weatherView :is(.hero-temperature-extreme small,.quick-metric:first-child .metric-head > span:first-child) { font-size:.8rem; line-height:1.35; }
 #weatherView .metrics { display:grid; grid-template-columns:minmax(0,1fr); gap:0; }
 #weatherView .metrics .metric { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 20px; min-height:0; padding:20px 0; border-top:1px solid var(--reading-line) !important; }
@@ -272,7 +272,11 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
   --graphic-blue:var(--brand-blue);
   /* 1.73.2 (pedido do dono: "bota todos esses ícones em branco"): ícones dos cartões na cor do texto. */
   --icon-ink:var(--reading-ink);
+  /* 1.73.2 (pedido do dono: "outra cor mais forte e legal"): destaque do agora, do nascer/pôr do sol e do hoje no
+     dourado do Sol do céu de desenho; âmbar escuro com a tinta escura (céu claro de dia, cartão claro). */
+  --accent-now:#ffd23f;
 }
+body[data-ink="dark"] #weatherView { --accent-now:#b26200; }
 #weatherView .section-icon { color:var(--graphic-blue); }
 #weatherView .section-icon svg { stroke-width:2.2; }
 #weatherView .source-badge.inmet { background:var(--brand-blue); color:var(--on-accent); border-color:var(--brand-blue); box-shadow:none; font-weight:700; }
@@ -401,7 +405,7 @@ body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60
 
 #weatherView :is(.hourly-peek-item,.hour-column) { color:var(--reading-ink); font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
-#weatherView .hour-solar-event { display:block; max-width:100%; font-size:.7rem; line-height:1.4; color:var(--reading-link); white-space:normal; }
+#weatherView .hour-solar-event { display:block; max-width:100%; font-size:.7rem; line-height:1.4; color:var(--accent-now); white-space:normal; }
 
 #weatherView .air-details { grid-column:1/-1; margin-top:12px; font-size:.8rem; line-height:1.5; color:var(--reading-muted); }
 #weatherView .air-details summary { min-height:44px; display:list-item; align-content:center; cursor:pointer; font-weight:700; color:var(--reading-ink); }
@@ -1236,10 +1240,10 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 .install-card button:focus-visible { outline:3px solid #9cc0ff; outline-offset:2px; }
 /* Nascer/pôr como coluna própria entre as horas (horário, símbolo, nome), nas mesmas linhas das horas:
    dentro da coluna da hora ele abria uma linha vazia embaixo de todas as outras. */
-#weatherView .hourly-solar-item { cursor:default; color:var(--reading-link); }
-#weatherView .hourly-solar-item .peek-time { color:var(--reading-link); font-variant-numeric:tabular-nums; }
+#weatherView .hourly-solar-item { cursor:default; color:var(--accent-now); }
+#weatherView .hourly-solar-item .peek-time { color:var(--accent-now); font-variant-numeric:tabular-nums; }
 #weatherView .hourly-solar-item .solar-glyph { width:30px; height:30px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-#weatherView .hourly-peek-item.hourly-solar-item > strong.solar-label { font-size:.8125rem; font-weight:500; line-height:1.15; white-space:normal; text-align:center; color:var(--reading-link); }
+#weatherView .hourly-peek-item.hourly-solar-item > strong.solar-label { font-size:.8125rem; font-weight:500; line-height:1.15; white-space:normal; text-align:center; color:var(--accent-now); }
 /* A fileira rola pelo gesto; a metade do 7º horário já mostra que continua, então a barra some. */
 #weatherView .hourly-peek-list { scrollbar-width:none; }
 /* Hora atual só em azul no horário: o traço embaixo ficava longe do conteúdo, no pé da coluna. */
@@ -1502,9 +1506,9 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 }
 /* O nome fica num <span> que outras folhas pintam: a cor vai também nele. */
 #weatherView .forecast-row[data-today] .forecast-day > strong,
-#weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#4dabff; font-weight:700; }
+#weatherView .forecast-row[data-today] .forecast-day > strong > span { color:var(--accent-now); font-weight:700; }
 body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong,
-body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#0a4cba; }
+body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong > span { color:var(--accent-now); }
 /* Condição mais perto da temperatura (1.25.5, pedido do usuário: "muito separado"). A caixa do número tem a
    altura da fonte inteira, e embaixo dos algarismos sobra o espaço das letras com perna (~0,2 em): com o gap
    da coluna, a condição ficava ~37 px abaixo dos algarismos. Puxa a caixa de volta na proporção do número. */
@@ -1627,8 +1631,8 @@ html body :is(#weatherView .air-details,#weatherView .astronomy-details,#account
 #weatherView .sun-table :is(th,td):first-child { text-align:left; }
 #weatherView .sun-table thead th { padding-top:0; border-top:0; color:var(--reading-muted); font-size:.8125rem; font-weight:500; }
 #weatherView .sun-table tbody th { font-weight:500; text-transform:capitalize; }
-#weatherView .sun-table tbody tr[data-today] th { color:#4dabff; font-weight:700; }
-body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:#0a4cba; }
+#weatherView .sun-table tbody tr[data-today] th { color:var(--accent-now); font-weight:700; }
+body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:var(--accent-now); }
 #weatherView .sun-table td:last-child { color:var(--reading-muted); }
 @media (max-width:359px) { #weatherView .sun-table :is(th,td) { font-size:.875rem; } }
 @keyframes pluvia-day-chart-draw { from { stroke-dashoffset:1; } }
