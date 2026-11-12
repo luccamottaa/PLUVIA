@@ -654,6 +654,10 @@ Pedido do dono ("a Home pula"). Medido na volta ao app (Edge, CPU 4×): o pulo i
 
 Pedido do dono (print: topo "Céu limpo" e pílula "Chuva fraca agora; deve parar por volta das 17h"). `weatherInsights.rainAnswer` dizia "agora" sempre que a hora que começa agora (intervalo i+1) era molhada pela previsão (≥ 0,5 mm, ou ≥ 50% com ≥ 0,1 mm), mesmo com a condição atual seca. Agora, com a primeira hora molhada: "agora" quando `hours[0].now` (código atual de chuva/trovoada; o app já aplica a chuva observada da estação, aeroporto e radar em `withObservedRain` antes de chamar) ou quando não há condição atual para conferir; com condição atual conhecida e seca (céu limpo, nuvens, neblina), "na próxima hora". O tom ("rain"/"storm"), a regra de hora molhada (igual a `_shared/forecast-verify.js`) e o convite de avisos não mudam. Teste: `tests/rain-answer.test.cjs`.
 
+## Visibilidade do Tomorrow.io e nenhum código de aeroporto na tela (novembro/2026, 1.73.7)
+
+Pedido do dono ("o tomorrow não fornece visibilidade? se fornecer bota e tira o sbmn"). Com o teste ligado (`data.pluviaSource === "tomorrow"`), `renderVisibility` recebe `tomorrow = true` e `paintVisibility` mostra o valor da série (que `forecast-sources.js` já troca pelo `visibilityKm` do Tomorrow.io), com a nota "Tomorrow.io" e acima da medida do aeroporto; sem valor na hora, volta o aeroporto. O código ICAO saiu de todo texto visível: `station-now.js` ("Aeroporto mais próximo, a 6 km", "no aeroporto: …"), `observed-rain.js` ("o aeroporto mais próximo (a 10 km)") e os avisos do `push-process` ("O aeroporto mais próximo, a 10 km, relatou…"). A sigla continua nos dados (`icao`, metadata dos eventos e chave de cache).
+
 ## Avisos inteligentes: força e duração pelo radar, piora, "o pior já passou", alagamento e limite diário (novembro/2026, 1.73.6)
 
 Pedido do dono ("notificações inteligentes... com prioridade nas importantes tipo chuvas tempestades"). Tudo no `push-process`; o app só ganhou os estilos dos tipos novos (`push-style.js`).

@@ -133,7 +133,7 @@ test('app: só leitura recente com temperatura aparece, com texto da estação, 
 test('app: sem o cartão "Medido agora" (saiu da Home na 1.26.4) a leitura continua chegando, e some na troca de cidade', () => {
   const html = fs.readFileSync('dist/index.html','utf8'), css = fs.readFileSync('dist/continuous.css','utf8'), sw = fs.readFileSync('dist/sw.js','utf8');
   assert.doesNotMatch(html,/id="stationNow"/);
-  assert.match(html,/modules\/station-now\.js\?v=station-5/);assert.match(sw,/modules\/station-now\.js\?v=station-5/);
+  assert.match(html,/modules\/station-now\.js\?v=station-6/);assert.match(sw,/modules\/station-now\.js\?v=station-6/);
   assert.match(css,/#weatherView \.metrics \.station-metric\[hidden\] \{ display:none; \}/);
   const source = fs.readFileSync('dist/modules/station-now.js','utf8');
   assert.match(source,/'pluvia:city-changed', \(\) => \{ revision\+\+; pendingCity = null; controller\?\.abort\?\.\(\); hide\(\); \}/);
@@ -147,7 +147,7 @@ test('app: sem estação do INMET o cartão mostra o aeroporto; com estação, o
   assert.equal(item.icao, 'SBFZ');
   assert.equal(item.previousWet, false);
   const helpers = {time:()=> '20:00', number:(n,d)=>n.toFixed(d).replace('.',',')};
-  assert.deepEqual(client.describeAirport(item, helpers), {value:'27°', note:'Aeroporto mais próximo (SBFZ, a 6 km) · às 20:00 · umidade 79% · pancadas de chuva fraca agora'});
+  assert.deepEqual(client.describeAirport(item, helpers), {value:'27°', note:'Aeroporto mais próximo, a 6 km · às 20:00 · umidade 79% · pancadas de chuva fraca agora'});
   assert.equal(client.airportReading({airport:{...airport, time:'2026-10-13T21:50:00Z'}}, now), null, 'boletim com mais de 75 min');
   assert.equal(client.airportReading({airport:{...airport, icao:'<b>'}}, now), null);
   assert.equal(client.weatherPhrase({thunder:true, rain:'moderate'}), 'trovoada com chuva agora');

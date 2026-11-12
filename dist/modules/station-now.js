@@ -62,7 +62,8 @@
   }
   function describeAirport(item, {time, number} = {}) {
     const far = Number.isFinite(item.distanceKm) ? `, a ${Math.round(item.distanceKm)} km` : '';
-    const parts = [`Aeroporto mais próximo (${item.icao}${far})`, `às ${time(item.at)}`];
+    // Sem o código do aeroporto (1.73.7, pedido do dono: "SBMN" não diz nada para quem lê).
+    const parts = [`Aeroporto mais próximo${far}`, `às ${time(item.at)}`];
     if (item.humidity !== null) parts.push(`umidade ${Math.round(item.humidity)}%`);
     const phrase = weatherPhrase(item.weather);
     if (phrase) parts.push(phrase);
@@ -110,7 +111,7 @@
       if (!ui) return;
       const text = item ? describe(item, city, helpers()) : describeAirport(airport, helpers());
       const phrase = item && airport ? weatherPhrase(airport.weather) : '';
-      if (phrase) text.note += ` · aeroporto (${airport.icao}): ${phrase}`;
+      if (phrase) text.note += ` · no aeroporto: ${phrase}`;
       const appearing = card.hidden;
       value.textContent = text.value; note.textContent = text.note;
       card.dataset.city = String(city.id);

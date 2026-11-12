@@ -68,3 +68,18 @@ test('tela: aeroporto em 10+ km e modelo acima disso mostram o número do modelo
   api.renderVisibility(24140,false);
   assert.equal(nodes.visibilityValue.textContent,'8,0 km');
 });
+
+test('tela: com o teste do Tomorrow.io, a visibilidade dele vence o aeroporto e diz a fonte, sem código (1.73.7)',()=>{
+  const {nodes,ctx,api}=screen();
+  ctx.observedRainState.airport={icao:'SBMN',at:1,visibility:{meters:10000,plus:true}};ctx.observedRainState.stationCity='1302603';
+  api.renderVisibility(16000,false,true);
+  assert.equal(nodes.visibilityValue.textContent,'16 km');
+  assert.equal(nodes.visibilityNote.textContent,'Tomorrow.io');
+  assert.equal(nodes.label,'Visibilidade prevista pelo Tomorrow.io');
+  api.renderVisibility(3200,false,true);
+  assert.equal(nodes.visibilityNote.textContent,'Reduzida · Tomorrow.io');
+  // Sem valor do Tomorrow.io na hora: volta a medida do aeroporto.
+  api.renderVisibility(null,false,true);
+  assert.equal(nodes.visibilityValue.textContent,'10+ km');
+  assert.doesNotMatch(nodes.visibilityNote.textContent,/SB[A-Z]{2}/);
+});
