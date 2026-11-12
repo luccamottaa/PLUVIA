@@ -174,3 +174,11 @@ test('extras do Tomorrow.io viram séries pluvia_* só quando chegam (1.73.4)',(
   const plain=sources.overlayTomorrow(forecast(),{hourly:[{time:utc('2026-11-09T11:00'),temperatureC:27}]},city,parse);
   assert.equal(Object.keys(plain.hourly).some(k=>k.startsWith('pluvia_')),false);
 });
+
+test('qualidade do ar do Tomorrow.io vai junto só quando o índice chega (1.73.6)',()=>{
+  const data={current:{time:utc('2026-11-09T11:00'),temperatureC:27,aqi:83,aqiPollutant:0,pm25:28.5,pm10:40,o3Ppb:20},hourly:[{time:utc('2026-11-09T11:00'),temperatureC:27}]};
+  const out=sources.overlayTomorrow(forecast(),data,city,parse);
+  assert.deepEqual({...out.pluviaTomorrowAir},{aqi:83,pollutant:0,pm25:28.5,pm10:40,o3Ppb:20,no2Ppb:null,so2Ppb:null});
+  const none=sources.overlayTomorrow(forecast(),{...data,current:{...data.current,aqi:null}},city,parse);
+  assert.equal(none.pluviaTomorrowAir,undefined);
+});

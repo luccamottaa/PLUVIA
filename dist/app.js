@@ -1535,7 +1535,22 @@ function setTemperatureTiles(high, low, feels, temperature) {
   }
 }
 
+// Qualidade do ar do Tomorrow.io (1.73.6): com o teste ligado e o índice chegando, o cartão usa o US AQI e as
+// partículas dele; ozônio, NO₂ e SO₂ vêm em ppb e viram µg/m³ (25 °C), a unidade do Open-Meteo. O CO continua do
+// CAMS (a documentação do Tomorrow.io diverge na unidade). Sem índice do Tomorrow.io, ou sem a leitura do CAMS
+// (hora e cidade), nada muda.
+function tomorrowAir(data, air) {
+  const t = data?.pluviaTomorrowAir;
+  if (!t || !Number.isFinite(t.aqi) || !air?.current) return air;
+  const gas = (value, factor) => Number.isFinite(value) ? Math.round(value * factor * 10) / 10 : undefined;
+  const current = {...air.current, us_aqi:t.aqi};
+  for (const [name, value] of [["pm2_5", t.pm25], ["pm10", t.pm10], ["ozone", gas(t.o3Ppb, 1.96)], ["nitrogen_dioxide", gas(t.no2Ppb, 1.88)], ["sulphur_dioxide", gas(t.so2Ppb, 2.62)]])
+    if (Number.isFinite(value)) current[name] = value;
+  return {...air, current, pluviaSource:"tomorrow"};
+}
+
 function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
+  air = tomorrowAir(data, air);
   let snapshot = null;
   try {
     snapshot = weatherData?.ingestOpenMeteo(data, air, activeCity, {

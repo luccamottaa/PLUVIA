@@ -106,7 +106,10 @@
         if (name in current && now[field] !== null && now[field] !== undefined) current[name] = now[field];
       }
     }
-    return {...forecast, current, hourly, ...(daily ? {daily} : {}), pluviaSource:"tomorrow", pluviaTomorrowDays:daily ? touched.size : 0};
+    // Qualidade do ar do agora (1.73.6), só quando o índice chega; app.js troca o CAMS por ela no cartão.
+    const air = now && Number.isFinite(now.aqi) ? {aqi:now.aqi, pollutant:now.aqiPollutant ?? null, pm25:now.pm25 ?? null, pm10:now.pm10 ?? null,
+      o3Ppb:now.o3Ppb ?? null, no2Ppb:now.no2Ppb ?? null, so2Ppb:now.so2Ppb ?? null} : null;
+    return {...forecast, current, hourly, ...(daily ? {daily} : {}), ...(air ? {pluviaTomorrowAir:air} : {}), pluviaSource:"tomorrow", pluviaTomorrowDays:daily ? touched.size : 0};
   }
 
   // Dias a partir das horas (1.73.4, pedido do dono: "os 7 dias" também do Tomorrow.io). Para cada dia local que

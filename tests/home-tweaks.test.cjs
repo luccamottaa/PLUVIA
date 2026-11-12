@@ -129,3 +129,16 @@ test('cartões da tela inicial com os dados do Tomorrow.io (1.73.5)', () => {
   assert.match(app, /renderExtraTiles\(data\.hourly, start\);/);
   assert.match(fs.readFileSync(path.join(__dirname, '../dist/modules/weather-services.js'), 'utf8'), /uv_index,dew_point_2m"/);
 });
+
+test('cartão Qualidade do ar usa o Tomorrow.io com o teste ligado, sem trocar o CO (1.73.6)', () => {
+  const vm = require('node:vm'), app = dist('app.js');
+  const code = app.slice(app.indexOf('function tomorrowAir('), app.indexOf('function render(data, air'));
+  const ctx = vm.createContext({}); vm.runInContext(code + ';this.tomorrowAir=tomorrowAir;', ctx);
+  const cams = {current:{time:'2026-11-12T15:00', us_aqi:40, pm2_5:10, pm10:20, ozone:50, carbon_monoxide:300}};
+  const out = ctx.tomorrowAir({pluviaTomorrowAir:{aqi:83, pm25:28.5, pm10:40, o3Ppb:20, no2Ppb:null, so2Ppb:null}}, cams);
+  assert.equal(out.current.us_aqi, 83); assert.equal(out.current.pm2_5, 28.5); assert.equal(out.current.ozone, 39.2, '20 ppb de O3 em µg/m³');
+  assert.equal(out.current.carbon_monoxide, 300, 'CO continua do CAMS'); assert.equal(out.current.time, cams.current.time);
+  assert.equal(ctx.tomorrowAir({}, cams), cams, 'sem o Tomorrow.io nada muda');
+  assert.equal(ctx.tomorrowAir({pluviaTomorrowAir:{aqi:83}}, null), null, 'sem a leitura do CAMS nada muda');
+  assert.match(app, /function render\(data, air, fromCache = false, cacheAt = 0, metadata = \{\}\) \{\n  air = tomorrowAir\(data, air\);/);
+});
