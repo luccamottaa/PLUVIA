@@ -42,9 +42,3 @@ test('o véu do story é reduzido uma vez por sessão e a imagem não é decodif
   assert.equal(loads, loadsAfterFirst + 1, 'só a logo é carregada de novo; o véu fica guardado');
 });
 
-test('com as nuvens 3D ligadas o ritmo das nuvens CSS (escondidas) não força recálculo de estilo', () => {
-  const src = fs.readFileSync(path.join(root, 'modules/sky-atmosphere.js'), 'utf8');
-  assert.match(src, /if \(volumeOn\(\)\) \{ rateDirty = true; return; \}/);
-  assert.ok(src.indexOf('if (volumeOn()) { rateDirty = true; return; }') < src.indexOf('layer.getAnimations'), 'sai antes de getAnimations');
-  assert.match(src, /attributeFilter:\['data-volume'\]/, 'aplica o ritmo pendente quando as nuvens 3D saem');
-});

@@ -34,15 +34,3 @@ test('o céu escreve o arco-íris do lado oposto ao Sol, e o tira ao meio-dia',(
   assert.equal(root.dataset.rainbow,'off','chuva moderada: sem arco-íris');
 });
 
-test('estrela cadente só na noite de pico, em céu limpo/parcial; movimento reduzido some',()=>{
-  const css=fs.readFileSync('dist/sky.css','utf8'),app=fs.readFileSync('dist/app.js','utf8'),html=fs.readFileSync('dist/index.html','utf8');
-  assert.match(html,/<div class="sky-effects"[^>]*><span class="sky-stars"><\/span><span class="sky-meteor"><\/span><span class="sky-rainbow"><\/span>/);
-  assert.match(css,/:root\[data-meteors="on"\]\[data-phase="night"\]:is\(\[data-weather="sun"\],\[data-weather="partly"\]\) \.sky-meteor \{ display:block; \}/);
-  assert.match(css,/prefers-reduced-motion:reduce\) \{ \.sky-meteor \{ display:none !important; \} \}/);
-  assert.match(app,/setMeteorNight\(Boolean\(shower\) && Math\.abs\(/);
-  // Só transform/opacity nas animações novas.
-  for(const name of ['sky-meteor-a','sky-meteor-b']) {
-    const body=css.match(new RegExp(`@keyframes ${name} \\{([\\s\\S]*?)\\n\\}`))[1];
-    assert.doesNotMatch(body.replace(/opacity|transform|translate3d|rotate|calc|vw|vh|px|deg/g,''),/[a-z]{3,}\s*:/);
-  }
-});

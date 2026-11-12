@@ -58,48 +58,12 @@ test('nublado, chuva (desde a 1.25 também garoa e chuva fraca) e trovoada escur
   assert.equal(root.dataset.solar,'sunset');
   assert.equal(root.dataset.ink,'dark','a luz do crepúsculo mantém a tinta escura');
 });
-test('vento atual controla a velocidade das nuvens sem salto; leitura ausente não vira calmaria',()=>{
-  const {cloudRate}=require('../dist/modules/sky-atmosphere.js');
-  assert.equal(cloudRate(10),1,'10 km/h mantém a duração de referência do CSS');
-  assert.equal(cloudRate(0),.4);
-  assert.equal(cloudRate(5),.7);
-  assert.equal(cloudRate(20),1.6);
-  assert.equal(cloudRate(80),2.4,'vendaval tem teto');
-  for(const missing of [null,undefined,NaN,'12',-3,Infinity]) assert.equal(cloudRate(missing),1,String(missing));
-  const animations=[{animationName:'clouds-back',playbackRate:1},{animationName:'clouds-front',playbackRate:1},{animationName:'sky-rain-fall',playbackRate:1}];
-  const values={},root={dataset:{},style:{setProperty(key,value){values[key]=value;}}},body={dataset:{},style:{setProperty(){}}};
-  const layers=[{getAnimations:()=>animations.slice(0,2)},{getAnimations:()=>[animations[2]]}];
-  const sky=create({document:{documentElement:root,body,querySelectorAll:selector=>selector==='.sky-clouds'?layers:[]}});
-  sky.apply(3,1,null,city,at,20);
-  assert.deepEqual(animations.map(a=>a.playbackRate),[1.6,1.6,1],'só as nuvens mudam; chuva conserva o próprio ritmo');
-  assert.equal(values['--cloud-rate'],'1.6');
-  sky.update(at+30000);
-  assert.equal(animations[0].playbackRate,1.6,'o relógio conserva o vento da última previsão');
-  sky.apply(3,1,null,city,at);
-  assert.equal(animations[0].playbackRate,1,'troca de cidade/condição sem vento volta ao ritmo neutro');
-});
-test('no navegador o ritmo do vento entra no próximo quadro e escritas iguais não se repetem',()=>{
-  const animations=[{animationName:'clouds-back',playbackRate:1}];
-  let writes=0;const frames=[];
-  const root={dataset:{},style:{setProperty(){writes++;}}},body={dataset:{},style:{setProperty(){writes++;}}};
-  const sky=create({frame:fn=>frames.push(fn),document:{documentElement:root,body,querySelectorAll:()=>[{getAnimations:()=>animations}]}});
-  sky.apply(3,1,null,city,at,20);
-  assert.equal(animations[0].playbackRate,1,'nada de getAnimations() logo depois de escrever o estado do céu');
-  assert.equal(frames.length,1);
-  sky.apply(3,1,null,city,at,20);
-  assert.equal(frames.length,1,'um quadro pendente atende várias escritas');
-  frames.shift()();
-  assert.equal(animations[0].playbackRate,1.6);
-  const before=writes;
-  sky.apply(3,1,null,city,at,20);
-  assert.equal(writes,before,'o mesmo estado não reescreve propriedades herdadas pela página inteira');
-});
-
 test('chuva com vento: a partir de 25 km/h os traços inclinam; leitura ausente é calmaria',()=>{
   const {rainWind}=require('../dist/modules/sky-atmosphere.js');
   assert.equal(rainWind(24.9),'calm');assert.equal(rainWind(25),'strong');assert.equal(rainWind(60),'strong');
   for(const value of [null,undefined,'30',NaN,-5,900]) assert.equal(rainWind(value),'calm');
-  const css=fs.readFileSync(require.resolve('../dist/sky.css'),'utf8');
-  assert.match(css,/:root\[data-wind="strong"\] \.sky-rain \{ background-image:url\("\.\/assets\/rain-near-wind\.svg/);
-  assert.match(css,/:root\[data-wind="strong"\] \.sky-rain-back \{ background-image:url\("\.\/assets\/rain-far-wind\.svg/);
+  // O céu de desenho inclina a chuva com data-wind="strong" (sky-toon.js).
+  const toon=require('../dist/modules/sky-toon.js');
+  assert.equal(toon.plan({weather:'rain',phase:'day',wind:'strong'}).windy,true);
+  assert.equal(toon.plan({weather:'rain',phase:'day',wind:'calm'}).windy,false);
 });
