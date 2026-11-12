@@ -237,8 +237,11 @@ with sync_playwright() as p:
   page.wait_for_function("document.querySelectorAll('#dialogFavoriteList .favorite-reading').length===2 && [...document.querySelectorAll('#dialogFavoriteList .favorite-reading')].every(el=>el.textContent==='30°')")
   header('#cityDialog .dialog-heading');aligned('#cityDialog .city-actions > button','centerY',3)
   city_bounds(width)
-  for field in ['> strong','.favorite-reading']:
+  for field in ['.favorite-head','> strong']:
    aligned('.favorite-city-card '+field,count=2)
+  # 1.73.2: a temperatura fica logo abaixo do nome de cada cartão (nome de 1 ou 2 linhas), não numa linha comum.
+  for name,reading in zip(boxes('.favorite-city-card > strong'),boxes('.favorite-city-card .favorite-reading')):
+   assert 0<=reading['y']-name['bottom']<=10,(width,name,reading)
   if width in [320,390,1366]:
    screenshot(str(width)+'-search','#cityDialog');screenshot(str(width)+'-favorites','#dialogFavoriteList')
   close()

@@ -41,9 +41,14 @@ test('favoritos continuam disponíveis na busca sem elementos na página princip
  const list=nodes.get('dialogFavoriteList');
  assert.equal(nodes.get('dialogFavorites').hidden,false);
  assert.equal(list.children.length,2);
- assert.equal(list.children[0].children[0].textContent,'Manaus/AM');
- assert.equal(list.children[0].children[1].textContent,'29°');
- assert.equal(list.children[0].children.length,2,'cartão enxuto: só cidade e temperatura (1.70.4)');
+ // 1.73.2: marca do estado e sigla no alto, nome no meio, temperatura embaixo.
+ const [head,name,reading]=list.children[0].children;
+ assert.equal(head.className,'favorite-head');assert.equal(head.attrs['aria-hidden'],'true');
+ assert.equal(head.children[0].className,'favorite-flag');assert.equal(head.children[0].dataset.uf,'AM');assert.equal(head.children[1].textContent,'AM');assert.equal(head.children[2].className,'favorite-star','estrela de favorita');
+ assert.equal(name.textContent,'Manaus');
+ assert.equal(reading.textContent,'29°');
+ assert.equal(list.children[0].children.length,3,'cartão enxuto: só estado, cidade e temperatura');
+ assert.equal(list.children[0].attrs['aria-label'],'Manaus, AM: 29°');
  await list.events.click({target:list.children[1]});
  assert.equal(choices[0].id,'1303403');
  assert.equal(choices[0].city,cities.get('1303403'));

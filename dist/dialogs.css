@@ -1002,10 +1002,14 @@ html body #accountDialog #accountProfileEdit .profile-identity:not(#_) { display
 html body #accountDialog #accountProfileEdit .profile-avatar:not(#_) { width:88px; height:88px; font-size:2.25rem; box-shadow:0 0 0 3px color-mix(in srgb,var(--dialog-link) 55%,transparent),0 10px 28px #0005; }
 html body #accountDialog #accountProfileEdit .profile-text:not(#_) { justify-items:center; text-align:center; max-width:100%; }
 html body #accountDialog #accountProfileEdit .profile-text strong:not(#_) { font-size:1.375rem; font-weight:650; }
+/* 1.73.2 (pedido do dono, print): o "padding:0!important" de .account-group > summary .account-group-value zerava o
+   respiro e o texto encostava na borda da pílula; aqui o !important de mais especificidade devolve o respiro. Letra
+   branca; de dia (janela clara) a pílula fica azul cheia para o branco continuar legível. */
 html body #accountDialog #accountProfileEdit .account-group-value:not(#_) {
-  display:inline-flex; align-items:center; min-height:34px; padding:0 16px; border-radius:999px;
-  background:color-mix(in srgb,var(--dialog-link) 16%,transparent); color:var(--dialog-link); font-size:.875rem; font-weight:600;
+  display:inline-flex; align-items:center; min-height:36px; padding:0 20px !important; border-radius:999px;
+  background:color-mix(in srgb,var(--dialog-link) 22%,transparent); color:#fff; font-size:.875rem; font-weight:600;
 }
+html body[data-phase="day"] #accountDialog #accountProfileEdit .account-group-value:not(#_) { background:#0a4cba; }
 
 /* 5. Sem conta: convite com ícone e campos com ícone */
 html body #accountDialog #accountIntro:not(#_) { display:grid; justify-items:center; gap:12px; margin:4px 0 18px; text-align:center; color:var(--dialog-muted); }
@@ -1183,3 +1187,70 @@ html body #accountDialog .account-more-fold > summary { justify-content:flex-sta
 html body #accountDialog .account-more-fold > summary::before { content:""; flex:none; width:30px; height:30px; border-radius:9px; background:var(--tile) var(--ico) center / 18px 18px no-repeat; box-shadow:inset 0 0 0 .5px #ffffff26; }
 html body #accountDialog .account-more-fold > summary::after { margin-left:auto; }
 @media (prefers-reduced-motion:reduce) { html body #accountDialog .account-more-fold > summary::after { transition:none; } }
+
+/* ===== 1.73.2: botões de avisos e "Excluir minha conta" (pedido do dono, print) ===== */
+/* Excluir minha conta alinhado com Sair da conta: o cartão (.account-delete) tinha 16 px de lado e a linha (summary)
+   mais 16 px; agora só a linha tem, e o texto que abre embaixo mantém o recuo. */
+html body #accountDialog .account-exit .account-delete:not(#_) { padding-inline:0; }
+html body #accountDialog .account-exit .account-delete:not(#_) > :not(summary) { margin-inline:16px; }
+/* Cor do texto pelo que o botão faz: excluir e desligar em vermelho (como os ícones), ativar em verde. */
+html body:not([data-phase="day"]) #accountDialog .account-exit .account-delete > summary:not(#_) { color:#ff6b61; }
+html body:not([data-phase="day"]) #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle:not(#_) { color:#ff6b61; }
+html body[data-phase="day"] #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle:not(#_) { color:#c4281c; }
+html body:not([data-phase="day"]) #accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle:not(#_):not(#_) { border-color:#30d158; background:#30d158; color:#05290f; }
+html body[data-phase="day"] #accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle:not(#_):not(#_) { border-color:#1f7a35; background:#1f7a35; color:#fff; }
+
+/* ===== 1.73.2: cartão de cidade favorita (pedido do dono: "não ficou legal, ajeita") ===== */
+/* No alto a marca do estado e a sigla; no meio o nome (até duas linhas); a temperatura logo abaixo do nome (o dono:
+   "junta mais ela do nome"; a subgrade alinhava todas pela cidade de nome mais longo e abria um vão). Mais largo que antes (o nome
+   quebrava em cartões de 107 px), com meio cartão aparecendo para mostrar que a fileira rola. */
+html body #cityDialog .favorite-city-list { --favorite-card-width:clamp(118px,calc(40% - 6px),156px); grid-template-rows:auto; gap:0 10px; }
+html body #cityDialog .favorite-city-card:not(#_) {
+  grid-row:1; display:flex; flex-direction:column; align-items:flex-start; gap:6px; padding:14px 14px 12px; border:1px solid var(--dialog-line); border-radius:20px;
+  background:linear-gradient(160deg, color-mix(in srgb,var(--brand-blue) 10%,var(--dialog-surface)), var(--dialog-surface)); text-align:left;
+}
+html body #cityDialog .favorite-city-card[aria-current=true]:not(#_) { border-color:color-mix(in srgb,var(--brand-blue) 70%,transparent); background:linear-gradient(160deg, color-mix(in srgb,var(--brand-blue) 22%,var(--dialog-surface)), var(--dialog-surface)); }
+html body #cityDialog .favorite-city-card .favorite-head { align-self:stretch; display:flex; align-items:center; gap:6px; min-height:20px; }
+html body #cityDialog .favorite-city-card .favorite-flag { display:none; flex:none; width:28px; height:20px; border-radius:5px; background:center / cover no-repeat; box-shadow:0 0 0 1px #ffffff26; }
+html body #cityDialog .favorite-city-card .favorite-uf { padding:2px 7px; border-radius:999px; background:color-mix(in srgb,var(--dialog-text) 12%,transparent); color:var(--dialog-muted); font-size:.6875rem; font-weight:700; letter-spacing:.04em; line-height:1.3; }
+html body #cityDialog .favorite-city-card > .favorite-name:not(#_) { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; font-size:.9375rem; font-weight:650; line-height:1.25; }
+html body #cityDialog .favorite-city-card .favorite-reading:not(#_) { margin-top:0; font-size:2rem; font-weight:300; letter-spacing:-.03em; line-height:1; }
+
+html body #cityDialog .favorite-city-card .favorite-star { flex:none; width:18px; height:18px; margin-left:auto; background:#ffd23f; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.8l2.8 5.7 6.3.9-4.6 4.4 1.1 6.2L12 17.1 6.4 20l1.1-6.2L2.9 9.4l6.3-.9Z' stroke='black' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.8l2.8 5.7 6.3.9-4.6 4.4 1.1 6.2L12 17.1 6.4 20l1.1-6.2L2.9 9.4l6.3-.9Z' stroke='black' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; }
+html body[data-phase="day"] #cityDialog .favorite-city-card .favorite-star { background:#d99a00; }
+@media (forced-colors:active) { html body #cityDialog .favorite-city-card .favorite-star { background:CanvasText; } }
+/* A fileira rola de lado com o dedo; a barra de rolagem azul embaixo dos cartões (computador) só poluía. */
+html body #cityDialog .favorite-city-list { scrollbar-width:none; }
+html body #cityDialog .favorite-city-list::-webkit-scrollbar { display:none; }
+
+/* Bandeiras dos estados (1.73.2, pedido do dono): Wikimedia Commons (arquivo da propriedade P41 de cada UF no
+   Wikidata), símbolos oficiais; convertidas em WebP 84×60 (28×20 a 3x, ~1,5 KB cada) em dist/assets/flags. A caixa
+   só aparece quando a UF tem bandeira. */
+html body #cityDialog .favorite-city-card .favorite-flag:is([data-uf="AC"],[data-uf="AL"],[data-uf="AM"],[data-uf="AP"],[data-uf="BA"],[data-uf="CE"],[data-uf="DF"],[data-uf="ES"],[data-uf="GO"],[data-uf="MA"],[data-uf="MG"],[data-uf="MS"],[data-uf="MT"],[data-uf="PA"],[data-uf="PB"],[data-uf="PE"],[data-uf="PI"],[data-uf="PR"],[data-uf="RJ"],[data-uf="RN"],[data-uf="RO"],[data-uf="RR"],[data-uf="RS"],[data-uf="SC"],[data-uf="SE"],[data-uf="SP"],[data-uf="TO"]) { display:block; }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="AC"] { background-image:url("./assets/flags/ac.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="AL"] { background-image:url("./assets/flags/al.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="AM"] { background-image:url("./assets/flags/am.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="AP"] { background-image:url("./assets/flags/ap.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="BA"] { background-image:url("./assets/flags/ba.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="CE"] { background-image:url("./assets/flags/ce.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="DF"] { background-image:url("./assets/flags/df.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="ES"] { background-image:url("./assets/flags/es.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="GO"] { background-image:url("./assets/flags/go.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="MA"] { background-image:url("./assets/flags/ma.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="MG"] { background-image:url("./assets/flags/mg.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="MS"] { background-image:url("./assets/flags/ms.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="MT"] { background-image:url("./assets/flags/mt.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="PA"] { background-image:url("./assets/flags/pa.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="PB"] { background-image:url("./assets/flags/pb.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="PE"] { background-image:url("./assets/flags/pe.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="PI"] { background-image:url("./assets/flags/pi.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="PR"] { background-image:url("./assets/flags/pr.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="RJ"] { background-image:url("./assets/flags/rj.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="RN"] { background-image:url("./assets/flags/rn.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="RO"] { background-image:url("./assets/flags/ro.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="RR"] { background-image:url("./assets/flags/rr.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="RS"] { background-image:url("./assets/flags/rs.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="SC"] { background-image:url("./assets/flags/sc.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="SE"] { background-image:url("./assets/flags/se.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="SP"] { background-image:url("./assets/flags/sp.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="TO"] { background-image:url("./assets/flags/to.webp?v=flags-1"); }

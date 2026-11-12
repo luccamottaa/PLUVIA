@@ -106,23 +106,8 @@ with sync_playwright() as p:
             labels:[...peek.querySelectorAll('.hourly-peek-item[data-hour-index]')].every(b => /chance de chuva/.test(b.querySelector('.peek-extra')?.textContent || ''))}; }""")
         assert not hint['hidden'] and 'Toque' in hint['text'] and hint['labels'], hint
         assert hint['state'] in ('some', 'none') and (hint['shown'] == 0 if hint['state'] == 'none' else hint['filled'] >= 1), hint
-        # ⓘ: cada um abre dentro da tela, só um por vez; clique fora e Escape fecham.
-        tips = page.locator('#weatherView .info-tip > summary')
-        assert tips.count() >= 4, tips.count()
-        for index in range(tips.count()):
-            tip = tips.nth(index)
-            tip.scroll_into_view_if_needed(); tip.click(); page.wait_for_timeout(150)  # o evento toggle chega depois do clique
-            box = page.evaluate("""() => { const open = [...document.querySelectorAll('.info-tip[open]')], body = document.querySelector('.info-tip-body[data-inline]')?.getBoundingClientRect();
-              // O balão precisa estar por cima do conteúdo seguinte (a lista de horas tinha z-index próprio).
-              const node = document.querySelector('.info-tip-body[data-inline]'); const bodies = document.querySelectorAll('.info-tip-body[data-inline]').length; let covered = 0;
-              node?.scrollIntoView({block:'center', behavior:'instant'}); const seen = node?.getBoundingClientRect() || body;
-              for (const fx of [.2, .5, .8]) for (const fy of [.25, .5, .75]) { const hit = document.elementFromPoint(seen.left + seen.width * fx, seen.top + seen.height * fy); if (node?.contains(hit)) covered++; }
-              return {open:open.length, left:body?.left, right:body?.right, width:document.documentElement.clientWidth, covered, bodies}; }""")
-            assert box['open'] == 1 and box['left'] >= 0 and box['right'] <= box['width'] and box['covered'] == 9 and box['bodies'] == 1, (width, index, box)
-        page.keyboard.press('Escape')
-        assert page.evaluate("document.querySelectorAll('.info-tip[open]').length") == 0
-        tips.nth(0).click(); page.mouse.click(5, 5)
-        assert page.evaluate("document.querySelectorAll('.info-tip[open]').length") == 0
+        # 1.73.2: os botões "i" saíram (pedido do dono).
+        assert page.locator('#weatherView .info-tip').count() == 0
         # Radar compacto: sem player/chips na Home; tocar no mapa abre o diálogo com o player.
         page.locator('.weather-map-card').scroll_into_view_if_needed(); page.wait_for_timeout(300)
         assert page.evaluate("[...document.querySelectorAll('.weather-map-card .weather-player > *')].every(e => !e.getClientRects().length)")

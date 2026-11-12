@@ -60,7 +60,8 @@ with sync_playwright() as p:
  page.goto(public+'/#access_token='+token+'&refresh_token=fixture&expires_in=3600&token_type=bearer&type=signup',wait_until='domcontentloaded')
  page.wait_for_function("document.getElementById('accountButton').textContent==='Olá, Teste'")
  assert urlparse(page.url).netloc=='pluviaweather.com.br' and not urlparse(page.url).fragment
- page.locator('#accountButton').click();assert page.locator('#accountProfile').is_visible()
+ # Desde a 1.72.2 a janela espera invisível até o dialogs.css chegar (alguns ms depois do toque): espera aparecer.
+ page.locator('#accountButton').click();page.locator('#accountProfile').wait_for(state='visible',timeout=5000)
  assert not errors,errors
  assert len(captchas)==6 and all(c=='qa-captcha-token' for c in captchas),captchas
  print(json.dumps({'signupRedirects':signup,'recoveryRedirects':recovery,'confirmationOnAnotherSession':True,'realAccountMutations':False,'errors':errors}))

@@ -170,7 +170,7 @@ body[data-ink="dark"] #weatherView {
 #weatherView .hourly-peek-item > strong { margin-top:0; }
 #weatherView .hourly-peek-item.is-now { border-bottom:2px solid var(--reading-link); background:none; }
 #weatherView :is(.peek-time,.peek-rain,.peek-temp) { color:var(--reading-ink); }
-#weatherView .hourly-peek-item.is-now .peek-time { color:var(--reading-link); }
+#weatherView .hourly-peek-item.is-now .peek-time { color:var(--accent-now); }
 #weatherView :is(.hero-temperature-extreme small,.quick-metric:first-child .metric-head > span:first-child) { font-size:.8rem; line-height:1.35; }
 #weatherView .metrics { display:grid; grid-template-columns:minmax(0,1fr); gap:0; }
 #weatherView .metrics .metric { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 20px; min-height:0; padding:20px 0; border-top:1px solid var(--reading-line) !important; }
@@ -179,7 +179,7 @@ body[data-ink="dark"] #weatherView {
 #weatherView .metric-head > [data-weather-icon-name] { width:24px; height:24px; flex:none; margin-right:auto; }
 #weatherView .metric-head .metric-weather-icon { width:24px; height:24px; }
 /* Reading tiles use line glyphs in the brand blue, the same stroke family as the section icons. */
-#weatherView .metric-head > [data-weather-icon-style="line"] { color:var(--graphic-blue); opacity:1; }
+#weatherView .metric-head > [data-weather-icon-style="line"] { color:var(--icon-ink); opacity:1; }
 #weatherView .metric-line-icon { display:block; width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 #weatherView .metrics .metric > strong,#weatherView .metrics .wind-reading { grid-column:2; grid-row:1; margin:0; }
 #weatherView .metrics .metric > strong,#weatherView .metrics .wind-reading > strong { color:var(--reading-ink); font-size:1.65rem; line-height:1.1; }
@@ -270,7 +270,13 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
   --chart-rain-top:#22b8ff; --chart-rain-bottom:#2673ff;
   --chart-wind-top:#1bddda; --chart-wind-bottom:#138be1;
   --graphic-blue:var(--brand-blue);
+  /* 1.73.2 (pedido do dono: "bota todos esses ícones em branco"): ícones dos cartões na cor do texto. */
+  --icon-ink:var(--reading-ink);
+  /* 1.73.2 (pedido do dono: "outra cor mais forte e legal"): destaque do agora, do nascer/pôr do sol e do hoje no
+     dourado do Sol do céu de desenho; âmbar escuro com a tinta escura (céu claro de dia, cartão claro). */
+  --accent-now:#ffd23f;
 }
+body[data-ink="dark"] #weatherView { --accent-now:#b26200; }
 #weatherView .section-icon { color:var(--graphic-blue); }
 #weatherView .section-icon svg { stroke-width:2.2; }
 #weatherView .source-badge.inmet { background:var(--brand-blue); color:var(--on-accent); border-color:var(--brand-blue); box-shadow:none; font-weight:700; }
@@ -340,7 +346,7 @@ html body #weatherView #inmetCard { min-height:0; }
 #alertDetail .inmet-detail-other > span { grid-column:2; grid-row:1 / span 2; font-size:1.2rem; }
 #weatherView .temp-track .temp-fill { background:linear-gradient(90deg,var(--range-cool),var(--range-warm),var(--range-hot)); }
 #weatherView .rain-chart .wind-direction { color:var(--graphic-blue); }
-#weatherView .sun-label :is(span,svg) { color:var(--graphic-blue); }
+#weatherView .sun-label :is(span,svg) { color:var(--icon-ink); }
 /* Darker daytime rain/storm skies need deeper ink than the clear-sky palette. */
 body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView {
   --reading-ink:#041a2e; --reading-muted:#08243b;
@@ -399,7 +405,7 @@ body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60
 
 #weatherView :is(.hourly-peek-item,.hour-column) { color:var(--reading-ink); font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
-#weatherView .hour-solar-event { display:block; max-width:100%; font-size:.7rem; line-height:1.4; color:var(--reading-link); white-space:normal; }
+#weatherView .hour-solar-event { display:block; max-width:100%; font-size:.7rem; line-height:1.4; color:var(--accent-now); white-space:normal; }
 
 #weatherView .air-details { grid-column:1/-1; margin-top:12px; font-size:.8rem; line-height:1.5; color:var(--reading-muted); }
 #weatherView .air-details summary { min-height:44px; display:list-item; align-content:center; cursor:pointer; font-weight:700; color:var(--reading-ink); }
@@ -629,7 +635,7 @@ body[data-ink="dark"] #weatherView .rain-gauge-track { background:rgba(0,0,0,.12
 #weatherView .tips-list { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
 /* Ícone centrado na altura do texto (pedido do usuário, 1.23.2): no topo, com a dica em duas linhas, ele ficava alto. */
 #weatherView .tips-list li { display:flex; align-items:center; gap:10px; color:var(--reading-ink); font-size:.95rem; line-height:1.4; }
-#weatherView .tip-icon { flex:none; width:22px; height:22px; color:var(--graphic-blue); }
+#weatherView .tip-icon { flex:none; width:22px; height:22px; color:var(--icon-ink); }
 
 
 /* Ar nos próximos dias: três colunas compactas (dia, categoria, AQI máximo previsto), cor da categoria
@@ -749,28 +755,6 @@ body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="
 /* ⓘ por seção: fontes e limites num balão, sem repetir avisos em todo card. Status de dado salvo,
    antigo ou reduzido continua sempre visível (#dataStatus, notas da própria leitura). */
 .heading-with-tip { display:flex; align-items:center; gap:8px; min-width:0; }
-.info-tip { position:relative; display:inline-block; flex:none; }
-.info-tip > summary { display:grid; place-items:center; width:44px; height:44px; margin:-10px -12px; list-style:none; cursor:pointer; border-radius:50%; }
-.info-tip > summary::-webkit-details-marker { display:none; }
-/* Letra i reta (sem itálico) num círculo de borda; texto simples, sem SVG. */
-/* Ícone do ⓘ (1.40, pedido do dono: "troca por ícones clicáveis bonitos que combinem com o PLUVIA"): círculo
-   suave tingido pelo azul da marca com um "i" arredondado desenhado por máscara (a letra do HTML só some da
-   tela); aberto, o círculo fica cheio no azul e o "i" na cor do texto dos botões. Só cor: sem camada. */
-.info-tip-icon { position:relative; display:block; width:28px; height:28px; border-radius:50%; overflow:hidden; color:transparent; font-size:0; background:#7cc0ff26; background:color-mix(in srgb,var(--brand-blue,#7cc0ff) 18%,transparent); box-shadow:inset 0 0 0 1px #7cc0ff33; box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand-blue,#7cc0ff) 30%,transparent); transition:background-color .2s ease,box-shadow .2s ease; }
-.info-tip-icon::before { content:""; position:absolute; inset:0; background:var(--brand-blue,#7cc0ff); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='8.6' r='1.75'/%3E%3Crect x='12.4' y='12' width='3.2' height='9' rx='1.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='8.6' r='1.75'/%3E%3Crect x='12.4' y='12' width='3.2' height='9' rx='1.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat; transition:background-color .2s ease; }
-.info-tip[open] > summary > .info-tip-icon { background:var(--brand-blue,#7cc0ff); box-shadow:none; }
-.info-tip[open] > summary > .info-tip-icon::before { background:var(--on-accent,#0c1a33); }
-@media (hover:hover) { .info-tip > summary:hover > .info-tip-icon { background:#7cc0ff40; background:color-mix(in srgb,var(--brand-blue,#7cc0ff) 30%,transparent); } }
-@media (prefers-reduced-motion:reduce) { .info-tip-icon,.info-tip-icon::before { transition:none; } }
-@media (forced-colors:active) { .info-tip-icon { border:1px solid CanvasText; } .info-tip-icon::before { background:CanvasText; } }
-.info-tip > summary:focus-visible { outline:2px solid var(--brand-blue); outline-offset:-6px; }
-.info-tip-body { position:absolute; z-index:600; top:calc(100% + 4px); left:-12px; width:min(300px,calc(100vw - 48px)); padding:12px 14px; border:1px solid #a4c7e533; border-radius:14px; background:#0d2239; color:#e3eefb; box-shadow:0 16px 40px #0008; text-align:left; text-transform:none; letter-spacing:0; font:400 .8125rem/1.5 var(--font-ui); }
-.info-tip-body p { margin:0; color:inherit !important; font-size:inherit !important; }
-.info-tip-body p + p { margin-top:8px; }
-.info-tip-body small { color:inherit !important; font-size:inherit !important; }
-/* No card do ar e nos 7 dias o ⓘ fica à direita: o balão abre para dentro da tela. */
-.metric-head .info-tip,.section-heading .info-tip { margin-left:auto; }
-.metric-head .info-tip-body,.section-heading .info-tip-body { left:auto; right:-12px; }
 .weather-map-card #radarMapContent #weatherSourceNote { display:none; }
 /* Conta: sempre o ícone de pessoa (44px, mesmo traço da lupa); "Entrar" ou "Olá, Nome" fica para leitores de tela. */
 .topbar .account-trigger[data-signed-in] { display:grid; place-items:center; width:44px; min-width:44px; padding:0; }
@@ -789,9 +773,6 @@ body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="
 }
 /* O balão se ancora no cabeçalho da seção (largura dele), não no botão: nunca sai da tela no celular. */
 #weatherView :is(.hourly-peek-heading,.metric-head,.section-heading,.weather-map-copy) { position:relative; }
-.info-tip { position:static; }
-.info-tip-body,.metric-head .info-tip-body,.section-heading .info-tip-body { left:0; right:0; width:auto; max-width:440px; }
-.metric-head .info-tip-body,.section-heading .info-tip-body { left:auto; }
 #weatherView .hourly-peek-list:not([data-rain="some"]) .peek-rain { display:none; }
 /* Bloco da Lua simétrico ao do Sol: rótulo no topo, disco e fase lado a lado, texto sem espaçamento de rótulo. */
 /* Banner de aviso INMET laranja/vermelho vigente: faixa sólida logo abaixo do "Vai chover?".
@@ -874,15 +855,10 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
   #weatherView .home-column .forecast-list :is(.forecast-rain-chance,.forecast-rain-volume) { min-width:0; }
   #weatherView .home-column .forecast-rain-volume { color:var(--reading-muted); font-size:.75rem; }
 }
-/* O alvo de 44px do ⓘ alinhado à direita não pode passar da borda da seção (rolagem lateral no iPhone SE). */
-.metric-head .info-tip > summary,.section-heading .info-tip > summary { margin-right:-6px; }
 /* Estabilidade na chegada dos dados (CLS): o esqueleto tem a mesma altura da leitura final.
    Sem chuva relevante (o caso comum), a linha da chance não existe nem no esqueleto; a janela seca
    ocupa sempre rótulo + valor em duas linhas; e o esqueleto do número não aumenta a linha do 30°. */
 #weatherView #temperature .sk-temp { vertical-align:top; }
-/* ⓘ aberto: o texto vai para logo depois do título (app.js), no fluxo da página. Sem posição absoluta
-   nem z-index: subir camadas de títulos/seções derrubava o Safari do iPhone. */
-#weatherView .info-tip-body[data-inline] { position:static !important; z-index:auto !important; width:auto; max-width:none; margin:10px 0 14px; box-shadow:none; }
 /* Toque (celular/tablet): sem animações de entrada nem revelação ao rolar. Com o celular deitado
    (mais de 720 px) elas voltavam a rodar sobre o céu animado; cada card animado vira uma camada do
    tamanho da página no Safari do iPhone, e girar a tela travava o app. */
@@ -932,11 +908,6 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
    ~50 vezes por troca (1.25, medido: −35% de pintura); não cria camada (14 antes e depois). */
 #weatherView [data-drop] { contain:paint; }
 @media (prefers-reduced-motion:reduce) { #weatherView [data-drop] { clip-path:none; animation:none; } }
-/* ⓘ abre e fecha pela altura (grid 0fr ↔ 1fr), empurrando o conteúdo de baixo sem criar camadas. */
-#weatherView .info-tip-body[data-inline] { display:grid; grid-template-rows:1fr; transition:grid-template-rows .3s cubic-bezier(.3,.7,.2,1),margin .3s cubic-bezier(.3,.7,.2,1),padding .3s cubic-bezier(.3,.7,.2,1),border-color .3s,color .3s; }
-#weatherView .info-tip-body[data-inline][data-collapsed] { grid-template-rows:0fr; margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0; border-color:transparent; color:transparent; }
-#weatherView .info-tip-inner { min-height:0; overflow:hidden; }
-@media (prefers-reduced-motion:reduce) { #weatherView .info-tip-body[data-inline] { transition:none; } }
 /* Movimento suave onde não havia (só cor, fundo, layout de elementos pequenos ou SVG; nada de
    transform/opacity em blocos grandes, que viravam camadas e derrubavam o Safari do iPhone). */
 :where(button, summary, a, [role="button"]) { transition:color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease; }
@@ -1234,10 +1205,10 @@ footer.shell .capital-links > details[open] { flex-basis:100%; }
 .install-card button:focus-visible { outline:3px solid #9cc0ff; outline-offset:2px; }
 /* Nascer/pôr como coluna própria entre as horas (horário, símbolo, nome), nas mesmas linhas das horas:
    dentro da coluna da hora ele abria uma linha vazia embaixo de todas as outras. */
-#weatherView .hourly-solar-item { cursor:default; color:var(--reading-link); }
-#weatherView .hourly-solar-item .peek-time { color:var(--reading-link); font-variant-numeric:tabular-nums; }
+#weatherView .hourly-solar-item { cursor:default; color:var(--accent-now); }
+#weatherView .hourly-solar-item .peek-time { color:var(--accent-now); font-variant-numeric:tabular-nums; }
 #weatherView .hourly-solar-item .solar-glyph { width:30px; height:30px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-#weatherView .hourly-peek-item.hourly-solar-item > strong.solar-label { font-size:.8125rem; font-weight:500; line-height:1.15; white-space:normal; text-align:center; color:var(--reading-link); }
+#weatherView .hourly-peek-item.hourly-solar-item > strong.solar-label { font-size:.8125rem; font-weight:500; line-height:1.15; white-space:normal; text-align:center; color:var(--accent-now); }
 /* A fileira rola pelo gesto; a metade do 7º horário já mostra que continua, então a barra some. */
 #weatherView .hourly-peek-list { scrollbar-width:none; }
 /* Hora atual só em azul no horário: o traço embaixo ficava longe do conteúdo, no pé da coluna. */
@@ -1269,7 +1240,8 @@ html body #accountDialog .account-delete > summary { display:flex; align-items:c
 #weatherView .home-shortcuts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; padding:0; border-top:0; }
 #weatherView .home-shortcut {
   display:flex; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:10px 12px; border-radius:16px;
-  background:color-mix(in srgb, var(--reading-link) 12%, transparent); color:var(--reading-link); font-size:.9375rem; font-weight:600; text-align:center;
+  /* 1.73.2 (pedido do dono, print): texto e ícone na cor do texto (branco no céu escuro), não no azul de link. */
+  background:color-mix(in srgb, var(--reading-link) 12%, transparent); color:var(--icon-ink); font-size:.9375rem; font-weight:600; text-align:center;
 }
 #weatherView .home-shortcut::before {
   content:""; flex:none; width:20px; height:20px; background:currentColor;
@@ -1356,7 +1328,7 @@ body > .captcha-box[data-state="interactive"] p { color:#fff; }
 /* Umidade: um ícone em traço por faixa ao lado da nota (pedido do usuário, 1.14.4). Só máscara e cor,
    no azul da marca como os outros ícones de leitura; nível desconhecido (carregando, sem leitura) não tem ícone. */
 #weatherView .metrics #humidityNote { display:flex; align-items:center; gap:6px; }
-#weatherView .metrics .metric[data-humidity-level] #humidityNote::before { flex:none; width:1.3em; height:1.3em; background:var(--brand-blue,var(--brand-blue)); -webkit-mask:var(--humidity-icon) center/contain no-repeat; mask:var(--humidity-icon) center/contain no-repeat; }
+#weatherView .metrics .metric[data-humidity-level] #humidityNote::before { flex:none; width:1.3em; height:1.3em; background:var(--icon-ink); -webkit-mask:var(--humidity-icon) center/contain no-repeat; mask:var(--humidity-icon) center/contain no-repeat; }
 #weatherView .metrics .metric[data-humidity-level="dry"] #humidityNote::before { content:""; --humidity-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5c3.5 4.2 6 7.6 6 10.7a6 6 0 0 1-12 0c0-3.1 2.5-6.5 6-10.7z'/%3E%3Cpath d='M9.5 17.5h5'/%3E%3C/svg%3E"); }
 #weatherView .metrics .metric[data-humidity-level="comfortable"] #humidityNote::before { content:""; --humidity-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8.5 14.5a4.2 4.2 0 0 0 7 0'/%3E%3Cpath d='M9 9.5h.01M15 9.5h.01' stroke-width='2.6'/%3E%3C/svg%3E"); }
 #weatherView .metrics .metric[data-humidity-level="high"] #humidityNote::before { content:""; --humidity-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5c3.5 4.2 6 7.6 6 10.7a6 6 0 0 1-12 0c0-3.1 2.5-6.5 6-10.7z'/%3E%3Cpath d='M6 14.2a6 6 0 0 0 12 0z' fill='black'/%3E%3C/svg%3E"); }
@@ -1499,9 +1471,9 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 }
 /* O nome fica num <span> que outras folhas pintam: a cor vai também nele. */
 #weatherView .forecast-row[data-today] .forecast-day > strong,
-#weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#4dabff; font-weight:700; }
+#weatherView .forecast-row[data-today] .forecast-day > strong > span { color:var(--accent-now); font-weight:700; }
 body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong,
-body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong > span { color:#0a4cba; }
+body[data-ink="dark"] #weatherView .forecast-row[data-today] .forecast-day > strong > span { color:var(--accent-now); }
 /* Condição mais perto da temperatura (1.25.5, pedido do usuário: "muito separado"). A caixa do número tem a
    altura da fonte inteira, e embaixo dos algarismos sobra o espaço das letras com perna (~0,2 em): com o gap
    da coluna, a condição ficava ~37 px abaixo dos algarismos. Puxa a caixa de volta na proporção do número. */
@@ -1624,8 +1596,8 @@ html body :is(#weatherView .air-details,#weatherView .astronomy-details,#account
 #weatherView .sun-table :is(th,td):first-child { text-align:left; }
 #weatherView .sun-table thead th { padding-top:0; border-top:0; color:var(--reading-muted); font-size:.8125rem; font-weight:500; }
 #weatherView .sun-table tbody th { font-weight:500; text-transform:capitalize; }
-#weatherView .sun-table tbody tr[data-today] th { color:#4dabff; font-weight:700; }
-body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:#0a4cba; }
+#weatherView .sun-table tbody tr[data-today] th { color:var(--accent-now); font-weight:700; }
+body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:var(--accent-now); }
 #weatherView .sun-table td:last-child { color:var(--reading-muted); }
 @media (max-width:359px) { #weatherView .sun-table :is(th,td) { font-size:.875rem; } }
 @keyframes pluvia-day-chart-draw { from { stroke-dashoffset:1; } }
@@ -1638,13 +1610,11 @@ body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:#0
 /* Ícones nos títulos de "Chuva na região" e "Ciclo do dia" (1.37.2, pedido do dono), no mesmo traço azul dos blocos
    de leitura, logo depois do título. O ⓘ da Qualidade do ar fica colado no título e no ícone, como nas seções,
    em vez de ir para a borda direita; a letra fica centrada no círculo por grade, não pela altura da linha. */
-#weatherView .heading-icon { display:block; flex:none; width:24px; height:24px; color:var(--graphic-blue); }
+#weatherView .heading-icon { display:block; flex:none; width:24px; height:24px; color:var(--icon-ink); }
 #weatherView .sun-section .sun-label { display:flex; align-items:center; gap:8px; }
-#weatherView .sun-section .sun-label .heading-icon svg { display:block; color:var(--graphic-blue); }
+#weatherView .sun-section .sun-label .heading-icon svg { display:block; color:var(--icon-ink); }
 #weatherView #airQualityCard .metric-head { justify-content:flex-start; }
 #weatherView #airQualityCard .metric-head > [data-weather-icon-name] { margin-right:0; }
-#weatherView #airQualityCard .metric-head .info-tip { margin-left:0; }
-#weatherView #airQualityCard .metric-head .info-tip > summary { margin-right:-12px; }
 
 /* Até 420 px o botão do radar fica só com o ícone de ampliar (44 px; o nome "Abrir radar" continua no
    aria-label): com o ícone novo do título, "Chuva na região" + ícone + ⓘ não cabiam ao lado do botão e o
@@ -1799,15 +1769,10 @@ body[data-ink="dark"] .compact-head > .compact-pill { background:linear-gradient
    no Chromium a lente (url() no backdrop-filter) também. Só elementos pequenos recebem blur (os cartões continuam sem).
    O segmento selecionado da pílula não tem blur próprio: blur dentro de blur confunde o backdrop. Movimento do toque em
    modules/glass-touch.js (SELECTOR). Para tirar só o desfoque (se o Safari pesar), apague as linhas backdrop-filter. */
-#cityDialog #citySearch,
-#cityDialog .city-actions > button,
-#weatherView .rain-report-options button,
-#weatherView .hourly-modes,
-.info-tip-icon {
+#cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes {
   -webkit-backdrop-filter:blur(10px) saturate(1.7) brightness(1.06);
   backdrop-filter:blur(10px) saturate(1.7) brightness(1.06);
 }
-.info-tip-icon { -webkit-backdrop-filter:blur(6px) saturate(1.6); backdrop-filter:blur(6px) saturate(1.6); box-shadow:inset 1px 1px 0 -.3px rgba(255,255,255,.55), inset 0 0 0 .5px rgba(255,255,255,.3), 0 2px 8px rgba(4,8,20,.18); }
 #weatherView .rain-report-options button { position:relative; background:rgba(255,255,255,.1); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.55), inset -1px -1px 0 -.5px rgba(255,255,255,.2), inset 0 0 0 .5px rgba(255,255,255,.2), 0 4px 12px rgba(4,8,20,.14); }
 #weatherView .rain-report-options button[aria-pressed="true"] { background-color:color-mix(in srgb,var(--brand-blue) 84%,transparent); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.6), inset 0 0 0 .5px rgba(255,255,255,.3), 0 4px 14px rgba(4,14,34,.2); }
 body[data-ink="dark"] #weatherView .rain-report-options button:not([aria-pressed="true"]) { background-color:rgba(255,255,255,.42); border-color:rgba(19,35,61,.18); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.9), inset 0 0 0 .5px rgba(19,35,61,.12), 0 4px 12px rgba(20,40,70,.1); }
@@ -1823,10 +1788,10 @@ body[data-ink="dark"] #weatherView .hourly-modes { box-shadow:inset 0 0 0 1px rg
 }
 #cityDialog .city-actions > button[data-glass-press]::after, #weatherView .rain-report-options button[data-glass-press]::after, #weatherView .hourly-modes button[data-glass-press]::after { opacity:1; transition-duration:.12s; }
 @media (prefers-reduced-transparency:reduce) {
-  #cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes, .info-tip-icon { -webkit-backdrop-filter:none; backdrop-filter:none; }
+  #cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes { -webkit-backdrop-filter:none; backdrop-filter:none; }
 }
 @media (forced-colors:active) {
-  #cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes, .info-tip-icon { -webkit-backdrop-filter:none; backdrop-filter:none; box-shadow:none; }
+  #cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes { -webkit-backdrop-filter:none; backdrop-filter:none; box-shadow:none; }
   #cityDialog .city-actions > button::after, #weatherView .rain-report-options button::after, #weatherView .hourly-modes button::after { display:none; }
 }
 

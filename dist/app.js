@@ -535,6 +535,14 @@ function showHourlyHint() {
   } catch {}
   return true;
 }
+// 1.73.2 (pedido do dono, Home mais limpa): a dica some no primeiro toque num horário, mesmo na primeira sessão;
+// quem tocou já aprendeu. O aviso de "Previsão por hora indisponível" não é dica e continua.
+globalThis.document?.addEventListener?.("click", event => {
+  if (!event.target?.closest?.("#hourlyPeek [data-hour-index]")) return;
+  try { sessionStorage.removeItem("pluvia-hourly-hint-session"); localStorage.setItem("pluvia-hourly-hint-seen", "1"); } catch {}
+  const decision = $("hourlyDecision");
+  if (decision && decision.textContent.startsWith("Toque em um horário")) { decision.textContent = ""; decision.hidden = true; }
+});
 // Próximas horas leem as linhas normalizadas (weatherData.rows); a validação e o alinhamento i+1 continuam
 // em hourlyDetail.detail. A janela seca ainda recebe o contrato bruto (raw).
 // Modos da fileira (1.26, pedido do usuário, como no Apple Weather): Condição (ícone e temperatura), Chuva (barra
@@ -2233,7 +2241,6 @@ function updateCityLabels() {
   renderCityDots();
   renderFavoriteSuggest();
   $("alertsCityLabel").textContent = "Fontes oficiais e leitura ambiental para " + activeCity.name;
-  $("forecastCityLabel").textContent = "Previsão para o ponto de referência de " + activeCity.name + ", não para um endereço específico.";
   const distance = $("cityDistance");
   if (distance) {
     distance.hidden = !(activeCity.distanceKm >= 2);
@@ -2618,57 +2625,6 @@ function requestLocation(source = 'automatic') {
 }
 
 setupCityPicker();
-// ⓘ das seções: o texto abre logo abaixo do título, no fluxo da página (sem sobrepor nada). Balão
-// flutuante exigia subir camadas (z-index) dos títulos/seções, e isso derrubava o Safari do iPhone.
-// Um aberto por vez; toque fora ou Escape fecha.
-const infoTipBodies = new WeakMap();
-// Abrir/fechar o ⓘ suave: a altura cresce por grid-template-rows (0fr → 1fr, CSS em continuous.css),
-// empurrando o conteúdo de baixo. Só recalcula posições a cada quadro; não cria camadas.
-function infoMotion() {
-  return !globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-}
-function openInfoBody(body, holder) {
-  clearTimeout(body.pluviaInfoClose);
-  if (!body.querySelector(":scope > .info-tip-inner")) {
-    const inner = document.createElement("div");
-    inner.className = "info-tip-inner";
-    inner.append(...body.childNodes);
-    body.append(inner);
-  }
-  holder.after(body);
-  body.dataset.inline = "true";
-  if (!infoMotion()) { delete body.dataset.collapsed; return; }
-  body.dataset.collapsed = "true";
-  globalThis.getComputedStyle?.(body).gridTemplateRows;
-  delete body.dataset.collapsed;
-}
-function closeInfoBody(body, tip) {
-  const finish = () => { delete body.dataset.collapsed; delete body.dataset.inline; tip.append(body); };
-  if (!infoMotion() || !body.dataset.inline) { finish(); return; }
-  body.dataset.collapsed = "true";
-  body.pluviaInfoClose = setTimeout(() => { if (!tip.open) finish(); }, 280);
-}
-document.addEventListener("click", event => {
-  for (const tip of document.querySelectorAll?.(".info-tip[open]") || []) {
-    if (!tip.contains(event.target) && !infoTipBodies.get(tip)?.contains(event.target)) tip.open = false;
-  }
-});
-document.addEventListener("toggle", event => {
-  const tip = event.target;
-  if (!tip?.matches?.(".info-tip")) return;
-  const body = infoTipBodies.get(tip) || tip.querySelector(".info-tip-body");
-  if (!body) return;
-  infoTipBodies.set(tip, body);
-  const holder = tip.closest(".hourly-peek-heading, .metric-head, .section-heading, .weather-map-copy") || tip;
-  if (tip.open) { openInfoBody(body, holder); }
-  else { closeInfoBody(body, tip); return; }
-  for (const other of document.querySelectorAll(".info-tip[open]")) if (other !== tip) other.open = false;
-}, true);
-document.addEventListener("keydown", event => {
-  if (event.key !== "Escape") return;
-  const open = document.querySelector?.(".info-tip[open]");
-  if (open) { open.open = false; open.querySelector("summary")?.focus(); }
-});
 // A faixa tem data-notice: o detalhe abre pelo mesmo clique delegado dos cartões (risks.js).
 setupCitySwipe();
 setupPullToRefresh();
