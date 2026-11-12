@@ -5,7 +5,7 @@ const html=read('index.html');
 // O modo seguro (céu parado por 24 h depois de uma queda) saiu a pedido do usuário: as animações
 // valem sempre, só reduced-motion as desliga.
 test('não há mais modo seguro: nenhum data-safe, aviso ou marcador de abertura',()=>{
-  for(const file of ['index.html','app.js','p0.js','sky.css','continuous.css','modules/dialog-motion.js','modules/share-weather.js']){
+  for(const file of ['index.html','app.js','p0.js','sky.css','continuous.css','modules/dialog-motion.js']){
     const source=read(file);
     assert.doesNotMatch(source,/data-safe|safeModeNote|seguro=|pluvia-safe-until"\)\)|setItem\("pluvia-boot-pending"/,file);
   }

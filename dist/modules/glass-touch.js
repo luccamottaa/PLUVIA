@@ -1,5 +1,5 @@
 // Vidro que reage ao toque (1.46, pedido do dono: "liquid glass com as animações que nem da Apple, quando toca nele,
-// quando mexe nele"). Nos botões de vidro (conta, compartilhar + busca, pílula do cabeçalho compacto e X das janelas):
+// quando mexe nele"). Nos botões de vidro (conta, busca, pílula do cabeçalho compacto e X das janelas):
 // encostar o dedo faz o vidro crescer um pouco e acender um brilho no ponto do toque; arrastar puxa o vidro na direção
 // do dedo, esticando de forma elástica (cada vez mais difícil, nunca passa de MAX px); soltar devolve com mola.
 // Só transform no próprio botão (elementos de 44 px, não blocos) e opacidade do brilho; uma medida por toque;

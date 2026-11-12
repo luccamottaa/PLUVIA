@@ -15,7 +15,7 @@ for(const file of ['dist/privacidade/index.html','dist/termos/index.html']){
   assert.ok(toc,file+': índice');
   assert.deepEqual([...toc[1].matchAll(/href="#([^"]+)"/g)].map(m=>m[1]),ids,file+': índice na ordem das seções');
   assert.doesNotMatch(page,/sky-glass|intro-glass/,file+': sem as gotas (1.63)');
-  assert.match(page,/legal\.css\?v=legal-9/);
+  assert.match(page,/legal\.css\?v=legal-10/);
   assert.match(page,/legal-page\.js\?v=legal-3/);
 }
 
@@ -23,7 +23,7 @@ const notFound=fs.readFileSync('dist/404.html','utf8');
 assert.match(notFound,/<p class="error-code" aria-hidden="true">404<\/p>\s*<h1>Página não encontrada<\/h1>/);
 assert.match(notFound,/<a class="button primary" href="\/">Voltar para a previsão<\/a>/);
 assert.match(notFound,/<a class="button" href="\/\?abrir=cidades">Buscar uma cidade<\/a>/,'atalho que o app já entende (pwa-shortcuts)');
-assert.match(notFound,/legal\.css\?v=legal-9/);
+assert.match(notFound,/legal\.css\?v=legal-10/);
 
 // Mesmos tokens do app: céu da fase, azul atual da marca por tinta, nada do azul antigo.
 assert.doesNotMatch(css,/#2f6bff|#1f56d6/i,'azul aposentado');

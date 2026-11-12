@@ -12,6 +12,17 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.73", date:"2026-11-11", title:"Nuvenzinhas e surpresas no céu", items:[
+      "De vez em quando, um passarinho atravessa o céu de desenho nos dias sem chuva. Em noite limpa, fique de olho: pode passar uma estrela cadente.",
+      "Quando a busca não encontra a cidade, uma nuvenzinha com lupa aparece procurando junto com você.",
+      "A página de endereço não encontrado ganhou uma nuvem confusa com um ponto de interrogação."
+    ]},
+    {version:"1.72.2", date:"2026-11-11", title:"Abertura mais rápida", items:[
+      "O estilo das janelas (cidades, conta, avisos e as outras) agora chega logo depois que a tela inicial aparece, em vez de atrasar a abertura. Nos nossos testes, o tempo de tela travada ao abrir caiu cerca de um terço."
+    ]},
+    {version:"1.72.1", date:"2026-11-11", title:"Topo mais limpo", items:[
+      "O botão de compartilhar a previsão saiu do topo, junto com a imagem de story que o app preparava em segundo plano. O app ficou mais leve e o topo mais limpo."
+    ]},
     {version:"1.72", date:"2026-11-11", title:"Janelas com céu de desenho", items:[
       "Todas as janelas (cidades, conta, avisos, dias da semana e as outras) agora têm o mesmo céu de desenho da tela inicial ao fundo, com o tempo e a hora da cidade.",
       "Quando a janela abre, as nuvens, o Sol, a Lua, as estrelas e a chuva entram animados nas bordas, deixando o meio livre para o texto."

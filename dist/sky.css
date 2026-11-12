@@ -149,6 +149,10 @@ body.page-hidden .sky-effects > * { visibility:hidden !important; transition:non
 .toon-sheet .toon-fog { width:110%; height:6%; }
 .toon-sheet .toon-rain { opacity:.35; }
 .toon-sheet .toon-snow { opacity:.6; }
-html body :is(.dlg-todas, #_)[data-toon]::before,
-html body :is(.dlg-todas, #_)[data-toon]::after { content:none; }
 body.page-hidden .toon-sheet *, body.page-hidden .toon-sheet *::before { animation-play-state:paused !important; }
+/* Surpresas (1.73): passarinho de dia, estrela cadente à noite (sky-toon.js, playSurprise). */
+.toon-surprise { z-index:1; }
+.toon-bird { width:clamp(42px,12vw,60px); }
+.toon-bird .toon-wing { transform-box:fill-box; transform-origin:30% 90%; animation:toon-flap .28s ease-in-out infinite alternate; }
+@keyframes toon-flap { to { transform:scaleY(-.55); } }
+.toon-meteor { width:clamp(90px,26vw,150px); height:3px; border-radius:3px; background:linear-gradient(90deg,rgba(255,246,201,0),#fff6c9); box-shadow:0 0 8px rgba(255,246,201,.8); }

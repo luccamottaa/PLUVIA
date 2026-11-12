@@ -986,7 +986,7 @@ function renderSun(daily, at = Date.now(), hourly = null) {
     $("sunrise").textContent = "--:--"; $("sunset").textContent = "--:--";
     $("daylight").textContent = "Ciclo solar indisponível";
     $("sunPhrase").textContent = "";
-    if ($("sunsetGlow")) $("sunsetGlow").textContent = ""; if (typeof noteShareMoment === "function") noteShareMoment("glow", false);
+    if ($("sunsetGlow")) $("sunsetGlow").textContent = "";
     $("sunshineNote").textContent = "Duração prevista de sol indisponível.";
     return;
   }
@@ -1003,7 +1003,7 @@ function renderSun(daily, at = Date.now(), hourly = null) {
   // Só antes do pôr de hoje: depois dele a frase falaria de um evento que já passou.
   const glow = at >= rise && at < set ? globalThis.PLUVIA?.weatherInsights?.sunsetGlow?.(hourly, set, activeCity) : null;
   if ($("sunsetGlow")) $("sunsetGlow").textContent = glow?.text || "";
-  if (typeof noteShareMoment === "function") noteShareMoment("glow", glow?.tone === "promising");
+ 
   const sunshine = daily.sunshine_duration?.[index], daylight = daily.daylight_duration?.[index];
   const sunshineMinutes = Math.round(sunshine / 60), daylightMinutes = Math.round(daylight / 60);
   $("sunshineNote").textContent = Number.isFinite(sunshine) && Number.isFinite(daylight)
@@ -1106,7 +1106,7 @@ function setRainAnswer(answer) {
   node.dataset.tone = answer.tone;
   if (typeof noteAlertNudge === "function") noteAlertNudge("rain", answer.tone === "rain" || answer.tone === "storm");
   if (typeof noteAlertNudge === "function") noteAlertNudge("radar", Boolean(answer.nowcast));
-  if (typeof noteShareMoment === "function") noteShareMoment("storm", answer.tone === "storm");
+ 
 }
 
 function setRainGauge(gauge) {
@@ -1140,18 +1140,6 @@ function rainGaugeFor(data, start) {
   return weatherInsights?.rainGauge?.(data.hourly, start, {current, observed});
 }
 
-// Dia marcante (trovoada no "Vai chover?" ou pôr do sol que promete): vira selo no topo do story
-// compartilhado. O convite visível na Home saiu (outubro/2026: 17 exibições e nenhum toque em 30 dias);
-// o estado fica só aqui e o story é refeito quando o momento muda.
-function noteShareMoment(moment, active) {
-  const state = noteShareMoment.state ||= {storm:false, glow:false, current:""};
-  state[moment] = Boolean(active);
-  const current = state.storm ? "storm" : state.glow ? "glow" : "";
-  if (current === state.current) return;
-  state.current = current;
-  globalThis.dispatchEvent?.(new CustomEvent("pluvia:share-moment", {detail:{moment:current}}));
-}
-if (globalThis.PLUVIA) globalThis.PLUVIA.shareMoment = () => noteShareMoment.state?.current || null;
 // Convite de avisos na hora em que ele faz sentido: chuva prevista ("Vai chover?" com chuva ou
 // trovoada) ou aviso do INMET vigente na cidade, enquanto a pessoa não recusou o convite ("Agora não"
 // vale para os dois convites). No iPhone fora da Tela de Início o botão vira "Como ativar" e abre o
@@ -1675,7 +1663,7 @@ async function loadWeather(revision = cityRevision) {
       $("hourlyPeek").innerHTML = '<p>Previsão por hora indisponível.</p>';
       $("hourlyDecision").textContent = "Sem dados recentes para as próximas horas."; $("hourlyDecision").hidden = false;
       $("forecastList").innerHTML = '<p class="forecast-loading">Previsão indisponível. Tentaremos novamente.</p>';
-      $("daylight").textContent = "Ciclo solar indisponível"; $("sunPhrase").textContent = ""; if ($("sunsetGlow")) $("sunsetGlow").textContent = ""; if (typeof noteShareMoment === "function") noteShareMoment("glow", false);
+      $("daylight").textContent = "Ciclo solar indisponível"; $("sunPhrase").textContent = ""; if ($("sunsetGlow")) $("sunsetGlow").textContent = "";
     }
     if (!displayedWeather || !displayedWeather.fromCache || offline) {
       showWeatherError(offline
@@ -2347,7 +2335,10 @@ function renderCityOptions() {
     const capital = CAPITALS.some(item => item.id === city.id);
     return `<li role="none"><button class="city-result" type="button" role="option" aria-selected="false" data-current="${city.id === activeCity?.id}" data-id="${city.id}"><span class="city-result-name">${escapeHtml(city.name)}<b class="city-uf" aria-label="${city.uf}">${city.uf}</b>${favorites.has(city.id) ? '<i class="city-fav" aria-hidden="true"></i><span class="visually-hidden"> favorita</span>' : ""}</span><small>${!query && recent.has(city.id) ? "Recente · " : ""}${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
   }).join("");
-  document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
+  const status = document.getElementById("cityPickerStatus");
+  // Busca sem resultado (1.73): a nuvem com a lupa (dialogs.css) aparece acima do texto.
+  status.toggleAttribute?.("data-empty", Boolean(cityIndexReady && query && !shown.length));
+  status.textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
 }
 // On a city page the address follows the chosen city: another capital page, or the Home.
 // Elsewhere (the Home itself) the URL never changes. The document title is not rewritten.
