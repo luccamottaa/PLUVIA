@@ -205,11 +205,13 @@ with sync_playwright() as p:
   # Leituras em grade: tiles da mesma fileira compartilham as linhas de rótulo, valor e nota, sem sobreposição.
   # O cartão Chuva (1.63) divide a fileira com o UV, conferido acima; os seis blocos da 1.17 formam as fileiras.
   assert page.locator('.metrics .rain-chance-metric').count()==1
-  tiles=page.evaluate("""()=>[...document.querySelectorAll('.metrics .metric-sky:not(.rain-chance-metric)')].map(el=>{
+  tiles=page.evaluate("""()=>[...document.querySelectorAll('.metrics .metric-sky:not(.rain-chance-metric):not([hidden])')].map(el=>{
    const center=node=>{const r=node.getBoundingClientRect();return r.y+r.height/2};const box=el.getBoundingClientRect();
    return {top:Math.round(box.y),left:box.x,right:box.right,head:center(el.querySelector(':scope > .metric-head')),value:center(el.querySelector(':scope > strong,:scope > .wind-reading')),note:el.querySelector(':scope > small').getBoundingClientRect().y};
   })""")
-  assert len(tiles)==6,tiles  # sensação, máx. e mín., visibilidade, umidade, vento e pressão (1.17)
+  # sensação, máx. e mín., visibilidade, umidade, vento e pressão (1.17), nuvens e ponto de orvalho (1.73.5); intensidade e
+  # evaporação só com o teste do Tomorrow.io (hidden sem ele, fora da conta).
+  assert len(tiles)==8,tiles
   tile_rows={}
   for tile in tiles:tile_rows.setdefault(tile['top'],[]).append(tile)
   assert all(len(group)>=2 for group in tile_rows.values()),(width,tile_rows)
