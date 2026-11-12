@@ -97,7 +97,7 @@
     <script>
       try {
         if (window.fetch && localStorage.getItem("pluvia-city") == null && !document.querySelector('meta[name="pluvia-city"]')) {
-          var earlyUrl = "https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&timezone=America%2FManaus&current=temperature_2m%2Crelative_humidity_2m%2Capparent_temperature%2Cis_day%2Cprecipitation%2Crain%2Cshowers%2Cweather_code%2Ccloud_cover%2Cpressure_msl%2Csurface_pressure%2Cwind_speed_10m%2Cwind_direction_10m%2Cwind_gusts_10m&hourly=temperature_2m%2Capparent_temperature%2Cprecipitation_probability%2Cprecipitation%2Crain%2Cweather_code%2Ccloud_cover%2Ccloud_cover_low%2Ccloud_cover_mid%2Ccloud_cover_high%2Ccape%2Cvisibility%2Cwind_speed_10m%2Cwind_direction_10m%2Cwind_gusts_10m%2Crelative_humidity_2m%2Cpressure_msl%2Cuv_index&daily=weather_code%2Ctemperature_2m_max%2Ctemperature_2m_min%2Capparent_temperature_max%2Capparent_temperature_min%2Cprecipitation_sum%2Crain_sum%2Cprecipitation_probability_max%2Cuv_index_max%2Csunrise%2Csunset%2Csunshine_duration%2Cdaylight_duration&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&past_hours=24&forecast_days=8";
+          var earlyUrl = "https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&timezone=America%2FManaus&current=temperature_2m%2Crelative_humidity_2m%2Capparent_temperature%2Cis_day%2Cprecipitation%2Crain%2Cshowers%2Cweather_code%2Ccloud_cover%2Cpressure_msl%2Csurface_pressure%2Cwind_speed_10m%2Cwind_direction_10m%2Cwind_gusts_10m&hourly=temperature_2m%2Capparent_temperature%2Cprecipitation_probability%2Cprecipitation%2Crain%2Cweather_code%2Ccloud_cover%2Ccloud_cover_low%2Ccloud_cover_mid%2Ccloud_cover_high%2Ccape%2Cvisibility%2Cwind_speed_10m%2Cwind_direction_10m%2Cwind_gusts_10m%2Crelative_humidity_2m%2Cpressure_msl%2Cuv_index%2Cdew_point_2m&daily=weather_code%2Ctemperature_2m_max%2Ctemperature_2m_min%2Capparent_temperature_max%2Capparent_temperature_min%2Cprecipitation_sum%2Crain_sum%2Cprecipitation_probability_max%2Cuv_index_max%2Csunrise%2Csunset%2Csunshine_duration%2Cdaylight_duration&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&past_hours=24&forecast_days=8";
           window.PLUVIA_EARLY_FORECAST = { url: earlyUrl, at: Date.now(), promise: window.fetch(earlyUrl, { credentials: "omit" }).then(function (response) {
             if (!response.ok) throw new Error("HTTP " + response.status);
             return response.json();
@@ -523,6 +523,10 @@
         <article class="metric metric-sky panel card-detail"><div class="metric-head"><span>Pressão</span><span data-weather-icon-name="pressure" data-weather-icon-style="line"></span></div><strong id="pressure"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="pressureNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
         <article class="metric metric-sky rain-chance-metric panel card-detail" data-tile-mode="rain"><div class="metric-head"><span>Chuva</span><span data-weather-icon-name="rain-chance" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="rainChanceValue"><span class="sk sk-num" aria-hidden="true"></span></strong><small id="rainChanceNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
         <article class="metric uv-metric panel card-detail" data-tile-mode="uv"><div class="metric-head"><span>Índice UV</span><span data-weather-icon-name="uv-index" data-weather-icon-style="line"></span></div><strong id="uv"><span class="sk sk-num" aria-hidden="true"></span></strong><div class="uv-scale" id="uvScale" aria-hidden="true" hidden><span></span></div><small id="uvNote"><span class="sk sk-line" aria-hidden="true"></span></small></article>
+        <article class="metric metric-sky clouds-metric panel card-detail" id="cloudsCard"><div class="metric-head"><span>Nuvens</span><span data-weather-icon-name="cloud-cover" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="cloudsValue"></strong><small id="cloudsNote"></small></article>
+        <article class="metric metric-sky dew-metric panel card-detail" id="dewPointCard"><div class="metric-head"><span>Ponto de orvalho</span><span data-weather-icon-name="dew-point" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="dewPointValue"></strong><small id="dewPointNote"></small></article>
+        <article class="metric metric-sky rain-intensity-metric panel card-detail" id="rainIntensityCard" hidden><div class="metric-head"><span>Intensidade da chuva</span><span data-weather-icon-name="rain-intensity" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="rainIntensityValue"></strong><small id="rainIntensityNote"></small></article>
+        <article class="metric metric-sky evapo-metric panel card-detail" id="evapoCard" hidden><div class="metric-head"><span>Evaporação</span><span data-weather-icon-name="evapotranspiration" data-weather-icon-style="line" aria-hidden="true"></span></div><strong id="evapoValue"></strong><small id="evapoNote"></small></article>
         <article class="metric panel air-metric card-secondary" id="airQualityCard"><div class="metric-head"><span>Qualidade do ar</span><span data-weather-icon-name="air-quality" data-weather-icon-style="line"></span></div><div class="air-reading"><div class="air-index"><b id="airValue"><span class="sk sk-num" aria-hidden="true"></span></b><span>US AQI</span></div><div class="air-description"><strong id="airQuality"><span class="sk sk-num sk-wide" aria-hidden="true"></span></strong><small id="airNote"><span class="sk sk-line" aria-hidden="true"></span></small><small id="airParticlesNote" hidden></small></div></div><div class="air-scale" id="airScale" hidden aria-hidden="true"><i id="airScaleMarker"></i></div><div class="air-scale-labels"><span>Boa</span><span>Perigosa</span></div></article>
       </section>
       <section class="weather-map-section section-block" aria-labelledby="weatherMapCardTitle">
@@ -658,7 +662,7 @@
     <script src="/modules/sources.js?v=panel-26" defer></script>
     <script src="/modules/dialog-motion.js?v=motion-4" defer></script>
     <script src="/modules/http-client.js?v=http-4" defer></script>
-    <script src="/modules/weather-services.js?v=core-118" defer></script>
+    <script src="/modules/weather-services.js?v=core-119" defer></script>
     <script src="/modules/weather-data-layer.js?v=core-117" defer></script>
     <script src="/modules/met-merge.js?v=core-112" defer></script>
     <script src="/modules/weather-extras.js?v=core-109" defer></script>
@@ -667,13 +671,13 @@
     <script src="/modules/radar-nowcast.js?v=nowcast-6" defer></script>
     <script src="/modules/observed-rain.js?v=observed-rain-5" defer></script>
     <script src="/modules/weather-icons.js?v=core-51" defer></script>
-    <script src="/modules/weather-icon-system.js?v=modern-16" defer></script>
+    <script src="/modules/weather-icon-system.js?v=modern-17" defer></script>
     <script src="/capitals.js?v=core-54" defer></script>
-    <script src="/modules/hourly-detail.js?v=detail-12" defer></script>
+    <script src="/modules/hourly-detail.js?v=detail-13" defer></script>
     <script src="/modules/daily-detail.js?v=daily-7" defer></script>
     <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="/modules/forecast-sources.js?v=sources-2" defer></script>
-    <script src="/app.js?v=panel-166" defer></script>
+    <script src="/modules/forecast-sources.js?v=sources-3" defer></script>
+    <script src="/app.js?v=panel-167" defer></script>
     <script src="/p0.js?v=panel-53" defer></script>
     <script src="/modules/risks.js?v=core-120" defer></script>
     <script src="/modules/adapters.js?v=core-110" defer></script>

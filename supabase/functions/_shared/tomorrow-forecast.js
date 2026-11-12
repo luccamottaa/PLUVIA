@@ -15,6 +15,10 @@ export const TEST_FIELDS = [
 export const TEST_HOURS = 120;
 // Campos que o PLUVIA não tinha (1.73.4, pedido do dono: "tudo o que o Tomorrow entregue tenha no PLUVIA"). Vão no
 // mesmo pedido; se o provedor recusar algum (400), a função repete só com TEST_FIELDS e não pede mais os extras.
+// Qualidade do ar (1.73.6, pedido do dono: "o Tomorrow fornece qualidade do ar? se fornecer bota"). A documentação
+// lista os campos mas não diz se o plano grátis os inclui: vão num nível próprio, e a função tira só eles se o
+// provedor recusar (400/403), antes de tirar os extras.
+export const AIR_FIELDS = ['epaIndex', 'epaPrimaryPollutant', 'particulateMatter25', 'particulateMatter10', 'pollutantO3', 'pollutantNO2', 'pollutantSO2'];
 export const EXTRA_FIELDS = ['dewPoint', 'cloudBase', 'cloudCeiling', 'pressureSurfaceLevel', 'precipitationType', 'rainIntensity', 'evapotranspiration', 'uvHealthConcern'];
 
 // Código do Tomorrow.io → WMO (o vocabulário dos ícones e textos do app). Desconhecido vira null e o app
@@ -57,6 +61,13 @@ export function reading(values) {
     rainIntensityMmH: finite(v.rainIntensity, 0, 300),
     evapotranspirationMm: finite(v.evapotranspiration, 0, 30),
     uvConcern: [0, 1, 2, 3, 4].includes(v.uvHealthConcern) ? v.uvHealthConcern : null,
+    aqi: finite(v.epaIndex, 0, 500),
+    aqiPollutant: [0, 1, 2, 3, 4, 5].includes(v.epaPrimaryPollutant) ? v.epaPrimaryPollutant : null,
+    pm25: finite(v.particulateMatter25, 0, 2000),
+    pm10: finite(v.particulateMatter10, 0, 3000),
+    o3Ppb: finite(v.pollutantO3, 0, 1000),
+    no2Ppb: finite(v.pollutantNO2, 0, 1000),
+    so2Ppb: finite(v.pollutantSO2, 0, 1000),
   };
 }
 

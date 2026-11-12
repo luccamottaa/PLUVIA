@@ -196,6 +196,11 @@
     "pressure": '<path d="M4.2 18.5a9 9 0 1 1 15.6 0"/><path d="m12 14 3.8-4.3"/><circle cx="12" cy="14" r="1"/>',
     "rain-chance": '<path d="M3 12.5a9 9 0 0 1 18 0Z"/><path d="M12 12.5v6a2 2 0 0 1-4 0"/><path d="M12 3.5v-1"/>',
     "uv-index": '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2m0 15v2M4.6 4.6 6 6m12 12 1.4 1.4M2.5 12h2m15 0h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
+    // 1.73.5: cartões de nuvens, ponto de orvalho, intensidade da chuva e evapotranspiração.
+    "cloud-cover": '<path d="M7 17h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7 11a3 3 0 0 0 0 6Z"/><path d="M4 20.5h16"/>',
+    "dew-point": THERMOMETER + '<path d="M18 6.5s-2.5 2.7-2.5 4.5a2.5 2.5 0 0 0 5 0c0-1.8-2.5-4.5-2.5-4.5Z"/>',
+    "rain-intensity": '<path d="M7 13h9.5a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 6.6 6.8 3.1 3.1 0 0 0 7 13Z"/><path d="m8 16-1.5 4m5-4-1.5 4m5-4-1.5 4"/>',
+    "evapotranspiration": '<path d="M6 20c-.4-5 3.2-9.6 11-10.4.6 7.2-3.6 11.5-9 10.6"/><path d="M5.5 20.5c2.4-3.2 5-5.4 7.8-7"/><path d="M9 7c0-1.2 1-1.8 1-3m4 3c0-1.2 1-1.8 1-3"/>',
     "air-quality": '<path d="M5 19c-.6-6.6 4.4-13 15-14 .8 9.8-5 15.6-12.2 14.4"/><path d="M4 20c3.2-4.4 6.6-7.4 10.5-9.6"/>',
     "river": '<path d="M3 8.5c2.2 0 2.2-1.5 4.5-1.5S9.8 8.5 12 8.5 14.2 7 16.5 7 18.8 8.5 21 8.5"/><path d="M3 13c2.2 0 2.2-1.5 4.5-1.5S9.8 13 12 13s2.2-1.5 4.5-1.5S18.8 13 21 13"/><path d="M3 17.5c2.2 0 2.2-1.5 4.5-1.5s2.3 1.5 4.5 1.5 2.2-1.5 4.5-1.5 2.3 1.5 4.5 1.5"/>',
     // Títulos de seção (1.37.2, pedido do dono): radar (nuvem com chuva) e ciclo do dia (Sol nascendo no horizonte).

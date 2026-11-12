@@ -1,4 +1,4 @@
-// Avisos inteligentes (1.73.7): força e duração pelo radar, "vai engrossar", "o pior já passou", risco de
+// Avisos inteligentes (1.73.6): força e duração pelo radar, "vai engrossar", "o pior já passou", risco de
 // alagamento e limite diário dos avisos fracos.
 const {test}=require('node:test');
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');

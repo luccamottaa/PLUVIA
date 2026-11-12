@@ -116,6 +116,14 @@ test('função de teste: 120 horas, extras no mesmo pedido e volta aos campos de
   assert.match(shared,/export const TEST_HOURS = 120;/);
   for(const field of ['dewPoint','cloudBase','cloudCeiling','pressureSurfaceLevel','precipitationType','rainIntensity','evapotranspiration','uvHealthConcern']) assert.ok(shared.includes("'"+field+"'"),field);
   assert.match(fn,/tomorrowUrl\(lat, lon, key, now, fields, TEST_HOURS\)/);
-  assert.match(fn,/if \(response\.status === 400 && !extrasRefused\) \{/);
-  assert.match(fn,/response = await ask\(TEST_FIELDS\);/);
+  assert.match(fn,/if \(refused\(response\.status\) && !extrasRefused\) \{/);
+  assert.match(fn,/const fields = \(\) => extrasRefused \? TEST_FIELDS :/,'último nível: só os campos de sempre');
+});
+
+test('função de teste: ar num nível próprio, que sai antes dos extras numa recusa 400/403 (1.73.6)',()=>{
+  const fs=require('node:fs');
+  const shared=fs.readFileSync('supabase/functions/_shared/tomorrow-forecast.js','utf8'),fn=fs.readFileSync('supabase/functions/tomorrow-forecast/index.js','utf8');
+  for(const field of ['epaIndex','particulateMatter25','particulateMatter10','pollutantO3','pollutantNO2','pollutantSO2']) assert.ok(shared.includes("'"+field+"'"),field);
+  assert.match(fn,/const refused = status => status === 400 \|\| status === 403;/);
+  assert.ok(fn.indexOf('airRefused = true')<fn.indexOf('extrasRefused = true'),'tira o ar antes dos extras');
 });

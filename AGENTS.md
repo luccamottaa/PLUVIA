@@ -654,7 +654,7 @@ Pedido do dono ("a Home pula"). Medido na volta ao app (Edge, CPU 4×): o pulo i
 
 Pedido do dono (print: topo "Céu limpo" e pílula "Chuva fraca agora; deve parar por volta das 17h"). `weatherInsights.rainAnswer` dizia "agora" sempre que a hora que começa agora (intervalo i+1) era molhada pela previsão (≥ 0,5 mm, ou ≥ 50% com ≥ 0,1 mm), mesmo com a condição atual seca. Agora, com a primeira hora molhada: "agora" quando `hours[0].now` (código atual de chuva/trovoada; o app já aplica a chuva observada da estação, aeroporto e radar em `withObservedRain` antes de chamar) ou quando não há condição atual para conferir; com condição atual conhecida e seca (céu limpo, nuvens, neblina), "na próxima hora". O tom ("rain"/"storm"), a regra de hora molhada (igual a `_shared/forecast-verify.js`) e o convite de avisos não mudam. Teste: `tests/rain-answer.test.cjs`.
 
-## Avisos inteligentes: força e duração pelo radar, piora, "o pior já passou", alagamento e limite diário (novembro/2026, 1.73.7)
+## Avisos inteligentes: força e duração pelo radar, piora, "o pior já passou", alagamento e limite diário (novembro/2026, 1.73.6)
 
 Pedido do dono ("notificações inteligentes... com prioridade nas importantes tipo chuvas tempestades"). Tudo no `push-process`; o app só ganhou os estilos dos tipos novos (`push-style.js`).
 - **Força pelo radar**: as telhas do RainViewer (esquema 2, Universal Blue) viram dBZ pela tabela oficial de cores (`_shared/radar-nowcast.js`: `dbzOf`, `windowDbz`; conferido com telhas reais). Fraca < 30, moderada < 37 (~7,5 mm/h, o limite do app), forte ≥ 37, núcleo de tempestade ≥ 50. A intensidade da cidade é o percentil 90 dos pixels com eco na janela (9 × 9), para um pixel solto não virar tempestade. Essas funções existem **só no servidor**; `estimate` continua idêntica à do app (teste de paridade).
@@ -666,6 +666,15 @@ Pedido do dono ("notificações inteligentes... com prioridade nas importantes t
 - `flood_risk` (`floodCandidate`, preferência `heavy_rain`): chuva das últimas 6 h (horas passadas do modelo, as 2 mais recentes trocadas pelo medido na estação do INMET quando a leitura tem até 45 min) ≥ 25 mm, próximas 3 h (horas com chance ≥ 50%) ≥ 10 mm e soma ≥ 50 mm = 3; soma ≥ 100 mm = 4 (passa pelo silêncio). Sem 5 das 6 horas passadas, nada sai.
 - **Limite diário** (`lowPriority`/`overDailyCap`, `LOW_DAILY_CAP = 4`): severidade 1 e 2, fora avisos oficiais e resumos, no máximo 4 por aparelho por dia municipal (`localDayStart`, fuso da preferência), somando as cidades. Severidade 3+ nunca entra na conta.
 - Migration `20261112180000_smart_alert_events.sql` amplia a lista de tipos de `notification_events` (`rain_worsening`, `rain_easing`, `flood_risk`). **Publicar a migration antes da função**: sem ela o insert falha e a cidade perde os avisos da rodada.
+
+## Dados do Tomorrow.io nos cartões da tela inicial (novembro/2026, 1.73.5)
+
+Pedido do dono (print dos cartões: "eu quero que as informações sejam aqui"). Depois do UV, quatro cartões (`renderExtraTiles`, app.js; valores da hora em curso, como UV e visibilidade):
+- **Nuvens** (`#cloudsCard`, sempre): `cloud_cover`; nota com base/teto do Tomorrow.io (`pluvia_cloud_base`/`pluvia_cloud_ceiling`) ou a descrição pela cobertura.
+- **Ponto de orvalho** (`#dewPointCard`, sempre): o Open-Meteo passou a mandar `dew_point_2m` (weather-services.js e a pré-busca do index.html, que precisam ter a mesma URL) e o Tomorrow.io o substitui em `INSTANT` (forecast-sources.js); a série `pluvia_dew_point` saiu. Nota: seco < 10°, confortável < 16°, úmido < 21°, abafado < 24°, muito abafado.
+- **Intensidade da chuva** (`#rainIntensityCard`) e **Evaporação** (`#evapoCard`, evapotranspiração; o nome inteiro não cabe no título): só com o teste ligado (`hidden` sem valor).
+- Sem o teste a grade tem 10 cartões; com ele, 12 (sempre em pares). Ícones de linha novos em weather-icon-system.js (`cloud-cover`, `dew-point`, `rain-intensity`, `evapotranspiration`). O bloco "Mais do Tomorrow.io" do detalhe da hora continua (sem o orvalho).
+- **Qualidade do ar do Tomorrow.io** (pedido do dono: "se fornecer bota"): a função pede `AIR_FIELDS` (epaIndex, epaPrimaryPollutant, particulateMatter25/10, pollutantO3/NO2/SO2) num nível próprio; recusa 400/403 tira primeiro o ar, depois os extras (`airRefused`/`extrasRefused` por instância). A documentação não diz se o plano grátis inclui esses campos. O app leva o agora em `pluviaTomorrowAir` e `tomorrowAir` (app.js, no começo de `render`) troca US AQI, PM2,5, PM10 e O₃/NO₂/SO₂ (ppb → µg/m³ a 25 °C) da leitura do CAMS; CO continua do CAMS (unidade divergente na documentação). Sem índice, ou sem leitura do CAMS, nada muda.
 
 ## Tomorrow.io completo no teste e visibilidade sem código do aeroporto (novembro/2026, 1.73.4)
 
