@@ -253,7 +253,7 @@ with sync_playwright() as p:
   page.locator('#expandRadar').click();page.wait_for_function("document.getElementById('radarDialog').open")
   aligned('#radarDialog .weather-player > *','centerY',4)
   close()
-  page.locator('#accountButton').click();page.locator('#accountDialog').wait_for(state='visible');page.locator('#openSources').click();header('#sourcesDialog .dialog-heading')
+  page.locator('#accountButton').click();page.locator('#accountDialog').wait_for(state='visible');page.evaluate("document.getElementById('accountMoreFold').open=true");page.locator('#openSources').click();header('#sourcesDialog .dialog-heading')
   if width in [320,390,1366]:screenshot(str(width)+'-sources','#sourcesDialog')
   close();page.locator('#sourcesDialog').wait_for(state='hidden');close();page.locator('#accountDialog').wait_for(state='hidden')
   print(json.dumps({'alignedViewport':width,'height':height}),flush=True)
