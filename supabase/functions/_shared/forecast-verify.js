@@ -117,10 +117,37 @@ export function buildWindows(payload, cities = CAPITALS, now = Date.now(), model
 // "modelo". Não é modelo do Open-Meteo: forecast_best_model e pluvia_rain_model nunca o escolhem (a troca
 // de chuva pede `models=` ao Open-Meteo). Cota do plano grátis: 25 consultas por hora e 500 por dia,
 // dividida com os avisos do push-process; por isso TOMORROW_PER_RUN capitais por rodada, em rodízio fixo
-// pela hora (27 / 3 = cada capital a cada 9 h, 72 consultas por dia).
+// pela hora. Desde a 1.73.8 (pedido do dono: "bota o tomorrow pra fornecer no Brasil agora") são 6 por hora:
+// cada capital a cada 4 h 30 (27 / 6), 144 consultas por dia, e a mesma resposta também alimenta o "Brasil agora"
+// (capitalHours → private.tomorrow_capitals). O código do tempo vai no mesmo pedido (não custa consulta).
 export const TOMORROW_MODEL = "tomorrow_io";
-export const TOMORROW_PER_RUN = 3;
-export const TOMORROW_VERIFY_FIELDS = ["temperature", "rainAccumulation", "precipitationIntensity", "precipitationProbability"];
+export const TOMORROW_PER_RUN = 6;
+export const TOMORROW_VERIFY_FIELDS = ["temperature", "rainAccumulation", "precipitationIntensity", "precipitationProbability", "weatherCode"];
+// Código do Tomorrow.io → WMO (cópia de _shared/tomorrow-forecast.js, que este módulo sem imports não pode
+// importar; tests/forecast-verify.test.cjs confere que as duas tabelas são iguais).
+export const TOMORROW_WMO = {
+  1000: 0, 1100: 1, 1101: 2, 1102: 3, 1001: 3,
+  2000: 45, 2100: 45,
+  4000: 53, 4200: 61, 4001: 63, 4201: 65,
+  5000: 73, 5001: 71, 5100: 71, 5101: 75,
+  6000: 56, 6200: 66, 6001: 67, 6201: 67,
+  7000: 77, 7101: 77, 7102: 77,
+  8000: 95,
+};
+export const CAPITAL_HOURS = 36;
+// Série compacta para o "Brasil agora": [hora unix, temperatura, código WMO] da hora atual até +CAPITAL_HOURS.
+// Valor ausente fica null (nunca zero); sem nenhuma temperatura, nada é guardado.
+export function capitalHours(points, now = Date.now(), hours = CAPITAL_HOURS) {
+  const byAt = new Map();
+  for (const point of Array.isArray(points) ? points : []) if (Number.isFinite(point?.at)) byAt.set(point.at, point.values ?? {});
+  const base = Math.floor(now / HOUR) * HOUR, out = [];
+  for (let step = 0; step <= hours; step++) {
+    const at = base + step * HOUR, values = byAt.get(at);
+    const code = values && Object.prototype.hasOwnProperty.call(TOMORROW_WMO, values.weatherCode) ? TOMORROW_WMO[values.weatherCode] : null;
+    out.push([at / 1000, finite(values?.temperature, -40, 60), code]);
+  }
+  return out.some(([, temp]) => temp !== null) ? out : null;
+}
 
 export function tomorrowCities(now = Date.now(), cities = CAPITALS, perRun = TOMORROW_PER_RUN) {
   const slot = Math.floor(now / HOUR), count = Math.min(perRun, cities.length);
