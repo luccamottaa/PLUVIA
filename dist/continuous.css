@@ -88,9 +88,6 @@ body[data-ink="dark"] .topbar { color:#082744; }
   box-shadow:none !important;
 }
 .topbar .search-trigger svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-.topbar .share-trigger { color:inherit; flex:none; }
-.topbar .share-trigger:disabled { opacity:.4; cursor:default; }
-.topbar .share-weather-status { grid-column:1/-1; grid-row:2; color:inherit; }
 @media(max-width:520px) {
   html body .topbar { column-gap:6px; }
   .topbar .brand .brand-mark { width:26px; height:32px; flex-basis:26px; }
@@ -431,9 +428,6 @@ body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60
 #weatherView .air-details p { margin:10px 0; }
 #weatherView .air-details dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
 #weatherView .air-details dd { margin:4px 0 0; font-weight:700; color:var(--reading-ink); }
-.share-weather-status { margin:0; font-size:.8rem; }
-.share-weather-status:empty { display:none; }
-#shareWeatherText { box-sizing:border-box; width:100%; margin-top:8px; min-height:160px; padding:12px; border:1px solid var(--dialog-line); border-radius:12px; background:var(--dialog-surface); color:var(--dialog-text); font:inherit; font-size:16px; }
 .moon-inline #moonIllumination { display:block; margin-top:6px; font-size:.75rem; }
 
 #hourlyDetailDialog .dialog-heading > div { min-width:0; }
@@ -792,12 +786,6 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 .brazil-range { color:var(--dialog-muted); font-size:.8rem; text-align:right; white-space:nowrap; }
 /* Telas estreitas: o nome não cede lugar à máx./mín. (que continua no rótulo acessível). */
 @media(max-width:360px) { html body #brazilDialog .brazil-row { grid-template-columns:28px minmax(0,1fr) 3.2ch; gap:8px; } .brazil-icon,.brazil-weather-icon { width:28px; height:28px; } .brazil-range { display:none; } }
-/* Compartilhar sem Web Share de arquivos: prévia do story e download, acima do texto para copiar. */
-#shareWeatherDialog .share-weather-image { display:block; width:auto; max-width:100%; max-height:min(46vh,420px); margin:0 auto 12px; border-radius:16px; box-shadow:0 8px 24px #0006; }
-#shareWeatherDialog .share-weather-image[hidden],#shareWeatherDialog .share-weather-download[hidden] { display:none; }
-/* De dia a regra de links dos diálogos claros pintava "Baixar imagem" de azul-escuro sobre o botão azul. */
-html body #shareWeatherDialog #shareWeatherDownload { color:#fff; }
-#shareWeatherDialog .share-weather-download { display:flex; align-items:center; justify-content:center; min-height:44px; margin:0 0 16px; border-radius:12px; background:var(--brand-blue); color:var(--on-accent); font-weight:600; text-decoration:none; }
 
 /* Próximas horas enxuto: hora, ícone, chance (só ≥ 20%, linha reservada) e temperatura. */
 #weatherView .hourly-peek-item { min-height:0; gap:6px; padding-block:10px 12px; }
@@ -1041,14 +1029,14 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
 :where(button, summary, a, [role="button"]) { transition:color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease; }
 /* Toque: um véu na cor do próprio texto (sombra interna, por cima do fundo, sem trocá-lo) enquanto o
    dedo está no botão; some suave ao soltar. Só botões que não tinham resposta própria ao toque. */
-html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary) { transition:color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .28s ease; }
+html body :is(#accountButton,#openCitySearch,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary) { transition:color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .28s ease; }
 html body :is(#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.dialog-close,.hourly-modes button,.hourly-detail-navigation button):active:not(:disabled) { box-shadow:inset 0 0 0 100px color-mix(in srgb, currentColor 14%, transparent); transition-duration:0s; }
 /* Linhas que abrem/fecham ("Mais sobre o céu", "Poluentes e origem", grupos da conta) e itens de lista: o véu acima virava
    um bloco cinza quadrado piscando no toque (vídeo do usuário, 1.15). Aqui o texto só esmaece e volta, como nos apps da Apple. */
-html body :is(details > summary,.account-more-item,#accountButton,#openCitySearch,#shareWeather) { box-shadow:none !important; transition:opacity .28s ease; }
-html body :is(details > summary,.account-more-item,#accountButton,#openCitySearch,#shareWeather):active { opacity:.45; transition-duration:0s; }
+html body :is(details > summary,.account-more-item,#accountButton,#openCitySearch) { box-shadow:none !important; transition:opacity .28s ease; }
+html body :is(details > summary,.account-more-item,#accountButton,#openCitySearch):active { opacity:.45; transition-duration:0s; }
 /* Os botões do topo também (vídeo do usuário, 1.15.2): o véu desenhava um quadrado cinza em volta da foto redonda. */
-@media (prefers-reduced-motion:reduce) { html body :is(details > summary,.account-more-item,#accountButton,#openCitySearch,#shareWeather) { transition:none; } }
+@media (prefers-reduced-motion:reduce) { html body :is(details > summary,.account-more-item,#accountButton,#openCitySearch) { transition:none; } }
 /* Bússola gira pelo menor caminho (app.js), marcador do UV e Sol/Lua do arco deslizam até a leitura nova. */
 .compass-needle { transition:transform .8s cubic-bezier(.22,1,.36,1), opacity .4s ease; }
 .uv-scale span { transition:left .8s cubic-bezier(.22,1,.36,1); }
@@ -1057,7 +1045,7 @@ html body :is(details > summary,.account-more-item,#accountButton,#openCitySearc
 #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:pluvia-bar-grow .6s cubic-bezier(.22,1,.36,1) calc(var(--i,0) * 16ms) both; }
 @keyframes pluvia-bar-grow { from { height:0; min-height:0; } }
 @media (prefers-reduced-motion:reduce) {
-  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#shareWeather,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), #weatherView .next-hour-bars span::after, .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot), #weatherView .next-hour-bars span, html body :is(#weatherView .air-details,#weatherView .astronomy-details,#accountDialog .notification-checks,#accountDialog .account-delete,#alertDetail details) > summary::before, html body #accountDialog :is(.account-group > summary,.capital-links summary)::after { transition:none; }
+  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), #weatherView .next-hour-bars span::after, .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot), #weatherView .next-hour-bars span, html body :is(#weatherView .air-details,#weatherView .astronomy-details,#accountDialog .notification-checks,#accountDialog .account-delete,#alertDetail details) > summary::before, html body #accountDialog :is(.account-group > summary,.capital-links summary)::after { transition:none; }
   #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
 }
 
@@ -2292,7 +2280,7 @@ body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before {
 .topbar :is(.account-trigger,.top-actions) > *,.topbar .search-trigger svg { position:relative; }
 .topbar .top-actions .search-trigger { border-radius:22px; }
 /* Toque: o vidro cresce e acende (modules/glass-touch.js, bloco no fim do arquivo); nada esmaece. */
-html body .topbar :is(#accountButton,#openCitySearch,#shareWeather):active { opacity:1; }
+html body .topbar :is(#accountButton,#openCitySearch):active { opacity:1; }
 @media (prefers-reduced-transparency:reduce) {
   .topbar :is(.account-trigger,.top-actions)::before { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; background:rgba(22,34,58,.82); }
   body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before { background:rgba(244,247,252,.9); }
@@ -2505,7 +2493,7 @@ html body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),sel
 /* Botões preenchidos nas janelas pretas (1.50, pedido do dono): brancos com letra preta no lugar do azul
    (Entrar, Salvar, Ativar alertas, Entendi, Aceitar, Baixar imagem, play do radar). Interruptores e links
    continuam no azul da marca. */
-html body:not([data-phase="day"]) :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#shareWeatherDialog #shareWeatherDownload,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry) {
+html body:not([data-phase="day"]) :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry) {
   border-color:#fff; background:#fff; color:#000;
 }
 html body:not([data-phase="day"]) #accountDialog #notificationPreferencesSave:disabled,html body:not([data-phase="day"]) :is(#termsDialog #termsAccept,#accountDialog #accountSubmit):disabled { border-color:#ffffff40; background:#ffffff40; color:#000000a0; }
@@ -2524,7 +2512,7 @@ html body:not([data-phase="day"]) #accountDialog .notification-status.is-on { co
 html body:not([data-phase="day"]) #accountDialog .notification-status.is-on::before { background:#30d158; }
 /* Janelas claras de dia (1.50, pedido do dono: "no branco de dia tu põe preto"): o espelho das janelas pretas. Botões
    preenchidos ficam pretos com letra branca e links/ações em texto ficam pretos, no lugar do azul. */
-html body[data-phase="day"] :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#shareWeatherDialog #shareWeatherDownload,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) {
+html body[data-phase="day"] :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) {
   border-color:#111; background:#111; color:#fff;
 }
 html body[data-phase="day"] #accountDialog :is(#notificationPreferencesSave,#accountSubmit):disabled,html body[data-phase="day"] #termsDialog #termsAccept:disabled { border-color:#11111140; background:#11111140; color:#ffffffb0; }
@@ -2724,8 +2712,8 @@ html body[data-phase="day"] :is(.dlg-todas, #_) {
 html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { border-color:var(--dialog-line); background-color:var(--dialog-surface); color:var(--dialog-text); }
 html body[data-phase="day"] :is(.dlg-todas, #_) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { border-color:var(--dialog-line); background-color:#fff; color:var(--dialog-text); }
 /* Botões preenchidos: o azul da marca no lugar do branco (noite) e do preto (dia). */
-html body:not([data-phase="day"]) :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#shareWeatherDialog #shareWeatherDownload,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) { border-color:#7cc0ff; background:#7cc0ff; color:#0c1a33; }
-html body[data-phase="day"] :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#shareWeatherDialog #shareWeatherDownload,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) { border-color:#0a4cba; background:#0a4cba; color:#fff; }
+html body:not([data-phase="day"]) :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) { border-color:#7cc0ff; background:#7cc0ff; color:#0c1a33; }
+html body[data-phase="day"] :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) { border-color:#0a4cba; background:#0a4cba; color:#fff; }
 html body:not([data-phase="day"]) #accountDialog #notificationPreferencesSave:disabled,html body:not([data-phase="day"]) :is(#termsDialog #termsAccept,#accountDialog #accountSubmit):disabled { border-color:#7cc0ff59; background:#7cc0ff59; color:#0c1a33b3; }
 html body[data-phase="day"] #accountDialog :is(#notificationPreferencesSave,#accountSubmit):disabled,html body[data-phase="day"] #termsDialog #termsAccept:disabled { border-color:#0a4cba59; background:#0a4cba59; color:#ffffffd9; }
 /* Links e ações em texto: azul da marca (no lugar do branco/preto da 1.50). */
@@ -2751,7 +2739,6 @@ html body[data-phase="day"] #cityDialog .city-result[data-current=true],html bod
 .topbar .top-actions { width:44px; }
 html[data-glass-lens] .topbar .top-actions::before { -webkit-backdrop-filter:url(#pluviaGlassCircle); backdrop-filter:url(#pluviaGlassCircle); }
 .topbar .top-actions { border-radius:50%; }
-.topbar .share-weather-status { grid-row:3; }
 .topbar .home-search {
   position:relative; grid-column:1 / -1; grid-row:2; display:flex; align-items:center; gap:2px; height:48px; margin-top:12px; padding:0 4px 0 0;
   border:1px solid rgba(255,255,255,.4); border-radius:999px;
@@ -3230,3 +3217,6 @@ html body #weatherView .home-more[hidden]:not(#_) { display:none; }
 #weatherView .home-more:focus-visible { outline:3px solid var(--brand-blue); outline-offset:3px; }
 @media (prefers-reduced-motion:reduce) { #weatherView .home-more-arrow { transition:none; } }
 @media (forced-colors:active) { html body #weatherView .home-more:not(#_) { border-color:ButtonText; } }
+/* 1.73: o compartilhar saiu. .top-actions fica vazio como contrapeso da conta, para o nome continuar no centro;
+   sem o círculo de vidro nem toque. */
+.topbar .top-actions:empty { visibility:hidden; pointer-events:none; }
