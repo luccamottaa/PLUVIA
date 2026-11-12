@@ -654,6 +654,10 @@ Pedido do dono ("a Home pula"). Medido na volta ao app (Edge, CPU 4×): o pulo i
 
 Pedido do dono (print: topo "Céu limpo" e pílula "Chuva fraca agora; deve parar por volta das 17h"). `weatherInsights.rainAnswer` dizia "agora" sempre que a hora que começa agora (intervalo i+1) era molhada pela previsão (≥ 0,5 mm, ou ≥ 50% com ≥ 0,1 mm), mesmo com a condição atual seca. Agora, com a primeira hora molhada: "agora" quando `hours[0].now` (código atual de chuva/trovoada; o app já aplica a chuva observada da estação, aeroporto e radar em `withObservedRain` antes de chamar) ou quando não há condição atual para conferir; com condição atual conhecida e seca (céu limpo, nuvens, neblina), "na próxima hora". O tom ("rain"/"storm"), a regra de hora molhada (igual a `_shared/forecast-verify.js`) e o convite de avisos não mudam. Teste: `tests/rain-answer.test.cjs`.
 
+## Surpresas no céu de desenho (novembro/2026, 1.73)
+
+Pedido do dono ("pequenas surpresas no céu"). `sky-toon.js`: `surprise(plan)` escolhe `'bird'` (dia com `sun`/`partly`/`cloud`) ou `'meteor'` (noite com estrelas); nada com chuva, neve, trovoada, neblina ou noite nublada. `playSurprise` roda a primeira entre 15 e 30 s depois da abertura e depois a cada 50 a 110 s (`SURPRISE_FIRST`/`SURPRISE_EVERY`), só com `.sky-effects[data-motion="running"]`, página visível, nenhuma `dialog[open]` e sem reduced-motion. Um elemento por vez dentro do `.toon-sky`, animação WAAPI só de transform/opacidade, removido no `finish`. Passarinho: SVG redondo, asa `.toon-wing` batendo por CSS; estrela cadente: traço com degradê (`sky.css`). Teste: `tests/sky-toon.test.cjs`.
+
 ## Telas vazias com desenho (novembro/2026, 1.73)
 
 Pedido do dono ("ícones e telas vazias no mesmo estilo de desenho"). Dois desenhos em `dist/assets/toon/` feitos com a nuvem do céu de desenho (`CLOUD` de `sky-toon.js`, mesma sombra e contorno), com rostinho: `search-empty.svg` (lupa) e `lost.svg` (ponto de interrogação). Gerados uma vez; para mudar a nuvem, edite o SVG mantendo o caminho igual ao `CLOUD` (teste `tests/empty-art.test.cjs`).

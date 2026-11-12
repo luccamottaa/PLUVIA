@@ -12,7 +12,8 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
-    {version:"1.73", date:"2026-11-11", title:"Nuvenzinhas", items:[
+    {version:"1.73", date:"2026-11-11", title:"Nuvenzinhas e surpresas no céu", items:[
+      "De vez em quando, um passarinho atravessa o céu de desenho nos dias sem chuva. Em noite limpa, fique de olho: pode passar uma estrela cadente.",
       "Quando a busca não encontra a cidade, uma nuvenzinha com lupa aparece procurando junto com você.",
       "A página de endereço não encontrado ganhou uma nuvem confusa com um ponto de interrogação."
     ]},

@@ -105,6 +105,20 @@ test('janelas ganham o mesmo céu de desenho atrás do conteúdo, menos o radar 
   assert.match(css, /body\.page-hidden \.toon-sheet \*/, 'app em segundo plano pausa o desenho');
 });
 
+test('surpresas: passarinho de dia sem chuva, estrela cadente em noite limpa, nada com chuva (1.73)', () => {
+  const at = (weather, phase) => toon.surprise(toon.plan({weather, phase}));
+  for (const w of ['sun', 'partly', 'cloud']) assert.equal(at(w, 'day'), 'bird', w);
+  for (const w of ['rain', 'storm', 'snow', 'fog']) assert.equal(at(w, 'day'), null, w);
+  for (const w of ['sun', 'partly']) assert.equal(at(w, 'night'), 'meteor', w);
+  for (const w of ['cloud', 'rain', 'storm']) assert.equal(at(w, 'night'), null, w);
+  assert.equal(toon.surprise(toon.plan({})), null, 'sem previsão, nada');
+  assert.ok(toon.SURPRISE_FIRST[0] >= 10000 && toon.SURPRISE_EVERY[0] >= 45000, 'raras: não viram ruído');
+  const src = dist('modules/sky-toon.js');
+  assert.match(src, /host\.dataset\.motion !== 'running' \|\| doc\.hidden \|\| reduced\(\) \|\| doc\.querySelector\('dialog\[open\]'\)/, 'só com a cena à vista, sem janela e sem reduced-motion');
+  assert.match(src, /run\.onfinish = run\.oncancel = \(\) => el\.remove\(\)/, 'um elemento, removido ao terminar');
+  assert.match(dist('sky.css'), /\.toon-bird \.toon-wing \{[^}]*animation:toon-flap/);
+});
+
 test('chuva e neve são uma camada só (não um elemento por gota) e o módulo não usa will-change', () => {
   const src = dist('modules/sky-toon.js'), css = dist('sky.css');
   assert.doesNotMatch(src, /willChange|will-change\s*:/);
