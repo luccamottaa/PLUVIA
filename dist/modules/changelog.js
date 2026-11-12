@@ -15,7 +15,9 @@
     {version:"1.73", date:"2026-11-11", title:"Nuvenzinhas e surpresas no céu", items:[
       "De vez em quando, um passarinho atravessa o céu de desenho nos dias sem chuva. Em noite limpa, fique de olho: pode passar uma estrela cadente.",
       "Quando a busca não encontra a cidade, uma nuvenzinha com lupa aparece procurando junto com você.",
-      "A página de endereço não encontrado ganhou uma nuvem confusa com um ponto de interrogação."
+      "A página de endereço não encontrado ganhou uma nuvem confusa com um ponto de interrogação.",
+      "Em Próximas horas, a umidade ganhou um ícone próprio (gotinha e ar úmido), diferente do da chuva.",
+      "Em Minha conta, \"Mais do PLUVIA\" agora fica fechado e abre com um toque, deixando a janela mais curta."
     ]},
     {version:"1.72.2", date:"2026-11-11", title:"Abertura mais rápida", items:[
       "O estilo das janelas (cidades, conta, avisos e as outras) agora chega logo depois que a tela inicial aparece, em vez de atrasar a abertura. Nos nossos testes, a tela inicial passou a aparecer mais cedo."

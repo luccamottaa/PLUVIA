@@ -125,7 +125,7 @@ with sync_playwright() as p:
     page.screenshot(path=str(output/(str(width)+'-'+name+'-footer.png')))
     footer_paint.append({'viewport':width,'state':name,'paintedPixels':painted})
     # Fontes e Privacidade ficam em "Mais do PLUVIA", na janela da conta.
-    page.locator('#accountButton').click();page.locator('#accountDialog').wait_for(state='visible');page.locator('#openSources').click();page.locator('#sourcesDialog').wait_for(state='visible')
+    page.locator('#accountButton').click();page.locator('#accountDialog').wait_for(state='visible');page.evaluate("document.getElementById('accountMoreFold').open=true");page.locator('#openSources').click();page.locator('#sourcesDialog').wait_for(state='visible')
     page.keyboard.press('Escape');page.locator('#sourcesDialog').wait_for(state='hidden')
     page.locator('#openPrivacy').click();page.locator('#sourcesDialog').wait_for(state='visible')
     assert page.locator('#privacyTitle').is_visible()
