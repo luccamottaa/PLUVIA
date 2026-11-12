@@ -2175,3 +2175,39 @@ html body #weatherView .home-more[hidden]:not(#_) { display:none; }
 /* 1.72.2: as regras das janelas estão em dialogs.css, que chega depois da abertura. Se uma janela abrir antes
    (toque logo na abertura), ela espera invisível em vez de aparecer sem estilo. */
 html:not([data-dialog-css]) dialog[open] { visibility:hidden; }
+
+/* ===== 1.73.3: puxar para atualizar (pedido do dono: "um negócio melhor" e "branco de dia e azul à noite, que nem
+   os cards") ===== */
+/* Pílula com a cor dos cartões: azul-escuro (#141c33, o cartão da noite) com texto claro; de dia, branca com texto
+   azul-escuro. Desce com o dedo (--pull-offset, com freio), cresce até o ponto de soltar (--pull-scale) e o anel em
+   volta da gota se completa (--pull-dash). Só transform e pintura numa pílula pequena. */
+html body .pull-refresh:not(#_) {
+  gap:10px; padding:9px 18px 9px 10px; border:1px solid #ffffff1f; border-radius:999px; background:#141c33; color:#f2f7ff;
+  box-shadow:0 12px 30px #0000005c; font-size:.9375rem; font-weight:600; white-space:nowrap;
+  --pull-accent:#7cc0ff; --pull-ok:#30d158; --pull-bad:#ff6b61;
+  transform:translate(-50%, var(--pull-offset, 0px)) scale(var(--pull-scale, .92)); transform-origin:50% 0;
+  transition:transform .16s cubic-bezier(.2,.9,.3,1.15), background-color .3s, color .3s;
+}
+html body[data-phase="day"] .pull-refresh:not(#_) { border-color:#0827441a; background:#fff; color:#082744; box-shadow:0 12px 30px rgba(28,72,128,.25); --pull-accent:#0a4cba; --pull-ok:#1f7a35; --pull-bad:#c4281c; }
+html body .pull-refresh:not(#_)::before { content:none; }
+.pull-refresh .pull-icon { display:block; flex:none; width:28px; height:28px; }
+.pull-refresh .pull-icon svg { display:block; width:100%; height:100%; overflow:visible; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+.pull-refresh .pull-track { stroke:currentColor; stroke-width:2.2; opacity:.16; }
+.pull-refresh .pull-arc { stroke:var(--pull-accent); stroke-width:2.6; stroke-dasharray:var(--pull-dash, 0 100); transform:rotate(-90deg); transform-origin:12px 12px; transition:stroke-dasharray .12s linear, stroke .3s; }
+.pull-refresh .pull-drop { stroke:var(--pull-accent); stroke-width:1.8; fill:transparent; transition:fill .2s, opacity .2s, transform .25s cubic-bezier(.2,.9,.3,1.4); transform-origin:12px 13px; }
+.pull-refresh .pull-check { stroke:var(--pull-ok); stroke-width:2.4; opacity:0; stroke-dasharray:12; stroke-dashoffset:12; transition:stroke-dashoffset .3s ease-out .05s, opacity .1s; }
+.pull-refresh[data-state="ready"] .pull-drop { fill:var(--pull-accent); transform:scale(1.12); }
+.pull-refresh[data-state="loading"] .pull-arc { stroke-dasharray:28 100; animation:pull-spin .8s linear infinite; }
+.pull-refresh[data-state="loading"] .pull-drop { fill:var(--pull-accent); animation:pull-drip 1.2s ease-in-out infinite; }
+.pull-refresh[data-state="done"] .pull-arc { stroke:var(--pull-ok); stroke-dasharray:100 100; }
+.pull-refresh[data-state="done"] .pull-drop { opacity:0; transform:scale(.4); }
+.pull-refresh[data-state="done"] .pull-check { opacity:1; stroke-dashoffset:0; }
+.pull-refresh[data-state="fail"] .pull-arc { stroke:var(--pull-bad); stroke-dasharray:100 100; }
+.pull-refresh[data-state="fail"] .pull-drop { stroke:var(--pull-bad); }
+@keyframes pull-spin { to { transform:rotate(270deg); } }
+@keyframes pull-drip { 50% { transform:translateY(1.5px) scale(.9); } }
+@media (prefers-reduced-motion:reduce) {
+  html body .pull-refresh:not(#_), .pull-refresh .pull-arc, .pull-refresh .pull-drop, .pull-refresh .pull-check { transition:none; }
+  .pull-refresh[data-state="loading"] :is(.pull-arc, .pull-drop) { animation:none; }
+}
+@media (forced-colors:active) { .pull-refresh .pull-icon svg * { stroke:CanvasText; } }

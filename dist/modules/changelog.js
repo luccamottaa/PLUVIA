@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.73.3", date:"2026-11-12", title:"Puxar para atualizar", items:[
+      "Puxar a tela para atualizar ficou mais bonito: a pílula desce com o dedo, o anel em volta da gotinha mostra quando dá para soltar, gira enquanto busca o tempo e termina com um ✓.",
+      "A pílula segue os cartões: branca de dia e azul-escura à noite."
+    ]},
     {version:"1.73.2", date:"2026-11-12", title:"Abertura e perfil", items:[
       "A abertura ficou um pouco mais leve: o seletor de Próximas horas não obriga mais a página inteira a se recalcular na hora em que o app abre.",
       "A dica \"Toque em um horário\" de Próximas horas some assim que você toca num horário.",
