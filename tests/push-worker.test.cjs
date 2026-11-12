@@ -158,7 +158,7 @@ test('chuva e trovoada observadas: estação começa a medir, aeroporto relata t
   const storm=pure.detectObserved({station:null,airport:airport({thunder:true,rain:'moderate'},{nearbyThunder:true},'2026-10-13T05:18:00Z')},location,night);
   assert.equal(storm[0].type,'storm_now');
   assert.equal(storm[0].severity,3);
-  assert.equal(storm[0].body,'O aeroporto mais próximo (SBEG, a 10 km) relatou trovoada com chuva perto de Manaus às 01:18. Procure abrigo e evite áreas abertas.');
+  assert.equal(storm[0].body,'O aeroporto mais próximo, a 10 km, relatou trovoada com chuva perto de Manaus às 01:18. Procure abrigo e evite áreas abertas.');
   // Chuva no aeroporto depois de um boletim seco: começou a chover.
   const shra=pure.detectObserved({station:null,airport:airport({rain:'moderate',showers:true})},location,now);
   assert.equal(shra[0].type,'rain_now');
@@ -169,7 +169,7 @@ test('chuva e trovoada observadas: estação começa a medir, aeroporto relata t
   assert.equal(close.length,1);
   assert.equal(close[0].type,'rain_nearby');
   assert.equal(close[0].title,'🌦️ Trovoada por perto');
-  assert.equal(close[0].body,'O aeroporto mais próximo (SBEG, a 10 km) relatou trovoada nas proximidades às 12:00. A chuva pode chegar a Manaus em breve.');
+  assert.equal(close[0].body,'O aeroporto mais próximo, a 10 km, relatou trovoada nas proximidades às 12:00. A chuva pode chegar a Manaus em breve.');
   // Boletim velho ou ausente não gera nada.
   assert.equal(pure.detectObserved({station:null,airport:airport({thunder:true},{},'2026-10-13T14:30:00Z')},location,now).length,0);
   assert.equal(pure.detectObserved({station:null,airport:null},location,now).length,0);
@@ -311,7 +311,7 @@ test('parou de chover: hora seca depois de chuva na estação, ou aeroporto que 
   // Aeroporto: boletim anterior com chuva, o atual seco e sem trovoada por perto.
   const air=pure.detectObserved({station:null,airport:airport({}, {rain:'moderate'})},location,now);
   assert.equal(air[0].type,'rain_stopped');
-  assert.equal(air[0].body,'O aeroporto mais próximo (SBEG, a 10 km) deixou de relatar chuva às 12:00, perto de Manaus. Pode ser só uma pausa.');
+  assert.equal(air[0].body,'O aeroporto mais próximo, a 10 km, deixou de relatar chuva às 12:00, perto de Manaus. Pode ser só uma pausa.');
   assert.equal(pure.detectObserved({station:null,airport:airport({nearbyThunder:true},{rain:'moderate'})},location,now).some(e=>e.type==='rain_stopped'),false);
   assert.equal(pure.detectObserved({station:station(1.4,0),airport:airport({},{rain:'moderate'})},location,now).some(e=>e.type==='rain_stopped'),false,'estação ainda mede chuva');
   // Chaves diferentes por leitura.
