@@ -9,7 +9,13 @@ export const TEST_FIELDS = [
   'temperature', 'temperatureApparent', 'humidity', 'windSpeed', 'windGust', 'windDirection', 'pressureSeaLevel',
   'uvIndex', 'visibility', 'cloudCover', 'precipitationProbability', 'rainAccumulation', 'precipitationIntensity', 'weatherCode',
 ];
-export const TEST_HOURS = 48;
+// 1.73.4 (pedido do dono: os 7 dias também do Tomorrow.io): 120 horas, o limite do plano grátis (+5 dias), no
+// mesmo pedido. O navegador monta os dias a partir dessas horas (máxima, mínima, chuva, chance, UV, condição); os
+// campos diários do Tomorrow.io (temperatureMax…) não entram: um nome que o Timelines não aceite derrubaria o pedido.
+export const TEST_HOURS = 120;
+// Campos que o PLUVIA não tinha (1.73.4, pedido do dono: "tudo o que o Tomorrow entregue tenha no PLUVIA"). Vão no
+// mesmo pedido; se o provedor recusar algum (400), a função repete só com TEST_FIELDS e não pede mais os extras.
+export const EXTRA_FIELDS = ['dewPoint', 'cloudBase', 'cloudCeiling', 'pressureSurfaceLevel', 'precipitationType', 'rainIntensity', 'evapotranspiration', 'uvHealthConcern'];
 
 // Código do Tomorrow.io → WMO (o vocabulário dos ícones e textos do app). Desconhecido vira null e o app
 // conserva o código do Open-Meteo daquela hora.
@@ -43,6 +49,14 @@ export function reading(values) {
     probability: finite(v.precipitationProbability, 0, 100),
     rainMm: finite(v.rainAccumulation, 0, 300) ?? finite(v.precipitationIntensity, 0, 300),
     code,
+    dewPointC: finite(v.dewPoint, -60, 40),
+    cloudBaseKm: finite(v.cloudBase, 0, 30),
+    cloudCeilingKm: finite(v.cloudCeiling, 0, 30),
+    surfacePressureHpa: finite(v.pressureSurfaceLevel, 500, 1100),
+    precipitationType: [0, 1, 2, 3, 4].includes(v.precipitationType) ? v.precipitationType : null,
+    rainIntensityMmH: finite(v.rainIntensity, 0, 300),
+    evapotranspirationMm: finite(v.evapotranspiration, 0, 30),
+    uvConcern: [0, 1, 2, 3, 4].includes(v.uvHealthConcern) ? v.uvHealthConcern : null,
   };
 }
 

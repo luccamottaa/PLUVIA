@@ -137,3 +137,28 @@ test('função tomorrow-forecast: código WMO, m/s → km/h, ausente vira null e
   assert.equal(t.normalizeTomorrow({data:{timelines:[]}},now),null);
   assert.ok(t.TEST_FIELDS.includes('weatherCode'));
 });
+
+test('dias refeitos a partir das horas do Tomorrow.io: só dia com as 24 horas; nascer/pôr ficam (1.73.4)',()=>{
+  const day=Array.from({length:24},(_,h)=>`2026-11-10T${String(h).padStart(2,'0')}:00`);
+  const allTimes=[...day,'2026-11-11T00:00'];
+  const fill=(v)=>allTimes.map(()=>v);
+  const base={current:{time:'2026-11-10T08:00',temperature_2m:25},
+    hourly:{time:allTimes,temperature_2m:fill(25),apparent_temperature:fill(27),precipitation:fill(0),rain:fill(0),precipitation_probability:fill(10),weather_code:fill(1),uv_index:fill(2)},
+    daily:{time:['2026-11-10','2026-11-11'],temperature_2m_max:[25,26],temperature_2m_min:[25,24],apparent_temperature_max:[27,28],apparent_temperature_min:[27,26],
+      precipitation_sum:[0,0],rain_sum:[0,0],precipitation_probability_max:[10,10],uv_index_max:[2,2],weather_code:[1,1],sunrise:['2026-11-10T05:50','2026-11-11T05:50']}};
+  // Tomorrow.io das 12:00 às 15:00 de 10/11: mais quente, com chuva e trovoada.
+  const hours=[[12,33,2.0,80,95,9],[13,34,1.5,70,63,8],[14,31,0,40,3,5],[15,30,0,20,2,3]];
+  const data={hourly:hours.map(([h,t,mm,p,code,uv])=>({time:utc(`2026-11-10T${h}:00`),temperatureC:t,apparentC:t+4,rainMm:mm,probability:p,code,uvIndex:uv}))};
+  const out=sources.overlayTomorrow(base,data,city,parse);
+  assert.equal(out.daily.temperature_2m_max[0],34,'máxima vem das horas do Tomorrow.io');
+  assert.equal(out.daily.temperature_2m_min[0],25,'mínima das horas da madrugada (Open-Meteo)');
+  assert.equal(out.daily.apparent_temperature_max[0],38);
+  assert.equal(out.daily.precipitation_sum[0],3.5,'chuva da hora que termina em T: 2,0 (13h) + 1,5 (14h)');
+  assert.equal(out.daily.precipitation_probability_max[0],80);
+  assert.equal(out.daily.uv_index_max[0],9);
+  assert.equal(out.daily.weather_code[0],95,'condição mais severa do dia');
+  assert.equal(out.daily.temperature_2m_max[1],26,'dia sem as 24 horas fica como estava');
+  assert.deepEqual(out.daily.sunrise,base.daily.sunrise,'nascer/pôr do sol continuam do Open-Meteo');
+  assert.equal(out.pluviaTomorrowDays,1);
+  assert.equal(base.daily.temperature_2m_max[0],25,'não mexe na previsão original');
+});

@@ -41,7 +41,7 @@ test('tela: medida no aeroporto vence o modelo e diz de onde veio',()=>{
   ctx.observedRainState.airport={icao:'SBEG',at:1,visibility:{meters:10000,plus:true}};ctx.observedRainState.stationCity='1302603';
   api.paintVisibility();
   assert.equal(nodes.visibilityValue.textContent,'10+ km');
-  assert.equal(nodes.visibilityNote.textContent,'Aeroporto SBEG · 11:00');
+  assert.equal(nodes.visibilityNote.textContent,'Medido no aeroporto · 11:00');
   assert.equal(nodes.label,'Visibilidade medida');
   // Leitura de outra cidade não vale aqui.
   ctx.observedRainState.stationCity='3550308';api.paintVisibility();
@@ -49,7 +49,7 @@ test('tela: medida no aeroporto vence o modelo e diz de onde veio',()=>{
   // Aeroporto com fumaça: 4 km medidos, reduzida.
   ctx.observedRainState.stationCity='1302603';ctx.observedRainState.airport={icao:'SBMN',at:1,visibility:{meters:4000,plus:false}};
   api.paintVisibility();
-  assert.equal(nodes.visibilityValue.textContent,'4,0 km');assert.equal(nodes.visibilityNote.textContent,'Reduzida · aeroporto SBMN · 11:00');
+  assert.equal(nodes.visibilityValue.textContent,'4,0 km');assert.equal(nodes.visibilityNote.textContent,'Reduzida · medido no aeroporto · 11:00');
 });
 
 test('tela: aeroporto em 10+ km e modelo acima disso mostram o número do modelo',()=>{
@@ -57,12 +57,12 @@ test('tela: aeroporto em 10+ km e modelo acima disso mostram o número do modelo
   ctx.observedRainState.airport={icao:'SBEG',at:1,visibility:{meters:10000,plus:true}};ctx.observedRainState.stationCity='1302603';
   api.renderVisibility(24140,false);
   assert.equal(nodes.visibilityValue.textContent,'24 km');
-  assert.equal(nodes.visibilityNote.textContent,'SBEG 10+ km · modelo');
+  assert.equal(nodes.visibilityNote.textContent,'Aeroporto: 10+ km · modelo');
   assert.match(nodes.label,/10 km ou mais/);
   // Modelo abaixo de 10 km com o aeroporto em 10+: a medida vence.
   api.renderVisibility(480,false);
   assert.equal(nodes.visibilityValue.textContent,'10+ km');
-  assert.equal(nodes.visibilityNote.textContent,'Aeroporto SBEG · 11:00');
+  assert.equal(nodes.visibilityNote.textContent,'Medido no aeroporto · 11:00');
   // Aeroporto com valor exato (sem "ou mais"): continua a medida.
   ctx.observedRainState.airport={icao:'SBEG',at:1,visibility:{meters:8000,plus:false}};
   api.renderVisibility(24140,false);

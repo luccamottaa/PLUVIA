@@ -9,7 +9,8 @@
 // 2. "Testar Tomorrow.io": desligado por padrão, liga só neste aparelho (Mais do PLUVIA). Ligado, as horas e
 //    o agora vêm do Tomorrow.io (função tomorrow-forecast, chave no servidor) por cima do Open-Meteo; campo
 //    ausente fica com o Open-Meteo. Sem cota (429) ou com falha, a previsão segue só no Open-Meteo e o status
-//    diz isso; passado o prazo, tenta o Tomorrow.io de novo. Os diários (máx./mín., nascer/pôr) continuam do
+//    diz isso; passado o prazo, tenta o Tomorrow.io de novo. Desde a 1.73.4 vêm 120 horas (5 dias) e os dias que
+//    elas cobrem são refeitos a partir delas (dailyFromHours); nascer/pôr do sol e os últimos dias continuam do
 //    Open-Meteo. É teste: a previsão salva no aparelho continua sendo a do Open-Meteo.
 (function (root, factory) {
   const api = factory(root);
@@ -55,6 +56,11 @@
     ["wind_speed_10m","windKmh"],["wind_gusts_10m","gustKmh"],["wind_direction_10m","windDirection"],["pressure_msl","pressureHpa"],
     ["uv_index","uvIndex"],["cloud_cover","cloudCover"]];
   const INTERVAL = [["precipitation","rainMm"],["rain","rainMm"],["precipitation_probability","probability"],["weather_code","code"]];
+  // Campos que só o Tomorrow.io entrega (1.73.4): séries novas, criadas só se algum valor chegar; o detalhe da hora
+  // mostra o que houver (modules/hourly-detail.js).
+  const EXTRAS = [["pluvia_dew_point","dewPointC"],["pluvia_cloud_base","cloudBaseKm"],["pluvia_cloud_ceiling","cloudCeilingKm"],
+    ["pluvia_surface_pressure","surfacePressureHpa"],["pluvia_precipitation_type","precipitationType"],["pluvia_rain_intensity","rainIntensityMmH"],
+    ["pluvia_evapotranspiration","evapotranspirationMm"],["pluvia_uv_concern","uvConcern"]];
   function overlayTomorrow(forecast, data, city, parse) {
     const points = new Map();
     for (const item of Array.isArray(data?.hourly) ? data.hourly : []) {
@@ -67,13 +73,21 @@
     const copies = new Map();
     const column = name => { if (!copies.has(name)) copies.set(name, Array.isArray(hourly[name]) ? hourly[name].slice() : null); return copies.get(name); };
     let replaced = 0;
+    const touched = new Set();
     times.forEach((time, index) => {
       const at = parse(time, city);
       if (!Number.isFinite(at)) return;
       const now = points.get(at), before = points.get(at - HOUR);
+      if (now || before) touched.add(String(time).slice(0, 10));
       for (const [name, field] of INSTANT) {
         const list = column(name), value = now?.[field];
         if (list && value !== null && value !== undefined) { list[index] = value; replaced++; }
+      }
+      for (const [name, field] of EXTRAS) {
+        const value = now?.[field];
+        if (value === null || value === undefined) continue;
+        if (!copies.has(name)) copies.set(name, times.map(() => null));
+        copies.get(name)[index] = value;
       }
       const visibility = column("visibility");
       if (visibility && typeof now?.visibilityKm === "number") { visibility[index] = Math.round(now.visibilityKm * 1000); replaced++; }
@@ -84,6 +98,7 @@
     });
     if (!replaced) return null;
     for (const [name, list] of copies) if (list) hourly[name] = list;
+    const daily = dailyFromHours(forecast.daily, hourly, touched);
     const current = {...forecast.current};
     const now = data.current;
     if (now && typeof now === "object") {
@@ -91,7 +106,42 @@
         if (name in current && now[field] !== null && now[field] !== undefined) current[name] = now[field];
       }
     }
-    return {...forecast, current, hourly, pluviaSource:"tomorrow"};
+    return {...forecast, current, hourly, ...(daily ? {daily} : {}), pluviaSource:"tomorrow", pluviaTomorrowDays:daily ? touched.size : 0};
+  }
+
+  // Dias a partir das horas (1.73.4, pedido do dono: "os 7 dias" também do Tomorrow.io). Para cada dia local que
+  // ganhou ao menos uma hora do Tomorrow.io, refaz os diários com as 24 horas daquele dia já misturadas (horas
+  // passadas do Open-Meteo, as que vêm do Tomorrow.io por cima): máxima e mínima, sensação, chuva somada, chance
+  // e UV máximos e a condição mais severa do dia (como o weather_code diário do Open-Meteo). Dia sem as 24 horas
+  // válidas fica como estava; nascer/pôr do sol, sol e luz do dia continuam do Open-Meteo.
+  const DAILY_FROM_HOURS = [
+    ["temperature_2m_max", "temperature_2m", "max"], ["temperature_2m_min", "temperature_2m", "min"],
+    ["apparent_temperature_max", "apparent_temperature", "max"], ["apparent_temperature_min", "apparent_temperature", "min"],
+    ["precipitation_sum", "precipitation", "sum"], ["rain_sum", "rain", "sum"],
+    ["precipitation_probability_max", "precipitation_probability", "max"], ["uv_index_max", "uv_index", "max"],
+    ["weather_code", "weather_code", "max"]
+  ];
+  function dailyFromHours(daily, hourly, days) {
+    const dates = daily?.time, times = hourly?.time;
+    if (!days?.size || !Array.isArray(dates) || !Array.isArray(times)) return null;
+    const out = {...daily};
+    let changed = 0;
+    dates.forEach((date, d) => {
+      if (!days.has(String(date))) return;
+      const hours = [];
+      times.forEach((time, index) => { if (String(time).startsWith(String(date))) hours.push(index); });
+      if (hours.length !== 24) return;
+      for (const [name, source, mode] of DAILY_FROM_HOURS) {
+        const list = hourly[source];
+        if (!Array.isArray(out[name]) || !Array.isArray(list)) continue;
+        const values = hours.map(index => list[index]);
+        if (values.some(value => typeof value !== "number" || !Number.isFinite(value))) continue;
+        const value = mode === "max" ? Math.max(...values) : mode === "min" ? Math.min(...values) : Math.round(values.reduce((a, b) => a + b, 0) * 10) / 10;
+        if (out[name] === daily[name]) out[name] = daily[name].slice();
+        out[name][d] = value; changed++;
+      }
+    });
+    return changed ? out : null;
   }
 
   function createSources({fetchJson, now = () => Date.now(), parse = (value, city) => runtime.PLUVIA?.time?.parse?.(value, city), forecastUrl = city => runtime.PLUVIA?.services?.weather?.forecastUrl?.(city), store = storage} = {}) {
