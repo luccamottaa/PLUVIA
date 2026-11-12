@@ -102,3 +102,17 @@ test('sem botões "i" no app; créditos das fontes continuam (1.73.2)', () => {
   assert.match(fs.readFileSync(path.join(__dirname, '../dist/weather-map.js'), 'utf8'), /attribution:'Radar: RainViewer'/);
   assert.match(fs.readFileSync(path.join(__dirname, '../dist/modules/sources.js'), 'utf8'), /Open-Meteo \/ CAMS/);
 });
+
+test('bandeiras dos 27 estados nos cartões das favoritas, leves e em WebP (1.73.2)', () => {
+  const UFS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
+  const css = dist('dialogs.css');
+  let total = 0;
+  for (const uf of UFS) {
+    const file = path.join(__dirname, '../dist/assets/flags', uf.toLowerCase() + '.webp'), data = fs.readFileSync(file);
+    assert.equal(data.toString('ascii', 0, 4), 'RIFF', uf); assert.equal(data.toString('ascii', 8, 12), 'WEBP', uf);
+    assert.ok(data.length < 3072, `${uf}: ${data.length} B`); total += data.length;
+    assert.ok(css.includes(`.favorite-flag[data-uf="${uf}"] { background-image:url("./assets/flags/${uf.toLowerCase()}.webp?v=flags-1"); }`), uf);
+  }
+  assert.ok(total < 64 * 1024, `total ${total} B`);
+  assert.equal(fs.readdirSync(path.join(__dirname, '../dist/assets/flags')).filter(f => f.endsWith('.webp')).length, 27);
+});

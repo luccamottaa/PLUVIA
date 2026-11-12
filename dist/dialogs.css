@@ -1222,3 +1222,35 @@ html body[data-phase="day"] #cityDialog .favorite-city-card .favorite-star { bac
 /* A fileira rola de lado com o dedo; a barra de rolagem azul embaixo dos cartões (computador) só poluía. */
 html body #cityDialog .favorite-city-list { scrollbar-width:none; }
 html body #cityDialog .favorite-city-list::-webkit-scrollbar { display:none; }
+
+/* Bandeiras dos estados (1.73.2, pedido do dono): Wikimedia Commons (arquivo da propriedade P41 de cada UF no
+   Wikidata), símbolos oficiais; convertidas em WebP 84×60 (28×20 a 3x, ~1,5 KB cada) em dist/assets/flags. A caixa
+   só aparece quando a UF tem bandeira. */
+html body #cityDialog .favorite-city-card .favorite-flag:is([data-uf="AC"],[data-uf="AL"],[data-uf="AM"],[data-uf="AP"],[data-uf="BA"],[data-uf="CE"],[data-uf="DF"],[data-uf="ES"],[data-uf="GO"],[data-uf="MA"],[data-uf="MG"],[data-uf="MS"],[data-uf="MT"],[data-uf="PA"],[data-uf="PB"],[data-uf="PE"],[data-uf="PI"],[data-uf="PR"],[data-uf="RJ"],[data-uf="RN"],[data-uf="RO"],[data-uf="RR"],[data-uf="RS"],[data-uf="SC"],[data-uf="SE"],[data-uf="SP"],[data-uf="TO"]) { display:block; }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="AC"] { background-image:url("./assets/flags/ac.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="AL"] { background-image:url("./assets/flags/al.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="AM"] { background-image:url("./assets/flags/am.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="AP"] { background-image:url("./assets/flags/ap.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="BA"] { background-image:url("./assets/flags/ba.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="CE"] { background-image:url("./assets/flags/ce.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="DF"] { background-image:url("./assets/flags/df.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="ES"] { background-image:url("./assets/flags/es.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="GO"] { background-image:url("./assets/flags/go.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="MA"] { background-image:url("./assets/flags/ma.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="MG"] { background-image:url("./assets/flags/mg.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="MS"] { background-image:url("./assets/flags/ms.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="MT"] { background-image:url("./assets/flags/mt.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="PA"] { background-image:url("./assets/flags/pa.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="PB"] { background-image:url("./assets/flags/pb.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="PE"] { background-image:url("./assets/flags/pe.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="PI"] { background-image:url("./assets/flags/pi.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="PR"] { background-image:url("./assets/flags/pr.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="RJ"] { background-image:url("./assets/flags/rj.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="RN"] { background-image:url("./assets/flags/rn.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="RO"] { background-image:url("./assets/flags/ro.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="RR"] { background-image:url("./assets/flags/rr.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="RS"] { background-image:url("./assets/flags/rs.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="SC"] { background-image:url("./assets/flags/sc.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="SE"] { background-image:url("./assets/flags/se.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="SP"] { background-image:url("./assets/flags/sp.webp?v=flags-1"); }
+html body #cityDialog .favorite-city-card .favorite-flag[data-uf="TO"] { background-image:url("./assets/flags/to.webp?v=flags-1"); }
