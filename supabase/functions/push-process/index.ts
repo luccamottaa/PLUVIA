@@ -2,11 +2,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { adminClient, pushSecrets } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 import { pushErrorCode, sendWebPush } from "../_shared/webpush.ts";
-import { selectCandidates, isRepeat, isOfficialRepeat, stopAllowed, pushUrgency, activeSubscriptions } from "../_shared/notification-policy.js";
+import { selectCandidates, isRepeat, isOfficialRepeat, stopAllowed, easeAllowed, lowPriority, overDailyCap, pushUrgency, activeSubscriptions } from "../_shared/notification-policy.js";
 import { report } from "../_shared/error-report.js";
 import { metarUrl, nearestAirport } from "../_shared/metar.js";
 import { stationUrl, normalizeStation } from "../_shared/inmet-station.js";
-import { estimate as estimateArrival, windowTiles, windowMask, FRAME_GAP_S, SIZE as NOWCAST_SIZE } from "../_shared/radar-nowcast.js";
+import { estimate as estimateArrival, windowTiles, windowDbz, maskOf, outlook, incomingDetail, worsening, easing, FRAME_GAP_S, SIZE as NOWCAST_SIZE } from "../_shared/radar-nowcast.js";
 import { PNG } from "npm:pngjs@7.0.0";
 import { createTomorrowClient, rainSeries } from "../_shared/tomorrow.js";
 import { Buffer } from "node:buffer";
@@ -22,6 +22,8 @@ const preferenceFor: Record<string, string> = {
   weather_change: "weather_changes", daily_summary: "daily_summary", evening_summary: "evening_summary",
   // Observados (estação do INMET e boletim do aeroporto): ligam junto com os avisos de chuva e tempestade.
   rain_now: "rain_approaching", rain_nearby: "rain_approaching", rain_stopped: "rain_approaching", rain_incoming: "rain_approaching", storm_now: "storms",
+  // Radar (piora e "o pior já passou") com os avisos de chuva; alagamento com o de chuva forte. Sem coluna nova.
+  rain_worsening: "rain_approaching", rain_easing: "rain_approaching", flood_risk: "heavy_rain",
 };
 const asArray = (value: any) => Array.isArray(value) ? value : [];
 const text = (value: unknown, max = 500) => String(value ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
@@ -64,18 +66,67 @@ async function fetchBytes(url: string, timeout = 8_000) {
 // "Chuva chegando" pelo radar (o mesmo cálculo do app, _shared/radar-nowcast.js): imagem do RainViewer de
 // 20 min atrás contra a mais recente, deslocamento das manchas e chegada em até 60 min. O aviso só sai
 // com 10 a 60 min de antecedência, contados da imagem; movimento sem clareza não vira aviso.
-function nowcastCandidate(result: { minutes: number; speedKmh: number } | null, frameAt: number, location: Location, now = new Date()) {
+// Força e duração (novembro/2026): a cor das telhas dá a refletividade (_shared/radar-nowcast.js, incomingDetail).
+// Forte (≥ 37 dBZ) e núcleo de tempestade (≥ 50 dBZ) sobem para severidade 3; fraca e moderada ficam em 2.
+type RadarDetail = { intensity: string | null; peakDbz: number; mmH: number; durationMin: number; open: boolean } | null;
+const RADAR_RAIN: Record<string, { title: string; name: string; severity: number }> = {
+  storm: { title: "⛈️ Tempestade chegando", name: "um núcleo de tempestade", severity: 3 },
+  heavy: { title: "🌧️ Chuva forte chegando", name: "chuva forte", severity: 3 },
+  moderate: { title: "🌧️ Chuva chegando", name: "chuva moderada", severity: 2 },
+  weak: { title: "🌦️ Chuva fraca chegando", name: "chuva fraca", severity: 2 },
+};
+function durationText(detail: RadarDetail) {
+  if (!detail || detail.durationMin < 10) return "";
+  if (detail.open) return detail.durationMin >= 60 ? " e durar mais de 1 h" : "";
+  return detail.durationMin <= 10 ? " e passar rápido (uns 10 min)" : ` e durar uns ${detail.durationMin} min`;
+}
+function nowcastCandidate(result: { minutes: number; speedKmh: number } | null, frameAt: number, location: Location, now = new Date(), detail: RadarDetail = null) {
   if (!result || !Number.isFinite(frameAt)) return null;
   const age = (now.getTime() - frameAt) / 60_000;
   const left = result.minutes - age;
   if (age > 20 || left < 10 || left > 60) return null;
   const minutes = Math.round(left / 5) * 5;
+  const kind = detail?.intensity ? RADAR_RAIN[detail.intensity] : null;
+  const what = kind ? kind.name : "chuva";
+  const storm = detail?.intensity === "storm" ? " Raios, granizo e rajadas podem acompanhar." : "";
   return {
-    type: "rain_incoming", severity: 2, title: "🌧️ Chuva chegando",
-    body: `O radar mostra chuva vindo na direção de ${location.city_name}: deve chegar em cerca de ${minutes} min, pelo movimento das últimas imagens.`,
-    source: "Radar · RainViewer", start: now, expires: new Date(frameAt + (result.minutes + 30) * 60_000), url: "./#chuva",
+    type: "rain_incoming", severity: kind?.severity ?? 2, title: kind?.title ?? "🌧️ Chuva chegando",
+    body: `O radar mostra ${what} vindo na direção de ${location.city_name}: deve chegar em cerca de ${minutes} min${durationText(detail)}, pelo movimento das últimas imagens.${storm}`,
+    source: "Radar · RainViewer", start: now, expires: new Date(frameAt + (result.minutes + Math.max(30, detail?.durationMin ?? 0)) * 60_000), url: "./#chuva",
     fingerprintSeed: `rain_incoming|${location.city_id}|${frameAt}`,
-    metadata: { arrival_min: minutes, speed_kmh: result.speedKmh, frame_at: new Date(frameAt).toISOString(), confidence: "moderate" },
+    metadata: {
+      arrival_min: minutes, speed_kmh: result.speedKmh, frame_at: new Date(frameAt).toISOString(), confidence: "moderate",
+      ...(detail ? { intensity: detail.intensity, peak_dbz: detail.peakDbz, peak_mm_h: detail.mmH, duration_min: detail.durationMin, duration_open: detail.open } : {}),
+    },
+  } satisfies EventCandidate;
+}
+// Já chove e o radar mostra um trecho bem mais forte chegando em 10 a 30 min (contados da imagem; desconta a idade).
+function worseningCandidate(hit: { minutes: number; intensity: string | null; peakDbz: number; mmH: number } | null, frameAt: number, location: Location, now = new Date()) {
+  if (!hit || !Number.isFinite(frameAt)) return null;
+  const age = (now.getTime() - frameAt) / 60_000, left = hit.minutes - age;
+  if (age > 20 || left < 3) return null;
+  const minutes = Math.max(5, Math.round(left / 5) * 5), storm = hit.intensity === "storm";
+  return {
+    type: "rain_worsening", severity: 3, title: storm ? "⛈️ A chuva vai virar tempestade" : "🌧️ A chuva vai engrossar",
+    body: `O radar mostra ${storm ? "um núcleo de tempestade" : "um trecho de chuva forte"} chegando a ${location.city_name}: a chuva deve engrossar nos próximos ${minutes} min.${storm ? " Procure abrigo; raios e rajadas podem acompanhar." : " Evite áreas alagáveis."}`,
+    source: "Radar · RainViewer", start: now, expires: new Date(frameAt + (hit.minutes + 40) * 60_000), url: "./#chuva",
+    fingerprintSeed: `rain_worsening|${location.city_id}|${frameAt}`,
+    metadata: { in_min: minutes, intensity: hit.intensity, peak_dbz: hit.peakDbz, peak_mm_h: hit.mmH, frame_at: new Date(frameAt).toISOString(), confidence: "moderate" },
+  } satisfies EventCandidate;
+}
+// Chovia forte e o radar mostra a próxima meia hora fraca ou seca. deliver() só manda para quem recebeu um aviso
+// forte da cidade (notification-policy.js, easeAllowed).
+function easingCandidate(calm: { fromDbz: number; stopsIn: number | null } | null, frameAt: number, location: Location, now = new Date()) {
+  if (!calm || !Number.isFinite(frameAt)) return null;
+  const age = (now.getTime() - frameAt) / 60_000;
+  if (age > 20) return null;
+  const stops = calm.stopsIn !== null && calm.stopsIn - age >= 5 ? Math.round((calm.stopsIn - age) / 5) * 5 : null;
+  return {
+    type: "rain_easing", severity: 1, title: "🌦️ O pior já passou",
+    body: `O radar mostra o trecho mais forte se afastando de ${location.city_name}: ${stops ? `a chuva deve ficar fraca e parar em cerca de ${stops} min` : "a chuva deve ficar fraca na próxima meia hora"}.`,
+    source: "Radar · RainViewer", start: now, expires: new Date(frameAt + 60 * 60_000), url: "./#chuva",
+    fingerprintSeed: `rain_easing|${location.city_id}|${frameAt}`,
+    metadata: { from_dbz: calm.fromDbz, stops_in_min: stops, frame_at: new Date(frameAt).toISOString(), confidence: "moderate" },
   } satisfies EventCandidate;
 }
 // Só vale olhar o radar quando o modelo já vê chance de chuva nas próximas 3 h (poupa a cota do RainViewer).
@@ -91,6 +142,12 @@ function localMinutes(timezone: string, date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-GB", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(date);
   const hour = Number(parts.find(part => part.type === "hour")?.value || 0), minute = Number(parts.find(part => part.type === "minute")?.value || 0);
   return hour * 60 + minute;
+}
+
+// Começo do dia municipal (meia-noite no fuso da pessoa), para o limite diário dos avisos fracos.
+function localDayStart(timezone: string, date = new Date()) {
+  const minute = Math.floor(date.getTime() / 60_000) * 60_000;
+  return new Date(minute - localMinutes(timezone, date) * 60_000);
 }
 
 function inQuietHours(preference: Preference, severity: number, date = new Date()) {
@@ -434,6 +491,37 @@ function rainingNow({ station, airport }: { station: any; airport: any }, now = 
   return Boolean(stationRain || airportRain);
 }
 
+// Risco de alagamento/enxurrada (novembro/2026): o problema é a soma, não uma hora isolada. Chuva das últimas 6 h
+// (as horas passadas do modelo; as 2 mais recentes trocadas pelo que a estação do INMET mediu, quando a leitura é
+// recente) mais a prevista para as próximas 3 h (só horas com chance ≥ 50%). Precisa de chuva já caída E mais
+// chuva vindo. Limites na linha dos avisos de acumulado do INMET (50 mm e 100 mm): ≥ 50 mm somados = 3,
+// ≥ 100 mm = 4 (passa pelo silêncio). Falta de leitura nunca vira zero: sem 5 das 6 horas passadas, nada sai.
+function floodCandidate(data: any, station: any, location: Location, now = new Date()) {
+  if (!freshCurrent(data, now)) return null;
+  const t = now.getTime() / 1000, times = asArray(data?.hourly?.time);
+  let older = 0, recent = 0, pastHours = 0, next = 0;
+  times.forEach((time: unknown, index: number) => {
+    const unix = observed(time, 1), mm = observed(data.hourly.precipitation?.[index], 0, 500);
+    if (unix === null) return;
+    if (unix <= t && unix > t - 6 * 3600 && mm !== null) { pastHours++; if (unix > t - 2 * 3600) recent += mm; else older += mm; }
+    const chance = observed(data.hourly.precipitation_probability?.[index], 0, 100);
+    if (unix > t && unix <= t + 3 * 3600 && mm !== null && chance !== null && chance >= 50) next += mm;
+  });
+  if (pastHours < 5) return null;
+  const stationAt = typeof station?.time === "string" ? Date.parse(station.time) : NaN;
+  const measured = station?.station && Number.isFinite(stationAt) && now.getTime() - stationAt <= 45 * 60_000 && typeof station.rainMm === "number" && typeof station.previousRainMm === "number";
+  const past = older + (measured ? station.rainMm + station.previousRainMm : recent), total = past + next;
+  if (past < 25 || next < 10 || total < 50) return null;
+  const severity = total >= 100 ? 4 : 3, round = (value: number) => Math.round(value);
+  return {
+    type: "flood_risk", severity, title: "🌊 Risco de alagamento",
+    body: `Já choveu cerca de ${round(past)} mm nas últimas 6 h em ${location.city_name} e podem cair mais uns ${round(next)} mm nas próximas 3 h. Risco de alagamentos e enxurradas: evite áreas alagáveis, igarapés e passagens baixas.`,
+    source: measured ? "INMET · estação e Open-Meteo · modelo" : "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 4 * 3_600_000), url: "./#alertas",
+    fingerprintSeed: `flood_risk|${location.city_id}|${Math.floor(now.getTime() / 21_600_000)}|${severity}`,
+    metadata: { past_6h_mm: Math.round(past * 10) / 10, next_3h_mm: Math.round(next * 10) / 10, station_measured: Boolean(measured), confidence: "moderate" },
+  } satisfies EventCandidate;
+}
+
 function parseInmetDate(alert: any, type: "inicio" | "fim") {
   const date = alert?.[`data_${type}`], time = alert?.[`hora_${type}`];
   if (date && /^\d{2}:\d{2}/.test(String(time || ""))) return new Date(`${String(date).slice(0, 10)}T${String(time).slice(0, 8)}-03:00`);
@@ -672,7 +760,20 @@ async function deliver(admin: any, event: any, preference: Preference, subscript
         .in('status',['accepted','pending']).gte('created_at',new Date(Date.now()-6*3600000).toISOString());
       if (recentError) throw new Error("dedup_lookup_failed");
       // "Parou de chover" fecha o ciclo: só depois de um "começou a chover"/"trovoada agora" entregue a este aparelho.
-      if (event.type === "rain_stopped" ? !stopAllowed(recent || [], { observedAt: event.metadata?.observed_at }) : isRepeat(event,recent || [])) { skipped++; continue; }
+      // "O pior já passou" fecha um aviso forte: só para quem recebeu um da cidade (e uma vez por aviso forte).
+      const blocked = event.type === "rain_stopped" ? !stopAllowed(recent || [], { observedAt: event.metadata?.observed_at })
+        : event.type === "rain_easing" ? !easeAllowed(recent || []) : isRepeat(event, recent || []);
+      if (blocked) { skipped++; continue; }
+    }
+    // Limite diário dos avisos fracos (severidade 1 e 2, fora resumos e avisos oficiais), por aparelho e dia
+    // municipal, somando todas as cidades. Chuva forte, tempestade, alagamento e avisos oficiais sempre passam.
+    if (lowPriority(event)) {
+      const { data: today, error: todayError } = await admin.from("notification_deliveries")
+        .select("status,notification_events!inner(event_type,severity)")
+        .eq("subscription_id", subscription.id).in("status", ["accepted", "pending"])
+        .gte("created_at", localDayStart(preference.timezone || "America/Manaus").toISOString());
+      if (todayError) throw new Error("dedup_lookup_failed");
+      if (overDailyCap(event, today || [])) { skipped++; continue; }
     }
     if (event.type === "official_alert") {
       const { data: recent, error: recentError } = await admin.from("notification_deliveries")
@@ -786,9 +887,19 @@ Deno.serve(async (req) => {
       const host = latest?.host || meta?.host;
       if (!latest?.path || !earlier?.path || typeof host !== "string" || !/^https:\/\/[a-z0-9.-]+\.rainviewer\.com$/.test(host)) return null;
       const placed = windowTiles(location.longitude, location.latitude);
-      const maskFor = async (path: string) => windowMask(await Promise.all(placed.map(async ({ tx, ty, ox, oy }) => ({ ox, oy, rgba: await tile(`${host}${path}/256/7/${tx}/${ty}/2/1_1.png`) }))));
-      const [before, after] = await Promise.all([maskFor(earlier.path), maskFor(latest.path)]);
-      return nowcastCandidate(estimateArrival(before, after, NOWCAST_SIZE, FRAME_GAP_S, location.latitude), latest.time * 1000, location);
+      const gridFor = async (path: string) => windowDbz(await Promise.all(placed.map(async ({ tx, ty, ox, oy }) => ({ ox, oy, rgba: await tile(`${host}${path}/256/7/${tx}/${ty}/2/1_1.png`) }))));
+      const [before, after] = await Promise.all([gridFor(earlier.path), gridFor(latest.path)]);
+      return { before, after, frameAt: latest.time * 1000 };
+    };
+    // Avisos do radar para a cidade: chegada com força e duração (só sem chuva agora), piora e "o pior já passou".
+    const radarCandidates = (radar: { before: Int8Array; after: Int8Array; frameAt: number }, location: Location, raining: boolean) => {
+      const view = outlook(radar.before, radar.after, NOWCAST_SIZE, FRAME_GAP_S, location.latitude);
+      const arrival = raining ? null : estimateArrival(maskOf(radar.before), maskOf(radar.after), NOWCAST_SIZE, FRAME_GAP_S, location.latitude);
+      return [
+        nowcastCandidate(arrival, radar.frameAt, location, new Date(), arrival ? incomingDetail(view, arrival.minutes) : null),
+        worseningCandidate(worsening(view, raining), radar.frameAt, location),
+        easingCandidate(easing(view), radar.frameAt, location),
+      ].filter(Boolean) as EventCandidate[];
     };
     // Vencedor de chuva por cidade, uma consulta por cidade por rodada; falha do placar = best_match.
     const rainModels = new Map<string, Promise<string | null>>();
@@ -811,7 +922,7 @@ Deno.serve(async (req) => {
         await checkpoint(location.id); processed++; continue;
       }
       let rainModel = "best_match";
-      let weatherForNowcast: any = null;
+      let weatherForNowcast: any = null, stationReading: any = null;
       try {
         const candidates: EventCandidate[] = inmetForLocation(inmetAlerts, location);
         const needsWeather = ["rain_approaching", "heavy_rain", "storms", "strong_wind", "extreme_heat", "weather_changes", "daily_summary", "evening_summary"].some(key => preference[key]);
@@ -849,13 +960,20 @@ Deno.serve(async (req) => {
           if (stationResult.status === "rejected" && airportResult.status === "rejected") sourceFailures++;
           candidates.push(...detectObserved({ station, airport }, location));
           raining = rainingNow({ station, airport });
+          stationReading = station;
+        }
+        // Alagamento: chuva acumulada (modelo + estação, quando lida) e mais chuva vindo.
+        if (preference.heavy_rain && weatherForNowcast) {
+          const flood = floodCandidate(weatherForNowcast, stationReading, location);
+          if (flood) candidates.push(flood);
         }
         if (Date.now() >= deadline) throw new Error("worker_budget");
-        // Chuva a caminho pelo radar: sem chuva medida agora e com o modelo vendo chance nas próximas 3 h.
-        if (preference.rain_approaching && !raining && weatherForNowcast && rainLikelySoon(weatherForNowcast)) {
+        // Radar: com chuva medida agora (piora e "o pior já passou") ou com o modelo vendo chance nas próximas 3 h
+        // (chuva chegando). Fora disso não consulta, para poupar o RainViewer.
+        if (preference.rain_approaching && weatherForNowcast && (raining || rainLikelySoon(weatherForNowcast))) {
           try {
-            const incoming = await nowcastFor(location);
-            if (incoming) candidates.push(incoming);
+            const radar = await nowcastFor(location);
+            if (radar) candidates.push(...radarCandidates(radar, location, raining));
           } catch { /* sem radar, sem aviso */ }
         }
         if (Date.now() >= deadline) throw new Error("worker_budget");

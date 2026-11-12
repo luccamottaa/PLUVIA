@@ -16,8 +16,11 @@ export function selectCandidates(candidates,{raining=false}={}) {
   const rank={storm:3,heavy_rain:2,rain_approaching:1,storm_now:3,rain_now:2,rain_nearby:1};
   const wet=raining || candidates.some(candidate=>['rain_now','storm_now'].includes(candidate.type));
   const incoming=!wet && candidates.some(candidate=>candidate.type==='rain_incoming');
+  // "O pior já passou" não sai junto de "parou de chover" (diz menos) nem de "vai engrossar" (contradiz).
+  const settled=candidates.some(candidate=>['rain_stopped','rain_worsening'].includes(candidate.type));
   for(const candidate of candidates) {
     if(wet && ['rain_approaching','rain_stopped','rain_incoming'].includes(candidate.type)) continue;
+    if(settled && candidate.type==='rain_easing') continue;
     // Radar com a chuva chegando diz o mesmo que "chuva nas próximas horas", com hora mais precisa.
     if(incoming && candidate.type==='rain_approaching') continue;
     if(candidate.type==='official_alert' && candidates.some(other=>other!==candidate && other.type==='official_alert' && covers(other,candidate,true))) continue;
@@ -44,10 +47,38 @@ export function stopAllowed(deliveries,{now=Date.now(),observedAt=null}={}) {
   const last=starts.find(d=>at(d)===started), from=Date.parse(last?.notification_events?.metadata?.observed_at), to=Date.parse(observedAt);
   return !(Number.isFinite(from) && Number.isFinite(to) && to<=from);
 }
+// Avisos que "abrem" um episódio forte: chuva forte, tempestade, alagamento ou o radar com chuva forte chegando.
+const strong=event=>['heavy_rain','storm','storm_now','rain_worsening','flood_risk'].includes(event?.event_type) || event?.event_type==='rain_incoming' && Number(event.severity)>=3;
+// "O pior já passou" só para quem soube que vinha forte: um aviso forte da cidade aceito para o aparelho nas
+// últimas 6 h (a consulta de deliver já filtra cidade e janela), há pelo menos 15 min, e nenhum "o pior já
+// passou" depois dele.
+export function easeAllowed(deliveries,{now=Date.now()}={}) {
+  const at=delivery=>Date.parse(delivery.sent_at || delivery.created_at);
+  const opened=Math.max(-Infinity,...deliveries.filter(d=>d.status==='accepted' && strong(d.notification_events)).map(at));
+  const eased=Math.max(-Infinity,...deliveries.filter(d=>d.notification_events?.event_type==='rain_easing' && ['accepted','pending'].includes(d.status)).map(at));
+  return Number.isFinite(opened) && eased<opened && now-opened>=15*60000;
+}
+// Limite diário dos avisos fracos (novembro/2026, pedido do dono: prioridade para chuva forte e tempestade).
+// Fraco = severidade 1 ou 2, fora os avisos oficiais e os resumos que a pessoa marcou. Conta o que o aparelho
+// recebeu de fraco desde a meia-noite local, em todas as cidades; os fortes nunca entram na conta nem são barrados.
+export const LOW_DAILY_CAP=4;
+export function lowPriority(event) {
+  const type=event?.type || event?.event_type;
+  return Number(event?.severity)<=2 && !['official_alert','daily_summary','evening_summary','test'].includes(type);
+}
+export function overDailyCap(event,deliveries=[],cap=LOW_DAILY_CAP) {
+  if(!lowPriority(event)) return false;
+  return deliveries.filter(d=>['accepted','pending'].includes(d.status) && lowPriority(d.notification_events)).length>=cap;
+}
 export function isRepeat(candidate,deliveries,now=Date.now()) {
   if(['official_alert','daily_summary','evening_summary'].includes(candidate.type)) return false;
   return deliveries.some(delivery=>{
     const prior=delivery.notification_events;
+    // "Vai engrossar" logo depois de "chuva forte chegando" (o radar já disse que vinha forte): repetição por 90 min.
+    if(candidate.type==='rain_worsening' && prior?.city_id===candidate.cityId && prior.event_type==='rain_incoming' && Number(prior.severity)>=3 && delivery.status==='accepted') {
+      const age=now-Date.parse(delivery.sent_at || delivery.created_at);
+      if(age>=0 && age<90*60000) return true;
+    }
     // "Chuva chegando" (radar) já avisou esta chuva: o "chuva nas próximas horas" do modelo que sobra no lote
     // quando o radar para de falar (faltam < 10 min) seria o segundo aviso do mesmo episódio.
     const related=eventGroup(prior)===eventGroup(candidate) || candidate.type==='rain_approaching' && prior.event_type==='rain_incoming';
