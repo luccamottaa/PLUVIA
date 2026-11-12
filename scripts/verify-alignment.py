@@ -61,6 +61,10 @@ with sync_playwright() as p:
   # Query and measure together: favorite refresh can detach locator handles.
   # Native CSS selectors use the visibility filter below instead of :visible.
   return page.evaluate("selector=>[...document.querySelectorAll(selector)].filter(el=>el.getClientRects().length && getComputedStyle(el).visibility!=='hidden').map(el=>{const r=el.getBoundingClientRect();return {text:el.textContent.trim().slice(0,70),x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom,centerX:r.x+r.width/2,centerY:r.y+r.height/2}})",selector.replace(':visible',''))
+ # Caixa de layout mesmo invisível: o canto direito do topo é um contrapeso com visibility:hidden desde que o
+ # compartilhar saiu (1.72.1); ele só segura o nome PLUVIA no centro.
+ def layout(selector):
+  return page.evaluate("selector=>[...document.querySelectorAll(selector)].filter(el=>el.getClientRects().length).map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,centerY:r.y+r.height/2}})",selector)
  def aligned(selector,key='y',count=None):
   values=boxes(selector)
   assert values and (count is None or len(values)==count),(selector,values)
@@ -119,8 +123,9 @@ with sync_playwright() as p:
    report[field]=aligned(field,count=hours+solar)
   if rain_row=='some': report['.peek-rain']=aligned('.peek-rain',count=hours)
   if rain_row=='none': assert not boxes('.peek-rain'),(width,label)
-  aligned('.topbar .account-trigger,.topbar .brand,.topbar .top-actions','centerY',3)
-  aligned('.topbar .top-actions > *','centerY')
+  aligned('.topbar .account-trigger,.topbar .brand','centerY',2)
+  spacer=layout('.topbar .top-actions');assert len(spacer)==1 and not boxes('.topbar .top-actions,.topbar .top-actions > *'),(width,spacer)
+  assert abs(spacer[0]['centerY']-boxes('.topbar .brand')[0]['centerY'])<=1,(width,spacer)
   # Digits on the axis; the degree hangs to the right (an invisible degree on the left balances it, 1.15).
   # The same axis belongs to the brand, municipality and condition.
   reading=page.locator('#temperature')
@@ -141,16 +146,14 @@ with sync_playwright() as p:
   account=page.locator('#accountButton');greeting=account.inner_text()
   for name in [greeting,'Olá, Lucca','Olá, Maria Eduarda Albuquerque']:
    account.evaluate('(el,value)=>el.textContent=value',name)
-   button,brand,actions=boxes('#accountButton,.topbar .brand,.topbar .top-actions')
+   button,brand=boxes('#accountButton,.topbar .brand');actions=layout('.topbar .top-actions')[0]
    if not (button['right']<=brand['x']-5 and brand['right']<=actions['x']-5):
     # Diagnóstico do que o navegador aplicou na marca (largura da tela, media query, fonte e gota).
     brand['debug']=page.evaluate("()=>{const b=document.querySelector('.topbar .brand'),t=b.querySelector('span:last-child');return {innerWidth,clientWidth:document.documentElement.clientWidth,mq380:matchMedia('(max-width:380px)').matches,mq340:matchMedia('(max-width:340px)').matches,topbar:document.querySelector('.topbar').clientWidth,font:getComputedStyle(t).fontSize,family:getComputedStyle(t).fontFamily,text:t.getBoundingClientRect().width,cq:CSS.supports('container-type:inline-size'),rules:[...document.styleSheets].flatMap(sh=>{let list=[];try{list=[...sh.cssRules]}catch(e){return [(sh.href||'inline')+' blocked']}const out=[];const walk=(rs,cond)=>{for(const r of rs){if(r.cssRules&&!r.selectorText){walk(r.cssRules,(r.conditionText||r.media?.mediaText||r.constructor.name))}else if(r.selectorText&&r.selectorText.includes('brand-mark')&&r.style.width){out.push([(sh.href||'inline').split('/').pop(),cond||'',cond&&!/container/i.test(cond)?matchMedia(cond).matches:null,r.style.width])}}};walk(list,'');out.push([(sh.href||'inline').split('/').pop(),'total',list.length]);return out})}}")
    assert button['right']<=brand['x']-5 and brand['right']<=actions['x']-5,(width,name,button,brand,actions)
    assert button['height']>=44,(width,button)
-   aligned('#accountButton,.topbar .brand,.topbar .top-actions','centerY',3)
+   aligned('#accountButton,.topbar .brand','centerY',2)
   account.evaluate('(el,value)=>el.textContent=value',greeting)
-  for item in boxes('.topbar .top-actions > button'):
-   assert item['width']>=44 and item['height']>=44,(width,item)
   # Every full-width section uses the same page gutters, including the footer.
   edges=boxes('#top,#weatherView,footer')
   assert len(edges)==3 and max(b['x'] for b in edges)-min(b['x'] for b in edges)<=1,(width,edges)

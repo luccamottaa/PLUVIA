@@ -15,6 +15,13 @@ test('umidade tem ícone próprio, diferente da gota da chuva', () => {
   assert.match(html, /data-mode="humidity" aria-pressed="false" aria-label="Umidade"/);
 });
 
+test('CI de alinhamento: o canto direito do topo é contrapeso invisível (sem compartilhar desde a 1.72.1)', () => {
+  const py = fs.readFileSync(path.join(__dirname, '../scripts/verify-alignment.py'), 'utf8');
+  assert.doesNotMatch(py, /top-actions','centerY',3\)/, 'não exige três itens visíveis no topo');
+  assert.match(py, /actions=layout\('\.topbar \.top-actions'\)\[0\]/, 'mede o contrapeso pela caixa de layout');
+  assert.match(dist('continuous.css'), /\.topbar \.top-actions:empty \{ visibility:hidden; pointer-events:none; \}/);
+});
+
 test('Tomorrow.io que respondeu não mostra a linha de status; sem cota ou sem resposta, mostra', () => {
   const app = dist('app.js');
   assert.match(app, /fromCache \|\| Boolean\(data\.pluviaReduced\) \|\| Boolean\(data\.pluviaTomorrow\)\);/);
