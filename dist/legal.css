@@ -70,6 +70,10 @@ footer { display:flex; flex-wrap:wrap; gap:10px; margin-top:28px; color:var(--mu
 .actions { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:24px; }
 .button { padding:0 20px; font-size:.95rem; }
 .button.primary { border-color:transparent; background:var(--brand); box-shadow:0 6px 18px color-mix(in srgb,var(--brand) 30%,transparent); color:var(--on-brand); font-weight:600; }
+/* 1.73: a nuvem do céu de desenho, confusa, flutuando acima do 404. */
+@keyframes legal-bob { 50% { transform:translateY(-7px); } }
+.error-art { width:min(200px,52vw); height:auto; margin-bottom:-6px; animation:legal-bob 3.8s ease-in-out infinite; }
+@media (prefers-reduced-motion:reduce) { .error-art { animation:none; } }
 /* Entrada suave e saída antes de voltar ao app. */
 @keyframes legal-enter { from { opacity:0; transform:translateY(18px); } }
 .page, .close { animation:legal-enter .44s cubic-bezier(.2,.8,.2,1) backwards; }

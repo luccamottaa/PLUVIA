@@ -2335,7 +2335,10 @@ function renderCityOptions() {
     const capital = CAPITALS.some(item => item.id === city.id);
     return `<li role="none"><button class="city-result" type="button" role="option" aria-selected="false" data-current="${city.id === activeCity?.id}" data-id="${city.id}"><span class="city-result-name">${escapeHtml(city.name)}<b class="city-uf" aria-label="${city.uf}">${city.uf}</b>${favorites.has(city.id) ? '<i class="city-fav" aria-hidden="true"></i><span class="visually-hidden"> favorita</span>' : ""}</span><small>${!query && recent.has(city.id) ? "Recente · " : ""}${escapeHtml(city.state || city.uf)}${capital ? " · capital" : ""}</small></button></li>`;
   }).join("");
-  document.getElementById("cityPickerStatus").textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
+  const status = document.getElementById("cityPickerStatus");
+  // Busca sem resultado (1.73): a nuvem com a lupa (dialogs.css) aparece acima do texto.
+  status.toggleAttribute?.("data-empty", Boolean(cityIndexReady && query && !shown.length));
+  status.textContent = !cityIndexReady ? "Capitais disponíveis. Digite para carregar o índice de municípios." : !shown.length ? "Cidade não encontrada. Digite o nome sem acentos ou confira a grafia." : query ? `${matches.length} resultado${matches.length === 1 ? "" : "s"}` : "Cidades favoritas e capitais.";
 }
 // On a city page the address follows the chosen city: another capital page, or the Home.
 // Elsewhere (the Home itself) the URL never changes. The document title is not rewritten.
