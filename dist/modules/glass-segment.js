@@ -210,25 +210,38 @@
         return Math.max(0, list.findIndex(button => button.getAttribute("aria-pressed") === "true"));
       };
       // Medidas reais dos botões (desktop: 44 px com 2 px de espaço; celular: divididos pela largura).
-      let segPx = 46;
-      const measure = () => {
+      // 1.73.2 (abertura): ler e escrever ficaram separados. Ler offsetLeft/offsetWidth logo depois de mexer no DOM
+      // obrigava o navegador a fazer o layout da página inteira na hora (o maior gasto de JS da abertura: ~180 ms com
+      // CPU 4× mais lenta). Agora a leitura acontece no callback do ResizeObserver, quando o layout acabou de ser feito
+      // (ler é de graça), e a escrita vai para o próximo quadro (fora do callback: escrever nele fazia o WebKit soltar
+      // "ResizeObserver loop completed"). Escrita igual à anterior é pulada.
+      let segPx = 46, written = "";
+      const read = () => {
         const list = segments(group);
-        if (list.length < 2) return;
-        const first = list[0], second = list[1];
-        segPx = Math.max(1, second.offsetLeft - first.offsetLeft);
-        group.style.setProperty("--seg-x0", `${first.offsetLeft}px`);
-        group.style.setProperty("--seg-w", `${first.offsetWidth}px`);
+        if (list.length < 2) return null;
+        return list.map(button => [button.offsetLeft, button.offsetTop, button.offsetWidth, button.offsetHeight]);
+      };
+      const write = boxes => {
+        if (!boxes) return;
+        const key = boxes.join(";");
+        if (key === written) return;
+        written = key;
+        const [first, second] = boxes;
+        segPx = Math.max(1, second[0] - first[0]);
+        group.style.setProperty("--seg-x0", `${first[0]}px`);
+        group.style.setProperty("--seg-w", `${first[2]}px`);
         group.style.setProperty("--seg-step", `${segPx}px`);
         if (!parts) return;
         // Cada cópia fica na caixa do seu botão, nas coordenadas do trilho.
         parts.cells.forEach((cell, index) => {
-          const button = list[index];
-          if (!button) return;
-          cell.style.left = `${button.offsetLeft}px`; cell.style.top = `${button.offsetTop}px`;
-          cell.style.width = `${button.offsetWidth}px`; cell.style.height = `${button.offsetHeight}px`;
+          const box = boxes[index];
+          if (!box) return;
+          cell.style.left = `${box[0]}px`; cell.style.top = `${box[1]}px`;
+          cell.style.width = `${box[2]}px`; cell.style.height = `${box[3]}px`;
         });
         if (refract) buildFilter(parts);
       };
+      const measure = () => write(read());
 
       // Estado das molas e laço de animação (só roda enquanto a cápsula não está parada no alvo).
       let state = { x: current(), v: 0, w: 0, wv: 0 }, target = state.x, frame = 0, last = 0;
@@ -256,20 +269,23 @@
         frame = root.requestAnimationFrame(tick);
       };
 
-      // O observer só agenda: medir (offsetLeft/offsetWidth) e escrever as variáveis dentro do próprio callback
-      // fazia o WebKit adiar notificações e disparar "ResizeObserver loop completed with undelivered
-      // notifications" (erro de página que derrubava o QA visual intermitentemente). Uma medição por quadro.
-      let measuring = 0;
-      const later = () => {
-        if (measuring) return;
-        if (typeof root.requestAnimationFrame !== "function") { measure(); return; }
-        measuring = root.requestAnimationFrame(() => { measuring = 0; measure(); });
+      // O observer lê (layout pronto) e agenda a escrita para o próximo quadro: uma escrita por quadro.
+      let writing = 0, pending = null;
+      const flush = () => { writing = 0; const boxes = pending; pending = null; write(boxes); };
+      const later = (fresh) => {
+        pending = fresh === undefined ? pending : fresh;
+        if (writing) return;
+        if (typeof root.requestAnimationFrame !== "function") { flush(); return; }
+        writing = root.requestAnimationFrame(flush);
       };
-      // 1.70.5 (abertura): a primeira medida também vai para o próximo quadro, que roda antes da primeira pintura.
-      // Medir na hora (no DOMContentLoaded, com a página ainda sem o CSS e o conteúdo) forçava um layout da página
-      // inteira que era jogado fora logo depois (~46 ms com CPU 4× mais lenta).
-      later();
-      if (typeof root.ResizeObserver === "function") new root.ResizeObserver(later).observe(group);
+      if (typeof root.ResizeObserver === "function") {
+        // A primeira notificação chega logo depois do primeiro layout da página: nenhuma medida antes disso.
+        new root.ResizeObserver(() => later(read())).observe(group);
+      } else {
+        // Sem ResizeObserver: mede no próximo quadro (1.70.5), como antes.
+        pending = null;
+        writing = typeof root.requestAnimationFrame === "function" ? root.requestAnimationFrame(() => { writing = 0; measure(); }) : (measure(), 0);
+      }
 
       group.addEventListener("pointerdown", event => {
         if (event.button !== undefined && event.button !== 0) return;

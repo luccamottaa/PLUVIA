@@ -1002,10 +1002,14 @@ html body #accountDialog #accountProfileEdit .profile-identity:not(#_) { display
 html body #accountDialog #accountProfileEdit .profile-avatar:not(#_) { width:88px; height:88px; font-size:2.25rem; box-shadow:0 0 0 3px color-mix(in srgb,var(--dialog-link) 55%,transparent),0 10px 28px #0005; }
 html body #accountDialog #accountProfileEdit .profile-text:not(#_) { justify-items:center; text-align:center; max-width:100%; }
 html body #accountDialog #accountProfileEdit .profile-text strong:not(#_) { font-size:1.375rem; font-weight:650; }
+/* 1.73.2 (pedido do dono, print): o "padding:0!important" de .account-group > summary .account-group-value zerava o
+   respiro e o texto encostava na borda da pílula; aqui o !important de mais especificidade devolve o respiro. Letra
+   branca; de dia (janela clara) a pílula fica azul cheia para o branco continuar legível. */
 html body #accountDialog #accountProfileEdit .account-group-value:not(#_) {
-  display:inline-flex; align-items:center; min-height:34px; padding:0 16px; border-radius:999px;
-  background:color-mix(in srgb,var(--dialog-link) 16%,transparent); color:var(--dialog-link); font-size:.875rem; font-weight:600;
+  display:inline-flex; align-items:center; min-height:36px; padding:0 20px !important; border-radius:999px;
+  background:color-mix(in srgb,var(--dialog-link) 22%,transparent); color:#fff; font-size:.875rem; font-weight:600;
 }
+html body[data-phase="day"] #accountDialog #accountProfileEdit .account-group-value:not(#_) { background:#0a4cba; }
 
 /* 5. Sem conta: convite com ícone e campos com ícone */
 html body #accountDialog #accountIntro:not(#_) { display:grid; justify-items:center; gap:12px; margin:4px 0 18px; text-align:center; color:var(--dialog-muted); }

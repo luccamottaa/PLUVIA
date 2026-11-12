@@ -38,3 +38,36 @@ test('"Mais do PLUVIA" fica num cartão que abre e fecha, fechado por padrão, c
   for (const script of ['verify-browser.py', 'verify-alignment.py', 'verify-visual.py', 'verify-home-ux.py'])
     assert.match(fs.readFileSync(path.join(__dirname, '../scripts', script), 'utf8'), /accountMoreFold'\)\.open=true/, script);
 });
+
+test('dica de Próximas horas some no primeiro toque num horário (1.73.2)', () => {
+  const app = dist('app.js');
+  assert.match(app, /event\.target\?\.closest\?\.\("#hourlyPeek \[data-hour-index\]"\)/);
+  assert.match(app, /sessionStorage\.removeItem\("pluvia-hourly-hint-session"\); localStorage\.setItem\("pluvia-hourly-hint-seen", "1"\)/);
+});
+
+test('"Editar perfil" com respiro e letra branca, legível de dia (1.73.2)', () => {
+  const css = dist('dialogs.css');
+  assert.match(css, /#accountProfileEdit \.account-group-value:not\(#_\) \{[^}]*padding:0 20px !important;[^}]*color:#fff;/);
+  assert.match(css, /body\[data-phase="day"\] #accountDialog #accountProfileEdit \.account-group-value:not\(#_\) \{ background:#0a4cba; \}/);
+});
+
+test('seletor de vidro lê medidas no ResizeObserver e escreve no próximo quadro (1.73.2)', () => {
+  const src = fs.readFileSync(path.join(__dirname, '../dist/modules/glass-segment.js'), 'utf8');
+  assert.match(src, /new root\.ResizeObserver\(\(\) => later\(read\(\)\)\)\.observe\(group\)/);
+  assert.match(src, /if \(key === written\) return;/, 'escrita igual é pulada (sem laço do observer)');
+  assert.doesNotMatch(src, /^\s*later\(\);$/m, 'nenhuma medida forçada antes do primeiro layout');
+});
+
+test('ícones dos cartões da Home na cor do texto: brancos no céu escuro (1.73.2)', () => {
+  const css = dist('continuous.css');
+  assert.match(css, /--icon-ink:var\(--reading-ink\);/);
+  for (const rule of [/\.metric-head > \[data-weather-icon-style="line"\] \{ color:var\(--icon-ink\);/, /\.tip-icon \{ flex:none; width:22px; height:22px; color:var\(--icon-ink\); \}/,
+    /#humidityNote::before \{[^}]*background:var\(--icon-ink\);/, /\.heading-icon \{[^}]*color:var\(--icon-ink\); \}/]) assert.match(css, rule);
+  assert.match(css, /\.rain-chart \.wind-direction \{ color:var\(--graphic-blue\); \}/, 'gráficos continuam coloridos');
+});
+
+test('CI: depois de abrir a conta, espera a janela aparecer (dialogs.css chega depois do toque)', () => {
+  const py = fs.readFileSync(path.join(__dirname, '../scripts/verify-auth-redirects.py'), 'utf8');
+  assert.doesNotMatch(py, /click\(\);assert page\.locator\('#accountProfile'\)\.is_visible\(\)/);
+  assert.match(py, /page\.locator\('#accountProfile'\)\.wait_for\(state='visible',timeout=5000\)/);
+});

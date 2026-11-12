@@ -12,6 +12,12 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.73.2", date:"2026-11-12", title:"Abertura e perfil", items:[
+      "A abertura ficou um pouco mais leve: o seletor de Próximas horas não obriga mais a página inteira a se recalcular na hora em que o app abre.",
+      "A dica \"Toque em um horário\" de Próximas horas some assim que você toca num horário.",
+      "Em Minha conta, o botão \"Editar perfil\" ganhou respiro dos lados e letra branca.",
+      "Os ícones dos cartões da tela inicial (dicas, sensação, umidade, vento, pressão e os outros) agora têm a cor do texto: brancos no céu escuro."
+    ]},
     {version:"1.73.1", date:"2026-11-12", title:"Umidade e Minha conta", items:[
       "Em Próximas horas, a umidade ganhou um ícone próprio (gotinha e ar úmido), diferente do da chuva.",
       "Em Minha conta, \"Mais do PLUVIA\" agora fica fechado e abre com um toque, deixando a janela mais curta."

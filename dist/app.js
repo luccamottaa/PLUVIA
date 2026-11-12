@@ -535,6 +535,14 @@ function showHourlyHint() {
   } catch {}
   return true;
 }
+// 1.73.2 (pedido do dono, Home mais limpa): a dica some no primeiro toque num horário, mesmo na primeira sessão;
+// quem tocou já aprendeu. O aviso de "Previsão por hora indisponível" não é dica e continua.
+globalThis.document?.addEventListener?.("click", event => {
+  if (!event.target?.closest?.("#hourlyPeek [data-hour-index]")) return;
+  try { sessionStorage.removeItem("pluvia-hourly-hint-session"); localStorage.setItem("pluvia-hourly-hint-seen", "1"); } catch {}
+  const decision = $("hourlyDecision");
+  if (decision && decision.textContent.startsWith("Toque em um horário")) { decision.textContent = ""; decision.hidden = true; }
+});
 // Próximas horas leem as linhas normalizadas (weatherData.rows); a validação e o alinhamento i+1 continuam
 // em hourlyDetail.detail. A janela seca ainda recebe o contrato bruto (raw).
 // Modos da fileira (1.26, pedido do usuário, como no Apple Weather): Condição (ícone e temperatura), Chuva (barra

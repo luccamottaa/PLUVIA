@@ -179,7 +179,7 @@ body[data-ink="dark"] #weatherView {
 #weatherView .metric-head > [data-weather-icon-name] { width:24px; height:24px; flex:none; margin-right:auto; }
 #weatherView .metric-head .metric-weather-icon { width:24px; height:24px; }
 /* Reading tiles use line glyphs in the brand blue, the same stroke family as the section icons. */
-#weatherView .metric-head > [data-weather-icon-style="line"] { color:var(--graphic-blue); opacity:1; }
+#weatherView .metric-head > [data-weather-icon-style="line"] { color:var(--icon-ink); opacity:1; }
 #weatherView .metric-line-icon { display:block; width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 #weatherView .metrics .metric > strong,#weatherView .metrics .wind-reading { grid-column:2; grid-row:1; margin:0; }
 #weatherView .metrics .metric > strong,#weatherView .metrics .wind-reading > strong { color:var(--reading-ink); font-size:1.65rem; line-height:1.1; }
@@ -270,6 +270,8 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
   --chart-rain-top:#22b8ff; --chart-rain-bottom:#2673ff;
   --chart-wind-top:#1bddda; --chart-wind-bottom:#138be1;
   --graphic-blue:var(--brand-blue);
+  /* 1.73.2 (pedido do dono: "bota todos esses ícones em branco"): ícones dos cartões na cor do texto. */
+  --icon-ink:var(--reading-ink);
 }
 #weatherView .section-icon { color:var(--graphic-blue); }
 #weatherView .section-icon svg { stroke-width:2.2; }
@@ -340,7 +342,7 @@ html body #weatherView #inmetCard { min-height:0; }
 #alertDetail .inmet-detail-other > span { grid-column:2; grid-row:1 / span 2; font-size:1.2rem; }
 #weatherView .temp-track .temp-fill { background:linear-gradient(90deg,var(--range-cool),var(--range-warm),var(--range-hot)); }
 #weatherView .rain-chart .wind-direction { color:var(--graphic-blue); }
-#weatherView .sun-label :is(span,svg) { color:var(--graphic-blue); }
+#weatherView .sun-label :is(span,svg) { color:var(--icon-ink); }
 /* Darker daytime rain/storm skies need deeper ink than the clear-sky palette. */
 body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView {
   --reading-ink:#041a2e; --reading-muted:#08243b;
@@ -629,7 +631,7 @@ body[data-ink="dark"] #weatherView .rain-gauge-track { background:rgba(0,0,0,.12
 #weatherView .tips-list { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
 /* Ícone centrado na altura do texto (pedido do usuário, 1.23.2): no topo, com a dica em duas linhas, ele ficava alto. */
 #weatherView .tips-list li { display:flex; align-items:center; gap:10px; color:var(--reading-ink); font-size:.95rem; line-height:1.4; }
-#weatherView .tip-icon { flex:none; width:22px; height:22px; color:var(--graphic-blue); }
+#weatherView .tip-icon { flex:none; width:22px; height:22px; color:var(--icon-ink); }
 
 
 /* Ar nos próximos dias: três colunas compactas (dia, categoria, AQI máximo previsto), cor da categoria
@@ -1356,7 +1358,7 @@ body > .captcha-box[data-state="interactive"] p { color:#fff; }
 /* Umidade: um ícone em traço por faixa ao lado da nota (pedido do usuário, 1.14.4). Só máscara e cor,
    no azul da marca como os outros ícones de leitura; nível desconhecido (carregando, sem leitura) não tem ícone. */
 #weatherView .metrics #humidityNote { display:flex; align-items:center; gap:6px; }
-#weatherView .metrics .metric[data-humidity-level] #humidityNote::before { flex:none; width:1.3em; height:1.3em; background:var(--brand-blue,var(--brand-blue)); -webkit-mask:var(--humidity-icon) center/contain no-repeat; mask:var(--humidity-icon) center/contain no-repeat; }
+#weatherView .metrics .metric[data-humidity-level] #humidityNote::before { flex:none; width:1.3em; height:1.3em; background:var(--icon-ink); -webkit-mask:var(--humidity-icon) center/contain no-repeat; mask:var(--humidity-icon) center/contain no-repeat; }
 #weatherView .metrics .metric[data-humidity-level="dry"] #humidityNote::before { content:""; --humidity-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5c3.5 4.2 6 7.6 6 10.7a6 6 0 0 1-12 0c0-3.1 2.5-6.5 6-10.7z'/%3E%3Cpath d='M9.5 17.5h5'/%3E%3C/svg%3E"); }
 #weatherView .metrics .metric[data-humidity-level="comfortable"] #humidityNote::before { content:""; --humidity-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8.5 14.5a4.2 4.2 0 0 0 7 0'/%3E%3Cpath d='M9 9.5h.01M15 9.5h.01' stroke-width='2.6'/%3E%3C/svg%3E"); }
 #weatherView .metrics .metric[data-humidity-level="high"] #humidityNote::before { content:""; --humidity-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5c3.5 4.2 6 7.6 6 10.7a6 6 0 0 1-12 0c0-3.1 2.5-6.5 6-10.7z'/%3E%3Cpath d='M6 14.2a6 6 0 0 0 12 0z' fill='black'/%3E%3C/svg%3E"); }
@@ -1638,9 +1640,9 @@ body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:#0
 /* Ícones nos títulos de "Chuva na região" e "Ciclo do dia" (1.37.2, pedido do dono), no mesmo traço azul dos blocos
    de leitura, logo depois do título. O ⓘ da Qualidade do ar fica colado no título e no ícone, como nas seções,
    em vez de ir para a borda direita; a letra fica centrada no círculo por grade, não pela altura da linha. */
-#weatherView .heading-icon { display:block; flex:none; width:24px; height:24px; color:var(--graphic-blue); }
+#weatherView .heading-icon { display:block; flex:none; width:24px; height:24px; color:var(--icon-ink); }
 #weatherView .sun-section .sun-label { display:flex; align-items:center; gap:8px; }
-#weatherView .sun-section .sun-label .heading-icon svg { display:block; color:var(--graphic-blue); }
+#weatherView .sun-section .sun-label .heading-icon svg { display:block; color:var(--icon-ink); }
 #weatherView #airQualityCard .metric-head { justify-content:flex-start; }
 #weatherView #airQualityCard .metric-head > [data-weather-icon-name] { margin-right:0; }
 #weatherView #airQualityCard .metric-head .info-tip { margin-left:0; }
