@@ -51,7 +51,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-360" />
+    <meta name="pluvia-release" content="pluvia-panel-361" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -394,7 +394,7 @@
             <p id="notificationContinueNote" class="notification-continue" hidden>Conta conectada. Toque em <strong>Ativar alertas</strong> para solicitar permissão no iPhone.</p>
             <div class="notification-actions"><button id="notificationToggle" type="button">Ativar alertas</button></div>
             <form id="notificationPreferencesForm" class="alert-preferences">
-              <details class="account-group" id="notificationTypesGroup"><summary><span class="account-group-title">Tipos de aviso</span><small class="account-group-value" data-account-summary="types"></small></summary>
+              <details class="account-group" id="notificationTypesGroup"><summary><span class="account-group-title">Tipos de aviso</span></summary>
               <fieldset class="notification-types"><legend class="visually-hidden">Quais avisos você quer receber?</legend>
                 <label><input name="official_alerts" type="checkbox" checked><span><strong>Avisos oficiais do INMET</strong><small>Inclui os avisos amarelos, laranjas e vermelhos.</small></span></label>
                 <label><input name="rain_approaching" type="checkbox" checked><span><strong>Chuva se aproximando</strong><small>Chuva prevista nas próximas horas, chuva por perto e quando começa e quando para de chover na estação do INMET ou no aeroporto mais próximo.</small></span></label>
@@ -407,7 +407,7 @@
               </fieldset>
               <small class="account-group-note">A mesma condição prevista não se repete por 6 horas; se piorar, chega um aviso novo.</small>
               </details>
-              <details class="account-group" id="notificationSummariesGroup"><summary><span class="account-group-title">Resumos</span><small class="account-group-value" data-account-summary="summaries"></small></summary>
+              <details class="account-group" id="notificationSummariesGroup"><summary><span class="account-group-title">Resumos</span></summary>
               <fieldset class="notification-types notification-summaries"><legend class="visually-hidden">Resumos do dia</legend>
                 <label><input name="daily_summary" type="checkbox"><span><strong>Resumo diário</strong><small>Uma previsão por cidade no horário escolhido.</small></span></label>
                 <label id="notificationSummaryTimeField" class="notification-summary-time" hidden>Horário do resumo<input name="daily_summary_time" type="time" value="07:00"></label>
@@ -416,7 +416,7 @@
               </fieldset>
               <small class="account-group-note">Cada resumo usa o horário local da cidade.</small>
               </details>
-              <details class="account-group" id="notificationTimingGroup"><summary><span class="account-group-title">Intensidade e silêncio</span><small class="account-group-value" data-account-summary="timing"></small></summary>
+              <details class="account-group" id="notificationTimingGroup"><summary><span class="account-group-title">Intensidade e silêncio</span></summary>
               <fieldset class="notification-timing"><legend class="visually-hidden">Intensidade e horários</legend>
                 <label>Nível mínimo dos avisos<select name="minimum_severity"><option value="1">Todos os níveis</option><option value="2">A partir de atenção</option><option value="3">A partir de perigo</option><option value="4">Somente severidade máxima</option></select></label>
                 <label class="notification-quiet-toggle"><input name="quiet_enabled" type="checkbox"><span>Silenciar em um horário</span></label>
@@ -425,7 +425,7 @@
                 <small>O nível vale para todos os tipos, inclusive INMET. Avisos de severidade máxima furam o silêncio; resumos que caem no silêncio não são enviados.</small>
               </fieldset>
               </details>
-              <details class="account-group" id="notificationCitiesGroup"><summary><span class="account-group-title">Adicionar cidades</span><small class="account-group-value" data-account-summary="cities"></small></summary>
+              <details class="account-group" id="notificationCitiesGroup"><summary><span class="account-group-title">Adicionar cidades</span></summary>
               <fieldset class="notification-city-choices"><legend class="visually-hidden">Adicionar cidades aos avisos</legend>
                 <label class="notification-location"><input name="monitor_current_city" type="checkbox"><span id="notificationCurrentCityLabel">Receber alertas para a cidade aberta</span></label>
                 <div id="notificationFavoriteChoices"></div>
@@ -434,10 +434,10 @@
               </details>
               <button id="notificationPreferencesSave" type="submit" disabled>Salvar avisos</button>
             </form>
-            <details class="account-group" id="notificationLocationsGroup"><summary><span class="account-group-title">Cidades que recebem avisos</span><small class="account-group-value" data-account-summary="locations"></small></summary>
+            <details class="account-group" id="notificationLocationsGroup"><summary><span class="account-group-title">Cidades que recebem avisos</span></summary>
             <div class="notification-locations"><div id="notificationLocations"><p>Nenhuma cidade monitorada.</p></div></div>
             </details>
-            <details class="account-group" id="notificationDevicesGroup"><summary><span class="account-group-title">Aparelhos</span><small class="account-group-value" data-account-summary="devices"></small></summary>
+            <details class="account-group" id="notificationDevicesGroup"><summary><span class="account-group-title">Aparelhos</span></summary>
             <div class="notification-devices"><div id="notificationDevices"><p>Nenhum dispositivo registrado.</p></div></div>
             <button id="notificationTest" class="account-row-action" type="button" hidden>Enviar notificação de teste</button>
             <details class="notification-checks"><summary>Compatibilidade deste aparelho</summary><ul id="notificationDiagnostics" class="notification-diagnostics" aria-label="Diagnóstico de notificações"></ul></details>
@@ -690,9 +690,8 @@
     <script src="/modules/forecast-accuracy.js?v=accuracy-1" defer></script>
     <script src="/modules/station-now.js?v=station-5" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-11" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-390" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-391" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
-    <script src="/modules/account-summary.js?v=account-summary-1" defer></script>
-    <script src="/notifications.js?v=panel-40" defer></script>
+    <script src="/notifications.js?v=panel-41" defer></script>
   </body>
 </html>

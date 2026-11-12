@@ -16,7 +16,8 @@
       "A abertura ficou um pouco mais leve: o seletor de Próximas horas não obriga mais a página inteira a se recalcular na hora em que o app abre.",
       "A dica \"Toque em um horário\" de Próximas horas some assim que você toca num horário.",
       "Em Minha conta, o botão \"Editar perfil\" ganhou respiro dos lados e letra branca.",
-      "Os ícones dos cartões da tela inicial (dicas, sensação, umidade, vento, pressão e os outros) agora têm a cor do texto: brancos no céu escuro."
+      "Os ícones dos cartões da tela inicial (dicas, sensação, umidade, vento, pressão e os outros) agora têm a cor do texto: brancos no céu escuro.",
+      "Em Minha conta, os cartões de avisos mostram só o título, sem o resumo ao lado (\"Todos\", \"1 cidade\", \"6 ativos de 7\"...)."
     ]},
     {version:"1.73.1", date:"2026-11-12", title:"Umidade e Minha conta", items:[
       "Em Próximas horas, a umidade ganhou um ícone próprio (gotinha e ar úmido), diferente do da chuva.",
