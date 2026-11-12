@@ -76,24 +76,17 @@ test('lugares das nuvens: as do meio surgem no lugar (não atravessam o texto) e
   assert.match(dist('sky.css'), /\.toon-mid \{ opacity:\.5; \}/);
 });
 
-test('céu de desenho é o padrão; pluvia-sky-style=classic volta ao céu antigo', () => {
-  const html = dist('index.html');
-  const head = html.slice(0, html.indexOf('</head>'));
-  const choose = head.indexOf('dataset.sky=localStorage.getItem("pluvia-sky-style")==="classic"?"classic":"toon"');
-  assert.ok(choose > 0, 'a escolha do céu fica no <head>');
-  assert.ok(choose < head.indexOf('<link rel="stylesheet" href="./sky.css?v='), 'antes do CSS do céu, para não piscar o céu antigo');
+test('céu de desenho é o único céu: camadas antigas, nuvem 3D e a chave classic saíram (1.71)', () => {
+  const html = dist('index.html'), css = dist('sky.css'), sw = dist('sw.js'), toon = dist('modules/sky-toon.js');
+  assert.match(html, /<div class="sky-effects" data-motion="paused" aria-hidden="true"><\/div>/, 'a cena começa vazia: o desenho é montado pelo sky-toon');
   assert.match(html, /<script src="\.\/modules\/sky-toon\.js\?v=[\w-]+" defer><\/script>/);
-  assert.match(dist('sw.js'), /"\.\/modules\/sky-toon\.js\?v=[\w-]+"/);
-  const css = dist('sky.css');
-  assert.match(css, /:root\[data-sky="toon"\] \.sky-effects > :not\(\.toon-sky\) \{ display:none !important; \}/);
-  assert.match(css, /\.sky-effects\[data-motion="paused"\] \.toon-sky \*/, 'cena parada pausa o desenho');
+  assert.match(sw, /"\.\/modules\/sky-toon\.js\?v=[\w-]+"/);
+  for (const gone of ['volumetric-clouds', 'sky-parallax', 'pluvia-sky-style', 'data-sky']) assert.ok(!html.includes(gone) && !sw.includes(gone), gone);
+  for (const gone of ['.sky-stars', '.sky-clouds', '.sky-rain', '.sky-lightning', '.sky-meteor', '.sky-rainbow', '.sky-sun', '.sky-moon', '.sky-volume', '.intro-sky', 'data-sky']) assert.ok(!css.includes(gone), gone);
+  assert.doesNotMatch(toon, /classic/);
+  assert.match(css, /\.sky-effects\[data-motion="paused"\] \*/, 'cena parada pausa o desenho');
   assert.match(css, /prefers-reduced-motion:reduce\) \{ \.toon-sky \* \{ animation:none !important; \}/);
-});
-
-test('no céu de desenho a nuvem 3D não liga (nem compila o shader)', () => {
-  const src = dist('modules/volumetric-clouds.js');
-  assert.match(src, /const next = html\.dataset\.sky === 'toon' \? null : mode\(/);
-  assert.match(src, /attributeFilter:\['data-phase','data-weather','data-rain','data-clouds','data-solar','data-wind','data-sky'\]/);
+  for (const file of ['modules/volumetric-clouds.js', 'modules/sky-parallax.js']) assert.equal(require('node:fs').existsSync(require('node:path').join(__dirname, '../dist', file)), false, file);
 });
 
 test('chuva e neve são uma camada só (não um elemento por gota) e o módulo não usa will-change', () => {

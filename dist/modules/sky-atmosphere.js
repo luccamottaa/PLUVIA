@@ -71,10 +71,6 @@
   function rainbow(code, phase, altitude) {
     return phase === 'day' && RAINBOW_CODES.includes(code) && Number.isFinite(altitude) && altitude >= 3 && altitude <= 42;
   }
-  function cloudRate(windKmh) {
-    if (typeof windKmh !== 'number' || !Number.isFinite(windKmh) || windKmh < 0 || windKmh > 400) return 1;
-    return Math.round(Math.min(2.4,Math.max(.4,.4 + windKmh * .06)) * 100) / 100;
-  }
   function localDate(now, timezone) {
     return time?.dayKey(now,timezone);
   }
@@ -155,50 +151,6 @@
       // usam o nascer/pôr do mesmo cálculo (calculatedRise/Set), sem misturar com o horário da previsão.
       return {...dayAt(at),date:day.date,dawn:day.dawn,dusk:day.dusk,goldenEnd:day.goldenEnd,goldenStart:day.goldenStart,calculatedRise:day.rise,calculatedSet:day.set,...moonDays.get(day.date)};
     }
-    // playbackRate keeps each CSS animation's position, so a new reading changes the
-    // speed without a jump. Runs on the existing clock: animations created after the
-    // stylesheet loads receive the rate on the next tick; no timer of its own.
-    // Reading getAnimations() right after writing the sky state forces a synchronous style pass
-    // over the whole page; in the browser the rate is applied in the next frame instead, when that
-    // pass already happens. Without requestAnimationFrame (tests) it stays synchronous.
-    // getAnimations() also forces a style pass over the page: on a city change it cost ~240 ms
-    // (4× CPU). It only runs when the rate actually changes or when CSS creates new cloud
-    // animations (animationstart: first load, safe/reduced motion leaving), never on every tick.
-    // New CSS animations start at playbackRate 1, so at rate 1 (no wind reading yet, as on the first
-    // load) there is nothing to read: the PageSpeed trace showed this forced style pass at startup.
-    let ratePending = false, appliedRate = 1, rateDirty = false;
-    // 1.68.4: with the 3D clouds on (data-volume="on") the CSS cloud layers are hidden and paused, so there is
-    // nothing to retime; the forced style pass still cost ~120 ms (4× CPU) on every city change. The rate is
-    // marked dirty and applied when the 3D clouds go away (observer below).
-    const volumeOn = () => document?.documentElement?.dataset?.volume === 'on';
-    function applyCloudRate() {
-      ratePending = false;
-      const rate = cloudRate(wind);
-      if (!rateDirty && rate === appliedRate) return;
-      if (volumeOn()) { rateDirty = true; return; }
-      for (const layer of document?.querySelectorAll?.('.sky-clouds') || []) {
-        for (const animation of layer.getAnimations?.() || []) {
-          if (animation.animationName?.startsWith('clouds-') && Math.abs(animation.playbackRate - rate) > .001) animation.playbackRate = rate;
-        }
-      }
-      appliedRate = rate; rateDirty = false;
-    }
-    function syncCloudRate() {
-      const rate = cloudRate(wind);
-      for (const node of skyNodes()) setVar(node,'--cloud-rate',String(rate));
-      if (!rateDirty && rate === appliedRate) return;
-      if (typeof frame !== 'function') return applyCloudRate();
-      if (!ratePending) { ratePending = true; frame(applyCloudRate); }
-    }
-    document?.addEventListener?.('animationstart',event => {
-      if (!String(event?.animationName || '').startsWith('clouds-')) return;
-      rateDirty = rateDirty || cloudRate(wind) !== 1; syncCloudRate();
-    });
-    // 3D clouds switched off (slow device, lost context): the CSS layers come back and get the pending rate.
-    const root = document?.documentElement, Watcher = document?.defaultView?.MutationObserver;
-    if (root && typeof Watcher === 'function') {
-      new Watcher(() => { if (!volumeOn() && rateDirty) syncCloudRate(); }).observe(root,{attributes:true,attributeFilter:['data-volume']});
-    }
     // Custom properties are inherited: written on <html>/<body>, each change recalculated the style
     // of every element on the page (70–100 ms per write on a 4× slower CPU, several per city change).
     // Only the sky scenes read them, so they are written there; without scenes (tests) on root/body.
@@ -233,21 +185,13 @@
         setVar(node,'--twilight-opacity',state.strength.toFixed(3));
         setVar(node,'--sun-visibility',state.sunVisibility.toFixed(3));
         setVar(node,'--moon-visibility',state.moonVisibility.toFixed(3));
-        setVar(node,'--stars-visibility',state.starVisibility.toFixed(3));
         setVar(node,'--sun-orbit-x',state.sunX.toFixed(6));
         setVar(node,'--sun-orbit-y',state.sunY.toFixed(6));
         setVar(node,'--moon-orbit-x',state.moonX.toFixed(6));
         setVar(node,'--moon-orbit-y',state.moonY.toFixed(6));
         setVar(node,'--rainbow-x',(1 - state.sunX).toFixed(4));
         setVar(node,'--rainbow-lift',(1 - (state.rainbowAltitude || 0) / 42).toFixed(4));
-        setVar(node,'--rain-opacity',String(rain.opacity));
-        setVar(node,'--rain-back-opacity',String(rain.backOpacity));
-        setVar(node,'--rain-speed',`${rain.speed}s`);
-        setVar(node,'--rain-back-speed',`${rain.backSpeed}s`);
-        setVar(node,'--rain-width',`${rain.width}px`);
-        setVar(node,'--rain-back-width',`${rain.backWidth}px`);
       }
-      syncCloudRate();
       return state;
     }
     function update(at = now(), allowMotion = true) {
@@ -377,5 +321,5 @@
     sync();
     return {sync};
   }
-  return {create,weatherType,cityTime,observeMotion,cloudRate,rainWind,rainbow,transitionFor};
+  return {create,weatherType,cityTime,observeMotion,rainWind,rainbow,transitionFor};
 });

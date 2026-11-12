@@ -36,37 +36,11 @@ test('variáveis do céu ficam nas cenas, não na raiz (evita recalcular o estil
   const s=sceneDocument();
   create({document:s.document}).apply(63,1,null,city,at,20);
   for(const scene of s.scenes) {
-    assert.ok('--sun-visibility' in scene.values && '--rain-opacity' in scene.values && '--cloud-rate' in scene.values);
+    assert.ok('--sun-visibility' in scene.values && '--sun-orbit-x' in scene.values && '--rainbow-x' in scene.values);
   }
   assert.deepEqual(s.root.values,{},'nada de variável herdada em <html>');
   assert.deepEqual(s.body.values,{},'nem em <body>');
   assert.equal(s.root.dataset.rain,'moderate','os atributos de estado continuam na raiz para os seletores');
-});
-
-test('ritmo das nuvens só consulta getAnimations quando muda ou quando o CSS cria animações',()=>{
-  const s=sceneDocument();
-  const sky=create({document:s.document});
-  sky.apply(3,1,null,city,at,20);
-  assert.equal(s.reads(),1);assert.equal(s.animations[0].playbackRate,1.6);
-  sky.update(at+30000);sky.apply(3,1,null,city,at,20);
-  assert.equal(s.reads(),1,'mesmo vento: nenhuma leitura que force estilo');
-  sky.apply(3,1,null,city,at,5);
-  assert.equal(s.reads(),2);assert.equal(s.animations[0].playbackRate,.7);
-  s.animations[0].playbackRate=1;
-  s.listeners.animationstart({animationName:'sky-rain-fall'});
-  assert.equal(s.reads(),2,'outras animações não interessam');
-  s.listeners.animationstart({animationName:'clouds-back'});
-  assert.equal(s.reads(),3);assert.equal(s.animations[0].playbackRate,.7,'animação recriada recebe o vento atual');
-});
-
-test('sem leitura de vento (abertura) as nuvens novas já estão no ritmo 1: nada de getAnimations',()=>{
-  const s=sceneDocument();
-  const sky=create({document:s.document});
-  sky.apply(3,1,null,city,at,null);
-  s.listeners.animationstart({animationName:'clouds-back'});
-  assert.equal(s.reads(),0,'nenhum recálculo de estilo forçado na abertura');
-  sky.apply(3,1,null,city,at,20);
-  assert.equal(s.reads(),1);assert.equal(s.animations[0].playbackRate,1.6);
 });
 
 class Element {

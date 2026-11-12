@@ -34,20 +34,7 @@ test('garoa, chuva leve, moderada e forte usam os códigos WMO em ambas as cenas
    sky.apply(code,1);
    assert.equal(root.dataset.rain,kind);assert.equal(body.dataset.rain,kind);
    assert.equal(root.dataset.weather,'rain');assert.deepEqual(root.values,body.values);
-   assert.ok(+root.values['--rain-opacity']>0 && +root.values['--rain-back-opacity']>0);
   }
- }
-});
-test('a representação de chuva aumenta gradualmente, com camadas em velocidades diferentes',()=>{
- const {root,sky}=rainScene();let previous={opacity:0,speed:Infinity,width:Infinity};
- for(const code of [51,61,63,65]) {
-  sky.apply(code,1);
-  const opacity=+root.values['--rain-opacity'],speed=parseFloat(root.values['--rain-speed']),width=parseFloat(root.values['--rain-width']);
-  assert.ok(opacity>previous.opacity && opacity<=.8);
-  assert.ok(speed<previous.speed && speed>=1);
-  assert.ok(width<previous.width && width>=200);
-  assert.ok(parseFloat(root.values['--rain-back-speed'])>speed,'camada distante cai mais lentamente');
-  previous={opacity,speed,width};
  }
 });
 test('trovoada não implica automaticamente chuva forte nem representa um raio observado',()=>{
@@ -55,8 +42,6 @@ test('trovoada não implica automaticamente chuva forte nem representa um raio o
  for(const code of [95,96,99]) {
   sky.apply(code,0);
   assert.equal(root.dataset.weather,'storm');assert.equal(root.dataset.rain,'moderate');
-  assert.equal(root.values['--rain-opacity'],moderate['--rain-opacity']);
-  assert.equal(root.values['--rain-speed'],moderate['--rain-speed']);
  }
 });
 test('condições secas, neve, neblina e dados inválidos removem a chuva anterior',()=>{
@@ -65,7 +50,6 @@ test('condições secas, neve, neblina e dados inválidos removem a chuva anteri
   sky.apply(65,1);sky.apply(code,0);
   for(const node of [root,body]) {
    assert.equal(node.dataset.rain,'none');
-   assert.equal(node.values['--rain-opacity'],'0');assert.equal(node.values['--rain-back-opacity'],'0');
   }
   const before={...root.values};sky.update(Date.now()+30000);
   assert.deepEqual(root.values,before,'o relógio não restaura gotas de outra condição');

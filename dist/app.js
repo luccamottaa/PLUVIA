@@ -810,16 +810,10 @@ function solarArcPoint(progress) {
 
 // "No céu": próximas lua nova/cheia (Meeus) e a próxima chuva de meteoros visível da latitude da
 // cidade, com a iluminação da Lua na noite do pico (mesma leitura de moon-view/SunCalc).
-// Estrela cadente no céu (1.36): só na noite do pico de uma chuva de meteoros visível da cidade (ou na
-// vizinha), lida da mesma conta de "No céu". O CSS decide se o céu (noite limpa/parcial) mostra.
-function setMeteorNight(on) {
-  const value=on ? 'on' : 'off', root=document.documentElement;
-  if(root?.dataset && root.dataset.meteors!==value) root.dataset.meteors=value;
-}
 function renderSkyEvents(at) {
   const events=globalThis.PLUVIA?.skyEvents, box=$('skyEvents');
   if(!box) return;
-  if(!events || !activeCity?.timezone) { box.hidden=true; setMeteorNight(false); return; }
+  if(!events || !activeCity?.timezone) { box.hidden=true; return; }
   const dateLabel=stamp=>(globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)('pt-BR',{timeZone:activeCity.timezone,weekday:'short',day:'numeric',month:'short'}).format(stamp);
   const phases=events.nextPhases(at);
   $('nextNewMoon').textContent=Number.isFinite(phases.new) ? dateLabel(phases.new) : 'Indisponível';
@@ -829,7 +823,6 @@ function renderSkyEvents(at) {
   // a chuva de meteoros sumia e aparecia a próxima.
   const tonight=globalThis.PLUVIA.time.dayKey(at-12*3600000,activeCity);
   const shower=events.nextShower(tonight,Number(activeCity.lat));
-  setMeteorNight(Boolean(shower) && Math.abs(Date.parse(shower.night+'T12:00:00Z')-Date.parse(tonight+'T12:00:00Z'))<=86400000);
   $('meteorRow').hidden=!shower;
   if(shower) {
     const night=new Date(shower.night+'T12:00:00Z'), next=new Date(night.getTime()+86400000);

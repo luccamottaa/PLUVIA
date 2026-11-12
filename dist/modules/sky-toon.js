@@ -3,6 +3,7 @@
    nuvens em imagem, estrelas cintilando, chuva em SVG, raio, estrela cadente, arco-íris); o degradê do
    céu, o crepúsculo e a tinta do texto continuam de sky-atmosphere.js. Lê os mesmos atributos da raiz
    (data-phase, -solar, -weather, -clouds, -rain, -wind, -rainbow) e as órbitas do Sol e da Lua.
+   Desde a 1.71 é o único céu: o antigo (e a chave pluvia-sky-style) saiu do código.
 
    Desenho: nuvem no traço dos ícones dos 7 dias (scripts/generate-line-icons.py, classe Cloud), com cinco
    círculos em vez de três, preenchida, contorno arredondado e sombra macia embaixo. Sol com raios, Lua na
@@ -13,10 +14,7 @@
    o texto) ao abrir, ao trocar de cidade e quando o céu muda; os da cena anterior saem pelo mesmo lado.
    Depois só as nuvens balançam devagar (transform), os raios do Sol giram e a chuva cai. Nada de
    will-change. Cena parada (data-motion="paused": página oculta, intro na frente) pausa tudo; movimento
-   reduzido não anima nada.
-
-   O céu antigo continua no código: localStorage "pluvia-sky-style" = "classic" volta a ele (o script do
-   <head> põe data-sky="classic"; sem isso, data-sky="toon"). */
+   reduzido não anima nada. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -126,7 +124,6 @@
 
   function mount(win) {
     const doc = win.document, html = doc.documentElement;
-    if (html.dataset.sky === 'classic') return;
     const reduced = () => Boolean(win.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
     let layer = null, current = '', cityPending = true, timer = 0, ids = 0;
 
