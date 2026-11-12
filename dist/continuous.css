@@ -755,28 +755,6 @@ body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="
 /* ⓘ por seção: fontes e limites num balão, sem repetir avisos em todo card. Status de dado salvo,
    antigo ou reduzido continua sempre visível (#dataStatus, notas da própria leitura). */
 .heading-with-tip { display:flex; align-items:center; gap:8px; min-width:0; }
-.info-tip { position:relative; display:inline-block; flex:none; }
-.info-tip > summary { display:grid; place-items:center; width:44px; height:44px; margin:-10px -12px; list-style:none; cursor:pointer; border-radius:50%; }
-.info-tip > summary::-webkit-details-marker { display:none; }
-/* Letra i reta (sem itálico) num círculo de borda; texto simples, sem SVG. */
-/* Ícone do ⓘ (1.40, pedido do dono: "troca por ícones clicáveis bonitos que combinem com o PLUVIA"): círculo
-   suave tingido pelo azul da marca com um "i" arredondado desenhado por máscara (a letra do HTML só some da
-   tela); aberto, o círculo fica cheio no azul e o "i" na cor do texto dos botões. Só cor: sem camada. */
-.info-tip-icon { position:relative; display:block; width:28px; height:28px; border-radius:50%; overflow:hidden; color:transparent; font-size:0; background:#7cc0ff26; background:color-mix(in srgb,var(--brand-blue,#7cc0ff) 18%,transparent); box-shadow:inset 0 0 0 1px #7cc0ff33; box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand-blue,#7cc0ff) 30%,transparent); transition:background-color .2s ease,box-shadow .2s ease; }
-.info-tip-icon::before { content:""; position:absolute; inset:0; background:var(--brand-blue,#7cc0ff); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='8.6' r='1.75'/%3E%3Crect x='12.4' y='12' width='3.2' height='9' rx='1.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='8.6' r='1.75'/%3E%3Crect x='12.4' y='12' width='3.2' height='9' rx='1.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat; transition:background-color .2s ease; }
-.info-tip[open] > summary > .info-tip-icon { background:var(--brand-blue,#7cc0ff); box-shadow:none; }
-.info-tip[open] > summary > .info-tip-icon::before { background:var(--on-accent,#0c1a33); }
-@media (hover:hover) { .info-tip > summary:hover > .info-tip-icon { background:#7cc0ff40; background:color-mix(in srgb,var(--brand-blue,#7cc0ff) 30%,transparent); } }
-@media (prefers-reduced-motion:reduce) { .info-tip-icon,.info-tip-icon::before { transition:none; } }
-@media (forced-colors:active) { .info-tip-icon { border:1px solid CanvasText; } .info-tip-icon::before { background:CanvasText; } }
-.info-tip > summary:focus-visible { outline:2px solid var(--brand-blue); outline-offset:-6px; }
-.info-tip-body { position:absolute; z-index:600; top:calc(100% + 4px); left:-12px; width:min(300px,calc(100vw - 48px)); padding:12px 14px; border:1px solid #a4c7e533; border-radius:14px; background:#0d2239; color:#e3eefb; box-shadow:0 16px 40px #0008; text-align:left; text-transform:none; letter-spacing:0; font:400 .8125rem/1.5 var(--font-ui); }
-.info-tip-body p { margin:0; color:inherit !important; font-size:inherit !important; }
-.info-tip-body p + p { margin-top:8px; }
-.info-tip-body small { color:inherit !important; font-size:inherit !important; }
-/* No card do ar e nos 7 dias o ⓘ fica à direita: o balão abre para dentro da tela. */
-.metric-head .info-tip,.section-heading .info-tip { margin-left:auto; }
-.metric-head .info-tip-body,.section-heading .info-tip-body { left:auto; right:-12px; }
 .weather-map-card #radarMapContent #weatherSourceNote { display:none; }
 /* Conta: sempre o ícone de pessoa (44px, mesmo traço da lupa); "Entrar" ou "Olá, Nome" fica para leitores de tela. */
 .topbar .account-trigger[data-signed-in] { display:grid; place-items:center; width:44px; min-width:44px; padding:0; }
@@ -795,9 +773,6 @@ body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="
 }
 /* O balão se ancora no cabeçalho da seção (largura dele), não no botão: nunca sai da tela no celular. */
 #weatherView :is(.hourly-peek-heading,.metric-head,.section-heading,.weather-map-copy) { position:relative; }
-.info-tip { position:static; }
-.info-tip-body,.metric-head .info-tip-body,.section-heading .info-tip-body { left:0; right:0; width:auto; max-width:440px; }
-.metric-head .info-tip-body,.section-heading .info-tip-body { left:auto; }
 #weatherView .hourly-peek-list:not([data-rain="some"]) .peek-rain { display:none; }
 /* Bloco da Lua simétrico ao do Sol: rótulo no topo, disco e fase lado a lado, texto sem espaçamento de rótulo. */
 /* Banner de aviso INMET laranja/vermelho vigente: faixa sólida logo abaixo do "Vai chover?".
@@ -880,15 +855,10 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
   #weatherView .home-column .forecast-list :is(.forecast-rain-chance,.forecast-rain-volume) { min-width:0; }
   #weatherView .home-column .forecast-rain-volume { color:var(--reading-muted); font-size:.75rem; }
 }
-/* O alvo de 44px do ⓘ alinhado à direita não pode passar da borda da seção (rolagem lateral no iPhone SE). */
-.metric-head .info-tip > summary,.section-heading .info-tip > summary { margin-right:-6px; }
 /* Estabilidade na chegada dos dados (CLS): o esqueleto tem a mesma altura da leitura final.
    Sem chuva relevante (o caso comum), a linha da chance não existe nem no esqueleto; a janela seca
    ocupa sempre rótulo + valor em duas linhas; e o esqueleto do número não aumenta a linha do 30°. */
 #weatherView #temperature .sk-temp { vertical-align:top; }
-/* ⓘ aberto: o texto vai para logo depois do título (app.js), no fluxo da página. Sem posição absoluta
-   nem z-index: subir camadas de títulos/seções derrubava o Safari do iPhone. */
-#weatherView .info-tip-body[data-inline] { position:static !important; z-index:auto !important; width:auto; max-width:none; margin:10px 0 14px; box-shadow:none; }
 /* Toque (celular/tablet): sem animações de entrada nem revelação ao rolar. Com o celular deitado
    (mais de 720 px) elas voltavam a rodar sobre o céu animado; cada card animado vira uma camada do
    tamanho da página no Safari do iPhone, e girar a tela travava o app. */
@@ -938,11 +908,6 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
    ~50 vezes por troca (1.25, medido: −35% de pintura); não cria camada (14 antes e depois). */
 #weatherView [data-drop] { contain:paint; }
 @media (prefers-reduced-motion:reduce) { #weatherView [data-drop] { clip-path:none; animation:none; } }
-/* ⓘ abre e fecha pela altura (grid 0fr ↔ 1fr), empurrando o conteúdo de baixo sem criar camadas. */
-#weatherView .info-tip-body[data-inline] { display:grid; grid-template-rows:1fr; transition:grid-template-rows .3s cubic-bezier(.3,.7,.2,1),margin .3s cubic-bezier(.3,.7,.2,1),padding .3s cubic-bezier(.3,.7,.2,1),border-color .3s,color .3s; }
-#weatherView .info-tip-body[data-inline][data-collapsed] { grid-template-rows:0fr; margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0; border-color:transparent; color:transparent; }
-#weatherView .info-tip-inner { min-height:0; overflow:hidden; }
-@media (prefers-reduced-motion:reduce) { #weatherView .info-tip-body[data-inline] { transition:none; } }
 /* Movimento suave onde não havia (só cor, fundo, layout de elementos pequenos ou SVG; nada de
    transform/opacity em blocos grandes, que viravam camadas e derrubavam o Safari do iPhone). */
 :where(button, summary, a, [role="button"]) { transition:color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease; }
@@ -1650,8 +1615,6 @@ body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:va
 #weatherView .sun-section .sun-label .heading-icon svg { display:block; color:var(--icon-ink); }
 #weatherView #airQualityCard .metric-head { justify-content:flex-start; }
 #weatherView #airQualityCard .metric-head > [data-weather-icon-name] { margin-right:0; }
-#weatherView #airQualityCard .metric-head .info-tip { margin-left:0; }
-#weatherView #airQualityCard .metric-head .info-tip > summary { margin-right:-12px; }
 
 /* Até 420 px o botão do radar fica só com o ícone de ampliar (44 px; o nome "Abrir radar" continua no
    aria-label): com o ícone novo do título, "Chuva na região" + ícone + ⓘ não cabiam ao lado do botão e o
@@ -1806,15 +1769,10 @@ body[data-ink="dark"] .compact-head > .compact-pill { background:linear-gradient
    no Chromium a lente (url() no backdrop-filter) também. Só elementos pequenos recebem blur (os cartões continuam sem).
    O segmento selecionado da pílula não tem blur próprio: blur dentro de blur confunde o backdrop. Movimento do toque em
    modules/glass-touch.js (SELECTOR). Para tirar só o desfoque (se o Safari pesar), apague as linhas backdrop-filter. */
-#cityDialog #citySearch,
-#cityDialog .city-actions > button,
-#weatherView .rain-report-options button,
-#weatherView .hourly-modes,
-.info-tip-icon {
+#cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes {
   -webkit-backdrop-filter:blur(10px) saturate(1.7) brightness(1.06);
   backdrop-filter:blur(10px) saturate(1.7) brightness(1.06);
 }
-.info-tip-icon { -webkit-backdrop-filter:blur(6px) saturate(1.6); backdrop-filter:blur(6px) saturate(1.6); box-shadow:inset 1px 1px 0 -.3px rgba(255,255,255,.55), inset 0 0 0 .5px rgba(255,255,255,.3), 0 2px 8px rgba(4,8,20,.18); }
 #weatherView .rain-report-options button { position:relative; background:rgba(255,255,255,.1); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.55), inset -1px -1px 0 -.5px rgba(255,255,255,.2), inset 0 0 0 .5px rgba(255,255,255,.2), 0 4px 12px rgba(4,8,20,.14); }
 #weatherView .rain-report-options button[aria-pressed="true"] { background-color:color-mix(in srgb,var(--brand-blue) 84%,transparent); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.6), inset 0 0 0 .5px rgba(255,255,255,.3), 0 4px 14px rgba(4,14,34,.2); }
 body[data-ink="dark"] #weatherView .rain-report-options button:not([aria-pressed="true"]) { background-color:rgba(255,255,255,.42); border-color:rgba(19,35,61,.18); box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.9), inset 0 0 0 .5px rgba(19,35,61,.12), 0 4px 12px rgba(20,40,70,.1); }
@@ -1830,10 +1788,10 @@ body[data-ink="dark"] #weatherView .hourly-modes { box-shadow:inset 0 0 0 1px rg
 }
 #cityDialog .city-actions > button[data-glass-press]::after, #weatherView .rain-report-options button[data-glass-press]::after, #weatherView .hourly-modes button[data-glass-press]::after { opacity:1; transition-duration:.12s; }
 @media (prefers-reduced-transparency:reduce) {
-  #cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes, .info-tip-icon { -webkit-backdrop-filter:none; backdrop-filter:none; }
+  #cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes { -webkit-backdrop-filter:none; backdrop-filter:none; }
 }
 @media (forced-colors:active) {
-  #cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes, .info-tip-icon { -webkit-backdrop-filter:none; backdrop-filter:none; box-shadow:none; }
+  #cityDialog #citySearch, #cityDialog .city-actions > button, #weatherView .rain-report-options button, #weatherView .hourly-modes { -webkit-backdrop-filter:none; backdrop-filter:none; box-shadow:none; }
   #cityDialog .city-actions > button::after, #weatherView .rain-report-options button::after, #weatherView .hourly-modes button::after { display:none; }
 }
 

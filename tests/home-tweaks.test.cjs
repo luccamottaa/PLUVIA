@@ -92,3 +92,13 @@ test('"Agora", nascer/pôr do sol e "Hoje" em dourado, âmbar com tinta escura (
   for (const sel of ['.hourly-peek-item.is-now .peek-time', '.hourly-solar-item', '.hourly-solar-item .peek-time', '.forecast-row[data-today] .forecast-day > strong > span', '.sun-table tbody tr[data-today] th'])
     assert.ok(new RegExp(`#weatherView ${sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\{[^}]*color:var\\(--accent-now\\)`).test(css), sel);
 });
+
+test('sem botões "i" no app; créditos das fontes continuam (1.73.2)', () => {
+  const app = dist('app.js'), css = ['continuous.css', 'redesign.css', 'styles.css', 'dialogs.css'].map(dist).join('\n');
+  assert.doesNotMatch(html, /info-tip/);
+  assert.doesNotMatch(app, /info-tip|forecastCityLabel/);
+  assert.doesNotMatch(css, /info-tip/);
+  assert.match(html, /Open-Meteo/, 'crédito do Open-Meteo continua na página');
+  assert.match(fs.readFileSync(path.join(__dirname, '../dist/weather-map.js'), 'utf8'), /attribution:'Radar: RainViewer'/);
+  assert.match(fs.readFileSync(path.join(__dirname, '../dist/modules/sources.js'), 'utf8'), /Open-Meteo \/ CAMS/);
+});

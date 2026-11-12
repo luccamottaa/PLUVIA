@@ -64,11 +64,6 @@ test('a raiz nunca é fotografada nem ganha atributo na troca (recalculava a pá
   assert.doesNotMatch(css,/view-transition-name:pluvia/,'nomes só no estilo dos textos, durante a troca');
   for(const name of ['pluvia-city','pluvia-temp','pluvia-condition','pluvia-city-prev']) assert.match(css,new RegExp(`::view-transition-new\\(${name}\\)`));
 });
-test('ⓘ abre e fecha pela altura (grid 0fr ↔ 1fr), sem transform/opacity',()=>{
-  assert.match(css,/\.info-tip-body\[data-inline\]\[data-collapsed\] \{ grid-template-rows:0fr;/);
-  const rule=css.match(/#weatherView \.info-tip-body\[data-inline\] \{ display:grid;[^}]*\}/)[0];
-  assert.doesNotMatch(rule,/transform|opacity/);
-});
 test('no toque os esqueletos ficam parados (o brilho em transform virava uma camada por barra)',()=>{
   assert.match(css,/@media \(hover:none\), \(pointer:coarse\) \{ #weatherView \.sk::after \{ animation:none; display:none; \} \}/);
 });
