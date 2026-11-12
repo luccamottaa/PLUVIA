@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.72", date:"2026-11-11", title:"Janelas com céu de desenho", items:[
+      "Todas as janelas (cidades, conta, avisos, dias da semana e as outras) agora têm o mesmo céu de desenho da tela inicial ao fundo, com o tempo e a hora da cidade.",
+      "Quando a janela abre, as nuvens, o Sol, a Lua, as estrelas e a chuva entram animados nas bordas, deixando o meio livre para o texto."
+    ]},
     {version:"1.71", date:"2026-11-11", title:"Só o céu de desenho", items:[
       "O céu de desenho virou o céu do PLUVIA: o céu antigo, com as nuvens 3D e as camadas de imagem, saiu do app.",
       "O app ficou mais leve: cerca de 2,5 MB de imagens e o código das nuvens 3D a menos, e a textura de nuvem não é mais baixada logo na abertura."

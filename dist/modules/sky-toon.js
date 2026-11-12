@@ -40,6 +40,16 @@
     {x:-28, y:52,  w:46, from:'left'},
     {x:82,  y:50,  w:46, from:'right'}
   ];
+  // Janelas (1.72): em % da janela. Alto e horizonte embaixo; duas laterais translúcidas; o meio fica para o conteúdo.
+  const SHEET_SLOTS = [
+    {x:-20, y:5,  w:58, from:'left'},
+    {x:-18, y:80, w:66, from:'left'},
+    {x:56,  y:84, w:66, from:'right'},
+    {x:70,  y:12, w:46, from:'right'},
+    {x:18,  y:91, w:58, from:'pop'},
+    {x:-16, y:46, w:36, from:'left', mid:true},
+    {x:80,  y:54, w:36, from:'right', mid:true}
+  ];
   const STARS = [[12, 9], [30, 17], [52, 7], [74, 14], [88, 26], [8, 34], [42, 30], [66, 38], [22, 48], [82, 52], [55, 56], [14, 62]];
   const WEATHERS = ['sun', 'partly', 'cloud', 'rain', 'storm', 'snow', 'fog', 'unknown'];
   // Céu limpo sem nenhuma nuvem (1.70.2, pedido do dono: "se tá com céu limpo, por que tem uma nuvem ali?").
@@ -165,7 +175,9 @@
       bob.className = 'toon-bob'; bob.append(node); el.append(bob);
       return el;
     }
-    function place(el, x, y, w) {
+    // Na tela, vw/vh (com teto em px no desktop); nas janelas, % da própria janela.
+    function place(el, x, y, w, unit = 'v') {
+      if (unit === '%') { el.style.left = x + '%'; el.style.top = y + '%'; if (w) el.style.width = w + '%'; return; }
       el.style.left = x + 'vw'; el.style.top = y + 'vh';
       if (w) el.style.width = `min(${w}vw, ${Math.round(w * 6)}px)`;
     }
@@ -189,31 +201,34 @@
       });
       win.setTimeout(() => old.remove(), longest + 40);
     }
-    function build(p) {
-      const box = doc.createElement('div');
-      box.className = 'toon-sky'; box.dataset.weather = p.weather; box.dataset.night = String(p.night);
+    const MAIN = {className:'toon-sky', slots:SLOTS, unit:'v', maxClouds:Infinity};
+    const SHEET = {className:'toon-sky toon-sheet', slots:SHEET_SLOTS, unit:'%', maxClouds:SHEET_SLOTS.length};
+    function build(p, layout = MAIN) {
+      const box = doc.createElement('div'), unit = layout.unit;
+      box.className = layout.className; box.dataset.weather = p.weather; box.dataset.night = String(p.night);
+      box.setAttribute('aria-hidden', 'true');
       let index = 0;
       if (p.rainbow) { const r = piece(rainbow(), 'toon-rainbow', 'pop'); box.append(r); enter(r, index++); }
       if (p.sun) { const s = piece(sun(p.colors === PALETTE.dusk), 'toon-sun', 'top'); box.append(s); enter(s, index++); }
       if (p.moon) { const m = piece(moon(), 'toon-moon', 'top'); box.append(m); enter(m, index++); }
       for (let i = 0; i < p.stars; i++) {
         const s = piece(star(), 'toon-star' + (i % 4 === 1 ? ' toon-twinkle' : ''), 'pop');
-        place(s, STARS[i][0], STARS[i][1]); s.style.width = (i % 3 ? 11 : 16) + 'px';
+        place(s, STARS[i][0], STARS[i][1], 0, unit); s.style.width = (i % 3 ? 11 : 16) + 'px';
         box.append(s); enter(s, index++);
       }
       if (p.fog) for (let i = 0; i < 4; i++) {
         const f = doc.createElement('div'); f.className = 'toon toon-fog'; f.dataset.from = i % 2 ? 'right' : 'left';
-        f.style.left = (i % 2 ? 14 : -18) + 'vw'; f.style.top = (12 + i * 13) + 'vh';
+        place(f, i % 2 ? 14 : -18, 12 + i * 13, 0, unit);
         box.append(f); enter(f, index++);
       }
-      for (let i = 0; i < p.clouds; i++) {
-        const slot = SLOTS[i % SLOTS.length];
+      for (let i = 0; i < Math.min(p.clouds, layout.maxClouds); i++) {
+        const slot = layout.slots[i % layout.slots.length];
         const c = piece(cloud(p.colors), 'toon-cloud' + (slot.mid ? ' toon-mid' : ''), slot.from);
         c.firstChild.style.setProperty('--bob', (9 + (i * 1.7) % 5).toFixed(1) + 's');
         c.firstChild.style.setProperty('--bob-delay', (-i * 1.3).toFixed(1) + 's');
-        place(c, slot.x, slot.y, slot.w); box.append(c); enter(c, index++);
+        place(c, slot.x, slot.y, slot.w, unit); box.append(c); enter(c, index++);
       }
-      if (p.bolt) { const b = piece(bolt(), 'toon-bolt', 'pop'); place(b, 38, 22, 16); box.append(b); enter(b, index++); }
+      if (p.bolt) { const b = piece(bolt(), 'toon-bolt', 'pop'); place(b, 38, 22, 16, unit); box.append(b); enter(b, index++); }
       // Chuva e neve: uma camada só, que aparece depois que as nuvens chegam.
       if (p.rain || p.snow) {
         const fx = doc.createElement('div'), sheet = doc.createElement('div');
@@ -244,7 +259,36 @@
     win.addEventListener('pluvia:weather-updated', () => soon(cityPending ? 150 : 250));
     new win.MutationObserver(() => soon(250)).observe(html, {attributes:true, attributeFilter:['data-phase', 'data-solar', 'data-weather', 'data-rain', 'data-clouds', 'data-wind', 'data-rainbow']});
     soon(300);
+
+    // Janelas (1.72, pedido do dono: "um fundo mais bonito pra todas as páginas, desenhos animados"): ao abrir uma
+    // janela, o mesmo céu da Home (hora e tempo) é desenhado atrás do conteúdo, com a entrada animada; ao fechar, sai
+    // (depois da animação de saída da janela). O radar fica de fora: o mapa cobre a janela inteira.
+    const sheets = new Map();
+    function openSheet(dialog) {
+      sheets.get(dialog)?.remove();
+      const d = html.dataset;
+      const p = plan({weather:d.weather, phase:d.phase, solar:d.solar, clouds:d.clouds, rain:d.rain, wind:d.wind, rainbow:d.rainbow});
+      const sheet = build(p, SHEET);
+      dialog.prepend(sheet); sheets.set(dialog, sheet);
+      dialog.dataset.toon = '';
+    }
+    function closeSheet(dialog) {
+      const sheet = sheets.get(dialog);
+      if (!sheet) return;
+      win.setTimeout(() => {
+        if (dialog.open || sheets.get(dialog) !== sheet) return;
+        sheet.remove(); sheets.delete(dialog); delete dialog.dataset.toon;
+      }, 700);
+    }
+    const watcher = new win.MutationObserver(records => {
+      for (const record of records) { const dialog = record.target; if (dialog.open) openSheet(dialog); else closeSheet(dialog); }
+    });
+    for (const dialog of doc.querySelectorAll('dialog.dlg-todas')) {
+      if (dialog.id === 'radarDialog') continue;
+      watcher.observe(dialog, {attributes:true, attributeFilter:['open']});
+      if (dialog.open) openSheet(dialog);
+    }
   }
 
-  return {plan, cloudPath, moonPath, CLOUD, SLOTS, STARS, PALETTE, CLOUDS, WEATHERS, mount};
+  return {plan, cloudPath, moonPath, CLOUD, SLOTS, SHEET_SLOTS, STARS, PALETTE, CLOUDS, WEATHERS, mount};
 });
