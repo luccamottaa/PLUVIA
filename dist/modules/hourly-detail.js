@@ -94,7 +94,6 @@
       const box=el('hourlyDetailExtra'),title=el('hourlyDetailExtraTitle');
       if(typeof box?.replaceChildren!=='function' || typeof doc.createElement!=='function') return;
       const rows=[
-        ['dew','Ponto de orvalho',at('pluvia_dew_point'),value=>unit(value,'°')],
         ['cloud-base','Base das nuvens',at('pluvia_cloud_base'),value=>unit(value,' km',1)],
         ['cloud-ceiling','Teto das nuvens',at('pluvia_cloud_ceiling'),value=>unit(value,' km',1)],
         ['surface-pressure','Pressão na superfície',at('pluvia_surface_pressure'),value=>unit(value,' hPa')],

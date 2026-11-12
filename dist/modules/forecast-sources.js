@@ -54,11 +54,11 @@
   // mesmo intervalo da chuva horária do Open-Meteo. Só substitui valor válido; ausente fica como estava.
   const INSTANT = [["temperature_2m","temperatureC"],["apparent_temperature","apparentC"],["relative_humidity_2m","humidity"],
     ["wind_speed_10m","windKmh"],["wind_gusts_10m","gustKmh"],["wind_direction_10m","windDirection"],["pressure_msl","pressureHpa"],
-    ["uv_index","uvIndex"],["cloud_cover","cloudCover"]];
+    ["uv_index","uvIndex"],["cloud_cover","cloudCover"],["dew_point_2m","dewPointC"]];
   const INTERVAL = [["precipitation","rainMm"],["rain","rainMm"],["precipitation_probability","probability"],["weather_code","code"]];
   // Campos que só o Tomorrow.io entrega (1.73.4): séries novas, criadas só se algum valor chegar; o detalhe da hora
   // mostra o que houver (modules/hourly-detail.js).
-  const EXTRAS = [["pluvia_dew_point","dewPointC"],["pluvia_cloud_base","cloudBaseKm"],["pluvia_cloud_ceiling","cloudCeilingKm"],
+  const EXTRAS = [["pluvia_cloud_base","cloudBaseKm"],["pluvia_cloud_ceiling","cloudCeilingKm"],
     ["pluvia_surface_pressure","surfacePressureHpa"],["pluvia_precipitation_type","precipitationType"],["pluvia_rain_intensity","rainIntensityMmH"],
     ["pluvia_evapotranspiration","evapotranspirationMm"],["pluvia_uv_concern","uvConcern"]];
   function overlayTomorrow(forecast, data, city, parse) {
@@ -106,7 +106,10 @@
         if (name in current && now[field] !== null && now[field] !== undefined) current[name] = now[field];
       }
     }
-    return {...forecast, current, hourly, ...(daily ? {daily} : {}), pluviaSource:"tomorrow", pluviaTomorrowDays:daily ? touched.size : 0};
+    // Qualidade do ar do agora (1.73.6), só quando o índice chega; app.js troca o CAMS por ela no cartão.
+    const air = now && Number.isFinite(now.aqi) ? {aqi:now.aqi, pollutant:now.aqiPollutant ?? null, pm25:now.pm25 ?? null, pm10:now.pm10 ?? null,
+      o3Ppb:now.o3Ppb ?? null, no2Ppb:now.no2Ppb ?? null, so2Ppb:now.so2Ppb ?? null} : null;
+    return {...forecast, current, hourly, ...(daily ? {daily} : {}), ...(air ? {pluviaTomorrowAir:air} : {}), pluviaSource:"tomorrow", pluviaTomorrowDays:daily ? touched.size : 0};
   }
 
   // Dias a partir das horas (1.73.4, pedido do dono: "os 7 dias" também do Tomorrow.io). Para cada dia local que
