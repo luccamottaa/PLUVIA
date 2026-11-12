@@ -110,6 +110,10 @@ body.page-hidden .sky-effects > * { visibility:hidden !important; transition:non
 .toon svg { display:block; width:100%; height:auto; overflow:visible; }
 .toon-cloud .toon-bob { animation:toon-bob var(--bob,10s) ease-in-out infinite alternate; animation-delay:var(--bob-delay,0s); }
 .toon-mid { opacity:.5; }
+/* Nuvem atrás do nome, da temperatura e da condição (.toon-dim, sky-toon.js markLane): com texto branco de dia
+   (nublado, chuva, trovoada, neblina) fica quase transparente; nuvem clara sob texto branco apagava o texto. Com
+   texto escuro (céu limpo de dia) ou à noite (nuvens escuras), fica como está. */
+body[data-ink="light"]:not([data-phase="night"]) .toon-sky .toon-cloud.toon-dim { opacity:.12; }
 @keyframes toon-bob { from { transform:translate3d(0,-5px,0); } to { transform:translate3d(6px,5px,0); } }
 /* Sol e Lua na órbita real (as mesmas variáveis do céu antigo); a entrada anima o transform, então o
    centro vem da margem negativa. */

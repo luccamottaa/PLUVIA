@@ -271,12 +271,32 @@
       if (p.key === current && !cityPending && layer) return;   // mesma cena e mesma cidade: nada a refazer
       const old = layer;
       layer = build(p); current = p.key; cityPending = false;
-      leave(old); host.append(layer);
+      leave(old); host.append(layer); laneSoon();
     }
+    // Texto sobre o céu (nome, temperatura, condição e a linha de sensação): nuvem atrás dele ganha .toon-dim e, com
+    // texto branco de dia (nublado, chuva), fica quase transparente (sky.css). Nuvem clara sob texto branco derrubava
+    // o contraste (scripts/verify-contrast.py: 1,6 no nublado). A cena é fixa e o texto rola: compara com o texto na
+    // posição de repouso (topo da página). Caixas sem transform (offset*), para não medir a entrada animada.
+    const LANE = ['cityName', 'temperature', 'condition', 'heroRange'];
+    function markLane() {
+      if (!layer) return;
+      const sy = win.scrollY || 0, boxes = [];
+      for (const id of LANE) {
+        const el = doc.getElementById(id); if (!el) continue;
+        const range = doc.createRange(); range.selectNodeContents(el);
+        const b = range.getBoundingClientRect(); if (b.width && b.height) boxes.push({top:b.top + sy, bottom:b.bottom + sy, left:b.left, right:b.right});
+      }
+      for (const c of layer.querySelectorAll('.toon-cloud')) {
+        const w = c.offsetWidth, h = c.offsetHeight, left = c.offsetLeft + w * .05, right = c.offsetLeft + w * .95, top = c.offsetTop + h * .2, bottom = c.offsetTop + h;
+        c.classList.toggle('toon-dim', boxes.some(b => top < b.bottom && bottom > b.top && left < b.right && right > b.left));
+      }
+    }
+    const laneSoon = () => win.requestAnimationFrame ? win.requestAnimationFrame(markLane) : markLane();
+    win.addEventListener('resize', laneSoon, {passive:true});
     function soon(ms) { win.clearTimeout(timer); timer = win.setTimeout(render, ms); }
     // Troca de cidade: refaz a entrada mesmo que o céu seja igual; espera o céu da cidade nova assentar.
     win.addEventListener('pluvia:city-changed', () => { cityPending = true; soon(1600); });
-    win.addEventListener('pluvia:weather-updated', () => soon(cityPending ? 150 : 250));
+    win.addEventListener('pluvia:weather-updated', () => { soon(cityPending ? 150 : 250); win.setTimeout(laneSoon, 400); });
     new win.MutationObserver(() => soon(250)).observe(html, {attributes:true, attributeFilter:['data-phase', 'data-solar', 'data-weather', 'data-rain', 'data-clouds', 'data-wind', 'data-rainbow']});
     soon(300);
 

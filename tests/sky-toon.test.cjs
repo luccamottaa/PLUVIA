@@ -57,6 +57,15 @@ test('nuvem é um contorno só de cinco arcos com base reta, sem retângulo', ()
   assert.doesNotMatch(d, /[HVL]/, 'só arcos: a base reta é o fechamento do caminho');
 });
 
+test('nuvem atrás do texto do topo fica quase transparente com texto branco de dia (verify-contrast)', () => {
+  const src = dist('modules/sky-toon.js'), css = dist('sky.css');
+  assert.match(src, /const LANE = \['cityName', 'temperature', 'condition', 'heroRange'\]/);
+  assert.match(src, /c\.classList\.toggle\('toon-dim'/);
+  assert.match(src, /offsetTop/, 'caixa sem transform: não mede a entrada animada');
+  assert.match(src, /host\.append\(layer\); laneSoon\(\);/);
+  assert.match(css, /body\[data-ink="light"\]:not\(\[data-phase="night"\]\) \.toon-sky \.toon-cloud\.toon-dim \{ opacity:\.12; \}/);
+});
+
 test('Lua desenhada na fase real: nada na nova, disco cheio na cheia, lado certo no crescente', () => {
   assert.equal(toon.moonPath(0), '');
   assert.equal(toon.moonPath(.99), '');

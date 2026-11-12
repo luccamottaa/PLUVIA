@@ -688,6 +688,7 @@ Pedido do dono (prints de "Minha conta" e "Suas cidades": "faz um fundo mais bon
 - A janela já tem `isolation:isolate`, `overflow:hidden` e só `.dialog-scroll` rola; por isso o desenho fica parado atrás do conteúdo com `z-index:-1` e `border-radius:inherit`. O degradê por fase continua sendo o fundo da janela (`continuous.css`); as camadas estáticas `::before`/`::after` (estrelas e véu) somem quando há `data-toon`.
 - Nuvens com opacidade .62 (laterais .32), chuva .35: o texto vem primeiro. `body.page-hidden` pausa as animações; `prefers-reduced-motion` já desliga as de `.toon-sky *`.
 - Teste: `tests/sky-toon.test.cjs` ("janelas ganham o mesmo céu de desenho").
+- **Nuvem atrás do texto do topo (mesma PR, CI `verify-contrast.py` vermelho desde o céu de desenho):** nuvem clara sob texto branco dava 1,6:1 em "Nublado". `markLane` (sky-toon.js) mede as caixas de texto de `#cityName`, `#temperature`, `#condition` e `#heroRange` (Range, na posição de repouso: a cena é fixa) e marca `.toon-dim` nas nuvens que encostam nelas (caixa `offset*`, sem a entrada animada); roda ao montar a cena, depois de `pluvia:weather-updated` e no `resize`. Em `sky.css`, `.toon-dim` só vale com `body[data-ink="light"]` de dia (opacidade .12); céu limpo de dia (texto escuro) e noite (nuvens escuras) não mudam. Conferido com uma porta do `verify-contrast.py` (mesma previsão de teste, relógio e medida): 14 estados sem falha (nublado 1,59 → 2,3; chuva moderada 4,4 → 10,7).
 
 ## Céu antigo apagado (novembro/2026, 1.71)
 
