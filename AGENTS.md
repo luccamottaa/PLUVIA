@@ -654,6 +654,14 @@ Pedido do dono ("a Home pula"). Medido na volta ao app (Edge, CPU 4×): o pulo i
 
 Pedido do dono (print: topo "Céu limpo" e pílula "Chuva fraca agora; deve parar por volta das 17h"). `weatherInsights.rainAnswer` dizia "agora" sempre que a hora que começa agora (intervalo i+1) era molhada pela previsão (≥ 0,5 mm, ou ≥ 50% com ≥ 0,1 mm), mesmo com a condição atual seca. Agora, com a primeira hora molhada: "agora" quando `hours[0].now` (código atual de chuva/trovoada; o app já aplica a chuva observada da estação, aeroporto e radar em `withObservedRain` antes de chamar) ou quando não há condição atual para conferir; com condição atual conhecida e seca (céu limpo, nuvens, neblina), "na próxima hora". O tom ("rain"/"storm"), a regra de hora molhada (igual a `_shared/forecast-verify.js`) e o convite de avisos não mudam. Teste: `tests/rain-answer.test.cjs`.
 
+## Dados do Tomorrow.io nos cartões da tela inicial (novembro/2026, 1.73.5)
+
+Pedido do dono (print dos cartões: "eu quero que as informações sejam aqui"). Depois do UV, quatro cartões (`renderExtraTiles`, app.js; valores da hora em curso, como UV e visibilidade):
+- **Nuvens** (`#cloudsCard`, sempre): `cloud_cover`; nota com base/teto do Tomorrow.io (`pluvia_cloud_base`/`pluvia_cloud_ceiling`) ou a descrição pela cobertura.
+- **Ponto de orvalho** (`#dewPointCard`, sempre): o Open-Meteo passou a mandar `dew_point_2m` (weather-services.js e a pré-busca do index.html, que precisam ter a mesma URL) e o Tomorrow.io o substitui em `INSTANT` (forecast-sources.js); a série `pluvia_dew_point` saiu. Nota: seco < 10°, confortável < 16°, úmido < 21°, abafado < 24°, muito abafado.
+- **Intensidade da chuva** (`#rainIntensityCard`) e **Evaporação** (`#evapoCard`, evapotranspiração; o nome inteiro não cabe no título): só com o teste ligado (`hidden` sem valor).
+- Sem o teste a grade tem 10 cartões; com ele, 12 (sempre em pares). Ícones de linha novos em weather-icon-system.js (`cloud-cover`, `dew-point`, `rain-intensity`, `evapotranspiration`). O bloco "Mais do Tomorrow.io" do detalhe da hora continua (sem o orvalho).
+
 ## Tomorrow.io completo no teste e visibilidade sem código do aeroporto (novembro/2026, 1.73.4)
 
 Pedidos do dono ("os 7 dias" e "tudo o que o Tomorrow entregue tenha no PLUVIA"; "pra sair o SBMN" da visibilidade).

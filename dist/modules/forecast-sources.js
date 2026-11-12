@@ -54,11 +54,11 @@
   // mesmo intervalo da chuva horária do Open-Meteo. Só substitui valor válido; ausente fica como estava.
   const INSTANT = [["temperature_2m","temperatureC"],["apparent_temperature","apparentC"],["relative_humidity_2m","humidity"],
     ["wind_speed_10m","windKmh"],["wind_gusts_10m","gustKmh"],["wind_direction_10m","windDirection"],["pressure_msl","pressureHpa"],
-    ["uv_index","uvIndex"],["cloud_cover","cloudCover"]];
+    ["uv_index","uvIndex"],["cloud_cover","cloudCover"],["dew_point_2m","dewPointC"]];
   const INTERVAL = [["precipitation","rainMm"],["rain","rainMm"],["precipitation_probability","probability"],["weather_code","code"]];
   // Campos que só o Tomorrow.io entrega (1.73.4): séries novas, criadas só se algum valor chegar; o detalhe da hora
   // mostra o que houver (modules/hourly-detail.js).
-  const EXTRAS = [["pluvia_dew_point","dewPointC"],["pluvia_cloud_base","cloudBaseKm"],["pluvia_cloud_ceiling","cloudCeilingKm"],
+  const EXTRAS = [["pluvia_cloud_base","cloudBaseKm"],["pluvia_cloud_ceiling","cloudCeilingKm"],
     ["pluvia_surface_pressure","surfacePressureHpa"],["pluvia_precipitation_type","precipitationType"],["pluvia_rain_intensity","rainIntensityMmH"],
     ["pluvia_evapotranspiration","evapotranspirationMm"],["pluvia_uv_concern","uvConcern"]];
   function overlayTomorrow(forecast, data, city, parse) {

@@ -89,7 +89,7 @@ test('família completa fica disponível offline e diferencia precipitação', (
 test('blocos de leitura da Home usam ícones em traço, no mesmo estilo dos títulos de seção', () => {
   const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
   const names = [...html.matchAll(/data-weather-icon-name="([a-z-]+)" data-weather-icon-style="line"/g)].map(m => m[1]);
-  assert.deepEqual(names, ['feels-like','temperature','visibility','humidity','wind-speed','pressure','rain-chance','uv-index','air-quality','radar','sun-cycle'], 'blocos de leitura (Chuva desde a 1.63) e, desde a 1.37.2, os títulos de Chuva na região e Ciclo do dia');
+  assert.deepEqual(names, ['feels-like','temperature','visibility','humidity','wind-speed','pressure','rain-chance','uv-index','cloud-cover','dew-point','rain-intensity','evapotranspiration','air-quality','radar','sun-cycle'], 'blocos de leitura (Chuva desde a 1.63) e, desde a 1.37.2, os títulos de Chuva na região e Ciclo do dia');
   for (const name of ['river','fire','temperature']) assert.match(icons.lineMarkup(name), /^<svg/, name + ' continua no conjunto');
   for (const name of names) {
     const svg = icons.lineMarkup(name);

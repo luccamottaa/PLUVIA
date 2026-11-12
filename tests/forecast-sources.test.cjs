@@ -165,8 +165,10 @@ test('dias refeitos a partir das horas do Tomorrow.io: só dia com as 24 horas; 
 
 test('extras do Tomorrow.io viram séries pluvia_* só quando chegam (1.73.4)',()=>{
   const data={hourly:[{time:utc('2026-11-09T11:00'),temperatureC:27,dewPointC:23.5,cloudBaseKm:1.2,precipitationType:1,uvConcern:2}]};
-  const out=sources.overlayTomorrow(forecast(),data,city,parse);
-  assert.deepEqual(out.hourly.pluvia_dew_point,[null,23.5,null,null]);
+  const base=forecast();base.hourly.dew_point_2m=[20,20,20,20];
+  const out=sources.overlayTomorrow(base,data,city,parse);
+  assert.deepEqual(out.hourly.dew_point_2m,[20,23.5,20,20],'orvalho do Tomorrow.io por cima do Open-Meteo (1.73.5)');
+  assert.deepEqual(out.hourly.pluvia_cloud_base,[null,1.2,null,null]);
   assert.deepEqual(out.hourly.pluvia_precipitation_type,[null,1,null,null]);
   assert.equal(out.hourly.pluvia_evapotranspiration,undefined,'sem valor, sem série');
   const plain=sources.overlayTomorrow(forecast(),{hourly:[{time:utc('2026-11-09T11:00'),temperatureC:27}]},city,parse);

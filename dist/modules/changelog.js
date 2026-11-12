@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.73.5", date:"2026-11-12", title:"Mais cartões", items:[
+      "A tela inicial ganhou os cartões Nuvens (cobertura do céu) e Ponto de orvalho (se o ar está seco, confortável, úmido ou abafado).",
+      "Com \"Testar Tomorrow.io\" ligado, aparecem também Intensidade da chuva e Evaporação, e o cartão Nuvens mostra a altura da base e do teto das nuvens."
+    ]},
     {version:"1.73.4", date:"2026-11-12", title:"Mais Tomorrow.io", items:[
       "Com \"Testar Tomorrow.io\" ligado, os primeiros dias de Próximos 7 dias também vêm do Tomorrow.io (máxima, mínima, chuva, chance, UV e a condição), e as horas vão até 5 dias.",
       "O detalhe da hora ganhou visibilidade e nuvens, e com o teste ligado mostra tudo o que o Tomorrow.io entrega: ponto de orvalho, base e teto das nuvens, pressão na superfície, tipo e intensidade da chuva, evapotranspiração e risco do UV.",

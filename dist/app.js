@@ -1052,6 +1052,30 @@ function paintVisibility() {
   $("visibilityValue").closest?.(".metric")?.setAttribute("aria-label", blend ? "Visibilidade prevista pelo modelo; o aeroporto mede 10 km ou mais" : measured ? "Visibilidade medida" : "Visibilidade prevista");
 }
 
+// Cartões da tela inicial com o que o Tomorrow.io entrega (1.73.5, pedido do dono: "quero que as informações sejam
+// aqui"). Nuvens e ponto de orvalho aparecem sempre (as duas fontes têm); intensidade da chuva e evapotranspiração só
+// com o teste do Tomorrow.io ligado. Valores da hora atual (início da hora em curso), como UV e visibilidade.
+const PRECIPITATION_KIND = ["Sem chuva agora", "Chuva", "Neve", "Chuva congelante", "Granizo fino"];
+function renderExtraTiles(hourly, start) {
+  const at = key => { const value = hourly?.[key]?.[start]; return typeof value === "number" && Number.isFinite(value) ? value : null; };
+  const show = (id, value, html, note) => {
+    const card = $(id + "Card"); if (!card) return;
+    card.hidden = value === null;
+    if (value === null) return;
+    $(id + "Value").innerHTML = html; $(id + "Note").textContent = note;
+  };
+  const cover = at("cloud_cover"), base = at("pluvia_cloud_base"), ceiling = at("pluvia_cloud_ceiling");
+  const layers = [base !== null ? `Base ${fmt(base, 1)} km` : "", ceiling !== null ? `teto ${fmt(ceiling, 1)} km` : ""].filter(Boolean).join(" · ");
+  show("clouds", cover, `${fmt(cover)}<sup>%</sup>`, layers || (cover === null ? "" : cover < 20 ? "Céu quase limpo" : cover < 60 ? "Algumas nuvens" : cover < 90 ? "Bastante nuvem" : "Céu encoberto"));
+  const dew = at("dew_point_2m");
+  show("dewPoint", dew, `${fmt(dew)}°`, dew === null ? "" : dew < 10 ? "Ar seco" : dew < 16 ? "Confortável" : dew < 21 ? "Úmido" : dew < 24 ? "Abafado" : "Muito abafado");
+  const intensity = at("pluvia_rain_intensity"), kind = at("pluvia_precipitation_type");
+  show("rainIntensity", intensity, `${fmt(intensity, 1)}<sup> mm/h</sup>`, kind !== null && PRECIPITATION_KIND[kind] ? (kind === 0 && intensity > 0 ? "Chuva" : PRECIPITATION_KIND[kind]) : intensity > 0 ? "Chuva" : "Sem chuva agora");
+  const evapo = at("pluvia_evapotranspiration");
+  // "Evapotranspiração" não cabe no título do cartão: "Evaporação", e a nota diz de onde vem a água.
+  show("evapo", evapo, `${fmt(evapo, 2)}<sup> mm</sup>`, "Água que sobe do solo e das plantas nesta hora");
+}
+
 function cache(data, metadata = {}) { try { localStorage.setItem(`pluvia-weather-${activeCity.id}`, JSON.stringify({at: Date.now(),weatherAt:metadata.weatherAt || Date.now(),airAt:metadata.airAt || null,data})); } catch {} }
 function validForecast(data) {
   return weatherData?.validateForecast?.(data).valid === true;
@@ -1572,6 +1596,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
     : data.pluviaTomorrow === "failed" ? `Tomorrow.io não respondeu · Open-Meteo · ${formatUpdateTime(observedAt)}`
     : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache || Boolean(data.pluviaReduced) || Boolean(data.pluviaTomorrow));
   renderVisibility(now.visibility, fromCache);
+  renderExtraTiles(data.hourly, start);
   const lines = weatherData?.rows?.(snapshot, data);
   renderHourly(lines?.hourly || [], start, day, data.hourly);
   syncNowHourIcon(data);

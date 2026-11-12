@@ -116,3 +116,16 @@ test('bandeiras dos 27 estados nos cartões das favoritas, leves e em WebP (1.73
   assert.ok(total < 64 * 1024, `total ${total} B`);
   assert.equal(fs.readdirSync(path.join(__dirname, '../dist/assets/flags')).filter(f => f.endsWith('.webp')).length, 27);
 });
+
+test('cartões da tela inicial com os dados do Tomorrow.io (1.73.5)', () => {
+  const app = dist('app.js'), icons = fs.readFileSync(path.join(__dirname, '../dist/modules/weather-icon-system.js'), 'utf8');
+  const metrics = html.slice(html.indexOf('<section class="metrics"'), html.indexOf('</section>', html.indexOf('<section class="metrics"')));
+  for (const [id, hidden] of [['clouds', false], ['dewPoint', false], ['rainIntensity', true], ['evapo', true]]) {
+    assert.match(metrics, new RegExp(`<article class="metric metric-sky [^"]*" id="${id}Card"${hidden ? ' hidden' : ''}>`), id);
+    assert.ok(metrics.includes(`id="${id}Value"`) && metrics.includes(`id="${id}Note"`), id);
+  }
+  assert.ok(metrics.indexOf('id="uv"') < metrics.indexOf('id="cloudsCard"'), 'depois do UV');
+  for (const name of ['cloud-cover', 'dew-point', 'rain-intensity', 'evapotranspiration']) assert.ok(icons.includes(`"${name}":`), name);
+  assert.match(app, /renderExtraTiles\(data\.hourly, start\);/);
+  assert.match(fs.readFileSync(path.join(__dirname, '../dist/modules/weather-services.js'), 'utf8'), /uv_index,dew_point_2m"/);
+});
