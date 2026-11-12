@@ -1043,9 +1043,10 @@ function paintVisibility() {
   const level = !reduced ? "" : value < 1000 ? "Baixa" : "Reduzida";
   // Curta, numa linha: em duas linhas ela esticava a fileira e abria um buraco embaixo da umidade ao lado
   // ("Medido" fica no nome acessível do bloco).
-  const source = measured ? `aeroporto ${airport.icao} · ${formatUpdateTime(airport.at)}` : "";
+  // Sem o código do aeroporto (1.73.4, pedido do dono: "SBMN" não dizia nada para quem lê).
+  const source = measured ? `medido no aeroporto · ${formatUpdateTime(airport.at)}` : "";
   $("visibilityNote").textContent = !available ? "Visibilidade indisponível para esta hora."
-    : blend ? `${airport.icao} 10+ km · modelo`
+    : blend ? "Aeroporto: 10+ km · modelo"
     : measured ? (level ? `${level} · ${source}` : source.charAt(0).toUpperCase() + source.slice(1))
     : reduced ? `${level} · estimativa do modelo${fromCache ? " salva" : ""}` : "";
   $("visibilityValue").closest?.(".metric")?.setAttribute("aria-label", blend ? "Visibilidade prevista pelo modelo; o aeroporto mede 10 km ou mais" : measured ? "Visibilidade medida" : "Visibilidade prevista");

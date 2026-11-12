@@ -23,12 +23,12 @@ export const COOLDOWN_MS = 30 * 60_000;
 const TIMEOUT_MS = 5000;
 const MAX_CACHE = 64;
 
-export function tomorrowUrl(lat, lon, key, now = Date.now(), fields = TOMORROW_FIELDS) {
+export function tomorrowUrl(lat, lon, key, now = Date.now(), fields = TOMORROW_FIELDS, hours = HORIZON_H) {
   const start = Math.floor(now / 3_600_000) * 3_600_000;
   const url = new URL(TOMORROW_ENDPOINT);
   url.search = new URLSearchParams({
     location: `${lat.toFixed(3)},${lon.toFixed(3)}`, fields: fields.join(','), timesteps: '1h', units: 'metric',
-    startTime: new Date(start).toISOString(), endTime: new Date(start + HORIZON_H * 3_600_000).toISOString(), timezone: 'UTC', apikey: key,
+    startTime: new Date(start).toISOString(), endTime: new Date(start + hours * 3_600_000).toISOString(), timezone: 'UTC', apikey: key,
   }).toString();
   return url.toString();
 }

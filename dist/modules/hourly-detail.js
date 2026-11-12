@@ -73,12 +73,41 @@
       if(el('hourlyDetailDirection')) el('hourlyDetailDirection').textContent=direction;
       if(el('hourlyDetailUv')) el('hourlyDetailUv').textContent=unit(reading.uv,'',0);
       if(el('hourlyDetailPressure')) el('hourlyDetailPressure').textContent=unit(reading.pressure,' hPa');
+      // 1.73.4: visibilidade e nuvens (as duas fontes têm) e o que só o Tomorrow.io entrega, quando o teste está ligado.
+      const at=key=>{const value=state.hourly?.[key]?.[index];return typeof value==='number' && Number.isFinite(value) ? value : null;};
+      const meters=at('visibility');
+      if(el('hourlyDetailVisibility')) el('hourlyDetailVisibility').textContent=meters===null ? '—' : meters<1000 ? unit(meters,' m',0) : unit(meters/1000,' km',meters<10000 ? 1 : 0);
+      if(el('hourlyDetailClouds')) el('hourlyDetailClouds').textContent=unit(at('cloud_cover'),'%',0);
+      paintExtras(at);
       el('hourlyDetailRainInterval').textContent=reading.rainEnd ? `Chance e chuva prevista valem de ${clock(reading.time)} a ${clock(reading.rainEnd)}${reading.rainEnd.slice(0,10)!==reading.time.slice(0,10) ? ' do dia seguinte' : ''}.` : 'Intervalo de chuva indisponível.';
       el('hourlyDetailSource').textContent=(state.fromCache ? 'Leitura salva · ' : 'Previsão por modelos · ')+`horário de ${state.city.name}.`;
       const range=bounds();el('hourlyDetailPrev').disabled=index<=range.first;el('hourlyDetailNext').disabled=index>=range.last;
       // O botão que tinha o foco pode ter ficado desabilitado (última/primeira hora): o foco iria para o body.
       const active=doc.activeElement;
       if(dialog.open && (active===doc.body || active?.disabled)) (el('hourlyDetailNext').disabled ? el('hourlyDetailPrev') : el('hourlyDetailNext'))?.focus?.({preventScroll:true});
+    }
+    // Campos que só o Tomorrow.io entrega (séries pluvia_* de forecast-sources.js). Linha só com valor; sem nenhum, o
+    // bloco some. Tipo de precipitação e risco do UV são códigos do provedor, traduzidos aqui.
+    const PRECIP_TYPE=['Nenhuma','Chuva','Neve','Chuva congelante','Granizo fino'];
+    const UV_CONCERN=['Baixo','Moderado','Alto','Muito alto','Extremo'];
+    function paintExtras(at) {
+      const box=el('hourlyDetailExtra'),title=el('hourlyDetailExtraTitle');
+      if(typeof box?.replaceChildren!=='function' || typeof doc.createElement!=='function') return;
+      const rows=[
+        ['dew','Ponto de orvalho',at('pluvia_dew_point'),value=>unit(value,'°')],
+        ['cloud-base','Base das nuvens',at('pluvia_cloud_base'),value=>unit(value,' km',1)],
+        ['cloud-ceiling','Teto das nuvens',at('pluvia_cloud_ceiling'),value=>unit(value,' km',1)],
+        ['surface-pressure','Pressão na superfície',at('pluvia_surface_pressure'),value=>unit(value,' hPa')],
+        ['precipitation-type','Tipo de precipitação',at('pluvia_precipitation_type'),value=>PRECIP_TYPE[value] || '—'],
+        ['rain-intensity','Intensidade da chuva',at('pluvia_rain_intensity'),value=>unit(value,' mm/h',1)],
+        ['evapotranspiration','Evapotranspiração',at('pluvia_evapotranspiration'),value=>unit(value,' mm',2)],
+        ['uv-concern','Risco do UV',at('pluvia_uv_concern'),value=>UV_CONCERN[value] || '—']
+      ].filter(([,,value])=>value!==null);
+      box.replaceChildren(...rows.map(([key,label,value,format])=>{
+        const row=doc.createElement('div'),dt=doc.createElement('dt'),dd=doc.createElement('dd');
+        row.setAttribute('data-extra',key);dt.textContent=label;dd.textContent=format(value);row.append(dt,dd);return row;
+      }));
+      box.hidden=!rows.length;if(title) title.hidden=!rows.length;
     }
     function update(next) {
       if(!next?.hourly || !next.city) return;

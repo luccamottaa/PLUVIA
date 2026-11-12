@@ -7,13 +7,13 @@
 // 30 min sem tentar. Sem cota, responde 429 com `retryAfter`: o app volta ao Open-Meteo e tenta de novo
 // depois. A URL do provedor leva a chave: nunca registrar a URL nem a resposta bruta.
 import { tomorrowUrl } from '../_shared/tomorrow.js';
-import { TEST_FIELDS, normalizeTomorrow } from '../_shared/tomorrow-forecast.js';
+import { TEST_FIELDS, TEST_HOURS, EXTRA_FIELDS, normalizeTomorrow } from '../_shared/tomorrow-forecast.js';
 
 const SITE = 'https://pluviaweather.com.br';
 const ORIGINS = new Set([SITE, 'https://www.pluviaweather.com.br', 'https://luccamottaa.github.io']);
 const CACHE_MS = 30 * 60_000, COOLDOWN_MS = 30 * 60_000, HOURLY_CAP = 12;
 const cache = new Map(), attempts = new Map();
-let blockedUntil = 0, windowStart = 0, used = 0;
+let blockedUntil = 0, windowStart = 0, used = 0, extrasRefused = false;
 
 function originAllowed(origin) {
   return !origin || ORIGINS.has(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
@@ -61,9 +61,18 @@ async function handle(req) {
   if (attempts.size > 500) attempts.delete(attempts.keys().next().value);
   used++;
   try {
-    const provider = new URL(tomorrowUrl(lat, lon, key, now, TEST_FIELDS));
-    provider.searchParams.set('timesteps', 'current,1h');
-    const response = await fetch(provider, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
+    // Extras no mesmo pedido; um 400 (campo fora do plano) repete uma vez só com os campos de sempre.
+    const ask = fields => {
+      const provider = new URL(tomorrowUrl(lat, lon, key, now, fields, TEST_HOURS));
+      provider.searchParams.set('timesteps', 'current,1h');
+      return fetch(provider, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
+    };
+    let response = await ask(extrasRefused ? TEST_FIELDS : [...TEST_FIELDS, ...EXTRA_FIELDS]);
+    if (response.status === 400 && !extrasRefused) {
+      extrasRefused = true; used++;
+      console.warn('tomorrow-forecast extras refused', { status: 400 });
+      response = await ask(TEST_FIELDS);
+    }
     if (response.status === 429) { blockedUntil = now + COOLDOWN_MS; return limited(origin, now, blockedUntil); }
     if (!response.ok) { console.warn('tomorrow-forecast unavailable', { status: response.status }); return reply(origin, 502, { error: 'provider_unavailable' }); }
     const data = normalizeTomorrow(await response.json(), now);

@@ -51,7 +51,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-362" />
+    <meta name="pluvia-release" content="pluvia-panel-363" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -302,7 +302,7 @@
           var link = d.createElement('link'), ready = function () { root.setAttribute('data-dialog-css', ''); };
           // Endereço a partir do continuous.css: vale na Home, nas páginas /clima/... e em subpasta.
           var base = d.querySelector('link[href*="continuous.css"]');
-          link.rel = 'stylesheet'; link.href = new URL('dialogs.css?v=dialogs-4', base ? base.href : location.href).href; link.onload = ready; link.onerror = ready;
+          link.rel = 'stylesheet'; link.href = new URL('dialogs.css?v=dialogs-5', base ? base.href : location.href).href; link.onload = ready; link.onerror = ready;
           (d.body || root).appendChild(link);
         }
         w.addEventListener('pointerdown', load, {capture: true, once: true, passive: true});
@@ -593,7 +593,7 @@
       <div class="dialog-heading"><div><h2 id="hourlyDetailTitle">Previsão por hora</h2><p id="hourlyDetailCity"></p></div><button id="hourlyDetailClose" class="dialog-close" type="button" autofocus aria-label="Fechar previsão por hora">×</button></div>
       <div class="dialog-scroll" tabindex="0" role="region" aria-label="Detalhes do horário">
         <div class="hourly-detail-weather"><div id="hourlyDetailIcon" aria-hidden="true"></div><strong id="hourlyDetailTemperature">—</strong><p id="hourlyDetailCondition"></p></div>
-        <dl class="hourly-detail-readings"><div><dt>Sensação térmica</dt><dd id="hourlyDetailFeelsLike">—</dd></div><div><dt>Chance de chuva</dt><dd id="hourlyDetailRain">—</dd></div><div><dt>Chuva prevista</dt><dd id="hourlyDetailVolume">—</dd></div><div><dt>Vento</dt><dd id="hourlyDetailWind">—</dd></div><div><dt>Rajadas</dt><dd id="hourlyDetailGust">—</dd></div><div><dt>Umidade</dt><dd id="hourlyDetailHumidity">—</dd></div><div><dt>Direção do vento</dt><dd id="hourlyDetailDirection">—</dd></div><div><dt>Índice UV</dt><dd id="hourlyDetailUv">—</dd></div><div><dt>Pressão</dt><dd id="hourlyDetailPressure">—</dd></div></dl>
+        <dl class="hourly-detail-readings"><div><dt>Sensação térmica</dt><dd id="hourlyDetailFeelsLike">—</dd></div><div><dt>Chance de chuva</dt><dd id="hourlyDetailRain">—</dd></div><div><dt>Chuva prevista</dt><dd id="hourlyDetailVolume">—</dd></div><div><dt>Vento</dt><dd id="hourlyDetailWind">—</dd></div><div><dt>Rajadas</dt><dd id="hourlyDetailGust">—</dd></div><div><dt>Umidade</dt><dd id="hourlyDetailHumidity">—</dd></div><div><dt>Direção do vento</dt><dd id="hourlyDetailDirection">—</dd></div><div><dt>Índice UV</dt><dd id="hourlyDetailUv">—</dd></div><div><dt>Pressão</dt><dd id="hourlyDetailPressure">—</dd></div><div><dt>Visibilidade</dt><dd id="hourlyDetailVisibility">—</dd></div><div><dt>Nuvens</dt><dd id="hourlyDetailClouds">—</dd></div></dl><h3 class="hourly-detail-extra-title" id="hourlyDetailExtraTitle" hidden>Mais do Tomorrow.io</h3><dl class="hourly-detail-readings hourly-detail-extra" id="hourlyDetailExtra" aria-labelledby="hourlyDetailExtraTitle" hidden></dl>
         <p id="hourlyDetailRainInterval" class="hourly-detail-note"></p><p class="hourly-detail-note">Temperatura e vento no horário selecionado; chuva no intervalo que começa nesse horário.</p><small id="hourlyDetailSource"></small>
       </div>
       <div class="hourly-detail-navigation"><button id="hourlyDetailPrev" type="button" aria-label="Horário anterior">‹ Anterior</button><button id="hourlyDetailNext" type="button" aria-label="Próximo horário">Próximo ›</button></div>
@@ -668,11 +668,11 @@
     <script src="/modules/weather-icons.js?v=core-51" defer></script>
     <script src="/modules/weather-icon-system.js?v=modern-16" defer></script>
     <script src="/capitals.js?v=core-54" defer></script>
-    <script src="/modules/hourly-detail.js?v=detail-11" defer></script>
+    <script src="/modules/hourly-detail.js?v=detail-12" defer></script>
     <script src="/modules/daily-detail.js?v=daily-7" defer></script>
     <script src="/modules/forecast-spread.js?v=spread-1" defer></script>
-    <script src="/modules/forecast-sources.js?v=sources-1" defer></script>
-    <script src="/app.js?v=panel-165" defer></script>
+    <script src="/modules/forecast-sources.js?v=sources-2" defer></script>
+    <script src="/app.js?v=panel-166" defer></script>
     <script src="/p0.js?v=panel-53" defer></script>
     <script src="/modules/risks.js?v=core-120" defer></script>
     <script src="/modules/adapters.js?v=core-110" defer></script>
@@ -690,7 +690,7 @@
     <script src="/modules/forecast-accuracy.js?v=accuracy-1" defer></script>
     <script src="/modules/station-now.js?v=station-5" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-11" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-392" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-393" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
     <script src="/notifications.js?v=panel-41" defer></script>
   </body>

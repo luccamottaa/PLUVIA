@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.73.4", date:"2026-11-12", title:"Mais Tomorrow.io", items:[
+      "Com \"Testar Tomorrow.io\" ligado, os primeiros dias de Próximos 7 dias também vêm do Tomorrow.io (máxima, mínima, chuva, chance, UV e a condição), e as horas vão até 5 dias.",
+      "O detalhe da hora ganhou visibilidade e nuvens, e com o teste ligado mostra tudo o que o Tomorrow.io entrega: ponto de orvalho, base e teto das nuvens, pressão na superfície, tipo e intensidade da chuva, evapotranspiração e risco do UV.",
+      "A visibilidade não mostra mais o código do aeroporto (\"SBMN\"): agora diz \"medido no aeroporto\"."
+    ]},
     {version:"1.73.3", date:"2026-11-12", title:"Puxar para atualizar", items:[
       "Puxar a tela para atualizar ficou mais bonito: a pílula desce com o dedo, o anel em volta da gotinha mostra quando dá para soltar, gira enquanto busca o tempo e termina com um ✓.",
       "A pílula segue os cartões: branca de dia e azul-escura à noite."
