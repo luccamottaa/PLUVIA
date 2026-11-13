@@ -19,6 +19,20 @@ export const TEST_HOURS = 120;
 // lista os campos mas não diz se o plano grátis os inclui: vão num nível próprio, e a função tira só eles se o
 // provedor recusar (400/403), antes de tirar os extras.
 export const AIR_FIELDS = ['epaIndex', 'epaPrimaryPollutant', 'particulateMatter25', 'particulateMatter10', 'pollutantO3', 'pollutantNO2', 'pollutantSO2'];
+// 1.73.11 (pedido do dono, "faz do 1 ao 3"): chance de trovoada por hora, chuva minuto a minuto na próxima hora
+// (timestep 1m) e as 6 horas passadas (chuva que já caiu). A documentação não garante nenhum dos três no plano
+// grátis: cada um é um nível que a função tira sozinho numa recusa (400/403), na ordem de OPTIONAL_LEVELS.
+export const THUNDER_FIELDS = ['thunderstormProbability'];
+export const PAST_HOURS = 6;
+export const OPTIONAL_LEVELS = ['air', 'thunder', 'minutely', 'history', 'extras'];
+// O que pedir, dado o que já foi recusado nesta instância.
+export function requestPlan(refused = new Set()) {
+  const on = level => !refused.has(level);
+  const fields = [...TEST_FIELDS, ...(on('extras') ? EXTRA_FIELDS : []), ...(on('air') ? AIR_FIELDS : []), ...(on('thunder') ? THUNDER_FIELDS : [])];
+  return { fields, timesteps: on('minutely') ? 'current,1h,1m' : 'current,1h', pastHours: on('history') ? PAST_HOURS : 0 };
+}
+// Próximo nível a tirar numa recusa (null quando só restam os campos de sempre).
+export const nextRefusal = (refused = new Set()) => OPTIONAL_LEVELS.find(level => !refused.has(level)) ?? null;
 export const EXTRA_FIELDS = ['dewPoint', 'cloudBase', 'cloudCeiling', 'pressureSurfaceLevel', 'precipitationType', 'rainIntensity', 'evapotranspiration', 'uvHealthConcern'];
 
 // Código do Tomorrow.io → WMO (o vocabulário dos ícones e textos do app). Desconhecido vira null e o app
@@ -68,6 +82,7 @@ export function reading(values) {
     o3Ppb: finite(v.pollutantO3, 0, 1000),
     no2Ppb: finite(v.pollutantNO2, 0, 1000),
     so2Ppb: finite(v.pollutantSO2, 0, 1000),
+    thunderPct: finite(v.thunderstormProbability, 0, 100),
   };
 }
 
@@ -88,5 +103,21 @@ export function normalizeTomorrow(json, now = Date.now()) {
   const first = timeline(json, 'current')?.intervals?.[0];
   const at = Date.parse(first?.startTime);
   const current = Number.isFinite(at) && Math.abs(now - at) <= 90 * 60_000 ? { time: new Date(at).toISOString(), ...reading(first.values) } : null;
-  return { source: 'Tomorrow.io', current: current && current.temperatureC !== null ? current : null, hourly };
+  // Chuva das horas já fechadas (até PAST_HOURS atrás), só com pelo menos PAST_HOURS − 1 horas válidas.
+  const hour = Math.floor(now / 3600_000) * 3600_000;
+  let pastMm = 0, pastHours = 0;
+  for (const item of timeline(json, '1h')?.intervals || []) {
+    const at = Date.parse(item?.startTime);
+    if (!Number.isFinite(at) || at < hour - PAST_HOURS * 3600_000 || at >= hour) continue;
+    const mm = reading(item.values).rainMm;
+    if (mm !== null) { pastMm += mm; pastHours++; }
+  }
+  const recent = pastHours >= PAST_HOURS - 1 ? { mm: Math.round(pastMm * 10) / 10, hours: pastHours } : null;
+  // Minuto a minuto: intensidade (mm/h) de agora até +60 min; só com pelo menos 30 minutos válidos.
+  const minutely = (timeline(json, '1m')?.intervals || []).map(item => {
+    const at = Date.parse(item?.startTime);
+    return Number.isFinite(at) && at >= now - 60_000 && at <= now + 61 * 60_000 ? { time: new Date(at).toISOString(), mm: finite(item?.values?.precipitationIntensity, 0, 300) } : null;
+  }).filter(item => item && item.mm !== null);
+  return { source: 'Tomorrow.io', current: current && current.temperatureC !== null ? current : null, hourly,
+    ...(recent ? { recent } : {}), ...(minutely.length >= 30 ? { minutely } : {}) };
 }

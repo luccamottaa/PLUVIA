@@ -8,7 +8,7 @@ import { metarUrl, nearestAirport } from "../_shared/metar.js";
 import { stationUrl, normalizeStation } from "../_shared/inmet-station.js";
 import { estimate as estimateArrival, windowTiles, windowDbz, maskOf, outlook, incomingDetail, worsening, easing, FRAME_GAP_S, SIZE as NOWCAST_SIZE } from "../_shared/radar-nowcast.js";
 import { PNG } from "npm:pngjs@7.0.0";
-import { createTomorrowClient, rainSeries } from "../_shared/tomorrow.js";
+import { createTomorrowClient, rainSeries, pastRain } from "../_shared/tomorrow.js";
 import { Buffer } from "node:buffer";
 
 type Location = { id: string; user_id: string; city_id: string; city_name: string; uf: string; latitude: number; longitude: number; timezone: string };
@@ -497,7 +497,11 @@ function rainingNow({ station, airport }: { station: any; airport: any }, now = 
 // recente) mais a prevista para as próximas 3 h (só horas com chance ≥ 50%). Precisa de chuva já caída E mais
 // chuva vindo. Limites na linha dos avisos de acumulado do INMET (50 mm e 100 mm): ≥ 50 mm somados = 3,
 // ≥ 100 mm = 4 (passa pelo silêncio). Falta de leitura nunca vira zero: sem 5 das 6 horas passadas, nada sai.
-function floodCandidate(data: any, station: any, location: Location, now = new Date()) {
+// Tomorrow.io (1.73.11): quando a consulta dele já veio, a chuva que ele registrou nas horas passadas substitui as
+// horas passadas do modelo (older = de 6 h a 2 h atrás; recent = as 2 últimas); a estação continua mandando nas 2
+// últimas quando a leitura é recente. Sem o Tomorrow.io (ou sem as horas dele), fica o modelo.
+type TomorrowPast = { older: number | null; recent: number | null } | null;
+function floodCandidate(data: any, station: any, location: Location, now = new Date(), tomorrow: TomorrowPast = null) {
   if (!freshCurrent(data, now)) return null;
   const t = now.getTime() / 1000, times = asArray(data?.hourly?.time);
   let older = 0, recent = 0, pastHours = 0, next = 0;
@@ -511,16 +515,31 @@ function floodCandidate(data: any, station: any, location: Location, now = new D
   if (pastHours < 5) return null;
   const stationAt = typeof station?.time === "string" ? Date.parse(station.time) : NaN;
   const measured = station?.station && Number.isFinite(stationAt) && now.getTime() - stationAt <= 45 * 60_000 && typeof station.rainMm === "number" && typeof station.previousRainMm === "number";
-  const past = older + (measured ? station.rainMm + station.previousRainMm : recent), total = past + next;
+  const tomorrowOlder = tomorrow?.older ?? null, tomorrowRecent = tomorrow?.recent ?? null;
+  const past = (tomorrowOlder ?? older) + (measured ? station.rainMm + station.previousRainMm : tomorrowRecent ?? recent), total = past + next;
+  const usedTomorrow = tomorrowOlder !== null || (!measured && tomorrowRecent !== null);
   if (past < 25 || next < 10 || total < 50) return null;
   const severity = total >= 100 ? 4 : 3, round = (value: number) => Math.round(value);
   return {
     type: "flood_risk", severity, title: "🌊 Risco de alagamento",
     body: `Já choveu cerca de ${round(past)} mm nas últimas 6 h em ${location.city_name} e podem cair mais uns ${round(next)} mm nas próximas 3 h. Risco de alagamentos e enxurradas: evite áreas alagáveis, igarapés e passagens baixas.`,
-    source: measured ? "INMET · estação e Open-Meteo · modelo" : "Open-Meteo · modelo", start: now, expires: new Date(now.getTime() + 4 * 3_600_000), url: "./#alertas",
+    source: [measured ? "INMET · estação" : "", usedTomorrow ? "Tomorrow.io" : "", "Open-Meteo · modelo"].filter(Boolean).join(" e "), start: now, expires: new Date(now.getTime() + 4 * 3_600_000), url: "./#alertas",
     fingerprintSeed: `flood_risk|${location.city_id}|${Math.floor(now.getTime() / 21_600_000)}|${severity}`,
-    metadata: { past_6h_mm: Math.round(past * 10) / 10, next_3h_mm: Math.round(next * 10) / 10, station_measured: Boolean(measured), confidence: "moderate" },
+    metadata: { past_6h_mm: Math.round(past * 10) / 10, next_3h_mm: Math.round(next * 10) / 10, station_measured: Boolean(measured), tomorrow_past: usedTomorrow, confidence: "moderate" },
   } satisfies EventCandidate;
+}
+
+// Vale gastar a consulta do Tomorrow.io no alagamento? Modelo com ≥ 15 mm nas últimas 6 h e ≥ 5 mm nas próximas 3 h.
+function floodWorthChecking(data: any, now = new Date()) {
+  const t = now.getTime() / 1000, times = asArray(data?.hourly?.time);
+  let past = 0, next = 0;
+  times.forEach((time: unknown, index: number) => {
+    const unix = observed(time, 1), mm = observed(data?.hourly?.precipitation?.[index], 0, 500) ?? 0;
+    if (unix === null) return;
+    if (unix <= t && unix > t - 6 * 3600) past += mm;
+    else if (unix > t && unix <= t + 3 * 3600) next += mm;
+  });
+  return past >= 15 && next >= 5;
 }
 
 function parseInmetDate(alert: any, type: "inicio" | "fim") {
@@ -965,7 +984,14 @@ Deno.serve(async (req) => {
         }
         // Alagamento: chuva acumulada (modelo + estação, quando lida) e mais chuva vindo.
         if (preference.heavy_rain && weatherForNowcast) {
-          const flood = floodCandidate(weatherForNowcast, stationReading, location);
+          // Segunda opinião do Tomorrow.io sobre a chuva que já caiu, só quando o modelo já vê chuva relevante nas
+          // últimas 6 h e mais vindo (a consulta tem cache de 30 min e é a mesma da concordância mais abaixo).
+          let tomorrowPast: TomorrowPast = null;
+          if (tomorrowClient?.enabled && floodWorthChecking(weatherForNowcast)) {
+            const extra = await tomorrowClient.forecast(location.latitude, location.longitude).catch(() => null);
+            if (extra) tomorrowPast = { older: pastRain(extra, Date.now(), 6, 2), recent: pastRain(extra, Date.now(), 2, 0) };
+          }
+          const flood = floodCandidate(weatherForNowcast, stationReading, location, new Date(), tomorrowPast);
           if (flood) candidates.push(flood);
         }
         if (Date.now() >= deadline) throw new Error("worker_budget");

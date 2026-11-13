@@ -100,7 +100,9 @@
         ['precipitation-type','Tipo de precipitação',at('pluvia_precipitation_type'),value=>PRECIP_TYPE[value] || '—'],
         ['rain-intensity','Intensidade da chuva',at('pluvia_rain_intensity'),value=>unit(value,' mm/h',1)],
         ['evapotranspiration','Evapotranspiração',at('pluvia_evapotranspiration'),value=>unit(value,' mm',2)],
-        ['uv-concern','Risco do UV',at('pluvia_uv_concern'),value=>UV_CONCERN[value] || '—']
+        ['uv-concern','Risco do UV',at('pluvia_uv_concern'),value=>UV_CONCERN[value] || '—'],
+        // 1.73.11: chance de trovoada na hora, quando o plano grátis entrega o campo.
+        ['thunder','Chance de trovoada',at('pluvia_thunder'),value=>unit(value,'%')]
       ].filter(([,,value])=>value!==null);
       box.replaceChildren(...rows.map(([key,label,value,format])=>{
         const row=doc.createElement('div'),dt=doc.createElement('dt'),dd=doc.createElement('dd');

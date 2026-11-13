@@ -60,8 +60,34 @@
   // mostra o que houver (modules/hourly-detail.js).
   const EXTRAS = [["pluvia_cloud_base","cloudBaseKm"],["pluvia_cloud_ceiling","cloudCeilingKm"],
     ["pluvia_surface_pressure","surfacePressureHpa"],["pluvia_precipitation_type","precipitationType"],["pluvia_rain_intensity","rainIntensityMmH"],
-    ["pluvia_evapotranspiration","evapotranspirationMm"],["pluvia_uv_concern","uvConcern"]];
-  function overlayTomorrow(forecast, data, city, parse) {
+    ["pluvia_evapotranspiration","evapotranspirationMm"],["pluvia_uv_concern","uvConcern"],["pluvia_thunder","thunderPct"]];
+  // Minuto a minuto da próxima hora e chuva das últimas 6 h (1.73.11), só quando a função entregou (cada um pode ter
+  // sido recusado pelo plano grátis). Validados aqui: tempo ISO e mm/h finitos.
+  function minuteAndPast(data) {
+    const minutely = Array.isArray(data?.minutely) ? data.minutely.map(item => ({at:Date.parse(item?.time), mm:item?.mm}))
+      .filter(item => Number.isFinite(item.at) && typeof item.mm === "number" && Number.isFinite(item.mm) && item.mm >= 0) : [];
+    const recent = data?.recent && typeof data.recent.mm === "number" && Number.isFinite(data.recent.mm) && data.recent.mm >= 0 ? {mm:data.recent.mm, hours:data.recent.hours} : null;
+    return {...(minutely.length >= 30 ? {pluviaTomorrowMinutely:minutely} : {}), ...(recent ? {pluviaTomorrowRecent:recent} : {})};
+  }
+  // Frase e barras da "Chuva na próxima hora" pelo minuto a minuto: 13 pontos (agora, +5 … +60 min) com a
+  // intensidade do minuto mais próximo. Sem chuva na hora toda, null (o bloco some, como no radar).
+  function minutelyNextHour(minutely, now = Date.now(), format = at => new Date(at).toISOString().slice(11, 16)) {
+    if (!Array.isArray(minutely) || minutely.length < 30) return null;
+    const at = target => minutely.reduce((best, item) => Math.abs(item.at - target) < Math.abs(best.at - target) ? item : best);
+    const points = Array.from({length:13}, (_, index) => { const item = at(now + index * 300_000); return {minutes:index * 5, mm:Math.abs(item.at - (now + index * 300_000)) <= 180_000 ? item.mm : 0}; });
+    const wet = item => item.mm >= 0.1;
+    const ahead = minutely.filter(item => item.at >= now - 60_000 && item.at <= now + 3_600_000);
+    const firstWet = ahead.find(wet);
+    if (!firstWet) return null;
+    const lastIndex = ahead.findIndex(item => item.at > firstWet.at && !wet(item));
+    const peak = Math.max(...ahead.filter(wet).map(item => item.mm));
+    const kind = peak >= 7.5 ? "forte" : peak >= 2.5 ? "moderada" : "fraca";
+    const end = lastIndex >= 0 ? ahead[lastIndex] : null;
+    const text = firstWet.at <= now + 60_000
+      ? (end ? `Tomorrow.io: chuva ${kind} agora, deve parar por volta das ${format(end.at)}.` : `Tomorrow.io: chuva ${kind} a hora toda.`)
+      : `Tomorrow.io: chuva ${kind} a partir das ${format(firstWet.at)}${end ? `, até umas ${format(end.at)}` : ""}.`;
+    return {points, text};
+  }  function overlayTomorrow(forecast, data, city, parse) {
     const points = new Map();
     for (const item of Array.isArray(data?.hourly) ? data.hourly : []) {
       const at = Date.parse(item?.time);
@@ -109,7 +135,7 @@
     // Qualidade do ar do agora (1.73.6), só quando o índice chega; app.js troca o CAMS por ela no cartão.
     const air = now && Number.isFinite(now.aqi) ? {aqi:now.aqi, pollutant:now.aqiPollutant ?? null, pm25:now.pm25 ?? null, pm10:now.pm10 ?? null,
       o3Ppb:now.o3Ppb ?? null, no2Ppb:now.no2Ppb ?? null, so2Ppb:now.so2Ppb ?? null} : null;
-    return {...forecast, current, hourly, ...(daily ? {daily} : {}), ...(air ? {pluviaTomorrowAir:air} : {}), pluviaSource:"tomorrow", pluviaTomorrowDays:daily ? touched.size : 0};
+    return {...forecast, current, hourly, ...(daily ? {daily} : {}), ...(air ? {pluviaTomorrowAir:air} : {}), ...minuteAndPast(data), pluviaSource:"tomorrow", pluviaTomorrowDays:daily ? touched.size : 0};
   }
 
   // Dias a partir das horas (1.73.4, pedido do dono: "os 7 dias" também do Tomorrow.io). Para cada dia local que
@@ -254,7 +280,7 @@
     paint();
   }
 
-  const api = {swapRain, overlayTomorrow, cleanModels, createSources};
+  const api = {swapRain, overlayTomorrow, cleanModels, createSources, minutelyNextHour};
   if (runtime.document) {
     Object.assign(api, createSources());
     const wire = () => wireToggle(runtime.document, api);

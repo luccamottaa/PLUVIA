@@ -7,7 +7,7 @@ const policy=require('../supabase/functions/_shared/notification-policy.js');
 
 const processor=fs.readFileSync('supabase/functions/push-process/index.ts','utf8');
 const worker=stripTypeScriptTypes(processor.replace(/^import .*$/gm,''));
-const api=vm.runInNewContext(worker.slice(0,worker.indexOf('Deno.serve('))+';({nowcastCandidate,worseningCandidate,easingCandidate,floodCandidate,localDayStart})',{Intl,Date,URL,URLSearchParams,Math,Number});
+const api=vm.runInNewContext(worker.slice(0,worker.indexOf('Deno.serve('))+';({nowcastCandidate,worseningCandidate,easingCandidate,floodCandidate,localDayStart,floodWorthChecking})',{Intl,Date,URL,URLSearchParams,Math,Number});
 const location={city_id:'1302603',city_name:'Manaus',timezone:'America/Manaus'};
 const radar=()=>import('../supabase/functions/_shared/radar-nowcast.js');
 
@@ -173,4 +173,16 @@ test('ligação: tipos novos na migration, nas preferências, nos estilos e no e
   assert.match(processor,/event\.type === "rain_easing" \? !easeAllowed\(recent \|\| \[\]\)/);
   assert.match(processor,/preference\.rain_approaching && weatherForNowcast && \(raining \|\| rainLikelySoon\(weatherForNowcast\)\)/,'radar também com chuva agora');
   assert.match(processor,/const arrival = raining \? null : estimateArrival/,'chegada só sem chuva agora');
+});
+
+test('alagamento com a chuva passada do Tomorrow.io: substitui o modelo, a estação continua mandando nas 2 últimas horas (1.73.11)',()=>{
+  const now=new Date('2026-11-12T18:20:00Z');
+  const model=weather(now,3,6); // modelo: 18 mm em 6 h (não passaria) + 18 mm previstos
+  assert.equal(api.floodCandidate(model,null,location,now),null);
+  const event=api.floodCandidate(model,null,location,now,{older:30,recent:12});
+  assert.equal(event.metadata.past_6h_mm,42);assert.equal(event.metadata.tomorrow_past,true);assert.match(event.source,/Tomorrow\.io/);
+  const station={station:{ibge:'1302603'},time:'2026-11-12T18:00:00Z',rainMm:1,previousRainMm:1};
+  assert.equal(api.floodCandidate(model,station,location,now,{older:30,recent:12}).metadata.past_6h_mm,32,'estação nas 2 últimas horas');
+  assert.equal(api.floodCandidate(model,null,location,now,{older:null,recent:null}),null,'sem horas do Tomorrow.io, fica o modelo');
+  assert.match(processor,/if \(tomorrowClient\?\.enabled && floodWorthChecking\(weatherForNowcast\)\) \{/,'só consulta quando o modelo já vê chuva relevante');
 });

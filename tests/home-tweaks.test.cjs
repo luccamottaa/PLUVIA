@@ -126,7 +126,7 @@ test('cartões da tela inicial com os dados do Tomorrow.io (1.73.5)', () => {
   }
   assert.ok(metrics.indexOf('id="uv"') < metrics.indexOf('id="cloudsCard"'), 'depois do UV');
   for (const name of ['cloud-cover', 'dew-point', 'rain-intensity', 'evapotranspiration']) assert.ok(icons.includes(`"${name}":`), name);
-  assert.match(app, /renderExtraTiles\(data\.hourly, start\);/);
+  assert.match(app, /renderExtraTiles\(data\.hourly, start, data\.pluviaTomorrowRecent\);/);
   assert.match(fs.readFileSync(path.join(__dirname, '../dist/modules/weather-services.js'), 'utf8'), /uv_index,dew_point_2m"/);
 });
 
@@ -141,4 +141,10 @@ test('cartão Qualidade do ar usa o Tomorrow.io com o teste ligado, sem trocar o
   assert.equal(ctx.tomorrowAir({}, cams), cams, 'sem o Tomorrow.io nada muda');
   assert.equal(ctx.tomorrowAir({pluviaTomorrowAir:{aqi:83}}, null), null, 'sem a leitura do CAMS nada muda');
   assert.match(app, /function render\(data, air, fromCache = false, cacheAt = 0, metadata = \{\}\) \{\n  air = tomorrowAir\(data, air\);/);
+});
+
+test('cartão Intensidade da chuva com a chuva das últimas 6 h do Tomorrow.io (1.73.11)', () => {
+  const app = dist('app.js');
+  assert.match(app, /show\("rainIntensity", intensity, `\$\{fmt\(intensity, 1\)\}<sup> mm\/h<\/sup>`, kindText \+ pastText\);/);
+  assert.match(app, /const pastText = recent && Number\.isFinite\(recent\.mm\) \? ` · \$\{fmt\(recent\.mm, recent\.mm < 10 \? 1 : 0\)\} mm em 6 h` : "";/);
 });

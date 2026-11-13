@@ -182,3 +182,25 @@ test('qualidade do ar do Tomorrow.io vai junto só quando o índice chega (1.73.
   const none=sources.overlayTomorrow(forecast(),{...data,current:{...data.current,aqi:null}},city,parse);
   assert.equal(none.pluviaTomorrowAir,undefined);
 });
+
+test('Tomorrow.io: minuto a minuto vira a frase e as barras da próxima hora (1.73.11)',()=>{
+  const now=Date.parse('2026-11-13T01:00:00Z'),fmt=at=>new Date(at-4*3600e3).toISOString().slice(11,16);
+  const series=fn=>Array.from({length:61},(_,m)=>({at:now+m*60e3,mm:fn(m)}));
+  const later=sources.minutelyNextHour(series(m=>m>=14&&m<40?3:0),now,fmt);
+  assert.equal(later.text,'Tomorrow.io: chuva moderada a partir das 21:14, até umas 21:40.');
+  assert.equal(later.points.length,13);assert.equal(later.points[0].mm,0);assert.equal(later.points[4].mm,3);
+  assert.equal(sources.minutelyNextHour(series(m=>m<25?9:0),now,fmt).text,'Tomorrow.io: chuva forte agora, deve parar por volta das 21:25.');
+  assert.equal(sources.minutelyNextHour(series(()=>0.5),now,fmt).text,'Tomorrow.io: chuva fraca a hora toda.');
+  assert.equal(sources.minutelyNextHour(series(()=>0),now,fmt),null,'sem chuva na hora: o bloco some');
+  assert.equal(sources.minutelyNextHour(series(()=>1).slice(0,20),now,fmt),null,'poucos minutos não bastam');
+});
+
+test('Tomorrow.io: minuto a minuto, chuva de 6 h e trovoada passam pela previsão encaixada (1.73.11)',()=>{
+  const minutely=Array.from({length:40},(_,m)=>({time:new Date(Date.parse('2026-11-09T11:00Z')+m*60e3).toISOString(),mm:m>10?1.2:0}));
+  const data={current:{time:utc('2026-11-09T11:00'),temperatureC:27},hourly:[{time:utc('2026-11-09T11:00'),temperatureC:27,thunderPct:35}],minutely,recent:{mm:12.4,hours:6}};
+  const out=sources.overlayTomorrow(forecast(),data,city,parse);
+  assert.equal(out.pluviaTomorrowMinutely.length,40);assert.equal(out.pluviaTomorrowRecent.mm,12.4);
+  assert.ok(out.hourly.pluvia_thunder.includes(35));
+  const none=sources.overlayTomorrow(forecast(),{...data,minutely:minutely.slice(0,5),recent:{mm:'x'}},city,parse);
+  assert.equal(none.pluviaTomorrowMinutely,undefined);assert.equal(none.pluviaTomorrowRecent,undefined);
+});
