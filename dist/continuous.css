@@ -2030,7 +2030,9 @@ body[data-ink="dark"] #weatherView .weather-line-icon, body[data-phase="day"] di
 .weather-line-icon .wl-dot { stroke-width:2.6; }
 html body #weatherView .peek-icon .weather-line-icon { width:30px; height:30px; }
 html body #weatherView .forecast-list .weather-line-icon { width:30px; height:30px; margin-inline:auto; color:var(--reading-ink); }
-html body .compact-icon > .weather-line-icon { width:100%; height:100%; padding:7px; box-sizing:border-box; }
+/* Pílula do topo (1.73.10, pedido do dono: "ícone muito pequeno"): a margem interna de 7px deixava o desenho com 28px
+   numa caixa de 42px; com 1px ele ocupa quase a caixa toda, e a pílula não muda de altura. */
+html body .compact-icon > .weather-line-icon { width:100%; height:100%; padding:1px; box-sizing:border-box; }
 html body #hourlyDetailIcon .weather-line-icon { width:72px; height:72px; stroke-width:1.3; }
 html body .brazil-weather-icon.weather-line-icon { width:26px; height:26px; }
 html body .daily-detail-hours .weather-line-icon { width:26px; height:26px; margin-inline:auto; }
