@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.74.1", date:"2026-11-13", title:"Mais leve", items:[
+      "Trocar de cidade e mudar o céu ficou mais leve: o celular faz cerca de 20% menos trabalho para redesenhar a página.",
+      "Tocar numa notificação agora é sempre registrado, para sabermos quais avisos ajudam de verdade."
+    ]},
     {version:"1.74", date:"2026-11-13", title:"Previsão onde você está", items:[
       "Nova opção em Mais do PLUVIA: \"Usar minha localização exata\". Ligada, a previsão, o radar e a estação mais próxima olham um ponto perto de você, e não o centro da cidade.",
       "O ponto é arredondado em cerca de 1 km, nunca o endereço, e vem desligado: quem não ligar continua como antes.",

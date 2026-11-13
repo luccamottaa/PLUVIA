@@ -119,7 +119,7 @@ test('toque e ponteiros animam sem camadas e respeitam reduced-motion',()=>{
   assert.match(css,/\.uv-scale span \{ transition:left [^}]+\}/);
   // Todos os blocos de reduced-motion juntos: blocos novos no fim da folha não podem esconder os antigos.
   const reduced=css.split('@media (prefers-reduced-motion:reduce) {').slice(1).join('\n@media ');
-  assert.match(reduced,/\.compass-needle, \.uv-scale span, #weatherView \.sun-arc :is\(\.sun-dot,\.moon-dot\), #weatherView \.next-hour-bars span(, [^{]+)? \{ transition:none; \}/);
+  assert.match(reduced,/\.compass-needle, \.uv-scale span, #weatherView \.sun-arc (?::is\(\.sun-dot,\.moon-dot\)|\.sun-dot, #weatherView \.sun-arc \.moon-dot), #weatherView \.next-hour-bars span(, [^{]+)? \{ transition:none; \}/);
   assert.match(reduced,/summary::before[^{]*\{ transition:none; \}/,'setas dos details param com reduced-motion');
   assert.match(app,/compass\.pluviaTurn = turn \+ \(\(\(\(heading - turn\) % 360\) \+ 540\) % 360 - 180\)/,'agulha pelo menor caminho');
   assert.doesNotMatch(app,/growHourlyBars|rainChart/,'o gráfico de 24 horas saiu da Home');

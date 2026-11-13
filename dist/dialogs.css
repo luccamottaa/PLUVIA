@@ -3,8 +3,7 @@
    index.html). Regra que também vale fora das janelas NÃO entra aqui. Mantenha a ordem: ela é a da cascata antiga. */
 
 /* ===== de sky.css ===== */
-html body :is(.dlg-todas, #_)[data-toon]::before,
-html body :is(.dlg-todas, #_)[data-toon]::after { content:none; }
+html body :where(.dlg-todas):is(.dlg-todas, #_)[data-toon]::before, html body :where(.dlg-todas):is(.dlg-todas, #_)[data-toon]::after { content:none; }
 
 /* ===== de styles.css ===== */
 .city-dialog { width:min(560px,calc(100% - 28px)); max-height:calc(100dvh - 32px); padding:22px; margin:auto; border:1px solid #075dff30; border-radius:24px; background:#fff; color:#14223d; box-shadow:0 24px 80px #071b3d33; }
@@ -43,7 +42,7 @@ body.city-dialog-open { overflow:hidden; }
 .city-dialog .city-button,.city-dialog .city-picker input,.city-dialog .city-picker select,.city-dialog .city-result { background:#18283e; color:#e5f0ff; border-color:var(--line); }
 
 /* Dialogs share one scrolling surface; the header stays outside it. */
-html body :is(.dlg-folha, #_) {
+html body :where(.dlg-folha):is(.dlg-folha, #_) {
   --dialog-bg:#0d2239; --dialog-surface:#162e48; --dialog-line:#a4c7e51f;
   --dialog-text:#f1f7ff; --dialog-muted:#aac0d7;
   --dialog-top-gap:max(16px,env(safe-area-inset-top)); --dialog-bottom-gap:max(16px,env(safe-area-inset-bottom));
@@ -54,22 +53,22 @@ html body :is(.dlg-folha, #_) {
   background:var(--dialog-bg); color:var(--dialog-text); box-shadow:0 32px 100px #0008;
   color-scheme:dark;
 }
-html body :is(.dlg-folha, #_)[open] { display:flex; flex-direction:column; }
-html body :is(.dlg-folha, #_)::backdrop { background:#020c1bc7; backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); }
-html body :is(.dlg-folha, #_) .dialog-heading {
+html body :where(.dlg-folha):is(.dlg-folha, #_)[open] { display:flex; flex-direction:column; }
+html body :where(.dlg-folha):is(.dlg-folha, #_)::backdrop { background:#020c1bc7; backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); }
+html body :where(.dlg-folha):is(.dlg-folha, #_) .dialog-heading {
   position:relative; top:auto; flex:none; display:flex; align-items:center; justify-content:space-between;
   margin:0; padding:22px 24px; gap:16px; background:var(--dialog-bg); border-bottom:1px solid var(--dialog-line);
 }
-html body :is(.dlg-folha, #_) .dialog-heading h2 { font-size:1.5rem; font-weight:600; letter-spacing:-.035em; line-height:1.2; margin:0; }
-html body :is(.dlg-folha, #_) .dialog-close { flex:none; width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:14px; background:#aac7e513; color:var(--dialog-text); font:400 28px/1 var(--font-ui); padding:0; }
-html body :is(.dlg-folha, #_) .dialog-close:focus { outline:none; }
-html body :is(.dlg-folha, #_) :is(button,input,summary,a):focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
-html body :is(.dlg-folha, #_) p { color:var(--dialog-muted); font-size:1rem; line-height:1.55; }
-html body :is(.dlg-folha, #_) p:empty { display:none; }
-html body :is(.dlg-folha, #_) :is(input:not([type=checkbox]),select) { width:100%; min-width:0; min-height:52px; padding:14px 16px; border:1px solid #8eb4df38; border-radius:14px; background:#071a2d; color:var(--dialog-text); font:inherit; font-size:1rem; box-shadow:none; }
-html body :is(.dlg-folha, #_) input::placeholder { color:#89a5c2; opacity:1; }
-html body :is(.dlg-folha, #_) button:not(.dialog-close):not(.city-result) { min-height:48px; border-radius:14px; padding:12px 16px; font-size:.9375rem; font-weight:750; line-height:1.35; }
-html body :is(.dlg-folha, #_) h3 { margin:0 0 16px; font-size:1.1875rem; font-weight:800; letter-spacing:-.02em; }
+html body :where(.dlg-folha):is(.dlg-folha, #_) .dialog-heading h2 { font-size:1.5rem; font-weight:600; letter-spacing:-.035em; line-height:1.2; margin:0; }
+html body :where(.dlg-folha):is(.dlg-folha, #_) .dialog-close { flex:none; width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:14px; background:#aac7e513; color:var(--dialog-text); font:400 28px/1 var(--font-ui); padding:0; }
+html body :where(.dlg-folha):is(.dlg-folha, #_) .dialog-close:focus { outline:none; }
+html body :where(.dlg-folha):is(.dlg-folha, #_) button:focus-visible, html body :where(.dlg-folha):is(.dlg-folha, #_) input:focus-visible, html body :where(.dlg-folha):is(.dlg-folha, #_) summary:focus-visible, html body :where(.dlg-folha):is(.dlg-folha, #_) a:focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
+html body :where(.dlg-folha):is(.dlg-folha, #_) p { color:var(--dialog-muted); font-size:1rem; line-height:1.55; }
+html body :where(.dlg-folha):is(.dlg-folha, #_) p:empty { display:none; }
+html body :where(.dlg-folha):is(.dlg-folha, #_) :is(input:not([type=checkbox]),select) { width:100%; min-width:0; min-height:52px; padding:14px 16px; border:1px solid #8eb4df38; border-radius:14px; background:#071a2d; color:var(--dialog-text); font:inherit; font-size:1rem; box-shadow:none; }
+html body :where(.dlg-folha):is(.dlg-folha, #_) input::placeholder { color:#89a5c2; opacity:1; }
+html body :where(.dlg-folha):is(.dlg-folha, #_) button:not(.dialog-close):not(.city-result) { min-height:48px; border-radius:14px; padding:12px 16px; font-size:.9375rem; font-weight:750; line-height:1.35; }
+html body :where(.dlg-folha):is(.dlg-folha, #_) h3 { margin:0 0 16px; font-size:1.1875rem; font-weight:800; letter-spacing:-.02em; }
 #cityDialog .city-picker { display:flex; flex-direction:column; gap:16px; margin:0; padding:0; }
 #cityDialog .city-search-field { display:block; flex:none; margin:0; padding:16px 24px; border-bottom:1px solid var(--dialog-line); background:var(--dialog-bg); }
 #cityDialog .city-search-field label { display:block; color:var(--dialog-muted); font-size:.875rem; margin-bottom:8px; }
@@ -97,10 +96,10 @@ html body :is(.dlg-folha, #_) h3 { margin:0 0 16px; font-size:1.1875rem; font-we
 #accountDialog .account-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; border-radius:16px; background:#06182a; margin:0 0 24px; }
 #accountDialog .account-tabs button { border:0; color:var(--dialog-muted); background:transparent; }
 #accountDialog .account-tabs button[aria-pressed=true] { color:#fff; background:#244968; }
-#accountDialog :is(#accountForm,#profileForm) { display:grid; gap:16px; }
+#accountDialog #accountForm, #accountDialog #profileForm { display:grid; gap:16px; }
 #accountDialog form label:not(.notification-location) { display:grid; gap:8px; color:var(--dialog-muted); font-size:.875rem; }
 #accountDialog small { color:var(--dialog-muted); font-size:.875rem; line-height:1.55; }
-#accountDialog :is(#accountSubmit,#profileSave,#notificationPreferencesSave) { border:1px solid #528af3; background:#2464dc; color:white; width:100%; }
+#accountDialog #accountSubmit, #accountDialog #profileSave, #accountDialog #notificationPreferencesSave { border:1px solid #528af3; background:#2464dc; color:white; width:100%; }
 #accountDialog #accountIdentity { margin:4px 0 0; font-size:.875rem; overflow-wrap:anywhere; }
 #accountDialog .notification-settings { margin:28px 0 0; padding-top:24px; border-top:1px solid var(--dialog-line); }
 #accountDialog .notification-settings-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
@@ -117,7 +116,7 @@ html body :is(.dlg-folha, #_) h3 { margin:0 0 16px; font-size:1.1875rem; font-we
 #accountDialog .alert-preferences p { margin:0; }
 #accountDialog .notification-location { display:flex; align-items:flex-start; gap:10px; padding:16px; border:1px solid var(--dialog-line); border-radius:14px; background:var(--dialog-surface); font-size:1rem; line-height:1.4; }
 #accountDialog .notification-location input { flex:none; width:20px; height:20px; margin:1px 0 0; accent-color:#6ba4ff; }
-#accountDialog :is(.notification-locations,.notification-devices) { margin-top:24px; padding-top:20px; border-top:1px solid var(--dialog-line); }
+#accountDialog .notification-locations, #accountDialog .notification-devices { margin-top:24px; padding-top:20px; border-top:1px solid var(--dialog-line); }
 #accountDialog :is(.notification-locations,.notification-devices) h4 { margin:0 0 12px; font-size:1rem; }
 #accountDialog #accountLogout { margin-top:28px; width:100%; background:none; border:1px solid var(--dialog-line); color:#ffaeb3; }
 #sourcesDialog #sourcesBody > p { margin:0 0 22px; }
@@ -129,23 +128,23 @@ html body :is(.dlg-folha, #_) h3 { margin:0 0 16px; font-size:1.1875rem; font-we
 #sourcesDialog .sources-list b { display:block; margin:0 0 7px; font-size:.75rem; font-weight:800; color:#8bbaff; line-height:1.4; letter-spacing:.055em; }
 #sourcesDialog .sources-list strong { display:block; font-size:1.25rem; font-weight:800; line-height:1.3; }
 #sourcesDialog .sources-list span { display:block; margin:8px 0 0; color:var(--dialog-muted); font-size:.9375rem; line-height:1.55; }
-#sourcesDialog :is(.source-credits,.official-observations) { margin:24px 0 0; padding:0; border:0; }
+#sourcesDialog .source-credits, #sourcesDialog .official-observations { margin:24px 0 0; padding:0; border:0; }
 #sourcesDialog .official-observations a { display:block; margin:8px 0; padding:12px 14px; border:1px solid var(--dialog-line); border-radius:12px; color:#accfff; background:var(--dialog-surface); font-size:.875rem; }
 #sourcesDialog a { color:#accfff; overflow-wrap:anywhere; }
 @media(max-width:600px) {
-  html body :is(.dlg-folha, #_) { width:calc(100% - 16px); border-radius:24px; }
-  html body :is(.dlg-folha, #_) .dialog-heading { padding:20px; }
+  html body :where(.dlg-folha):is(.dlg-folha, #_) { width:calc(100% - 16px); border-radius:24px; }
+  html body :where(.dlg-folha):is(.dlg-folha, #_) .dialog-heading { padding:20px; }
   #cityDialog .city-search-field { padding:12px 20px 16px; }
-  html body :is(.dlg-folha, #_) .dialog-heading h2 { font-size:1.375rem; }
+  html body :where(.dlg-folha):is(.dlg-folha, #_) .dialog-heading h2 { font-size:1.375rem; }
 }
 @media(prefers-reduced-motion:no-preference) {
-  html body :is(.dlg-folha, #_)[open] { animation:dialog-appear .2s ease-out; }
+  html body :where(.dlg-folha):is(.dlg-folha, #_)[open] { animation:dialog-appear .2s ease-out; }
 }
 
 /* ===== de continuous.css ===== */
 /* One brand accent for account, city selection and radar controls. */
-html body :is(.dlg-misto, #_) :is(button,input,select,summary,a):focus-visible { outline-color:var(--brand-blue); }
-#cityDialog #locateCity,#accountDialog :is(#accountSubmit,#profileSave,#notificationPreferencesSave),#accountDialog .account-tabs button[aria-pressed=true] { background:var(--brand-blue); border-color:var(--brand-blue); color:var(--on-accent); }
+html body :where(.dlg-misto):is(.dlg-misto, #_) button:focus-visible, html body :where(.dlg-misto):is(.dlg-misto, #_) input:focus-visible, html body :where(.dlg-misto):is(.dlg-misto, #_) select:focus-visible, html body :where(.dlg-misto):is(.dlg-misto, #_) summary:focus-visible, html body :where(.dlg-misto):is(.dlg-misto, #_) a:focus-visible { outline-color:var(--brand-blue); }
+#cityDialog #locateCity, #accountDialog #accountSubmit, #accountDialog #profileSave, #accountDialog #notificationPreferencesSave, #accountDialog .account-tabs button[aria-pressed=true] { background:var(--brand-blue); border-color:var(--brand-blue); color:var(--on-accent); }
 #cityDialog .city-actions button:not(#locateCity),#accountDialog .notification-actions button { border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
 #accountDialog #accountLogout { color:var(--brand-blue); border-color:color-mix(in srgb,var(--brand-blue) 50%,transparent); }
 #cityDialog .city-result[data-current=true] { border-left-color:var(--brand-blue); }
@@ -171,7 +170,7 @@ html body :is(.dlg-misto, #_) :is(button,input,select,summary,a):focus-visible {
 #hourlyDetailDialog #hourlyDetailCondition { margin:0; font-size:1rem; }
 #hourlyDetailDialog .hourly-detail-note { margin:0 0 12px; font-size:.875rem; }
 
-#accountDialog :is(.notification-types,.notification-city-choices) { min-width:0; margin:4px 0; padding:0; border:0; }
+#accountDialog .notification-types, #accountDialog .notification-city-choices { min-width:0; margin:4px 0; padding:0; border:0; }
 #accountDialog :is(.notification-types,.notification-city-choices) legend { padding:0; margin-bottom:10px; color:var(--dialog-text); font-size:1rem; font-weight:800; }
 #accountDialog .notification-types label:not(.notification-summary-time) { display:flex; align-items:flex-start; gap:12px; min-height:48px; padding:12px 0; border-bottom:1px solid var(--dialog-line); font-size:.9375rem; line-height:1.45; color:var(--dialog-text); cursor:pointer; }
 #accountDialog .notification-types input[type=checkbox] { flex:none; width:20px; height:20px; margin:1px 0 0; accent-color:var(--brand-blue); }
@@ -191,13 +190,13 @@ html body :is(.dlg-misto, #_) :is(button,input,select,summary,a):focus-visible {
 #accountDialog .account-provider:focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
 #accountDialog .account-email-separator { text-align:center; font-size:.8rem; color:var(--dialog-muted,var(--muted)); }
 @media (prefers-reduced-motion:no-preference) {
-  html body :is(.dlg-g14, #_)[open] { animation:pluvia-dialog-enter .4s cubic-bezier(.22,1,.36,1); }
-  html body :is(.dlg-g14, #_)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
-  html body :is(.dlg-g14, #_)[open].pluvia-dialog-closing { animation:pluvia-dialog-exit .28s cubic-bezier(.4,0,1,1) forwards; }
-  html body :is(.dlg-g14, #_)[open].pluvia-dialog-closing::backdrop { animation:pluvia-backdrop-exit .28s ease-in forwards; }
+  html body :where(.dlg-g14):is(.dlg-g14, #_)[open] { animation:pluvia-dialog-enter .4s cubic-bezier(.22,1,.36,1); }
+  html body :where(.dlg-g14):is(.dlg-g14, #_)[open]::backdrop { animation:pluvia-backdrop-enter .28s ease-out; }
+  html body :where(.dlg-g14):is(.dlg-g14, #_)[open].pluvia-dialog-closing { animation:pluvia-dialog-exit .28s cubic-bezier(.4,0,1,1) forwards; }
+  html body :where(.dlg-g14):is(.dlg-g14, #_)[open].pluvia-dialog-closing::backdrop { animation:pluvia-backdrop-exit .28s ease-in forwards; }
 }
-@media (prefers-reduced-motion:reduce) { html body :is(.dlg-g14, #_)[open],html body :is(.dlg-g14, #_)[open]::backdrop { animation:none !important; } }
-#accountDialog :is(#accountRecoveryForm,#accountDeleteForm) { display:grid; gap:14px; }
+@media (prefers-reduced-motion:reduce) { html body :where(.dlg-g14):is(.dlg-g14, #_)[open], html body :where(.dlg-g14):is(.dlg-g14, #_)[open]::backdrop { animation:none !important; } }
+#accountDialog #accountRecoveryForm, #accountDialog #accountDeleteForm { display:grid; gap:14px; }
 #accountDialog :is(#accountRecoveryForm,#accountDeleteForm)[hidden] { display:none; }
 #accountDialog .account-text-action { background:transparent; color:var(--dialog-muted); text-decoration:underline; text-underline-offset:3px; }
 #accountDialog #accountDelete { border:1px solid #fa948e88; background:#8d322b33; color:#ffd0cc; }
@@ -237,54 +236,54 @@ html body #brazilDialog .brazil-row { display:grid; grid-template-columns:32px m
 
 /* Busca de cidades: digitando, os resultados sobem para logo abaixo do campo, antes dos botões e
    favoritos (que continuam ali embaixo). No celular o teclado escondia a lista lá no fim. */
-#cityDialog[data-searching] :is(#cityResults,#cityPickerStatus) { order:-1; }
+#cityDialog[data-searching] #cityResults, #cityDialog[data-searching] #cityPickerStatus { order:-1; }
 
 /* ===== Diálogos v2 (redesign a pedido, outubro/2026) =====
    Folha no estilo de listas agrupadas: cabeçalho leve, grupos em cartões com linhas finas,
    botões em pílula e interruptores no lugar das caixas de seleção. Só pintura: sem blur,
    sem transform/z-index em blocos; o motion de entrada/saída continua em dialog-motion.js. */
-html body :is(.dlg-g13, #_) {
+html body :where(.dlg-g13):is(.dlg-g13, #_) {
   --dialog-bg:#0b1830; --dialog-surface:#ffffff0d; --dialog-surface-2:#ffffff17; --dialog-line:#ffffff14;
   --dialog-text:#f2f6ff; --dialog-muted:#a9b8d0; --sheet-radius:22px;
   border-color:#ffffff1a; border-radius:32px;
   background:linear-gradient(180deg,#14284a 0,#0b1830 240px) #0b1830;
   box-shadow:0 30px 90px #000a,inset 0 1px 0 #ffffff14;
 }
-html body :is(.dlg-g13, #_) .dialog-heading {
+html body :where(.dlg-g13):is(.dlg-g13, #_) .dialog-heading {
   padding:20px 16px 10px 24px; border-bottom:0; background:transparent;
 }
-html body :is(.dlg-g13, #_) .dialog-heading h2 { font-size:1.5rem; font-weight:650; letter-spacing:-.025em; }
-html body :is(.dlg-g13, #_) .dialog-close {
+html body :where(.dlg-g13):is(.dlg-g13, #_) .dialog-heading h2 { font-size:1.5rem; font-weight:650; letter-spacing:-.025em; }
+html body :where(.dlg-g13):is(.dlg-g13, #_) .dialog-close {
   width:44px; height:44px; border-radius:50%; background:#ffffff14; color:var(--dialog-text); font-size:24px; font-weight:300;
 }
-html body :is(.dlg-cidade-conta-fontes, #_) .dialog-scroll { padding:8px 20px 28px; }
+html body :where(.dlg-cidade-conta-fontes):is(.dlg-cidade-conta-fontes, #_) .dialog-scroll { padding:8px 20px 28px; }
 /* Botões: pílulas. Primário no azul da marca; secundário em superfície clara translúcida. */
-html body :is(.dlg-cidade-conta-fontes, #_) button:not(.dialog-close):not(.city-result):not(.favorite-city-card):not(.account-provider):not(.favorite-organize):not(.account-text-action):not(.city-button):not(.account-more-item) {
+html body :where(.dlg-cidade-conta-fontes):is(.dlg-cidade-conta-fontes, #_) button:not(.dialog-close):not(.city-result):not(.favorite-city-card):not(.account-provider):not(.favorite-organize):not(.account-text-action):not(.city-button):not(.account-more-item) {
   border:0; border-radius:999px; background:var(--dialog-surface-2); color:var(--dialog-text); font-weight:600;
 }
-html body :is(.dlg-cidade-conta, #_) :is(#accountSubmit,#profileSave,#notificationPreferencesSave,#savedPlaceSave,#accountRecoverySave) { background:var(--brand-blue); color:var(--on-accent); }
+html body :where(.dlg-cidade-conta):is(.dlg-cidade-conta, #_) #accountSubmit, html body :where(.dlg-cidade-conta):is(.dlg-cidade-conta, #_) #profileSave, html body :where(.dlg-cidade-conta):is(.dlg-cidade-conta, #_) #notificationPreferencesSave, html body :where(.dlg-cidade-conta):is(.dlg-cidade-conta, #_) #savedPlaceSave, html body :where(.dlg-cidade-conta):is(.dlg-cidade-conta, #_) #accountRecoverySave { background:var(--brand-blue); color:var(--on-accent); }
 html body #accountDialog #notificationPreferencesSave:disabled { background:color-mix(in srgb,var(--brand-blue) 35%,transparent); color:color-mix(in srgb,var(--on-accent) 65%,transparent); }
-html body :is(.dlg-cidade-conta-fontes, #_) :is(input:not([type=checkbox]),select) {
+html body :where(.dlg-cidade-conta-fontes):is(.dlg-cidade-conta-fontes, #_) :is(input:not([type=checkbox]),select) {
   min-height:50px; border:1px solid #ffffff1f; border-radius:16px; background:#ffffff0a; color:var(--dialog-text);
 }
-html body :is(.dlg-cidade-conta-fontes, #_) :is(input:not([type=checkbox]),select):focus { border-color:var(--brand-blue); outline:none; box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-blue) 25%,transparent); }
+html body :where(.dlg-cidade-conta-fontes):is(.dlg-cidade-conta-fontes, #_) :is(input:not([type=checkbox]),select):focus { border-color:var(--brand-blue); outline:none; box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-blue) 25%,transparent); }
 /* Títulos de grupo: discretos, como cabeçalhos de lista. */
-html body :is(.dlg-cidade-conta-fontes, #_) :is(h3,h4,legend) { margin:0 0 10px; padding:0 4px; color:var(--dialog-muted); font-size:.875rem; font-weight:600; letter-spacing:0; text-transform:none; }
+html body :where(.dlg-cidade-conta-fontes):is(.dlg-cidade-conta-fontes, #_) h3, html body :where(.dlg-cidade-conta-fontes):is(.dlg-cidade-conta-fontes, #_) h4, html body :where(.dlg-cidade-conta-fontes):is(.dlg-cidade-conta-fontes, #_) legend { margin:0 0 10px; padding:0 4px; color:var(--dialog-muted); font-size:.875rem; font-weight:600; letter-spacing:0; text-transform:none; }
 /* Interruptores: as mesmas caixas de seleção nativas (papel, foco e teclado intactos), desenhadas como chave. */
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox] {
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox] {
   -webkit-appearance:none; appearance:none; flex:none; position:relative; width:50px !important; height:30px !important; margin:0 !important;
   border-radius:999px; background:#ffffff2e; cursor:pointer; transition:background-color .2s ease;
 }
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]::before {
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]::before {
   content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff;
   box-shadow:0 1px 3px #0006;
 }
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:var(--brand-blue); }
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked::before { translate:20px 0; }
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:disabled { opacity:.45; cursor:default; }
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
-@media (forced-colors:active) { html body :is(.dlg-conta-fontes, #_) input[type=checkbox] { -webkit-appearance:auto; appearance:auto; width:20px !important; height:20px !important; } html body :is(.dlg-conta-fontes, #_) input[type=checkbox]::before { content:none; } }
-@media (prefers-reduced-motion:reduce){ html body :is(.dlg-conta-fontes, #_) input[type=checkbox],html body :is(.dlg-conta-fontes, #_) input[type=checkbox]::before { transition:none; } }
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:var(--brand-blue); }
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:checked::before { translate:20px 0; }
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:disabled { opacity:.45; cursor:default; }
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:focus-visible { outline:2px solid #88b9ff; outline-offset:3px; }
+@media (forced-colors:active) { html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox] { -webkit-appearance:auto; appearance:auto; width:20px !important; height:20px !important; } html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]::before { content:none; } }
+@media (prefers-reduced-motion:reduce){ html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox], html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]::before { transition:none; } }
 
 /* --- Suas cidades --- */
 html body #cityDialog .city-search-field { padding:4px 20px 14px; border-bottom:0; background:transparent; }
@@ -377,7 +376,7 @@ html body #accountDialog .notification-actions button { min-height:50px; }
 html body #accountDialog #notificationToggle { background:var(--brand-blue); color:var(--on-accent); }
 html body #accountDialog .alert-preferences { gap:26px; }
 html body #accountDialog .alert-preferences > small,html body #accountDialog .notification-help,html body #accountDialog #notificationPrivacy { margin:-16px 4px 0; font-size:.8125rem; line-height:1.5; }
-html body #accountDialog :is(.notification-types,.notification-timing,.notification-city-choices) { margin:0; padding:0; border:0; }
+html body #accountDialog .notification-types, html body #accountDialog .notification-timing, html body #accountDialog .notification-city-choices { margin:0; padding:0; border:0; }
 html body #accountDialog :is(.notification-types,.notification-timing,.notification-city-choices) legend { float:left; width:100%; color:var(--dialog-muted); font-size:.875rem; font-weight:600; }
 html body #accountDialog :is(.notification-types,.notification-timing,.notification-city-choices) legend + * { clear:both; }
 html body #accountDialog .notification-types { display:block; padding:0; border-radius:var(--sheet-radius); }
@@ -394,7 +393,7 @@ html body #accountDialog form .notification-types .notification-summary-time { d
 html body #accountDialog form .notification-types .notification-summary-time[hidden] { display:none; }
 html body #accountDialog form .notification-types .notification-summary-time input { width:auto; min-height:40px; }
 html body #accountDialog .notification-timing { display:block; padding:0; border-block:0; }
-html body #accountDialog .notification-timing > :is(label,div,small) { margin:0; }
+html body #accountDialog .notification-timing > label, html body #accountDialog .notification-timing > div, html body #accountDialog .notification-timing > small { margin:0; }
 html body #accountDialog .notification-timing > label:not(.notification-quiet-toggle),html body #accountDialog .notification-timing > .notification-time-pair { padding:14px 16px; background:var(--dialog-surface); border-bottom:1px solid var(--dialog-line); color:var(--dialog-muted); }
 html body #accountDialog .notification-timing > label:first-of-type { border-radius:var(--sheet-radius) var(--sheet-radius) 0 0; }
 html body #accountDialog form .notification-timing .notification-quiet-toggle { flex-direction:row-reverse; justify-content:space-between; min-height:56px; padding:12px 16px; background:var(--dialog-surface); border-bottom:1px solid var(--dialog-line); font-size:.9375rem; }
@@ -406,12 +405,12 @@ html body #accountDialog .notification-city-choices .notification-location {
   border:0; border-radius:18px; background:var(--dialog-surface); font-size:.9375rem;
 }
 html body #accountDialog .notification-city-choices > small { display:block; padding:2px 4px 0; font-size:.8125rem; }
-html body #accountDialog :is(.notification-locations,.notification-devices) { margin-top:26px; padding:0; border-top:0; }
+html body #accountDialog .notification-locations, html body #accountDialog .notification-devices { margin-top:26px; padding:0; border-top:0; }
 html body #accountDialog :is(.notification-locations,.notification-devices) > div { padding:4px 16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); }
 html body #accountDialog :is(.notification-locations,.notification-devices) > div > p { margin:12px 0; }
 html body #accountDialog .notification-locations > small { display:block; padding:8px 4px 0; }
-html body #accountDialog :is(.notification-location-row,.notification-device) { padding:12px 0; border-bottom:1px solid var(--dialog-line); }
-html body #accountDialog :is(.notification-location-row,.notification-device):last-child { border-bottom:0; }
+html body #accountDialog .notification-location-row, html body #accountDialog .notification-device { padding:12px 0; border-bottom:1px solid var(--dialog-line); }
+html body #accountDialog .notification-location-row:last-child, html body #accountDialog .notification-device:last-child { border-bottom:0; }
 html body #accountDialog :is(.notification-location-row,.notification-device) button { min-height:40px; border:0; background:var(--dialog-surface-2); }
 html body #accountDialog #accountLogout { margin-top:30px; border:0; background:var(--dialog-surface); color:var(--brand-blue); color:#8fb4ff; }
 /* Cartão como os outros grupos da conta. Antes: a linha só em cima (border-top da regra antiga) com cantos
@@ -471,18 +470,18 @@ html body #sourcesDialog .source-credits { margin:28px 0 0; }
 html body #sourcesDialog .source-credits label[for=analyticsConsent] { display:flex; flex-direction:row-reverse; align-items:center; justify-content:space-between; gap:14px; min-height:56px; padding:12px 16px; border-radius:var(--sheet-radius); background:var(--dialog-surface); color:var(--dialog-text); font-size:.9375rem; cursor:pointer; }
 html body #sourcesDialog .source-credits p { margin:10px 4px 0; font-size:.8125rem; line-height:1.55; }
 @media (max-width:600px) {
-  html body :is(.dlg-g13, #_) { border-radius:28px; }
-  html body :is(.dlg-g13, #_) .dialog-heading { padding:18px 14px 8px 20px; }
-  html body :is(.dlg-cidade-conta-fontes, #_) .dialog-scroll { padding:6px 16px 24px; }
+  html body :where(.dlg-g13):is(.dlg-g13, #_) { border-radius:28px; }
+  html body :where(.dlg-g13):is(.dlg-g13, #_) .dialog-heading { padding:18px 14px 8px 20px; }
+  html body :where(.dlg-cidade-conta-fontes):is(.dlg-cidade-conta-fontes, #_) .dialog-scroll { padding:6px 16px 24px; }
   html body #cityDialog .city-search-field { padding:4px 16px 12px; }
 }
 /* Na folha (mesmo visual de Minha conta e Fontes de dados), as regras genéricas de título e parágrafo dos
    diálogos não valem para a lista de versões. */
-html body :is(.dlg-novidades, #_) .changelog-entry h3 { margin:0; padding:0; color:var(--dialog-text); font-size:1.0625rem; font-weight:600; letter-spacing:0; }
+html body :where(.dlg-novidades):is(.dlg-novidades, #_) .changelog-entry h3 { margin:0; padding:0; color:var(--dialog-text); font-size:1.0625rem; font-weight:600; letter-spacing:0; }
 html body #changelogDialog .changelog-intro { margin:0 0 16px; font-size:.875rem; }
-html body :is(.dlg-novidades, #_) .changelog-date { margin:2px 0 0; font-size:.8125rem; }
-html body :is(.dlg-novidades, #_) .changelog-entry .changelog-title { margin:8px 0 0; color:var(--dialog-text); font-size:1rem; font-weight:600; }
-html body :is(.dlg-novidades, #_) .changelog-entry ul { color:var(--dialog-text); }
+html body :where(.dlg-novidades):is(.dlg-novidades, #_) .changelog-date { margin:2px 0 0; font-size:.8125rem; }
+html body :where(.dlg-novidades):is(.dlg-novidades, #_) .changelog-entry .changelog-title { margin:8px 0 0; color:var(--dialog-text); font-size:1rem; font-weight:600; }
+html body :where(.dlg-novidades):is(.dlg-novidades, #_) .changelog-entry ul { color:var(--dialog-text); }
 /* Detalhe do dia: sem o bloco de ícone/temperatura do detalhe horário, a condição sobrava 36 px abaixo do título. */
 html body #dailyDetailDialog #dailyDetailCondition { margin-top:0; }
 html body #whatsNewDialog .whats-new-actions button { min-height:48px; border-radius:999px; padding:12px 16px; }
@@ -523,37 +522,37 @@ html body #accountDialog #avatarOptions button.avatar-option[aria-pressed="true"
    off-white quente com cartões brancos e texto azul-marinho; à noite e com chuva forte/trovoada
    (tinta clara) continuam escuras. Mesmos tokens --dialog-*; só cores, sem blur/transform/z-index.
    Contraste medido por verify-contrast.py. */
-html body[data-phase="day"] :is(.dlg-todas, #_) {
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) {
   --dialog-bg:#f7f5f0; --dialog-surface:#ffffff; --dialog-surface-2:#0b18300d; --dialog-line:#0b183017;
   --dialog-text:#13233d; --dialog-muted:#556479; --dialog-link:var(--brand-blue);
   --text:#13233d; --muted:#556479; --line:#0b18301f; --panel:#fff; --panel-strong:#fff; --panel-subtle:#0b18300a;
   color-scheme:light; color:var(--dialog-text); border-color:#0b183014;
   background:#f7f5f0; box-shadow:0 30px 90px #0b183040,inset 0 1px 0 #ffffffcc;
 }
-html body[data-phase="day"] :is(.dlg-todas, #_)::backdrop { background:#0b18304d; }
-html body[data-phase="day"] :is(.dlg-todas, #_) :is(.dialog-heading,.dialog-heading h2,h3,strong,label,legend,summary) { color:var(--dialog-text); }
-html body[data-phase="day"] :is(.dlg-todas, #_) :is(p,small,dt,.dialog-subtitle) { color:var(--dialog-muted); }
-html body[data-phase="day"] :is(.dlg-todas, #_) .dialog-close { background:#0b18300f; color:var(--dialog-text); }
-html body[data-phase="day"] :is(.dlg-todas, #_) a { color:var(--dialog-link); }
-html body[data-phase="day"] :is(.dlg-cidade-conta-fontes, #_) :is(input:not([type=checkbox]),select) { border-color:#0b18301f; background:#fff; color:var(--dialog-text); }
-html body[data-phase="day"] :is(.dlg-listas, #_) input::placeholder { color:#5d6c81; }
-html body[data-phase="day"] :is(.dlg-conta-fontes, #_) input[type=checkbox] { background:#0b183026; }
-html body[data-phase="day"] :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:var(--brand-blue); }
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_)::backdrop { background:#0b18304d; }
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) :is(.dialog-heading,.dialog-heading h2,h3,strong,label,legend,summary) { color:var(--dialog-text); }
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) :is(p,small,dt,.dialog-subtitle) { color:var(--dialog-muted); }
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) .dialog-close { background:#0b18300f; color:var(--dialog-text); }
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) a { color:var(--dialog-link); }
+html body[data-phase="day"] :where(.dlg-cidade-conta-fontes):is(.dlg-cidade-conta-fontes, #_) :is(input:not([type=checkbox]),select) { border-color:#0b18301f; background:#fff; color:var(--dialog-text); }
+html body[data-phase="day"] :where(.dlg-listas):is(.dlg-listas, #_) input::placeholder { color:#5d6c81; }
+html body[data-phase="day"] :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox] { background:#0b183026; }
+html body[data-phase="day"] :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:var(--brand-blue); }
 html body[data-phase="day"] #cityDialog #citySearch { background-color:#fff; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23556479' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E"); }
 html body[data-phase="day"] #cityDialog #voiceSearch { color:#556479; }
 html body[data-phase="day"] #cityDialog .city-actions > button::before,html body[data-phase="day"] #cityDialog .favorite-organize { background-color:var(--brand-blue); }
 html body[data-phase="day"] #cityDialog .favorite-organize { background:none; color:var(--dialog-link); }
 html body[data-phase="day"] #cityDialog #locateCity::before { background:#fff; }
 html body[data-phase="day"] #cityDialog #favoriteCity[aria-pressed=true]::before { background:#e0a400; }
-html body[data-phase="day"] #cityDialog :is(.city-result[data-current=true],.favorite-city-card[aria-current=true]) { background:color-mix(in srgb,var(--brand-blue) 8%,transparent); }
+html body[data-phase="day"] #cityDialog .city-result[data-current=true], html body[data-phase="day"] #cityDialog .favorite-city-card[aria-current=true] { background:color-mix(in srgb,var(--brand-blue) 8%,transparent); }
 html body[data-phase="day"] #accountDialog .account-tabs { background:#0b18300d; }
 html body[data-phase="day"] #accountDialog #accountTabs button[aria-pressed=true] { background:#fff; color:var(--dialog-text); box-shadow:0 1px 3px #0b183026; }
 html body[data-phase="day"] #accountDialog .profile-identity { background:radial-gradient(120% 100% at 50% 0,color-mix(in srgb,var(--brand-blue) 12%,transparent),transparent 70%),#fff; }
 html body[data-phase="day"] #accountDialog #notificationPreferencesSave:disabled { background:color-mix(in srgb,var(--brand-blue) 25%,transparent); color:color-mix(in srgb,var(--on-accent) 85%,transparent); }
-html body[data-phase="day"] :is(.dlg-cidade-conta, #_) :is(#accountSubmit,#profileSave,#notificationPreferencesSave,#savedPlaceSave,#accountRecoverySave,#locateCity) { color:#fff; }
+html body[data-phase="day"] :where(.dlg-cidade-conta):is(.dlg-cidade-conta, #_) #accountSubmit, html body[data-phase="day"] :where(.dlg-cidade-conta):is(.dlg-cidade-conta, #_) #profileSave, html body[data-phase="day"] :where(.dlg-cidade-conta):is(.dlg-cidade-conta, #_) #notificationPreferencesSave, html body[data-phase="day"] :where(.dlg-cidade-conta):is(.dlg-cidade-conta, #_) #savedPlaceSave, html body[data-phase="day"] :where(.dlg-cidade-conta):is(.dlg-cidade-conta, #_) #accountRecoverySave, html body[data-phase="day"] :where(.dlg-cidade-conta):is(.dlg-cidade-conta, #_) #locateCity { color:#fff; }
 html body[data-phase="day"] #brazilDialog .brazil-row:hover { background:#0b18300a; }
-html body[data-phase="day"] :is(.dlg-texto, #_) .dialog-close { border-radius:50%; }
-html body[data-phase="day"] :is(.dlg-novidades, #_) .changelog-title { color:var(--dialog-text); }
+html body[data-phase="day"] :where(.dlg-texto):is(.dlg-texto, #_) .dialog-close { border-radius:50%; }
+html body[data-phase="day"] :where(.dlg-novidades):is(.dlg-novidades, #_) .changelog-title { color:var(--dialog-text); }
 html body[data-phase="day"] #sourcesDialog .sources-list b { color:var(--brand-blue); }
 html body[data-phase="day"] #sourcesDialog .sources-list article[data-kind=official] b { color:#0f7a52; }
 html body[data-phase="day"] #sourcesDialog .sources-list article[data-kind=observation] b { color:#5b3fc4; }
@@ -569,7 +568,7 @@ html body #accountDialog .account-group-title { flex:1; min-width:0; }
 html body #accountDialog .account-group-value { flex:none; max-width:55%; overflow:hidden; color:var(--dialog-muted); font-size:.8125rem; font-weight:400; text-overflow:ellipsis; white-space:nowrap; }
 html body #accountDialog .account-group-value:empty { display:none; }
 html body #accountDialog .account-group .details-motion-inner > :last-child { margin-bottom:12px; }
-html body #accountDialog .account-group :is(.notification-types,.notification-timing,.notification-city-choices) { margin:0; border-top:1px solid var(--dialog-line); }
+html body #accountDialog .account-group .notification-types, html body #accountDialog .account-group .notification-timing, html body #accountDialog .account-group .notification-city-choices { margin:0; border-top:1px solid var(--dialog-line); }
 html body #accountDialog .account-group :is(.notification-types label:not(.notification-summary-time),form .notification-types .notification-summary-time,.notification-timing > label:not(.notification-quiet-toggle),.notification-timing > .notification-time-pair,form .notification-timing .notification-quiet-toggle,.notification-city-choices .notification-location) {
   margin:0; padding-inline:0; border-radius:0!important; background:transparent; border-bottom:1px solid var(--dialog-line);
 }
@@ -579,7 +578,7 @@ html body #accountDialog .account-group .notification-summaries > label:has(+ .n
 html body #accountDialog .account-group .notification-summaries > label:nth-last-of-type(2):has(+ .notification-summary-time[hidden]) { border-bottom:0; }
 html body #accountDialog .account-group .notification-timing > small { padding:10px 0 0; }
 html body #accountDialog .account-group .account-group-note { display:block; margin:0; padding:10px 0 0; color:var(--dialog-muted); font-size:.8125rem; line-height:1.45; }
-html body #accountDialog .account-group :is(.notification-locations,.notification-devices) { margin:0; border-top:1px solid var(--dialog-line); }
+html body #accountDialog .account-group .notification-locations, html body #accountDialog .account-group .notification-devices { margin:0; border-top:1px solid var(--dialog-line); }
 html body #accountDialog .account-group :is(.notification-locations,.notification-devices) > div { padding:0; border-radius:0; background:transparent; }
 html body #accountDialog .account-group .notification-checks { margin:0; padding:0; border-top:1px solid var(--dialog-line); border-radius:0; background:transparent; }
 html body #accountDialog .account-group .notification-checks > summary { color:var(--dialog-muted); font-size:.875rem; }
@@ -594,14 +593,14 @@ html body #accountDialog .alert-preferences { gap:0; }
 html body #accountDialog #notificationPreferencesSave { margin:6px 0 8px; }
 html body #accountDialog #accountLogout { margin-top:18px; }
 html body #accountDialog .account-group > summary .account-group-value { display:block; align-self:center; margin:0!important; padding:0!important; line-height:1.3; }
-html body #accountDialog .account-group :is(.notification-types,.notification-timing,.notification-city-choices) { border-radius:0; }
+html body #accountDialog .account-group .notification-types, html body #accountDialog .account-group .notification-timing, html body #accountDialog .account-group .notification-city-choices { border-radius:0; }
 html body #accountDialog .account-group #notificationPrivacy { margin:0; padding:10px 0 0; }
 html body[data-phase="day"] #accountDialog #accountLogout { color:var(--dialog-link,var(--brand-blue)); }
 /* O invólucro da animação de altura é grade: sem min-width:0 o cartão cresce até o campo mais largo
    (fuso, horários) e passa da janela no celular. */
 html body #accountDialog .account-group,html body #accountDialog .account-group > .details-motion,html body #accountDialog .account-group .details-motion-inner { min-width:0; max-width:100%; }
 html body #accountDialog .account-group :is(select,input:not([type=checkbox])) { max-width:100%; min-width:0; }
-html body[data-phase="day"] :is(.dlg-conta-termos, #_) :is(.terms-check,.terms-social-note) a { color:var(--dialog-link,var(--brand-blue)); }
+html body[data-phase="day"] :where(.dlg-conta-termos):is(.dlg-conta-termos, #_) :is(.terms-check,.terms-social-note) a { color:var(--dialog-link,var(--brand-blue)); }
 html body #accountDialog .terms-social-note { display:block; margin:2px 4px 6px; color:var(--dialog-muted); font-size:.8125rem; line-height:1.45; text-align:center; }
 html body #termsDialog p { margin:0 0 12px; color:var(--dialog-text); line-height:1.5; }
 html body #termsDialog #termsAccept:disabled { opacity:.45; cursor:not-allowed; }
@@ -622,7 +621,7 @@ html body #accountDialog #accountMore .account-more-item { display:flex; align-i
 html body #accountDialog #accountMore .account-more-item + .account-more-item { border-top:1px solid var(--dialog-line); }
 html body #accountDialog #accountMore .account-more-item::after { content:""; flex:none; width:7px; height:7px; margin-right:3px; border-right:2px solid var(--dialog-muted); border-bottom:2px solid var(--dialog-muted); transform:rotate(-45deg); }
 html body #accountDialog #accountMore .account-more-item:focus-visible { outline:2px solid var(--brand-blue); outline-offset:2px; border-radius:12px; }
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked::before { background:#fff; }
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:checked::before { background:#fff; }
 #hourlyDetailDialog #hourlyDetailCondition { grid-column:1 / -1; text-align:center; }
 html body #accountDialog .account-group > summary::after { transition:transform .32s cubic-bezier(.3,.7,.2,1), margin .32s cubic-bezier(.3,.7,.2,1); }
 html body #accountDialog .capital-links summary::after { transition:rotate .32s cubic-bezier(.3,.7,.2,1); }
@@ -656,9 +655,9 @@ body[data-phase="day"] #dailyDetailDialog .day-chart-rain { fill:#1e90d6; }
 #dailyDetailDialog .day-chart-scrub-line { stroke:var(--dialog-text, #fff); stroke-opacity:.7; stroke-width:1.4; }
 #dailyDetailDialog .day-chart-scrub-dot { fill:var(--dialog-text, #fff); stroke:var(--dialog-bg, #101a33); stroke-width:2.5; }
 #dailyDetailDialog .day-chart-scrub-label { fill:var(--dialog-text, #fff); font-size:12.5px; font-weight:650; font-variant-numeric:tabular-nums; }
-#dailyDetailDialog .day-chart[data-scrubbing] :is(.day-chart-mark,.day-chart-now-label) { fill-opacity:0; }
-#dailyDetailDialog .day-chart[data-scrubbing] :is(.day-chart-dot,.day-chart-now,.day-chart-now-dot) { fill-opacity:.25; stroke-opacity:.25; }
-@media (prefers-reduced-motion:reduce) { #dailyDetailDialog :is(.day-chart-line,.day-chart-area) { animation:none; } }
+#dailyDetailDialog .day-chart[data-scrubbing] .day-chart-mark, #dailyDetailDialog .day-chart[data-scrubbing] .day-chart-now-label { fill-opacity:0; }
+#dailyDetailDialog .day-chart[data-scrubbing] .day-chart-dot, #dailyDetailDialog .day-chart[data-scrubbing] .day-chart-now, #dailyDetailDialog .day-chart[data-scrubbing] .day-chart-now-dot { fill-opacity:.25; stroke-opacity:.25; }
+@media (prefers-reduced-motion:reduce) { #dailyDetailDialog .day-chart-line, #dailyDetailDialog .day-chart-area { animation:none; } }
 
 /* X de fechar (1.43.1, pedido do dono: "maior e mais grosso e alinhado"): o caractere "×" da fonte ficava fino,
    pequeno e fora do centro (a Sora o desenha mais alto que o meio da linha). O texto continua no HTML para
@@ -677,12 +676,12 @@ html body .dialog-close::before {
    sem backdrop-filter (o fundo da janela já é opaco). */
 html body .dialog-close { position:relative; }
 html body .dialog-close::before { position:absolute; inset:0; margin:auto; width:18px; height:18px; }
-html body :is(.dlg-todas, #_) .dialog-close {
+html body :where(.dlg-todas):is(.dlg-todas, #_) .dialog-close {
   border-radius:50%; border:0;
   background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06) 55%,rgba(255,255,255,.1));
   box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.6),inset -1px -1px 0 -.5px rgba(255,255,255,.3),inset 0 0 0 .5px rgba(255,255,255,.22),inset 0 0 12px rgba(255,255,255,.1) !important;
 }
-html body[data-phase="day"] :is(.dlg-todas, #_) .dialog-close {
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) .dialog-close {
   background:linear-gradient(180deg,rgba(19,35,61,.06),rgba(19,35,61,.1));
   box-shadow:inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),inset 0 0 0 .5px rgba(19,35,61,.14),0 2px 8px rgba(19,35,61,.08) !important;
 }
@@ -705,7 +704,7 @@ html body #accountDialog .text-size-row::after { display:none !important; }
 html body #accountDialog .text-size-row > span:first-child { min-width:0; }
 #accountDialog .text-size-controls { flex:none; }
 html body #accountDialog .text-size-controls button { flex:none; aspect-ratio:1; }
-html body #accountDialog :is(#textSizeDown,#textSizeUp) { width:44px; height:44px; min-height:44px; padding:0; border-radius:50%; }
+html body #accountDialog #textSizeDown, html body #accountDialog #textSizeUp { width:44px; height:44px; min-height:44px; padding:0; border-radius:50%; }
 
 /* ===== Minha conta mais limpa (1.50, pedido do dono: "muito poluída" e "liquid glass onde tá escrito Minha conta") =====
    Cabeçalho (no fluxo, com margem negativa embaixo): o conteúdo rola por baixo de uma faixa quase opaca (sem desfoque: o WebKit da CI caiu com blur ali), e o título fica numa cápsula de vidro como o X (sem desfoque próprio: desfoque dentro de
@@ -758,7 +757,7 @@ html body #accountDialog .notification-settings:has(.notification-status.is-on) 
 
 /* Os quatro ajustes num cartão; Cidades e Aparelhos noutro. Divisória recuada como nas listas do iPhone. */
 html body #accountDialog .alert-preferences { gap:0; }
-html body #accountDialog .alert-preferences > .account-group,html body #accountDialog :is(#notificationLocationsGroup,#notificationDevicesGroup) { margin:0; border-radius:0; }
+html body #accountDialog .alert-preferences > .account-group, html body #accountDialog #notificationLocationsGroup, html body #accountDialog #notificationDevicesGroup { margin:0; border-radius:0; }
 html body #accountDialog .alert-preferences > .account-group + .account-group,html body #accountDialog #notificationDevicesGroup {
   background:linear-gradient(var(--dialog-line),var(--dialog-line)) 16px 0/calc(100% - 32px) 1px no-repeat,var(--dialog-surface);
 }
@@ -789,15 +788,15 @@ html body #accountDialog .capital-links details + details { margin-top:0; backgr
    brancas, em todas as janelas). Com tinta clara (noite, chuva, trovoada), as folhas trocam o azul-noite por preto,
    cartões em branco translúcido e texto branco; secundário em cinza neutro. De dia (tinta escura) continuam claras.
    Só cores, redefinindo os mesmos tokens. */
-html body:not([data-phase="day"]) :is(.dlg-todas, #_) {
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_) {
   --dialog-bg:#000; --dialog-surface:#ffffff12; --dialog-surface-2:#ffffff1f; --dialog-line:#ffffff1c;
   --dialog-text:#fff; --dialog-muted:#a1a1a6; --dialog-link:var(--brand-blue);
   --text:#fff; --muted:#a1a1a6; --line:#ffffff1c; --panel:#ffffff12; --panel-strong:#ffffff1f; --panel-subtle:#ffffff0a;
   border-color:#ffffff1f; background:#000; color:#fff; box-shadow:0 30px 90px #000c,inset 0 1px 0 #ffffff14;
 }
-html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(.dialog-heading,.dialog-heading h2,h3,strong,label,legend,summary) { color:#fff; }
-html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(input:not([type=checkbox]):not([type=range]),select,textarea) { border-color:#ffffff24; background:#ffffff0f; color:#fff; }
-html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(input,textarea)::placeholder { color:#8e8e93; }
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_) :is(.dialog-heading,.dialog-heading h2,h3,strong,label,legend,summary) { color:#fff; }
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_) :is(input:not([type=checkbox]):not([type=range]),select,textarea) { border-color:#ffffff24; background:#ffffff0f; color:#fff; }
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_) input::placeholder, html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_) textarea::placeholder { color:#8e8e93; }
 /* Botões preenchidos nas janelas pretas (1.50, pedido do dono): brancos com letra preta no lugar do azul
    (Entrar, Salvar, Ativar alertas, Entendi, Aceitar, Baixar imagem, play do radar). Interruptores e links
    continuam no azul da marca. */
@@ -809,12 +808,12 @@ html body:not([data-phase="day"]) #accountDialog #notificationPreferencesForm[da
 /* Interruptores ligados em verde e links brancos (1.50, pedido do dono, janelas pretas): o azul sai dos
    interruptores (verde, para ver que está ligado, de dia e de noite) e, no escuro, links e ações em texto ficam
    brancos. Botões preenchidos continuam brancos com letra preta. */
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked,html body[data-phase="day"] :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:#30d158; }
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:focus-visible { outline-color:#30d158; }
-html body:not([data-phase="day"]) :is(.dlg-todas, #_) {
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:checked, html body[data-phase="day"] :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:#30d158; }
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:focus-visible { outline-color:#30d158; }
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_) {
   --dialog-link:#fff; --map-link:#fff;
 }
-html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#fff !important; }
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#fff !important; }
 html body:not([data-phase="day"]) #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#fff; }
 html body:not([data-phase="day"]) #accountDialog .notification-status.is-on { color:#30d158; border-color:#30d15859; background:#30d1581a; }
 html body:not([data-phase="day"]) #accountDialog .notification-status.is-on::before { background:#30d158; }
@@ -823,12 +822,12 @@ html body:not([data-phase="day"]) #accountDialog .notification-status.is-on::bef
 html body[data-phase="day"] :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) {
   border-color:#111; background:#111; color:#fff;
 }
-html body[data-phase="day"] #accountDialog :is(#notificationPreferencesSave,#accountSubmit):disabled,html body[data-phase="day"] #termsDialog #termsAccept:disabled { border-color:#11111140; background:#11111140; color:#ffffffb0; }
+html body[data-phase="day"] #accountDialog #notificationPreferencesSave:disabled, html body[data-phase="day"] #accountDialog #accountSubmit:disabled, html body[data-phase="day"] #termsDialog #termsAccept:disabled { border-color:#11111140; background:#11111140; color:#ffffffb0; }
 html body[data-phase="day"] #accountDialog #notificationPreferencesForm[data-saved] #notificationPreferencesSave { background:var(--dialog-surface-2); color:#111; }
-html body[data-phase="day"] :is(.dlg-todas, #_) {
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) {
   --dialog-link:#111; --map-link:#111;
 }
-html body[data-phase="day"] :is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#111 !important; }
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#111 !important; }
 html body[data-phase="day"] #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#111; }
 html body[data-phase="day"] #accountDialog .notification-status.is-on { color:#1c7a36; border-color:#1c7a3659; background:#30d1581f; }
 html body[data-phase="day"] #accountDialog .notification-status.is-on::before { background:#30d158; }
@@ -838,9 +837,9 @@ html body[data-phase="day"] #accountDialog .notification-status.is-on::before { 
    claras valem com `body[data-phase="day"]` e as pretas à noite (as regras desta folha que antes olhavam
    `data-ink` nas janelas passaram a olhar a fase). Botões da conta: mesma altura e cantos; interruptor com bolinha
    branca e sem aro. */
-html body #accountDialog :is(#notificationToggle,#notificationPreferencesSave,#accountSubmit,#profileSave) { min-height:50px; border-radius:999px; font-size:.9375rem; font-weight:600; }
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox] { border:0 !important; box-shadow:none !important; }
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:#30d158 !important; }
+html body #accountDialog #notificationToggle, html body #accountDialog #notificationPreferencesSave, html body #accountDialog #accountSubmit, html body #accountDialog #profileSave { min-height:50px; border-radius:999px; font-size:.9375rem; font-weight:600; }
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox] { border:0 !important; box-shadow:none !important; }
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:checked { background:#30d158 !important; }
 
 /* Resultados da busca de cidades mais bonitos (1.50.3, pedido do dono: "tão muito feias"): cada cidade é um cartão
    próprio com espaço entre eles (antes uma lista corrida com linhas), nome em destaque com a sigla do estado numa
@@ -868,7 +867,7 @@ html body[data-phase="day"] #cityDialog .city-result .city-fav { background:#e0a
    estava 1 px abaixo do centro da chave por causa da borda do campo (zerada em 1.50.2). */
 html body #accountDialog .notification-types label:not(.notification-summary-time) { align-items:center; }
 html body #accountDialog .notification-types label:not(.notification-summary-time) > span { display:flex; flex-direction:column; justify-content:center; gap:2px; align-self:center; margin:0; padding:0; }
-html body #accountDialog .notification-types label:not(.notification-summary-time) > span > :is(strong,small) { display:block; margin:0 !important; padding:0; line-height:1.35; }
+html body #accountDialog .notification-types label:not(.notification-summary-time) > span > strong, html body #accountDialog .notification-types label:not(.notification-summary-time) > span > small { display:block; margin:0 !important; padding:0; line-height:1.35; }
 html body #accountDialog .notification-types label:not(.notification-summary-time) > input[type=checkbox] { align-self:center; margin:0 !important; }
 
 /* Suas cidades: "Usar localização" branco e favoritas menores, sem contorno azul (1.50.5, pedido do dono). À noite o
@@ -892,30 +891,30 @@ html body #cityDialog .favorite-city-card .favorite-reading { font-size:1.5rem; 
    no azul da marca (#7cc0ff com texto escuro à noite, #0a4cba com texto branco de dia). Os interruptores ligados
    continuam verdes (escolha do dono na 1.50). Segue a fase, não a nuvem (1.50.2). Só cores e fundo: sem blur,
    transform ou z-index; o X já é o vidro do topo. */
-html body:not([data-phase="day"]) :is(.dlg-todas, #_) {
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_) {
   --dialog-bg:#121836; --dialog-surface:#182240; --dialog-surface-2:#22305a; --dialog-line:#b8d4ef26;
   --dialog-text:#f2f7ff; --dialog-muted:#b9c8dc; --dialog-link:#7cc0ff; --map-link:#7cc0ff;
   --text:#f2f7ff; --muted:#b9c8dc; --line:#b8d4ef26; --panel:#182240; --panel-strong:#22305a; --panel-subtle:#ffffff08;
   border-color:#bed2f529; color:#f2f7ff; box-shadow:0 30px 90px #000a,inset 0 1px 0 #ffffff1a;
   background:linear-gradient(180deg,#121836 0,#0b1229 300px,#080f22);
 }
-html body[data-phase="day"] :is(.dlg-todas, #_) {
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) {
   --dialog-bg:#5bb2e3; --dialog-surface:#eef7fe; --dialog-surface-2:#0a4cba14; --dialog-line:#08274421;
   --dialog-text:#082744; --dialog-muted:#2c4a66; --dialog-link:#0a4cba; --map-link:#0a4cba;
   --text:#082744; --muted:#2c4a66; --line:#08274421; --panel:#eef7fe; --panel-strong:#fff; --panel-subtle:#0827440a;
   border-color:#ffffff99; color:#082744; box-shadow:0 30px 90px #0b183040,inset 0 1px 0 #ffffffcc;
   background:linear-gradient(180deg,#5bb2e3 0,#a9dbf1 300px,#bce7f5);
 }
-html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { border-color:var(--dialog-line); background-color:var(--dialog-surface); color:var(--dialog-text); }
-html body[data-phase="day"] :is(.dlg-todas, #_) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { border-color:var(--dialog-line); background-color:#fff; color:var(--dialog-text); }
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { border-color:var(--dialog-line); background-color:var(--dialog-surface); color:var(--dialog-text); }
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea) { border-color:var(--dialog-line); background-color:#fff; color:var(--dialog-text); }
 /* Botões preenchidos: o azul da marca no lugar do branco (noite) e do preto (dia). */
 html body:not([data-phase="day"]) :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) { border-color:#7cc0ff; background:#7cc0ff; color:#0c1a33; }
 html body[data-phase="day"] :is(#cityDialog #savedPlaceSave,#accountDialog :is(#accountSubmit,#accountRecoverySave,#profileSave,#notificationPreferencesSave),#accountDialog .notification-settings:not(:has(.notification-status.is-on)) #notificationToggle,#termsDialog #termsAccept,#whatsNewDialog #whatsNewOk,#installPushDialog #installPushReload,#installDialog #installDone,#radarDialog #weatherPlay,#radarDialog .weather-map-retry,#accountDialog #accountTabs button[aria-pressed=true]) { border-color:#0a4cba; background:#0a4cba; color:#fff; }
 html body:not([data-phase="day"]) #accountDialog #notificationPreferencesSave:disabled,html body:not([data-phase="day"]) :is(#termsDialog #termsAccept,#accountDialog #accountSubmit):disabled { border-color:#7cc0ff59; background:#7cc0ff59; color:#0c1a33b3; }
-html body[data-phase="day"] #accountDialog :is(#notificationPreferencesSave,#accountSubmit):disabled,html body[data-phase="day"] #termsDialog #termsAccept:disabled { border-color:#0a4cba59; background:#0a4cba59; color:#ffffffd9; }
+html body[data-phase="day"] #accountDialog #notificationPreferencesSave:disabled, html body[data-phase="day"] #accountDialog #accountSubmit:disabled, html body[data-phase="day"] #termsDialog #termsAccept:disabled { border-color:#0a4cba59; background:#0a4cba59; color:#ffffffd9; }
 /* Links e ações em texto: azul da marca (no lugar do branco/preto da 1.50). */
-html body:not([data-phase="day"]) :is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#7cc0ff !important; }
-html body[data-phase="day"] :is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#0a4cba !important; }
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#7cc0ff !important; }
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) :is(a,a:hover,#accountLogout,#notificationTest,.favorite-organize,#termsCancel,#whatsNewAll,.notification-location-row button,.notification-device button,.sources-list b,.official-observations a::after) { color:#0a4cba !important; }
 html body:not([data-phase="day"]) #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#7cc0ff; }
 html body[data-phase="day"] #accountDialog .notification-settings:has(.notification-status.is-on) #notificationToggle { color:#0a4cba; }
 /* Suas cidades: "Usar localização" no azul da marca e a cidade aberta com anel azul (antes branco/preto). */
@@ -925,7 +924,7 @@ html body[data-phase="day"] #cityDialog #locateCity { background:#0a4cba; backgr
 html body[data-phase="day"] #cityDialog #locateCity::before { background:#fff; }
 html body:not([data-phase="day"]) #cityDialog .city-result[data-current=true],html body:not([data-phase="day"]) #cityDialog .city-result[aria-selected="true"] { background:var(--dialog-surface-2); box-shadow:inset 0 0 0 1.5px #7cc0ff; }
 html body[data-phase="day"] #cityDialog .city-result[data-current=true],html body[data-phase="day"] #cityDialog .city-result[aria-selected="true"] { background:#fff; box-shadow:inset 0 0 0 1.5px #0a4cba; }
-@media (forced-colors:active) { html body :is(.dlg-todas, #_) { background:Canvas; } }
+@media (forced-colors:active) { html body :where(.dlg-todas):is(.dlg-todas, #_) { background:Canvas; } }
 /* janelas-icones:fim */
 
 /* ===== Janelas repaginadas (1.65, pedido do dono: "repaginada total… mais bonito, intuitivo e moderno, bota ícones") =====
@@ -1026,22 +1025,22 @@ html body #accountDialog :is(#accountPassword,#accountNewPassword,#accountNewPas
 html body #accountDialog :is(#accountName,#profileName):not(#_) { background-image:var(--ii-user) !important; }
 
 /* 6. Leituras dos detalhes por hora e por dia: mini-cartões com ícone (a grade em subgrid continua) */
-html body :is(.dlg-detalhe, #_) .hourly-detail-readings:not(#_) { gap:0 10px; }
-html body :is(.dlg-detalhe, #_) .hourly-detail-readings > div:not(#_) { margin:0 0 10px; padding:12px 14px; border:0 !important; border-radius:18px; background:var(--dialog-surface); }
-html body :is(.dlg-detalhe, #_) .hourly-detail-readings dt:not(#_) { display:flex; align-items:flex-start; gap:6px; font-size:.8125rem; }
-html body :is(.dlg-detalhe, #_) .hourly-detail-readings dt::before {
+html body :where(.dlg-detalhe):is(.dlg-detalhe, #_) .hourly-detail-readings:not(#_) { gap:0 10px; }
+html body :where(.dlg-detalhe):is(.dlg-detalhe, #_) .hourly-detail-readings > div:not(#_) { margin:0 0 10px; padding:12px 14px; border:0 !important; border-radius:18px; background:var(--dialog-surface); }
+html body :where(.dlg-detalhe):is(.dlg-detalhe, #_) .hourly-detail-readings dt:not(#_) { display:flex; align-items:flex-start; gap:6px; font-size:.8125rem; }
+html body :where(.dlg-detalhe):is(.dlg-detalhe, #_) .hourly-detail-readings dt::before {
   content:""; flex:none; width:16px; height:16px; margin-top:1px; background:var(--dialog-link);
   -webkit-mask:var(--ico,var(--i-gauge)) center / 16px 16px no-repeat; mask:var(--ico,var(--i-gauge)) center / 16px 16px no-repeat;
 }
-html body :is(.dlg-detalhe, #_) .hourly-detail-readings dd:not(#_) { margin-top:6px; font-size:1.3rem; font-weight:600; }
+html body :where(.dlg-detalhe):is(.dlg-detalhe, #_) .hourly-detail-readings dd:not(#_) { margin-top:6px; font-size:1.3rem; font-weight:600; }
 
 /* 7. Novidades: cada versão num cartão */
-html body :is(.dlg-novidades, #_) :is(ol,ul):has(> .changelog-entry):not(#_) { margin:0; padding:0; list-style:none; }
-html body :is(.dlg-novidades, #_) .changelog-entry:not(#_) { margin:0 0 12px; padding:16px 16px 14px; border-radius:20px; background:var(--dialog-surface); list-style:none; }
-html body :is(.dlg-novidades, #_) .changelog-entry h3:not(#_) { display:flex; align-items:center; gap:8px; margin:0; font-size:1.0625rem; }
-html body :is(.dlg-novidades, #_) .changelog-entry .changelog-date:not(#_) { margin:2px 0 0; color:var(--dialog-muted); font-size:.8125rem; }
-html body :is(.dlg-novidades, #_) .changelog-entry ul:not(#_) { margin:10px 0 0; padding-left:1.1rem; }
-html body :is(.dlg-novidades, #_) .changelog-entry ul li:not(#_) { margin:6px 0 0; line-height:1.45; }
+html body :where(.dlg-novidades):is(.dlg-novidades, #_) :is(ol,ul):has(> .changelog-entry):not(#_) { margin:0; padding:0; list-style:none; }
+html body :where(.dlg-novidades):is(.dlg-novidades, #_) .changelog-entry:not(#_) { margin:0 0 12px; padding:16px 16px 14px; border-radius:20px; background:var(--dialog-surface); list-style:none; }
+html body :where(.dlg-novidades):is(.dlg-novidades, #_) .changelog-entry h3:not(#_) { display:flex; align-items:center; gap:8px; margin:0; font-size:1.0625rem; }
+html body :where(.dlg-novidades):is(.dlg-novidades, #_) .changelog-entry .changelog-date:not(#_) { margin:2px 0 0; color:var(--dialog-muted); font-size:.8125rem; }
+html body :where(.dlg-novidades):is(.dlg-novidades, #_) .changelog-entry ul:not(#_) { margin:10px 0 0; padding-left:1.1rem; }
+html body :where(.dlg-novidades):is(.dlg-novidades, #_) .changelog-entry ul li:not(#_) { margin:6px 0 0; line-height:1.45; }
 
 /* 8. Personalizar a Home: linhas com ícone e interruptor */
 html body #homeLayoutDialog li[data-section]:not(#_) { display:flex; align-items:center; gap:12px; min-height:58px; margin:0; padding:0 8px 0 14px; border:0; border-radius:0; background:var(--dialog-surface); }
@@ -1065,7 +1064,7 @@ html body #homeLayoutDialog li[data-section] .home-layout-move button:disabled {
 @media (forced-colors:active) {
   html body #homeLayoutDialog li[data-section] input[type=checkbox] { appearance:auto; -webkit-appearance:auto; }
   html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { content:none; }
-  html body :is(.dlg-conta-home, #_) [style], html body #accountDialog *::before { forced-color-adjust:auto; }
+  html body :where(.dlg-conta-home):is(.dlg-conta-home, #_) [style], html body #accountDialog *::before { forced-color-adjust:auto; }
 }
 
 /* ===== Fundo das janelas com profundidade (1.66, pedido do dono: "eu queria que o fundo tivesse profundidade também") =====
@@ -1075,50 +1074,48 @@ html body #homeLayoutDialog li[data-section] .home-layout-move button:disabled {
    imagens são as do céu da Home, já no precache (estrelas 1:1, véu de nuvem). Camadas paradas: um parallax por
    scroll-driven animation (timeline-scope + overflow:clip) fez a janela da conta não abrir no WebKit da CI e saiu;
    não reintroduzir sem medir no WebKit/iPhone. Sem blur, filtro nem animação. */
-html body :is(.dlg-todas, #_) { isolation:isolate; }
-html body:not([data-phase="day"]) :is(.dlg-todas, #_) {
+html body :where(.dlg-todas):is(.dlg-todas, #_) { isolation:isolate; }
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_) {
   background:
     radial-gradient(85% 40% at 50% -6%,#4566c080,#2a3d8533 45%,transparent 72%),
     radial-gradient(70% 30% at 92% 100%,#5a3b8a45,transparent 70%),
     radial-gradient(75% 32% at 4% 100%,#1f5b8a40,transparent 70%),
     linear-gradient(180deg,#141b3c 0,#0b1229 320px,#070d1f);
 }
-html body[data-phase="day"] :is(.dlg-todas, #_) {
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_) {
   background:
     radial-gradient(55% 30% at 88% -4%,#fff6d6e6,#fff1c066 35%,transparent 70%),
     radial-gradient(90% 34% at 50% 100%,#ffffffb3,transparent 72%),
     linear-gradient(180deg,#4fa8de 0,#8fd0ef 300px,#c3eaf7);
 }
-html body :is(.dlg-todas, #_)::before,
-html body :is(.dlg-todas, #_)::after {
+html body :where(.dlg-todas):is(.dlg-todas, #_)::before, html body :where(.dlg-todas):is(.dlg-todas, #_)::after {
   content:""; position:absolute; z-index:-1; left:0; right:0; pointer-events:none;
 }
 /* Longe: estrelas (noite) e véu alto (dia), esmaecendo para baixo. */
-html body :is(.dlg-todas, #_)::before {
+html body :where(.dlg-todas):is(.dlg-todas, #_)::before {
   top:0; height:70%;
   -webkit-mask-image:linear-gradient(180deg,#000 0,#000 35%,transparent); mask-image:linear-gradient(180deg,#000 0,#000 35%,transparent);
 }
-html body:not([data-phase="day"]) :is(.dlg-todas, #_)::before {
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_)::before {
   background:url("./assets/sky-stars.svg?v=stars-2") center top / 900px 1100px repeat; opacity:.8;
 }
-html body[data-phase="day"] :is(.dlg-todas, #_)::before {
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_)::before {
   background:url("./assets/sky-cloud-veil.webp?v=clouds-9") 30% 70px / auto 300px repeat-x; opacity:.42;
 }
 /* Perto: nuvens no horizonte, embaixo, esmaecendo para cima. */
-html body :is(.dlg-todas, #_)::after {
+html body :where(.dlg-todas):is(.dlg-todas, #_)::after {
   bottom:0; height:min(46%,440px);
   background:url("./assets/sky-cloud-veil.webp?v=clouds-9") 62% 100% / auto 420px repeat-x;
   -webkit-mask-image:linear-gradient(0deg,#000 0,#000 45%,transparent); mask-image:linear-gradient(0deg,#000 0,#000 45%,transparent);
 }
-html body:not([data-phase="day"]) :is(.dlg-todas, #_)::after { opacity:.18; }
-html body[data-phase="day"] :is(.dlg-todas, #_)::after { opacity:.7; }
+html body:not([data-phase="day"]) :where(.dlg-todas):is(.dlg-todas, #_)::after { opacity:.18; }
+html body[data-phase="day"] :where(.dlg-todas):is(.dlg-todas, #_)::after { opacity:.7; }
 /* A faixa do cabeçalho de Minha conta era a cor chapada do fundo: agora mostra o céu por trás (o brilho e as estrelas
    do alto) e só escurece embaixo, onde o conteúdo passa. */
 html body:not([data-phase="day"]) #accountDialog .dialog-heading::before { background:linear-gradient(180deg,#141b3cd9 0,#121a3af2 55%,#111938d1); }
 html body[data-phase="day"] #accountDialog .dialog-heading::before { background:linear-gradient(180deg,#4fa8ded9 0,#55acdff2 55%,#5aafe0d1); }
 @media (forced-colors:active) {
-  html body :is(.dlg-todas, #_)::before,
-  html body :is(.dlg-todas, #_)::after { content:none; }
+  html body :where(.dlg-todas):is(.dlg-todas, #_)::before, html body :where(.dlg-todas):is(.dlg-todas, #_)::after { content:none; }
 }
 /* Testar Tomorrow.io (1.65): linha de Mais do PLUVIA com o estado no lugar da seta. */
 html body #accountDialog #accountMore .tomorrow-test::after { display:none; }
@@ -1133,18 +1130,15 @@ html body #accountDialog #accountMore .tomorrow-test[aria-pressed="true"] .accou
    e encaixa com mola. Com o dedo em cima ela vira uma cápsula de vidro transparente, mais larga na direção para
    onde vai (como a chave do iOS 26 e a cápsula da 1.67): fio claro, franja vermelha/azul, faixa de refração e a cor
    do trilho aparecendo por dentro. Soltou, volta a ser branca. Só translate/scale e pintura na própria bolinha. */
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]::before,
-html body #homeLayoutDialog li[data-section] input[type=checkbox]::before {
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]::before, html body #homeLayoutDialog li[data-section] input[type=checkbox]::before {
   left:3px; transform-origin:0 50%;
   background-image:
     radial-gradient(70% 44% at 50% 100%,rgba(255,255,255,.5),rgba(255,255,255,0) 72%),
     radial-gradient(closest-side,rgba(255,255,255,0) 52%,rgba(255,255,255,.32));
   transition:translate .5s var(--ease-spring), scale .42s var(--ease-spring), background-color .18s ease, box-shadow .18s ease;
 }
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:checked::before,
-html body #homeLayoutDialog li[data-section] input[type=checkbox]:checked::before { left:3px; translate:20px 0; transform-origin:100% 50%; }
-html body :is(.dlg-conta-fontes, #_) input[type=checkbox]:active:not(:disabled)::before,
-html body #homeLayoutDialog li[data-section] input[type=checkbox]:active:not(:disabled)::before {
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:checked::before, html body #homeLayoutDialog li[data-section] input[type=checkbox]:checked::before { left:3px; translate:20px 0; transform-origin:100% 50%; }
+html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]:active:not(:disabled)::before, html body #homeLayoutDialog li[data-section] input[type=checkbox]:active:not(:disabled)::before {
   scale:1.3 1.14; background-color:rgba(255,255,255,.14);
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,.88),
@@ -1155,12 +1149,11 @@ html body #homeLayoutDialog li[data-section] input[type=checkbox]:active:not(:di
 }
 html body #accountDialog .terms-check input[type=checkbox]::before { transition:none; }
 @media (prefers-reduced-motion:reduce) {
-  html body :is(.dlg-conta-fontes, #_) input[type=checkbox]::before,
-  html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { transition:none; scale:none; }
+  html body :where(.dlg-conta-fontes):is(.dlg-conta-fontes, #_) input[type=checkbox]::before, html body #homeLayoutDialog li[data-section] input[type=checkbox]::before { transition:none; scale:none; }
 }
 @media (prefers-reduced-motion:no-preference) {
-  html body :is(.dlg-g14, #_)[open] { animation-duration:.5s; animation-timing-function:var(--ease-settle); }
-  html body :is(.dlg-g14, #_)[open]::backdrop { animation-duration:.28s; animation-timing-function:ease-out; }
+  html body :where(.dlg-g14):is(.dlg-g14, #_)[open] { animation-duration:.5s; animation-timing-function:var(--ease-settle); }
+  html body :where(.dlg-g14):is(.dlg-g14, #_)[open]::backdrop { animation-duration:.28s; animation-timing-function:ease-out; }
   html body #brazilDialog .brazil-row, html body #cityDialog .city-result { transition:background-color .16s ease, scale .45s var(--ease-spring); }
 }
 html body #accountDialog #accountMore :is(#textSizeDown,#textSizeUp):not(#_) { position:relative; }

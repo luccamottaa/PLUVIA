@@ -39,11 +39,11 @@ test('precache do SW lista os mesmos JS/CSS versionados do HTML', () => {
   for (const ref of htmlRefs) {
     assert.ok(sw.includes(`"${ref}"`) || sw.includes(`'${ref}'`) || sw.includes(ref), `SW sem ${ref}`);
   }
-  assert.match(sw, /const CACHE = "pluvia-panel-375"/);
+  assert.match(sw, /const CACHE = "pluvia-panel-377"/);
   // O analytics identifica o deploy por esta meta: precisa acompanhar a geração do SW.
   assert.equal(html.match(/<meta name="pluvia-release" content="([^"]+)" \/>/)?.[1], sw.match(/const CACHE = "([^"]+)"/)?.[1]);
   assert.match(html, /styles\.css\?v=core-138/);
-  assert.match(html, /redesign\.css\?v=panel-53/);
+  assert.match(html, /redesign\.css\?v=panel-54/);
   assert.doesNotMatch(sw, /glass\.js/);
   assert.match(html, /app\.js\?v=panel-172/);
   assert.ok(!sw.includes('"./assets/panel-night-sky.webp"'), 'não baixa a antiga foto sem uso no cache inicial');

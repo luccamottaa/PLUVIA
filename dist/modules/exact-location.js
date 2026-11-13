@@ -70,7 +70,8 @@
     const button = doc?.getElementById?.("exactLocation"), state = doc?.getElementById?.("exactLocationState");
     if (!button) return;
     const paint = () => { const on = enabled(); button.setAttribute("aria-pressed", String(on)); if (state) state.textContent = on ? "Ligado" : "Desligado"; };
-    button.addEventListener("click", () => { setEnabled(!enabled()); paint(); });
+    // Métrica (só com as métricas permitidas): só ligado/desligado, nunca a posição.
+    button.addEventListener("click", () => { const on = !enabled(); setEnabled(on); paint(); root.pluviaAnalytics?.track?.("Exact Location Toggled", {state:on ? "on" : "off"}); });
     root.addEventListener?.("pluvia:exact-location-changed", paint);
     paint();
   }

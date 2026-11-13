@@ -72,3 +72,20 @@ test('app e avisos usam o ponto só onde devem', () => {
   assert.ok(html.indexOf('modules/exact-location.js') < html.indexOf('./app.js?v='), 'módulo carrega antes do app');
   assert.match(html, /id="exactLocation"[^>]*aria-pressed="false"/);
 });
+
+test('métrica da opção: só ligado/desligado, na allowlist', () => {
+  const {exact} = load();
+  const tracked = [], listeners = {};
+  const button = {attrs:{}, setAttribute(k, v) { this.attrs[k] = v; }, addEventListener(type, fn) { listeners[type] = fn; }};
+  global.pluviaAnalytics = {track:(name, props) => tracked.push([name, props])};
+  global.addEventListener = () => {};
+  global.document = {readyState:'complete', getElementById:id => id === 'exactLocation' ? button : null};
+  delete require.cache[require.resolve('../dist/modules/exact-location.js')];
+  require('../dist/modules/exact-location.js');
+  listeners.click(); listeners.click();
+  assert.deepEqual(tracked, [['Exact Location Toggled', {state:'on'}], ['Exact Location Toggled', {state:'off'}]]);
+  delete global.document; delete global.pluviaAnalytics;
+  const analytics = fs.readFileSync('dist/analytics.js', 'utf8');
+  assert.match(analytics, /'Exact Location Toggled'/); assert.match(analytics, /state:new Set\(\['on','off'\]\)/);
+  assert.ok(exact);
+});
