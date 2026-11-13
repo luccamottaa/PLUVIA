@@ -654,6 +654,10 @@ Pedido do dono ("a Home pula"). Medido na volta ao app (Edge, CPU 4×): o pulo i
 
 Pedido do dono (print: topo "Céu limpo" e pílula "Chuva fraca agora; deve parar por volta das 17h"). `weatherInsights.rainAnswer` dizia "agora" sempre que a hora que começa agora (intervalo i+1) era molhada pela previsão (≥ 0,5 mm, ou ≥ 50% com ≥ 0,1 mm), mesmo com a condição atual seca. Agora, com a primeira hora molhada: "agora" quando `hours[0].now` (código atual de chuva/trovoada; o app já aplica a chuva observada da estação, aeroporto e radar em `withObservedRain` antes de chamar) ou quando não há condição atual para conferir; com condição atual conhecida e seca (céu limpo, nuvens, neblina), "na próxima hora". O tom ("rain"/"storm"), a regra de hora molhada (igual a `_shared/forecast-verify.js`) e o convite de avisos não mudam. Teste: `tests/rain-answer.test.cjs`.
 
+## Tomorrow.io: limite de 3 por segundo no placar (novembro/2026)
+
+O plano grátis também limita **3 consultas por segundo**. O `forecast-verify` pedia as 6 capitais em sequência rápida e a 4ª voltava 429 toda hora (respostas "samples: 6, rate_limited"). Agora espera `TOMORROW_GAP_MS` (1,1 s) entre as consultas. Teste real em 13/11 (02:26 UTC, depois da #404/#405): o plano grátis entrega `thunderstormProbability` (122/122 h), o timestep `1m` (62 minutos) e as 6 h passadas (`recent`). Nunca disparar várias consultas ao Tomorrow.io em paralelo.
+
 ## Cota do Tomorrow.io: avisos mais econômicos (novembro/2026)
 
 Em 12–13/11 o Tomorrow.io devolvia 429 em quase tudo: o placar só conseguia 3 das 6 capitais por hora (depois nenhuma) e o teste do app não respondia. Os avisos (`_shared/tomorrow.js`) podiam gastar 2 consultas por rodada a cada 5 min, 24 das 25 da hora. Pedido do dono ("pode diminuir"): `MAX_PER_RUN = 1` e `CACHE_MS` de 60 min (no pior caso 12 por hora). Nada no app muda. Lembrar do orçamento ao usar a cota: placar 6/h, avisos até 12/h, teste e Brasil agora com o resto; o mapa de telhas (1.73.9) gastava ~30 por abertura e saiu.
