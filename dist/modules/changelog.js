@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.73.12", date:"2026-11-13", title:"7 dias mais limpos", items:[
+      "Nos Próximos 7 dias, a chance de chuva fica embaixo do ícone do tempo e os milímetros saíram da linha (continuam no detalhe do dia).",
+      "A barra de temperatura ficou maior e mais grossa."
+    ]},
     {version:"1.73.11", date:"2026-11-13", title:"Mais do Tomorrow.io", items:[
       "Com \"Testar Tomorrow.io\" ligado, \"Chuva na próxima hora\" usa a previsão minuto a minuto do Tomorrow.io (\"chuva a partir das 21:14, até umas 21:40\").",
       "O cartão Intensidade da chuva mostra quanto choveu nas últimas 6 horas, e o detalhe da hora ganhou a chance de trovoada.",

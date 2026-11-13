@@ -576,6 +576,18 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
   #weatherView .forecast-day > strong { font-size:.95rem; }
   #weatherView .forecast-day > span { font-size:.72rem; }
 }
+/* 7 dias no modo temperatura (1.73.12, pedido do dono): sem a coluna de chuva; a chance fica embaixo do ícone e a
+   faixa de temperatura ocupa o espaço que sobrou, um pouco mais grossa. Os modos chuva e vento não mudam. */
+#weatherView .forecast-row.temp-mode .forecast-condition > i { display:inline-flex; flex-direction:column; align-items:center; gap:3px; font-style:normal; }
+#weatherView .forecast-icon-chance { font-family:var(--font-ui); font-size:.72rem; font-weight:600; line-height:1; color:var(--blue); font-variant-numeric:tabular-nums; }
+#weatherView .forecast-row.temp-mode .temp-track { height:10px; }
+#weatherView .forecast-list .forecast-row.temp-mode { grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,2.45fr); }
+#weatherView .home-column .forecast-list .forecast-row.temp-mode { grid-template-columns:minmax(0,.9fr) minmax(0,1.5fr) minmax(0,2.45fr); }
+@media(max-width:720px) {
+  #weatherView .forecast-list .forecast-row.temp-mode { grid-template-columns:minmax(3.2rem,.7fr) 40px minmax(0,3fr); }
+  #weatherView .forecast-list .forecast-row.temp-mode > .forecast-condition { justify-content:center; }
+  #weatherView .forecast-list .forecast-row.temp-mode > .temp-range { grid-column:3; }
+}
 
 /* Radar: até o mapa montar, um aviso no lugar da caixa vazia. */
 #weatherView #weatherMap:empty::after { content:"Carregando mapa…"; display:grid; place-items:center; height:100%; color:var(--reading-muted); font-size:.85rem; }
