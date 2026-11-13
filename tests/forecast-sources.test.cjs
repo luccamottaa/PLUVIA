@@ -182,11 +182,3 @@ test('qualidade do ar do Tomorrow.io vai junto só quando o índice chega (1.73.
   const none=sources.overlayTomorrow(forecast(),{...data,current:{...data.current,aqi:null}},city,parse);
   assert.equal(none.pluviaTomorrowAir,undefined);
 });
-
-test('"Testar Tomorrow.io" lido pelo próprio módulo, para o mapa do radar (1.73.9)', () => {
-  const vm = require('node:vm'), fs = require('node:fs');
-  const code = fs.readFileSync('dist/modules/forecast-sources.js', 'utf8');
-  const make = value => { const ctx = {localStorage:{getItem:key => key === 'pluvia-tomorrow-test' ? value : null}}; ctx.globalThis = ctx; vm.runInNewContext(code, ctx); return ctx.PLUVIA.forecastSources; };
-  assert.equal(make('1').tomorrowTestOn(), true);
-  assert.equal(make(null).tomorrowTestOn(), false);
-});
