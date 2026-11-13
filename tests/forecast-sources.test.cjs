@@ -204,3 +204,37 @@ test('Tomorrow.io: minuto a minuto, chuva de 6 h e trovoada passam pela previsã
   const none=sources.overlayTomorrow(forecast(),{...data,minutely:minutely.slice(0,5),recent:{mm:'x'}},city,parse);
   assert.equal(none.pluviaTomorrowMinutely,undefined);assert.equal(none.pluviaTomorrowRecent,undefined);
 });
+
+test('temperatura do modelo que mais acerta (1.73.13): troca horas, dias e o agora; qualquer diferença mantém a previsão',()=>{
+  const other={current:{time:'2026-11-09T11:15',temperature_2m:28,apparent_temperature:31},hourly:{time:times.slice(),temperature_2m:[27,28,29,30],apparent_temperature:[30,31,32,33]},daily:{time:['2026-11-09'],temperature_2m_max:[31],temperature_2m_min:[24]}};
+  const base={...forecast(),daily:{time:['2026-11-09'],temperature_2m_max:[33],temperature_2m_min:[25]}};
+  const out=sources.swapTemp(base,other,'ecmwf_ifs025');
+  assert.deepEqual([out.hourly.temperature_2m,out.hourly.apparent_temperature],[[27,28,29,30],[30,31,32,33]]);
+  assert.deepEqual([out.daily.temperature_2m_max[0],out.daily.temperature_2m_min[0]],[31,24]);
+  assert.deepEqual([out.current.temperature_2m,out.current.apparent_temperature,out.current.weather_code],[28,31,2]);
+  assert.equal(out.pluviaTempModel,'ecmwf_ifs025');assert.deepEqual(out.hourly.precipitation,[0,0,0,0],'chuva não muda');
+  assert.equal(sources.swapTemp(base,{...other,hourly:{...other.hourly,temperature_2m:[27,null,29,30]}},'x'),null,'série incompleta');
+  assert.equal(sources.swapTemp(base,{...other,daily:{...other.daily,time:['2026-11-10']}},'x'),null,'dias diferentes');
+  assert.equal(sources.swapTemp(base,{...other,current:{...other.current,time:'2026-11-09T11:00'}},'x').current.temperature_2m,30,'agora de outro horário fica');
+});
+
+test('temperatura do vencedor: lista própria, pedido só de temperatura ao modelo e troca no apply (1.73.13)',async()=>{
+  const store=new Map(),calls=[];
+  const fetchJson=async url=>{calls.push(url);
+    if(url.includes('pluvia_temp_models'))return {'1302603':'ecmwf_ifs025','9999999':'tomorrow_io'};
+    if(url.includes('pluvia_rain_models'))return {};
+    return {current:{time:'2026-11-09T11:15',temperature_2m:28,apparent_temperature:31},hourly:{time:times.slice(),temperature_2m:[27,28,29,30],apparent_temperature:[30,31,32,33]},daily:{time:['2026-11-09'],temperature_2m_max:[31],temperature_2m_min:[24]}};};
+  const api=sources.createSources({fetchJson,now:()=>Date.parse('2026-11-09T15:20:00Z'),parse,forecastUrl:()=>'https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&timezone=America%2FManaus&current=x&hourly=y&daily=z&past_hours=24',store:()=>({getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)})});
+  assert.equal(api.start(city),null,'sem lista guardada, a primeira abertura não espera');
+  await new Promise(r=>setImmediate(r));
+  assert.equal(JSON.parse(store.get('pluvia-temp-models')).map['9999999'],undefined,'tomorrow_io nunca entra');
+  const task=api.start(city);
+  await new Promise(r=>setImmediate(r));
+  const url=new URL(calls.find(u=>u.includes('models=')));
+  assert.equal(url.searchParams.get('models'),'ecmwf_ifs025');
+  assert.equal(url.searchParams.get('hourly'),'temperature_2m,apparent_temperature');
+  assert.equal(url.searchParams.get('daily'),'temperature_2m_max,temperature_2m_min');
+  assert.equal(url.searchParams.get('past_hours'),'24');
+  const shown=await api.apply({...forecast(),daily:{time:['2026-11-09'],temperature_2m_max:[33],temperature_2m_min:[25]}},task,{waitMs:200});
+  assert.equal(shown.pluviaTempModel,'ecmwf_ifs025');assert.equal(shown.current.temperature_2m,28);
+});

@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.73.13", date:"2026-11-13", title:"Temperatura mais certeira", items:[
+      "Nas capitais onde outro modelo acerta bem mais a temperatura (pelo placar do PLUVIA), a previsão de temperatura passa a vir dele. Hoje vale para Maceió e Rio de Janeiro.",
+      "O aviso de tempestade passa a dizer a chance de trovoada do Tomorrow.io."
+    ]},
     {version:"1.73.12", date:"2026-11-13", title:"7 dias mais limpos", items:[
       "Nos Próximos 7 dias, a chance de chuva fica embaixo do ícone do tempo e os milímetros saíram da linha (continuam no detalhe do dia).",
       "A barra de temperatura ficou maior e mais grossa."
