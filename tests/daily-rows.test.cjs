@@ -31,18 +31,19 @@ test('7 dias: uma linha por dia, sem a nota de chuva/UV visível', () => {
   const html = render(daily);
   assert.doesNotMatch(html, /forecast-uv/, 'a nota embaixo do dia saiu');
   // O texto continua para leitores de tela, dentro do trecho visualmente oculto.
-  assert.match(html, /<span class="peek-extra">\. Chuva isolada, UV 9 muito alto\. Ver detalhes\. <\/span>/);
-  assert.match(html, /<span class="peek-extra">\. Chuva provável, com baixo acumulado, UV 9 muito alto\. Ver detalhes\. <\/span>/);
+  assert.match(html, /<span class="peek-extra">, chance de chuva \d+%, [\d,]+ mm\. Chuva isolada, UV 9 muito alto\. Ver detalhes\. <\/span>/);
+  assert.match(html, /<span class="peek-extra">, chance de chuva \d+%, [\d,]+ mm\. Chuva provável, com baixo acumulado, UV 9 muito alto\. Ver detalhes\. <\/span>/);
 });
 
-test('7 dias: volume abaixo de 0,5 mm sai da linha visível, mas não do leitor de tela', () => {
+test('7 dias (1.73.12): chance embaixo do ícone, sem coluna de chuva; milímetros só para o leitor de tela', () => {
   const rows = render(daily).split('<button').slice(1);
-  assert.doesNotMatch(rows[0], /forecast-rain-volume/);
-  assert.match(rows[0], /<span class="forecast-rain-chance">49%<\/span><span class="peek-extra">, 0,2 mm<\/span>/);
-  assert.match(rows[2], /<span class="forecast-rain-volume">2,1 mm<\/span>/);
-  // Volume ausente continua explícito ("--"), nunca some como se fosse seco.
+  for (const row of rows) { assert.doesNotMatch(row, /forecast-rain-volume|class="forecast-rain"/); assert.match(row, /class="forecast-row temp-mode/); }
+  assert.match(rows[0], /<i><svg[\s\S]*?<\/svg><b class="forecast-icon-chance" aria-hidden="true">49%<\/b><\/i>/);
+  assert.match(rows[0], /<span class="peek-extra">, chance de chuva 49%, 0,2 mm/);
+  assert.match(rows[2], /<span class="peek-extra">, chance de chuva \d+%, 2,1 mm/);
+  // Volume ausente continua explícito para o leitor de tela, nunca vira "seco".
   const missing = render({...daily, precipitation_sum:[null,0.1,2.1]}).split('<button').slice(1);
-  assert.match(missing[0], /<span class="forecast-rain-volume">-- mm<\/span>/);
+  assert.match(missing[0], /chance de chuva 49%, volume indisponível/);
 });
 
 // Horas do dia 10: intervalos que terminam de 01:00 do dia 10 até 00:00 do dia 11 (o primeiro, que termina à
