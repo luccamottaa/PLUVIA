@@ -657,6 +657,10 @@ Pedido do dono (print: topo "Céu limpo" e pílula "Chuva fraca agora; deve para
 ## Temperatura pelo modelo que mais acerta na capital (novembro/2026, 1.73.13)
 
 Pedido do dono ("faz todos", item 1). O Tomorrow.io **não** entra (a cota não aguenta uma consulta por pessoa; no placar ele ainda erra mais: ~1,6 °C contra ~1,2 °C, com poucas amostras). `public.pluvia_temp_models()` (migration `20261113040000_temp_models.sql`, anon) devolve {capital: modelo do Open-Meteo} quando o vencedor de temperatura a 6 h erra **0,3 °C ou mais a menos** que o `best_match`, com 200+ amostras (13/11: Maceió `ecmwf_ifs025` −0,71 °C e Rio `icon_seamless` −0,41 °C; a média geral de ganho era só 0,16 °C). No app (`forecast-sources.js`): lista própria (`pluvia-temp-models`, mesmos prazos da de chuva), `tempUrl` pede só `temperature_2m`/`apparent_temperature` (agora e horas) e máx./mín. do dia com `models=`, e `swapTemp` troca tudo junto só com horas e dias idênticos e séries completas (o agora só com o mesmo horário). Fica antes da chuva e do Tomorrow.io no `apply`.
+## Trovoada do Tomorrow.io no aviso de tempestade e cron com 120 s (novembro/2026, 1.73.13)
+
+- `TOMORROW_FIELDS` dos avisos ganhou `thunderstormProbability` (mesma consulta). `thunderPeak(json, now, 3)` acha a maior chance nas próximas 3 horas cheias; com um `storm` no lote, `withThunder` acrescenta ao texto "O Tomorrow.io dá 70% de chance de trovoada por volta das 16:00." (≥ 20%) ou "vê pouca chance (8%)" e grava `tomorrow_thunder_pct`. O aviso continua sendo disparado pelo código de trovoada do modelo.
+- Migration `20261113030000_push_cron_timeout.sql`: o cron `pluvia-push-weather-every-5-minutes` espera 120 s (era 25 s; a rodada leva ~40 s desde os avisos inteligentes e `net._http_response` só registrava timeout). Rodada pelo dono no SQL Editor (`apply_migration` é bloqueado pela permissão).
 
 ## 7 dias: chance embaixo do ícone, sem milímetros, faixa maior (novembro/2026, 1.73.12)
 
@@ -679,7 +683,7 @@ Pedido do dono ("faz do 1 ao 3"). Nenhum dos três é garantido no plano grátis
 ## Pílula do topo e mapa do Tomorrow.io desligado (novembro/2026, 1.73.10)
 
 - Ícone da pílula compacta: `.compact-icon > .weather-line-icon` com margem interna de 1px (era 7px, o desenho ficava com 28px numa caixa de 42px). A pílula continua com 58px.
-- **Mapa do Tomorrow.io removido do radar** (pedido do dono, `tira o mapa`): na noite de 12/11 as telhas mostraram que entram na cota grátis de 25/h dos avisos e do placar; depois de 32 telhas o provedor devolveu 429 em tudo. `weather-map.js`, `forecast-sources.js` e os testes voltaram ao estado anterior à #402; o botão e a legenda saíram do HTML/CSS. A função `tomorrow-tiles` continua publicada só como resposta 410, sem chamar o Tomorrow.io (app antigo em cache); `_shared/tomorrow-tiles.js` saiu. Não religar sem plano pago ou outra fonte de mapa.
+- **Mapa do Tomorrow.io removido do radar** (pedido do dono, `tira o mapa`): na noite de 12/11 as telhas mostraram que entram na cota grátis de 25/h dos avisos e do placar; depois de 32 telhas o provedor devolveu 429 em tudo. `weather-map.js`, `forecast-sources.js` e os testes voltaram ao estado anterior à #402; o botão e a legenda saíram do HTML/CSS. A função `tomorrow-tiles` foi removida do repositório (pasta, `config.toml` e opção do workflow) em 13/11; a cópia publicada respondia só 410 e deve ser apagada no painel do Supabase. Não religar sem plano pago ou outra fonte de mapa.
 
 ## Mapa de chuva do Tomorrow.io no radar (novembro/2026, 1.73.9)
 
