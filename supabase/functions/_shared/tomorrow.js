@@ -16,7 +16,8 @@
 //
 // A chave vai na URL (é como a API aceita): nunca registrar a URL em log.
 export const TOMORROW_ENDPOINT = 'https://api.tomorrow.io/v4/timelines';
-export const TOMORROW_FIELDS = ['rainAccumulation', 'precipitationIntensity'];
+// thunderstormProbability (1.73.13): a chance de trovoada reforça o aviso de tempestade; vem na mesma consulta.
+export const TOMORROW_FIELDS = ['rainAccumulation', 'precipitationIntensity', 'thunderstormProbability'];
 export const HORIZON_H = 48;
 export const MAX_PER_RUN = 1;
 export const CACHE_MS = 60 * 60_000;
@@ -84,6 +85,17 @@ export function rainSeries(json, times) {
   return series.some(value => value !== null) ? series : null;
 }
 
+// Maior chance de trovoada (%) nas próximas `hours` horas cheias, com o início da hora em que ela acontece.
+export function thunderPeak(json, now = Date.now(), hours = 3) {
+  const hour = Math.floor(now / 3_600_000) * 3_600_000;
+  let best = null;
+  for (const point of hourlyPoints(json)) {
+    if (!Number.isFinite(point.at) || point.at < hour || point.at >= hour + hours * 3_600_000) continue;
+    const pct = finite(point.values?.thunderstormProbability, 100);
+    if (pct !== null && (!best || pct > best.pct)) best = { pct, at: point.at };
+  }
+  return best;
+}
 // Cliente com cache e freio por instância. `fetchImpl`/`now` injetáveis para os testes.
 /** @param {{ key?: string, fetchImpl?: typeof fetch, now?: () => number }} [options] */
 export function createTomorrowClient({ key = '', fetchImpl = fetch, now = () => Date.now() } = {}) {

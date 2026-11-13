@@ -8,7 +8,7 @@ import { metarUrl, nearestAirport } from "../_shared/metar.js";
 import { stationUrl, normalizeStation } from "../_shared/inmet-station.js";
 import { estimate as estimateArrival, windowTiles, windowDbz, maskOf, outlook, incomingDetail, worsening, easing, FRAME_GAP_S, SIZE as NOWCAST_SIZE } from "../_shared/radar-nowcast.js";
 import { PNG } from "npm:pngjs@7.0.0";
-import { createTomorrowClient, rainSeries, pastRain } from "../_shared/tomorrow.js";
+import { createTomorrowClient, rainSeries, pastRain, thunderPeak } from "../_shared/tomorrow.js";
 import { Buffer } from "node:buffer";
 
 type Location = { id: string; user_id: string; city_id: string; city_name: string; uf: string; latitude: number; longitude: number; timezone: string };
@@ -529,6 +529,16 @@ function floodCandidate(data: any, station: any, location: Location, now = new D
   } satisfies EventCandidate;
 }
 
+// Segunda opinião do Tomorrow.io sobre a trovoada (1.73.13): com ≥ 20% diz a chance e a hora; abaixo disso, diz que
+// ele vê pouca chance (o aviso continua: o sinal de trovoada é do modelo do Open-Meteo).
+function withThunder(candidate: EventCandidate, peak: { pct: number; at: number } | null, location: Location) {
+  if (!peak || !Number.isFinite(peak.pct) || !Number.isFinite(peak.at)) return candidate;
+  const pct = Math.round(peak.pct);
+  const hour = new Intl.DateTimeFormat("pt-BR", { timeZone: location.timezone, hour: "2-digit", minute: "2-digit" }).format(new Date(peak.at));
+  const text = pct >= 20 ? ` O Tomorrow.io dá ${pct}% de chance de trovoada por volta das ${hour}.` : ` O Tomorrow.io vê pouca chance de trovoada nas próximas 3 h (${pct}%).`;
+  return { ...candidate, body: candidate.body + text, metadata: { ...candidate.metadata, tomorrow_thunder_pct: pct, tomorrow_thunder_at: new Date(peak.at).toISOString() } };
+}
+
 // Vale gastar a consulta do Tomorrow.io no alagamento? Modelo com ≥ 15 mm nas últimas 6 h e ≥ 5 mm nas próximas 3 h.
 function floodWorthChecking(data: any, now = new Date()) {
   const t = now.getTime() / 1000, times = asArray(data?.hourly?.time);
@@ -1021,6 +1031,13 @@ Deno.serve(async (req) => {
             if (extra) others = withTomorrow(others, rainSeries(extra, others?.hourly?.time));
             selected = selected.map(candidate => withAgreement(candidate, others, rainModel));
           } catch { /* sem concordância */ }
+        }
+        // Chance de trovoada do Tomorrow.io no aviso de tempestade (1.73.13): a mesma consulta da concordância (cache
+        // de 1 h); sem ela, o aviso sai como antes.
+        if (selected.some(candidate => candidate.type === "storm") && tomorrowClient?.enabled) {
+          const extra = await tomorrowClient.forecast(location.latitude, location.longitude).catch(() => null);
+          const peak = extra ? thunderPeak(extra) : null;
+          if (peak) selected = selected.map(candidate => candidate.type === "storm" ? withThunder(candidate, peak, location) : candidate);
         }
         if (rainModel !== "best_match") selected = selected.map(candidate => ["rain_approaching", "heavy_rain", "weather_change"].includes(candidate.type) ? { ...candidate, metadata: { ...candidate.metadata, rain_model: rainModel } } : candidate);
         for (const candidate of selected) {
