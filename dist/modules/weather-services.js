@@ -15,8 +15,12 @@
     current:"temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m",
     hourly:"temperature_2m,apparent_temperature,precipitation_probability,precipitation,rain,weather_code,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,cape,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,relative_humidity_2m,pressure_msl,uv_index,dew_point_2m",
     daily:"weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,precipitation_probability_max,uv_index_max,sunrise,sunset,sunshine_duration,daylight_duration",
-    temperature_unit:"celsius", wind_speed_unit:"kmh", precipitation_unit:"mm", past_hours:"24", forecast_days:"8"
+    temperature_unit:"celsius", wind_speed_unit:"kmh", precipitation_unit:"mm", past_hours:"24", forecast_days:"8", forecast_hours:"192"
   };
+  // forecast_hours 192 (1.74.2): com past_hours, o Open-Meteo ignora forecast_days na série horária e manda 16 dias
+  // (408 horas); o fim dela vem com horas sem dado e a troca pelo modelo vencedor (forecast-sources.js, que pede o
+  // mesmo horizonte) nunca passava. 192 horas a partir de agora cobrem os 8 dias do calendário; forecast_days
+  // continua mandando nos dias (daily).
   // As 24 horas anteriores de PM2,5 permitem comparar a média diária com as diretrizes da OMS;
   // a previsão CAMS horária (US AQI e PM2,5) dos próximos dias alimenta "Ar nos próximos dias".
   const AIR_PARAMS = {

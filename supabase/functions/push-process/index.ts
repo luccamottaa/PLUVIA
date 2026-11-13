@@ -183,12 +183,15 @@ function inQuietHours(preference: Preference, severity: number, date = new Date(
   return start === end ? false : start < end ? now >= start && now < end : now >= start || now < end;
 }
 
+const PUSH_FORECAST_HOURS = 72;
 function weatherUrl(location: Location) {
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.search = new URLSearchParams({
     // past_hours: a mesma hora de ontem é a referência da mudança de temperatura (sem o ciclo do dia).
     // forecast_days 3: o resumo da noite precisa das 24 horas de amanhã, inclusive a que termina à meia-noite.
-    latitude: String(location.latitude), longitude: String(location.longitude), timezone: location.timezone, timeformat: "unixtime", forecast_days: "3", past_hours: "24",
+    // forecast_hours 72 (1.74.2): com past_hours, o Open-Meteo ignora forecast_days na série horária e manda
+    // 16 dias; o fim dela tem horas sem dado e a troca pelo modelo vencedor (rainModelUrl) nunca passava.
+    latitude: String(location.latitude), longitude: String(location.longitude), timezone: location.timezone, timeformat: "unixtime", forecast_days: "3", past_hours: "24", forecast_hours: String(PUSH_FORECAST_HOURS),
     current: "temperature_2m,apparent_temperature,precipitation,weather_code,wind_gusts_10m",
     hourly: "temperature_2m,precipitation_probability,precipitation,weather_code,wind_gusts_10m",
     daily: "temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum",
@@ -270,12 +273,14 @@ function withAgreement(candidate: EventCandidate, data: any, used = "best_match"
 
 // Modelo de chuva vencedor da cidade (pluvia_rain_model, placar de acerto): só volume e chance por hora vêm
 // dele, os dois da mesma amostra; temperatura, códigos e o resto continuam no best_match. Se as horas não
-// baterem uma a uma, ou se faltar chance ou volume em alguma, nada é trocado.
+// baterem uma a uma, ou se faltar chance ou volume em alguma, nada é trocado. O horizonte é o mesmo de weatherUrl
+// (past_hours 24 + forecast_hours 72) para as horas baterem; o ICON só vai até ~7 dias e o fim da série de 16 dias
+// tem nulos em todos os modelos, por isso forecast_days sozinho não serve.
 function rainModelUrl(location: Location, model: string) {
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.search = new URLSearchParams({
     latitude: String(location.latitude), longitude: String(location.longitude), timezone: location.timezone, timeformat: "unixtime",
-    forecast_days: "3", past_hours: "24", hourly: "precipitation,precipitation_probability", models: model,
+    forecast_days: "3", past_hours: "24", forecast_hours: String(PUSH_FORECAST_HOURS), hourly: "precipitation,precipitation_probability", models: model,
   }).toString();
   return url.toString();
 }
