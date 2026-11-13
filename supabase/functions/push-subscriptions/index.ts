@@ -30,6 +30,26 @@ function locationInput(raw: any) {
   return { city_id, city_name, uf, latitude, longitude, timezone, source, enabled: true };
 }
 
+// "Minha localização" (1.74): o ponto chega já arredondado pelo app e é arredondado de novo aqui para duas
+// casas decimais (~1,1 km). Usa a mesma validação de cidade (IBGE, nome, UF e fuso do município).
+const round2 = (value: number) => Math.round(value * 100) / 100;
+function pointInput(raw: any) {
+  const parsed = locationInput(raw);
+  if (!parsed) throw new Error("invalid_location");
+  return { ...parsed, latitude: round2(parsed.latitude), longitude: round2(parsed.longitude), source: "gps_city", kind: "point" };
+}
+
+// Sem a coluna/chave nova (função publicada antes da migration 20261113120000), volta à chave antiga.
+const legacySchema = (error: any) => ["42P10", "42703", "PGRST204"].includes(String(error?.code || ""));
+async function upsertCities(admin: any, userId: string, rows: any[]) {
+  if (!rows.length) return;
+  const { error } = await admin.from("notification_locations").upsert(rows.map(row => ({ user_id: userId, ...row, kind: "city" })), { onConflict: "user_id,city_id,kind" });
+  if (!error) return;
+  if (!legacySchema(error)) throw error;
+  const { error: legacyError } = await admin.from("notification_locations").upsert(rows.map(row => ({ user_id: userId, ...row })), { onConflict: "user_id,city_id" });
+  if (legacyError) throw legacyError;
+}
+
 function preferencesInput(raw: any) {
   const fields = ["notifications_enabled", "official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary", "evening_summary", "flood_risk", "rain_easing"];
   const next: Record<string, unknown> = {};
@@ -64,7 +84,7 @@ Deno.serve(async (req) => {
       const lookup = () => Promise.all([
         admin.from("notification_preferences").select("*").eq("user_id", user.id).maybeSingle(),
         admin.from("push_subscriptions").select("id,device_name,platform,browser,last_seen_at,enabled").eq("user_id", user.id).order("last_seen_at", { ascending: false }),
-        admin.from("notification_locations").select("id,city_id,city_name,uf,timezone,source,enabled").eq("user_id", user.id).order("updated_at", { ascending: false }),
+        admin.from("notification_locations").select("id,city_id,city_name,uf,timezone,source,enabled,kind").eq("user_id", user.id).order("updated_at", { ascending: false }),
       ]);
       const failed = (results: any[]) => results.some(result => result.error);
       const [readings, secrets] = await Promise.all([lookup().then(async results => failed(results) ? (await retryPause(), lookup()) : results), pushSecrets(admin)]);
@@ -85,7 +105,7 @@ Deno.serve(async (req) => {
       if (error) throw error;
       await admin.from("notification_preferences").upsert({ user_id: user.id }, { onConflict: "user_id", ignoreDuplicates: true });
       const location = locationInput(body.location);
-      if (location) await admin.from("notification_locations").upsert({ user_id: user.id, ...location }, { onConflict: "user_id,city_id" });
+      if (location) await upsertCities(admin, user.id, [location]);
       return json(req, { ok: true, subscriptionId: saved.id });
     }
 
@@ -101,10 +121,25 @@ Deno.serve(async (req) => {
       if (locations.length>30) throw new Error("invalid_location");
       const { error } = await admin.from("notification_preferences").upsert({ user_id: user.id, ...preferences }, { onConflict: "user_id" });
       if (error) throw error;
-      if (locations.length) {
-        const { error: locationError } = await admin.from("notification_locations").upsert(locations.map(location=>({user_id:user.id,...location})), { onConflict: "user_id,city_id" });
-        if (locationError) throw locationError;
-      }
+      await upsertCities(admin, user.id, locations);
+      return json(req, { ok: true });
+    }
+
+    // Um ponto por usuário: atualiza o que existe ou cria. Sem a migration, responde "indisponível".
+    if (action === "point") {
+      const point = pointInput(body.point);
+      const { data: existing, error: lookupError } = await admin.from("notification_locations").select("id").eq("user_id", user.id).eq("kind", "point").limit(1);
+      if (lookupError) throw new Error(legacySchema(lookupError) ? "point_unsupported" : "point_lookup_failed");
+      const { error } = existing?.length
+        ? await admin.from("notification_locations").update({ ...point, enabled: true }).eq("id", existing[0].id).eq("user_id", user.id)
+        : await admin.from("notification_locations").insert({ user_id: user.id, ...point });
+      if (error) throw error;
+      return json(req, { ok: true });
+    }
+
+    if (action === "remove_point") {
+      const { error } = await admin.from("notification_locations").delete().eq("user_id", user.id).eq("kind", "point");
+      if (error && !legacySchema(error)) throw error;
       return json(req, { ok: true });
     }
 
@@ -132,6 +167,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     const code = error instanceof Error ? error.message : "request_failed";
     if (["invalid_subscription", "invalid_location", "payload_too_large"].includes(code)) return json(req, { error: "Os dados enviados não são válidos." }, 400);
+    if (code === "point_unsupported") return json(req, { error: "Avisos na sua localização ainda não estão disponíveis." }, 409);
     console.error("push-subscriptions failed", { code });
     report("push-subscriptions", code);
     return json(req, { error: "Não foi possível salvar as notificações agora." }, 503);

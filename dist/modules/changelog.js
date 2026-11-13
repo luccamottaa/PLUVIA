@@ -12,6 +12,12 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.74", date:"2026-11-13", title:"Previsão onde você está", items:[
+      "Nova opção em Mais do PLUVIA: \"Usar minha localização exata\". Ligada, a previsão, o radar e a estação mais próxima olham um ponto perto de você, e não o centro da cidade.",
+      "O ponto é arredondado em cerca de 1 km, nunca o endereço, e vem desligado: quem não ligar continua como antes.",
+      "Com os avisos ligados, chuva e tempestade passam a avisar também sobre esse ponto (\"Minha localização\"). Desligar a opção apaga o ponto.",
+      "A Política de privacidade foi atualizada para explicar isso."
+    ]},
     {version:"1.73.14", date:"2026-11-13", title:"Você escolhe os avisos", items:[
       "Em Alertas, \"Risco de alagamento\" e \"O pior já passou\" agora têm opção própria.",
       "Você escolhe quantos avisos fracos recebe por dia (2, 4, 8 ou sem limite). Chuva forte, tempestade, alagamento e avisos oficiais sempre chegam."
