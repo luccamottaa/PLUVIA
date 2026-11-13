@@ -183,8 +183,10 @@ with sync_playwright() as p:
    centers=[b['centerY'] for b in line.values()]
    assert max(centers)-min(centers)<=1,(width,geometry)
    assert 'forecast-uv' not in geometry,(width,geometry)
-   # Sem a quinta coluna vazia: a chuva termina na borda direita da linha.
-   if width>720:assert abs(geometry['forecast-rain']['right']-max(b['right'] for b in line.values()))<=1,(width,geometry)
+   # Sem coluna vazia no fim: a última coluna termina na borda direita da linha. Desde a 1.73.12 o modo
+   # temperatura não tem a coluna de chuva (a chance fica embaixo do ícone): a faixa de temperatura é a última.
+   last=geometry.get('forecast-rain') or geometry['temp-range']
+   if width>720:assert abs(last['right']-max(b['right'] for b in line.values()))<=1,(width,geometry)
    condition=row['condition'];text=row['text']
    assert text['x']+text['width']<=condition['x']+condition['width']+1,(width,text,condition)
    if width>720:assert condition['x']+condition['width']<=geometry['temp-range']['x']+1,geometry
