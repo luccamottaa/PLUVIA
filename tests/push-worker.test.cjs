@@ -256,6 +256,19 @@ test('chovendo agora pela estação ou pelo aeroporto; leitura velha não conta'
 test('consulta do push traz as 24 horas de ontem e três dias',()=>{
   const url=new URL(smart.weatherUrl({...location,id:'x',user_id:'u'}));
   assert.equal(url.searchParams.get('past_hours'),'24');assert.equal(url.searchParams.get('forecast_days'),'3');
+  // Com past_hours o Open-Meteo ignora forecast_days na série horária (manda 16 dias, com nulos no fim):
+  // forecast_hours limita. Do começo de uma hora qualquer, a série tem de alcançar a hora que termina na
+  // meia-noite de amanhã (o resumo da noite precisa dela), no pior caso logo depois da meia-noite.
+  const ahead=Number(url.searchParams.get('forecast_hours'));
+  assert.ok(Number.isInteger(ahead)&&ahead>=48,'série cobre o amanhã inteiro');
+});
+test('modelo de chuva vencedor pede o mesmo horizonte da consulta principal (horas batem uma a uma)',()=>{
+  const api=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({weatherUrl,rainModelUrl})',{Intl,Date,URL,URLSearchParams});
+  const place={...location,id:'x',user_id:'u'};
+  const main=new URL(api.weatherUrl(place)),rain=new URL(api.rainModelUrl(place,'icon_seamless'));
+  for(const key of ['latitude','longitude','timezone','timeformat','past_hours','forecast_hours','forecast_days'])assert.equal(rain.searchParams.get(key),main.searchParams.get(key),key);
+  // O ICON acaba em cerca de 7 dias: o horizonte do push precisa caber nele.
+  assert.ok(Number(rain.searchParams.get('forecast_hours'))<=7*24);
 });
 
 test('aviso observado: cada boletim tem chave própria, o mesmo boletim repetido não',()=>{

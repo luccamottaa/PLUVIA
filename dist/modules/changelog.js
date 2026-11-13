@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.74.2", date:"2026-11-13", title:"Placar valendo de verdade", items:[
+      "Em Maceió, a temperatura agora vem mesmo do modelo que mais acerta pelo placar. Desde a 1.73.13 essa troca não acontecia: a previsão do outro modelo chegava com horas vazias no fim e o PLUVIA, por segurança, ficava com a de sempre.",
+      "No Rio de Janeiro a troca ainda não acontece no app: o modelo que mais acerta lá não cobre os 8 dias da previsão.",
+      "Abrir a previsão baixa menos dados: só as horas dos 8 dias que aparecem."
+    ]},
     {version:"1.74.1", date:"2026-11-13", title:"Mais leve", items:[
       "Trocar de cidade e mudar o céu ficou mais leve: o celular faz cerca de 20% menos trabalho para redesenhar a página.",
       "Tocar numa notificação agora é sempre registrado, para sabermos quais avisos ajudam de verdade."

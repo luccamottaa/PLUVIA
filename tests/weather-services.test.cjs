@@ -13,6 +13,17 @@ test('constrói URLs meteorológicas somente a partir da localização normaliza
   assert.equal(forecast.searchParams.get('timezone'), 'America/Manaus');
   assert.equal(forecast.searchParams.get('past_hours'), '24');
   assert.equal(forecast.searchParams.get('forecast_days'), '8');
+  // Com past_hours o Open-Meteo ignora forecast_days na série horária (16 dias, com nulos no fim, e a troca pelo
+  // modelo vencedor nunca passava). forecast_hours limita: de qualquer hora do dia, a série alcança a última hora
+  // do 8º dia do calendário municipal.
+  const ahead = Number(forecast.searchParams.get('forecast_hours'));
+  for (const iso of ['2026-11-13T04:00:00Z', '2026-11-13T15:30:00Z', '2026-11-14T03:59:00Z']) {
+    const start = Math.floor(Date.parse(iso) / 3600_000) * 3600_000, last = start + (ahead - 1) * 3600_000;
+    const day = new Date(Date.parse(iso) - 4 * 3600_000).toISOString().slice(0, 10);
+    const lastOfDay8 = Date.parse(`${day}T23:00:00-04:00`) + 7 * 86400_000;
+    assert.ok(last >= lastOfDay8, `${iso}: série acaba antes do fim do 8º dia`);
+  }
+  assert.ok(ahead <= 16 * 24);
   assert.match(forecast.searchParams.get('hourly'), /wind_direction_10m/);
   assert.match(forecast.searchParams.get('daily'), /sunshine_duration/);
   assert.match(forecast.searchParams.get('daily'), /daylight_duration/);

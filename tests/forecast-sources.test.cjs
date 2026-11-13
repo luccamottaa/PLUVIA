@@ -65,7 +65,7 @@ function harness({map={}, tomorrow, fail}={}){
     return {hourly:{time:times.slice(),precipitation:[0,1,2,3],precipitation_probability:[50,50,50,50]}};
   };
   let clock=Date.parse('2026-11-09T15:20:00Z');
-  const api=sources.createSources({fetchJson,now:()=>clock,parse,forecastUrl:()=>'https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&timezone=America%2FManaus&current=x&hourly=temperature_2m&daily=y&past_hours=24&forecast_days=8',store:()=>({getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)})});
+  const api=sources.createSources({fetchJson,now:()=>clock,parse,forecastUrl:()=>'https://api.open-meteo.com/v1/forecast?latitude=-3.119&longitude=-60.022&timezone=America%2FManaus&current=x&hourly=temperature_2m&daily=y&past_hours=24&forecast_days=8&forecast_hours=192',store:()=>({getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)})});
   return {api,calls,store,advance:ms=>{clock+=ms;}};
 }
 
@@ -81,6 +81,9 @@ test('sem lista guardada a primeira abertura não espera nem troca; com vencedor
   assert.equal(url.searchParams.get('hourly'),'precipitation,precipitation_probability');
   assert.equal(url.searchParams.get('current'),null);
   assert.equal(url.searchParams.get('past_hours'),'24');
+  // Mesmo horizonte da consulta principal, senão as horas não batem e nada troca.
+  assert.equal(url.searchParams.get('forecast_hours'),'192');
+  assert.equal(url.searchParams.get('forecast_days'),'8');
   const shown=await h.api.apply(forecast(),task,{waitMs:200});
   assert.deepEqual(shown.hourly.precipitation,[0,1,2,3]);
   assert.equal(shown.pluviaRainModel,'icon_seamless');
