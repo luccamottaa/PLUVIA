@@ -136,10 +136,22 @@ function build() {
   return {api, files};
 }
 
-module.exports = {build, cityPage, linksBlock, sitemap, capitalsApi, utcOffset};
+// Mapa slug → [nome, UF, lat, lon, fuso] para o Worker (worker/pluvia.mjs): o título e a descrição de
+// /clima/<slug>/ ganham o nascer e o pôr do sol de hoje no fuso da cidade (novembro/2026). Fica fora de dist/ (não é
+// HTML estático; vai junto no pacote do Worker).
+const WORKER_CITIES = path.join(__dirname, '..', 'worker', 'city-pages.mjs');
+function workerCities(api) {
+  const entries = api.PAGES.map(city => [api.citySlug(city), [city.name, city.uf, city.lat, city.lon, city.timezone]]);
+  return '// Gerado por scripts/generate-city-pages.cjs; não editar à mão.\nexport default ' + JSON.stringify(Object.fromEntries(entries)) + ';\n';
+}
+
+module.exports = {build, cityPage, linksBlock, sitemap, capitalsApi, utcOffset, workerCities};
 if (require.main === module) {
   const check = process.argv.includes('--check');
-  const {files} = build();
+  const {api, files} = build();
+  const cities = workerCities(api), citiesStale = !fs.existsSync(WORKER_CITIES) || fs.readFileSync(WORKER_CITIES, 'utf8') !== cities;
+  if (check && citiesStale) { console.error('worker/city-pages.mjs desatualizado; rode node scripts/generate-city-pages.cjs'); process.exit(1); }
+  if (!check && citiesStale) fs.writeFileSync(WORKER_CITIES, cities);
   const expected = new Set([...files.keys()].filter(file => file.startsWith('clima')));
   const existing = fs.existsSync(path.join(dist, 'clima')) ? fs.readdirSync(path.join(dist, 'clima')).map(slug => path.join('clima', slug, 'index.html')) : [];
   const stale = [...files].filter(([file, content]) => !fs.existsSync(path.join(dist, file)) || fs.readFileSync(path.join(dist, file), 'utf8') !== content).map(([file]) => file);
