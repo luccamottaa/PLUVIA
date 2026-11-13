@@ -37,12 +37,12 @@ test('sem pontos válidos não há série (nunca vira "seco")',()=>{
   assert.equal(t.rainSeries(null,times),null);
 });
 
-test('URL do Timelines: só os campos de chuva, hora cheia e horizonte curto',()=>{
+test('URL do Timelines: campos de chuva e trovoada, hora cheia e horizonte curto',()=>{
   const now=Date.parse('2026-11-09T12:37:15Z');
   const url=new URL(t.tomorrowUrl(-3.119,-60.0217,'k',now));
   assert.equal(url.origin+url.pathname,'https://api.tomorrow.io/v4/timelines');
   assert.equal(url.searchParams.get('location'),'-3.119,-60.022');
-  assert.equal(url.searchParams.get('fields'),'rainAccumulation,precipitationIntensity');
+  assert.equal(url.searchParams.get('fields'),'rainAccumulation,precipitationIntensity,thunderstormProbability');
   assert.equal(url.searchParams.get('timesteps'),'1h');
   assert.equal(url.searchParams.get('units'),'metric');
   assert.equal(url.searchParams.get('startTime'),'2026-11-09T12:00:00.000Z','começa na hora cheia, não no minuto da consulta');
@@ -172,4 +172,23 @@ test('avisos: Tomorrow.io pede 6 h de passado junto e para de pedir numa recusa;
 test('avisos gastam pouco do Tomorrow.io: 1 consulta por rodada e cache de 1 h (12 por hora no pior caso)',()=>{
   assert.equal(t.MAX_PER_RUN,1);assert.equal(t.CACHE_MS,3600_000);
   assert.ok(t.MAX_PER_RUN*12<=12,'a cada 5 min, no máximo 12 consultas por hora das 25 do plano grátis');
+});
+
+test('trovoada do Tomorrow.io no aviso de tempestade: chance e hora, ou "pouca chance" (1.73.13)', async () => {
+  const sh = await import('../supabase/functions/_shared/tomorrow.js');
+  const h = Date.parse('2026-11-12T18:00:00Z'), now = h + 20 * 60e3;
+  const json = timelines(...[10, 35, 70, 90].map((pct, i) => ({startTime:new Date(h + i * 3600e3).toISOString(), values:{thunderstormProbability:pct}})));
+  assert.deepEqual({...sh.thunderPeak(json, now)}, {pct:70, at:h + 2 * 3600e3}, 'só as próximas 3 horas cheias');
+  assert.equal(sh.thunderPeak(timelines(), now), null);
+  const source = stripTypeScriptTypes(fs.readFileSync('supabase/functions/push-process/index.ts','utf8').replace(/^import .*;\n/gm,''));
+  const api = vm.runInNewContext(source.slice(0, source.indexOf('// Criado na primeira rodada')) + ';({withThunder})', {Intl, Date, URL, URLSearchParams});
+  const storm = {type:'storm', severity:3, body:'Sinal de trovoada agora em Manaus.', metadata:{}};
+  const loc = {timezone:'America/Manaus'};
+  const strong = api.withThunder(storm, {pct:70, at:h + 2 * 3600e3}, loc);
+  assert.equal(strong.body, 'Sinal de trovoada agora em Manaus. O Tomorrow.io dá 70% de chance de trovoada por volta das 16:00.');
+  assert.equal(strong.metadata.tomorrow_thunder_pct, 70);
+  assert.match(api.withThunder(storm, {pct:8, at:h}, loc).body, /O Tomorrow\.io vê pouca chance de trovoada nas próximas 3 h \(8%\)\.$/);
+  assert.equal(api.withThunder(storm, null, loc), storm);
+  assert.match(fs.readFileSync('supabase/functions/push-process/index.ts','utf8'), /if \(selected\.some\(candidate => candidate\.type === "storm"\) && tomorrowClient\?\.enabled\) \{/);
+  assert.match(fs.readFileSync('supabase/migrations/20261113030000_push_cron_timeout.sql','utf8'), /timeout_milliseconds := 120000/);
 });

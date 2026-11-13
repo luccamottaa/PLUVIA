@@ -654,6 +654,11 @@ Pedido do dono ("a Home pula"). Medido na volta ao app (Edge, CPU 4×): o pulo i
 
 Pedido do dono (print: topo "Céu limpo" e pílula "Chuva fraca agora; deve parar por volta das 17h"). `weatherInsights.rainAnswer` dizia "agora" sempre que a hora que começa agora (intervalo i+1) era molhada pela previsão (≥ 0,5 mm, ou ≥ 50% com ≥ 0,1 mm), mesmo com a condição atual seca. Agora, com a primeira hora molhada: "agora" quando `hours[0].now` (código atual de chuva/trovoada; o app já aplica a chuva observada da estação, aeroporto e radar em `withObservedRain` antes de chamar) ou quando não há condição atual para conferir; com condição atual conhecida e seca (céu limpo, nuvens, neblina), "na próxima hora". O tom ("rain"/"storm"), a regra de hora molhada (igual a `_shared/forecast-verify.js`) e o convite de avisos não mudam. Teste: `tests/rain-answer.test.cjs`.
 
+## Trovoada do Tomorrow.io no aviso de tempestade e cron com 120 s (novembro/2026, 1.73.13)
+
+- `TOMORROW_FIELDS` dos avisos ganhou `thunderstormProbability` (mesma consulta). `thunderPeak(json, now, 3)` acha a maior chance nas próximas 3 horas cheias; com um `storm` no lote, `withThunder` acrescenta ao texto "O Tomorrow.io dá 70% de chance de trovoada por volta das 16:00." (≥ 20%) ou "vê pouca chance (8%)" e grava `tomorrow_thunder_pct`. O aviso continua sendo disparado pelo código de trovoada do modelo.
+- Migration `20261113030000_push_cron_timeout.sql`: o cron `pluvia-push-weather-every-5-minutes` espera 120 s (era 25 s; a rodada leva ~40 s desde os avisos inteligentes e `net._http_response` só registrava timeout). Rodada pelo dono no SQL Editor (`apply_migration` é bloqueado pela permissão).
+
 ## 7 dias: chance embaixo do ícone, sem milímetros, faixa maior (novembro/2026, 1.73.12)
 
 Pedido do dono (print): só no modo temperatura (o padrão) a linha perdeu a coluna `.forecast-rain`. A chance vai em `<b class="forecast-icon-chance">` dentro do `<i>` do ícone (mesma regra de relevância: some com `rainQuiet`); chance e milímetros continuam num `.peek-extra` para leitores de tela e no detalhe do dia. A linha ganha a classe `temp-mode`: grade de 3 colunas (celular: `minmax(3.2rem,.7fr) 40px minmax(0,3fr)`) e `.temp-track` com 10px de altura. Os modos chuva e vento não mudaram.
