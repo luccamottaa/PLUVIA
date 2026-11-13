@@ -4,12 +4,14 @@
   root.PLUVIA=root.PLUVIA || {};root.PLUVIA.notificationPreferences=api;
 })(typeof globalThis!=='undefined' ? globalThis : this,function() {
   'use strict';
-  const fields=['official_alerts','rain_approaching','heavy_rain','storms','strong_wind','extreme_heat','air_quality','weather_changes','daily_summary','evening_summary'];
+  // flood_risk e rain_easing (1.73.14): escolha própria do alagamento e do "o pior já passou" (antes iam com chuva forte e chuva se aproximando).
+  const fields=['official_alerts','rain_approaching','heavy_rain','storms','strong_wind','extreme_heat','air_quality','weather_changes','daily_summary','evening_summary','flood_risk','rain_easing'];
+  const CAPS=[0,2,4,8];
   const clock=value=>typeof value==='string' && /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(value) ? value.slice(0,5) : null;
   const timezone=value=>{try {if(typeof value!=='string' || !value) return false;new Intl.DateTimeFormat('pt-BR',{timeZone:value});return true;} catch {return false;}};
   function defaults(saved={}) {
     const next={notifications_enabled:true,official_alerts:true,rain_approaching:true,heavy_rain:true,storms:true,
-      strong_wind:true,extreme_heat:true,air_quality:true,weather_changes:true,daily_summary:false,evening_summary:false,
+      strong_wind:true,extreme_heat:true,air_quality:true,weather_changes:true,daily_summary:false,evening_summary:false,flood_risk:true,rain_easing:true,low_daily_cap:4,
       lightning:false,minimum_severity:1,quiet_start:null,quiet_end:null,daily_summary_time:'07:00',evening_summary_time:'20:00'};
     for(const field of ['notifications_enabled',...fields]) if(typeof saved?.[field]==='boolean') next[field]=saved[field];
     const time=clock(saved?.daily_summary_time);
@@ -17,6 +19,7 @@
     const evening=clock(saved?.evening_summary_time);
     if(evening) next.evening_summary_time=evening;
     if(Number.isInteger(saved?.minimum_severity) && saved.minimum_severity>=1 && saved.minimum_severity<=4) next.minimum_severity=saved.minimum_severity;
+    if(Number.isInteger(saved?.low_daily_cap) && saved.low_daily_cap>=0 && saved.low_daily_cap<=20) next.low_daily_cap=saved.low_daily_cap;
     if(clock(saved?.quiet_start) && clock(saved?.quiet_end)) {next.quiet_start=clock(saved.quiet_start);next.quiet_end=clock(saved.quiet_end);}
     if(timezone(saved?.timezone)) next.timezone=saved.timezone;
     return next;
@@ -30,6 +33,9 @@
     if(/^([01]\d|2[0-3]):[0-5]\d$/.test(eveningTime || '')) next.evening_summary_time=eveningTime;
     const severity=form.elements.namedItem('minimum_severity');
     if(severity) {const value=Number(severity.value);if(!Number.isInteger(value) || value<1 || value>4) throw Error('Escolha um nível de aviso válido.');next.minimum_severity=value;}
+    // Avisos fracos por dia (0 = sem limite).
+    const cap=form.elements.namedItem('low_daily_cap');
+    if(cap) {const value=Number(cap.value);if(!CAPS.includes(value)) throw Error('Escolha um limite de avisos fracos válido.');next.low_daily_cap=value;}
     const quiet=form.elements.namedItem('quiet_enabled');
     if(quiet) {
       next.quiet_start=quiet.checked ? clock(form.elements.namedItem('quiet_start')?.value) : null;

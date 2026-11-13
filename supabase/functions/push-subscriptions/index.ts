@@ -31,11 +31,14 @@ function locationInput(raw: any) {
 }
 
 function preferencesInput(raw: any) {
-  const fields = ["notifications_enabled", "official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary", "evening_summary"];
+  const fields = ["notifications_enabled", "official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary", "evening_summary", "flood_risk", "rain_easing"];
   const next: Record<string, unknown> = {};
   for (const field of fields) if (typeof raw?.[field] === "boolean") next[field] = raw[field];
   const severity = Number(raw?.minimum_severity);
   if (Number.isInteger(severity) && severity >= 1 && severity <= 4) next.minimum_severity = severity;
+  // Limite diário de avisos fracos (1.73.14): 0 = sem limite; os valores da tela são 0, 2, 4 e 8.
+  const cap = Number(raw?.low_daily_cap);
+  if (Number.isInteger(cap) && cap >= 0 && cap <= 20) next.low_daily_cap = cap;
   for (const field of ["quiet_start", "quiet_end", "daily_summary_time", "evening_summary_time"]) {
     const value = raw?.[field];
     if (value === null && !field.endsWith("_summary_time")) next[field] = null;

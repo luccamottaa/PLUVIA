@@ -51,7 +51,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-373" />
+    <meta name="pluvia-release" content="pluvia-panel-374" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -399,8 +399,10 @@
                 <label><input name="official_alerts" type="checkbox" checked><span><strong>Avisos oficiais do INMET</strong><small>Inclui os avisos amarelos, laranjas e vermelhos.</small></span></label>
                 <label><input name="rain_approaching" type="checkbox" checked><span><strong>Chuva se aproximando</strong><small>Chuva prevista nas próximas horas, chuva por perto e quando começa e quando para de chover na estação do INMET ou no aeroporto mais próximo.</small></span></label>
                 <label><input name="heavy_rain" type="checkbox" checked><span><strong>Chuva forte</strong></span></label>
+<label><input name="flood_risk" type="checkbox" checked><span><strong>Risco de alagamento</strong><small>Quando já choveu muito nas últimas horas e ainda vem mais chuva.</small></span></label>
                 <label><input name="storms" type="checkbox" checked><span><strong>Tempestades e trovoadas</strong><small>Tempestade prevista e trovoada relatada pelo aeroporto mais próximo.</small></span></label>
-                <label><input name="strong_wind" type="checkbox" checked><span><strong>Rajadas fortes</strong></span></label>
+                <label><input name="rain_easing" type="checkbox" checked><span><strong>O pior já passou</strong><small>Depois de um aviso de chuva forte, quando o radar mostra que ela está enfraquecendo.</small></span></label>
+<label><input name="strong_wind" type="checkbox" checked><span><strong>Rajadas fortes</strong></span></label>
                 <label><input name="extreme_heat" type="checkbox" checked><span><strong>Calor intenso</strong></span></label>
                 <label><input name="air_quality" type="checkbox" checked><span><strong>Qualidade do ar ruim</strong></span></label>
                 <label><input name="weather_changes" type="checkbox" checked><span><strong>Mudanças importantes no tempo</strong></span></label>
@@ -419,10 +421,11 @@
               <details class="account-group" id="notificationTimingGroup"><summary><span class="account-group-title">Intensidade e silêncio</span></summary>
               <fieldset class="notification-timing"><legend class="visually-hidden">Intensidade e horários</legend>
                 <label>Nível mínimo dos avisos<select name="minimum_severity"><option value="1">Todos os níveis</option><option value="2">A partir de atenção</option><option value="3">A partir de perigo</option><option value="4">Somente severidade máxima</option></select></label>
-                <label class="notification-quiet-toggle"><input name="quiet_enabled" type="checkbox"><span>Silenciar em um horário</span></label>
+                <label>Avisos fracos por dia<select name="low_daily_cap"><option value="2">Até 2</option><option value="4">Até 4</option><option value="8">Até 8</option><option value="0">Sem limite</option></select></label>
+<label class="notification-quiet-toggle"><input name="quiet_enabled" type="checkbox"><span>Silenciar em um horário</span></label>
                 <div id="notificationQuietTimes" class="notification-time-pair" hidden><label>Início<input name="quiet_start" type="time" value="22:00" disabled></label><label>Fim<input name="quiet_end" type="time" value="07:00" disabled></label></div>
                 <label>Fuso do horário de silêncio<select name="timezone"><option value="America/Manaus">America/Manaus</option></select></label>
-                <small>O nível vale para todos os tipos, inclusive INMET. Avisos de severidade máxima furam o silêncio; resumos que caem no silêncio não são enviados.</small>
+                <small>Avisos fracos são chuva fraca, mudança no tempo, começou e parou de chover; chuva forte, tempestade, alagamento e avisos oficiais nunca entram no limite. O nível vale para todos os tipos, inclusive INMET. Avisos de severidade máxima furam o silêncio; resumos que caem no silêncio não são enviados.</small>
               </fieldset>
               </details>
               <details class="account-group" id="notificationCitiesGroup"><summary><span class="account-group-title">Adicionar cidades</span></summary>
@@ -694,8 +697,8 @@
     <script src="/modules/forecast-accuracy.js?v=accuracy-1" defer></script>
     <script src="/modules/station-now.js?v=station-6" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-11" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-402" defer></script>
-    <script src="/modules/notification-preferences.js?v=preferences-3" defer></script>
-    <script src="/notifications.js?v=panel-41" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-403" defer></script>
+    <script src="/modules/notification-preferences.js?v=preferences-4" defer></script>
+    <script src="/notifications.js?v=panel-42" defer></script>
   </body>
 </html>
