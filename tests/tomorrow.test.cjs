@@ -127,3 +127,32 @@ test('função de teste: ar num nível próprio, que sai antes dos extras numa r
   assert.match(fn,/const refused = status => status === 400 \|\| status === 403;/);
   assert.ok(fn.indexOf('airRefused = true')<fn.indexOf('extrasRefused = true'),'tira o ar antes dos extras');
 });
+
+test('mapa de chuva do Tomorrow.io: só Brasil, zoom 3 a 7 e horas cheias perto de agora (1.73.9)', async () => {
+  const t = await import('../supabase/functions/_shared/tomorrow-tiles.js');
+  assert.equal(t.tileAllowed(7, 42, 65), true, 'Manaus');
+  assert.equal(t.tileAllowed(4, 5, 8), true);
+  assert.equal(t.tileAllowed(7, 10, 40), false, 'Pacífico');
+  assert.equal(t.tileAllowed(8, 84, 130), false, 'zoom 8 não');
+  assert.equal(t.tileAllowed(2, 1, 2), false, 'zoom 2 não');
+  assert.equal(t.tileAllowed(7, 42.5, 65), false);
+  const now = Date.parse('2026-11-12T21:40:00Z'), hour = Date.parse('2026-11-12T21:00:00Z') / 1000;
+  assert.equal(t.tileTime(String(hour), now), hour);
+  assert.equal(t.tileTime(String(hour + 3 * 3600), now), hour + 3 * 3600);
+  assert.equal(t.tileTime(String(hour - 2 * 3600), now), hour - 2 * 3600);
+  assert.equal(t.tileTime(String(hour - 3 * 3600), now), null, 'passado demais');
+  assert.equal(t.tileTime(String(hour + 7 * 3600), now), null, 'futuro demais');
+  assert.equal(t.tileTime(String(hour + 600), now), null, 'só hora cheia');
+  assert.equal(t.tileTime('now', now), null);
+  const fn = fs.readFileSync('supabase/functions/tomorrow-tiles/index.js', 'utf8');
+  assert.doesNotMatch(fn, /console\.\w+\([^)]*(apikey|response\.url|key\))/, 'a chave nunca vai para log');
+  assert.match(fn, /'Content-Type': 'image\/png'/);
+  assert.match(fs.readFileSync('supabase/config.toml', 'utf8'), /\[functions\.tomorrow-tiles\]\nverify_jwt = false|\[functions\.tomorrow-tiles\]\n#[^\n]*\nverify_jwt = false/);
+  assert.match(fs.readFileSync('.github/workflows/deploy-function.yml', 'utf8'), /- tomorrow-tiles\n/);
+  const map = fs.readFileSync('dist/weather-map.js', 'utf8');
+  assert.match(map, /const rainSource = \(\) => tomorrowTest\(\) \? \(state\.source \|\| 'tomorrow'\) : 'radar';/, 'sem o teste, sempre o RainViewer');
+  assert.match(map, /last\.forecast \|\| last\.tomorrow\) return;/, 'sem a extrapolação do RainViewer em cima do Tomorrow.io');
+  assert.match(map, /\$\{TOMORROW_TILES\}\?z=\{z\}&x=\{x\}&y=\{y\}&t=\$\{frame\.time\}/);
+  const css = fs.readFileSync('dist/continuous.css', 'utf8');
+  assert.match(css, /:is\(\.weather-player,#weatherMapRecenter,\.leaflet-control-zoom,\.weather-map-retry,\.weather-source-toggle\)/, 'botão fora da miniatura da Home');
+});

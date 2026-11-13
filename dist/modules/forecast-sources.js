@@ -254,7 +254,9 @@
     paint();
   }
 
-  const api = {swapRain, overlayTomorrow, cleanModels, createSources};
+  // "Testar Tomorrow.io" ligado, para outros módulos (o mapa do radar não lê o armazenamento por conta própria; 1.73.9).
+  const tomorrowTestOn = () => { try { return storage()?.getItem(TEST_KEY) === "1"; } catch { return false; } };
+  const api = {swapRain, overlayTomorrow, cleanModels, createSources, tomorrowTestOn};
   if (runtime.document) {
     Object.assign(api, createSources());
     const wire = () => wireToggle(runtime.document, api);
