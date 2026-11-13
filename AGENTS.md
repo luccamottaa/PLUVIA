@@ -842,3 +842,11 @@ Pedido do dono (13/11/2026): o RainViewer erra muito no Norte; antes de trocar a
 - Migration `20261113180000_radar_verification.sql`: `private.radar_hours` (fonte `rainviewer` ou `redemet`), `private.airport_hours`, RPC `pluvia_radar_store` (só service_role, apaga > 180 dias), views `private.radar_scores` (por capital) e `private.radar_region_scores` (por região, pelo 1º dígito do IBGE). Referências: estação (≥ 0,5 mm na hora), aeroporto e relatos (regra de `forecast_report_scores`). Só acertos, perdidas, falsos alarmes, CSI, POD e FAR; nunca acurácia.
 - Decisão de trocar a fonte é do dono, depois de 1–2 semanas de placar. O nowcast (chegada da chuva) ainda não é medido aqui; só "chovendo em cima da cidade".
 - Teste: `tests/radar-verify.test.cjs` (pixel igual ao do app nas 27 capitais, janela nas bordas, quadros da hora, lacuna, aeroporto).
+
+## Pôr do sol de hoje no Google (novembro/2026)
+
+Pedido do dono: em `/clima/<cidade>/`, o `<title>` e a meta description saem com o nascer e o pôr do sol do dia no fuso da cidade ("Pôr do sol hoje em Manaus: 17:52 · Clima e previsão — PLUVIA").
+- `worker/pluvia.mjs`: `sunTexts(slug, at)` usa os mesmos módulos do app (`vendor/suncalc.js`, `modules/sun-table.js`, `modules/city-time.js`; conferido com o Open-Meteo: Manaus 13/11/2026, 05:36 e 17:52) e o `HTMLRewriter` troca só o conteúdo do `<title>` e o `content` da meta description. O HTML estático de `dist/` não muda; og/twitter e JSON-LD continuam estáticos.
+- Coordenadas e fuso vêm de `worker/city-pages.mjs`, gerado por `node scripts/generate-city-pages.cjs` (o `--check` falha se estiver desatualizado). Rodar o gerador depois de mexer em cidades.
+- Cache: o `Cache-Control` do HTML não muda. O pedido aos arquivos vai sem condicional e a resposta leva `ETag` do dia (`W/"<etag>-<data municipal>"`), sem `Last-Modified`: um 304 nunca devolve o título de ontem.
+- Teste: `tests/cloudflare-worker.test.cjs` (Manaus com data fixa, virada do dia municipal, horário de verão de São Paulo em 2018, reescrita só do título e descrição, 304 com a etiqueta do dia, mapa em dia).
