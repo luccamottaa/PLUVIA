@@ -18,6 +18,7 @@ on:
           - station-now
           - met-forecast
           - tomorrow-forecast
+          - tomorrow-tiles
           - account-preferences
           - account-delete
           - environment-refresh

@@ -22,6 +22,11 @@ entrypoint = "./functions/station-now/index.js"
 verify_jwt = false
 entrypoint = "./functions/tomorrow-forecast/index.js"
 
+[functions.tomorrow-tiles]
+# Mapa de chuva do Tomorrow.io no radar (teste ligado): o navegador pede as telhas sem conta, como tomorrow-forecast.
+verify_jwt = false
+entrypoint = "./functions/tomorrow-tiles/index.js"
+
 [functions.lightning]
 verify_jwt = false
 entrypoint = "./functions/lightning/index.js"

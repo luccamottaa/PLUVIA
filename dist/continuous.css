@@ -492,6 +492,10 @@ details > .details-motion[data-moving] > .details-motion-inner { overflow:hidden
 #radarMapContent .weather-frame-status { min-height:2.8em; margin:12px 0 0; color:var(--reading-muted); font-size:.8rem; line-height:1.4; }
 #radarMapContent .weather-map-retry { min-height:44px; margin-top:8px; padding:8px 16px; background:var(--brand-blue); color:var(--on-accent); border:1px solid var(--brand-blue); border-radius:12px; font:inherit; }
 #radarMapContent .weather-map-retry[hidden] { display:none; }
+/* Troca radar ⇄ Tomorrow.io (1.73.9, só com o teste ligado) e a legenda do Tomorrow.io (verde → amarelo → vermelho, as cores das telhas dele). */
+#radarMapContent .weather-source-toggle { justify-self:start; min-height:40px; padding:6px 14px; background:transparent; color:var(--brand-blue); border:1px solid currentColor; border-radius:999px; font:inherit; font-size:.85rem; font-weight:700; }
+#radarMapContent .weather-source-toggle[hidden] { display:none; }
+.weather-map-legend .legend-tomorrow { background:linear-gradient(90deg,#9be37a,#2fae3a,#f2d21b,#f08a1c,#d8322b); }
 body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) .topbar { color:#041a2e; }
 body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .intro h1 { color:var(--reading-ink); }
 
@@ -735,7 +739,7 @@ body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="
 #weatherView .weather-map-card > #radarMapContent { grid-column:1 / -1; }
 #weatherView .weather-map-card .expand-radar { grid-column:2; grid-row:1; margin:0; white-space:nowrap; }
 .weather-map-card #radarMapContent .weather-map-stage { height:clamp(190px,30vw,240px); }
-.weather-map-card #radarMapContent :is(.weather-player,#weatherMapRecenter,.leaflet-control-zoom,.weather-map-retry) { display:none !important; }
+.weather-map-card #radarMapContent :is(.weather-player,#weatherMapRecenter,.leaflet-control-zoom,.weather-map-retry,.weather-source-toggle) { display:none !important; }
 .weather-map-card #radarMapContent .weather-timebar { grid-template-columns:1fr; gap:4px; }
 .weather-map-card #radarMapContent .weather-frame-status { min-height:0; margin:0; }
 .weather-map-card #radarMapContent .weather-frame-status:empty { display:none; }

@@ -11,8 +11,15 @@
   const LEAFLET_JS = '/vendor/leaflet/leaflet.js?v=1.9.4';
   const LEAFLET_CSS = '/vendor/leaflet/leaflet.css?v=1.9.4';
   const RAIN_META = 'https://api.rainviewer.com/public/weather-maps.json';
+  // Mapa de chuva do Tomorrow.io (1.73.9, pedido do dono, só com "Testar Tomorrow.io" ligado): telhas de
+  // intensidade da chuva pela função tomorrow-tiles (a chave fica no servidor), de hora em hora, da hora passada
+  // até 3 h à frente. Com o teste ligado ele abre primeiro; o botão troca para o radar do RainViewer e volta.
+  const TOMORROW_TILES = 'https://dszyyrcvwrpyiypwyvxe.supabase.co/functions/v1/tomorrow-tiles';
+  const TOMORROW_HOURS = [-1,0,1,2,3];
+  const tomorrowTest = () => globalThis.PLUVIA?.forecastSources?.tomorrowTestOn?.() === true;
   const httpClient = globalThis.PLUVIA?.http?.createClient?.({defaultTimeoutMs:10000});
-  const state = { map:null, base:null, overlay:null, marker:null, layer:'rain', frames:[], index:0, timer:null, cityId:null };
+  const state = { map:null, base:null, overlay:null, marker:null, layer:'rain', source:null, frames:[], index:0, timer:null, cityId:null };
+  const rainSource = () => tomorrowTest() ? (state.source || 'tomorrow') : 'radar';
   const radarDialog = $('radarDialog'), radarContent = $('radarMapContent');
   const radarHome = radarContent?.parentElement;
   let previousOverflow = '';
@@ -165,10 +172,21 @@
     });
     layer.addTo(state.map);
   }
-  const frameKey = frame => 'rain:'+(frame?.forecast ? 'f' : '')+frame?.time;
+  const frameKey = frame => 'rain:'+(frame?.tomorrow ? 't' : frame?.forecast ? 'f' : '')+frame?.time;
   function renderRainFrame() {
     const frame = state.frames[state.index]; if (!frame) return;
     const key=frameKey(frame);
+    if (frame.tomorrow) {
+      const ahead=frame.time*1000>Date.now();
+      fadeTileLayer(frameLayers.get(key) || L.tileLayer(`${TOMORROW_TILES}?z={z}&x={x}&y={y}&t=${frame.time}`,{opacity:.8,minNativeZoom:3,maxNativeZoom:7,maxZoom:11,attribution:'Chuva: Tomorrow.io'}),.8,{
+        key,loading:(ahead ? 'Carregando a previsão de ' : 'Carregando a chuva de ')+zoneTime(frame.time)+'…',
+        onReady(failed) {$('weatherFrameTime').textContent=(ahead ? 'Previsão para ' : '')+zoneTime(frame.time);$('weatherFrameTime').setAttribute?.('data-state',ahead ? 'forecast' : 'ready');source('radar',{status:failed ? 'partial' : 'ready',dataAt:frame.time*1000});},
+        onError() {source('radar',{status:'error'});}
+      });
+      $('weatherSourceNote').textContent = 'Tomorrow.io (teste) · intensidade da chuva estimada de hora em hora, com previsão até 3 h; não é o radar medido.';
+      $('weatherMapLegend').innerHTML = '<span>Fraca</span><i class="legend-rain legend-tomorrow"></i><span>Forte</span>';
+      return;
+    }
     if (frame.forecast) {
       fadeTileLayer(frameLayers.get(key) || L.imageOverlay(frame.url,frame.bounds,{opacity:.76,interactive:false,className:'pluvia-radar-forecast'}),.76,{
         key,image:true,loading:'Preparando a previsão de '+zoneTime(frame.time)+'…',
@@ -202,7 +220,8 @@
   let forecastRevision = 0;
   async function addForecastFrames() {
     const nowcast=globalThis.PLUVIA?.nowcast, selected=city(), last=state.frames[state.frames.length-1];
-    if (!radarDialog?.open || !nowcast?.check || !nowcast.forecastImages || !selected || !last || last.forecast) return;
+    // O Tomorrow.io já traz a própria previsão: a extrapolação do RainViewer só vale para o radar.
+    if (!radarDialog?.open || !nowcast?.check || !nowcast.forecastImages || !selected || !last || last.forecast || last.tomorrow) return;
     const revision=layerRevision, attempt=++forecastRevision;
     try {
       const result=await nowcast.check(selected);
@@ -221,7 +240,22 @@
     setFrames(past,onForecast ? past.length-1 : state.index);
     if (onForecast) renderFrame(true);
   }
+  // Botão "Ver radar"/"Ver Tomorrow.io": só aparece com o teste ligado (o CSS o esconde na miniatura da Home).
+  function paintSourceToggle() {
+    const button=$('weatherSourceToggle'); if (!button) return;
+    button.hidden=!tomorrowTest();
+    const showing=rainSource();
+    button.textContent=showing==='tomorrow' ? 'Ver radar' : 'Ver Tomorrow.io';
+    button.setAttribute('aria-label',showing==='tomorrow' ? 'Trocar para o radar do RainViewer' : 'Trocar para o mapa de chuva do Tomorrow.io');
+  }
+  function loadTomorrow() {
+    const hour=Math.floor(Date.now()/3600000)*3600;
+    const frames=TOMORROW_HOURS.map(step=>({tomorrow:true,time:hour+step*3600}));
+    setFrames(frames,TOMORROW_HOURS.indexOf(0)); renderFrame(); autoplay();
+  }
   async function loadRain(revision) {
+    paintSourceToggle();
+    if (rainSource()==='tomorrow') { source('radar',{status:'loading'}); loadTomorrow(); return; }
     source('radar',{status:'loading'});
     const cached=radarSnapshot && Date.now()>=radarSnapshot.at && Date.now()-radarSnapshot.at<120000;
     const data = cached ? radarSnapshot.data : await fetchJson(RAIN_META);
@@ -367,6 +401,7 @@
     if (!state.map) showMap();else if (state.frames.length) renderFrame(true);else selectLayer(state.layer);
   });
   $('weatherMapRecenter')?.addEventListener('click',recenter);
+  $('weatherSourceToggle')?.addEventListener('click',() => { state.source=rainSource()==='tomorrow' ? 'radar' : 'tomorrow'; selectLayer('rain'); });
   $('radarStageOpen')?.addEventListener('click',() => $('expandRadar')?.click());
   $('expandRadar')?.addEventListener('click',() => {
     if (!radarDialog || radarDialog.open || !radarContent) return;

@@ -12,6 +12,10 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.73.9", date:"2026-11-12", title:"Mapa de chuva do Tomorrow.io", items:[
+      "Com \"Testar Tomorrow.io\" ligado, o radar abre com o mapa de chuva do Tomorrow.io: da hora passada até a previsão para as próximas 3 horas.",
+      "O botão \"Ver radar\" troca para o radar do RainViewer, e \"Ver Tomorrow.io\" volta."
+    ]},
     {version:"1.73.8", date:"2026-11-12", title:"Brasil agora com Tomorrow.io", items:[
       "Com \"Testar Tomorrow.io\" ligado, o Brasil agora mostra a temperatura e o tempo das capitais pelo Tomorrow.io (previsão para a hora atual, renovada a cada 4 horas e meia)."
     ]},
