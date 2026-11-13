@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.73.11", date:"2026-11-13", title:"Mais do Tomorrow.io", items:[
+      "Com \"Testar Tomorrow.io\" ligado, \"Chuva na próxima hora\" usa a previsão minuto a minuto do Tomorrow.io (\"chuva a partir das 21:14, até umas 21:40\").",
+      "O cartão Intensidade da chuva mostra quanto choveu nas últimas 6 horas, e o detalhe da hora ganhou a chance de trovoada.",
+      "O aviso de risco de alagamento passa a considerar a chuva que o Tomorrow.io registrou nas últimas horas."
+    ]},
     {version:"1.73.10", date:"2026-11-13", title:"Ajustes", items:[
       "O ícone do tempo na pílula do topo (a que aparece ao rolar) ficou maior.",
       "O mapa de chuva do Tomorrow.io saiu do radar: ele gastava a cota que os avisos e o Brasil agora usam. O radar volta a ser só do RainViewer."

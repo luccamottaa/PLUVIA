@@ -1061,7 +1061,7 @@ function paintVisibility() {
 // aqui"). Nuvens e ponto de orvalho aparecem sempre (as duas fontes têm); intensidade da chuva e evapotranspiração só
 // com o teste do Tomorrow.io ligado. Valores da hora atual (início da hora em curso), como UV e visibilidade.
 const PRECIPITATION_KIND = ["Sem chuva agora", "Chuva", "Neve", "Chuva congelante", "Granizo fino"];
-function renderExtraTiles(hourly, start) {
+function renderExtraTiles(hourly, start, recent = null) {
   const at = key => { const value = hourly?.[key]?.[start]; return typeof value === "number" && Number.isFinite(value) ? value : null; };
   const show = (id, value, html, note) => {
     const card = $(id + "Card"); if (!card) return;
@@ -1075,7 +1075,10 @@ function renderExtraTiles(hourly, start) {
   const dew = at("dew_point_2m");
   show("dewPoint", dew, `${fmt(dew)}°`, dew === null ? "" : dew < 10 ? "Ar seco" : dew < 16 ? "Confortável" : dew < 21 ? "Úmido" : dew < 24 ? "Abafado" : "Muito abafado");
   const intensity = at("pluvia_rain_intensity"), kind = at("pluvia_precipitation_type");
-  show("rainIntensity", intensity, `${fmt(intensity, 1)}<sup> mm/h</sup>`, kind !== null && PRECIPITATION_KIND[kind] ? (kind === 0 && intensity > 0 ? "Chuva" : PRECIPITATION_KIND[kind]) : intensity > 0 ? "Chuva" : "Sem chuva agora");
+  // Chuva das últimas 6 h do Tomorrow.io (1.73.11), quando o plano grátis a entrega: "Sem chuva agora · 12 mm em 6 h".
+  const kindText = kind !== null && PRECIPITATION_KIND[kind] ? (kind === 0 && intensity > 0 ? "Chuva" : PRECIPITATION_KIND[kind]) : intensity > 0 ? "Chuva" : "Sem chuva agora";
+  const pastText = recent && Number.isFinite(recent.mm) ? ` · ${fmt(recent.mm, recent.mm < 10 ? 1 : 0)} mm em 6 h` : "";
+  show("rainIntensity", intensity, `${fmt(intensity, 1)}<sup> mm/h</sup>`, kindText + pastText);
   const evapo = at("pluvia_evapotranspiration");
   // "Evapotranspiração" não cabe no título do cartão: "Evaporação", e a nota diz de onde vem a água.
   show("evapo", evapo, `${fmt(evapo, 2)}<sup> mm</sup>`, "Água que sobe do solo e das plantas nesta hora");
@@ -1409,6 +1412,24 @@ function nowcastAnswer() {
 function paintNextHour() {
   const node = $("nextHour");
   if (!node) return;
+  // Com "Testar Tomorrow.io" ligado e o minuto a minuto disponível (1.73.11), a próxima hora vem dele: barras pela
+  // intensidade (7,5 mm/h enche a barra) e a frase "a partir das 21:14, até umas 21:40". Sem ele, o radar.
+  const minutely = activeCity && displayedWeather?.forecast?.pluviaTomorrowMinutely;
+  const timeFormat = minutely ? (globalThis.PLUVIA?.time?.dateFormat || Intl.DateTimeFormat)("pt-BR", {timeZone:activeCity.timezone, hour:"2-digit", minute:"2-digit"}) : null;
+  const tomorrow = minutely ? globalThis.PLUVIA?.forecastSources?.minutelyNextHour?.(minutely, Date.now(), at => timeFormat.format(new Date(at))) : null;
+  if (tomorrow) {
+    const appearing = node.hidden;
+    node.hidden = false;
+    [...($("nextHourBars")?.children || [])].forEach((bar, index) => {
+      const mm = tomorrow.points[index]?.mm ?? 0;
+      bar.style.setProperty("--fill", `${mm >= 0.1 ? Math.max(25, Math.min(100, Math.round(mm / 7.5 * 100))) : 0}%`);
+      bar.dataset.wet = mm >= 0.1 ? "1" : "0";
+    });
+    $("nextHourText").textContent = tomorrow.text;
+    $("nextHourTime").textContent = "minuto a minuto";
+    if (appearing) settleBlock(node);
+    return;
+  }
   const data = activeCity && nowcastState.cityId === String(activeCity.id) ? globalThis.PLUVIA?.nowcast?.nextHour?.(nowcastState.result) : null;
   if (!data) { node.hidden = true; return; }
   const appearing = node.hidden;
@@ -1616,7 +1637,7 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
     : data.pluviaTomorrow === "failed" ? `Tomorrow.io não respondeu · Open-Meteo · ${formatUpdateTime(observedAt)}`
     : `Atualizado ${formatUpdateTime(observedAt)}`, fromCache || Boolean(data.pluviaReduced) || Boolean(data.pluviaTomorrow));
   renderVisibility(now.visibility, fromCache, data.pluviaSource === "tomorrow");
-  renderExtraTiles(data.hourly, start);
+  renderExtraTiles(data.hourly, start, data.pluviaTomorrowRecent);
   const lines = weatherData?.rows?.(snapshot, data);
   renderHourly(lines?.hourly || [], start, day, data.hourly);
   syncNowHourIcon(data);
@@ -1625,6 +1646,8 @@ function render(data, air, fromCache = false, cacheAt = 0, metadata = {}) {
   try { renderWeatherInsights(data, air, start); } catch { clearWeatherInsights(); }
   renderForecast(lines?.daily || [], now.temperature, Date.now(), lines?.hourly || []); renderSun(day, Date.now(), data.hourly);
   displayedWeather = {forecast:data,air,fromCache,cacheAt,weatherAt:metadata.weatherAt || cacheAt || Date.now(),hour:start,phase:atmosphere?.phase,day:globalThis.PLUVIA.time.dayKey(Date.now(),activeCity),airAt:metadata.airAt,freshAir:metadata.freshAir === true};
+  // Minuto a minuto do Tomorrow.io (1.73.11) não depende do radar: pinta a próxima hora assim que a previsão chega.
+  if (data.pluviaTomorrowMinutely) paintNextHour();
   globalThis.dispatchEvent?.(new CustomEvent("pluvia:weather-updated",{detail:{cityId:activeCity.id}}));
 }
 
