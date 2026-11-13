@@ -20,17 +20,34 @@ export const HORIZON_H = 48;
 export const MAX_PER_RUN = 2;
 export const CACHE_MS = 30 * 60_000;
 export const COOLDOWN_MS = 30 * 60_000;
+// Horas passadas pedidas junto (1.73.11): a chuva que já caiu entra no aviso de alagamento. Recusa (400/403) desliga só isso.
+export const PAST_H = 6;
 const TIMEOUT_MS = 5000;
 const MAX_CACHE = 64;
 
-export function tomorrowUrl(lat, lon, key, now = Date.now(), fields = TOMORROW_FIELDS, hours = HORIZON_H) {
-  const start = Math.floor(now / 3_600_000) * 3_600_000;
+// pastHours (1.73.11): começa tantas horas antes da hora atual, para a chuva que já caiu (o plano grátis guarda
+// ~6 h de passado). O fim continua contado da hora atual.
+export function tomorrowUrl(lat, lon, key, now = Date.now(), fields = TOMORROW_FIELDS, hours = HORIZON_H, pastHours = 0) {
+  const hour = Math.floor(now / 3_600_000) * 3_600_000, start = hour - pastHours * 3_600_000;
   const url = new URL(TOMORROW_ENDPOINT);
   url.search = new URLSearchParams({
     location: `${lat.toFixed(3)},${lon.toFixed(3)}`, fields: fields.join(','), timesteps: '1h', units: 'metric',
-    startTime: new Date(start).toISOString(), endTime: new Date(start + hours * 3_600_000).toISOString(), timezone: 'UTC', apikey: key,
+    startTime: new Date(start).toISOString(), endTime: new Date(hour + hours * 3_600_000).toISOString(), timezone: 'UTC', apikey: key,
   }).toString();
   return url.toString();
+}
+
+// Chuva das horas já fechadas cujos intervalos começam de `from` até `to` horas antes da hora atual (6 e 0 = as
+// últimas 6 h), em mm. Só com no máximo uma hora faltando; senão null (ausência nunca vira "não choveu").
+export function pastRain(json, now = Date.now(), from = 6, to = 0) {
+  const hour = Math.floor(now / 3_600_000) * 3_600_000;
+  let mm = 0, hours = 0;
+  for (const point of hourlyPoints(json)) {
+    if (!Number.isFinite(point.at) || point.at < hour - from * 3_600_000 || point.at >= hour - to * 3_600_000) continue;
+    const value = finite(point.values?.rainAccumulation) ?? finite(point.values?.precipitationIntensity);
+    if (value !== null) { mm += value; hours++; }
+  }
+  return hours >= Math.max(1, from - to - 1) ? Math.round(mm * 10) / 10 : null;
 }
 
 // Pontos horários { at (ms), values } da resposta. Timelines: data.timelines[] com timestep "1h" e
@@ -72,6 +89,7 @@ export function createTomorrowClient({ key = '', fetchImpl = fetch, now = () => 
   const cache = new Map();
   let blockedUntil = 0;
   let used = 0;
+  let pastRefused = false;
   return {
     enabled: Boolean(key),
     startRun() { used = 0; },
@@ -85,7 +103,13 @@ export function createTomorrowClient({ key = '', fetchImpl = fetch, now = () => 
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
       try {
-        const response = await fetchImpl(tomorrowUrl(lat, lon, key, now()), { signal: controller.signal, headers: { accept: 'application/json' } });
+        const ask = () => fetchImpl(tomorrowUrl(lat, lon, key, now(), TOMORROW_FIELDS, HORIZON_H, pastRefused ? 0 : PAST_H), { signal: controller.signal, headers: { accept: 'application/json' } });
+        let response = await ask();
+        if ((response.status === 400 || response.status === 403) && !pastRefused) {
+          pastRefused = true;
+          console.warn('tomorrow history refused', { status: response.status });
+          response = await ask();
+        }
         if (response.status === 429) { blockedUntil = now() + COOLDOWN_MS; return null; }
         // Só o status (nunca a URL, que leva a chave): um 400 por campo/parâmetro recusado não pode passar calado.
         if (!response.ok) { console.warn('tomorrow unavailable', { status: response.status }); return null; }

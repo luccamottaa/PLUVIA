@@ -7,13 +7,14 @@
 // 30 min sem tentar. Sem cota, responde 429 com `retryAfter`: o app volta ao Open-Meteo e tenta de novo
 // depois. A URL do provedor leva a chave: nunca registrar a URL nem a resposta bruta.
 import { tomorrowUrl } from '../_shared/tomorrow.js';
-import { TEST_FIELDS, TEST_HOURS, EXTRA_FIELDS, AIR_FIELDS, normalizeTomorrow } from '../_shared/tomorrow-forecast.js';
+import { TEST_HOURS, requestPlan, nextRefusal, normalizeTomorrow } from '../_shared/tomorrow-forecast.js';
 
 const SITE = 'https://pluviaweather.com.br';
 const ORIGINS = new Set([SITE, 'https://www.pluviaweather.com.br', 'https://luccamottaa.github.io']);
 const CACHE_MS = 30 * 60_000, COOLDOWN_MS = 30 * 60_000, HOURLY_CAP = 12;
 const cache = new Map(), attempts = new Map();
-let blockedUntil = 0, windowStart = 0, used = 0, extrasRefused = false, airRefused = false;
+let blockedUntil = 0, windowStart = 0, used = 0;
+const refusedLevels = new Set();
 
 function originAllowed(origin) {
   return !origin || ORIGINS.has(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
@@ -61,26 +62,21 @@ async function handle(req) {
   if (attempts.size > 500) attempts.delete(attempts.keys().next().value);
   used++;
   try {
-    // Extras no mesmo pedido; um 400 (campo fora do plano) repete uma vez só com os campos de sempre.
-    const ask = fields => {
-      const provider = new URL(tomorrowUrl(lat, lon, key, now, fields, TEST_HOURS));
-      provider.searchParams.set('timesteps', 'current,1h');
+    // Níveis opcionais (requestPlan): ar, trovoada, minuto a minuto, horas passadas e extras. Campo ou parâmetro fora
+    // do plano costuma voltar 400 ou 403; cada recusa tira o próximo nível (nextRefusal) e vale para a instância
+    // inteira, para não repetir a tentativa a cada pedido.
+    const refused = status => status === 400 || status === 403;
+    const ask = () => {
+      const plan = requestPlan(refusedLevels);
+      const provider = new URL(tomorrowUrl(lat, lon, key, now, plan.fields, TEST_HOURS, plan.pastHours));
+      provider.searchParams.set('timesteps', plan.timesteps);
       return fetch(provider, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
     };
-    // Três níveis: tudo; sem o ar; só os campos de sempre. Campo fora do plano costuma voltar 400 ou 403; cada
-    // recusa vale para a instância inteira (não repete a tentativa a cada pedido).
-    const refused = status => status === 400 || status === 403;
-    const fields = () => extrasRefused ? TEST_FIELDS : airRefused ? [...TEST_FIELDS, ...EXTRA_FIELDS] : [...TEST_FIELDS, ...EXTRA_FIELDS, ...AIR_FIELDS];
-    let response = await ask(fields());
-    if (refused(response.status) && !airRefused && !extrasRefused) {
-      airRefused = true; used++;
-      console.warn('tomorrow-forecast air quality refused', { status: response.status });
-      response = await ask(fields());
-    }
-    if (refused(response.status) && !extrasRefused) {
-      extrasRefused = true; used++;
-      console.warn('tomorrow-forecast extras refused', { status: response.status });
-      response = await ask(fields());
+    let response = await ask();
+    for (let level = nextRefusal(refusedLevels); refused(response.status) && level; level = nextRefusal(refusedLevels)) {
+      refusedLevels.add(level); used++;
+      console.warn('tomorrow-forecast level refused', { level, status: response.status });
+      response = await ask();
     }
     if (response.status === 429) { blockedUntil = now + COOLDOWN_MS; return limited(origin, now, blockedUntil); }
     if (!response.ok) { console.warn('tomorrow-forecast unavailable', { status: response.status }); return reply(origin, 502, { error: 'provider_unavailable' }); }

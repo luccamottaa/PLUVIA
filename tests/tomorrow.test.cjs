@@ -56,7 +56,8 @@ test('resposta recusada (400) registra só o status, nunca a URL com a chave',as
   const client=t.createTomorrowClient({key:'segredo',fetchImpl:async()=>({status:400,ok:false,json:async()=>({})})});
   client.startRun();
   assert.equal(await client.forecast(-3,-60),null);
-  assert.equal(JSON.stringify(warnings),JSON.stringify([['tomorrow unavailable',{status:400}]]));
+  // A primeira recusa desliga só as horas passadas (1.73.11); a segunda é registrada como indisponível.
+  assert.equal(JSON.stringify(warnings),JSON.stringify([['tomorrow history refused',{status:400}],['tomorrow unavailable',{status:400}]]));
   assert.doesNotMatch(JSON.stringify(warnings),/segredo|api\.tomorrow/);
 });
 
@@ -110,24 +111,24 @@ test('Tomorrow.io entra na concordância dos avisos de chuva como mais uma opini
   assert.equal(others.hourly.precipitation_tomorrow,undefined,'não altera a resposta original');
 });
 
-test('função de teste: 120 horas, extras no mesmo pedido e volta aos campos de sempre num 400 (1.73.4)',()=>{
+test('função de teste: 120 horas e níveis opcionais que saem um a um numa recusa 400/403 (1.73.11)', async () => {
   const fs=require('node:fs');
   const shared=fs.readFileSync('supabase/functions/_shared/tomorrow-forecast.js','utf8'),fn=fs.readFileSync('supabase/functions/tomorrow-forecast/index.js','utf8');
   assert.match(shared,/export const TEST_HOURS = 120;/);
-  for(const field of ['dewPoint','cloudBase','cloudCeiling','pressureSurfaceLevel','precipitationType','rainIntensity','evapotranspiration','uvHealthConcern']) assert.ok(shared.includes("'"+field+"'"),field);
-  assert.match(fn,/tomorrowUrl\(lat, lon, key, now, fields, TEST_HOURS\)/);
-  assert.match(fn,/if \(refused\(response\.status\) && !extrasRefused\) \{/);
-  assert.match(fn,/const fields = \(\) => extrasRefused \? TEST_FIELDS :/,'último nível: só os campos de sempre');
-});
-
-test('função de teste: ar num nível próprio, que sai antes dos extras numa recusa 400/403 (1.73.6)',()=>{
-  const fs=require('node:fs');
-  const shared=fs.readFileSync('supabase/functions/_shared/tomorrow-forecast.js','utf8'),fn=fs.readFileSync('supabase/functions/tomorrow-forecast/index.js','utf8');
-  for(const field of ['epaIndex','particulateMatter25','particulateMatter10','pollutantO3','pollutantNO2','pollutantSO2']) assert.ok(shared.includes("'"+field+"'"),field);
+  const m=await import('../supabase/functions/_shared/tomorrow-forecast.js');
+  const all=m.requestPlan(new Set());
+  for(const field of ['dewPoint','cloudBase','evapotranspiration','epaIndex','particulateMatter25','thunderstormProbability']) assert.ok(all.fields.includes(field),field);
+  assert.equal(all.timesteps,'current,1h,1m');assert.equal(all.pastHours,6);
+  assert.deepEqual([...m.OPTIONAL_LEVELS],['air','thunder','minutely','history','extras'],'a qualidade do ar sai primeiro, os extras por último');
+  const refused=new Set();const order=[];
+  for(let level=m.nextRefusal(refused);level;level=m.nextRefusal(refused)){refused.add(level);order.push(level);}
+  assert.deepEqual(order,['air','thunder','minutely','history','extras']);
+  const bare=m.requestPlan(refused);
+  assert.deepEqual(bare.fields,m.TEST_FIELDS);assert.equal(bare.timesteps,'current,1h');assert.equal(bare.pastHours,0);
+  assert.match(fn,/tomorrowUrl\(lat, lon, key, now, plan\.fields, TEST_HOURS, plan\.pastHours\)/);
+  assert.match(fn,/for \(let level = nextRefusal\(refusedLevels\); refused\(response\.status\) && level; level = nextRefusal\(refusedLevels\)\) \{/);
   assert.match(fn,/const refused = status => status === 400 \|\| status === 403;/);
-  assert.ok(fn.indexOf('airRefused = true')<fn.indexOf('extrasRefused = true'),'tira o ar antes dos extras');
 });
-
 test('mapa do Tomorrow.io fora do radar; tomorrow-tiles só responde 410 sem chamar o provedor (1.73.10)', () => {
   const fs = require('node:fs');
   const map = fs.readFileSync('dist/weather-map.js', 'utf8'), html = fs.readFileSync('dist/index.html', 'utf8');
@@ -136,4 +137,34 @@ test('mapa do Tomorrow.io fora do radar; tomorrow-tiles só responde 410 sem cha
   const fn = fs.readFileSync('supabase/functions/tomorrow-tiles/index.js', 'utf8');
   assert.doesNotMatch(fn, /fetch\(|api\.tomorrow\.io|TOMORROW_API_KEY/, 'nenhuma consulta, nenhuma cota');
   assert.match(fn, /status: 410/);
+});
+
+test('normalização: chuva das últimas 6 h, minuto a minuto e trovoada; poucas horas ou minutos não viram dado (1.73.11)', async () => {
+  const m = await import('../supabase/functions/_shared/tomorrow-forecast.js');
+  const now = Date.parse('2026-11-13T01:20:00Z'), hour = Date.parse('2026-11-13T01:00:00Z');
+  const hourly = Array.from({length:12}, (_, i) => ({startTime:new Date(hour + (i - 6) * 3600e3).toISOString(), values:{temperature:26, rainAccumulation:i < 6 ? 2 : 0, thunderstormProbability:i === 7 ? 40 : 5}}));
+  const minutely = Array.from({length:61}, (_, i) => ({startTime:new Date(now + i * 60e3).toISOString(), values:{precipitationIntensity:i > 30 ? 4 : 0}}));
+  const json = {data:{timelines:[{timestep:'current', intervals:[{startTime:new Date(now).toISOString(), values:{temperature:26}}]}, {timestep:'1h', intervals:hourly}, {timestep:'1m', intervals:minutely}]}};
+  const out = m.normalizeTomorrow(json, now);
+  assert.deepEqual({...out.recent}, {mm:12, hours:6});
+  assert.equal(out.minutely.length, 61); assert.equal(out.minutely[40].mm, 4);
+  assert.equal(out.hourly.find(h => h.thunderPct === 40)?.time, new Date(hour + 3600e3).toISOString());
+  const short = m.normalizeTomorrow({data:{timelines:[{timestep:'1h', intervals:hourly.slice(4)}, {timestep:'1m', intervals:minutely.slice(0, 10)}]}}, now);
+  assert.equal(short.recent, undefined, '2 horas passadas não bastam'); assert.equal(short.minutely, undefined);
+});
+
+test('avisos: Tomorrow.io pede 6 h de passado junto e para de pedir numa recusa; pastRain por janela (1.73.11)', async () => {
+  const now = Date.parse('2026-11-09T12:37:15Z');
+  const url = new URL(t.tomorrowUrl(-3.119, -60.0217, 'k', now, undefined, undefined, 6));
+  assert.equal(url.searchParams.get('startTime'), '2026-11-09T06:00:00.000Z');
+  assert.equal(Date.parse(url.searchParams.get('endTime')) - Date.parse('2026-11-09T12:00:00Z'), t.HORIZON_H * 3600e3, 'o fim continua contado da hora atual');
+  const asked = [];
+  const client = t.createTomorrowClient({key:'k', now:() => now, fetchImpl:async (u) => { asked.push(new URL(u).searchParams.get('startTime')); return asked.length === 1 ? {status:403, ok:false, json:async () => ({})} : {status:200, ok:true, json:async () => timelines()}; }});
+  client.startRun(); await client.forecast(-3.1, -60);
+  assert.deepEqual(asked, ['2026-11-09T06:00:00.000Z', '2026-11-09T12:00:00.000Z']);
+  const sh = await import('../supabase/functions/_shared/tomorrow.js');
+  const h = Date.parse('2026-11-09T12:00:00Z');
+  const json = timelines(...Array.from({length:8}, (_, i) => ({startTime:new Date(h + (i - 6) * 3600e3).toISOString(), values:{rainAccumulation:i < 4 ? 5 : i < 6 ? 2 : 0}})));
+  assert.equal(sh.pastRain(json, now, 6, 2), 20); assert.equal(sh.pastRain(json, now, 2, 0), 4); assert.equal(sh.pastRain(json, now), 24);
+  assert.equal(sh.pastRain(timelines(), now), null);
 });
