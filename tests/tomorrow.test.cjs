@@ -168,3 +168,8 @@ test('avisos: Tomorrow.io pede 6 h de passado junto e para de pedir numa recusa;
   assert.equal(sh.pastRain(json, now, 6, 2), 20); assert.equal(sh.pastRain(json, now, 2, 0), 4); assert.equal(sh.pastRain(json, now), 24);
   assert.equal(sh.pastRain(timelines(), now), null);
 });
+
+test('avisos gastam pouco do Tomorrow.io: 1 consulta por rodada e cache de 1 h (12 por hora no pior caso)',()=>{
+  assert.equal(t.MAX_PER_RUN,1);assert.equal(t.CACHE_MS,3600_000);
+  assert.ok(t.MAX_PER_RUN*12<=12,'a cada 5 min, no máximo 12 consultas por hora das 25 do plano grátis');
+});

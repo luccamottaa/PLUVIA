@@ -3,9 +3,10 @@
 // concordância dos modelos do Open-Meteo. Nada aparece na tela do app.
 //
 // Plano grátis: 25 consultas por hora e 500 por dia (o dia vira 00:00 UTC); passar disso devolve 429. Não há
-// contador global aqui (exigiria migration): cada instância guarda a leitura por 30 min por coordenada, faz no
-// máximo MAX_PER_RUN consultas por rodada do push-process (a cada 5 min = 24 por hora no pior caso) e, depois
-// de um 429, fica 30 min sem tentar. Sem a secret TOMORROW_API_KEY nada é consultado. Falha nunca segura o
+// contador global aqui (exigiria migration): cada instância guarda a leitura por CACHE_MS por coordenada, faz no
+// máximo MAX_PER_RUN consultas por rodada do push-process e, depois de um 429, fica 30 min sem tentar. Em 12-13/11
+// (pedido do dono, "pode diminuir") baixou de 2 por rodada e 30 min para 1 por rodada e 60 min: os avisos podiam
+// gastar 24 das 25 consultas da hora e o placar, o teste e o Brasil agora ficavam sem cota (12 por hora no pior caso). Sem a secret TOMORROW_API_KEY nada é consultado. Falha nunca segura o
 // aviso nem vira "não vai chover": só tira o Tomorrow.io da conta.
 //
 // Endpoint Timelines (pedido do dono, novembro/2026): pede só os dois campos de chuva, só a hora e só as
@@ -17,8 +18,8 @@
 export const TOMORROW_ENDPOINT = 'https://api.tomorrow.io/v4/timelines';
 export const TOMORROW_FIELDS = ['rainAccumulation', 'precipitationIntensity'];
 export const HORIZON_H = 48;
-export const MAX_PER_RUN = 2;
-export const CACHE_MS = 30 * 60_000;
+export const MAX_PER_RUN = 1;
+export const CACHE_MS = 60 * 60_000;
 export const COOLDOWN_MS = 30 * 60_000;
 // Horas passadas pedidas junto (1.73.11): a chuva que já caiu entra no aviso de alagamento. Recusa (400/403) desliga só isso.
 export const PAST_H = 6;
