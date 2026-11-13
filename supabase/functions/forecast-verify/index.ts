@@ -49,11 +49,17 @@ async function observations(now: number) {
 
 // Tomorrow.io no placar: poucas capitais por rodada (rodízio), uma de cada vez, e para no primeiro 429
 // (cota dividida com os avisos). A chave vai na URL: nunca registrar a URL nem a resposta.
+const TOMORROW_GAP_MS = 1_100;
 async function tomorrowRun(now: number) {
   const key = Deno.env.get("TOMORROW_API_KEY") ?? "";
   const result = { samples: [] as unknown[], windows: [] as unknown[], capitals: [] as unknown[], status: key ? "ok" : "disabled", failures: 0 };
   if (!key) return result;
+  // O plano grátis também limita 3 consultas por SEGUNDO: em sequência rápida a 4ª capital voltava 429 toda hora
+  // (12-13/11, sempre "3 capitais e rate_limited"). Uma pausa de TOMORROW_GAP_MS entre as consultas resolve.
+  let first = true;
   for (const city of tomorrowCities(now)) {
+    if (!first) await new Promise(resolve => setTimeout(resolve, TOMORROW_GAP_MS));
+    first = false;
     try {
       const response = await fetch(tomorrowUrl(city.lat, city.lon, key, now, TOMORROW_VERIFY_FIELDS), { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(8000) });
       if (response.status === 429) { result.status = "rate_limited"; break; }

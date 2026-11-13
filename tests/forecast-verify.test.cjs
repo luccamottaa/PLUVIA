@@ -150,3 +150,8 @@ test('Brasil agora: série compacta da capital pela mesma resposta do placar (1.
   assert.match(sql, /grant execute on function public\.pluvia_tomorrow_capitals\(\) to anon, authenticated, service_role;/);
   assert.match(sql, /revoke all on table private\.tomorrow_capitals from public, anon, authenticated;/);
 });
+test('placar: pausa de mais de 1 s entre as consultas ao Tomorrow.io (limite de 3 por segundo)', () => {
+  const fn = fs.readFileSync('supabase/functions/forecast-verify/index.ts', 'utf8');
+  assert.match(fn, /const TOMORROW_GAP_MS = 1_100;/);
+  assert.match(fn, /if \(!first\) await new Promise\(resolve => setTimeout\(resolve, TOMORROW_GAP_MS\)\);/);
+});
