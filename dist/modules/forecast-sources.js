@@ -24,7 +24,7 @@
   const KEY = "sb_publishable_SdPTXhk3Q7aD-ra0S9dm_A_rnXSS4Jc";
   const TOMORROW_ENDPOINT = `${PROJECT}/functions/v1/tomorrow-forecast`;
   const MODELS = new Set(["ecmwf_ifs025", "gfs_seamless", "icon_seamless"]);
-  const MODELS_KEY = "pluvia-rain-models", TEST_KEY = "pluvia-tomorrow-test";
+  const MODELS_KEY = "pluvia-rain-models", TEMP_MODELS_KEY = "pluvia-temp-models", TEST_KEY = "pluvia-tomorrow-test";
   const MODELS_TTL = 12 * 3600_000, MODELS_RETRY = 30 * 60_000, TOMORROW_TTL = 30 * 60_000, LIMIT_WAIT = 30 * 60_000;
   const HOUR = 3600_000;
 
@@ -47,6 +47,21 @@
     const valid = (list, max) => Array.isArray(list) && list.length === times.length && list.every(value => finite(value, 0, max) !== null);
     if (!valid(mm, 500) || !valid(chance, 100)) return null;
     return {...forecast, hourly:{...forecast.hourly, precipitation:mm.slice(), precipitation_probability:chance.slice()}, pluviaRainModel:model};
+  }
+
+  // Temperatura do modelo vencedor (1.73.13): horas e dias iguais e as quatro séries completas e válidas; o agora só
+  // troca quando o horário da leitura é o mesmo. Qualquer diferença: fica a previsão de sempre.
+  function swapTemp(forecast, other, model) {
+    const same = (a, b) => Array.isArray(a) && a.length > 0 && Array.isArray(b) && b.length === a.length && a.every((value, index) => value === b[index]);
+    if (!same(forecast?.hourly?.time, other?.hourly?.time) || !same(forecast?.daily?.time, other?.daily?.time)) return null;
+    const ok = (list, length) => Array.isArray(list) && list.length === length && list.every(value => finite(value, -80, 80) !== null);
+    const hours = forecast.hourly.time.length, days = forecast.daily.time.length, h = other.hourly, d = other.daily;
+    if (!ok(h.temperature_2m, hours) || !ok(h.apparent_temperature, hours) || !ok(d.temperature_2m_max, days) || !ok(d.temperature_2m_min, days)) return null;
+    const now = other.current;
+    const current = forecast.current && now?.time === forecast.current.time && finite(now?.temperature_2m, -80, 80) !== null && finite(now?.apparent_temperature, -80, 80) !== null
+      ? {...forecast.current, temperature_2m:now.temperature_2m, apparent_temperature:now.apparent_temperature} : forecast.current;
+    return {...forecast, current, hourly:{...forecast.hourly, temperature_2m:h.temperature_2m.slice(), apparent_temperature:h.apparent_temperature.slice()},
+      daily:{...forecast.daily, temperature_2m_max:d.temperature_2m_max.slice(), temperature_2m_min:d.temperature_2m_min.slice()}, pluviaTempModel:model};
   }
 
   // Leituras do Tomorrow.io por cima da previsão do Open-Meteo. Instantâneos (temperatura, vento, umidade…)
@@ -207,6 +222,38 @@
       refreshModels();
       return models && /^[0-9]{7}$/.test(String(city?.id)) ? models[city.id] || null : null;
     }
+    // Temperatura pelo modelo que mais acerta na capital (1.73.13, RPC pluvia_temp_models: só com 0,3 °C ou mais de
+    // vantagem sobre o best_match). Mesma guarda e prazos da lista de chuva, em outra chave do aparelho.
+    let temps = null, tempsAt = 0, tempsTried = 0, tempsTask = null;
+    function refreshTempModels() {
+      if (!temps) try {
+        const saved = JSON.parse(store()?.getItem(TEMP_MODELS_KEY) || "null");
+        if (saved && Number.isFinite(saved.at) && now() - saved.at < 2 * MODELS_TTL) { temps = cleanModels(saved.map); tempsAt = saved.at; }
+      } catch {}
+      if (tempsTask || (temps && now() - tempsAt < MODELS_TTL) || now() - tempsTried < MODELS_RETRY) return tempsTask;
+      tempsTried = now();
+      tempsTask = Promise.resolve().then(() => get(`${PROJECT}/rest/v1/rpc/pluvia_temp_models`, {timeoutMs:6000, cache:"no-store", headers:{apikey:KEY, Authorization:`Bearer ${KEY}`}}))
+        .then(value => {
+          temps = cleanModels(value); tempsAt = now();
+          try { store()?.setItem(TEMP_MODELS_KEY, JSON.stringify({at:tempsAt, map:temps})); } catch {}
+          return temps;
+        }).catch(() => temps).finally(() => { tempsTask = null; });
+      return tempsTask;
+    }
+    function tempModelFor(city) {
+      refreshTempModels();
+      return temps && /^[0-9]{7}$/.test(String(city?.id)) ? temps[city.id] || null : null;
+    }
+    function tempUrl(city, model) {
+      const base = forecastUrl(city);
+      if (!base) return null;
+      const url = new URL(base);
+      url.searchParams.set("current", "temperature_2m,apparent_temperature");
+      url.searchParams.set("hourly", "temperature_2m,apparent_temperature");
+      url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min");
+      url.searchParams.set("models", model);
+      return url.href;
+    }
     function rainUrl(city, model) {
       const base = forecastUrl(city);
       if (!base) return null;
@@ -249,8 +296,10 @@
       const model = modelFor(city);
       const url = model ? rainUrl(city, model) : null;
       const rain = url ? Promise.resolve().then(() => get(url, {timeoutMs:8000})).then(other => ({model, other})).catch(() => null) : null;
+      const tempModel = tempModelFor(city), tUrl = tempModel ? tempUrl(city, tempModel) : null;
+      const temp = tUrl ? Promise.resolve().then(() => get(tUrl, {timeoutMs:8000})).then(other => ({model:tempModel, other})).catch(() => null) : null;
       const tomorrow = tomorrowFor(city);
-      return rain || tomorrow ? {rain, tomorrow, city} : null;
+      return rain || temp || tomorrow ? {rain, temp, tomorrow, city} : null;
     }
     // Espera cada extra até `waitMs` depois da previsão principal; o que não chegar fica de fora.
     async function apply(forecast, task, {valid = () => true, waitMs = 2500} = {}) {
@@ -258,8 +307,9 @@
       const late = Symbol("late");
       const deadline = new Promise(resolve => setTimeout(() => resolve(late), waitMs));
       const settle = promise => promise ? Promise.race([promise.catch(() => null), deadline]) : Promise.resolve(null);
-      const [rain, tomorrow] = await Promise.all([settle(task.rain), settle(task.tomorrow)]);
+      const [rain, tomorrow, temp] = await Promise.all([settle(task.rain), settle(task.tomorrow), settle(task.temp)]);
       let shown = forecast;
+      if (temp && temp !== late) { const swapped = swapTemp(shown, temp.other, temp.model); if (swapped && valid(swapped)) shown = swapped; }
       if (rain && rain !== late) { const swapped = swapRain(shown, rain.other, rain.model); if (swapped && valid(swapped)) shown = swapped; }
       if (task.tomorrow) {
         const result = tomorrow && tomorrow !== late ? tomorrow : {status:"failed"};
@@ -268,7 +318,7 @@
       }
       return shown;
     }
-    return {start, apply, modelFor, refreshModels, testEnabled, setTestEnabled};
+    return {start, apply, modelFor, refreshModels, tempModelFor, refreshTempModels, testEnabled, setTestEnabled};
   }
 
   // Botão de Mais do PLUVIA (#tomorrowTest): estado em aria-pressed e no texto ao lado.
@@ -280,7 +330,7 @@
     paint();
   }
 
-  const api = {swapRain, overlayTomorrow, cleanModels, createSources, minutelyNextHour};
+  const api = {swapRain, swapTemp, overlayTomorrow, cleanModels, createSources, minutelyNextHour};
   if (runtime.document) {
     Object.assign(api, createSources());
     const wire = () => wireToggle(runtime.document, api);
