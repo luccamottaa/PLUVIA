@@ -506,7 +506,13 @@ html body #monthDialog .accuracy { margin-top:22px; padding-top:18px; border-top
 html body #monthDialog .accuracy h3 { margin:0 0 6px; font-size:1.25rem; font-weight:650; letter-spacing:-.015em; }
 html body #monthDialog .accuracy-window { margin:14px 0 10px; font-size:.9375rem; font-weight:600; }
 html body #monthDialog .accuracy-stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
-@media (max-width:440px) { html body #monthDialog .accuracy-stats { grid-template-columns:minmax(0,1fr); gap:12px; } html body #monthDialog .accuracy-stats > div { display:flex; justify-content:space-between; align-items:baseline; gap:12px; } html body #monthDialog .accuracy-stats dd { text-align:right; flex:none; } }
+/* 1.75: a janela de 3 h vem primeiro, num bloco destacado; a cor segue a tinta do diálogo (claro ou escuro). */
+html body #monthDialog .accuracy-main { margin:14px 0 4px; padding:2px 14px 0; border-radius:16px; background:color-mix(in srgb, currentColor 7%, transparent); }
+html body #monthDialog .accuracy-main .accuracy-window { font-size:1.0625rem; font-weight:650; }
+html body #monthDialog .accuracy-main .accuracy-stats dd { font-size:1.5rem; }
+html body #monthDialog .accuracy-main .accuracy-stats { margin-bottom:14px; }
+html body #monthDialog .accuracy-hour { margin:12px 0 4px; font-size:.9375rem; line-height:1.5; }
+@media (max-width:440px) { html body #monthDialog .accuracy-stats { grid-template-columns:minmax(0,1fr); gap:12px; } html body #monthDialog .accuracy-stats > div { display:flex; justify-content:space-between; align-items:baseline; gap:12px; } html body #monthDialog .accuracy-stats dd { text-align:right; flex:0 1 auto; min-width:0; max-width:58%; } html body #monthDialog .accuracy-stats dt { flex:1 1 0; min-width:0; } }
 html body #accountDialog .profile-avatar[data-avatar] { overflow:hidden; background:var(--avatar-bg); }
 #accountDialog .avatar-picker { margin:4px 0 18px; padding:0; border:0; min-width:0; }
 #accountDialog .avatar-picker legend { margin-bottom:10px; padding:0; color:var(--dialog-muted); font-size:.9375rem; }

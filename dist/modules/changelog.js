@@ -12,6 +12,11 @@
   const SEEN_KEY = "pluvia-seen-version";
   const WAIT_MS = 20000, SETTLE_MS = 900;
   const VERSIONS = [
+    {version:"1.75", date:"2026-11-13", title:"Acerto sem enfeite", items:[
+      "\"Quanto o PLUVIA acertou\" agora começa pelas próximas 3 horas, a janela do \"Vai chover?\".",
+      "Os alarmes falsos aparecem escritos: quantas vezes o PLUVIA disse \"vai chover\" e não choveu.",
+      "Uma frase nova mostra, com os números da sua capital, que acertar a hora exata da chuva é bem mais difícil. Por isso o PLUVIA fala em janelas de horas."
+    ]},
     {version:"1.74.2", date:"2026-11-13", title:"Placar valendo de verdade", items:[
       "Em Maceió, a temperatura agora vem mesmo do modelo que mais acerta pelo placar. Desde a 1.73.13 essa troca não acontecia: a previsão do outro modelo chegava com horas vazias no fim e o PLUVIA, por segurança, ficava com a de sempre.",
       "No Rio de Janeiro a troca ainda não acontece no app: o modelo que mais acerta lá não cobre os 8 dias da previsão.",

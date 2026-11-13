@@ -51,7 +51,7 @@
     <script src="/modules/pwa-gestures.js?v=pwa-1" defer></script>
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#041936" />
-    <meta name="pluvia-release" content="pluvia-panel-378" />
+    <meta name="pluvia-release" content="pluvia-panel-379" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="PLUVIA" />
@@ -303,7 +303,7 @@
           var link = d.createElement('link'), ready = function () { root.setAttribute('data-dialog-css', ''); };
           // Endereço a partir do continuous.css: vale na Home, nas páginas /clima/... e em subpasta.
           var base = d.querySelector('link[href*="continuous.css"]');
-          link.rel = 'stylesheet'; link.href = new URL('dialogs.css?v=dialogs-7', base ? base.href : location.href).href; link.onload = ready; link.onerror = ready;
+          link.rel = 'stylesheet'; link.href = new URL('dialogs.css?v=dialogs-8', base ? base.href : location.href).href; link.onload = ready; link.onerror = ready;
           (d.body || root).appendChild(link);
         }
         w.addEventListener('pointerdown', load, {capture: true, once: true, passive: true});
@@ -696,10 +696,10 @@
     <script src="/saved-places.js?v=places-2" defer></script>
     <script src="/modules/brazil-now.js?v=brazil-9" defer></script>
     <script src="/modules/month-recap.js?v=month-2" defer></script>
-    <script src="/modules/forecast-accuracy.js?v=accuracy-1" defer></script>
+    <script src="/modules/forecast-accuracy.js?v=accuracy-2" defer></script>
     <script src="/modules/station-now.js?v=station-6" defer></script>
     <script src="/modules/home-layout.js?v=home-layout-11" defer></script>
-    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-406" defer></script>
+    <script src="/modules/pwa-shortcuts.js?v=shortcuts-4" defer></script><script src="/modules/voice-search.js?v=voice-2" defer></script><script src="/modules/rain-reports.js?v=rain-reports-3" defer></script><script src="/modules/visit-counter.js?v=visits-3" defer></script><script src="/modules/install-prompt.js?v=install-3" defer></script><script src="/modules/changelog.js?v=changelog-407" defer></script>
     <script src="/modules/notification-preferences.js?v=preferences-4" defer></script>
     <script src="/notifications.js?v=panel-43" defer></script>
   </body>
