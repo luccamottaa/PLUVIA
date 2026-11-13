@@ -826,3 +826,11 @@ Descoberto ao avaliar baixar a regra do placar de 90% para 85%: **com `past_hour
 - Regra dos 90% **não mudou**: os nulos de chance que derrubavam a cobertura são de 14 a 24/10/2026 (começo da coleta) e saem da janela de 30 dias sozinhos. Projeção feita em 13/11: Salvador passa de 90% em 14/11, Curitiba em 15/11, Goiânia e Palmas por volta de 17/11. Baixar para 85% adiantaria só 1–2 dias.
 - Não reintroduzir: `past_hours` sem `forecast_hours` em consulta horária que será comparada hora a hora; `forecast_days` como limite da série horária.
 - Teste: `tests/weather-services` (192 h alcançam a última hora do 8º dia de qualquer hora do dia), `tests/push-worker` (push e modelo vencedor com o mesmo horizonte, cabendo no ICON), `tests/forecast-sources` (modelo pede o mesmo horizonte da principal).
+
+## "Quanto o PLUVIA acertou" mais honesto (novembro/2026, 1.75)
+
+Pedido do dono: mostrar a janela de 3 h em destaque, dizer claramente que acertar a hora exata é difícil e não esconder alarme falso nem trocar tudo por uma nota única.
+- RPC `pluvia_forecast_accuracy` (migration `20261113160000_forecast_accuracy_hourly.sql`, rodada em 13/11/2026) ganhou a chave `hourly`: totais de `private.forecast_scores` para `best_match`, previsão feita 6 h antes (`lead_hours`, `hours`, `hits`, `misses`, `false_alarms`). Só contagens. Em 13/11, Manaus: 1 acerto em 32 horas com chuva prevista (3%).
+- `dist/modules/forecast-accuracy.js`: ordem 3 h (bloco `.accuracy-main`, destacado com `color-mix(currentColor)` para servir nas duas tintas) → frase da hora exata (`.accuracy-hour`) → 12 h. "Disse vai chover e choveu" escreve os alarmes falsos ("nas outras N, não choveu"). Sem `hourly` (banco antigo) ou com menos de `MIN_CASES` horas previstas, a frase fica sem número; nunca inventar porcentagem.
+- Não reintroduzir: 12 h antes de 3 h; nota única tipo "acerta X%"; esconder os alarmes falsos.
+- Teste: `tests/forecast-accuracy.test.cjs` (DOM mínimo: ordem dos blocos, texto com números, banco antigo e poucos casos).

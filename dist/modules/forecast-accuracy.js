@@ -3,7 +3,8 @@
    (RPC pluvia_forecast_accuracy, só totais). Por enquanto só as capitais são medidas: outra cidade vê a capital do
    estado, dito na tela. Mostra os dois lados (chuvas avisadas e alarmes que não deram em nada) e só com casos
    suficientes; "pode chover" não conta como acerto nem como erro. Consulta só ao abrir, com cliente próprio,
-   cache curto e revisão. */
+   cache curto e revisão. 1.75: a janela de 3 h vem primeiro e em destaque, os alarmes falsos aparecem escritos e
+   uma frase diz, com o número da cidade quando há, que acertar a hora exata é bem mais difícil. */
 (function(root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -30,7 +31,15 @@
     }
     const since = typeof response?.since === 'string' && Number.isFinite(Date.parse(response.since)) ? Date.parse(response.since) : null;
     const any = Object.values(windows).some(item => item.caught || item.rainRight || item.dryRight);
-    return {since, windows, any};
+    return {since, windows, any, hourly:hourly(response?.hourly)};
+  }
+  // Hora exata (1.75): das horas em que a previsão feita `lead` horas antes marcou chuva, em quantas choveu
+  // naquela hora. Sem a chave (banco antigo) ou com poucos casos: null, e a tela diz a frase sem número.
+  function hourly(row) {
+    const [lead, hits, alarms] = [row?.lead_hours, row?.hits, row?.false_alarms].map(count);
+    if (lead === null || hits === null || alarms === null) return null;
+    const right = share(hits, hits + alarms);
+    return right ? {lead, right} : null;
   }
 
   function target(city, capitals) {
@@ -64,18 +73,32 @@
       const where = place.own ? place.name : `${place.name} (capital do estado; por enquanto só medimos nas capitais)`;
       lead.textContent = summary.since ? `Desde ${day(summary.since)}, a previsão comparada com o que a estação do INMET mais próxima mediu em ${where}.` : `Previsão comparada com a estação do INMET em ${where}.`;
       nodes.push(lead);
-      for (const [hours, title] of [[12, 'Nas próximas 12 horas'], [3, 'Nas próximas 3 horas']]) {
-        const item = summary.windows[hours]; if (!item) continue;
-        const heading = doc.createElement('h4'); heading.className = 'accuracy-window'; heading.textContent = title;
-        const list = doc.createElement('dl'); list.className = 'month-stats accuracy-stats';
-        list.append(
-          stat('Chuvas que ele avisou', item.caught, v => `${v.part} de ${v.total} chuvas medidas`),
-          stat('Disse “vai chover” e choveu', item.rainRight, v => `${v.part} de ${v.total} vezes`),
-          stat('Disse “não vai chover” e ficou seco', item.dryRight, v => `${v.part} de ${v.total} vezes`)
-        );
-        nodes.push(heading, list);
+      // 3 horas primeiro e em destaque (é a janela do "Vai chover?"); depois a hora exata e as 12 horas.
+      for (const [hours, title] of [[3, 'Nas próximas 3 horas'], [12, 'Nas próximas 12 horas']]) {
+        const item = summary.windows[hours];
+        if (item) {
+          const block = doc.createElement('div'); block.className = hours === 3 ? 'accuracy-block accuracy-main' : 'accuracy-block';
+          const heading = doc.createElement('h4'); heading.className = 'accuracy-window'; heading.textContent = title;
+          const list = doc.createElement('dl'); list.className = 'month-stats accuracy-stats';
+          list.append(
+            stat('Chuvas que ele avisou', item.caught, v => `${v.part} de ${v.total} chuvas medidas`),
+            // Os alarmes falsos ficam escritos, não só implícitos na porcentagem.
+            stat('Disse “vai chover” e choveu', item.rainRight, v => `${v.part} de ${v.total} vezes; nas outras ${v.total - v.part}, não choveu`),
+            stat('Disse “não vai chover” e ficou seco', item.dryRight, v => `${v.part} de ${v.total} vezes`)
+          );
+          block.append(heading, list);
+          nodes.push(block);
+        }
+        if (hours === 3) nodes.push(exactHour(summary.hourly));
       }
       box.replaceChildren(...nodes);
+    }
+    function exactHour(hour) {
+      const p = doc.createElement('p'); p.className = 'accuracy-hour';
+      p.textContent = hour
+        ? `Na hora exata é bem mais difícil: das ${hour.right.total} horas em que a previsão feita ${hour.lead} horas antes marcou chuva, choveu naquela hora em ${hour.right.part} (${hour.right.pct}%). Por isso o PLUVIA fala em janelas, como “nas próximas 3 horas”, e não em horário marcado.`
+        : 'Acertar a hora exata da chuva é bem mais difícil do que acertar uma janela de horas. Por isso o PLUVIA fala em janelas, como “nas próximas 3 horas”, e não em horário marcado.';
+      return p;
     }
     async function load() {
       const token = ++revision, place = target(active(), capitals());
@@ -111,5 +134,5 @@
     });
   }
 
-  return {summarize, target, mount, MIN_CASES};
+  return {summarize, hourly, target, mount, MIN_CASES};
 });
