@@ -675,7 +675,7 @@ Pedido do dono ("faz do 1 ao 3"). Nenhum dos três é garantido no plano grátis
 ## Pílula do topo e mapa do Tomorrow.io desligado (novembro/2026, 1.73.10)
 
 - Ícone da pílula compacta: `.compact-icon > .weather-line-icon` com margem interna de 1px (era 7px, o desenho ficava com 28px numa caixa de 42px). A pílula continua com 58px.
-- **Mapa do Tomorrow.io removido do radar** (pedido do dono, `tira o mapa`): na noite de 12/11 as telhas mostraram que entram na cota grátis de 25/h dos avisos e do placar; depois de 32 telhas o provedor devolveu 429 em tudo. `weather-map.js`, `forecast-sources.js` e os testes voltaram ao estado anterior à #402; o botão e a legenda saíram do HTML/CSS. A função `tomorrow-tiles` continua publicada só como resposta 410, sem chamar o Tomorrow.io (app antigo em cache); `_shared/tomorrow-tiles.js` saiu. Não religar sem plano pago ou outra fonte de mapa.
+- **Mapa do Tomorrow.io removido do radar** (pedido do dono, `tira o mapa`): na noite de 12/11 as telhas mostraram que entram na cota grátis de 25/h dos avisos e do placar; depois de 32 telhas o provedor devolveu 429 em tudo. `weather-map.js`, `forecast-sources.js` e os testes voltaram ao estado anterior à #402; o botão e a legenda saíram do HTML/CSS. A função `tomorrow-tiles` foi removida do repositório (pasta, `config.toml` e opção do workflow) em 13/11; a cópia publicada respondia só 410 e deve ser apagada no painel do Supabase. Não religar sem plano pago ou outra fonte de mapa.
 
 ## Mapa de chuva do Tomorrow.io no radar (novembro/2026, 1.73.9)
 

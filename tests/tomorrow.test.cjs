@@ -129,14 +129,13 @@ test('função de teste: 120 horas e níveis opcionais que saem um a um numa rec
   assert.match(fn,/for \(let level = nextRefusal\(refusedLevels\); refused\(response\.status\) && level; level = nextRefusal\(refusedLevels\)\) \{/);
   assert.match(fn,/const refused = status => status === 400 \|\| status === 403;/);
 });
-test('mapa do Tomorrow.io fora do radar; tomorrow-tiles só responde 410 sem chamar o provedor (1.73.10)', () => {
+test('mapa do Tomorrow.io removido de vez: sem função, sem configuração e sem opção de publicação', () => {
   const fs = require('node:fs');
-  const map = fs.readFileSync('dist/weather-map.js', 'utf8'), html = fs.readFileSync('dist/index.html', 'utf8');
-  assert.doesNotMatch(map, /tomorrow-tiles|TOMORROW_TILES/);
-  assert.doesNotMatch(html, /weatherSourceToggle/);
-  const fn = fs.readFileSync('supabase/functions/tomorrow-tiles/index.js', 'utf8');
-  assert.doesNotMatch(fn, /fetch\(|api\.tomorrow\.io|TOMORROW_API_KEY/, 'nenhuma consulta, nenhuma cota');
-  assert.match(fn, /status: 410/);
+  assert.doesNotMatch(fs.readFileSync('dist/weather-map.js', 'utf8'), /tomorrow-tiles|TOMORROW_TILES/);
+  assert.doesNotMatch(fs.readFileSync('dist/index.html', 'utf8'), /weatherSourceToggle/);
+  assert.equal(fs.existsSync('supabase/functions/tomorrow-tiles'), false);
+  assert.doesNotMatch(fs.readFileSync('supabase/config.toml', 'utf8'), /tomorrow-tiles/);
+  assert.doesNotMatch(fs.readFileSync('.github/workflows/deploy-function.yml', 'utf8'), /tomorrow-tiles/);
 });
 
 test('normalização: chuva das últimas 6 h, minuto a minuto e trovoada; poucas horas ou minutos não viram dado (1.73.11)', async () => {
