@@ -38,6 +38,8 @@ test('7 dias: uma linha por dia, sem a nota de chuva/UV visível', () => {
 test('7 dias (1.73.12): chance embaixo do ícone, sem coluna de chuva; milímetros só para o leitor de tela', () => {
   const rows = render(daily).split('<button').slice(1);
   for (const row of rows) { assert.doesNotMatch(row, /forecast-rain-volume|class="forecast-rain"/); assert.match(row, /class="forecast-row temp-mode/); }
+  // O texto do leitor de tela fica dentro da condição (um item solto da linha desalinhava o teste visual do CI).
+  for (const row of rows) assert.match(row, /<span class="forecast-condition">[\s\S]*?<span class="peek-extra">, chance de chuva[\s\S]*?<\/span><\/span>\s*<span class="temp-range"/);
   assert.match(rows[0], /<i><svg[\s\S]*?<\/svg><b class="forecast-icon-chance" aria-hidden="true">49%<\/b><\/i>/);
   assert.match(rows[0], /<span class="peek-extra">, chance de chuva 49%, 0,2 mm/);
   assert.match(rows[2], /<span class="peek-extra">, chance de chuva \d+%, 2,1 mm/);
