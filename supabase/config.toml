@@ -28,6 +28,9 @@ entrypoint = "./functions/lightning/index.js"
 [functions.forecast-verify]
 # Só o cron chama, com o segredo do Vault no cabeçalho (conferido pela função).
 verify_jwt = false
+[functions.radar-verify]
+# Placar do radar: só o cron chama, com o mesmo segredo do Vault no cabeçalho (conferido pela função).
+verify_jwt = false
 
 [functions.environment-refresh]
 # Só o cron chama, com o segredo do Vault no cabeçalho (conferido pela função).
