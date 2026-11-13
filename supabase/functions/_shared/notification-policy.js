@@ -67,7 +67,7 @@ export function lowPriority(event) {
   return Number(event?.severity)<=2 && !['official_alert','daily_summary','evening_summary','test'].includes(type);
 }
 export function overDailyCap(event,deliveries=[],cap=LOW_DAILY_CAP) {
-  if(!lowPriority(event)) return false;
+  if(!lowPriority(event) || !cap) return false; // 0 = sem limite (escolha da pessoa, 1.73.14)
   return deliveries.filter(d=>['accepted','pending'].includes(d.status) && lowPriority(d.notification_events)).length>=cap;
 }
 export function isRepeat(candidate,deliveries,now=Date.now()) {

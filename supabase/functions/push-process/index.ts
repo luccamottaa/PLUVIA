@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { adminClient, pushSecrets } from "../_shared/supabase.ts";
 import { json, preflight, readJson } from "../_shared/http.ts";
 import { pushErrorCode, sendWebPush } from "../_shared/webpush.ts";
-import { selectCandidates, isRepeat, isOfficialRepeat, stopAllowed, easeAllowed, lowPriority, overDailyCap, pushUrgency, activeSubscriptions } from "../_shared/notification-policy.js";
+import { selectCandidates, isRepeat, isOfficialRepeat, stopAllowed, easeAllowed, lowPriority, overDailyCap, LOW_DAILY_CAP, pushUrgency, activeSubscriptions } from "../_shared/notification-policy.js";
 import { report } from "../_shared/error-report.js";
 import { metarUrl, nearestAirport } from "../_shared/metar.js";
 import { stationUrl, normalizeStation } from "../_shared/inmet-station.js";
@@ -22,10 +22,22 @@ const preferenceFor: Record<string, string> = {
   weather_change: "weather_changes", daily_summary: "daily_summary", evening_summary: "evening_summary",
   // Observados (estação do INMET e boletim do aeroporto): ligam junto com os avisos de chuva e tempestade.
   rain_now: "rain_approaching", rain_nearby: "rain_approaching", rain_stopped: "rain_approaching", rain_incoming: "rain_approaching", storm_now: "storms",
-  // Radar (piora e "o pior já passou") com os avisos de chuva; alagamento com o de chuva forte. Sem coluna nova.
-  rain_worsening: "rain_approaching", rain_easing: "rain_approaching", flood_risk: "heavy_rain",
+  // Radar: a piora vai com os avisos de chuva.
+  // 1.73.14: alagamento e "o pior já passou" com preferência própria (colunas flood_risk/rain_easing); sem a coluna
+  // (banco antigo), valem as de antes (FALLBACK_FLAG).
+  rain_worsening: "rain_approaching", rain_easing: "rain_easing", flood_risk: "flood_risk",
 };
 const asArray = (value: any) => Array.isArray(value) ? value : [];
+const FALLBACK_FLAG: Record<string, string> = { flood_risk: "heavy_rain", rain_easing: "rain_approaching" };
+// Preferência do tipo de aviso; coluna ainda ausente no banco (antes da migration) usa a preferência de antes.
+function flagOn(preference: Preference, type: string) {
+  const flag = preferenceFor[type];
+  if (!flag) return true;
+  const value = preference[flag];
+  return typeof value === "boolean" ? value : Boolean(preference[FALLBACK_FLAG[type] ?? flag]);
+}
+// Limite diário dos avisos fracos escolhido pela pessoa (0 = sem limite); fora da faixa ou ausente, o padrão.
+const dailyCap = (preference: Preference) => Number.isInteger(preference.low_daily_cap) && preference.low_daily_cap >= 0 && preference.low_daily_cap <= 20 ? preference.low_daily_cap : LOW_DAILY_CAP;
 const text = (value: unknown, max = 500) => String(value ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
 const first = (row: any, keys: string[], fallback: any = "") => keys.map(key => row?.[key]).find(value => value !== undefined && value !== null && value !== "") ?? fallback;
 const normalize = (value: unknown) => text(value, 5000).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -777,7 +789,7 @@ async function createEvent(admin: any, location: Location, candidate: EventCandi
 async function deliver(admin: any, event: any, preference: Preference, subscriptions: any[], userId: string, vapid: any, deadline = Infinity) {
   const flag = preferenceFor[event.type];
   const belowMinimum = !["daily_summary", "evening_summary"].includes(event.type) && event.severity < Number(preference.minimum_severity || 1);
-  if (!preference.notifications_enabled || (flag && !preference[flag]) || belowMinimum || inQuietHours(preference, event.severity)) return { accepted: 0, skipped: subscriptions.length };
+  if (!preference.notifications_enabled || (flag && !flagOn(preference, event.type)) || belowMinimum || inQuietHours(preference, event.severity)) return { accepted: 0, skipped: subscriptions.length };
   let accepted = 0, skipped = 0;
   for (const subscription of subscriptions) {
     if (Date.now() >= deadline) return { accepted, skipped, deferred: true };
@@ -803,7 +815,7 @@ async function deliver(admin: any, event: any, preference: Preference, subscript
         .eq("subscription_id", subscription.id).in("status", ["accepted", "pending"])
         .gte("created_at", localDayStart(preference.timezone || "America/Manaus").toISOString());
       if (todayError) throw new Error("dedup_lookup_failed");
-      if (overDailyCap(event, today || [])) { skipped++; continue; }
+      if (overDailyCap(event, today || [], dailyCap(preference))) { skipped++; continue; }
     }
     if (event.type === "official_alert") {
       const { data: recent, error: recentError } = await admin.from("notification_deliveries")
@@ -955,7 +967,7 @@ Deno.serve(async (req) => {
       let weatherForNowcast: any = null, stationReading: any = null;
       try {
         const candidates: EventCandidate[] = inmetForLocation(inmetAlerts, location);
-        const needsWeather = ["rain_approaching", "heavy_rain", "storms", "strong_wind", "extreme_heat", "weather_changes", "daily_summary", "evening_summary"].some(key => preference[key]);
+        const needsWeather = ["rain_approaching", "heavy_rain", "storms", "strong_wind", "extreme_heat", "weather_changes", "daily_summary", "evening_summary", "flood_risk"].some(key => preference[key]);
         if (needsWeather) try {
           let weather = await source(weatherUrl(location));
           if (!freshCurrent(weather, new Date())) throw new Error("source_invalid_current");
@@ -993,7 +1005,7 @@ Deno.serve(async (req) => {
           stationReading = station;
         }
         // Alagamento: chuva acumulada (modelo + estação, quando lida) e mais chuva vindo.
-        if (preference.heavy_rain && weatherForNowcast) {
+        if (flagOn(preference, "flood_risk") && weatherForNowcast) {
           // Segunda opinião do Tomorrow.io sobre a chuva que já caiu, só quando o modelo já vê chuva relevante nas
           // últimas 6 h e mais vindo (a consulta tem cache de 30 min e é a mesma da concordância mais abaixo).
           let tomorrowPast: TomorrowPast = null;
@@ -1007,7 +1019,7 @@ Deno.serve(async (req) => {
         if (Date.now() >= deadline) throw new Error("worker_budget");
         // Radar: com chuva medida agora (piora e "o pior já passou") ou com o modelo vendo chance nas próximas 3 h
         // (chuva chegando). Fora disso não consulta, para poupar o RainViewer.
-        if (preference.rain_approaching && weatherForNowcast && (raining || rainLikelySoon(weatherForNowcast))) {
+        if ((preference.rain_approaching || flagOn(preference, "rain_easing")) && weatherForNowcast && (raining || rainLikelySoon(weatherForNowcast))) {
           try {
             const radar = await nowcastFor(location);
             if (radar) candidates.push(...radarCandidates(radar, location, raining));
@@ -1020,7 +1032,7 @@ Deno.serve(async (req) => {
             if (airEvent) candidates.push(airEvent);
           } catch (error) { console.warn("air quality unavailable", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" }); }
         }
-        const enabledCandidates = candidates.filter(candidate => !preferenceFor[candidate.type] || preference[preferenceFor[candidate.type]]);
+        const enabledCandidates = candidates.filter(candidate => !preferenceFor[candidate.type] || flagOn(preference, candidate.type));
         let selected = selectCandidates(enabledCandidates, { raining });
         if (selected.some(candidate => ["rain_approaching", "heavy_rain"].includes(candidate.type))) {
           // Falha dos outros modelos não segura o aviso: ele sai sem a frase de concordância.

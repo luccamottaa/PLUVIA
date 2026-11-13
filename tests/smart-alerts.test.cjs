@@ -166,12 +166,12 @@ test('lote: "o pior já passou" sai se há "parou" ou "engrossar"; "engrossar" l
 test('ligação: tipos novos na migration, nas preferências, nos estilos e no envio',()=>{
   const migration=fs.readFileSync('supabase/migrations/20261112180000_smart_alert_events.sql','utf8');
   for(const type of ['rain_worsening','rain_easing','flood_risk','rain_incoming','official_alert','test']) assert.ok(migration.includes(`'${type}'`),type);
-  assert.match(processor,/rain_worsening: "rain_approaching", rain_easing: "rain_approaching", flood_risk: "heavy_rain"/);
+  assert.match(processor,/rain_worsening: "rain_approaching", rain_easing: "rain_easing", flood_risk: "flood_risk"/);
   const style=require('../dist/modules/push-style.js');
   for(const type of ['rain_worsening','rain_easing','flood_risk']) assert.ok(style.STYLES[type],type);
   assert.match(processor,/if \(lowPriority\(event\)\) \{/);
   assert.match(processor,/event\.type === "rain_easing" \? !easeAllowed\(recent \|\| \[\]\)/);
-  assert.match(processor,/preference\.rain_approaching && weatherForNowcast && \(raining \|\| rainLikelySoon\(weatherForNowcast\)\)/,'radar também com chuva agora');
+  assert.match(processor,/\(preference\.rain_approaching \|\| flagOn\(preference, "rain_easing"\)\) && weatherForNowcast && \(raining \|\| rainLikelySoon\(weatherForNowcast\)\)/,'radar também com chuva agora');
   assert.match(processor,/const arrival = raining \? null : estimateArrival/,'chegada só sem chuva agora');
 });
 
@@ -185,4 +185,22 @@ test('alagamento com a chuva passada do Tomorrow.io: substitui o modelo, a esta�
   assert.equal(api.floodCandidate(model,station,location,now,{older:30,recent:12}).metadata.past_6h_mm,32,'estação nas 2 últimas horas');
   assert.equal(api.floodCandidate(model,null,location,now,{older:null,recent:null}),null,'sem horas do Tomorrow.io, fica o modelo');
   assert.match(processor,/if \(tomorrowClient\?\.enabled && floodWorthChecking\(weatherForNowcast\)\) \{/,'só consulta quando o modelo já vê chuva relevante');
+});
+test('escolhas dos avisos novos (1.73.14): preferência própria com volta à antiga e limite diário escolhido',()=>{
+  const api2=vm.runInNewContext(worker.slice(0,worker.indexOf('Deno.serve('))+';({flagOn,dailyCap})',{Intl,Date,URL,URLSearchParams,Math,Number,Boolean,LOW_DAILY_CAP:4});
+  assert.equal(api2.flagOn({flood_risk:false,heavy_rain:true},'flood_risk'),false,'coluna nova vale');
+  assert.equal(api2.flagOn({heavy_rain:true},'flood_risk'),true,'sem a coluna: segue chuva forte');
+  assert.equal(api2.flagOn({heavy_rain:false},'flood_risk'),false);
+  assert.equal(api2.flagOn({rain_approaching:true},'rain_easing'),true);
+  assert.equal(api2.flagOn({storms:false},'storm'),false);
+  assert.equal(api2.dailyCap({low_daily_cap:8}),8);assert.equal(api2.dailyCap({low_daily_cap:0}),0);
+  assert.equal(api2.dailyCap({}),4);assert.equal(api2.dailyCap({low_daily_cap:99}),4);
+  const low=n=>Array.from({length:n},()=>({status:'accepted',notification_events:{event_type:'rain_approaching',severity:2}}));
+  assert.equal(policy.overDailyCap({type:'weather_change',severity:2},low(30),0),false,'0 = sem limite');
+  assert.equal(policy.overDailyCap({type:'weather_change',severity:2},low(2),2),true);
+  const ps=fs.readFileSync('supabase/functions/push-subscriptions/index.ts','utf8');
+  assert.match(ps,/"daily_summary", "evening_summary", "flood_risk", "rain_easing"\]/);
+  assert.match(ps,/if \(Number\.isInteger\(cap\) && cap >= 0 && cap <= 20\) next\.low_daily_cap = cap;/);
+  const sql=fs.readFileSync('supabase/migrations/20261113050000_alert_choices.sql','utf8');
+  for(const part of ['flood_risk boolean not null default true','rain_easing boolean not null default true','low_daily_cap smallint not null default 4','check (low_daily_cap between 0 and 20)']) assert.ok(sql.includes(part),part);
 });

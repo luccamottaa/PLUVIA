@@ -26,7 +26,7 @@
   const installDialog = el("installPushDialog"), continueNote = el("notificationContinueNote");
   if (!toggle || !form) return;
 
-  const boolFields = ["official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary", "evening_summary"];
+  const boolFields = ["official_alerts", "rain_approaching", "heavy_rain", "storms", "lightning", "strong_wind", "extreme_heat", "air_quality", "weather_changes", "daily_summary", "evening_summary", "flood_risk", "rain_easing"];
   let config = null, busy = false, pendingEnable = false, configRevision = 0, configOwner = null, pushActive = null;
   const preferencesModel=window.PLUVIA.notificationPreferences;
   try { pendingEnable = sessionStorage.getItem("pluvia-push-pending-enable") === "1"; } catch {}
@@ -131,9 +131,9 @@
       const input = form.elements.namedItem(field);
       if (input) input.checked = Boolean(preferences[field]);
     }
-    for (const field of ["minimum_severity", "quiet_start", "quiet_end", "daily_summary_time", "evening_summary_time"]) {
+    for (const field of ["minimum_severity", "low_daily_cap", "quiet_start", "quiet_end", "daily_summary_time", "evening_summary_time"]) {
       const input = form.elements.namedItem(field);
-      if (input) input.value = preferences[field] == null ? field==='quiet_start' ? '22:00' : field==='quiet_end' ? '07:00' : '' : field === "minimum_severity" ? String(preferences[field]) : String(preferences[field]).slice(0, 5);
+      if (input) input.value = preferences[field] == null ? field==='quiet_start' ? '22:00' : field==='quiet_end' ? '07:00' : '' : ["minimum_severity", "low_daily_cap"].includes(field) ? String(preferences[field]) : String(preferences[field]).slice(0, 5);
     }
     const quiet=form.elements.namedItem('quiet_enabled');
     if(quiet) quiet.checked=Boolean(preferences.quiet_start && preferences.quiet_end && preferences.quiet_start!==preferences.quiet_end);
