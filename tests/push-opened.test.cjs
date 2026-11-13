@@ -44,3 +44,22 @@ test('notifications.js registra a abertura na inicialização e pelo aviso do se
   assert.match(tail,/\n\s*reportOpened\(\);\n\}\)\(\);\s*$/);
   assert.match(code,/type === "push-opened"\) \{[\s\S]{0,80}reportOpened\(from\)/);
 });
+
+test('o próprio service worker registra a abertura no toque, só com o id da entrega',async()=>{
+  const listeners={},calls=[];
+  const self={addEventListener:(type,fn)=>{listeners[type]=fn;},location:{href:'https://pluviaweather.com.br/sw.js',origin:'https://pluviaweather.com.br'},registration:{scope:'https://pluviaweather.com.br/'},navigator:{},clients:{matchAll:async()=>[],openWindow:async()=>null}};
+  vm.runInNewContext(fs.readFileSync('dist/sw.js','utf8'),{self,importScripts(){},URL,Request:function(){},Response:function(){},caches:{},fetch:async(url,init)=>{calls.push({url,init});return {ok:true};},AbortSignal,console,setTimeout,clearTimeout});
+  const waits=[];
+  const click=data=>listeners.notificationclick({notification:{close(){},data},waitUntil:p=>waits.push(p)});
+  click({url:'./?push_delivery=11111111-2222-3333-4444-555555555555',deliveryId:'11111111-2222-3333-4444-555555555555'});
+  await Promise.all(waits);
+  assert.equal(calls.length,1);
+  assert.match(calls[0].url,/\/rest\/v1\/rpc\/pluvia_push_opened$/);
+  assert.deepEqual(JSON.parse(calls[0].init.body),{p_delivery:'11111111-2222-3333-4444-555555555555'});
+  assert.equal(calls[0].init.keepalive,true);
+  click({url:'./',deliveryId:'<script>'});click({url:'./'});
+  await Promise.all(waits);
+  assert.equal(calls.length,1,'sem id válido não chama nada');
+  const sql=fs.readFileSync('supabase/migrations/20261113140000_push_opened_public.sql','utf8');
+  assert.match(sql,/opened_at is null/);assert.match(sql,/set search_path = ''/);assert.match(sql,/grant execute on function public\.pluvia_push_opened\(uuid\) to anon, authenticated;/);
+});

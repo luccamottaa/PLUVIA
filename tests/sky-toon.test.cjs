@@ -110,7 +110,7 @@ test('janelas ganham o mesmo céu de desenho atrás do conteúdo, menos o radar 
   assert.match(src, /radarDialog/, 'o mapa do radar cobre a janela inteira');
   assert.match(src, /attributeFilter:\['open'\]/);
   assert.match(css, /\.toon-sheet \{ z-index:-1; border-radius:inherit; \}/, 'atrás do conteúdo, dentro do canto arredondado');
-  assert.match(css, /\[data-toon\]::before,\s*html body :is\(\.dlg-todas, #_\)\[data-toon\]::after \{ content:none; \}/, 'estrelas e véu estáticos saem quando o desenho está lá');
+  assert.match(css, /\[data-toon\]::before,\s*html body (?::where\(\.dlg-todas\))?:is\(\.dlg-todas, #_\)\[data-toon\]::after \{ content:none; \}/, 'estrelas e véu estáticos saem quando o desenho está lá');
   assert.match(css, /body\.page-hidden \.toon-sheet \*/, 'app em segundo plano pausa o desenho');
 });
 

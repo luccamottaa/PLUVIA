@@ -81,7 +81,7 @@ body[data-ink="dark"] .topbar { color:#082744; }
   .topbar .brand .brand-mark { width:26px; height:32px; flex-basis:26px; }
   .topbar .brand span:last-child { font-size:1.1rem; }
 }
-.topbar :is(a,button):focus-visible { outline:2px solid currentColor; outline-offset:4px; }
+.topbar a:focus-visible, .topbar button:focus-visible { outline:2px solid currentColor; outline-offset:4px; }
 @media(max-width:380px) {
   .topbar .brand .brand-mark { width:22px; height:28px; flex-basis:22px; }
   .topbar .brand span:last-child { font-size:.95rem; }
@@ -119,7 +119,7 @@ body[data-ink="dark"] #weatherView {
 }
 #weatherView .panel::before,#weatherView .panel::after { display:none !important; }
 #weatherView :is(.metric,.source-card):is(:hover,:active) { transform:none; }
-#weatherView :is(.intro,.weather-hero) { padding-inline:0; }
+#weatherView .intro, #weatherView .weather-hero { padding-inline:0; }
 #weatherView .intro { padding-block:10px 0; }
 /* Freshness remains announced without taking space in the visual header. */
 #weatherView #dataStatus { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
@@ -155,8 +155,8 @@ body[data-ink="dark"] #weatherView {
   color:inherit !important;
 }
 #weatherView .condition { width:100%; max-width:none; font-size:clamp(1.15rem,4.5vw,1.55rem) !important; font-weight:500; color:var(--reading-ink) !important; }
-#weatherView :is(.hourly-peek,.quick-metrics,.metrics,.insight-card,.section-block,.sun-section) { margin:0; }
-#weatherView :is(.hourly-peek,.insight-card,.section-block,.sun-section) { padding:28px 0; border-top:1px solid var(--reading-line) !important; }
+#weatherView .hourly-peek, #weatherView .quick-metrics, #weatherView .metrics, #weatherView .insight-card, #weatherView .section-block, #weatherView .sun-section { margin:0; }
+#weatherView .hourly-peek, #weatherView .insight-card, #weatherView .section-block, #weatherView .sun-section { padding:28px 0; border-top:1px solid var(--reading-line) !important; }
 #weatherView .section-heading { margin-bottom:18px; align-items:center; gap:16px; }
 #weatherView .section-heading > div:first-child { min-width:0; }
 #weatherView .section-heading > p { flex:0 1 48%; min-width:0; text-align:right; }
@@ -169,7 +169,7 @@ body[data-ink="dark"] #weatherView {
 #weatherView .hourly-peek-item { min-height:145px; padding:10px 4px; border:0; border-bottom:2px solid transparent; border-radius:0; background:none; transform:none; }
 #weatherView .hourly-peek-item > strong { margin-top:0; }
 #weatherView .hourly-peek-item.is-now { border-bottom:2px solid var(--reading-link); background:none; }
-#weatherView :is(.peek-time,.peek-rain,.peek-temp) { color:var(--reading-ink); }
+#weatherView .peek-time, #weatherView .peek-rain, #weatherView .peek-temp { color:var(--reading-ink); }
 #weatherView .hourly-peek-item.is-now .peek-time { color:var(--accent-now); }
 #weatherView :is(.hero-temperature-extreme small,.quick-metric:first-child .metric-head > span:first-child) { font-size:.8rem; line-height:1.35; }
 #weatherView .metrics { display:grid; grid-template-columns:minmax(0,1fr); gap:0; }
@@ -206,7 +206,7 @@ body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-leve
 body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="poor"] { --aqi-accent:#98283b; }
 body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="very-poor"] { --aqi-accent:#62398c; }
 body[data-ink="dark"] #weatherView :is(.air-metric,.air-outlook b)[data-aqi-level="hazardous"] { --aqi-accent:#7a2653; }
-#weatherView :is(.source-card,.weather-map-card) { padding:0; }
+#weatherView .source-card, #weatherView .weather-map-card { padding:0; }
 #weatherView .source-content { padding:20px 0; }
 #weatherView .source-content p { color:var(--reading-muted); }
 #weatherView .rain-phrase { padding:0; margin-bottom:16px; }
@@ -245,7 +245,7 @@ html body #weatherView .rain-chart { padding:28px 0 8px; margin:0; overflow-x:au
 @media(max-width:720px) {
   #weatherView .intro { padding-top:10px; }
   #weatherView .intro h1 { margin-top:16px; }
-  #weatherView :is(.hourly-peek,.insight-card,.section-block,.sun-section) { padding-block:24px; }
+  #weatherView .hourly-peek, #weatherView .insight-card, #weatherView .section-block, #weatherView .sun-section { padding-block:24px; }
   #weatherView .forecast-row { gap:12px 16px; }
   #weatherView .section-heading { flex-direction:column; align-items:stretch; }
   #weatherView .insight-card { grid-template-columns:minmax(0,1fr) 44px; }
@@ -346,7 +346,7 @@ html body #weatherView #inmetCard { min-height:0; }
 #alertDetail .inmet-detail-other > span { grid-column:2; grid-row:1 / span 2; font-size:1.2rem; }
 #weatherView .temp-track .temp-fill { background:linear-gradient(90deg,var(--range-cool),var(--range-warm),var(--range-hot)); }
 #weatherView .rain-chart .wind-direction { color:var(--graphic-blue); }
-#weatherView .sun-label :is(span,svg) { color:var(--icon-ink); }
+#weatherView .sun-label span, #weatherView .sun-label svg { color:var(--icon-ink); }
 /* Darker daytime rain/storm skies need deeper ink than the clear-sky palette. */
 body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView {
   --reading-ink:#041a2e; --reading-muted:#08243b;
@@ -356,8 +356,7 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherView .inmet-red { --alert-color:#4b101b; }
 
 /* A fine edge defines vivid graphics without darkening their fills. */
-#weatherView .temp-track .temp-fill,
-#weatherView .rain-chart :is(.rain-bar,.temp-bar,.wind-bar) { box-shadow:inset 0 0 0 1px #12345726; }
+#weatherView .temp-track .temp-fill, #weatherView .rain-chart .rain-bar, #weatherView .rain-chart .temp-bar, #weatherView .rain-chart .wind-bar { box-shadow:inset 0 0 0 1px #12345726; }
 
 /* Keep the closing brand and its source link centered at every screen size. */
 /* The footer owns the bottom safe area; keep it out of the content above it. */
@@ -377,7 +376,7 @@ footer.shell .capital-links summary { display:inline-flex; align-items:center; j
 footer.shell .capital-links ul { display:flex; flex-wrap:wrap; justify-content:center; gap:0 14px; margin:4px 0 0; padding:0; list-style:none; }
 footer.shell .capital-links a, footer.shell .capital-links a:hover { display:inline-flex; align-items:center; min-height:32px; padding:0; border-radius:0; background:none; box-shadow:none; transform:none; font-size:inherit; font-weight:400; color:var(--intro-ink); text-decoration:underline; text-decoration-color:color-mix(in srgb,currentColor 35%,transparent); text-underline-offset:3px; }
 footer.shell .capital-links a[aria-current="page"] { font-weight:600; text-decoration:none; }
-body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60; }
+body[data-ink="dark"] footer.shell .capital-links summary, body[data-ink="dark"] footer.shell .capital-links a { color:#193d60; }
 #sourcesDialog :is(.sources-list b,a),#alertDetailBody a { color:var(--brand-blue); }
 .weather-map-section,body[data-phase="night"] .weather-map-section { --map-link:var(--brand-blue); }
 
@@ -403,7 +402,7 @@ body[data-ink="dark"] footer.shell .capital-links :is(summary,a) { color:#193d60
 
 /* Rain timing belongs to the hourly forecast, below its chart. */
 
-#weatherView :is(.hourly-peek-item,.hour-column) { color:var(--reading-ink); font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+#weatherView .hourly-peek-item, #weatherView .hour-column { color:var(--reading-ink); font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
 #weatherView .hour-solar-event { display:block; max-width:100%; font-size:.7rem; line-height:1.4; color:var(--accent-now); white-space:normal; }
 
@@ -475,7 +474,7 @@ details > .details-motion[data-moving] > .details-motion-inner { overflow:hidden
 #weatherView .astronomy-details { grid-column:1/-1; min-width:0; width:100%; padding-top:16px; border-top:1px solid var(--reading-line); color:var(--reading-muted); }
 #weatherView .astronomy-details summary { min-height:44px; padding:8px 0; cursor:pointer; color:var(--reading-ink); font-weight:700; }
 #weatherView .astronomy-details dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin:18px 0; }
-#weatherView .astronomy-details :is(p,small,dt) { font-size:.8125rem; line-height:1.6; }
+#weatherView .astronomy-details p, #weatherView .astronomy-details small, #weatherView .astronomy-details dt { font-size:.8125rem; line-height:1.6; }
 #weatherView .astronomy-details dd { margin:5px 0 0; font-size:1.1rem; color:var(--reading-ink); }
 
 /* Daily detail shares the existing hourly readings and native modal. */
@@ -546,7 +545,7 @@ body[data-ink="dark"]:is([data-weather="rain"],[data-weather="storm"]) #weatherV
 #weatherView .metrics .metric-sky > .wind-reading { justify-content:flex-start; gap:10px; }
 #weatherView .metrics .metric-sky > small { grid-column:1; grid-row:3; margin-top:6px; white-space:normal; overflow:visible; text-overflow:clip; }
 #weatherView .metrics .metric-sky > .visibility-badge { grid-column:1; grid-row:4; justify-self:start; margin-top:8px; }
-#weatherView .metrics :is(.uv-metric,.air-metric,.station-metric) { grid-column:1 / -1; }
+#weatherView .metrics .uv-metric, #weatherView .metrics .air-metric, #weatherView .metrics .station-metric { grid-column:1 / -1; }
 #weatherView .metrics .station-metric[hidden] { display:none; }
 @media(min-width:721px) {
   #weatherView .metrics { grid-template-columns:repeat(4,minmax(0,1fr)); column-gap:24px; }
@@ -784,7 +783,7 @@ body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="
   #weatherView .forecast-rain-volume { font-size:.75rem; }
 }
 /* O balão se ancora no cabeçalho da seção (largura dele), não no botão: nunca sai da tela no celular. */
-#weatherView :is(.hourly-peek-heading,.metric-head,.section-heading,.weather-map-copy) { position:relative; }
+#weatherView .hourly-peek-heading, #weatherView .metric-head, #weatherView .section-heading, #weatherView .weather-map-copy { position:relative; }
 #weatherView .hourly-peek-list:not([data-rain="some"]) .peek-rain { display:none; }
 /* Bloco da Lua simétrico ao do Sol: rótulo no topo, disco e fase lado a lado, texto sem espaçamento de rótulo. */
 /* Banner de aviso INMET laranja/vermelho vigente: faixa sólida logo abaixo do "Vai chover?".
@@ -798,7 +797,7 @@ body[data-ink="dark"] #weatherView .alert-banner:is([data-pending],[data-stage="
 #weatherView .alert-banner[data-pending="strong"] { min-height:56px; padding:10px 14px; border-color:transparent; }
 #weatherView .alert-banner[data-pending] > svg { opacity:.35; }
 #weatherView .alert-banner[data-pending] .alert-banner-more { visibility:hidden; }
-#weatherView .alert-banner[data-pending] :is(strong, small) { justify-self:start; border-radius:6px; background:color-mix(in srgb, currentColor 14%, transparent); opacity:1; }
+#weatherView .alert-banner[data-pending] strong, #weatherView .alert-banner[data-pending] small { justify-self:start; border-radius:6px; background:color-mix(in srgb, currentColor 14%, transparent); opacity:1; }
 #weatherView .alert-banner[data-pending] strong { width:72%; font-size:.875rem; }
 #weatherView .alert-banner[data-pending="strong"] strong { font-size:.9375rem; }
 #weatherView .alert-banner[data-pending] small { width:46%; }
@@ -864,7 +863,7 @@ body[data-ink="dark"] #weatherView .alert-banner[data-stage="future"][data-sever
   #weatherView .home-column .forecast-list .forecast-row { grid-template-columns:minmax(0,.9fr) minmax(0,1.5fr) minmax(0,1.45fr) 5rem; }
   #weatherView .home-column .forecast-rain-values { display:grid; justify-items:end; gap:0; line-height:1.25; }
   #weatherView .home-column .forecast-rain-volume::before { content:none; }
-  #weatherView .home-column .forecast-list :is(.forecast-rain-chance,.forecast-rain-volume) { min-width:0; }
+  #weatherView .home-column .forecast-list .forecast-rain-chance, #weatherView .home-column .forecast-list .forecast-rain-volume { min-width:0; }
   #weatherView .home-column .forecast-rain-volume { color:var(--reading-muted); font-size:.75rem; }
 }
 /* Estabilidade na chegada dos dados (CLS): o esqueleto tem a mesma altura da leitura final.
@@ -936,13 +935,13 @@ html body :is(details > summary,.account-more-item,#accountButton,#openCitySearc
 /* Bússola gira pelo menor caminho (app.js), marcador do UV e Sol/Lua do arco deslizam até a leitura nova. */
 .compass-needle { transition:transform .8s cubic-bezier(.22,1,.36,1), opacity .4s ease; }
 .uv-scale span { transition:left .8s cubic-bezier(.22,1,.36,1); }
-#weatherView .sun-arc :is(.sun-dot,.moon-dot) { transition:left 1s cubic-bezier(.22,1,.36,1), top 1s cubic-bezier(.22,1,.36,1); }
+#weatherView .sun-arc .sun-dot, #weatherView .sun-arc .moon-dot { transition:left 1s cubic-bezier(.22,1,.36,1), top 1s cubic-bezier(.22,1,.36,1); }
 /* Barras do gráfico crescem da base, em onda, ao abrir ou trocar o modo (data-grow só nesses gestos). */
-#weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:pluvia-bar-grow .6s cubic-bezier(.22,1,.36,1) calc(var(--i,0) * 16ms) both; }
+#weatherView .rain-chart[data-grow] .temp-bar, #weatherView .rain-chart[data-grow] .wind-bar, #weatherView .rain-chart[data-grow] .rain-bar { animation:pluvia-bar-grow .6s cubic-bezier(.22,1,.36,1) calc(var(--i,0) * 16ms) both; }
 @keyframes pluvia-bar-grow { from { height:0; min-height:0; } }
 @media (prefers-reduced-motion:reduce) {
-  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), #weatherView .next-hour-bars span::after, .compass-needle, .uv-scale span, #weatherView .sun-arc :is(.sun-dot,.moon-dot), #weatherView .next-hour-bars span, html body :is(#weatherView .air-details,#weatherView .astronomy-details,#accountDialog .notification-checks,#accountDialog .account-delete,#alertDetail details) > summary::before, html body #accountDialog :is(.account-group > summary,.capital-links summary)::after { transition:none; }
-  #weatherView .rain-chart[data-grow] :is(.temp-bar,.wind-bar,.rain-bar) { animation:none; }
+  :where(button, summary, a, [role="button"]), html body :is(#accountButton,#openCitySearch,#expandRadar,#notificationPromptButton,#notificationPromptDismiss,.footer-link,.account-more-item,.dialog-close,.hourly-modes button,.hourly-detail-navigation button,details > summary), #weatherView .next-hour-bars span::after, .compass-needle, .uv-scale span, #weatherView .sun-arc .sun-dot, #weatherView .sun-arc .moon-dot, #weatherView .next-hour-bars span, html body :is(#weatherView .air-details,#weatherView .astronomy-details,#accountDialog .notification-checks,#accountDialog .account-delete,#alertDetail details) > summary::before, html body #accountDialog :is(.account-group > summary,.capital-links summary)::after { transition:none; }
+  #weatherView .rain-chart[data-grow] .temp-bar, #weatherView .rain-chart[data-grow] .wind-bar, #weatherView .rain-chart[data-grow] .rain-bar { animation:none; }
 }
 
 /* Pacote visual (outubro/2026, a pedido): máx./mín. no topo, seções em cartões, um estilo de título
@@ -993,7 +992,7 @@ body[data-phase="day"][data-ink="light"][data-weather="cloud"] #weatherView {
 }
 /* Céu claro como no app Tempo: o texto branco sobre o céu leva uma sombra suave e larga (a mesma solução do app
    Tempo), em vez de escurecer o céu. Só no nublado de dia. */
-body[data-phase="day"][data-ink="light"][data-weather="cloud"] :is(.topbar,.weather-hero,.site-footer) { text-shadow:0 1px 3px rgba(20,32,52,.35),0 0 18px rgba(20,32,52,.28); }
+body[data-phase="day"][data-ink="light"][data-weather="cloud"] .topbar, body[data-phase="day"][data-ink="light"][data-weather="cloud"] .weather-hero, body[data-phase="day"][data-ink="light"][data-weather="cloud"] .site-footer { text-shadow:0 1px 3px rgba(20,32,52,.35),0 0 18px rgba(20,32,52,.28); }
 #weatherView .hero-range { margin:-8px 0 0; color:var(--reading-ink); font-size:1.05rem; font-weight:500; line-height:1.35; text-align:center; }
 #weatherView .hero-range:empty { display:none; }
 #weatherView .hero-range .sk-line { width:min(9rem,50%); }
@@ -1469,7 +1468,7 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 #weatherView .forecast-list { width:calc(100% + 20px); max-width:none; margin-inline:-10px; }
 #weatherView .forecast-list > .forecast-row { padding-inline:10px; }
 /* O nome fica num <span> dentro do <strong>, e styles.css põe todo span de .forecast-day em .75rem: herda o tamanho do strong. */
-#weatherView .forecast-list .forecast-day > strong :is(.day-full,.day-short) { font-size:inherit; }
+#weatherView .forecast-list .forecast-day > strong .day-full, #weatherView .forecast-list .forecast-day > strong .day-short { font-size:inherit; }
 @media(max-width:720px) { #weatherView .forecast-list .forecast-day > strong { font-size:1.125rem; } }
 @media(max-width:374px) { #weatherView .forecast-list .forecast-day > strong { font-size:1.05rem; } }
 /* 7 dias (1.25.3, pedido do usuário: "centraliza tudo" e a cor do dia atual "nas letras, não no fundo"):
@@ -1479,7 +1478,7 @@ body #weatherView .next-hour-bars span[data-wet="1"], body[data-ink="dark"] #wea
 #weatherView .forecast-list .forecast-row > .forecast-condition { justify-self:center; align-self:center; }
 @media(max-width:720px) {
   #weatherView .forecast-list .forecast-rain-values { justify-items:center; text-align:center; }
-  #weatherView .forecast-list :is(.forecast-rain-chance,.forecast-rain-volume) { min-width:0; text-align:center; }
+  #weatherView .forecast-list .forecast-rain-chance, #weatherView .forecast-list .forecast-rain-volume { min-width:0; text-align:center; }
 }
 /* O nome fica num <span> que outras folhas pintam: a cor vai também nele. */
 #weatherView .forecast-row[data-today] .forecast-day > strong,
@@ -1604,14 +1603,14 @@ html body :is(#weatherView .air-details,#weatherView .astronomy-details,#account
 #weatherView .astronomy-details .sun-table-note { margin:4px 0 0; color:var(--reading-muted); }
 #weatherView .astronomy-details .sun-table-note:empty { display:none; }
 #weatherView .sun-table table { width:100%; margin-top:10px; border-collapse:collapse; font-variant-numeric:tabular-nums; }
-#weatherView .sun-table :is(th,td) { padding:9px 0; border-top:1px solid var(--reading-line); color:var(--reading-ink); font-size:.9375rem; font-weight:400; line-height:1.3; text-align:right; white-space:nowrap; }
-#weatherView .sun-table :is(th,td):first-child { text-align:left; }
+#weatherView .sun-table th, #weatherView .sun-table td { padding:9px 0; border-top:1px solid var(--reading-line); color:var(--reading-ink); font-size:.9375rem; font-weight:400; line-height:1.3; text-align:right; white-space:nowrap; }
+#weatherView .sun-table th:first-child, #weatherView .sun-table td:first-child { text-align:left; }
 #weatherView .sun-table thead th { padding-top:0; border-top:0; color:var(--reading-muted); font-size:.8125rem; font-weight:500; }
 #weatherView .sun-table tbody th { font-weight:500; text-transform:capitalize; }
 #weatherView .sun-table tbody tr[data-today] th { color:var(--accent-now); font-weight:700; }
 body[data-ink="dark"] #weatherView .sun-table tbody tr[data-today] th { color:var(--accent-now); }
 #weatherView .sun-table td:last-child { color:var(--reading-muted); }
-@media (max-width:359px) { #weatherView .sun-table :is(th,td) { font-size:.875rem; } }
+@media (max-width:359px) { #weatherView .sun-table th, #weatherView .sun-table td { font-size:.875rem; } }
 @keyframes pluvia-day-chart-draw { from { stroke-dashoffset:1; } }
 @keyframes pluvia-day-chart-fill { from { fill-opacity:0; } }
 
@@ -1692,7 +1691,7 @@ html body #weatherView .air-metric:is([data-aqi-level="poor"],[data-aqi-level="v
 
 /* Anel de foco (1.43.1, pedido do dono: um quadrado aparecia em volta da foto da conta depois de fechar a janela):
    redondo como os botões do topo, e só para quem navega pelo teclado (p0.js marca data-pointer no toque/clique). */
-.topbar :is(a,button):focus-visible { border-radius:50%; }
+.topbar a:focus-visible, .topbar button:focus-visible { border-radius:50%; }
 html[data-pointer] :is(.topbar :is(a,button), .dialog-close):focus-visible { outline:none; }
 
 /* Vidro líquido nos botões do topo (1.45, pedido do dono com vídeo do app Fotos do iOS 26): a conta é um
@@ -1727,7 +1726,7 @@ html[data-glass-lens] .topbar .top-actions::before {
   backdrop-filter:url(#pluviaGlassCapsule);
 }
 /* Céu claro (tinta escura): vidro mais leitoso, como o iOS sobre fundo claro; sombra mais suave. */
-body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before {
+body[data-ink="dark"] .topbar .account-trigger::before, body[data-ink="dark"] .topbar .top-actions::before {
   background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.2) 55%,rgba(255,255,255,.3));
   box-shadow:
     inset 1.5px 1.5px 0 -.5px rgba(255,255,255,.95),
@@ -1739,12 +1738,12 @@ body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before {
 .topbar :is(.account-trigger,.top-actions) > *,.topbar .search-trigger svg { position:relative; }
 .topbar .top-actions .search-trigger { border-radius:22px; }
 /* Toque: o vidro cresce e acende (modules/glass-touch.js, bloco no fim do arquivo); nada esmaece. */
-html body .topbar :is(#accountButton,#openCitySearch):active { opacity:1; }
+html body .topbar #accountButton:active, html body .topbar #openCitySearch:active { opacity:1; }
 @media (prefers-reduced-transparency:reduce) {
-  .topbar :is(.account-trigger,.top-actions)::before { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; background:rgba(22,34,58,.82); }
-  body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before { background:rgba(244,247,252,.9); }
+  .topbar .account-trigger::before, .topbar .top-actions::before { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; background:rgba(22,34,58,.82); }
+  body[data-ink="dark"] .topbar .account-trigger::before, body[data-ink="dark"] .topbar .top-actions::before { background:rgba(244,247,252,.9); }
 }
-@media (forced-colors:active) { .topbar :is(.account-trigger,.top-actions)::before { display:none; } }
+@media (forced-colors:active) { .topbar .account-trigger::before, .topbar .top-actions::before { display:none; } }
 
 /* Pílula do cabeçalho compacto com vidro de verdade (1.45.1): a faixa some devagar embaixo, e a pílula fica nessa
    parte translúcida, onde o texto rolando aparecia nítido atrás dela ("Ninguém relatou…" por baixo de "Manaus").
@@ -1763,8 +1762,8 @@ body[data-ink="dark"] .compact-head > .compact-pill { background:linear-gradient
    dedo) e o transform do próprio botão (crescer, esticar atrás do dedo, voltar com mola). Aqui só o brilho que acende no
    ponto do toque e a borda de luz mais forte enquanto o dedo está no vidro: opacidade e pintura, sem camada nova.
    touch-action:none nesses alvos pequenos para o arraste esticar o vidro em vez de começar a rolar a página. */
-.topbar :is(.account-trigger,.top-actions), .compact-head .compact-pill, html body .dialog-close { touch-action:none; -webkit-tap-highlight-color:transparent; }
-.topbar :is(.account-trigger,.top-actions)::after, .compact-head .compact-pill::after, html body .dialog-close::after {
+.topbar .account-trigger, .topbar .top-actions, .compact-head .compact-pill, html body .dialog-close { touch-action:none; -webkit-tap-highlight-color:transparent; }
+.topbar .account-trigger::after, .topbar .top-actions::after, .compact-head .compact-pill::after, html body .dialog-close::after {
   content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; opacity:0;
   background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.5),rgba(255,255,255,.14) 42%,transparent 72%);
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);
@@ -1773,7 +1772,7 @@ body[data-ink="dark"] .compact-head > .compact-pill { background:linear-gradient
 .topbar :is(.account-trigger,.top-actions)[data-glass-press]::after, .compact-head .compact-pill[data-glass-press]::after, html body .dialog-close[data-glass-press]::after { opacity:1; transition-duration:.12s; }
 .topbar .top-actions .search-trigger:active { background:transparent !important; }
 .night-stage > .compact-head[data-on] .compact-pill { pointer-events:auto; cursor:pointer; }
-@media (forced-colors:active) { .topbar :is(.account-trigger,.top-actions)::after, .compact-head .compact-pill::after, html body .dialog-close::after { display:none; } }
+@media (forced-colors:active) { .topbar .account-trigger::after, .topbar .top-actions::after, .compact-head .compact-pill::after, html body .dialog-close::after { display:none; } }
 
 /* Vidro nos controles das fotos (1.47, pedido do dono: "adiciona o liquid glass em tudo que tá nas fotos"): busca de
    cidades, Favorita / Usar localização / Brasil agora, Sem chuva / Garoa / Chuva / Chuva forte, a pílula de modos da
@@ -1811,7 +1810,7 @@ body[data-ink="dark"] #weatherView .hourly-modes { box-shadow:inset 0 0 0 1px rg
    tabela de nascer/pôr do sol, sem quebra de linha, passava da largura em telas estreitas. Rola de lado só se precisar. */
 #weatherView .sun-table { overflow-x:auto; -webkit-overflow-scrolling:touch; }
 #weatherView .sun-table table { min-width:max-content; }
-@media (min-width:0) { #weatherView .sun-table :is(th,td) + :is(th,td) { padding-left:12px; } }
+@media (min-width:0) { #weatherView .sun-table :is(th,td) + th, #weatherView .sun-table :is(th,td) + td { padding-left:12px; } }
 
 /* Campo de texto nunca abaixo de 16 px: o Safari do iPhone amplia a página ao focar um campo menor (com o A− ou o
    Tamanho do Texto pequeno, 1rem ficava abaixo disso e tocar na busca dava zoom). */
@@ -1832,7 +1831,7 @@ html body .terms-notice button.secondary { background:transparent; color:#fff; b
    cabeçalho das seções fica padronizado: um título, sem ícone de seção (os dois ícones em traço do pedido de 1.37.2
    continuam em "Chuva na região" e "Ciclo do dia"), e o respiro entre os blocos. */
 #weatherView .section-icon { display:none; }
-#weatherView :is(.section-heading,.hourly-peek-heading) { margin-bottom:16px; }
+#weatherView .section-heading, #weatherView .hourly-peek-heading { margin-bottom:16px; }
 #weatherView .hourly-peek-heading { padding-bottom:0; }
 /* 1.53 (pedido do dono, "o verdadeiro liquid glass com os botões unificados, de só passar o dedo deslizando"): o seletor
    das Próximas horas vira um vidro só. Com modules/glass-segment.js ligado (data-glass-segment="on"), a bolha de vidro é
@@ -1864,7 +1863,7 @@ html body .terms-notice button.secondary { background:transparent; color:#fff; b
   box-shadow:0 7px 16px rgba(4,8,20,.3), 0 1px 3px rgba(4,8,20,.24);
   transform:translateX(calc(var(--seg,0) * var(--seg-step,46px))) scale(var(--knob-sx,1),var(--knob-sy,1));
 }
-#weatherView .hourly-modes :is(.glass-knob-refract,.glass-knob-lens,.glass-knob-rim) { position:absolute; inset:0; border-radius:inherit; }
+#weatherView .hourly-modes .glass-knob-refract, #weatherView .hourly-modes .glass-knob-lens, #weatherView .hourly-modes .glass-knob-rim { position:absolute; inset:0; border-radius:inherit; }
 #weatherView .hourly-modes .glass-knob-lens { transform:scale(1.28); }
 #weatherView .hourly-modes .glass-knob-strip { position:absolute; left:calc(var(--seg-x0,3px) * -1); top:var(--knob-rise); transform:translateX(calc(var(--seg,0) * var(--seg-step,46px) * -1)); }
 #weatherView .hourly-modes .glass-knob-cell { position:absolute; display:grid; place-items:center; color:var(--reading-ink); }
@@ -2124,7 +2123,7 @@ html body .hourly-detail-readings > div:has(> #dailyDetailSunset) { --ico:var(--
     inset 0 0 14px rgba(255,255,255,.14),
     0 4px 16px rgba(4,14,34,.22);
 }
-body[data-ink="dark"] .topbar :is(.account-trigger,.top-actions)::before {
+body[data-ink="dark"] .topbar .account-trigger::before, body[data-ink="dark"] .topbar .top-actions::before {
   background:
     radial-gradient(44% 17% at 31% 21%,rgba(255,255,255,.75),rgba(255,255,255,0)),
     linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.2) 55%,rgba(255,255,255,.3));
@@ -2222,6 +2221,6 @@ html body .pull-refresh:not(#_)::before { content:none; }
 @keyframes pull-drip { 50% { transform:translateY(1.5px) scale(.9); } }
 @media (prefers-reduced-motion:reduce) {
   html body .pull-refresh:not(#_), .pull-refresh .pull-arc, .pull-refresh .pull-drop, .pull-refresh .pull-check { transition:none; }
-  .pull-refresh[data-state="loading"] :is(.pull-arc, .pull-drop) { animation:none; }
+  .pull-refresh[data-state="loading"] .pull-arc, .pull-refresh[data-state="loading"] .pull-drop { animation:none; }
 }
 @media (forced-colors:active) { .pull-refresh .pull-icon svg * { stroke:CanvasText; } }
