@@ -10,7 +10,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (runtime) {
   'use strict';
   // Data da "Última atualização" em /termos/ e /privacidade/. Mudou o texto de forma relevante, mude aqui.
-  const VERSION = '2026-10-13';
+  const VERSION = '2026-11-13';
   const KEY = 'pluvia-terms', NOTICE_KEY = 'pluvia-terms-notice';
   const VIA = ['push', 'signup', 'social'];
   let memory = null, noticeMemory = null;
@@ -27,6 +27,11 @@
   }
   // O aviso do primeiro acesso aparece até ser fechado, ou até um aceite completo, nesta versão.
   function noticeNeeded(storage) { return !accepted(storage) && (read(NOTICE_KEY, storage) || noticeMemory)?.version !== VERSION; }
+  // Quem já viu o aviso ou aceitou uma versão anterior lê que a Política mudou (1.74: localização exata).
+  function updated(storage) {
+    const previous = read(KEY, storage) || read(NOTICE_KEY, storage);
+    return Boolean(previous?.version && previous.version !== VERSION);
+  }
   function dismissNotice(storage, now = Date.now()) { noticeMemory = {version:VERSION, at:new Date(now).toISOString()}; write(NOTICE_KEY, noticeMemory, storage); }
 
   // Pedido antes de ligar avisos: onAccept roda dentro do toque em "Aceitar e ligar avisos" (o iPhone só
@@ -70,6 +75,12 @@
       if (!notice || !noticeNeeded()) return;
       const intro = el('pluviaIntro');
       if (intro && !intro.hidden) return;
+      const text = notice.querySelector?.('p');
+      if (text && updated()) {
+        const link = (href, label) => { const a = doc.createElement('a'); a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.textContent = label; return a; };
+        text.replaceChildren('Atualizamos a ', link('/privacidade/', 'Política de privacidade'), ': agora dá para usar a localização exata, opcional e desligada por padrão. Ao continuar, você concorda com ela e com os ', link('/termos/', 'Termos de uso'), '.');
+        notice.setAttribute('aria-label', 'Política de privacidade atualizada');
+      }
       notice.hidden = false;
     }
     const intro = el('pluviaIntro');
@@ -81,5 +92,5 @@
     else showNotice();
   }
 
-  return {VERSION, KEY, NOTICE_KEY, accepted, accept, noticeNeeded, dismissNotice, ask, mount};
+  return {VERSION, KEY, NOTICE_KEY, accepted, accept, noticeNeeded, updated, dismissNotice, ask, mount};
 });

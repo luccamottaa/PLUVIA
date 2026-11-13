@@ -11,7 +11,21 @@ import { PNG } from "npm:pngjs@7.0.0";
 import { createTomorrowClient, rainSeries, pastRain, thunderPeak } from "../_shared/tomorrow.js";
 import { Buffer } from "node:buffer";
 
-type Location = { id: string; user_id: string; city_id: string; city_name: string; uf: string; latitude: number; longitude: number; timezone: string };
+type Location = { id: string; user_id: string; city_id: string; city_name: string; uf: string; latitude: number; longitude: number; timezone: string; kind?: string };
+
+// "Minha localização" (1.74): o ponto de uma pessoa (kind = "point") gera avisos de tempo próprios, com
+// "(perto de você)" no texto e a posição na impressão digital (não reaproveita o evento da cidade, que vale
+// para outras pessoas). Aviso oficial e resumos são do município: continuam com a impressão digital da cidade,
+// e quem tem a cidade e o ponto no mesmo município recebe um só.
+const CITY_WIDE = new Set(["official_alert", "daily_summary", "evening_summary"]);
+function pointPlace(location: Location): Location {
+  return location.kind === "point" ? { ...location, city_name: `${location.city_name} (perto de você)` } : location;
+}
+function eventSeed(location: Location, candidate: { type: string; fingerprintSeed: string }) {
+  return location.kind === "point" && !CITY_WIDE.has(candidate.type)
+    ? `${candidate.fingerprintSeed}|point|${location.latitude.toFixed(2)},${location.longitude.toFixed(2)}`
+    : candidate.fingerprintSeed;
+}
 type Preference = Record<string, any> & { user_id: string };
 type EventCandidate = { type: string; severity: number; title: string; body: string; source: string; start: Date; expires: Date; url: string; fingerprintSeed: string; metadata?: Record<string, unknown> };
 
@@ -770,7 +784,7 @@ function eveningSummaryCandidate(data: any, location: Location, preference: Pref
 }
 
 async function createEvent(admin: any, location: Location, candidate: EventCandidate) {
-  const fingerprint = await sha256(candidate.fingerprintSeed);
+  const fingerprint = await sha256(eventSeed(location, candidate));
   const { data, error } = await admin.from("notification_events").insert({
     event_type: candidate.type, city_id: location.city_id, city_name: location.city_name, uf: location.uf,
     latitude: Math.round(location.latitude * 1000) / 1000, longitude: Math.round(location.longitude * 1000) / 1000,
@@ -880,9 +894,14 @@ Deno.serve(async (req) => {
       cursor = next;
     };
     const page = async (after: string | null) => {
-      let query = admin.from("notification_locations").select("id,user_id,city_id,city_name,uf,latitude,longitude,timezone").eq("enabled", true).order("id").limit(100);
-      if (after) query = query.gt("id", after);
-      const { data, error } = await query;
+      const read = (columns: string): any => {
+        let query: any = admin.from("notification_locations").select(columns).eq("enabled", true).order("id").limit(100);
+        if (after) query = query.gt("id", after);
+        return query;
+      };
+      let { data, error }: { data: any[] | null; error: any } = await read("id,user_id,city_id,city_name,uf,latitude,longitude,timezone,kind");
+      // Sem a coluna kind (migration 20261113120000 ainda não rodada), lê como antes: todos são cidades.
+      if (error && ["42703", "PGRST204"].includes(String(error.code || ""))) ({ data, error } = await read("id,user_id,city_id,city_name,uf,latitude,longitude,timezone"));
       if (error) throw new Error("worker_locations_failed");
       return data || [];
     };
@@ -964,6 +983,7 @@ Deno.serve(async (req) => {
         await checkpoint(location.id); processed++; continue;
       }
       let rainModel = "best_match";
+      const place = pointPlace(location);
       let weatherForNowcast: any = null, stationReading: any = null;
       try {
         const candidates: EventCandidate[] = inmetForLocation(inmetAlerts, location);
@@ -977,7 +997,7 @@ Deno.serve(async (req) => {
             const swapped = withRainModel(weather, await source(rainModelUrl(location, winner)));
             if (swapped) { weather = swapped; rainModel = winner; }
           } catch { /* fica o best_match */ }
-          candidates.push(...detectWeather(weather, location));
+          candidates.push(...detectWeather(weather, place));
           weatherForNowcast = weather;
           const summary = dailySummaryCandidate(weather, location, preference);
           if (summary) candidates.push(summary);
@@ -1000,7 +1020,7 @@ Deno.serve(async (req) => {
           try { if (stationResult.status === "fulfilled") station = normalizeStation(stationResult.value, location.latitude, location.longitude, observedAt); } catch { /* sem estação */ }
           try { if (airportResult.status === "fulfilled") airport = nearestAirport(airportResult.value, location.latitude, location.longitude, observedAt); } catch { /* sem aeroporto */ }
           if (stationResult.status === "rejected" && airportResult.status === "rejected") sourceFailures++;
-          candidates.push(...detectObserved({ station, airport }, location));
+          candidates.push(...detectObserved({ station, airport }, place));
           raining = rainingNow({ station, airport });
           stationReading = station;
         }
@@ -1013,7 +1033,7 @@ Deno.serve(async (req) => {
             const extra = await tomorrowClient.forecast(location.latitude, location.longitude).catch(() => null);
             if (extra) tomorrowPast = { older: pastRain(extra, Date.now(), 6, 2), recent: pastRain(extra, Date.now(), 2, 0) };
           }
-          const flood = floodCandidate(weatherForNowcast, stationReading, location, new Date(), tomorrowPast);
+          const flood = floodCandidate(weatherForNowcast, stationReading, place, new Date(), tomorrowPast);
           if (flood) candidates.push(flood);
         }
         if (Date.now() >= deadline) throw new Error("worker_budget");
@@ -1022,13 +1042,13 @@ Deno.serve(async (req) => {
         if ((preference.rain_approaching || flagOn(preference, "rain_easing")) && weatherForNowcast && (raining || rainLikelySoon(weatherForNowcast))) {
           try {
             const radar = await nowcastFor(location);
-            if (radar) candidates.push(...radarCandidates(radar, location, raining));
+            if (radar) candidates.push(...radarCandidates(radar, place, raining));
           } catch { /* sem radar, sem aviso */ }
         }
         if (Date.now() >= deadline) throw new Error("worker_budget");
         if (preference.air_quality) {
           try {
-            const airEvent = detectAirQuality(await source(airQualityUrl(location)), location);
+            const airEvent = detectAirQuality(await source(airQualityUrl(location)), place);
             if (airEvent) candidates.push(airEvent);
           } catch (error) { console.warn("air quality unavailable", { cityId: location.city_id, code: error instanceof Error ? error.message : "unknown" }); }
         }
@@ -1049,7 +1069,7 @@ Deno.serve(async (req) => {
         if (selected.some(candidate => candidate.type === "storm") && tomorrowClient?.enabled) {
           const extra = await tomorrowClient.forecast(location.latitude, location.longitude).catch(() => null);
           const peak = extra ? thunderPeak(extra) : null;
-          if (peak) selected = selected.map(candidate => candidate.type === "storm" ? withThunder(candidate, peak, location) : candidate);
+          if (peak) selected = selected.map(candidate => candidate.type === "storm" ? withThunder(candidate, peak, place) : candidate);
         }
         if (rainModel !== "best_match") selected = selected.map(candidate => ["rain_approaching", "heavy_rain", "weather_change"].includes(candidate.type) ? { ...candidate, metadata: { ...candidate.metadata, rain_model: rainModel } } : candidate);
         for (const candidate of selected) {

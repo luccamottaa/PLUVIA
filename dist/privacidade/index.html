@@ -33,11 +33,11 @@
       <div class="meta">
         <p>Controlador: Lucca Coelho Motta Queiroz (pessoa física, Manaus/AM)</p>
         <p>Contato para dados pessoais: <a href="mailto:pluviaweather@gmail.com">pluviaweather@gmail.com</a></p>
-        <p>Última atualização: 13 de outubro de 2026</p>
+        <p>Última atualização: 13 de novembro de 2026</p>
       </div>
 
       <div class="notice">
-        <p><strong>Em resumo:</strong> a previsão funciona sem cadastro e sem enviar sua localização. Só tratamos dados pessoais quando você cria uma conta, liga os avisos, responde “Tá chovendo aí?” ou ativa as métricas de uso. Não vendemos dados, não temos publicidade e não montamos perfis de comportamento.</p>
+        <p><strong>Em resumo:</strong> a previsão funciona sem cadastro e sem enviar sua localização (a não ser que você ligue a “localização exata”, que é opcional). Só tratamos dados pessoais quando você cria uma conta, liga os avisos, responde “Tá chovendo aí?” ou ativa as métricas de uso. Não vendemos dados, não temos publicidade e não montamos perfis de comportamento.</p>
       </div>
 
       <nav class="toc" aria-label="Nesta página">
@@ -64,8 +64,9 @@
           <table>
             <thead><tr><th scope="col">Quando</th><th scope="col">Dados</th><th scope="col">Para quê</th><th scope="col">Base legal (LGPD)</th></tr></thead>
             <tbody>
-              <tr><td data-label="Quando">Consultar a previsão</td><td data-label="Dados">Nenhum dado pessoal guardado por nós. Seu navegador pede os dados meteorológicos com as coordenadas de referência do município (não as suas).</td><td data-label="Para quê">Mostrar a previsão</td><td data-label="Base legal">Não há tratamento pelo PLUVIA</td></tr>
-              <tr><td data-label="Quando">Usar minha localização</td><td data-label="Dados">Posição do aparelho, usada só dentro dele para achar o município mais próximo. Não é enviada nem guardada.</td><td data-label="Para quê">Escolher a cidade</td><td data-label="Base legal">Não sai do aparelho</td></tr>
+              <tr><td data-label="Quando">Consultar a previsão</td><td data-label="Dados">Nenhum dado pessoal guardado por nós. Seu navegador pede os dados meteorológicos com as coordenadas de referência do município (não as suas), a não ser que você ligue a localização exata (linha abaixo).</td><td data-label="Para quê">Mostrar a previsão</td><td data-label="Base legal">Não há tratamento pelo PLUVIA</td></tr>
+              <tr><td data-label="Quando">Usar minha localização</td><td data-label="Dados">Posição do aparelho, usada só dentro dele para achar o município mais próximo. Sem a localização exata, não é enviada nem guardada.</td><td data-label="Para quê">Escolher a cidade</td><td data-label="Base legal">Não sai do aparelho</td></tr>
+              <tr><td data-label="Quando">Usar minha localização exata (opcional, desligada por padrão, em “Mais do PLUVIA”)</td><td data-label="Dados">Um ponto perto de você, arredondado para cerca de 1 km (duas casas decimais), nunca o endereço. Fica guardado no aparelho por até 24 horas e é enviado às fontes de previsão e às funções do PLUVIA que buscam a estação e o radar mais próximos, que não o guardam. Com os avisos ligados, o ponto também fica guardado no nosso servidor como “Minha localização”, atualizado quando você abre o app e se moveu mais de 2 km.</td><td data-label="Para quê">Previsão, radar e avisos no lugar onde você está, e não no centro da cidade</td><td data-label="Base legal">Consentimento (art. 7º, I), retirável a qualquer momento desligando a opção</td></tr>
               <tr><td data-label="Quando">Criar conta</td><td data-label="Dados">E-mail, senha (guardada pelo provedor de autenticação só em forma de hash, que não permite ler a senha), nome, foto de perfil escolhida entre os desenhos do app, cidades favoritas, cidade principal, nomes que você dá às cidades e a versão dos Termos aceita, com data</td><td data-label="Para quê">Manter a conta e sincronizar suas preferências entre aparelhos</td><td data-label="Base legal">Execução do contrato a seu pedido (art. 7º, V)</td></tr>
               <tr><td data-label="Quando">Entrar com Google ou Apple</td><td data-label="Dados">E-mail, nome e identificador da conta no provedor, enviados por ele com sua autorização</td><td data-label="Para quê">Entrar sem senha</td><td data-label="Base legal">Execução do contrato (art. 7º, V)</td></tr>
               <tr><td data-label="Quando">Ligar os avisos</td><td data-label="Dados">Inscrição de notificação do navegador (endereço técnico e chaves), tipo de aparelho e navegador, cidades escolhidas, horários, fuso e preferências; registro de cada aviso enviado (enviado, aberto ou com falha). Sem conta, criamos uma sessão anônima só para isso.</td><td data-label="Para quê">Enviar os avisos que você pediu, evitar repetição e corrigir falhas de entrega</td><td data-label="Base legal">Execução do contrato (art. 7º, V)</td></tr>
@@ -81,7 +82,7 @@
 
       <section class="card" aria-labelledby="aparelho">
         <h2 id="aparelho">3. O que fica guardado no seu aparelho</h2>
-        <p>O PLUVIA não usa cookies de publicidade nem de rastreamento. Ele guarda no armazenamento local do navegador o que precisa para funcionar: cidade aberta, favoritas e a ordem delas, buscas recentes, previsões salvas para abrir sem internet, preferências da Home, dicas já vistas, versão das Novidades e dos Termos aceita e, com conta, a sessão de login. Esses dados ficam só neste aparelho; você pode apagá-los limpando os dados do site no navegador.</p>
+        <p>O PLUVIA não usa cookies de publicidade nem de rastreamento. Ele guarda no armazenamento local do navegador o que precisa para funcionar: cidade aberta, favoritas e a ordem delas, buscas recentes, previsões salvas para abrir sem internet, preferências da Home, dicas já vistas, versão das Novidades e dos Termos aceita, o ponto da localização exata (se você ligou a opção) e, com conta, a sessão de login. Esses dados ficam só neste aparelho; você pode apagá-los limpando os dados do site no navegador.</p>
       </section>
 
       <section class="card" aria-labelledby="compartilhamento">
@@ -110,6 +111,7 @@
         <ul>
           <li><strong>Conta:</strong> enquanto ela existir. Ao excluir a conta em “Minha conta”, ela e tudo o que está ligado a ela (avisos, cidades, inscrições e registros de envio) são apagados.</li>
           <li><strong>Inscrição de avisos desligada:</strong> apagada em até 30 dias.</li>
+          <li><strong>“Minha localização” (localização exata com avisos):</strong> enquanto a opção e os avisos estiverem ligados; apagada do servidor quando você desliga qualquer um dos dois ou exclui a conta. No aparelho, o ponto vale por 24 horas e some ao desligar a opção.</li>
           <li><strong>Avisos enviados e seus registros:</strong> apagados cerca de 90 dias depois do fim da validade do aviso.</li>
           <li><strong>Respostas ao “Tá chovendo aí?”:</strong> 2 dias.</li>
           <li><strong>Hash temporário do contador diário:</strong> até cerca de 25 horas.</li>

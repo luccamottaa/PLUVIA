@@ -89,7 +89,9 @@
 
   function currentLocation() {
     if (typeof activeCity === "undefined" || !activeCity) return null;
-    return { cityId: activeCity.id, cityName: activeCity.name, uf: activeCity.uf, latitude: activeCity.lat, longitude: activeCity.lon, timezone: activeCity.timezone, source: Number.isFinite(activeCity.distanceKm) ? "gps_city" : "saved_city" };
+    // A cidade de aviso usa o centro do município; o ponto da localização exata vai à parte ("Minha localização").
+    const center = activeCity.ref || activeCity;
+    return { cityId: activeCity.id, cityName: activeCity.name, uf: activeCity.uf, latitude: center.lat, longitude: center.lon, timezone: activeCity.timezone, source: Number.isFinite(activeCity.distanceKm) ? "gps_city" : "saved_city" };
   }
 
   function deviceInfo() {
@@ -163,7 +165,7 @@
   function paintCityChoices() {
     const choices=el('notificationFavoriteChoices');if(!choices) return;
     const current=currentLocation(),locations=config?.locations || [];
-    const monitored=new Set(locations.filter(location=>location.enabled).map(location=>location.city_id));
+    const monitored=new Set(locations.filter(location=>location.enabled && location.kind!=='point').map(location=>location.city_id));
     const currentInput=form.elements.namedItem('monitor_current_city');
     currentInput.disabled=!current || monitored.has(current.cityId);
     if(currentInput.disabled) currentInput.checked=false;
@@ -201,6 +203,14 @@
     for (const location of locations) {
       const row = document.createElement("div"); row.className = "notification-location-row";
       const copy = document.createElement("div"), name = document.createElement("strong"), detail = document.createElement("small"), remove = document.createElement("button");
+      // "Minha localização" sai pela opção de Mais do PLUVIA, que também apaga o ponto deste aparelho.
+      if (location.kind === "point") {
+        row.dataset.kind = "point";
+        name.textContent = `Minha localização · ${location.city_name}, ${location.uf}`;
+        detail.textContent = "Ponto perto de você (cerca de 1 km), atualizado quando você abre o PLUVIA. Para parar, desligue “Usar minha localização exata” em Mais do PLUVIA.";
+        copy.append(name, detail); row.append(copy); locationsNode.appendChild(row);
+        continue;
+      }
       name.textContent = `${location.city_name}, ${location.uf}`;
       detail.textContent = location.source === "gps_city" ? "Escolhida a partir da localização" : "Cidade salva";
       remove.type = "button"; remove.dataset.removeLocation = location.id; remove.textContent = "Parar avisos"; remove.setAttribute("aria-label", `Parar avisos para ${location.city_name}`);
@@ -314,6 +324,8 @@
       if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: publicKeyBytes(config.publicKey) });
       await register(subscription, currentLocation());
       anonDevice(!currentUser());
+      window.PLUVIA?.exactLocation?.markSynced(null);
+      syncPoint();
       setPendingEnable(false);
       track("Push Enabled", { platform: deviceInfo().platform, city: currentLocation()?.cityId || "" });
       window.dispatchEvent(new CustomEvent("pluvia:alerts-enabled", { detail: { cityId: currentLocation()?.cityId || "", label: cityLabel() } }));
@@ -322,12 +334,44 @@
     finally { busy = false; await paintState({keep:true}); }
   }
 
+  // "Minha localização" (1.74): com avisos ligados neste aparelho, o ponto arredondado da localização exata vai ao
+  // servidor quando muda de cidade ou anda mais de 2 km; com a opção desligada, um ponto já enviado é apagado.
+  // Falhas ficam para a próxima vez (nada é marcado como enviado).
+  let pointSync = null;
+  function syncPoint() {
+    const exact = window.PLUVIA?.exactLocation;
+    if (!exact || !supported || Notification.permission !== "granted" || !localSubscriptionId()) return Promise.resolve();
+    if (pointSync) return pointSync;
+    pointSync = (async () => {
+      if (!exact.enabled()) {
+        if (!exact.synced()) return;
+        await invoke("push-subscriptions", { action: "remove_point" });
+        exact.markSynced(null);
+      } else {
+        if (typeof activeCity === "undefined" || !activeCity?.exact) return;
+        const point = exact.pointFor(activeCity.id);
+        if (!point || !exact.needsSync(point)) return;
+        await invoke("push-subscriptions", { action: "point", point: { cityId: activeCity.id, cityName: activeCity.name, uf: activeCity.uf, latitude: point.lat, longitude: point.lon, timezone: activeCity.timezone } });
+        exact.markSynced(point);
+      }
+      if (config && currentUser()) await loadConfig();
+    })().catch(() => {}).finally(() => { pointSync = null; });
+    return pointSync;
+  }
+  window.addEventListener("pluvia:exact-point", () => { syncPoint(); });
+  window.addEventListener("pluvia:exact-location-changed", event => { if (!event.detail?.on) syncPoint(); });
+  // Na abertura, depois da primeira previsão: apaga um ponto que ficou no servidor (opção desligada sem rede).
+  window.addEventListener("pluvia:weather-updated", () => { syncPoint(); }, { once: true });
+
   async function disable() {
     if (busy) return;
     busy = true; toggle.disabled = true;
     try {
       const id = localSubscriptionId(), subscription = await browserSubscription();
       if (id) await invoke("push-subscriptions", { action: "remove", subscriptionId: id }).catch(() => {});
+      // Sem avisos, o ponto "Minha localização" não tem por que ficar no servidor.
+      const exact = window.PLUVIA?.exactLocation;
+      if (exact?.synced()) await invoke("push-subscriptions", { action: "remove_point" }).then(() => exact.markSynced(null)).catch(() => {});
       if (subscription) await subscription.unsubscribe();
       saveSubscriptionId(""); anonDevice(false); config = null; track("Push Disabled", { platform: deviceInfo().platform });
       message("Alertas desativados neste dispositivo.");

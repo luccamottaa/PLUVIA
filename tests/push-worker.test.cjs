@@ -371,3 +371,15 @@ test('o dia em uma frase: chuva só com evidência, períodos iguais se juntam e
   assert.equal(smart.dayPhrase(night.data,location,day,late),'Noite com céu limpo.');
   assert.equal(smart.dayPhrase({hourly:{time:[]}},location,day,now),null);
 });
+test('ponto "Minha localização": texto "perto de você" e impressão digital própria, menos oficial e resumos',()=>{
+  const helpers=vm.runInNewContext(source.slice(0,source.indexOf('Deno.serve('))+';({pointPlace,eventSeed})',{Intl,Date,URL,URLSearchParams});
+  const point={...location,kind:'point',latitude:-3.12,longitude:-60.02};
+  assert.equal(helpers.pointPlace(location).city_name,'Manaus');
+  assert.equal(helpers.pointPlace(point).city_name,'Manaus (perto de você)');
+  const rain={type:'rain_approaching',fingerprintSeed:'rain_approaching|1302603|1|2'};
+  assert.equal(helpers.eventSeed(location,rain),rain.fingerprintSeed);
+  assert.equal(helpers.eventSeed(point,rain),'rain_approaching|1302603|1|2|point|-3.12,-60.02');
+  for(const type of ['official_alert','daily_summary','evening_summary']) assert.equal(helpers.eventSeed(point,{type,fingerprintSeed:'x'}),'x');
+  const data=weather();data.hourly.precipitation[1]=1;data.hourly.precipitation_probability[1]=80;
+  assert.match(pure.detectWeather(data,helpers.pointPlace(point),now).find(e=>e.type==='rain_approaching').body,/Manaus \(perto de você\)/);
+});

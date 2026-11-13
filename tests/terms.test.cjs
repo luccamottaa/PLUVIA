@@ -55,8 +55,9 @@ test('páginas legais: X no alto volta ao app, entrada suave e mesmo visual nas 
     assert.match(page,/<body>\s*<header><a class="close" id="\w+" href="\/" aria-label="Fechar e voltar ao PLUVIA" data-leave>/,file+': X antes de .page (fixed fora do elemento animado)');
     assert.match(page,/<link rel="stylesheet" href="\/legal\.css\?v=legal-\d+" \/>\s*<script src="\/modules\/legal-page\.js\?v=legal-\d+"><\/script>/,file+': tema escrito no <head>, antes do primeiro desenho');
     assert.doesNotMatch(page,/<style>/,file+': estilos só em legal.css');
-    const m=/Última atualização:\s*(\d{1,2}) de outubro de (\d{4})/.exec(page);
-    assert.equal(m&&`${m[2]}-10-${m[1].padStart(2,'0')}`,terms.VERSION,file+': a caixinha aceita as duas páginas, na mesma versão');
+    const months={outubro:10,novembro:11,dezembro:12};
+    const m=/Última atualização:\s*(\d{1,2}) de ([a-zç]+) de (\d{4})/.exec(page);
+    assert.equal(m&&`${m[3]}-${String(months[m[2]]).padStart(2,'0')}-${m[1].padStart(2,'0')}`,terms.VERSION,file+': a caixinha aceita as duas páginas, na mesma versão');
   }
   assert.match(css,/\.close \{ position:fixed;[^}]*width:44px; height:44px;/);
   assert.match(css,/\.page, \.close \{ animation:legal-enter [^}]*backwards; \}/,'fill backwards: a saída por transição funciona depois da entrada');
@@ -91,4 +92,13 @@ test('Política de Privacidade cobre o que a LGPD pede (art. 9º) e o app aponta
   assert.doesNotMatch(html,/termos\/#privacidade/);
   assert.match(termos,/<a href="\/privacidade\/">Política de Privacidade<\/a> explica/);
   assert.match(sw,/termos\|privacidade\)\\\/\?\$/,'SW guarda a página legal na própria URL, nunca como shell');
+});
+test('versão nova dos Termos: quem viu a anterior lê que a Política mudou',()=>{
+  delete require.cache[require.resolve('../dist/modules/terms.js')];
+  const terms=require('../dist/modules/terms.js');
+  const store=()=>{const data={};return {getItem:k=>data[k]??null,setItem:(k,v)=>{data[k]=String(v);}};};
+  const fresh=store();assert.equal(terms.updated(fresh),false,'primeira visita: aviso normal');
+  const old=store();old.setItem(terms.NOTICE_KEY,JSON.stringify({version:'2026-10-13'}));
+  assert.equal(terms.updated(old),true);assert.equal(terms.noticeNeeded(old),true,'o aviso volta para quem fechou a versão anterior');
+  const current=store();terms.accept('push',current);assert.equal(terms.updated(current),false);
 });

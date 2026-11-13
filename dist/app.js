@@ -2326,8 +2326,10 @@ function updateCityLabels() {
   $("alertsCityLabel").textContent = "Fontes oficiais e leitura ambiental para " + activeCity.name;
   const distance = $("cityDistance");
   if (distance) {
-    distance.hidden = !(activeCity.distanceKm >= 2);
-    if (activeCity.distanceKm >= 2) distance.textContent = "a " + Math.round(activeCity.distanceKm) + " km de " + activeCity.name + " · " + activeCity.uf;
+    const near = Boolean(activeCity.exact);
+    distance.hidden = !(near || activeCity.distanceKm >= 2);
+    if (near) distance.textContent = "Perto de você";
+    else if (activeCity.distanceKm >= 2) distance.textContent = "a " + Math.round(activeCity.distanceKm) + " km de " + activeCity.name + " · " + activeCity.uf;
   }
   globalThis.PLUVIA?.modules?.['weather-layers']?.cityChanged?.(activeCity);
   const starred = favorites.has(activeCity.id);
@@ -2442,8 +2444,20 @@ function syncCityPage(city) {
     else link.removeAttribute("aria-current");
   });
 }
+// "Usar minha localização exata" (1.74): com a opção ligada e um ponto recente desta cidade, a cidade aberta
+// leva o ponto (~1 km) no lugar do centro do município; desligada, volta ao centro (city.ref).
+function exactSpot(city) {
+  const exact = globalThis.PLUVIA?.exactLocation;
+  if (!city) return city;
+  let base = city;
+  if (city.exact && city.ref) { const {ref, exact: _drop, ...rest} = city; base = {...rest, lat:ref.lat, lon:ref.lon}; }
+  if (!exact?.enabled?.()) return base;
+  const point = exact.pointFor(base.id);
+  return point ? exact.apply(base, point) : base;
+}
+const sameSpot = (a, b) => Boolean(a && b && a.id === b.id && a.lat === b.lat && a.lon === b.lon);
 function chooseCity(id, locatedCity = null) {
-  const city = locatedCity || cityById.get(id);
+  let city = locatedCity || cityById.get(id);
   if (!city) return;
   if ($("cityDialog")?.open && !locatedCity) rememberRecentCity(city.id);
   if (city.needsDetails) {
@@ -2455,11 +2469,12 @@ function chooseCity(id, locatedCity = null) {
     }).catch(() => { if (choice === cityChoiceAttempt) $("cityPickerStatus").textContent = "Não foi possível abrir esta cidade. Tente novamente."; });
     return;
   }
+  city = exactSpot(city);
   cityChoiceAttempt++;
   // A successful explicit selection supersedes the bootstrap fallback notice.
   const notice = $("locationNotice");
   if (notice) { notice.hidden = true; notice.textContent = ""; }
-  if (city.id === activeCity?.id && !Number.isFinite(locatedCity?.distanceKm)) {
+  if (sameSpot(city, activeCity) && !Number.isFinite(locatedCity?.distanceKm)) {
     locationAttempt++; locationPending = false; locationButtons(false);
     closeCitySearch(); return;
   }
@@ -2489,7 +2504,9 @@ function chooseCity(id, locatedCity = null) {
   writePreference("pluvia-city", city.id);
   countCityVisit(city.id);
   syncCityPage(city);
-  writePreference("pluvia-city-record", {id:city.id,name:city.name,uf:city.uf,state:city.state,lat:city.lat,lon:city.lon,timezone:city.timezone});
+  // O registro da cidade guarda o centro do município, nunca o ponto da localização exata.
+  const center = city.ref || city;
+  writePreference("pluvia-city-record", {id:city.id,name:city.name,uf:city.uf,state:city.state,lat:center.lat,lon:center.lon,timezone:city.timezone});
   globalThis.dispatchEvent?.(new CustomEvent('pluvia:city-changed',{detail:{id:city.id}}));
   clearTimeout(errorTimer);
   $("errorToast").classList.remove("show");
@@ -2673,7 +2690,8 @@ function requestLocation(source = 'automatic') {
   locationPending = true;
   locationSource = source;
   locationButtons(true);
-  if (!automatic) locationMessage("Usamos só a cidade mais próxima, nunca o endereço. Toque em Permitir no aviso do aparelho.");
+  const exactOn = () => Boolean(globalThis.PLUVIA?.exactLocation?.enabled?.());
+  if (!automatic) locationMessage(exactOn() ? "Usamos um ponto perto de você, arredondado em cerca de 1 km, nunca o endereço. Toque em Permitir no aviso do aparelho." : "Usamos só a cidade mais próxima, nunca o endereço. Toque em Permitir no aviso do aparelho.");
   navigator.geolocation.getCurrentPosition(position => {
     if (attempt !== locationAttempt) return;
     const applyLocation = () => {
@@ -2681,8 +2699,11 @@ function requestLocation(source = 'automatic') {
       const city = nearestCity(position.coords.latitude, position.coords.longitude);
       locationPending = false; locationButtons(false);
       globalThis.pluviaAnalytics?.track('Location Authorized',{city:city.name,uf:city.uf});
+      // Localização exata: o ponto arredondado fica guardado neste aparelho e chooseCity o aplica (exactSpot).
+      const point = exactOn() ? globalThis.PLUVIA.exactLocation.remember(city.id, position.coords.latitude, position.coords.longitude) : null;
       chooseCity(city.id, city);
-      locationMessage("A previsão usa um ponto de referência a cerca de " + Math.round(city.distanceKm) + " km do centro de " + city.name + ", não o endereço exato.");
+      locationMessage(point ? "A previsão usa um ponto perto de você em " + city.name + ", arredondado em cerca de 1 km. A posição fica só neste aparelho." : "A previsão usa um ponto de referência a cerca de " + Math.round(city.distanceKm) + " km do centro de " + city.name + ", não o endereço exato.");
+      if (point) globalThis.dispatchEvent?.(new CustomEvent("pluvia:exact-point", {detail:{id:city.id}}));
     };
     const failLocation = () => {
       if (attempt !== locationAttempt) return;
@@ -2723,6 +2744,11 @@ function requestLocationIfGranted() {
   permissions.query({name:"geolocation"}).then(status => { if (status.state === "granted") requestLocation('automatic'); }).catch(() => {});
 }
 requestLocationIfGranted();
+// Ligar a localização exata pede a posição na hora (o toque já é o gesto); desligar volta ao centro da cidade.
+globalThis.addEventListener?.("pluvia:exact-location-changed", event => {
+  if (event.detail?.on) requestLocation('exact');
+  else if (activeCity?.exact) chooseCity(activeCity.id, exactSpot(activeCity));
+});
 setInterval(() => { if (!document.hidden) refreshAll(); }, AUTO_REFRESH_MS);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) updateClock(); refreshIfStale(); });
 clearAppBadge();
